@@ -1,0 +1,67 @@
+name: Resident Evil 3 - Nemesis (USA) SLUS_009.23
+sha1: e0e88e8e3242152658b897ef618379d06cf21b72
+options:
+  basename: slus_009.23
+  target_path: iso/SLUS_009.23
+  elf_path: build/slus_009.23.elf
+  base_path: .
+  platform: psx
+  compiler: PSYQ
+
+  asm_path: asm
+  src_path: src
+  build_path: build
+  create_asm_dependencies: True
+
+  ld_script_path: slus_009.23.ld
+  ld_dependencies: True
+
+  # Game code appears to be built with -G 0 (only 1 gp-relative access in all of .text),
+  # but crt0 still sets $gp = 0x80094680 (== end of .text).
+  gp_value: 0x80094680
+
+  find_file_boundaries: True
+
+  o_as_suffix: True
+  use_legacy_include_asm: False
+
+  section_order: [".rodata", ".text", ".data", ".bss"]
+
+  symbol_addrs_path:
+    - symbol_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
+
+  undefined_funcs_auto_path: undefined_funcs_auto.txt
+  undefined_syms_auto_path: undefined_syms_auto.txt
+
+  extensions_path: tools/splat_ext
+
+  subalign: 2
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # include_asm_macro_style: maspsx_hack
+
+# Memory map (from crt0 @ 0x80011B80 and the PS-X EXE header):
+#   0x80010000 - 0x80094680  .text   (file 0x00800 - 0x84E80)
+#   0x80094680 - 0x800B9DE8  data    (tables, strings, jump tables mixed; not yet split into rodata/data)
+#   0x800B9DE8 - 0x800E34B0  BSS cleared by crt0 (but present in the file as zeros)
+#   0x800E34B0 - 0x800E3800  padding to file end
+segments:
+  - name: header
+    type: header
+    start: 0x0
+
+  - name: main
+    type: code
+    start: 0x800
+    vram: 0x80010000
+    subsegments:
+      - [0x800, asm]            # .text
+      - [0x84E80, data]         # data / rodata (to be split)
+      - [0xAA5E8, data, zero_bss]   # crt0-cleared region, kept in-file for a byte match
+  - [0xD4000]

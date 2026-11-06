@@ -1,0 +1,17 @@
+# copyrighted game data - never commit
+disc/
+iso/
+# generated
+build/
+asm/
+assets/
+*.ld
+undefined_funcs_auto.txt
+undefined_syms_auto.txt
+.splache
+# local toolchain / env
+.venv/
+tools/binutils/
+tools/deb/
+__pycache__/
+*.d

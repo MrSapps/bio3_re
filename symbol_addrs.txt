@@ -1,0 +1,1 @@
+entrypoint = 0x80011B80; // type:func
