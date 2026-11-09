@@ -61,3 +61,12 @@ Door_model_init = 0x800162D0; // type:func  RE2 DOOR.C Door_model_init
 Door_model_set = 0x80016334; // type:func  RE2 DOOR.C Door_model_set (SCE opcode, returns 1)
 Door_snd_trans = 0x8001644C; // type:func  RE2 DOOR.C Door_snd_trans ("DOOR SOUND")
 Kage_work9_set = 0x80019690; // type:func  RE2 EM_SUB.C Kage_work9_set
+// ---- matched in pass 2 (suggested names, functions keep their func_ names in the .c) ----
+Em_dead_flg_on_cand = 0x8001AE2C; // type:func  RE2 EM_SUB.C Em_dead_flg_on counterpart (not matched: s1 hoist)
+MulKage = 0x80019A50; // type:func  RE2 EM_SUB.C MulKage (matched as func_80019A50)
+Foot_set_pl = 0x80019318; // type:func  RE2 EM_SUB.C Foot_set_pl (matched as func_80019318)
+Enemy_work_set = 0x80017574; // type:func  RE2 EM_SET.C Enemy_work_set (not matched: regalloc, see notes)
+Em_work_add = 0x8001AF3C; // type:func  appends one ENEMY_WORK copy to G.pEnemy[] (matched as func_8001AF3C)
+Door_Trans = 0x80015964; // type:func  RE2 DOOR.C Door_Trans (called from Door_move)
+Door_texture_load = 0x80016208; // type:func  RE2 DOOR.C Door_texture_load (uses rodata "DOOR TEXTURE")
+Esp_task_main = 0x8001BB24; // type:func  effect pool update loop (matched as func_8001BB24)

@@ -17,11 +17,23 @@ typedef struct tagVCUT {
 
 /* room header (RE2 struct tagROOM_HEAD) */
 typedef struct tagROOM_WORK {
-    UCHAR pad0[0x20];
+    UCHAR nSprite;                     /* 0x00 RE2 nSprite (func_80048844) */
+    UCHAR pad1;
+    UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
+    UCHAR pad3[7 - 3];
+    UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (func_80048630) */
+    UCHAR pad8[0x20 - 0x8];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */
     UCHAR pad24[0x28 - 0x24];
     VCUT *pVcut;                       /* 0x28 */
     ULONG *pLight;                     /* 0x2C RE2 LIGHT_CUT_DATA *pLight; RE3 adds a per-cut zone table (see sub.h) */
+    UCHAR pad30[0x34 - 0x30];
+    USHORT *pUnk34;                    /* 0x34 count, then 0xC byte records (func_80057E74) */
+    USHORT *pBlock;                    /* 0x38 RE2 pBlock (func_80049E80: [0] = count) */
+    UCHAR *pMessage;                   /* 0x3C RE2 pMessage (offset table, then the text) */
+    UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
+    UCHAR pad44[0x48 - 0x44];
+    UCHAR *pScd;                       /* 0x48 scenario data (Sce.pCScd) */
 } ROOM_WORK;
 
 /* screen fade (RE2 struct tagFADE; RE3 fades between two colours) */
@@ -56,11 +68,18 @@ typedef struct tagDBUF {
 typedef struct tagMAIN {
     DBUF Db[2];                        /* 0x000 */
     DBUF *pDb;                         /* 0x180 */
-    UCHAR pad184[0x18D - 0x184];
+    RECT Rect;                         /* 0x184 RE2 Main.Rect */
+    UCHAR Vloop;                       /* 0x18C RE2 Main.Vloop (Door_exit) */
     UCHAR Bg_mode;                     /* 0x18D */
-    UCHAR pad18E[0x192 - 0x18E];
+    UCHAR Unk18E;                      /* 0x18E flash request (func_80024F74) */
+    UCHAR pad18F[0x192 - 0x18F];
     UCHAR Curtain_kido;                /* 0x192 */
-    UCHAR pad193[0x19C - 0x193];
+    UCHAR pad193;
+    UCHAR Unk194;                      /* 0x194 */
+    UCHAR Unk195;                      /* 0x195 */
+    UCHAR Unk196;                      /* 0x196 */
+    UCHAR pad197;
+    ULONG Unk198;                      /* 0x198 flags (0x400000 tested by func_80029700) */
     FADE Fade[4];                      /* 0x19C */
 } tagMAIN;
 extern tagMAIN Main;                   /* 0x800D42A0 */
@@ -75,6 +94,13 @@ typedef struct tagGAME {
     UCHAR pad7;
     UCHAR Plight_bak[0x28];            /* 0x08 saved LIGHT_CUT_DATA */
     VECTOR Plight_pos;                 /* 0x30 */
+    UCHAR pad40[0x44 - 0x40];
+    ULONG Stop_bak;                    /* 0x44 RE2 Game.Stop_bak */
+    struct tagSAVE_POS *pSave;         /* 0x48 (func_80024B34) */
+    UCHAR Unk4C;                       /* 0x4C */
+    UCHAR Unk4D;                       /* 0x4D */
+    UCHAR pad4E;
+    UCHAR Unk4F;                       /* 0x4F cleared by Init_system */
 } tagGAME;
 extern tagGAME Game;                   /* 0x800C7960 */
 

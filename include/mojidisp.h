@@ -13,8 +13,18 @@ typedef struct tagMOJIDISP {
     UCHAR pad7508[0x75C8 - 0x7508];
     UCHAR Mess_flg;                    /* 0x75C8 */
     UCHAR Unk75C9;                     /* 0x75C9 set with the print attr (Print_color) */
-    UCHAR pad75CA[0x75E4 - 0x75CA];
+    UCHAR Mess_r_no0;                  /* 0x75CA RE2 Mess_r_no0 */
+    UCHAR Mess_item;                   /* 0x75CB RE2 Mess_item */
+    UCHAR pad75CC[0x75D0 - 0x75CC];
+    UCHAR *Mess_top;                   /* 0x75D0 RE2 Mess_top */
+    UCHAR pad75D4[0x75E0 - 0x75D4];
+    USHORT Pos_x_def;                  /* 0x75E0 RE2 Pos_x_def */
+    USHORT Pos_y_def;                  /* 0x75E2 RE2 Pos_y_def */
     USHORT Mess_attr;                  /* 0x75E4 print attr: bits 3-7 colour, 0x8000 */
+    USHORT Mess_attr2;                 /* 0x75E6 Mess_set Attr | 0x100 */
+    UCHAR pad75E8[0x75F0 - 0x75E8];
+    ULONG Stop_keep;                   /* 0x75F0 RE2 Stop_keep */
+    ULONG Stop_data;                   /* 0x75F4 RE2 Stop_data */
 } MOJIDISP;
 extern MOJIDISP Moji;                  /* 0x800D4590 */
 

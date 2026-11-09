@@ -41,15 +41,29 @@ typedef struct tagCD {
     UCHAR Unk85F;                      /* 0x85F */
     USHORT Ring_status[CD_RING_BUFFERS]; /* 0x860 */
     USHORT Ring_size[CD_RING_BUFFERS];   /* 0x880 */
-    UCHAR pad8A0[0x8B8 - 0x8A0];
+    struct tagCD_ENTRY *pEntry;        /* 0x8A0 packed file directory (func_800138B0) */
+    struct tagCD_ENTRY *pEntry2;       /* 0x8A4 */
+    UCHAR pad8A8[0x8B8 - 0x8A8];
     ULONG Unk8B8;                      /* 0x8B8 */
-    UCHAR pad8BC[0x8C2 - 0x8BC];
+    ULONG Unk8BC;                      /* 0x8BC */
+    UCHAR Unk8C0;                      /* 0x8C0 */
+    UCHAR Entry_no;                    /* 0x8C1 */
     UCHAR Unk8C2;                      /* 0x8C2 */
     UCHAR Unk8C3;                      /* 0x8C3 */
-    UCHAR pad8C4[0x8D2 - 0x8C4];
+    UCHAR Em_id[4];                    /* 0x8C4 sorted enemy kinds in the room (func_800150E4) */
+    ULONG Unk8C8;                      /* 0x8C8 flags */
+    ULONG Unk8CC;                      /* 0x8CC */
+    UCHAR pad8D0[0x8D2 - 0x8D0];
     UCHAR Fade_flg;                    /* 0x8D2 volume fade-out active */
     UCHAR Fade_step;                   /* 0x8D3 volume fade-out step */
 } tagCD;
+/* packed file directory entry (8 bytes) */
+typedef struct tagCD_ENTRY {
+    ULONG Size;                        /* 0x0 */
+    UCHAR pad4[3];
+    UCHAR Id;                          /* 0x7 0x80: more entries follow */
+} CD_ENTRY;
+
 extern tagCD CD;                       /* 0x800B9E10 */
 
 extern UCHAR Cd_mode;                  /* 0x800971CB, RE2: static cdmode in Cd_init */

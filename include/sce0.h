@@ -43,12 +43,19 @@ typedef struct tagSCENARIO {
     SCE_TASK Sce_task[SCE_TASK_MAX];   /* 0x0000 */
     UCHAR pad1458[0x145C - 0x1458];    /* RE2 Random_base? */
     UCHAR *pCScd;                      /* 0x145C */
-    UCHAR pad1460[0x148C - 0x1460];
+    UCHAR pad1460[0x1464 - 0x1460];
+    UCHAR *pMizu_div;                  /* 0x1464 RE2 pMizu_div */
+    UCHAR pad1468[0x1489 - 0x1468];
+    UCHAR Unk1489;                     /* 0x1489 */
+    UCHAR pad148A[0x148C - 0x148A];
     UCHAR Type;                        /* 0x148C 0: room script tasks (2..9), else door tasks (10..13) */
-    UCHAR pad148D[0x149B - 0x148D];
+    UCHAR pad148D[0x1495 - 0x148D];
+    UCHAR Mizu_div_max;                /* 0x1495 RE2 Mizu_div_max */
+    UCHAR pad1496[0x149B - 0x1496];
     UCHAR Unk149B;                     /* 0x149B */
     UCHAR Unk149C;                     /* 0x149C */
     UCHAR Unk149D;                     /* 0x149D */
+    UCHAR Unk149E;                     /* 0x149E index into D_80098728 (func_800523C4) */
 } SCENARIO;
 extern SCENARIO Sce;                   /* 0x800DECE8 */
 

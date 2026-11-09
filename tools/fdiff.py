@@ -76,8 +76,9 @@ def build(cfile, cc, flags):
     cc1 = f"{ROOT}/tools/compilers/{cc}/cc1 -quiet {flags} -o -"
     masp = f"{sys.executable} {ROOT}/tools/maspsx/maspsx.py --aspsx-version=2.77 -G0"
     asm = f"{BIN}as -EL -march=r3000 -mtune=r3000 -msoft-float -no-pad-sections -G0 -I{ROOT}/include -I{ROOT} -o {obj} -"
-    r = subprocess.run(f"cd {ROOT} && {cpp} | {cc1} | {masp} | {asm}", shell=True, env=ENV,
-                       capture_output=True, text=True)
+    # pipefail: a cc1 error must fail the build, not yield a partial object
+    r = subprocess.run(["bash", "-o", "pipefail", "-c", f"cd {ROOT} && {cpp} | {cc1} | {masp} | {asm}"],
+                       env=ENV, capture_output=True, text=True)
     if r.returncode or not os.path.exists(obj):
         sys.exit("build failed:\n" + r.stderr[-3000:])
     return obj

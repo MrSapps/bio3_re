@@ -94,3 +94,21 @@ prologue/epilogue register save order should separate GCC 2.7.2 from 2.8.1/2.95.
 Known splat issue: 80053FE0-800541E4 are `jlabel` case bodies of func_80053FAC's jump table, not functions.
 Matching rules learnt: functions must stay in address order in the .c (a misplaced INCLUDE_ASM shifted SCA by 8 bytes);
 `(UCHAR)pEm->Type` gives the `lbu` RE3 uses for the weapon/type byte; `G.Sce_work` must be indexed via pointer arithmetic.
+
+### More matching rules (second pass, 6 files)
+- `char` is unsigned here (-funsigned-char): use `signed char` for `sll 24/sra 24`.
+- Oversized frame: an unused local (`SVECTOR Unused;`, `LONG Dummy[4]`) in the original.
+- `__builtin_abs(x)` or `x < 0 ? -x : x` gives bgez/move/negu; `if (x<0) x=-x;` does not.
+- `n = x & M; n = n != 0;` gives andi+sltu; `(x & M) != 0` inline gives srl/andi.
+- Target keeps `&G`/`&Main`/`&Snd_work` in an s-register: use `tagGLOBAL *pG = &G;` etc.
+- No hoisting/loop rotation in target: write the loop with goto or do/while.
+- Use real struct fields, not `*(T*)((UCHAR*)p+off)`: casts change scheduling and base registers.
+- Switch decision tree with an extra compare: an empty `case N: break;` existed.
+- Non-void function with no return: v0 is not used to fill the final delay slot.
+- Void callee whose result the original uses as int: call through an int-returning prototype.
+- Different prototype for one caller: `T name(...) __asm__("func_X");` alias. Never cast-call a
+  function defined in the same file (gcc 2.8 drops the call).
+- `a = b = x` stores b first; store/assignment order is a cheap permutation to try.
+- fdiff/make use pipefail: any cc1 error fails the build (conflicting prototypes were silently
+  tolerated before).
+- syms/*.txt names are linked via build/syms.ld as PROVIDE(), so C definitions take precedence.

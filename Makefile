@@ -15,7 +15,7 @@ SPLAT    := .venv/bin/splat
 
 # Cap memory of every recipe at 1 GiB
 SHELL    := /bin/bash
-.SHELLFLAGS := -c 'ulimit -v 1048576; eval "$$1"' --
+.SHELLFLAGS := -o pipefail -c 'ulimit -v 1048576; eval "$$1"' --
 
 ASFLAGS  := -EL -march=r3000 -mtune=r3000 -msoft-float -no-pad-sections -G0 -Iinclude
 LDFLAGS  := -EL --no-check-sections -nostdlib
@@ -49,8 +49,14 @@ $(BUILD)/%.c.o: %.c
 
 -include $(shell find $(BUILD) -name '*.d' 2>/dev/null)
 
-$(BUILD)/$(BASENAME).elf: $(O_FILES) $(BASENAME).ld undefined_funcs_auto.txt undefined_syms_auto.txt
-	$(LD) $(LDFLAGS) -T $(BASENAME).ld -T undefined_funcs_auto.txt -T undefined_syms_auto.txt \
+# names introduced while matching (syms/*.txt); PROVIDE so C definitions win
+SYMS_LD  := $(BUILD)/syms.ld
+$(SYMS_LD): $(wildcard syms/*.txt)
+	@mkdir -p $(dir $@)
+	sed -E 's://.*$$::; s/^\s*([A-Za-z_][A-Za-z0-9_.]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;/PROVIDE(\1 = \2);/' $^ > $@
+
+$(BUILD)/$(BASENAME).elf: $(O_FILES) $(BASENAME).ld undefined_funcs_auto.txt undefined_syms_auto.txt $(SYMS_LD)
+	$(LD) $(LDFLAGS) -T $(BASENAME).ld -T undefined_funcs_auto.txt -T undefined_syms_auto.txt -T $(SYMS_LD) \
 		-Map $(BUILD)/$(BASENAME).map -o $@
 
 $(BUILD)/$(BASENAME): $(BUILD)/$(BASENAME).elf

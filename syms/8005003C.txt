@@ -57,3 +57,11 @@ Work_set = 0x8005441C; // type:func  RE2 SCE1 Work_set (not matched)
 Speed_set = 0x8005450C; // type:func  RE2 SCE1 Speed_set
 Add_speed = 0x80054538; // type:func  RE2 SCE1 Add_speed
 Add_aspeed = 0x800545B4; // type:func  RE2 SCE1 Add_aspeed
+// data (SCE_AT)
+Old_Fatari = 0x800DECB4;    // RE2 Old_Fatari
+Old_Uatari = 0x800DECB8;    // RE2 Old_Uatari
+Flg_addr = 0x8009E3F8;      // RE2 Flg_addr (flag table pointers)
+Mess_set = 0x8002FD30; // type:func  RE2 MOJIDISP Mess_set
+pCAot = 0x800DECB0;          // RE2 pCAot (AOT being processed)
+St = 0x800E01C0;            // RE2 St (status screen work)
+Sce_at_jump_tbl = 0x8009E0BC; // RE2 Sce_at_jump_tbl (AOT handlers)

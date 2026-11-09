@@ -46,3 +46,4 @@ Snd_tone_mask = 0x8007707C; // type:func  bit mask of VagAtr whose min..max cont
 Snd_seq_stop = 0x800773C4; // type:func
 Snd_seq_stop_all = 0x80077414; // type:func  Snd_seq_stop(0..2)
 Snd_seq_play_ck = 0x80077554; // type:func
+D_800C7048 = 0x800C7048;   // FC_SAVE save-data block
