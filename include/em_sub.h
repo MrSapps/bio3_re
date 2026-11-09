@@ -1,0 +1,114 @@
+#ifndef EM_SUB_H
+#define EM_SUB_H
+/*
+ * RE2 EM_SUB.C / EM_SUB.H: enemy helper routines (movement, direction checks,
+ * shadows, neck rotation, ...). RE3 layouts were taken from the RE3 code.
+ */
+#include "bio3.h"
+
+/* enemy work (RE2 struct tagENEMY_WORK; RE3 layout differs: no pTmd2/pPacket2, no dummy00) */
+typedef struct tagENEMY_WORK {
+    ULONG Be_flg;                      /* 0x000 */
+    UCHAR Routine_0;                   /* 0x004 */
+    UCHAR Routine_1;                   /* 0x005 */
+    UCHAR Routine_2;                   /* 0x006 */
+    UCHAR Routine_3;                   /* 0x007 */
+    UCHAR Parts_num;                   /* 0x008 RE3 moved it here (PartsWork_set) */
+    UCHAR pad9[0x14 - 0x9];
+    ULONG *pTmd;                       /* 0x014 byte at [-4] = part count */
+    UCHAR pad18[0x34 - 0x18];
+    LONG Pos_x;                        /* 0x034 */
+    LONG Pos_y;                        /* 0x038 */
+    LONG Pos_z;                        /* 0x03C */
+    UCHAR pad40[0x46 - 0x40];
+    USHORT Type;                       /* 0x046 low byte = player weapon (RE2 Type & 0xfff) */
+    UCHAR pad48[0x4A - 0x48];
+    UCHAR Id;                          /* 0x04A enemy kind (0x10+ for enemies, Pl_Em_damage indexes by Id - 0x10) */
+    UCHAR pad4B[0x6C - 0x4B];
+    SHORT Cdir_x;                      /* 0x06C */
+    SHORT Cdir_y;                      /* 0x06E */
+    SHORT Cdir_z;                      /* 0x070 */
+    USHORT dummy01;                    /* 0x072 */
+    ULONG Poly_rgb;                    /* 0x074 */
+    MATRIX *pSuper;                    /* 0x078 */
+    UCHAR pad7C[0xAE - 0x7C];
+    USHORT UnkAE;                      /* 0x0AE */
+    UCHAR padB0[0xC0 - 0xB0];
+    SHORT Spd_x;                       /* 0x0C0 */
+    SHORT Spd_y;                       /* 0x0C2 */
+    SHORT Spd_z;                       /* 0x0C4 */
+    UCHAR padC6[0xC8 - 0xC6];
+    UCHAR Move_no;                     /* 0x0C8 */
+    UCHAR Move_cnt;                    /* 0x0C9 */
+    UCHAR padCA[0xCC - 0xCA];
+    SHORT Life;                        /* 0x0CC */
+    SHORT Max_life;                    /* 0x0CE */
+    UCHAR padD0[0xD2 - 0xD0];
+    USHORT Status_flg;                 /* 0x0D2 player: 0x200 poisoned (Pl_move), 0x800 cleared by Pl_life_up */
+    UCHAR padD4[0xD8 - 0xD4];
+    SHORT Timer0;                      /* 0x0D8 */
+    UCHAR padDA[0xDC - 0xDA];
+    SHORT Base_pos_x;                  /* 0x0DC */
+    SHORT Base_pos_y;                  /* 0x0DE */
+    SHORT Base_pos_z;                  /* 0x0E0 */
+    UCHAR padE2[0xE4 - 0xE2];
+    USHORT *pNow_seq;                  /* 0x0E4 */
+    ULONG *pKan_t_ptr;                 /* 0x0E8 RE3 moved it here (RE2: after Parts_num) */
+    ULONG *pSeq_t_ptr;                 /* 0x0EC */
+    ULONG *pSub0_kan_t_ptr;            /* 0x0F0 */
+    ULONG *pSub0_seq_t_ptr;            /* 0x0F4 */
+    ULONG *pSub1_kan_t_ptr;            /* 0x0F8 */
+    ULONG *pSub1_seq_t_ptr;            /* 0x0FC */
+    UCHAR pad100[0x108 - 0x100];
+    struct tagPARTS_W *pSin_parts_ptr; /* 0x108 */
+    UCHAR pad10C[0x110 - 0x10C];
+    struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */
+    UCHAR pad114[0x12D - 0x114];
+    UCHAR Damage_cnt;                  /* 0x12D player: |= 0x80 on game over (Pl_life_down) */
+    UCHAR pad12E[0x132 - 0x12E];
+    USHORT Unk132;                     /* 0x132 bits 8-12 cleared by Pl_life_down */
+    UCHAR pad134[0x160 - 0x134];
+    struct tagKAGE_WORK9 *pKage_work;  /* 0x160 */
+} ENEMY_WORK;
+
+/* animation table header at Kan (RE2 KAN_HEAD, JOINT.H) */
+typedef struct tagKAN_HEAD {
+    USHORT dummy00;                    /* 0x0 */
+    USHORT Bone_ofs;                   /* 0x2 */
+    ULONG Rec_sz;                      /* 0x4 record size in words << 18 */
+} KAN_HEAD;
+
+extern MATRIX GsIDMATRIX;              /* 0x80098970 */
+
+/* Be_flg bits */
+#define BE_FLG_400 0x400
+
+void func_8002D4B0(MATRIX *m0, MATRIX *m1, MATRIX *m2); /* RE2 CompM */
+void func_800775A0(ULONG No, ENEMY_WORK *pEm);          /* RE2 Snd_se_enem */
+void func_800100A4(void *pDst, void *pSrc, ULONG Size); /* RE2 Memcpy */
+
+ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw);
+void Add_speedXZ(ENEMY_WORK *pEm, LONG muki);
+void Add_speedXYZ(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z);
+void Get_speedXZ(ENEMY_WORK *pEm, LONG muki, SHORT *pX, SHORT *pZ);
+void Add_speedXYZsuper(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z);
+LONG Direction_ck(LONG Hontai_x, LONG Hontai_z, LONG Target_x, LONG Target_z);
+void Goto00(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir);
+LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir);
+void Goto01(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir);
+LONG Goto01_ck(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir);
+LONG Dir_pos_ck(VECTOR *pV, VECTOR *pP, SHORT Hed_dir, SHORT Hani_dir);
+LONG L_pos_ckXZ(VECTOR *pV, VECTOR *pP, ULONG Ll);
+LONG L_pos_ckXZM(MATRIX *pM, VECTOR *pP, ULONG Ll, SVECTOR *pSv);
+UCHAR Cdir_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT);
+UCHAR Cdir_ck_pos(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT);
+UCHAR Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT);
+UCHAR Dir_ck(LONG Dir0, LONG Dir1);
+void Set_base_pos(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
+void Null_pos_set(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
+void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
+void Null_pos_set2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
+void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
+void Em_seq_sound(ENEMY_WORK *pEm);
+
+#endif /* EM_SUB_H */

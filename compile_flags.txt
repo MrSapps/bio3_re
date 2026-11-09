@@ -1,0 +1,7 @@
+-Iinclude
+-Isrc
+-I/home/snake/dev/psyq_sdk/psyq_4.4/include
+-D__psx__
+-Dmips
+-m32
+-std=c89

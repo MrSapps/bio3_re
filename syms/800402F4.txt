@@ -1,0 +1,47 @@
+Pl_wep_rot_tbl0 = 0x8009D0B4;
+Pl_wep_rot_tbl1 = 0x8009D0DC;
+Pl_wep_tmd = 0x8009CD38;
+Pl_wep_parts = 0x800DE8F0;
+Pl_wep_oya = 0x800DE8F4;
+Pl_weapon_init = 0x8009DCD4;
+pl_mv05_t2_spr = 0x8009CED8;
+pl_mv05_w_tbl = 0x8009CE88;
+pl_mv05_w0b_tbl = 0x8009D088;
+Pl_wep_poly = 0x800DE8F8;
+// functions (RE2 names; RE2 PL_WEP.C / PL_WEP2.C / SCA.C)
+pl_mv05_w0b = 0x800408C4; // type:func  pl_mv05_w_tbl[0xB - 1] entry; dispatches pl_mv05_w0b_tbl[Routine_2] (RE2 pl_mv05_w1 pattern)
+pl_mv05_w0b_t2 = 0x80040900; // type:func  pl_mv05_w0b_tbl[2] (RE2 pl_mv05_wX_t2: aim/fire state machine, calls pl_mv05_t2_spr)
+Pl_wep_recoil_6 = 0x80040D40; // type:func  weapons 6..9: steps pSin_parts_ptr[22].Cdir_z through Pl_wep_rot_tbl0 (RE2 has no equivalent)
+Pl_wep_ready_reset = 0x80040D24; // type:func  clears weapon-part counters (Unk94/Unk86/Unk96)
+Pl_wep_recoil_10 = 0x80040DDC; // type:func  weapon 0x10 version of 0x80040D40 (Pl_wep_rot_tbl1)
+Pl_wep_flag_set = 0x80040E70; // type:func  pSin_parts_ptr[22].Unk86 = 1
+Pl_wep_spin_0b = 0x80040E80; // type:func  weapon 0xB: spins weapon part Cdir_y (RotMatrix)
+pl_w01_t2_move = 0x80040F34; // type:func  pl_mv05_t2_spr[0]; RE2 pl_w01_t2_move (frame sound)
+pl_w02_t2_move = 0x80040F90; // type:func  pl_mv05_t2_spr[1], [2]; RE2 pl_w02_t2_move (Esp_call muzzle effects)
+Weapon_cls = 0x80043EE4; // type:func  undoes Pl_weapon_ch: pTmd restore, Parts_num -= Pl_wep_tmd[-1] (RE2 Weapon_cls)
+Weapon_parts_clr = 0x80043F14; // type:func  clears weapon parts Be_flg (RE2 Weapon_cls part)
+Pl_weapon_ch_init = 0x80043F58; // type:func  tail of RE2 Pl_weapon_ch: set parts[4].pTmd then Pl_weapon_init[Type](pEm)
+Non_init = 0x80043FA8; // type:func  Pl_weapon_init entry; RE2 Non_init (empty)
+Plw02_init = 0x80043FB0; // type:func  Pl_weapon_init entry; RE2 Plw02_init (pSuper/pOya_parts/Pos_y=0x96)
+Plw_init_43FF0 = 0x80043FF0; // type:func  Pl_weapon_init entry (RE2 Plwxx_init)
+Plw_init_44054 = 0x80044054; // type:func  Pl_weapon_init entry
+Plw_init_440AC = 0x800440AC; // type:func  Pl_weapon_init entry
+Plw_init_440F4 = 0x800440F4; // type:func  Pl_weapon_init entry (same body as Plw02_init)
+Plw_init_44134 = 0x80044134; // type:func  Pl_weapon_init entry
+Plw_init_4417C = 0x8004417C; // type:func  Pl_weapon_init entry
+Pl_wep_eff_init = 0x800452B8; // type:func  calls 0x8004551C + 0x80046C90
+Pl_wep_eff_parts_init = 0x8004551C; // type:func  parts[15..20] reset + Esp kill (func_8001B894)
+Pl_wep_eff_parts_cnt = 0x8004575C; // type:func  counts G.Player parts[15..20] with Unk74 != 0xFF
+Dir_limit = 0x80046B48; // type:func  clamps a direction into Base +- Lim (12-bit angles)
+Get_dir_xz = 0x80046C28; // type:func  catan-based direction of (X, Z) (like RE2 Rot_3D)
+Pl_wep_poly_set = 0x80046DB4; // type:func  PL_WEP_POLY Be_flg/Unk2/Unk4 set
+Pl_wep_poly_rgb = 0x80046DC8; // type:func  sets rgb of both POLY_FT4 buffers
+Quake_add = 0x80048308; // type:func  G.Unk7860/Unk2118/Unk211A += , starts G.Unk2116 timer (90)
+Sca_ck_circle = 0x8004D378; // type:func  RE2 Sca_ck_circle (returns 2 on hit, 0 at centre)
+Sca_ck_circle2 = 0x8004DE40; // type:func  RE2 Sca_ck_circle without the centre check
+Sca_high_box = 0x8004DEB0; // type:func  ground-height table (0x8009E020) entry: box
+Sca_high_circle = 0x8004DED4; // type:func  ground-height table entry: circle (calls Sca_ck_circle)
+Sca_high_naname_a = 0x8004DF8C; // type:func  slope test, returns SCA_DATA.High (RE2 Sca_ck_naname_a)
+Sca_high_naname_b = 0x8004DFEC; // type:func  (RE2 Sca_ck_naname_b)
+Sca_high_naname_c = 0x8004E04C; // type:func  (RE2 Sca_ck_naname_c)
+Sca_high_naname_d = 0x8004E0AC; // type:func  (RE2 Sca_ck_naname_d)

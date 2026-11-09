@@ -20,19 +20,34 @@ SHELL    := /bin/bash
 ASFLAGS  := -EL -march=r3000 -mtune=r3000 -msoft-float -no-pad-sections -G0 -Iinclude
 LDFLAGS  := -EL --no-check-sections -nostdlib
 
-S_FILES  := $(shell find asm -name '*.s' 2>/dev/null)
-O_FILES  := $(patsubst %.s,$(BUILD)/%.o,$(S_FILES))
+# C pipeline: cpp | cc1 (PsyQ 4.4 cc1psx = GCC 2.8.1 SN32, ASPSX 2.77) | maspsx | GNU as
+COMPILER ?= gcc-2.8.1-psx
+CC1      := tools/compilers/$(COMPILER)/cc1
+PSYQ_INC ?= /home/snake/dev/psyq_sdk/psyq_4.4/include
+CPPFLAGS := -P -undef -D__GNUC__=2 -Dmips -D__psx__ -D_LANGUAGE_C -Iinclude -Isrc -I$(PSYQ_INC)
+CFLAGS   := -quiet -O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char
+MASPSX   := $(PYTHON) tools/maspsx/maspsx.py --aspsx-version=2.77 -G0
 
-.PHONY: all split check clean distclean
+S_FILES  := $(wildcard asm/*.s asm/data/*.s)
+C_FILES  := $(shell find src -name '*.c' 2>/dev/null)
+O_FILES  := $(patsubst %.s,$(BUILD)/%.s.o,$(S_FILES)) $(patsubst %.c,$(BUILD)/%.c.o,$(C_FILES))
+
+.PHONY: all split check clean distclean progress
 
 all: check
 
 split:
 	$(SPLAT) split $(BASENAME).yaml
 
-$(BUILD)/%.o: %.s
+$(BUILD)/%.s.o: %.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
+
+$(BUILD)/%.c.o: %.c
+	@mkdir -p $(dir $@)
+	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | $(CC1) $(CFLAGS) -o - | $(MASPSX) | $(AS) $(ASFLAGS) -o $@ -
+
+-include $(shell find $(BUILD) -name '*.d' 2>/dev/null)
 
 $(BUILD)/$(BASENAME).elf: $(O_FILES) $(BASENAME).ld undefined_funcs_auto.txt undefined_syms_auto.txt
 	$(LD) $(LDFLAGS) -T $(BASENAME).ld -T undefined_funcs_auto.txt -T undefined_syms_auto.txt \
@@ -40,6 +55,9 @@ $(BUILD)/$(BASENAME).elf: $(O_FILES) $(BASENAME).ld undefined_funcs_auto.txt und
 
 $(BUILD)/$(BASENAME): $(BUILD)/$(BASENAME).elf
 	$(OBJCOPY) -O binary $< $@
+
+progress:
+	@$(PYTHON) tools/progress.py
 
 check: $(BUILD)/$(BASENAME)
 	@sha1sum -c $(BASENAME).sha1

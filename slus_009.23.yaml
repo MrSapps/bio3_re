@@ -22,7 +22,7 @@ options:
 
   find_file_boundaries: True
 
-  o_as_suffix: True
+  o_as_suffix: False
   use_legacy_include_asm: False
 
   section_order: [".rodata", ".text", ".data", ".bss"]
@@ -44,7 +44,10 @@ options:
   rodata_string_guesser_level: 2
   data_string_guesser_level: 2
 
-  # include_asm_macro_style: maspsx_hack
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
 
 # Memory map (from crt0 @ 0x80011B80 and the PS-X EXE header):
 #   0x80010000 - 0x80094680  .text   (file 0x00800 - 0x84E80)
@@ -61,7 +64,27 @@ segments:
     start: 0x800
     vram: 0x80010000
     subsegments:
-      - [0x800, asm]            # .text
-      - [0x84E80, data]         # data / rodata (to be split)
-      - [0xAA5E8, data, zero_bss]   # crt0-cleared region, kept in-file for a byte match
+      # SLD.S (handwritten LZ decompressor / mem helpers, same as RE2)
+      - { start: 0x800, type: asm, name: sld, linker_section_order: .rodata }
+      # .rdata of all game objects (PSYLINK puts .rdata first in the text group, like RE2)
+      - [0xB1C, .rodata, game/80011CF8]
+      - [0xC1C, .rodata, game/80020298]
+      - [0xD5C, .rodata, game/800303CC]
+      - [0x1048, .rodata, game/800402F4]
+      - [0x10E8, .rodata, game/8005003C]
+      - [0x1590, .rodata, game/800601F0]
+      - [0x18F0, rodata, psyq_rodata]
+      # crt0 (PsyQ NOHEAP)
+      - [0x2380, asm, noheap]
+      # game code
+      - [0x24F8, c, game/80011CF8]
+      - [0x10A98, c, game/80020298]
+      - [0x20BCC, c, game/800303CC]
+      - [0x30AF4, c, game/800402F4]
+      - [0x4083C, c, game/8005003C]
+      - [0x509F0, c, game/800601F0]
+      # Sony PsyQ libraries (libspu, libgte, libgpu, libcd, libapi, libc, ...)
+      - [0x6D7C8, asm, psyq]
+      - [0x84E80, data, data]          # .data / .sdata / .bss-with-init (to be split)
+      - [0xAA5E8, data, zero_bss]      # crt0-cleared region, kept in-file for a byte match
   - [0xD4000]

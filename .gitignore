@@ -15,3 +15,9 @@ tools/binutils/
 tools/deb/
 __pycache__/
 *.d
+
+# local copies of decomp tools / compilers (see README)
+tools/compilers/
+tools/maspsx/
+tools/m2c/
+tools/asm-differ/

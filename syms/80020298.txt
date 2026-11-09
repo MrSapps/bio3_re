@@ -1,0 +1,50 @@
+Main = 0x800D42A0;
+Ev0 = 0x800D2650;
+Ev1 = 0x800D2654;
+Ev2 = 0x800D2658;
+Ev3 = 0x800D265C;
+Ev10 = 0x800D4284;
+Ev11 = 0x800D4288;
+Ev13 = 0x800D428C;
+Moji = 0x800D4590;
+Trans = 0x800BF830;
+Line = 0x800C79F8;
+quake_tbl1 = 0x800989B0;
+quake_tbl2 = 0x800989D0;
+Vib_data_tbl = 0x800986D0;
+Game = 0x800C7960;
+// ---- suggested function names (C keeps func_XXXXXXXX) ----
+Trans_work_init = 0x800231F4; // type:func  RE2 TRANS.C Trans_work_init (0x300 POLY_FT4 tag/code init, then Trans_pointer_set)
+Trans_pointer_set = 0x80023240; // type:func  RE2 TRANS.C Trans_pointer_set
+Gun_light_set = 0x80024384; // type:func  RE2 GAME.C Gun_light_set (Plight_col ff/e6/a0, 0x4B0 Rot_vector, L=6000)
+Gun_light_reset = 0x80024540; // type:func  RE2 GAME.C Gun_light_reset (Memcpy back, Plight_cnt>1 clears)
+Flash_fade_in = 0x800250CC; // type:func  (guess) vibration + SE 0x22E + white Fade_set(2), wait Fade_status
+Flash_fade_out = 0x80025154; // type:func  (guess) Fade_set(2) white->black, then 0x23 Task_sleep
+PartsWork_set = 0x80026178; // type:func  RE2 JOINT.C PartsWork_set (Parts_num from pTmd[-4], *0xBC)
+Parts_work_pos_init = 0x80026408; // type:func  RE2 JOINT.C Parts_work_kan_init position loop (Pos/Old from kan+8)
+line_scr_end = 0x80028E18; // type:func  RE2 LINE_SCR.C line_scr_end
+line_trans = 0x80028CC4; // type:func  RE2 LINE_SCR.C line_trans
+line_mode_set = 0x80028E4C; // type:func  RE2 LINE_SCR.C line_mode_set (Ot_no 1/0/2, stale pOt default kept)
+Line_work_init = 0x80028F00; // type:func  RE2 LINE_SCR.C Line_work_init
+System_trans_all = 0x80029D08; // type:func  calls System_trans, Curtain_trans, Moji_trans_main (RE2 main loop tail)
+Curtain_trans = 0x80029D38; // type:func  RE2 MAIN.C System_trans curtain part (STAT_CINESCO, Curtain_kido +-0x10)
+Soft_reset = 0x8002A1F8; // type:func  RE2 MAIN.C main frame_reset block (ClearImage 0,0,320,480, Bg_set_mode, Task_kill x3)
+Bg_set_mode = 0x8002A338; // type:func  RE2 MAIN.C Bg_set_mode (RE3 mode 1 = colour fill)
+Fade_set = 0x8002A35C; // type:func  RE2 MAIN.C Fade_set (RE3: No, Pri, Flg, Abr, Rgb0, Rgb1, Cnt)
+Fade_rect_set = 0x8002A458; // type:func  RE2 MAIN.C Fade_adjust rect part
+Fade_off = 0x8002A69C; // type:func  RE2 MAIN.C Fade_off
+Fade_status = 0x8002A6BC; // type:func  RE2 MAIN.C Fade_status
+Fade_out_reset = 0x8002A6E0; // type:func  RE2 MAIN.C main SYS_FADE_OUT block (8 frames, clears SYS_FADE_OUT)
+Cut_check = 0x8002A84C; // type:func  RE2 MAIN.C Cut_check
+Cut_change = 0x8002A938; // type:func  RE2 MAIN.C Cut_change
+Ccut_search = 0x8002A968; // type:func  RE2 MAIN.C Ccut_search
+Card_event_set = 0x8002A9AC; // type:func  RE2 MAIN.C Card_event_set (identical OpenEvent list)
+Md_adr_cnv = 0x8002AC40; // type:func  relocates model object offsets (RE3 model format, used by 0x8002AB34 = Mapping_tmd)
+Md_set_abr = 0x8002C7B0; // type:func  sets prim semi-trans rate bits (<<21) of an MD_OBJ
+Draw_list_all = 0x8002EAD4; // type:func  calls 0x8002EB9C for G+0x265C, G+0x2660 (Be_flg&1) and G.pEnemy[]..ppEnemy_end
+Print_color = 0x8002F2F8; // type:func  RE3 print attr set (Moji.Mess_attr = Attr | Col<<3)
+Print8 = 0x8002F318; // type:func  RE2 MOJIDISP.C Print8 analogue (varargs, Print_main(x|y<<16, Mess_attr, &fmt))
+Print14 = 0x8002F358; // type:func  RE2 Print14 analogue (attr | 0x8000)
+Print8_col = 0x8002F39C; // type:func  Print8 with colour arg
+Print14_col = 0x8002F3E8; // type:func  Print14 with colour arg
+Moji_trans_main = 0x8002FE6C; // type:func  RE2 MOJIDISP.C Moji_trans_main (Mess_disp + moji_trans_main)
