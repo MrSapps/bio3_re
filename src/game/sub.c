@@ -653,8 +653,6 @@ void func_800792FC(void)
     func_8007836C(2, (ULONG *)0x80101000);
 }
 
-/* "INIT_SUB" is the last .rodata of this file: aspsx padded the section to a word */
-__asm__(".section .rodata\n.align 2\n.section .text");
 
 INCLUDE_ASM("asm/nonmatchings/game/sub", func_80079374);
 

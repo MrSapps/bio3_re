@@ -137,6 +137,8 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
 - The ld script packs objects with SUBALIGN(2); ASPSX padded each object's .rdata to a word, so the
   Makefile (and linkcheck.py) append `.section .rodata; .align 2` to every C object. The old per-file
   `__asm__(".section .rodata\n.align 2...")` pads are now redundant.
+- With the split, func_8003B080 and func_8005CB2C (switch tables) match, and the computed-goto
+  workarounds in 800636D4.c (8006A234, 8006E34C, 8006E424) are plain switches again.
 - The six address files were re-cut into 32 with a top-level C splitter; where one object had been split
   across two old files (mojidisp, pl_wep, sca) the second half's conflicting prototypes became
   `__asm__` aliases with an `_<oldfile>` suffix.

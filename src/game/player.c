@@ -814,7 +814,41 @@ void pl_mv08_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
 {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/player", func_8003B080);
+extern UCHAR D_800E01C4;
+
+void func_8003B080(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    switch (pEm->Routine_2) {
+    case 0:
+        *(ULONG *)&pEm->Move_no = 0x70005;
+        pEm->Routine_2 = 1;
+        *(ULONG *)&pEm->Spd_x = 0;
+        G.Status_flg |= 0x140;
+    case 1:
+        pEm->Routine_2 += func_80027940(pEm, (ULONG *)Kan, (ULONG *)Seq, 0x200);
+        break;
+    case 2:
+        if (!(G.System_flg & 0x40)) {
+            D_800E01C4 = 1;
+            Game.Unk1 = 1;
+            G.Status_flg |= 0x200;
+            Game.Stop_bak = G.Unk2468;
+        }
+        pEm->Routine_2 = 3;
+        break;
+    case 4:
+        *(ULONG *)&pEm->Move_no = 0x70005;
+        pEm->Routine_2 = 5;
+    case 5:
+        pEm->Routine_2 += func_80027940(pEm, (ULONG *)Kan, (ULONG *)Seq, 0x10200);
+        break;
+    case 6:
+        *(ULONG *)&pEm->Routine_0 = 1;
+        G.Status_flg &= ~0x40;
+        G.Status_flg &= ~0x100;
+        break;
+    }
+}
 
 void func_8003B1C4(ENEMY_WORK *pEm, ULONG Flg)
 {

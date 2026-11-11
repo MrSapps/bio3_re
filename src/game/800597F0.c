@@ -1331,7 +1331,30 @@ void func_8005CA14(ENEMY_WORK *pEm)
 void func_8005CB24(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800597F0", func_8005CB2C);
+void func_8005CB2C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    switch (pEm->Routine_2) {
+    case 0:
+        *(ULONG *)&pEm->Move_no = 0x70005;
+        pEm->Routine_2 = 1;
+        *(ULONG *)&pEm->Spd_x = 0;
+    case 1:
+        pEm->Routine_2 += func_80027940(pEm, pKan, pSeq, 0x200);
+        break;
+    case 2:
+        pEm->Routine_2 = 4;
+        break;
+    case 4:
+        *(ULONG *)&pEm->Move_no = 0x70005;
+        pEm->Routine_2 = 5;
+    case 5:
+        pEm->Routine_2 += func_80027940(pEm, pKan, pSeq, 0x10200);
+        break;
+    case 6:
+        *(ULONG *)&pEm->Routine_0 = 1;
+        break;
+    }
+}
 
 void func_8005CBF0(void) {
 }

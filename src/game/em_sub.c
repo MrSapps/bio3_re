@@ -1917,8 +1917,6 @@ void func_8001F674(EFF_WORK *pEw)
     }
 }
 
-/* Spd[] above is the last .rodata of this file: aspsx padded the section to a word */
-__asm__(".section .rodata\n.align 2\n.section .text");
 
 void func_8001F824(EFF_WORK *pEw)
 {

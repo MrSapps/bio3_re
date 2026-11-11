@@ -897,90 +897,84 @@ void func_8006AC88(UCHAR no);
 
 void func_8006A234(ST_WORK *pSt)
 {
-    /* switch (pSt->Rtn2): jtbl_80010F6C is not 8-aligned, see func_8006E424 */
-    static void *const tbl[] = { &&c0, &&c1, &&c2, &&c3, &&c4, &&c5 };
     GLOBAL_X *pG = &GX;
     UCHAR *p;
     UCHAR *pI;
     UCHAR n;
     LONG dx, dy;
-    ULONG r = pSt->Rtn2;
-
-    if (r >= 6) {
-        return;
-    }
-    goto *tbl[r];
-c0:
-    func_8006AC88(FLD(pSt, 0x76, UCHAR));
-    func_8006A9AC(12, FLD(pSt, 0x76, UCHAR));
-    FLD(pSt, 0x13, UCHAR) = 0;
-    pSt->Rtn2++;
-    func_800746C0(6, NULL, 0, 0);
-    return;
-c1:
-    if (FLD(pSt, 0x13, UCHAR) < 12) {
-        FLD(pSt, 0x104, SHORT) += 0x12;
-    } else {
+    switch (pSt->Rtn2) {
+    case 0:
+        func_8006AC88(FLD(pSt, 0x76, UCHAR));
+        func_8006A9AC(12, FLD(pSt, 0x76, UCHAR));
+        FLD(pSt, 0x13, UCHAR) = 0;
         pSt->Rtn2++;
-        pSt->Flg |= 0x20000000;
-        p = pG->pUnk7C7C->Tbl[FLD(pSt, 0x77, signed char)];
-        p[0] = FLD(pSt, 0x76, UCHAR);
-    }
-    goto inc;
-c2:
-    if (D_800CC840 & 0x3000) {
         func_800746C0(6, NULL, 0, 0);
-        n = FLD(pSt, 0x77, UCHAR);
-        FLD(pSt, 0x6F, UCHAR) = 0x38;
-        FLD(pSt, 0x70, UCHAR) = 0x24;
-        FLD(pSt, 0x120, SHORT) = 0x70;
-        FLD(pSt, 0x13, UCHAR) = 0;
-        FLD(pSt, 0x122, SHORT) = 0x7C;
-        dx = (n & 1) * 20 + 0xF4;
-        dy = ((signed char)n / 2) * 30 + 0x51;
-        FLD(pSt, 0x71, UCHAR) = (dx - FLD(pSt, 0x120, SHORT)) / 10;
-        FLD(pSt, 0x72, UCHAR) = (dy - FLD(pSt, 0x122, SHORT)) / 10;
-        pSt->Rtn2++;
-        pSt->Flg = (pSt->Flg | 0x400000) & ~0x20000000;
-    }
-    return;
-c3:
-    if (FLD(pSt, 0x13, UCHAR) < 10) {
-        FLD(pSt, 0x120, SHORT) += FLD(pSt, 0x71, signed char);
-        FLD(pSt, 0x122, SHORT) += FLD(pSt, 0x72, signed char);
-        FLD(pSt, 0x6F, UCHAR) -= 3;
-        FLD(pSt, 0x70, UCHAR) -= 2;
+        break;
+    case 1:
+        if (FLD(pSt, 0x13, UCHAR) < 12) {
+            FLD(pSt, 0x104, SHORT) += 0x12;
+        } else {
+            pSt->Rtn2++;
+            pSt->Flg |= 0x20000000;
+            p = pG->pUnk7C7C->Tbl[FLD(pSt, 0x77, signed char)];
+            p[0] = FLD(pSt, 0x76, UCHAR);
+        }
         FLD(pSt, 0x13, UCHAR)++;
-        return;
-    }
-    p = pG->pUnk7C7C->Tbl[FLD(pSt, 0x77, signed char)];
-    pI = D_800A0514[FLD(pSt, 0x76, UCHAR)];
-    func_8006AE20(FLD(pSt, 0x77, UCHAR), 12);
-    p[0] = FLD(pSt, 0x76, UCHAR);
-    p[1] = pI[1];
-    ((USHORT *)p)[1] = pI[3];
-    pSt->Rtn2++;
-    pSt->Flg &= ~0x400000;
-    return;
-c4:
-    if (D_800CC840 & 0x3000) {
-        func_800746C0(5, NULL, 0, 0);
-        FLD(pSt, 0x13, UCHAR) = 0;
+        break;
+    case 2:
+        if (D_800CC840 & 0x3000) {
+            func_800746C0(6, NULL, 0, 0);
+            n = FLD(pSt, 0x77, UCHAR);
+            FLD(pSt, 0x6F, UCHAR) = 0x38;
+            FLD(pSt, 0x70, UCHAR) = 0x24;
+            FLD(pSt, 0x120, SHORT) = 0x70;
+            FLD(pSt, 0x13, UCHAR) = 0;
+            FLD(pSt, 0x122, SHORT) = 0x7C;
+            dx = (n & 1) * 20 + 0xF4;
+            dy = ((signed char)n / 2) * 30 + 0x51;
+            FLD(pSt, 0x71, UCHAR) = (dx - FLD(pSt, 0x120, SHORT)) / 10;
+            pSt->Rtn2++;
+            pSt->Flg = (pSt->Flg | 0x400000) & ~0x20000000;
+            FLD(pSt, 0x72, UCHAR) = (dy - FLD(pSt, 0x122, SHORT)) / 10;
+        }
+        break;
+    case 3:
+        if (FLD(pSt, 0x13, UCHAR) < 10) {
+            FLD(pSt, 0x120, SHORT) += FLD(pSt, 0x71, signed char);
+            FLD(pSt, 0x122, SHORT) += FLD(pSt, 0x72, signed char);
+            FLD(pSt, 0x6F, UCHAR) -= 3;
+            FLD(pSt, 0x70, UCHAR) -= 2;
+        FLD(pSt, 0x13, UCHAR)++;
+            return;
+        }
+        p = pG->pUnk7C7C->Tbl[FLD(pSt, 0x77, signed char)];
+        pI = D_800A0514[FLD(pSt, 0x76, UCHAR)];
+        func_8006AE20(FLD(pSt, 0x77, UCHAR), 12);
+        p[0] = FLD(pSt, 0x76, UCHAR);
+        p[1] = pI[1];
+        ((USHORT *)p)[1] = pI[3];
         pSt->Rtn2++;
+        pSt->Flg &= ~0x400000;
+        break;
+    case 4:
+        if (D_800CC840 & 0x3000) {
+            func_800746C0(5, NULL, 0, 0);
+            FLD(pSt, 0x13, UCHAR) = 0;
+            pSt->Rtn2++;
+        }
+        break;
+    case 5:
+        if (FLD(pSt, 0x13, UCHAR) < 12) {
+            FLD(pSt, 0x104, SHORT) -= 0x12;
+        } else {
+            pSt->Rtn1 = 0;
+            pSt->Rtn2 = 0;
+            pSt->Unk22 = 0;
+            pSt->Unk24 = 0;
+            pSt->Flg |= 0x20000000;
+        }
+        FLD(pSt, 0x13, UCHAR)++;
     }
-    return;
-c5:
-    if (FLD(pSt, 0x13, UCHAR) < 12) {
-        FLD(pSt, 0x104, SHORT) -= 0x12;
-    } else {
-        pSt->Rtn1 = 0;
-        pSt->Rtn2 = 0;
-        pSt->Unk22 = 0;
-        pSt->Unk24 = 0;
-        pSt->Flg |= 0x20000000;
-    }
-inc:
-    FLD(pSt, 0x13, UCHAR)++;
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006A59C);
@@ -1359,40 +1353,35 @@ void func_80070244(ST_WORK *pSt);
 
 void func_8006E34C(ST_WORK *pSt)
 {
-    /* switch (pSt->Mode): jtbl_8001104C is not 8-aligned, see func_8006E424 */
-    static void *const tbl[] = { &&c01, &&c01, &&c2, &&c3, &&c45, &&c45 };
-    ULONG n = FLD(pSt, 4, UCHAR);
-
-    if (n >= 6) {
-        return;
-    }
-    goto *tbl[n];
-c45:
-    if (pSt->Flg & 0x200000) {
-        func_80070244(pSt);
-    }
-    return;
-c2:
-    func_800654A8(pSt);
-    return;
-c01:
-    if (pSt->Flg & 0x40000000) {
-        func_8006B66C(pSt);
-    }
-    if (pSt->Flg & 0x200000) {
-        func_80070244(pSt);
-    }
-c3:
-    if (pSt->Flg & 0x100000) {
-        func_80063FE4(pSt);
+    switch (FLD(pSt, 4, UCHAR)) {
+    case 4:
+    case 5:
+        if (pSt->Flg & 0x200000) {
+            func_80070244(pSt);
+        }
+        break;
+    case 2:
+        func_800654A8(pSt);
+        break;
+    case 0:
+    case 1:
+        if (pSt->Flg & 0x40000000) {
+            func_8006B66C(pSt);
+        }
+        if (pSt->Flg & 0x200000) {
+            func_80070244(pSt);
+        }
+    case 3:
+        if (pSt->Flg & 0x100000) {
+            func_80063FE4(pSt);
+        }
+        break;
     }
 }
 
 void func_8006E424(ST_WORK *pSt)
 {
-    static void *const tbl[] = { &&c01, &&c01, &&c2, &&c3, &&c4, &&c5 };
     SND_WORK *pW = &Snd_work;
-    ULONG n;
 
     if (Fade_status(0) != 0) {
         return;
@@ -1400,23 +1389,24 @@ void func_8006E424(ST_WORK *pSt)
     if (FLD(pW, 0xB1C, LONG) != 0) {
         return;
     }
-    n = FLD(pSt, 4, UCHAR);
-    if (n >= 6) return;
-    goto *tbl[n];
-c4:
-    pSt->Rtn0 = 4;
-    return;
-c5:
-    pSt->Rtn0 = 4;
-    return;
-c3:
-    pSt->Rtn0 = 7;
-    return;
-c2:
-    pSt->Rtn0 = 10;
-    return;
-c01:
-    pSt->Rtn0 = 1;
+    switch (FLD(pSt, 4, UCHAR)) {
+    case 4:
+        pSt->Rtn0 = 4;
+        break;
+    case 5:
+        pSt->Rtn0 = 4;
+        break;
+    case 3:
+        pSt->Rtn0 = 7;
+        break;
+    case 2:
+        pSt->Rtn0 = 10;
+        break;
+    case 0:
+    case 1:
+        pSt->Rtn0 = 1;
+        break;
+    }
 }
 
 void func_8006E4CC(ST_WORK *pSt)
