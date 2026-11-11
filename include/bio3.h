@@ -64,7 +64,7 @@ typedef struct tagGLOBAL {
     UCHAR pad2048[0x2088 - 0x2048];
     ULONG *pOt2;                       /* 0x2088 */
     ULONG Unk208C;                     /* 0x208C packet pointer (func_80025FB0) */
-    ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (func_80048844) */
+    ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (Psp_trans) */
     UCHAR Padd_data[2][0x24];          /* 0x20B0 RE2 Padd_data (PadInitDirect buffers) */
     LONG Unk20F8;                      /* 0x20F8 set to -1 on soft reset */
     USHORT Unk20FC;                    /* 0x20FC */
@@ -75,7 +75,7 @@ typedef struct tagGLOBAL {
     UCHAR Cbuf_id;                     /* 0x2110 */
     UCHAR Unk2111;                     /* 0x2111 display buffer y != 0 (Swap_Cbuff) */
     UCHAR pad2112;
-    UCHAR Unk2113;                     /* 0x2113 set from the first TIM loaded by func_8001B2A4 */
+    UCHAR Unk2113;                     /* 0x2113 set from the first TIM loaded by Esp_data_set1 */
     UCHAR Unk2114;                     /* 0x2114 cleared by Init_system */
     UCHAR pad2115;
     UCHAR Unk2116;                     /* 0x2116 quake timer? (Quake_add) */
@@ -89,8 +89,8 @@ typedef struct tagGLOBAL {
     UCHAR *pBs_check_sum;              /* 0x212C RE2 pBs_check_sum */
     UCHAR pad2130[0x2134 - 0x2130];
     struct tagROOM_WORK *pRoom;        /* 0x2134 */
-    ULONG Unk2138;                     /* 0x2138 free memory after the 0x8011A000 overlay (func_80049898) */
-    struct tagENEMY_WORK *pEm_mem;     /* 0x213C enemy work allocation pointer (func_80017574) */
+    ULONG Unk2138;                     /* 0x2138 free memory after the 0x8011A000 overlay (Set_stage) */
+    struct tagENEMY_WORK *pEm_mem;     /* 0x213C enemy work allocation pointer (Enemy_work_set) */
     struct tagENEMY_WORK *pEm;         /* 0x2140 current enemy (RE2 G.pEm) */
     struct tagVCUT *Cccut;             /* 0x2144 RE2 G.Cccut (current camera cut zone) */
     struct tagVCUT *Cccut_next;        /* 0x2148 */
@@ -105,12 +105,12 @@ typedef struct tagGLOBAL {
     void (*pPldie_Em[64])();           /* 0x22E8 RE2 pPldie_Em (Pl_Em_die) */
     struct tagSCA_DATA *Sca_list[32];  /* 0x23E8 SCA shapes matching the last search (NULL terminated) */
     ULONG Unk2468;                     /* 0x2468 flags; 0x1000000 tested by pl_mv06_pad / Pl_move */
-    ULONG Unk246C;                     /* 0x246C cleared by Init_global (func_80029988) */
+    ULONG Unk246C;                     /* 0x246C cleared by Init_global (Init_global) */
     ULONG Unk2470;                     /* 0x2470 */
     ULONG Unk2474[4];                  /* 0x2474 */
     USHORT Unk2484;                    /* 0x2484 RE2 Ctpage/Cclut pair (Bg_draw saves it) */
     UCHAR Next_cut_no;                /* 0x2486 */
-    UCHAR Em_num;                      /* 0x2487 number of enemy works to allocate (func_80017574) */
+    UCHAR Em_num;                      /* 0x2487 number of enemy works to allocate (Enemy_work_set) */
     UCHAR pad2488[0x248C - 0x2488];
     ULONG Pl_be_flg;                   /* 0x248C Player.Be_flg (start of the player ENEMY_WORK) */
     UCHAR Pl_routine_0;                /* 0x2490 Player.Routine_0 */
@@ -141,13 +141,13 @@ typedef struct tagGLOBAL {
     UCHAR pad2598[0x259C - 0x2598];
     struct tagENEMY_WORK *Pl_pEnemy_ptr;/* 0x259C Player.pEnemy_ptr */
     UCHAR pad25A0[0x25AE - 0x25A0];
-    SHORT Unk25AE;                     /* 0x25AE Player +0x122, set from the door y (func_800248E4) */
+    SHORT Unk25AE;                     /* 0x25AE Player +0x122, set from the door y (Set_door) */
     UCHAR pad25B0[0x25B9 - 0x25B0];
     UCHAR Pl_damage_cnt;               /* 0x25B9 Player.Damage_cnt */
     UCHAR pad25BA[0x260C - 0x25BA];
-    ULONG Pl_unk180[4];                /* 0x260C Player.Unk180 (kan/seq args of func_80079690 / func_80026BE8) */
+    ULONG Pl_unk180[4];                /* 0x260C Player.Unk180 (kan/seq args of func_80079690 / Joint_move) */
     UCHAR pad261C[0x2640 - 0x261C];
-    ULONG Pl_unk1B4;                   /* 0x2640 Player +0x1B4 (weapon data offset 4, func_80043BE4) */
+    ULONG Pl_unk1B4;                   /* 0x2640 Player +0x1B4 (weapon data offset 4, Pl_weapon_ch) */
     UCHAR pad2644[0x2658 - 0x2644];
     SHORT Pl_poison_timer;             /* 0x2658 RE2 Pl_poison_timer (Pl_move: -1 -> 30 and Life--) */
     UCHAR pad265A[0x265C - 0x265A];
@@ -158,14 +158,14 @@ typedef struct tagGLOBAL {
     UCHAR pad2708[0x2904 - 0x2708];
     struct tagKAGE_WORK9 Kage9[5];     /* 0x2904 */
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
-    void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (func_80049A50) */
-    void (*Unk3EE0[24])();             /* 0x3EE0 all set to func_80058DD4 by func_80059460 */
+    void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
+    void (*Unk3EE0[24])();             /* 0x3EE0 all set to Spl by Spl_set */
     UCHAR pad3F40[0x4328 - 0x3F40];
     UCHAR Ob_model[32][0x194];         /* 0x4328 RE2 Ob_model (OBJ_MODEL_WORK, 0x194 bytes each) */
     UCHAR pad75A8[0x75AC - 0x75A8];
     USHORT *pUnk75AC[11];              /* 0x75AC per object model flag word (func_800557A0) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
-    signed char Unk75D9;               /* 0x75D9 -1 on room init (func_800522D8) */
+    signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
     UCHAR Front_func_rtn;              /* 0x75DA RE2 Front_func_rtn */
     UCHAR Back_func_rtn;               /* 0x75DB RE2 Back_func_rtn */
     void (*Front_func)();              /* 0x75DC RE2 Front_func */
@@ -180,13 +180,13 @@ typedef struct tagGLOBAL {
     UCHAR pad780C[0x780E - 0x780C];
     SHORT Sce_work[8];                 /* 0x780E RE2 G.SaveData.Sce_work (SCE For2/Switch; RE3 indexes it directly, size unknown) */
     UCHAR pad781E[0x783E - 0x781E];
-    SHORT Unk783E;                     /* 0x783E overlay task no - 0x11 (func_80049898) */
+    SHORT Unk783E;                     /* 0x783E overlay task no - 0x11 (Set_stage) */
     SHORT Unk7840;                     /* 0x7840 Room_no? (func_80052968) */
     SHORT Cut_no;                      /* 0x7842 RE2 G.SaveData.Cut_no */
     SHORT Cut_no_old;                  /* 0x7844 RE2 G.SaveData.Cut_no_old (-1 on init) */
     SHORT Room_no_old;                 /* 0x7846 RE2 G.SaveData.Room_no_old (-1 on init) */
     SHORT Unk7848;                     /* 0x7848 */
-    SHORT Unk784A;                     /* 0x784A (func_800248E4) */
+    SHORT Unk784A;                     /* 0x784A (Set_door) */
     SHORT Unk784C;                     /* 0x784C */
     UCHAR pad784E[0x7852 - 0x784E];
     SHORT Unk7852;                     /* 0x7852 player life restore value? */
@@ -198,10 +198,10 @@ typedef struct tagGLOBAL {
     SHORT Unk7860;                     /* 0x7860 */
     SHORT Unk7862;                     /* 0x7862 */
     UCHAR pad7864[0x7888 - 0x7864];
-    ULONG Unk7888;                     /* 0x7888 cleared on room init (func_800522D8) */
+    ULONG Unk7888;                     /* 0x7888 cleared on room init (Sce_work_clr_set) */
     ULONG Unk788C;                     /* 0x788C */
     UCHAR pad7890[0x7914 - 0x7890];
-    ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (func_80048844) */
+    ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (Psp_trans) */
     UCHAR pad7924[0x799C - 0x7924];
     ULONG Unk799C[1];                  /* 0x799C flag bits (func_800557A0) */
     UCHAR pad79A0[0x7C7C - 0x79A0];
@@ -262,7 +262,7 @@ typedef struct tagPARTS_W {
     UCHAR pad7A[0x7C - 0x7A];
     SHORT Unk7C;                       /* 0x7C (func_800455B4) */
     UCHAR pad7E[0x84 - 0x7E];
-    UCHAR Unk84;                       /* 0x84 part number (func_80043BE4) */
+    UCHAR Unk84;                       /* 0x84 part number (Pl_weapon_ch) */
     UCHAR Unk85;                       /* 0x85 */
     signed char Unk86;                 /* 0x86 */
     UCHAR pad87;
@@ -274,7 +274,7 @@ typedef struct tagPARTS_W {
     SHORT Unk92;                       /* 0x92 rotation speed y */
     SHORT Unk94;                       /* 0x94 */
     SHORT Unk96;                       /* 0x96 */
-    ULONG *pUnk98;                     /* 0x98 per-part animation data (func_8004A8BC) */
+    ULONG *pUnk98;                     /* 0x98 per-part animation data (Sa_dat_set) */
     SHORT Size_x;                      /* 0x9C RE2 Size_x */
     SHORT Size_y;                      /* 0x9E RE2 Size_y */
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */

@@ -13,7 +13,7 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80017540(ENEMY_WORK *pEm);
 void func_8001CDA4(UCHAR *p, ULONG n);
 extern ULONG *D_800BA6F8;
-ULONG func_8002AC98(void *pMw, ULONG pPacket);
+ULONG PresetObjectGT3_neo(void *pMw, ULONG pPacket);
 ULONG func_800102E8(void);
 void func_80010150(void *p, ULONG size);
 extern UCHAR D_80098728[];
@@ -99,10 +99,10 @@ ULONG Flg_ck(ULONG *pFlg, ULONG Id);
 void func_8004834C(ULONG Id, ULONG a1);
 extern ULONG D_800D1FC8[];
 #define G_FLG(ofs) ((ULONG *)((UCHAR *)&G + (ofs)))
-void func_800746C0(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
-ULONG func_8001B204(UCHAR *pData, ULONG *pOfs, ULONG Mode);
-void func_8001B2A4(ULONG *pTim);
-/* 0xC-byte table entry, 16 entries at D_800BA728 / D_800BA7E8 (filled by func_8001B204) */
+void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
+ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
+void Esp_data_set1(ULONG *pTim);
+/* 0xC-byte table entry, 16 entries at D_800BA728 / D_800BA7E8 (filled by Esp_data_set0) */
 typedef struct {
     ULONG *pData;                      /* 0x0 */
     ULONG *pData2;                     /* 0x4 */
@@ -125,7 +125,7 @@ EFF_WORK *func_8001B35C(EFF_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG 
 void func_8001CF24(EFF_WORK *pEw, ULONG a1, ULONG a2);
 extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] (door work slots) */
 void Door_scheduler_main(void);
-void func_80015964(void);              /* RE2 Door_Trans */
+void Door_Trans(void);              /* RE2 Door_Trans */
 void Door_model_init(UCHAR *pDw);
 void func_8001CE24(EFF_WORK *pEw, ULONG a1, ULONG a2);
 ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG a2);
@@ -147,15 +147,15 @@ typedef struct {
 LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
 extern ULONG D_80097FCC[];
 LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
-LONG func_80051E48(LONG x, LONG z);
+LONG Water_ck(LONG x, LONG z);
 LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3);
 typedef void (*EM_PROC)(ENEMY_WORK *pEm, LONG a1, LONG a2);
 extern EM_PROC D_80097AA0[];
-void func_80049BA8(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
+void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
 void func_80060464(ENEMY_WORK *pEm, LONG a1, LONG a2);
 void func_8006037C(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-void func_80019318(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
-void func_8001A248(ENEMY_WORK *pEm, LONG Dir);
+void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
+void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
 /* G viewed with the work pointer table as one array (RE2 pEnemy[]: [0] player, [1] sub player, [2..] enemies) */
 typedef struct {
     UCHAR pad0[0x213C];
@@ -178,16 +178,16 @@ extern UCHAR D_800E06AC;
 #define ADD_SPEED_XZ3(pEm) ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)((pEm), 0, 0)
 extern ULONG D_800BA6F0;               /* RE2 pDoor[1] */
 extern ULONG D_800BA6F4;               /* door work slot size */
-void func_80016208(void);              /* RE2 Door_texture_load */
-void func_800784E0(ULONG *pTim);       /* RE2 Mapping_tim */
+void Door_texture_load(void);              /* RE2 Door_texture_load */
+void Mapping_tim(ULONG *pTim);       /* RE2 Mapping_tim */
 void Set_view(VECTOR *pView_p, VECTOR *pView_r);
 extern EFF_WORK *D_8009808C;           /* pool 2 start */
 extern EFF_WORK *D_80098090;           /* pool 2 end */
-LONG func_80026BE8(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
+LONG Joint_move(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
+ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
 void func_8001B894(ULONG Id, ULONG Key);
 void func_8001CFF4(EFF_WORK *pEw, ULONG n);
-void func_8001AC58(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
+void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
 /* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
 #define PW_FREE(p) ((SHORT *)((UCHAR *)(p) + 0x74))
 
@@ -404,7 +404,7 @@ void Xa_control_end(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/cd", Cd_read_s);
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_80012818);
+INCLUDE_ASM("asm/nonmatchings/game/cd", Cd_read);
 
 extern LONG D_800A0FEC[];
 void func_800783BC(ULONG no, ULONG size, ULONG a2);

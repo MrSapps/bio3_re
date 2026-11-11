@@ -116,7 +116,7 @@ extern USHORT D_80099654[];
 extern UCHAR D_80098E88[];
 extern UCHAR D_800CC84D;
 extern UCHAR D_800D4433;
-void func_80031504(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
@@ -168,7 +168,7 @@ void Scheduler(void)
     } while (++pCt < &Monitor.Task[3]);
 }
 
-ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern LOADTASK D_8009C944[];
 ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
 
@@ -176,7 +176,7 @@ ULONG Task_lexecute_(ULONG Level, ULONG Task_no)
 {
     ULONG Size;
 
-    Size = func_80012818(D_8009C944[Task_no].File_no, *D_8009C944[Task_no].Ld_adr, 0, "execute");
+    Size = Cd_read(D_8009C944[Task_no].File_no, *D_8009C944[Task_no].Ld_adr, 0, "execute");
     Task_execute(Level, D_8009C944[Task_no].Func);
     return Size;
 }
@@ -185,7 +185,7 @@ void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
 
 void Task_lchain_(ULONG Task_no)
 {
-    func_80012818(D_8009C944[Task_no].File_no, *D_8009C944[Task_no].Ld_adr, 0, "chain");
+    Cd_read(D_8009C944[Task_no].File_no, *D_8009C944[Task_no].Ld_adr, 0, "chain");
     Task_chain(D_8009C944[Task_no].Func);
 }
 

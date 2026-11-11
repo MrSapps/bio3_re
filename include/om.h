@@ -3,7 +3,7 @@
 #include "bio3.h"
 
 /* Object model work (RE2 struct tagOBJ_MODEL_WORK, OMA.H). Only proven fields. */
-typedef struct tagOM_TMD_HEAD {        /* model header at OBJ_MODEL_WORK.pTmd_head (func_80035C18) */
+typedef struct tagOM_TMD_HEAD {        /* model header at OBJ_MODEL_WORK.pTmd_head (Col_chg_init) */
     UCHAR pad0[0xC];
     ULONG *pPacket;                    /* 0x0C GT3-like packets, 3 words each */
     ULONG *pPacket2;                   /* 0x10 GT4-like packets, 4 words each */
@@ -38,12 +38,12 @@ typedef struct tagOBJ_MODEL_WORK {
     UCHAR pad7C[0xBA - 0x7C];
     USHORT UnkBA;                      /* 0xBA */
     UCHAR padBC[0xC3 - 0xBC];
-    UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (func_80052588) */
+    UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
     struct tagPARTS_W *pParts;         /* 0xC4 */
     UCHAR padC8[0x130 - 0xC8];
     ULONG Unk130;                      /* 0x130 */
     UCHAR pad134[0x188 - 0x134];
-    ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (func_80035C18) */
+    ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (Col_chg_init) */
     SHORT Unk18C;                      /* 0x18C fall speed (func_80036D94) */
     SHORT Unk18E;                      /* 0x18E */
     SHORT Unk190;                      /* 0x190 */
@@ -54,7 +54,7 @@ typedef struct tagOBJ_MODEL_WORK {
  * and 0x40 unknown bytes, 0x94 bytes) */
 typedef struct tagCC_PARTS_WORK {
     ULONG Cc_flg;                      /* 0x00 0x20 colour change, 0x40 texture change */
-    UCHAR Col_ctr;                     /* 0x04 colour-change Cc_ctr (func_80035D9C) */
+    UCHAR Col_ctr;                     /* 0x04 colour-change Cc_ctr (Col_chg) */
     UCHAR Col_cnt;                     /* 0x05 */
     UCHAR Col_wait;                    /* 0x06 */
     UCHAR Col_num;                     /* 0x07 */
@@ -82,7 +82,7 @@ extern CC_WORK Cc_work;                /* 0x800DD4B8 */
 void Tex_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
 void Tex_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr);
 void Om_chg_init_80036234(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
-void func_80036248(CC_PARTS_WORK *pCcp);
+void Col_chg_ctr_80036248(CC_PARTS_WORK *pCcp);
 void Tex_ctr(void);
 
 #endif /* OM_H */

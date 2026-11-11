@@ -79,7 +79,7 @@ typedef struct tagENEMY_WORK {
     void *pUnk10C;                     /* 0x10C */
     struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */
-    ULONG *pUnk118;                    /* 0x118 per-part animation header (func_8004A8BC) */
+    ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */
     UCHAR pad11C[0x120 - 0x11C];
     UCHAR Unk120;                      /* 0x120 */
     UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */
@@ -102,7 +102,7 @@ typedef struct tagENEMY_WORK {
     LONG Unk140;                       /* 0x140 */
     USHORT Unk144;                     /* 0x144 0x100: no seq sound */
     UCHAR Unk146;                      /* 0x146 RE2 Set_flg_no */
-    UCHAR Unk147;                      /* 0x147 flag no (func_8001AE2C) */
+    UCHAR Unk147;                      /* 0x147 flag no (Em_dead_flg_on_cand) */
     SHORT Add_dir;                     /* 0x148 turn speed passed to Goto00 */
     SHORT Unk14A;                      /* 0x14A */
     SHORT Unk14C;                      /* 0x14C */
@@ -122,11 +122,11 @@ typedef struct tagENEMY_WORK {
     UCHAR pad174[0x178 - 0x174];
     USHORT Unk178[3];                  /* 0x178 copied to D_80098B08 (func_800254AC) */
     USHORT Unk17E;                     /* 0x17E */
-    ULONG Unk180[4];                   /* 0x180 args of func_80079690 / func_80026BE8 */
+    ULONG Unk180[4];                   /* 0x180 args of func_80079690 / Joint_move */
     UCHAR pad190[0x1A0 - 0x190];
     UCHAR Unk1A0;                      /* 0x1A0 */
     UCHAR Unk1A1;                      /* 0x1A1 */
-    UCHAR Unk1A2;                      /* 0x1A2 (func_800402F4) */
+    UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */
     UCHAR pad1A3[0x1B8 - 0x1A3];
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */
     SHORT Unk1BA;                      /* 0x1BA func_8002646C */
@@ -153,7 +153,7 @@ extern MATRIX GsIDMATRIX;              /* 0x80098970 */
 #define BE_FLG_400 0x400
 
 void func_8002D4B0(MATRIX *m0, MATRIX *m1, MATRIX *m2); /* RE2 CompM */
-void func_800775A0(ULONG No, ENEMY_WORK *pEm);          /* RE2 Snd_se_enem */
+void Snd_se_enem(ULONG No, ENEMY_WORK *pEm);          /* RE2 Snd_se_enem */
 void func_800100A4(void *pDst, void *pSrc, ULONG Size); /* RE2 Memcpy */
 
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw);

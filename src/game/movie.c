@@ -116,24 +116,24 @@ extern USHORT D_80099654[];
 extern UCHAR D_80098E88[];
 extern UCHAR D_800CC84D;
 extern UCHAR D_800D4433;
-void func_80031504(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
     return D_80098E88 + D_80099654[No];
 }
 
-ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern LOADTASK D_8009C944[];
 ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
 
 void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_800321C4);
+INCLUDE_ASM("asm/nonmatchings/game/movie", Init_movie_work);
 
 extern void (*D_8009CBB4[])(void);
 
-void func_800324A0(void)
+void Movie(void)
 {
     VM_WORK *pWork;
 
@@ -150,15 +150,15 @@ void func_800324A0(void)
     } while (pWork->Rno < 2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_800325A4);
+INCLUDE_ASM("asm/nonmatchings/game/movie", Movie_init);
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_800327A4);
+INCLUDE_ASM("asm/nonmatchings/game/movie", Movie_main);
 
 INCLUDE_RODATA("asm/nonmatchings/game/movie", D_800106EC);
 
 INCLUDE_RODATA("asm/nonmatchings/game/movie", D_800106F4);
 
-void func_800329E4(void)
+void Movie_end(void)
 {
     RECT unused_rect = {0x140, 0, 0xa0, 0x200};
     VM_WORK *pWork = &Vm_work;
@@ -178,11 +178,11 @@ void func_800329E4(void)
     SetDispMask(0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_80032AD4);
+INCLUDE_ASM("asm/nonmatchings/game/movie", Movie_exit);
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_80032D18);
+INCLUDE_ASM("asm/nonmatchings/game/movie", Open_movie);
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_80032F58);
+INCLUDE_ASM("asm/nonmatchings/game/movie", Play_movie);
 
 void Close_movie(void)
 {
@@ -262,4 +262,4 @@ void Set_movie_volume2(ULONG Volume)
     DsMix(pAtv);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", func_80033394);
+INCLUDE_ASM("asm/nonmatchings/game/movie", CdReset2);

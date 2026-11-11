@@ -22,18 +22,18 @@ LONG func_800455B4();
 LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);
 
 extern UCHAR D_8009CD3D;
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
 signed char func_8006CF0C_r(ULONG Arg0) __asm__("func_8006CF0C");
-void func_8003E088(ENEMY_WORK *pEm);
+void Pl_water(ENEMY_WORK *pEm);
 
 /* declarations from earlier parts of the original address-split file */
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
 void func_8006CF0C(ULONG Arg0);
-void func_80044F34(PLAYER_WORK *pEm);
+void Mag_set(PLAYER_WORK *pEm);
 
 void Pl_wep_flag_set(PLAYER_WORK *pEm);
 
@@ -41,7 +41,7 @@ void Pl_wep_flag_set(PLAYER_WORK *pEm);
 
 extern PARTS_W *D_8009CD30;
 extern USHORT D_8009DCB4[];
-void func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
 
 typedef struct {
@@ -86,7 +86,7 @@ void func_80048FF4(void);
 ULONG func_800102E8(void);
 extern USHORT **D_800CC86C;
 
-void func_8004A8BC(ENEMY_WORK *pEm, ULONG *pData)
+void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
 {
     PARTS_W *pP;
     ULONG *pHead;

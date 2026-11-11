@@ -30,7 +30,7 @@ typedef struct tagSAVE_POS {
     SHORT Life;                        /* 0x710 */
     UCHAR Id;                          /* 0x712 */
     UCHAR Unk713;                      /* 0x713 */
-    ULONG Unk714;                      /* 0x714 random seed (func_800248E4) */
+    ULONG Unk714;                      /* 0x714 random seed (Set_door) */
     USHORT Unk718;                     /* 0x718 */
 } SAVE_POS;
 
@@ -108,10 +108,10 @@ typedef struct tagESP3_WORK {
     VECTOR Unk38;                      /* 0x38 */
     VECTOR Pos;                        /* 0x48 */
     UCHAR pad58[0x68 - 0x58];
-    SHORT Rot[3];                      /* 0x68 rotation (func_80022990) */
+    SHORT Rot[3];                      /* 0x68 rotation (Eff_sprt_trans) */
     UCHAR pad6E;
     UCHAR Anm_cnt;                     /* 0x6F index into pAnmseq */
-    MATRIX M70;                        /* 0x70 local matrix (func_80022990) */
+    MATRIX M70;                        /* 0x70 local matrix (Eff_sprt_trans) */
     MATRIX Mat;                        /* 0x90 */
     UCHAR padB0[0xB3 - 0xB0];
     UCHAR UnkB3;                       /* 0xB3 */
@@ -146,7 +146,7 @@ typedef struct tagRGB_BLEND_WORK {
     UCHAR pad2C[0x68 - 0x2C];
 } RGB_BLEND_WORK;
 
-/* model work (pW[1] = MD_OBJ, then the double-buffered prims built by func_8002AC98 / func_8002ADB8) */
+/* model work (pW[1] = MD_OBJ, then the double-buffered prims built by PresetObjectGT3_neo / PresetObjectGT4_neo) */
 typedef struct tagMD_WORK {
     ULONG Attr;                        /* 0x00 bits 2-3: semi-trans rate */
     MD_OBJ *pObj;                      /* 0x04 */
@@ -188,11 +188,11 @@ void func_80094374(LONG Arg);
 void func_800943C8(void);
 void _bu_init(void);
 void func_800912C4(void);
-void func_80029B94(void);
+void Init_main(void);
 void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
 extern LONG D_800D454C;                /* right after Main.Fade[] */
 extern UCHAR D_800DBB58;
-extern UCHAR D_800996E4[];             /* message text banks (func_8002FD30) */
+extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
 extern USHORT D_8009BDB4[];
 extern UCHAR D_80098E88[];
 extern USHORT D_80099654[];
@@ -241,13 +241,13 @@ void func_8002783C(PARTS_W *pP_ptr);
 void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
 void func_80026648(ENEMY_WORK *pEm);
 void func_80026498(ENEMY_WORK *pEm);
-void func_80026728(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
-void func_8002720C(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
+void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
+void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
 void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void func_80026CF4(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void func_80027A54(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+void J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 ULONG func_800102E8(void);   /* Rnd */
 ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
 ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
@@ -257,7 +257,7 @@ void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
 void Set_light_pos(VECTOR *pPos);
 extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
 extern VECTOR *D_800C79F4;
-LONG func_80051E48(LONG Pos_x, LONG Pos_z);
+LONG Water_ck(LONG Pos_x, LONG Pos_z);
 extern LONG D_800CA720;
 extern UCHAR D_80098728[];
 extern ULONG D_800986C4[];             /* scale curve (func_80021D58) */
@@ -286,7 +286,7 @@ typedef struct tagESP_HIT {
 extern ULONG D_80097FCC[];
 LONG func_800472EC(ESP_HIT *pHit, ULONG Arg);
 
-INCLUDE_ASM("asm/nonmatchings/game/game", func_80023268);
+INCLUDE_ASM("asm/nonmatchings/game/game", Game_loop);
 
 void Gun_light_set(void)
 {
@@ -371,13 +371,13 @@ typedef struct tagDOOR_NEXT {
 void func_80024C58(void);
 void Door_main(void);
 void Door_snd_trans(void);
-void func_80049898(void);
+void Set_stage(void);
 void func_80077C4C(void);
-void func_800493EC(void);
+void Set_room(void);
 void func_80077F60(void);
 extern UCHAR D_800E0186;
 
-void func_800248E4(void)
+void Set_door(void)
 {
     tagGLOBAL *pG;
     DOOR_NEXT *pAot;
@@ -409,13 +409,13 @@ void func_800248E4(void)
     pG->Unk7840 = pAot->Next_room;
     if (pG->Unk783E != pAot->Next_stage % 9) {
         pG->Unk783E = pAot->Next_stage % 9;
-        func_80049898();
+        Set_stage();
     }
     func_80077C4C();
     while (pG->Status_flg & 0x800) {
         Task_sleep(1);
     }
-    func_800493EC();
+    Set_room();
     while (G.System_flg & 0x400000) {
         Task_sleep(1);
     }
@@ -499,7 +499,7 @@ ULONG func_80024F74(void)
     D_800C703C.Flg = 1;
     G.System_flg |= 0x400;
     func_8003884C(Vib_data_tbl, 0);
-    func_800746C0(0x22E, NULL, 0, 0);
+    Snd_se_stad(0x22E, NULL, 0, 0);
     i = 7;
     do {
         Task_sleep(1);
@@ -520,7 +520,7 @@ ULONG func_80024F74(void)
 void Flash_fade_in(void)
 {
     func_8003884C(Vib_data_tbl, 0);
-    func_800746C0(0x22E, NULL, 0, 0);
+    Snd_se_stad(0x22E, NULL, 0, 0);
     Fade_set(2, 0, 0, 1, 0, 0xFFFFFF, 4);
     while (Fade_status(2) != 0) {
         Task_sleep(1);

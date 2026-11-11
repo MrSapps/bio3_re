@@ -51,7 +51,7 @@ typedef struct tagSND_VOICE {
     UCHAR pad1E[0x20 - 0x1E];
 } SND_VOICE;
 
-/* sound request (0x20 bytes, queued by func_800746C0) */
+/* sound request (0x20 bytes, queued by Snd_se_stad) */
 typedef struct tagSND_REQ {
     UCHAR pad0[8];
     VECTOR Pos;                        /* 0x08 */

@@ -36,6 +36,6 @@ extern PL_MV05_FN pl_mv05_w0b_tbl[];    /* 0x8009D088 index Routine_2 */
 LONG Pl_wep_eff_parts_init(PLAYER_WORK *pEm);
 void func_80046C90(void);
 void func_8001B894(ULONG Id, MATRIX *pM);
-void func_800746C0(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
+void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
 
 #endif /* PL_WEP_H */

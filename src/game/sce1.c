@@ -16,23 +16,23 @@ extern ULONG Old_Uatari;               /* 0x800DECB8 RE2 Old_Uatari */
 extern ULONG *Flg_addr[];              /* 0x8009E3F8 RE2 Flg_addr */
 extern UCHAR D_800DBB58;
 LONG Mess_set(ULONG A0, ULONG Attr, ULONG No, ULONG Flg); /* 0x8002FD30 RE2 Mess_set */
-void func_800513CC();
+void Save_entrance();
 void func_80051D60();
 extern UCHAR D_800E01C4[];
-void func_800514F0();
+void Item_box_entrance();
 extern UCHAR *pCAot;                    /* 0x800DECB0 RE2 pCAot */
 void func_800511B0();
 extern LONG D_800DEC98;
 LONG func_8006CD68(UCHAR No);
 s8 func_8006CCF0(UCHAR No, ULONG A1, ULONG A2);
 extern UCHAR D_800E017E[];
-void func_80059A20();
-s8 func_8006CC8C(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
+void Aida_move();
+s8 Search_item_id(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
 extern UCHAR D_800C703E[];
 extern UCHAR D_800D442E[];
 extern UCHAR D_800E0175[];
 LONG func_80048974();
-LONG func_800321C4();
+LONG Init_movie_work();
 LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
@@ -82,21 +82,21 @@ extern SHORT D_800D1F82;
 extern s8 D_80098728[];
 UCHAR func_800102E8(void);             /* sld.s Rnd? */
 void func_80034124(void *p);
-LONG func_80055E38(s8 Work_kind, s8 Work_no);
-void func_80058DD4();
+LONG Get_matrix(s8 Work_kind, s8 Work_no);
+void Spl();
 extern ENEMY_WORK *D_800E01A8;
 extern USHORT D_800E01B4;
 void func_80052968(void);
-void func_80052BA4(void);
-void func_80052588(void);
+void Sce_scheduler_main(void);
+void Sce_kirakira_set(void);
 void func_8001BA48();
 void func_80052644(void);
 void func_8005283C(void);
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079868(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_800E01C6[];
-void func_80019318(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
+void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
 typedef struct {
     LONG Unk0;                         /* 0x00 */
     LONG Pos[3];                       /* 0x04 */
@@ -134,8 +134,8 @@ typedef struct {
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
-ENEMY_WORK *func_8005F7E8();
-ENEMY_WORK *func_8005F8F0();
+ENEMY_WORK *Spl_em_cdir_ck();
+ENEMY_WORK *Spl_pllock_get();
 extern UCHAR D_800A0514[];
 typedef struct {
     UCHAR Unk0;
@@ -144,12 +144,12 @@ typedef struct {
 } ITEM_TBL4;
 extern UCHAR D_8009CDE0[];
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
-ULONG func_80027940(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void func_800776B0(ULONG A0, ULONG No, ENEMY_WORK *pEm);
+ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+void Snd_se_walk(ULONG A0, ULONG No, ENEMY_WORK *pEm);
 void Flg_on(ULONG *pFlg, ULONG Bit);
 LONG Flg_off(ULONG *pFlg, ULONG Bit);
 LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG func_80043BE4(ENEMY_WORK *pEm);
+LONG Pl_weapon_ch(ENEMY_WORK *pEm);
 LONG Pl_weapon_ch_init(ENEMY_WORK *pEm);
 extern UCHAR D_800E01E8;
 extern UCHAR D_8009E710[];
@@ -165,24 +165,24 @@ extern ULONG D_800E01D4[];
 extern ULONG D_8009DBB4;
 LONG func_80044804(void *p, ULONG A1, ULONG A2);
 extern ULONG D_800DECAC;
-ULONG func_800505AC(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
+ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
 extern UCHAR D_8009E6BC[];
 extern SHORT D_8009E6D4[];
 extern SHORT D_8009E6DC[];
 extern SHORT D_8009E6E4[];
 extern void (*D_8009E6EC[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80059824(ENEMY_WORK *pEm);
-void func_8001A248(ENEMY_WORK *pEm, LONG Dir);
-void func_8005F298();
-ULONG func_8005F660(ENEMY_WORK *pEm, ULONG A1);
+void Spl_Root_ck_sys(ENEMY_WORK *pEm);
+void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
+void Spl_enemy_ck();
+ULONG Spl_em_pos_ck(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_8009E7D8[];
 extern UCHAR D_8009E7C8[];
 extern void (*D_8009E788[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
 extern ULONG *D_8009E414;              /* Flg_addr[7] */
 extern ULONG *D_8009E418;              /* Flg_addr[8] */
-void func_8005C098(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_800549C4(ULONG Cut);
+void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Cut_chg_main(ULONG Cut);
 
 /* declarations from earlier parts of the original address-split file */
 extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
@@ -1422,7 +1422,7 @@ ULONG func_80054628(SCE_TASK *pSce)
 }
 
 /* RE2 Ck */
-ULONG func_800546CC(SCE_TASK *pSce)
+ULONG Ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     LONG D0;
@@ -1438,7 +1438,7 @@ ULONG func_800546CC(SCE_TASK *pSce)
 }
 
 /* RE2 Set */
-ULONG func_8005472C(SCE_TASK *pSce)
+ULONG Set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
@@ -1471,7 +1471,7 @@ ULONG func_8005472C(SCE_TASK *pSce)
 }
 
 /* RE2 Cmp */
-ULONG func_800547F0(SCE_TASK *pSce)
+ULONG Cmp(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Cmp_word;
@@ -1501,21 +1501,21 @@ ULONG func_800547F0(SCE_TASK *pSce)
     }
 }
 
-ULONG func_8005489C(SCE_TASK *pSce)
+ULONG Sce_rnd(SCE_TASK *pSce)
 {
     pSce->Data++;
-    func_800523C4();
+    Sce_rnd_set();
     return 1;
 }
 
-ULONG func_800548C8(SCE_TASK *pSce)
+ULONG Cut_chg(SCE_TASK *pSce)
 {
     tagGLOBAL *pG = &G;
     UCHAR Cut;
 
     pG->Status_flg |= 0x80;
     Cut = pSce->Data[1];
-    func_800549C4(Cut & 0x7F);
+    Cut_chg_main(Cut & 0x7F);
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
         D_800D442E[0] = 0;
@@ -1525,15 +1525,15 @@ ULONG func_800548C8(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054960(SCE_TASK *pSce)
+ULONG Cut_old(SCE_TASK *pSce)
 {
-    func_800549C4(D_800E0175[0]);
+    Cut_chg_main(D_800E0175[0]);
     G.Status_flg = (G.Status_flg | 0x400000) & ~0x80;
     pSce->Data++;
     return 1;
 }
 
-void func_800549C4(ULONG Cut)
+void Cut_chg_main(ULONG Cut)
 {
     UCHAR Old;
 
@@ -1544,7 +1544,7 @@ void func_800549C4(ULONG Cut)
     Cut_change(Cut);
 }
 
-ULONG func_80054A04(SCE_TASK *pSce)
+ULONG Cut_auto(SCE_TASK *pSce)
 {
     if (pSce->Data[1] == 1) {
         G.Status_flg &= ~0x80;
@@ -1555,7 +1555,7 @@ ULONG func_80054A04(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054A68(SCE_TASK *pSce)
+ULONG Cut_replace(SCE_TASK *pSce)
 {
     ULONG Cut_a;
     ULONG Cut_b;
@@ -1584,9 +1584,9 @@ ULONG func_80054A68(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce1", func_80054B48);
+INCLUDE_ASM("asm/nonmatchings/game/sce1", Cut_be_set);
 
-ULONG func_80054BC0(SCE_TASK *pSce)
+ULONG Pos_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ENEMY_WORK *pW;
@@ -1608,7 +1608,7 @@ ULONG func_80054BC0(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054C28(SCE_TASK *pSce)
+ULONG Dir_set(SCE_TASK *pSce)
 {
     SHORT *pData;
     ENEMY_WORK *pW;
@@ -1627,7 +1627,7 @@ ULONG func_80054C28(SCE_TASK *pSce)
 }
 
 /* RE2 Vib_set0 */
-ULONG func_80054C58(SCE_TASK *pSce)
+ULONG Vib_set0(SCE_TASK *pSce)
 {
     Pad_vib_set0(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
@@ -1635,7 +1635,7 @@ ULONG func_80054C58(SCE_TASK *pSce)
 }
 
 /* RE2 Vib_set1 */
-ULONG func_80054CA4(SCE_TASK *pSce)
+ULONG Vib_set1(SCE_TASK *pSce)
 {
     Pad_vib_set1(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
@@ -1643,7 +1643,7 @@ ULONG func_80054CA4(SCE_TASK *pSce)
 }
 
 /* RE2 Vib_fade_set */
-ULONG func_80054CF4(SCE_TASK *pSce)
+ULONG Vib_fade_set(SCE_TASK *pSce)
 {
     Pad_vib_fade_set(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
     pSce->Data += 8;
@@ -1658,7 +1658,7 @@ ULONG func_80054D48(SCE_TASK *pSce)
 }
 
 /* RE2 Message_on */
-ULONG func_80054D74(SCE_TASK *pSce)
+ULONG Message_on(SCE_TASK *pSce)
 {
     ULONG Flg;
 
@@ -1685,7 +1685,7 @@ ULONG func_80054E28(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_shake_on */
-ULONG func_80054E70(SCE_TASK *pSce)
+ULONG Sce_shake_on(SCE_TASK *pSce)
 {
     LONG Amp;
     LONG Dir;
@@ -1709,7 +1709,7 @@ ULONG func_80054E70(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_line_start; the line functions are called as int-returning (no prototype in the original) */
-ULONG func_80054F40(SCE_TASK *pSce)
+ULONG Sce_line_start(SCE_TASK *pSce)
 {
     Line.Rect.x = 0;
     Line.Rect.y = 0;
@@ -1726,7 +1726,7 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
     return 1;
 }
 /* RE2 Sce_line_main */
-ULONG func_80054FAC(SCE_TASK *pSce)
+ULONG Sce_line_main(SCE_TASK *pSce)
 {
     ((LONG (*)(LONG, LONG, LONG, LONG))line_trans)(pSce->Data[1], ((SHORT *)pSce->Data)[1], ((SHORT *)pSce->Data)[2], Main.pDb->Draw.ofs[1]);
     pSce->Data += 6;
@@ -1734,18 +1734,18 @@ ULONG func_80054FAC(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_line_end */
-ULONG func_80055004(SCE_TASK *pSce)
+ULONG Sce_line_end(SCE_TASK *pSce)
 {
     ((LONG (*)(void))line_scr_end)();
     pSce->Data++;
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce1", func_80055038);
+INCLUDE_ASM("asm/nonmatchings/game/sce1", Se_on);
 
-INCLUDE_ASM("asm/nonmatchings/game/sce1", func_8005518C);
+INCLUDE_ASM("asm/nonmatchings/game/sce1", Sce_bgm_control);
 
-ULONG func_800554C8(SCE_TASK *pSce)
+ULONG Xa_on(SCE_TASK *pSce)
 {
     LONG Dummy[4];
     ULONG No;
@@ -1760,9 +1760,9 @@ ULONG func_800554C8(SCE_TASK *pSce)
 }
 
 /* RE2 Movie_on */
-ULONG func_80055520(SCE_TASK *pSce)
+ULONG Movie_on(SCE_TASK *pSce)
 {
-    func_800321C4(pSce->Data[1]);
+    Init_movie_work(pSce->Data[1]);
     pSce->Data += 2;
     return 1;
 }
@@ -1796,7 +1796,7 @@ ULONG func_800555BC(SCE_TASK *pSce)
 }
 
 /* RE2 Keep_Item_ck */
-ULONG func_80055620(SCE_TASK *pSce)
+ULONG Keep_Item_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Id;
@@ -1804,11 +1804,11 @@ ULONG func_80055620(SCE_TASK *pSce)
     pData = pSce->Data;
     Id = pData[1];
     pSce->Data = pData + 2;
-    return func_8006CC8C(Id, 0) >= 0;
+    return Search_item_id(Id, 0) >= 0;
 }
 
 /* RE2 Sce_key_ck */
-ULONG func_80055660(SCE_TASK *pSce)
+ULONG Sce_key_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Res;
@@ -1825,7 +1825,7 @@ ULONG func_80055660(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_trg_ck */
-ULONG func_800556A0(SCE_TASK *pSce)
+ULONG Sce_trg_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Res;
@@ -1842,7 +1842,7 @@ ULONG func_800556A0(SCE_TASK *pSce)
 }
 
 /* RE2 Sca_id_set */
-ULONG func_800556E0(SCE_TASK *pSce)
+ULONG Sca_id_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     SCA_DATA *pSca;
@@ -1893,7 +1893,7 @@ ULONG func_800557A0(SCE_TASK *pSce)
 }
 
 /* RE2 Light_pos_set2 */
-ULONG func_80055884(SCE_TASK *pSce)
+ULONG Light_pos_set2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     SHORT (*pPos)[3];
@@ -1918,7 +1918,7 @@ ULONG func_80055884(SCE_TASK *pSce)
 }
 
 /* RE2 Light_kido_set2 */
-ULONG func_80055944(SCE_TASK *pSce)
+ULONG Light_kido_set2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     LIGHT_CUT_DATA *pLc;
@@ -1933,7 +1933,7 @@ ULONG func_80055944(SCE_TASK *pSce)
 }
 
 /* RE2 Light_color_set2 */
-ULONG func_800559A0(SCE_TASK *pSce)
+ULONG Light_color_set2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     UCHAR (*pCol)[3];

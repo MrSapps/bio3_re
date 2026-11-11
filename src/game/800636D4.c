@@ -94,7 +94,7 @@ extern SHORT D_8009EDA4[];
 extern SHORT D_8009EDCC[];
 extern SHORT D_8009EDF4[];
 extern SHORT D_8009EE1C[];
-void func_80060BF0(ENEMY_WORK *pEm);
+void Spl_sce05(ENEMY_WORK *pEm);
 LONG func_800634F4(ENEMY_WORK *pEm, LONG f);
 void func_8001B484(LONG no, ULONG dir, void *p, SVECTOR *pSv, LONG a4);
 LONG func_80044804(void *p, LONG a1, LONG a2);
@@ -102,7 +102,7 @@ extern LONG D_8009DBD4;
 void FA_Add_speedXZ3(ENEMY_WORK *pEm, LONG a, LONG b) __asm__("Add_speedXZ");
 void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG f);
 LONG func_80063198(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-void func_800606A0(ENEMY_WORK *pEm);
+void Spl_sce04(ENEMY_WORK *pEm);
 LONG func_800632B8(ENEMY_WORK *pEm, LONG f);
 void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b);
@@ -120,7 +120,7 @@ extern ULONG D_8009EF90[];
 extern UCHAR D_8009EED8[];
 extern char D_80010DCC[];
 extern SHORT D_800CCBBC;
-void func_800784E0(ULONG *p);
+void Mapping_tim(ULONG *p);
 void func_8006ED28(ST_WORK *pSt);
 void FB_OpenTIM(void) __asm__("OpenTIM");
 typedef struct { UCHAR pad[0x2484]; UCHAR Unk2484; UCHAR Unk2485; } FB_G2484;
@@ -251,11 +251,11 @@ typedef struct tagMY_JNT {
     SVECTOR b;
     SHORT c[2];
 } MY_JNT;
-void func_80026728(MATRIX *a, MATRIX *b, MATRIX *c, LONG r);
-void func_8002AEE8(MATRIX *a, MATRIX *b, MATRIX *c);
+void HMatrix(MATRIX *a, MATRIX *b, MATRIX *c, LONG r);
+void MulLMatrix(MATRIX *a, MATRIX *b, MATRIX *c);
 void func_80079374(MATRIX *a, MATRIX *b, LONG *t, MY_JNT *j);
 void func_80079CC0(ENEMY_WORK *pEm, LONG h);
-void MY_func_800611E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("func_800611E0");
+void MY_func_800611E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("Spl_sce07");
 LONG func_80062BFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
 LONG MY_func_80077B84(LONG x, LONG z, LONG a) __asm__("func_80077B84");
 void Pad_vib_fade_set(LONG a0, LONG a1, LONG a2, LONG a3);
@@ -279,25 +279,25 @@ void Pl_wep_eff_parts_init(void *p);
 void func_80046C90(void);
 extern ULONG D_8009F678[];
 void func_80010000(ULONG a0, ULONG *pDst);
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
 LONG func_80079690(ENEMY_WORK *pEm, UCHAR *pKan, UCHAR *pSeq, ULONG Flg);
 void func_80079868(ENEMY_WORK *pEm, LONG rate);
 extern void (*D_8009EEA4[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern UCHAR D_8009F568[];
 extern char D_80010F84[];
-void func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern USHORT D_8009F4F8[][2];
 extern LONG D_800D23B8;
-extern ST_WORK D_800E01C0;
+extern ST_WORK St;
 extern UCHAR *D_800BA6E8;
 void func_80073CCC(UCHAR *a, UCHAR *b);
 extern SpuCommonAttr D_800E10F8;
-LONG func_80027940(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+LONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
 extern UCHAR D_800DBB58;
 extern SHORT D_800D1F80;
 extern ULONG *D_800E01C8;
 extern USHORT D_800A004C[][2];
-void func_800746C0(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
+void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
 void func_80068024(ST_WORK *pSt);
 void func_8006CD68(UCHAR no);
 LONG func_800759D8(LONG x);
@@ -316,13 +316,13 @@ extern void (*D_800A0500[])(ST_WORK *pSt);
 extern ULONG D_800D20DC[];
 UCHAR func_80069614(ST_WORK *pSt, LONG a1);
 void func_80027338(ULONG *pKan, ULONG *pSeq, ULONG a2, ULONG Flg);
-void func_80049BA8(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
-void func_80019318(ENEMY_WORK *pEm, LONG a1, LONG a2);
+void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
+void Foot_set_pl(ENEMY_WORK *pEm, LONG a1, LONG a2);
 void func_80060464(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 LONG func_8006037C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
 extern void (*D_8009EE44[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_800776B0(LONG kind, ULONG parts, ENEMY_WORK *pEm);
-void func_80062D3C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm);
+void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_8006055C(ENEMY_WORK *pEm);
 void func_8002B2BC(ULONG *pKan, ULONG *pSeq, USHORT *pNow_seq, ULONG R_flg);
 
@@ -349,7 +349,7 @@ void func_800636D4(ST_WORK *pSt)
     }
     CD.Fsector += sum >> 11;
     CD.Fsum = D_8009EED8[t - 1];
-    func_80012818(0x1C, FLD(pSt, 8, ULONG *), 2, D_80010DCC);
+    Cd_read(0x1C, FLD(pSt, 8, ULONG *), 2, D_80010DCC);
     p = FLD(pSt, 8, ULONG *);
     D_800CCBBC = 0xA17;
     FA_func_8006EBEC(p);
@@ -374,7 +374,7 @@ INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_80063850);
 extern UCHAR D_800DBB5B;
 extern UCHAR D_800CEA80[];
 LONG func_8001B894();
-void func_8002FD30(LONG a0, LONG a1, LONG a2, LONG a3);
+void Mess_set(LONG a0, LONG a1, LONG a2, LONG a3);
 
 void func_80063CAC(ST_WORK *pSt)
 {
@@ -396,10 +396,10 @@ void func_80063CAC(ST_WORK *pSt)
             FLD(pSt, 0x13, UCHAR) = 0;
             f = pSt->Flg | 0x40000000;
             pSt->Flg = (f | 0x80000000) & ~0x100000;
-            func_80012818(0x1D, FLD(pSt, 8, ULONG *), 0, "FILEI.TIM");
+            Cd_read(0x1D, FLD(pSt, 8, ULONG *), 0, "FILEI.TIM");
             p = FLD(pSt, 8, ULONG *);
             FLD(pG, 0x2484, SHORT) = 0x917;
-            func_800784E0(p);
+            Mapping_tim(p);
             break;
         case 3:
             pSt->Flg &= ~0x100000;
@@ -417,7 +417,7 @@ void func_80063CAC(ST_WORK *pSt)
                 *(LONG *)(D_800CEA80 + ofs - 0x20) = 0;
             }
             D_800DBB5B = pD[0];
-            func_8002FD30(0, 0x1000, 6, 0);
+            Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn1++;
             break;
         }
@@ -426,7 +426,7 @@ void func_80063CAC(ST_WORK *pSt)
         if (!(D_800DBB58 & 0x80)) {
             pSt->Rtn0 = 0xD;
             pSt->Rtn1 = 0;
-            func_800746C0(5, NULL, 0, 0);
+            Snd_se_stad(5, NULL, 0, 0);
         }
         break;
     }
@@ -505,10 +505,10 @@ void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b)
     }
     CD.Fsector += sum >> 11;
     CD.Fsum = D_8009EED8[n];
-    func_80012818(0x1C, FLD(pSt, 8, ULONG *), 2, D_80010DCC);
+    Cd_read(0x1C, FLD(pSt, 8, ULONG *), 2, D_80010DCC);
     p = FLD(pSt, 8, ULONG *);
     D_800CCBBC = 0xB18;
-    func_800784E0(p);
+    Mapping_tim(p);
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800642D4);
@@ -562,7 +562,7 @@ void func_800650BC(ST_WORK *pSt)
         pSt->Rtn1 = 0;
         pSt->Unk22 = 0;
         pSt->Unk24 = 0;
-        func_800746C0(5, 0, 0, 0);
+        Snd_se_stad(5, 0, 0, 0);
         pSt->Flg |= 0x20000000;
     }
 }
@@ -574,7 +574,7 @@ INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800654A8);
 void func_80065BA4(UCHAR a, UCHAR b)
 {
     RECT r;
-    ST_WORK *pSt = &D_800E01C0;
+    ST_WORK *pSt = &St;
     USHORT (*tbl)[2] = D_800A004C;
     USHORT *pa = tbl[a];
     USHORT *pb;
@@ -704,7 +704,7 @@ void func_80066920(ST_WORK *pSt)
     }
     if (G.Key_trg & 0x2000) {
         pSt->Rtn1 = 3;
-        func_800746C0(5, 0, 0, 0);
+        Snd_se_stad(5, 0, 0, 0);
     } else if (G.Key_trg & 0x1000) {
         if ((signed char)pSt->Unk1E == 0 && (UCHAR)(e[0] + 0x7D) < 2) {
             pSt->Rtn1 = 8;
@@ -713,7 +713,7 @@ void func_80066920(ST_WORK *pSt)
         }
         FLD(pSt, 0x12, UCHAR) = 0;
         FLD(pSt, 0x13, UCHAR) = 0;
-        func_800746C0(6, 0, 0, 0);
+        Snd_se_stad(6, 0, 0, 0);
     } else {
         if (FLD(&G, 0x2100, USHORT) & 0x1000) {
             pSt->Unk1E--;
@@ -728,7 +728,7 @@ void func_80066920(ST_WORK *pSt)
             pSt->Unk1E = 0;
         }
         if (FLD(&G, 0x2100, ULONG) & 0x5000) {
-            func_800746C0(4, 0, 0, 0);
+            Snd_se_stad(4, 0, 0, 0);
         }
     }
 }
@@ -820,7 +820,7 @@ void func_80068A54(ST_WORK *pSt)
 {
     if (!(D_800DBB58 & 0x80)) {
         pSt->Rtn1 = 3;
-        func_800746C0(5, 0, 0, 0);
+        Snd_se_stad(5, 0, 0, 0);
         pSt->Flg &= ~0x2000000;
     }
 }
@@ -837,7 +837,7 @@ void func_80068AB4(ST_WORK *pSt)
         case 1:
             pSt->Rtn1 = 3;
             pSt->Flg &= ~0x2000000;
-            func_800746C0(5, 0, 0, 0);
+            Snd_se_stad(5, 0, 0, 0);
             break;
         }
     }
@@ -908,7 +908,7 @@ void func_8006A234(ST_WORK *pSt)
         func_8006A9AC(12, FLD(pSt, 0x76, UCHAR));
         FLD(pSt, 0x13, UCHAR) = 0;
         pSt->Rtn2++;
-        func_800746C0(6, NULL, 0, 0);
+        Snd_se_stad(6, NULL, 0, 0);
         break;
     case 1:
         if (FLD(pSt, 0x13, UCHAR) < 12) {
@@ -923,7 +923,7 @@ void func_8006A234(ST_WORK *pSt)
         break;
     case 2:
         if (D_800CC840 & 0x3000) {
-            func_800746C0(6, NULL, 0, 0);
+            Snd_se_stad(6, NULL, 0, 0);
             n = FLD(pSt, 0x77, UCHAR);
             FLD(pSt, 0x6F, UCHAR) = 0x38;
             FLD(pSt, 0x70, UCHAR) = 0x24;
@@ -958,7 +958,7 @@ void func_8006A234(ST_WORK *pSt)
         break;
     case 4:
         if (D_800CC840 & 0x3000) {
-            func_800746C0(5, NULL, 0, 0);
+            Snd_se_stad(5, NULL, 0, 0);
             FLD(pSt, 0x13, UCHAR) = 0;
             pSt->Rtn2++;
         }
@@ -1034,13 +1034,13 @@ UCHAR *func_8006A95C(LONG a0, UCHAR id)
 void func_8006A9AC(UCHAR no, UCHAR idx)
 {
     RECT r;
-    ST_WORK *pSt = &D_800E01C0;
+    ST_WORK *pSt = &St;
 
     CD.Fno = 0x34;
     CD.Fsize = 0x800;
     CD.Fsector = (floc[0x34].sec_high << 16) + floc[0x34].sector + idx;
     CD.Fsum = D_8009F568[idx];
-    func_80012818(0x34, FLD(pSt, 8, ULONG *), 2, D_80010F84);
+    Cd_read(0x34, FLD(pSt, 8, ULONG *), 2, D_80010F84);
     r.x = D_800A004C[no][0];
     r.y = D_800A004C[no][1];
     r.w = 0x14;
@@ -1056,7 +1056,7 @@ void func_8006AA84(UCHAR no)
     CD.Fsize = 0x800;
     CD.Fsector = (floc[0x34].sec_high << 16) + floc[0x34].sector + no;
     CD.Fsum = D_8009F568[no];
-    func_80012818(0x34, D_800E01C8, 2, D_80010F84);
+    Cd_read(0x34, D_800E01C8, 2, D_80010F84);
 }
 
 void func_8006AB08(UCHAR no)
@@ -1100,23 +1100,23 @@ extern UCHAR D_8009F5F0[];
 
 void func_8006AC88(UCHAR no)
 {
-    ST_WORK *pSt = &D_800E01C0;
+    ST_WORK *pSt = &St;
     LONG pad[2];
 
     CD.Fno = 0x33;
     CD.Fsize = 0x2800;
     CD.Fsector = (floc[0x33].sec_high << 16) + floc[0x33].sector + no * 5;
     CD.Fsum = D_8009F5F0[no];
-    func_80012818(0x33, FLD(pSt, 8, ULONG *), 2, "ITEMG.PIX");
+    Cd_read(0x33, FLD(pSt, 8, ULONG *), 2, "ITEMG.PIX");
     D_800CCBBC = 0x817;
-    func_800784E0(FLD(pSt, 8, ULONG *));
+    Mapping_tim(FLD(pSt, 8, ULONG *));
     FLD(pSt, 0xD4, UCHAR) = 8;
 }
 
 void func_8006AD38(UCHAR a, UCHAR b)
 {
     RECT r;
-    ST_WORK *pSt = &D_800E01C0;
+    ST_WORK *pSt = &St;
     USHORT (*tbl)[2] = D_800A004C;
     USHORT *pa = tbl[a];
     USHORT *pb;
@@ -1162,7 +1162,7 @@ INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006C6D0);
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006CA10);
 
-signed char func_8006CC8C(UCHAR id, signed char i)
+signed char Search_item_id(UCHAR id, signed char i)
 {
     for (; (UCHAR)i < GX.pUnk7C7C->Num; i++) {
         if (GX.pUnk7C7C->Tbl[(UCHAR)i][0] == id) {
@@ -1238,7 +1238,7 @@ extern char D_80010FEC[];
 
 void func_8006D720(void)
 {
-    ST_WORK *pSt = &D_800E01C0;
+    ST_WORK *pSt = &St;
     UCHAR *p;
     ULONG i;
     UCHAR n;
@@ -1247,24 +1247,24 @@ void func_8006D720(void)
     if (Flg_ck(&D_800CC858, 0x18)) {
         switch (FLD(&D_800CC858, 0x3B6, UCHAR)) {
         case 8:
-            func_80012818(0x5A, (ULONG *)0x801B1500, 0, "STMAIN1.TIM");
+            Cd_read(0x5A, (ULONG *)0x801B1500, 0, "STMAIN1.TIM");
             break;
         case 9:
-            func_80012818(0x5C, (ULONG *)0x801B1500, 0, "STMAIN2.TIM");
+            Cd_read(0x5C, (ULONG *)0x801B1500, 0, "STMAIN2.TIM");
             break;
         case 10:
-            func_80012818(0x5E, (ULONG *)0x801B1500, 0, "STMAIN3.TIM");
+            Cd_read(0x5E, (ULONG *)0x801B1500, 0, "STMAIN3.TIM");
             break;
         }
     } else {
-        func_80012818(0x58, (ULONG *)0x801B1500, 0, "STMAIN0.TIM");
+        Cd_read(0x58, (ULONG *)0x801B1500, 0, "STMAIN0.TIM");
     }
     FLD(&G, 0x2484, SHORT) = 0x41A;
-    func_800784E0((ULONG *)0x801B1500);
-    func_80012818(0x60, (ULONG *)0x801B1500, 0, "STMOJI.TIM");
+    Mapping_tim((ULONG *)0x801B1500);
+    Cd_read(0x60, (ULONG *)0x801B1500, 0, "STMOJI.TIM");
     FLD(&G, 0x2484, SHORT) = 0x1A;
-    func_800784E0((ULONG *)0x801B1500);
-    func_80012818(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
+    Mapping_tim((ULONG *)0x801B1500);
+    Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
     p = ((GLOBAL_X *)&G)->pUnk7C7C->Tbl[0];
     for (i = 0; i < 10; i++, p += 4) {
         func_8006AB68(i, *p, 0x801B1500, (ULONG *)0x801B1000);
@@ -1303,7 +1303,7 @@ void FC_func_80073E7C(ST_WORK *pSt) __asm__("func_80073E7C");
 
 void func_8006DFDC(void)
 {
-    ST_WORK *pSt = &D_800E01C0;
+    ST_WORK *pSt = &St;
 
     func_8006D948(pSt);
     while (FLD(pSt, 0x27, UCHAR)) {
@@ -1606,7 +1606,7 @@ void func_8006ECB0(ULONG no)
         break;
     }
     GX.pUnk7C7C = &GX.Unk79FC[GX.Unk7C80];
-    D_800E01C0.Flg14 |= 0x40000000;
+    St.Flg14 |= 0x40000000;
 }
 
 void func_8006ED28(ST_WORK *pSt)

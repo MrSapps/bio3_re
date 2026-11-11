@@ -116,14 +116,14 @@ extern USHORT D_80099654[];
 extern UCHAR D_80098E88[];
 extern UCHAR D_800CC84D;
 extern UCHAR D_800D4433;
-void func_80031504(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
     return D_80098E88 + D_80099654[No];
 }
 
-ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern LOADTASK D_8009C944[];
 ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
 
@@ -217,7 +217,7 @@ LONG func_800336B4(ENEMY_WORK *pEm)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_800336F0);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_800336F0);
 
 void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
 {
@@ -258,7 +258,7 @@ void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
     pEnt->UnkC = -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_8003389C);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_8003389C);
 
 void func_80033B20(void)
 {
@@ -315,9 +315,9 @@ void func_80033B88(COL_OBJ *pTop)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80033CF4);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80033CF4);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80033F38);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80033F38);
 
 void func_80033FBC(COL_OBJ *pTop)
 {
@@ -513,9 +513,9 @@ LONG func_800345C0(COL_OBJ *pObj, ENEMY_WORK *pEm)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_800346AC);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_800346AC);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80034814);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034814);
 
 LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
@@ -541,14 +541,14 @@ void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80034E78);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034E78);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80034F08);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034F08);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80035184);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80035184);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_800353CC);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_800353CC);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_8003553C);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_8003553C);
 
-INCLUDE_ASM("asm/nonmatchings/game/80033508", func_80035678);
+INCLUDE_ASM("asm/nonmatchings/game/oba", func_80035678);

@@ -16,23 +16,23 @@ extern ULONG Old_Uatari;               /* 0x800DECB8 RE2 Old_Uatari */
 extern ULONG *Flg_addr[];              /* 0x8009E3F8 RE2 Flg_addr */
 extern UCHAR D_800DBB58;
 LONG Mess_set(ULONG A0, ULONG Attr, ULONG No, ULONG Flg); /* 0x8002FD30 RE2 Mess_set */
-void func_800513CC();
+void Save_entrance();
 void func_80051D60();
 extern UCHAR D_800E01C4[];
-void func_800514F0();
+void Item_box_entrance();
 extern UCHAR *pCAot;                    /* 0x800DECB0 RE2 pCAot */
 void func_800511B0();
 extern LONG D_800DEC98;
 LONG func_8006CD68(UCHAR No);
 s8 func_8006CCF0(UCHAR No, ULONG A1, ULONG A2);
 extern UCHAR D_800E017E[];
-void func_80059A20();
-s8 func_8006CC8C(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
+void Aida_move();
+s8 Search_item_id(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
 extern UCHAR D_800C703E[];
 extern UCHAR D_800D442E[];
 extern UCHAR D_800E0175[];
 LONG func_80048974();
-LONG func_800321C4();
+LONG Init_movie_work();
 LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
@@ -82,21 +82,21 @@ extern SHORT D_800D1F82;
 extern s8 D_80098728[];
 UCHAR func_800102E8(void);             /* sld.s Rnd? */
 void func_80034124(void *p);
-LONG func_80055E38(s8 Work_kind, s8 Work_no);
-void func_80058DD4();
+LONG Get_matrix(s8 Work_kind, s8 Work_no);
+void Spl();
 extern ENEMY_WORK *D_800E01A8;
 extern USHORT D_800E01B4;
 void func_80052968(void);
-void func_80052BA4(void);
-void func_80052588(void);
+void Sce_scheduler_main(void);
+void Sce_kirakira_set(void);
 void func_8001BA48();
 void func_80052644(void);
 void func_8005283C(void);
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079868(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_800E01C6[];
-void func_80019318(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
+void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
 typedef struct {
     LONG Unk0;                         /* 0x00 */
     LONG Pos[3];                       /* 0x04 */
@@ -134,8 +134,8 @@ typedef struct {
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
-ENEMY_WORK *func_8005F7E8();
-ENEMY_WORK *func_8005F8F0();
+ENEMY_WORK *Spl_em_cdir_ck();
+ENEMY_WORK *Spl_pllock_get();
 extern UCHAR D_800A0514[];
 typedef struct {
     UCHAR Unk0;
@@ -144,12 +144,12 @@ typedef struct {
 } ITEM_TBL4;
 extern UCHAR D_8009CDE0[];
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
-ULONG func_80027940(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void func_800776B0(ULONG A0, ULONG No, ENEMY_WORK *pEm);
+ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+void Snd_se_walk(ULONG A0, ULONG No, ENEMY_WORK *pEm);
 void Flg_on(ULONG *pFlg, ULONG Bit);
 LONG Flg_off(ULONG *pFlg, ULONG Bit);
 LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG func_80043BE4(ENEMY_WORK *pEm);
+LONG Pl_weapon_ch(ENEMY_WORK *pEm);
 LONG Pl_weapon_ch_init(ENEMY_WORK *pEm);
 extern UCHAR D_800E01E8;
 extern UCHAR D_8009E710[];
@@ -165,24 +165,24 @@ extern ULONG D_800E01D4[];
 extern ULONG D_8009DBB4;
 LONG func_80044804(void *p, ULONG A1, ULONG A2);
 extern ULONG D_800DECAC;
-ULONG func_800505AC(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
+ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
 extern UCHAR D_8009E6BC[];
 extern SHORT D_8009E6D4[];
 extern SHORT D_8009E6DC[];
 extern SHORT D_8009E6E4[];
 extern void (*D_8009E6EC[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80059824(ENEMY_WORK *pEm);
-void func_8001A248(ENEMY_WORK *pEm, LONG Dir);
-void func_8005F298();
-ULONG func_8005F660(ENEMY_WORK *pEm, ULONG A1);
+void Spl_Root_ck_sys(ENEMY_WORK *pEm);
+void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
+void Spl_enemy_ck();
+ULONG Spl_em_pos_ck(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_8009E7D8[];
 extern UCHAR D_8009E7C8[];
 extern void (*D_8009E788[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
 extern ULONG *D_8009E414;              /* Flg_addr[7] */
 extern ULONG *D_8009E418;              /* Flg_addr[8] */
-void func_8005C098(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_800549C4(ULONG Cut);
+void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Cut_chg_main(ULONG Cut);
 
 /* declarations from earlier parts of the original address-split file */
 extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
@@ -278,7 +278,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
     Num = pData[2];
     pSce->Data = pData + 3;
     while (1) {
-        i = func_8006CC8C(Id, i);
+        i = Search_item_id(Id, i);
         if (i == -1) {
             break;
         }
@@ -288,7 +288,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
         }
         i++;
     }
-    i = func_8006CC8C(0, 0);
+    i = Search_item_id(0, 0);
     return i != -1;
 }
 
@@ -309,7 +309,7 @@ ULONG func_80055B30(SCE_TASK *pSce)
 }
 
 /* RE2 Aot_set */
-ULONG func_80055B5C(SCE_TASK *pSce)
+ULONG Door_aot_set(SCE_TASK *pSce)
 {
     ULONG i;
 
@@ -322,7 +322,7 @@ ULONG func_80055B5C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055BBC(SCE_TASK *pSce)
+ULONG Door_aot_set_4p(SCE_TASK *pSce)
 {
     ULONG i;
 
@@ -336,7 +336,7 @@ ULONG func_80055BBC(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055C34(SCE_TASK *pSce)
+ULONG Aot_set(SCE_TASK *pSce)
 {
     ULONG i;
 
@@ -349,7 +349,7 @@ ULONG func_80055C34(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055C94(SCE_TASK *pSce)
+ULONG Aot_set_4p(SCE_TASK *pSce)
 {
     ULONG i;
 
@@ -364,7 +364,7 @@ ULONG func_80055C94(SCE_TASK *pSce)
 }
 
 /* RE2 Aot_reset */
-ULONG func_80055D0C(SCE_TASK *pSce)
+ULONG Aot_reset(SCE_TASK *pSce)
 {
     UCHAR *pData;
     UCHAR *pAot;
@@ -391,12 +391,12 @@ ULONG func_80055D0C(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80055D7C);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Aot_on);
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80055E38);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Get_matrix);
 
 /* RE2 Sce_espr_on */
-ULONG func_80056004(SCE_TASK *pSce)
+ULONG Sce_espr_on(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
@@ -407,7 +407,7 @@ ULONG func_80056004(SCE_TASK *pSce)
     pData = pSce->Data;
     D0 = ((USHORT *)pData)[1];
     Dir = ((USHORT *)pData)[2];
-    Mat = func_80055E38((s8)pData[4], (SHORT)Dir >> 8);
+    Mat = Get_matrix((s8)pData[4], (SHORT)Dir >> 8);
     Dir = ((USHORT *)pData)[3];
     Svec.vx = ((SHORT *)pData)[4];
     Svec.vy = ((SHORT *)pData)[5];
@@ -419,7 +419,7 @@ ULONG func_80056004(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_espr_on2 */
-ULONG func_800560B8(SCE_TASK *pSce)
+ULONG Sce_espr_on2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
@@ -430,7 +430,7 @@ ULONG func_800560B8(SCE_TASK *pSce)
     pData = pSce->Data;
     D0 = ((USHORT *)pData)[2];
     Dir = ((USHORT *)pData)[3];
-    Mat = func_80055E38((s8)pData[6], (SHORT)Dir >> 8);
+    Mat = Get_matrix((s8)pData[6], (SHORT)Dir >> 8);
     Dir = ((USHORT *)pData)[4];
     Svec.vx = ((SHORT *)pData)[5];
     Svec.vy = ((SHORT *)pData)[6];
@@ -442,7 +442,7 @@ ULONG func_800560B8(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_espr3d_on */
-ULONG func_80056178(SCE_TASK *pSce)
+ULONG Sce_espr3d_on(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
@@ -454,7 +454,7 @@ ULONG func_80056178(SCE_TASK *pSce)
     pData = pSce->Data;
     D0 = ((USHORT *)pData)[1];
     Dir = (SHORT)((USHORT *)pData)[2];
-    Mat = func_80055E38((s8)Dir, (LONG)Dir >> 8);
+    Mat = Get_matrix((s8)Dir, (LONG)Dir >> 8);
     Dir = ((USHORT *)pData)[3];
     Svec.vx = ((SHORT *)pData)[4];
     Svec.vy = ((SHORT *)pData)[5];
@@ -469,7 +469,7 @@ ULONG func_80056178(SCE_TASK *pSce)
 }
 
 /* RE2 Sce_espr3d_on2 */
-ULONG func_8005624C(SCE_TASK *pSce)
+ULONG Sce_espr3d_on2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
@@ -481,7 +481,7 @@ ULONG func_8005624C(SCE_TASK *pSce)
     pData = pSce->Data;
     D0 = ((USHORT *)pData)[2];
     Dir = (SHORT)((USHORT *)pData)[3];
-    Mat = func_80055E38((s8)Dir, (LONG)Dir >> 8);
+    Mat = Get_matrix((s8)Dir, (LONG)Dir >> 8);
     Dir = ((USHORT *)pData)[4];
     Svec.vx = ((SHORT *)pData)[5];
     Svec.vy = ((SHORT *)pData)[6];
@@ -495,30 +495,30 @@ ULONG func_8005624C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_8005632C(SCE_TASK *pSce)
+ULONG Sce_espr_kill(SCE_TASK *pSce)
 {
     LONG Ret;
 
-    Ret = func_80055E38((s8)pSce->Data[3], (s8)pSce->Data[4]);
+    Ret = Get_matrix((s8)pSce->Data[3], (s8)pSce->Data[4]);
     func_8001B894((pSce->Data[2] << 8) | pSce->Data[1], Ret);
     pSce->Data += 5;
     return 1;
 }
 
-ULONG func_80056394(SCE_TASK *pSce)
+ULONG Sce_espr_kill2(SCE_TASK *pSce)
 {
     func_8001B894((pSce->Data[1] << 16) | 0x1000000, 0);
     pSce->Data += 2;
     return 1;
 }
 
-ULONG func_800563E4(SCE_TASK *pSce)
+ULONG Sce_espr_task(SCE_TASK *pSce)
 {
     LONG v;
     ULONG i;
 
     if (pSce->Data[1] != 6) {
-        v = func_80055E38((s8)pSce->Data[1], (s8)pSce->Data[2]);
+        v = Get_matrix((s8)pSce->Data[1], (s8)pSce->Data[2]);
         for (i = 0; i < 0x60; i++) {
             if (D_800BA8A8[i].UnkC0 == v) {
                 D_800BA8A8[i].Unk1 = 0;
@@ -533,21 +533,21 @@ ULONG func_800563E4(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_8005648C(SCE_TASK *pSce)
+ULONG Sce_espr_control(SCE_TASK *pSce)
 {
     UCHAR *pData;
 
     pData = pSce->Data;
-    func_8001BA48((pData[2] << 8) | pData[1], func_80055E38((s8)pData[3], (s8)pData[4]),
+    func_8001BA48((pData[2] << 8) | pData[1], Get_matrix((s8)pData[3], (s8)pData[4]),
                   pData[5] | (pData[6] << 16), pData[7] | (pData[8] << 16));
     pSce->Data = pData + 10;
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80056510);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Obj_model_set);
 
 /* RE2 Mizu_div_set */
-ULONG func_80056950(SCE_TASK *pSce)
+ULONG Mizu_div_set(SCE_TASK *pSce)
 {
     POLY_GT4 *pPrim;
     ULONG Div_num;
@@ -580,9 +580,9 @@ ULONG func_80056950(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80056A2C);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Sce_em_set);
 
-ULONG func_80056DC0(SCE_TASK *pSce)
+ULONG Plc_motion(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ENEMY_WORK *pW;
@@ -630,7 +630,7 @@ extern UCHAR D_8009E554[][2];          /* RE2 Subpl_back */
 extern UCHAR D_8009E5A4[][2];          /* RE2 Subpl_ato */
 extern UCHAR D_8009E57C[][2];          /* RE2 Subpl_dir */
 /* RE2 Plc_dest */
-ULONG func_80056E5C(SCE_TASK *pSce)
+ULONG Plc_dest(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ENEMY_WORK *pEm;
@@ -699,7 +699,7 @@ ULONG func_80056E5C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057008(SCE_TASK *pSce)
+ULONG Plc_gun(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
     ULONG v;
@@ -713,9 +713,9 @@ ULONG func_80057008(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80057040);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Plc_gun_eff);
 
-ULONG func_8005709C(SCE_TASK *pSce)
+ULONG Plc_neck(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
     ULONG Kind;
@@ -782,7 +782,7 @@ ULONG func_8005709C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057210(SCE_TASK *pSce)
+ULONG Plc_ret(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
 
@@ -799,7 +799,7 @@ ULONG func_80057210(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057280(SCE_TASK *pSce)
+ULONG Plc_stop(SCE_TASK *pSce)
 {
     ULONG R_no;
 
@@ -814,7 +814,7 @@ ULONG func_80057280(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800572C8(SCE_TASK *pSce)
+ULONG Plc_flg(SCE_TASK *pSce)
 {
     ULONG Mode;
     USHORT v;
@@ -836,7 +836,7 @@ ULONG func_800572C8(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_8005734C(SCE_TASK *pSce)
+ULONG Plc_rot(SCE_TASK *pSce)
 {
     switch (pSce->Data[1]) {
     case 0:
@@ -850,14 +850,14 @@ ULONG func_8005734C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800573B0(SCE_TASK *pSce)
+ULONG Plc_cnt(SCE_TASK *pSce)
 {
     pSce->pWork->Move_cnt = pSce->Data[1];
     pSce->Data += 2;
     return 1;
 }
 
-ULONG func_800573DC(SCE_TASK *pSce)
+ULONG Splc_ret(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
 
@@ -874,7 +874,7 @@ ULONG func_800573DC(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_8005745C(SCE_TASK *pSce)
+ULONG Splc_sce(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
 
@@ -901,12 +901,12 @@ ULONG func_800574B8(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_800574F4);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Item_aot_set);
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_800576C4);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Item_aot_set_4p);
 
 /* RE2 Kage_set */
-ULONG func_800578A0(SCE_TASK *pSce)
+ULONG Kage_set(SCE_TASK *pSce)
 {
     KAGE_WORK9 *pK;
     UCHAR *pData;
@@ -941,7 +941,7 @@ ULONG func_800578A0(SCE_TASK *pSce)
 }
 
 /* RE2 Super_set */
-ULONG func_80057A00(SCE_TASK *pSce)
+ULONG Super_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ENEMY_WORK *pEm;
@@ -999,7 +999,7 @@ ULONG func_80057A00(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057BD0(SCE_TASK *pSce)
+ULONG Weapon_chg(SCE_TASK *pSce)
 {
     ENEMY_WORK *pPl;
     ULONG Wep;
@@ -1017,17 +1017,17 @@ ULONG func_80057BD0(SCE_TASK *pSce)
         Wep &= 0x7F;
         pPl->Type = (pPl->Type & 0xFF00) | Wep;
         if (Wep != 0) {
-            G.pUnk7C7C[0x128] = func_8006CC8C(Wep, 0);
+            G.pUnk7C7C[0x128] = Search_item_id(Wep, 0);
             G.pUnk7C7C[0x129] = Wep;
             Weapon_cls(pPl);
-            func_80043BE4(pPl);
+            Pl_weapon_ch(pPl);
             D_800E0171[0] = 1;
         } else {
             G.pUnk7C7C[0x128] = 0xFF;
             G.pUnk7C7C[0x129] = 0;
             if (Flg) {
                 Weapon_cls(pPl);
-                func_80043BE4(pPl);
+                Pl_weapon_ch(pPl);
                 Flg_on(D_800E01D4, 1);
                 D_800E0171[0] = 1;
             } else {
@@ -1049,7 +1049,7 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     Wep = D_800E01E8;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
-        G.pUnk7C7C[0x128] = func_8006CC8C(Wep, 0);
+        G.pUnk7C7C[0x128] = Search_item_id(Wep, 0);
         G.pUnk7C7C[0x129] = Wep;
     } else {
         G.pUnk7C7C[0x128] = 0xFF;
@@ -1057,7 +1057,7 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     }
     if (Sce.Unk1489 != 0) {
         Weapon_cls(pPl);
-        func_80043BE4(pPl);
+        Pl_weapon_ch(pPl);
         Sce.Unk1489 = 0;
     } else {
         Pl_weapon_ch_init(pPl);
@@ -1094,11 +1094,11 @@ ULONG func_80057E28(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80057E74);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Flr_set);
 
-ULONG func_80057EF4(SCE_TASK *pSce)
+ULONG Sce_Item_lost(SCE_TASK *pSce)
 {
-    func_8006CD68(func_8006CC8C(pSce->Data[1], 0));
+    func_8006CD68(Search_item_id(pSce->Data[1], 0));
     pSce->Data += 2;
     return 1;
 }
@@ -1116,7 +1116,7 @@ ULONG func_80057F44(SCE_TASK *pSce)
 
 INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80057F84);
 
-ULONG func_8005863C(SCE_TASK *pSce)
+ULONG Sce_parts_bomb(SCE_TASK *pSce)
 {
     UCHAR *pData;
     PARTS_W *pP;
@@ -1138,7 +1138,7 @@ ULONG func_8005863C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800586F4(SCE_TASK *pSce)
+ULONG Sce_parts_down(SCE_TASK *pSce)
 {
     UCHAR *pData;
     PARTS_W *pP;
@@ -1221,7 +1221,7 @@ void func_800588F0(SCE_TASK *pSce)
 }
 
 /* RE2 Parts_set */
-ULONG func_80058918(SCE_TASK *pSce)
+ULONG Parts_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     LONG Kind;

@@ -22,18 +22,18 @@ LONG func_800455B4();
 LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);
 
 extern UCHAR D_8009CD3D;
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
 signed char func_8006CF0C_r(ULONG Arg0) __asm__("func_8006CF0C");
-void func_8003E088(ENEMY_WORK *pEm);
+void Pl_water(ENEMY_WORK *pEm);
 
 /* declarations from earlier parts of the original address-split file */
-LONG func_80026BE8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
+LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
 void func_8006CF0C(ULONG Arg0);
-void func_80044F34(PLAYER_WORK *pEm);
+void Mag_set(PLAYER_WORK *pEm);
 
 void Pl_wep_flag_set(PLAYER_WORK *pEm);
 
@@ -41,7 +41,7 @@ void Pl_wep_flag_set(PLAYER_WORK *pEm);
 
 extern PARTS_W *D_8009CD30;
 extern USHORT D_8009DCB4[];
-void func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
 
 typedef struct {
@@ -75,7 +75,7 @@ void func_80048520(void)
             D_8009DE28--;
         }
         if (D_8009DE26 != (USHORT)pG->Unk2118) {
-            func_800746C0(0xF, 0, 0, 0);
+            Snd_se_stad(0xF, 0, 0, 0);
             D_8009DE28 = 4;
         }
         D_8009DE26 = pG->Unk2118;
@@ -85,158 +85,4 @@ void func_80048520(void)
         pG->Unk2118 = 0;
         D_8009DE28 = 0;
     }
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80048630);
-
-extern LONG D_800D204C[];
-
-void func_800486C8(void)
-{
-    LONG *p = D_800D204C;
-    LONG i = 32;
-
-    do {
-        *p++ = -1;
-    } while (--i != 0);
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_800486F0);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80048844);
-
-typedef struct {
-    ULONG Tag;                         /* 0x00 */
-    ULONG Tpage;                       /* 0x04 */
-    ULONG pad8;
-    ULONG Code;                        /* 0x0C */
-    UCHAR pad10[0x1C - 0x10];
-} PRIM_1C;
-typedef struct {
-    UCHAR *p0;                         /* 0x00 */
-    UCHAR *p1;                         /* 0x04 */
-    PRIM_1C *pPrim;                    /* 0x08 */
-    UCHAR padC[0x16 - 0xC];
-    SHORT Unk16;                       /* 0x16 */
-    UCHAR pad18[0x20 - 0x18];
-    UCHAR Unk20;                       /* 0x20 */
-    UCHAR Unk21;                       /* 0x21 */
-} W_DEB18;
-extern W_DEB18 D_800DEB18;
-void func_80010150(void *p, ULONG Size);
-void func_80048FF4(void);
-
-void func_80048974(SHORT Arg)
-{
-    UCHAR *p;
-    PRIM_1C *pPr;
-    LONG i;
-    W_DEB18 *pW = &D_800DEB18;
-
-    p = (UCHAR *)G.pEm_mem;
-    D_800DEB18.p0 = p;
-    p += 0x64;
-    pW->p1 = p;
-    p += 0x4B0;
-    pW->pPrim = (PRIM_1C *)p;
-    p += 0x1900;
-    func_80010150(D_800DEB18.p0, p - D_800DEB18.p0);
-    i = 200;
-    G.pEm_mem = (struct tagENEMY_WORK *)p;
-    pPr = pW->pPrim;
-    do {
-        pPr->Tpage = 0xE1000420;
-        pPr->Code = 0x52000000;
-        pPr++;
-    } while (--i != 0);
-    pW->Unk20 = 0;
-    pW->Unk21 = 0;
-    pW->Unk16 = Arg;
-    func_80048FF4();
-    G.Status_flg |= 0x1000;
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80048A3C);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80048E34);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80048FF4);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80049218);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_800493EC);
-
-void func_80049898(void)
-{
-    ULONG Size = ((ULONG (*)(ULONG, ULONG))Task_lexecute)(2, G.Unk783E + 0x11);
-
-    G.Unk2138 = ((Size + 3) & ~3) + 0x8011A000;
-    Task_sleep(1);
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_800498F0);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80049A50);
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80049BA8);
-
-ULONG func_800102E8(void);
-extern USHORT **D_800CC86C;
-
-LONG func_80049E80(void)
-{
-    USHORT n = *D_800CC86C[14];
-
-    if (n == 0) {
-        return 0xFF;
-    }
-    return (UCHAR)(func_800102E8() % n);
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_80049ED8);
-
-ULONG func_80049F80(SHORT *pA, SHORT *pB)
-{
-    LONG dx1, dy2, dy1, dx2;
-    LONG Den, dy, dx, S, T;
-
-    dx1 = pA[2] - pA[0];
-    dy2 = pB[3] - pB[1];
-    dy1 = pA[3] - pA[1];
-    dx2 = pB[2] - pB[0];
-    Den = dx1 * dy2 - dy1 * dx2;
-    if (Den == 0) {
-        return 0;
-    }
-    dy = pA[1] - pB[1];
-    dx = pA[0] - pB[0];
-    S = dy * dx2 - dx * dy2;
-    T = dy * dx1 - dx * dy1;
-    if (((Den > 0 && S >= 0 && S <= Den) || (Den < 0 && S >= Den && S <= 0))
-        && ((Den > 0 && T >= 0 && T <= Den) || (Den < 0 && T >= Den && T <= 0))) {
-        return 1;
-    }
-    return 0;
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80048520", func_8004A080);
-
-void func_8004A7F4(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut)
-{
-    LONG dx;
-    LONG dz;
-    LONG d;
-
-    dz = (pT->vz - pPos->vz) >> 1;
-    dx = (pT->vx - pPos->vx) >> 1;
-    d = dz * dz + dx * dx;
-    dz <<= 8;
-    d = SquareRoot0(d) + 1;
-    dz = dz / d;
-    dx <<= 8;
-    dx = dx / d;
-    dz *= Spd;
-    dx *= Spd;
-    pOut->vx = dz >> 8;
-    pOut->vz = dx >> 8;
 }

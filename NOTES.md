@@ -62,8 +62,8 @@ Boundaries marked ~ are only pinned to a range (any function in the range gives 
 | start | file | evidence / notes |
 |---|---|---|
 | 80011CF8 | cd.c | Cd_init .. Set_volume/Change_volume, RE3-only Cd_seek/Xa_fade_set |
-| 80015428 | door.c | Door_main; 80016600-80017D9C RE3 door-model anim (maybe DOOR_EX) |
-| 80017DA4 | em_sub.c | Hani_ck .. Kage_work*; 8001A248-80020298 probably EM_SUB2/EM_SET/ESP (not split, no anchors) |
+| 80015428 | door.c | Door_main; tail holds ENEMY_WORK code incl. Em_move_tbl_set (RE2 EM_SET.C), not split yet |
+| 80017DA4 | em_sub.c | Hani_ck .. Kage_work*, Rot_neck*; ESP.C part from ~8001B08C (Esp_init_C/R, Esp_data_set0/1), not split: the jtbl at 800103F8 rules out an object start at 8001B08C, so the real boundary needs more work |
 | 80020298 | esp_r.c | effect routines |
 | 80022990 | trans.c | Trans_work_init, Trans_pointer_set (RE3 links TRANS before GAME) |
 | 80023268 | game.c | Gun_light_set/reset |
@@ -74,22 +74,25 @@ Boundaries marked ~ are only pinned to a range (any function in the range gives 
 | 8002F2F8 | mojidisp.c | Print8/Print14, Moji_*; was split across two address files |
 | 80031DA8 | monitor.c | task scheduler, ~1:1 with RE2 |
 | 800321C4 | movie.c | Close_movie, RuntoImage, Mdec_callback |
-| 80033508 | 80033508.c | RE3-only collision object list (OBA? DOOR_EX?) |
+| 80033508 | oba.c | OBA.C, rewritten in RE3 (collision object list); no RE2 Oba_* name maps 1:1 |
 | 80035790 | om.c | Tex_chg*, Tex_ctr; probably OM + OMA; .rdata starts 80010704 (4 mod 8) |
 | 80037FA0 | pad.c | Pad_vib_* |
 | 80038AAC | player.c | Pl_move, pl_mvXX_pad, Pl_damage..Pl_life_up; .rdata 80010748 |
 | 8003DEA4 | pl_wep.c | PL_WEP + PL_WEP2 names mixed (RE3 has one object or two adjacent; not separated) |
-| 80048520 | 80048520.c | POLY_SUB / PSP / ROOM / ROOT_CK area, unsplit |
+| 80048520 | 80048520.c | one RE3-only timer display function (Print14_col) |
+| 80048630 | psp.c | Psp_set, Psp_trans; 80048974-80049218 RE3-only effect code |
+| 800493EC | room.c | Set_room, Set_stage, Em_init_move |
+| 80049BA8 | root_ck.c | Root_ck, Rnd_area, Guide_check, kara_rootck2 |
 | 8004A8BC | sabun.c | |
 | 8004B7E8 | sca.c | Sca_ck_circle*, Sca_high_* |
 | 800505AC | sce_at.c | |
 | 80051F78 | sce0.c | Sce_aot_init, Event_init/exec |
 | 80052DE8 | sce1.c | 1:1 with RE2, SCE_TASK 0x174 |
 | 80055A18 | sce2.c | SCE_TASK opcode handlers up to 80058CD0 |
-| 80058DD4 | 80058DD4.c | enemy/partner motion routines (ENEMY_WORK, pKan/pSeq) |
-| ~800597F0 | 800597F0.c | new object somewhere in 800594D8..8005CB2C (.rdata 80010D0C, 4 mod 8) |
-| ~800601F0 | 800601F0.c | new object somewhere in 8005F29C..80061DF4 (.rdata 80010D90) |
-| 800636D4 | 800636D4.c | STATUS / ST_SUB*? (.rdata 80010DCC, 4 mod 8) |
+| 80058DD4 | spl.c | SPL.C: Spl, Spl_Init, Spl_set; routine table D_8009E6EC = RE2 Spl_routine_0 slots |
+| ~800597F0 | spl_auto.c | SPL_AUTO.C: Spl_Auto, Aida_*; RE3 moved Spl_Damage/Die/Dead here. Start pinned to 800594D8..8005CB2C (.rdata 80010D0C) |
+| ~800601F0 | spl_sce.c | SPL_SCE.C (reworked): Spl_Scenario, Spl_sce00-09. Start pinned to 8005F29C..80061DF4 (.rdata 80010D90) |
+| 800636D4 | 800636D4.c | RE3's own status/inventory code (barely RE2 STATUS/ST_SUB*); .rdata 80010DCC |
 | ~80073E84 | snd.c | RE3 sound driver (custom libspu sequencer, Snd_work 800E0610) |
 | ~800784E0 | sub.c | SetSpadStack, Vram_clr, Rot_*, Flg_*, Set_view, Set_light* |
 | 80079EC0 | 80079EC0.c | PC-host STR streaming (Pcstr_*) and handwritten asm from 8007C434 |
@@ -145,3 +148,11 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
 - syms/*.txt merged into syms/game.txt.
 - Making a .c file: add `[rodata_offset, .rodata, game/x]` and `[text_offset, c, game/x]` to the yaml,
   write the C file with INCLUDE_ASM paths `asm/nonmatchings/game/x`, run `make split`, then `make`.
+
+### Naming pass (RE2 code comparison)
+- syms/re2_names.txt: ~290 functions named by comparing with RE2 source (callees, constants, table
+  slots), each with its evidence; merged into symbol_addrs.txt by tools/apply_syms.py.
+- Caution: RE3's Pl_mv/Pl_mv_pad tables match RE2 only for slots 0-4, so the older slot-derived names
+  pl_mv06_pad/pl_mv07_pad/pl_mv08_pad are probably wrong. RE3's Sce_at_jump_tbl and Sce_jmp_tbl orders
+  differ from RE2's, so those handlers were named by body. Dir_ck at 80018594 (em_sub) may be misnamed:
+  80055AF0 in sce2.c is an exact match for RE2's SCE1 Dir_ck.

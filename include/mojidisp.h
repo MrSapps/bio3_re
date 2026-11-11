@@ -40,9 +40,9 @@ void Print8(USHORT X, USHORT Y, UCHAR *pFmt, ...);
 void Print14(USHORT X, USHORT Y, UCHAR *pFmt, ...);
 void Print8_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...);
 void Print14_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...);
-long func_8002F440(ULONG Pos, USHORT Attr, void *pArgs);
+long Print_main(ULONG Pos, USHORT Attr, void *pArgs);
 void Moji_trans_main(void);
-void func_8002FEE0(MOJIDISP *pMoji);
-void func_80030CB8(MOJIDISP *pMoji);
+void Mess_disp(MOJIDISP *pMoji);
+void mess_trans(MOJIDISP *pMoji);
 
 #endif /* MOJIDISP_H */

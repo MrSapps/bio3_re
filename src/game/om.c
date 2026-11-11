@@ -116,14 +116,14 @@ extern USHORT D_80099654[];
 extern UCHAR D_80098E88[];
 extern UCHAR D_800CC84D;
 extern UCHAR D_800D4433;
-void func_80031504(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
     return D_80098E88 + D_80099654[No];
 }
 
-ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern LOADTASK D_8009C944[];
 ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
 
@@ -192,7 +192,7 @@ void func_80035B84(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Arg2, ULONG Arg3)
 
 extern UCHAR D_800CC84B;
 
-void func_80035C18(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
+void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
 {
     ULONG Poly_num;
     ULONG Clut;
@@ -240,7 +240,7 @@ void func_80035C18(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     }
 }
 
-void func_80035D9C(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
+void Col_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
 {
     switch (Ctr)
     {
@@ -355,7 +355,7 @@ void Om_chg_init_80036234(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     pCcp->Cc_pos_y = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", func_80036248);
+INCLUDE_ASM("asm/nonmatchings/game/om", Col_chg_ctr_80036248);
 
 void Tex_ctr(void)
 {
@@ -384,7 +384,7 @@ void Tex_ctr(void)
             AddPrim(pOt, pMove);
         }
         if (pCcp->Cc_flg & 0x20) {
-            func_80036248(pCcp);
+            Col_chg_ctr_80036248(pCcp);
         }
         pCcp++;
         i++;
@@ -401,7 +401,7 @@ extern LONG D_800DD4AC;
 extern ENEMY_WORK *D_800DD4B0;
 void func_80036570(void);
 
-void func_800364A4(void)
+void Om_move(void)
 {
     OM_WORK *pOm;
 
@@ -433,7 +433,7 @@ extern SHORT D_800DE618;
 extern SHORT D_800DE61A;
 extern SHORT D_800DE61E;
 
-void func_8003664C(ENEMY_WORK *pEm)
+void Om_set_fall_dir(ENEMY_WORK *pEm)
 {
     SHORT dx;
     SHORT dz;
@@ -713,7 +713,7 @@ void func_8003783C(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", func_800378C8);
+INCLUDE_ASM("asm/nonmatchings/game/om", Om_trans);
 
 typedef struct {
     OBJ_MODEL_WORK Om[32];

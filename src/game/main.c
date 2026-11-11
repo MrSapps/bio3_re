@@ -30,7 +30,7 @@ typedef struct tagSAVE_POS {
     SHORT Life;                        /* 0x710 */
     UCHAR Id;                          /* 0x712 */
     UCHAR Unk713;                      /* 0x713 */
-    ULONG Unk714;                      /* 0x714 random seed (func_800248E4) */
+    ULONG Unk714;                      /* 0x714 random seed (Set_door) */
     USHORT Unk718;                     /* 0x718 */
 } SAVE_POS;
 
@@ -108,10 +108,10 @@ typedef struct tagESP3_WORK {
     VECTOR Unk38;                      /* 0x38 */
     VECTOR Pos;                        /* 0x48 */
     UCHAR pad58[0x68 - 0x58];
-    SHORT Rot[3];                      /* 0x68 rotation (func_80022990) */
+    SHORT Rot[3];                      /* 0x68 rotation (Eff_sprt_trans) */
     UCHAR pad6E;
     UCHAR Anm_cnt;                     /* 0x6F index into pAnmseq */
-    MATRIX M70;                        /* 0x70 local matrix (func_80022990) */
+    MATRIX M70;                        /* 0x70 local matrix (Eff_sprt_trans) */
     MATRIX Mat;                        /* 0x90 */
     UCHAR padB0[0xB3 - 0xB0];
     UCHAR UnkB3;                       /* 0xB3 */
@@ -146,7 +146,7 @@ typedef struct tagRGB_BLEND_WORK {
     UCHAR pad2C[0x68 - 0x2C];
 } RGB_BLEND_WORK;
 
-/* model work (pW[1] = MD_OBJ, then the double-buffered prims built by func_8002AC98 / func_8002ADB8) */
+/* model work (pW[1] = MD_OBJ, then the double-buffered prims built by PresetObjectGT3_neo / PresetObjectGT4_neo) */
 typedef struct tagMD_WORK {
     ULONG Attr;                        /* 0x00 bits 2-3: semi-trans rate */
     MD_OBJ *pObj;                      /* 0x04 */
@@ -188,11 +188,11 @@ void func_80094374(LONG Arg);
 void func_800943C8(void);
 void _bu_init(void);
 void func_800912C4(void);
-void func_80029B94(void);
+void Init_main(void);
 void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
 extern LONG D_800D454C;                /* right after Main.Fade[] */
 extern UCHAR D_800DBB58;
-extern UCHAR D_800996E4[];             /* message text banks (func_8002FD30) */
+extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
 extern USHORT D_8009BDB4[];
 extern UCHAR D_80098E88[];
 extern USHORT D_80099654[];
@@ -241,13 +241,13 @@ void func_8002783C(PARTS_W *pP_ptr);
 void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
 void func_80026648(ENEMY_WORK *pEm);
 void func_80026498(ENEMY_WORK *pEm);
-void func_80026728(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
-void func_8002720C(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
+void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
+void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
 void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void func_80026CF4(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void func_80027A54(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+void J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 ULONG func_800102E8(void);   /* Rnd */
 ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
 ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
@@ -257,7 +257,7 @@ void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
 void Set_light_pos(VECTOR *pPos);
 extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
 extern VECTOR *D_800C79F4;
-LONG func_80051E48(LONG Pos_x, LONG Pos_z);
+LONG Water_ck(LONG Pos_x, LONG Pos_z);
 extern LONG D_800CA720;
 extern UCHAR D_80098728[];
 extern ULONG D_800986C4[];             /* scale curve (func_80021D58) */
@@ -300,20 +300,20 @@ typedef struct tagDOOR_NEXT {
 void func_80024C58(void);
 void Door_main(void);
 void Door_snd_trans(void);
-void func_80049898(void);
+void Set_stage(void);
 void func_80077C4C(void);
-void func_800493EC(void);
+void Set_room(void);
 void func_80077F60(void);
 extern UCHAR D_800E0186;
 
 void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM) __asm__("func_80025610");
 
 void MatrixNormal_0(MATRIX *m, MATRIX *n);
-void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate) __asm__("func_80026728");
+void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate) __asm__("HMatrix");
 
 void MatrixNormal_2(MATRIX *m, MATRIX *n);
 
-void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate) __asm__("func_8002720C");
+void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate) __asm__("hokan_svec");
 
 void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190");
 ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027338");
@@ -323,13 +323,13 @@ ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) 
 
 void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
 
-INCLUDE_ASM("asm/nonmatchings/game/main", func_80028F38);
+INCLUDE_ASM("asm/nonmatchings/game/main", main);
 
-INCLUDE_ASM("asm/nonmatchings/game/main", func_80029294);
+INCLUDE_ASM("asm/nonmatchings/game/main", Swap_Cbuff);
 
 INCLUDE_ASM("asm/nonmatchings/game/main", func_80029700);
 
-void func_800297FC(void)
+void Init_system(void)
 {
     tagMAIN *pM;
     tagGLOBAL *pG;
@@ -363,26 +363,26 @@ void func_800297FC(void)
     PadInitDirect(pG->Padd_data[0], pG->Padd_data[1]);
     func_800912C4();
     Game.Unk4F = 0;
-    func_80029988();
+    Init_global();
     Moji_init();
     Line_work_init();
     pG->Unk2114 = 0;
-    Task_execute(0, func_80029B94);
+    Task_execute(0, Init_main);
     ResetGraph(0);
     Vram_clr(0, 0, 0x400, 0x200);
     D_800D454C = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/main", func_80029988);
+INCLUDE_ASM("asm/nonmatchings/game/main", Init_global);
 
 extern SHORT D_800CCBBC;
-void func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-void func_800784E0(ULONG *p);
+void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+void Mapping_tim(ULONG *p);
 void Task_lchain(ULONG Task_no);
 int PadGetState(int port);
 int PadSetMainMode(int socket, int offs, int lock);
 
-void func_80029B94(void)
+void Init_main(void)
 {
     tagMAIN *pMain;
     DBUF *pDb;
@@ -390,9 +390,9 @@ void func_80029B94(void)
 
     pMain = &Main;
     Card_event_set();
-    func_80012818(0x63, (ULONG *)0x8011A000, 1, "TEX_TIM");
+    Cd_read(0x63, (ULONG *)0x8011A000, 1, "TEX_TIM");
     D_800CCBBC = 0x1C;
-    func_800784E0((ULONG *)0x8011A000);
+    Mapping_tim((ULONG *)0x8011A000);
     for (i = 0; i < 2; i++) {
         pDb = &pMain->Db[i];
         SetTile(&pDb->Bg_clr);
@@ -453,7 +453,7 @@ void Curtain_trans(void)
     }
 }
 
-void func_800486F0(void);
+void Psp_set(void);
 void func_80048FF4(void);
 void Set_light_default(void);
 void Set_view(LONG *pView_p, LONG *pView_r);
@@ -462,7 +462,7 @@ void func_8008F8A4(LONG mode);
 void func_8008FAD4(LONG mode);
 extern USHORT *D_8009DFD0[];           /* per stage room file numbers */
 
-void func_80029E3C(void)
+void Bg_draw(void)
 {
     RECT Rect;
     volatile UCHAR pad_save0;
@@ -486,7 +486,7 @@ void func_80029E3C(void)
         pG->Cut_no = n;
         pG->Cccut = Ccut_search(n);
         if (!(pG->System_flg & 0x80000000)) {
-            func_800486F0();
+            Psp_set();
         }
         pBs_size = (USHORT *)(pG->Unk7840 * 2 + (ULONG)pG->pBs_size);
         Size = pG->pUnk2128[*pBs_size + pG->Cut_no];
@@ -495,12 +495,12 @@ void func_80029E3C(void)
         CD.Fsize = Size;
         CD.Fno = D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1;
         CD.Fsector = (floc[CD.Fno].sec_high << 16) + floc[CD.Fno].sector + pG->Cut_no * 32;
-        func_80012818(CD.Fno, (ULONG *)0x80194000, 2, "BS");
+        Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;
         if (*(ULONG *)(0x80193FFC + Size) != 0) {
             func_80010000((ULONG *)(*(ULONG *)(0x80193FF8 + Size) + 0x80194000), (ULONG *)0x801AC000);
             pG->Unk2484 = 0x15;
-            func_800784E0((ULONG *)0x801AC000);
+            Mapping_tim((ULONG *)0x801AC000);
             pG->Unk2484 = Ctpage_save;
         }
     }
@@ -539,7 +539,7 @@ void Soft_reset(void)
     RECT rect;
 
     Pad_vib_init();
-    func_800522D8();
+    Sce_work_clr_set();
     rect.w = 0x140;
     rect.x = 0;
     rect.y = 0;
@@ -553,7 +553,7 @@ void Soft_reset(void)
     Task_kill(1);
     Task_kill(2);
     Snd_reset();
-    func_80029988();
+    Init_global();
     VSync(0);
     G.Unk20F8 = -1;
     Task_lexecute(0, NULL);

@@ -17,7 +17,7 @@ typedef struct tagVCUT {
 
 /* room header (RE2 struct tagROOM_HEAD) */
 typedef struct tagROOM_WORK {
-    UCHAR nSprite;                     /* 0x00 RE2 nSprite (func_80048844) */
+    UCHAR nSprite;                     /* 0x00 RE2 nSprite (Psp_trans) */
     UCHAR pad1;
     UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
     UCHAR pad3[7 - 3];
@@ -28,8 +28,8 @@ typedef struct tagROOM_WORK {
     VCUT *pVcut;                       /* 0x28 */
     ULONG *pLight;                     /* 0x2C RE2 LIGHT_CUT_DATA *pLight; RE3 adds a per-cut zone table (see sub.h) */
     UCHAR pad30[0x34 - 0x30];
-    USHORT *pUnk34;                    /* 0x34 count, then 0xC byte records (func_80057E74) */
-    USHORT *pBlock;                    /* 0x38 RE2 pBlock (func_80049E80: [0] = count) */
+    USHORT *pUnk34;                    /* 0x34 count, then 0xC byte records (Flr_set) */
+    USHORT *pBlock;                    /* 0x38 RE2 pBlock (Rnd_area: [0] = count) */
     UCHAR *pMessage;                   /* 0x3C RE2 pMessage (offset table, then the text) */
     UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
     ULONG *pUnk44;                     /* 0x44 second bg image (Swap_Cbuff) */
@@ -77,7 +77,7 @@ typedef struct tagMAIN {
     UCHAR pad18F[0x191 - 0x18F];
     UCHAR Unk191;                      /* 0x191 bg image +0x14 offset (Swap_Cbuff) */
     UCHAR Curtain_kido;                /* 0x192 */
-    UCHAR Unk193;                      /* 0x193 set when the logo task is done (func_80029B94) */
+    UCHAR Unk193;                      /* 0x193 set when the logo task is done (Init_main) */
     UCHAR Unk194;                      /* 0x194 */
     UCHAR Unk195;                      /* 0x195 */
     UCHAR Unk196;                      /* 0x196 */
@@ -102,7 +102,7 @@ typedef struct tagGAME {
     struct tagSAVE_POS *pSave;         /* 0x48 (func_80024B34) */
     UCHAR Unk4C;                       /* 0x4C */
     UCHAR Unk4D;                       /* 0x4D */
-    UCHAR Unk4E;                       /* 0x4E (func_800248E4) */
+    UCHAR Unk4E;                       /* 0x4E (Set_door) */
     UCHAR Unk4F;                       /* 0x4F cleared by Init_system */
 } tagGAME;
 extern tagGAME Game;                   /* 0x800C7960 */
@@ -125,7 +125,7 @@ extern long Ev13;                      /* 0x800D428C */
 #define SYS_DOOR_INIT  0x1000000       /* G.System_flg */
 
 /* owned by other modules, called from here */
-void func_800522D8(void);
+void Sce_work_clr_set(void);
 void Snd_reset(void);
 void Task_lexecute(ULONG Level, void *pFuncall);   /* RE2 Task_lexecute? */
 void func_8003884C(USHORT *pTbl, ULONG No);        /* pad: play vibration script No of pTbl */
@@ -141,7 +141,7 @@ void Gun_light_reset(void);              /* Gun_light_reset */
 void Flash_fade_in(void);
 void Flash_fade_out(void);
 
-void func_80029988(void);
+void Init_global(void);
 void Soft_reset(void);
 void Card_event_set(void);              /* Card_event_set */
 void System_trans_all(void);

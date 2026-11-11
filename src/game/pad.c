@@ -116,14 +116,14 @@ extern USHORT D_80099654[];
 extern UCHAR D_80098E88[];
 extern UCHAR D_800CC84D;
 extern UCHAR D_800D4433;
-void func_80031504(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
     return D_80098E88 + D_80099654[No];
 }
 
-ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern LOADTASK D_8009C944[];
 ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
 
@@ -225,7 +225,7 @@ ULONG func_80037D50(VECTOR *pPos);
 
 LONG func_800101C8(VECTOR *pPos, UCHAR *pArea);
 
-INCLUDE_ASM("asm/nonmatchings/game/pad", func_80037FA0);
+INCLUDE_ASM("asm/nonmatchings/game/pad", Pad_set);
 
 typedef struct {
     UCHAR pad0[4];
