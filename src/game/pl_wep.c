@@ -731,7 +731,74 @@ void pl_mv05_w2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
     pl_mv05_w2_tbl[pEm->Routine_2](pEm, Kan, Seq, Key);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", pl_mv05_w2_t1);
+void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
+{
+    SHORT Mv[3] = { 3, 6, 9 };
+
+    if (pEm->Routine_3 == 0) {
+        pEm->Routine_3 = 1;
+        *(ULONG *)&pEm->Move_no = Mv[D_8009CD3D_b] + 0x70000;
+        *(ULONG *)&pEm->Unk1A0 = Mv[D_8009CD3D_b] + 0x70000;
+        G.Unk75E8 |= 0x18;
+    }
+    Joint_move(pEm, G_ARR(LONG, 0x2618)[0], G_ARR(LONG, 0x2614)[0], 0x200);
+    pEm->Be_flg |= 0x2000000;
+    func_80079690(G_ARR(ENEMY_WORK, 0x248C), G_ARR(LONG, 0x2610)[0], G_ARR(LONG, 0x260C)[0], 0x200);
+    func_80079868(pEm, 0x200);
+    if (!(Key & 0x500)) {
+        *(USHORT *)&pEm->Routine_2 = 3;
+        return;
+    }
+    if ((UCHAR)pEm->Type != 11) {
+        if ((Key & 0x10) && D_8009CD3D_b != 1) {
+            pEm->Routine_3 = 0;
+            D_8009CD3D_b = 1;
+            return;
+        }
+        if ((Key & 0x20) && D_8009CD3D_b != 2) {
+            pEm->Routine_3 = 0;
+            D_8009CD3D_b = 2;
+            return;
+        }
+        if (!(Key & 0x30) && D_8009CD3D_b != 0) {
+            pEm->Routine_3 = 0;
+            D_8009CD3D_b = 0;
+            return;
+        }
+    }
+    if ((G.Key_trg & 0x800) && !(Main.Unk196 & 0x40)) {
+        *(USHORT *)&pEm->Routine_2 = 5;
+    }
+    if (Key & 0x40) {
+        if (func_8006D030(0) != -1) {
+            *(USHORT *)&pEm->Routine_2 = 2;
+            if (!(G.Key_trg & 0x40)) {
+                if (!((func_800102E8() >> (func_800102E8() & 3)) & 1)) {
+                    return;
+                }
+            }
+            pEm->Be_flg |= 0x10000000;
+            if ((LONG)pEm->Be_flg < 0 && pEm->Life >= 0x15) {
+                *(ULONG *)&pEm->Routine_0 = 0x20701;
+                Pl_mv[pEm->Routine_1](pEm, (ULONG)pEm->pKan_t_ptr, (ULONG)pEm->pSeq_t_ptr);
+            }
+            return;
+        }
+        if (G.Key_trg & 0x40) {
+            if (func_8006CF0C_c(0) == 0) {
+                *(USHORT *)&pEm->Routine_2 = 4;
+            } else {
+                Snd_se_stad(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+            }
+        }
+    }
+    if (Key & 8) {
+        pEm->Cdir_y -= 0x20;
+    }
+    if (Key & 2) {
+        pEm->Cdir_y += 0x20;
+    }
+}
 /* ---- from 800402F4.c ---- */
 #include "pl_wep.h"
 #include "sca.h"

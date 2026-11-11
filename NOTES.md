@@ -156,3 +156,31 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   pl_mv06_pad/pl_mv07_pad/pl_mv08_pad are probably wrong. RE3's Sce_at_jump_tbl and Sce_jmp_tbl orders
   differ from RE2's, so those handlers were named by body. Dir_ck at 80018594 (em_sub) may be misnamed:
   80055AF0 in sce2.c is an exact match for RE2's SCE1 Dir_ck.
+
+### Fifth pass: jump-table functions unblocked by the split (909/1208, 46.97%)
+spl_auto.c is now complete; player 10 of 12 new, mojidisp 5 of 9, plus Se_on, func_800623C4, pl_mv05_w2_t1.
+Left: func_8003A7D8 (srl/sra and a1/a2 swap), Player_set (s5/s6 swap, hoisted lui), Branch_disp (s7/fp swap
+only), mess_trans (cross-jumping of the EB/EF tails), Print_main, Mess_disp. fdiff reports false %hi/%lo
+diffs on jump tables and local rodata; linkcheck.py is the authority.
+- s-reg swaps: `cc1 -dl -dg` writes .lreg with "used N times across L insns"; global-alloc priority is
+  floor_log2(N)*N/L (N weighted by loop depth); higher priority gets the lower s-reg. A temp used in two
+  blocks/cases goes to global-alloc; declaring it separately per block hands it to local-alloc (runs first,
+  takes lowest s-regs).
+- `srl` after a signed /0x200 fixup: the quotient was narrowed, `SHORT q = (x & 0xFFF) / 0x200; d = (q+4) & 7;`.
+- `x = 0; x = 5;` drops the first store; the target's back-to-back stores had a memory read between them.
+- `ox = 0; oy = 0; oz = 0;` and `ox = oy = oz = 0` store in opposite orders.
+- Array vs pointer arithmetic: `G.arr[i+2]` keeps `addiu 2; sll`; `(&G.f)[i+2]` folds the +2 into the offset.
+- Loop increment duplicated into each branch -> `p++; continue;` in each branch.
+- gcc never hoists struct-field loads out of a loop with byte stores (QImode aliases); a load before the
+  loop was computed there in source.
+- `(rnd() >> (rnd() & 3))` in one expression keeps the intermediate in one s-reg; split statements don't.
+- `if (x & (c ? A : B))` gives one load and two andi paths; `c ? x&A : x&B` gets CSE'd.
+- `li`+`sw`+`lw` of a constant: `Attr |= 0x100; Mode = Attr & 0x100;` folded late by combine.
+- `andi 0xFFFF` after GetClut: `ULONG Clut = GetClut(...)`.
+- `Idx += Idx` and `Idx *= 2` allocate differently.
+- Local aggregates `SHORT t[2][3] = {...}` become anonymous .rodata copied with lwl/lwr; tiny char arrays
+  are built with sb; each local char array gets an 8-aligned stack slot.
+- Repeated `&p->pSin_parts_ptr[k]` per call: one pointer variable per call, not one shared.
+- Statement order sometimes fixes whole schedules (RE2 order first in Pl_init).
+- Return-type aliases (`LONG f_l(...) __asm__("f")`) remove andi/sll-sra after UCHAR/char returns.
+Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_set_draft_full.c, bd_best.c, mt_last.c.

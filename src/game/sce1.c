@@ -1741,7 +1741,62 @@ ULONG Sce_line_end(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce1", Se_on);
+void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
+
+/* RE2 view of G.pEnemy: its list starts with the player and sub player at 0x265C */
+typedef struct {
+    UCHAR pad[0x265C];
+    ENEMY_WORK *pEnemy[42];
+} G_ENEMY_LIST;
+
+/* RE2 Se_on (SCE2.C); RE3 sound code is D0 low/D0 high/Type packed differently */
+ULONG Se_on(SCE_TASK *pSce)
+{
+    UCHAR *pData;
+    ULONG D0;
+    ULONG D1;
+    ULONG Type;
+    ENEMY_WORK *pW;
+    LONG ox;
+    LONG oy;
+    LONG oz;
+    VECTOR Vec;
+
+    pData = pSce->Data;
+    D1 = ((SHORT *)pData)[2];
+    Type = pData[1];
+    D0 = ((SHORT *)pData)[1];
+
+    switch (D1 & 0xFF) {
+    case 0:
+        ox = 0;
+        oy = 0;
+        oz = 0;
+        goto offset_done;
+    case 1:
+        pW = G.pUnk265C;
+        break;
+    case 2:
+        pW = G.pUnk2660;
+        break;
+    case 3:
+        pW = ((G_ENEMY_LIST *)&G)->pEnemy[(D1 >> 8) + 2];
+        break;
+    case 4:
+        pW = (ENEMY_WORK *)G.Ob_model[D1 >> 8];
+        break;
+    }
+    ox = pW->Pos_x;
+    oy = pW->Pos_y;
+    oz = pW->Pos_z;
+offset_done:
+    Vec.vx = ((SHORT *)pData)[3] + ox;
+    Vec.vy = ((SHORT *)pData)[4] + oy;
+    Vec.vz = ((SHORT *)pData)[5] + oz;
+    Snd_se_stad((((D0 >> 8) & 0xFF) << 16) | (Type << 8) | (D0 & 0xFF), &Vec, 0, 0);
+    pSce->Data = pData + 12;
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sce1", Sce_bgm_control);
 

@@ -1189,7 +1189,108 @@ void func_8006236C(ENEMY_WORK *pEm)
     func_800623C4(pEm, pEm->pSub1_kan_t_ptr, pEm->pSub1_seq_t_ptr);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/spl_sce", func_800623C4);
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
+LONG func_800102E8_l(void) __asm__("func_800102E8");
+
+void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR sv;
+    UCHAR Mv[2] = { 0, 3 };
+    SHORT Ofs[2][3] = { { 0, 200, 100 }, { -100, 100, -200 } };
+    ENEMY_WORK *pT;
+    SHORT x;
+    SHORT z;
+
+    pT = pEm->pEnemy_ptr;
+    pEm->Add_dir = Cdir_ck_l(pT, pEm);
+    switch (pEm->Routine_2) {
+    case 0:
+        *(LONG *)&pEm->Move_no = Mv[pEm->Add_dir] + 0x30000;
+        pEm->Routine_2 = 1;
+        pEm->Timer0 = 0x800;
+        pEm->UnkE2 = 0;
+        if (pEm->Add_dir & 1) {
+            pEm->Timer0 = 0;
+        }
+        pEm->UnkDA = 0;
+        pEm->Unk120 |= 0x12;
+        Set_base_pos(pEm, (ULONG)pKan, (ULONG)pSeq, 0);
+        pEm->Be_flg |= 0x8800;
+        pT->Be_flg |= 0x800;
+    case 1:
+        Goto01(pEm, pT->Cdir_y + pEm->Timer0, 0xD0);
+        x = pEm->Pos_x;
+        z = pEm->Pos_z;
+        pEm->Cdir_y += pEm->Timer0;
+        Null_pos_set2(pEm, (ULONG)pKan, (ULONG)pSeq, 0);
+        pEm->Cdir_y -= pEm->Timer0;
+        pEm->Pos_x -= ((pEm->Pos_x - x) * pEm->UnkCA) >> 2;
+        pEm->Pos_z -= ((pEm->Pos_z - z) * pEm->UnkCA) >> 2;
+        if (Joint_move2(pEm, pKan, pSeq, 0x400) != 0) {
+            if (pEm->Dest_x == 0) {
+                pEm->Routine_2 = 4;
+                Flg_on(D_800D1FC0, pEm->Unk146);
+            } else {
+                pEm->Routine_2++;
+            }
+        }
+        break;
+    case 2:
+        *(LONG *)&pEm->Move_no = Mv[pEm->Add_dir] + 1;
+        pEm->Routine_2 = 3;
+    case 3:
+        if (pEm->Move_cnt == 15) {
+            UCHAR *pP = (UCHAR *)pEm->pSin_parts_ptr; /* block-local: must not share a pseudo with case 4 */
+
+            sv.vx = Ofs[pEm->Add_dir & 1][0];
+            sv.vy = Ofs[pEm->Add_dir & 1][1];
+            sv.vz = Ofs[pEm->Add_dir & 1][2];
+            func_8001B484(0, (USHORT)(pEm->Cdir_y + func_800102E8_l() * 2 - 0x100 + ((pEm->Add_dir & 1) << 11)) | 0x17D00000, pP + 0xFC, &sv, 0);
+            pEm->UnkE2 = 0;
+        }
+        pEm->Cdir_y += pEm->Timer0;
+        Null_pos_set(pEm, (ULONG)pKan, (ULONG)pSeq, 0);
+        pEm->Cdir_y -= pEm->Timer0;
+        if (Joint_move2(pEm, pKan, pSeq, 0x100) != 0) {
+            if (--pEm->Dest_x == 0) {
+                pEm->Routine_2++;
+                Flg_on(D_800D1FC0, pEm->Unk146);
+            }
+        }
+        break;
+    case 4:
+        *(LONG *)&pEm->Move_no = Mv[pEm->Add_dir] + 0x70002;
+        pEm->Routine_2 = 5;
+        if (pEm->UnkE2 != 0) {
+            UCHAR *pP = (UCHAR *)pEm->pSin_parts_ptr;
+            sv.vx = Ofs[pEm->Add_dir & 1][0];
+            sv.vy = Ofs[pEm->Add_dir & 1][1];
+            sv.vz = Ofs[pEm->Add_dir & 1][2];
+            func_8001B484(0, (USHORT)(pEm->Cdir_y + func_800102E8_l() * 2 - 0x100 + ((pEm->Add_dir & 1) << 11)) | 0x17D00000, pP + 0xFC, &sv, 0);
+        }
+    case 5:
+        x = pEm->Pos_x;
+        z = pEm->Pos_z;
+        pEm->Cdir_y += pEm->Timer0;
+        Null_pos_set2(pEm, (ULONG)pKan, (ULONG)pSeq, 0);
+        pEm->Cdir_y -= pEm->Timer0;
+        pEm->Pos_x -= ((pEm->Pos_x - x) * pEm->UnkCA) >> 3;
+        pEm->Pos_z -= ((pEm->Pos_z - z) * pEm->UnkCA) >> 3;
+        pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x200);
+        if (pEm->Move_cnt == 8) {
+            pEm->Be_flg &= ~0x800;
+            pT->Be_flg &= ~0x8800;
+        }
+        break;
+    case 6:
+        pEm->Routine_1 = 6;
+        pEm->Routine_2 = 0;
+        pEm->Unk152 = 0;
+        pEm->Unk150 = 0;
+        pEm->Unk120 &= 0xED;
+        break;
+    }
+}
 
 void func_80062970(void) {
 }

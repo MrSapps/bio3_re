@@ -410,7 +410,59 @@ void func_8002F98C(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
     pMoji->pPrim8_cur = pPrim;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", func_8002FB14);
+LONG func_80031970(ULONG Mode, ULONG Code, LONG *pPos);
+
+void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
+{
+    ULONG Clut;
+    ULONG Wh;
+    ULONG Tag;
+    ULONG c;
+    LONG W;
+    ULONG Mode;
+    SPRT *pPrim;
+    SPRT *pCur;
+    SPRT *pEnd;
+    ULONG *pPrev;
+
+    if (*pStr == 0) {
+        return;
+    }
+    pPrim = pMoji->pPrim14_cur;
+    pEnd = Moji.Prim_sprt[G.Cbuf_id + 1];
+    if (pPrim >= pEnd) {
+        return;
+    }
+    Wh = 0xE000E;
+    Clut = GetClut(0x100, ((Attr & 0xF0) >> 3) | 0x1E0) << 16;
+    Mode = (USHORT)(Attr & 0x100);
+    W = (Attr & 7) * 2;
+    pPrev = (ULONG *)&pMoji->Moji_mode[G.Cbuf_id][W];
+    Tag = *pPrev;
+    do {
+        pCur = pPrim;
+        if (*pStr != 0x20) {
+            W = func_80031970(Mode, *pStr, (LONG *)&Xy);
+            *(ULONG *)&pCur->r0 = 0x64808080;
+            *(ULONG *)&pCur->x0 = Xy;
+            c = *pStr;
+            *(ULONG *)&pCur->u0 = (UCHAR)(c % 18) * 14 + ((UCHAR)(c / 18) * 14 << 8) + Clut;
+            *(ULONG *)&pCur->w = Wh;
+            *pPrev = (*pPrev & 0xFF000000) | ((ULONG)pCur & 0xFFFFFF);
+            pPrev = (ULONG *)pCur;
+            pPrim = pCur + 1;
+            if (pPrim >= pEnd) {
+                break;
+            }
+        } else {
+            W = func_80031970(Mode, *pStr, (LONG *)&Xy);
+        }
+        Xy += W;
+        pStr++;
+    } while (*pStr);
+    *pPrev = (*pPrev & 0xFF000000) | (Tag & 0xFFFFFF);
+    pMoji->pPrim14_cur = pPrim;
+}
 
 LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data)
 {
@@ -588,15 +640,424 @@ ULONG func_800303CC(ULONG Val)
     return 0x10000 / Val + 1;
 }
 
+extern UCHAR D_80098E80[];
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos);
+UCHAR *name_ptr_set(UCHAR No);
+
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Branch_disp);
 
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", func_80030764);
+extern UCHAR D_800C703F;
+void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
+{
+    UCHAR *pStr;
+    LONG Sel;
+    LONG Se;
+    ULONG i;
+    ULONG Mode;
+    ULONG X;
+    ULONG Y;
+    LINE_F3 *pL;
+    UCHAR *pLine[2];
+    ULONG Width[2];
+    ULONG Pos;
+    ULONG Col0;
+    ULONG Col1;
+
+    Mode = (USHORT)(pMoji->Mess_attr2 & 0x100);
+    if (((*pData++ >> 4) & 7) == 0) {
+        pStr = D_80098E80;
+    } else {
+        pStr = pData;
+    }
+    Sel = G.Unk7848;
+    if (pMoji->Timer != 0) {
+        pMoji->Timer--;
+    }
+    if (D_800C703C.Cnt != 0) {
+        if (G.Key_trg & 0x1000) {
+            if (pMoji->Timer == 0) {
+                G.Key = 0xFFFF;
+                G.Status_flg &= 0xEFFFFFFF;
+                G.System_flg |= 0x400;
+                pMoji->Mess_flg = (pMoji->Mess_flg & 0x7F) | 0x40;
+                G.Unk2468 = pMoji->Stop_keep;
+                if (pMoji->Mess_attr2 & 0x400) {
+                    Se = 6;
+                    if (Sel != 0) {
+                        if (Sel == 1) {
+                            Se = 5;
+                        }
+                    }
+                    Snd_se_stad(Se, 0, 0, 0);
+                }
+                return;
+            }
+        } else if (*(ULONG *)&G.Unk20FC & 0x5000) {
+            USHORT Key = G.Unk20FC;
+
+            if (Key & 0x4000) {
+                Sel++;
+            }
+            if (Key & 0x1000) {
+                Sel--;
+            }
+            if (Sel >= 2) {
+                Sel = 0;
+            }
+            if (Sel < 0) {
+                Sel = 1;
+            }
+            Snd_se_stad(4, 0, 0, 0);
+            pMoji->Timer = 0;
+            pMoji->Mess_time = 0;
+        }
+        G.Unk7848 = Sel;
+    }
+    for (i = 0; i < 2; i++) {
+        pLine[i] = pStr;
+        Pos = 0;
+        while (1) {
+            switch (*pStr) {
+            case 0xEA:
+            case 0xEB:
+            case 0xEC:
+            case 0xED:
+            case 0xEE:
+            case 0xEF:
+            case 0xF0:
+                pStr += 2;
+                Pos += 14;
+                continue;
+            case 0xF5:
+            case 0xF6:
+            case 0xF7:
+            case 0xFC:
+                pStr++;
+                continue;
+            case 0xF3:
+            case 0xF4:
+            case 0xF8:
+            case 0xF9:
+            case 0xFA:
+            case 0xFB:
+            case 0xFD:
+                pStr += 2;
+                continue;
+            case 0xFE:
+                pStr++;
+                goto next;
+            default:
+                Pos += Moji_char_width(Mode, *pStr, (LONG *)&Pos);
+                pStr++;
+                continue;
+            }
+        }
+    next:
+        Width[i] = Pos;
+    }
+    if (Width[0] > Width[1]) {
+        Pos = Width[0];
+    } else {
+        Pos = Width[1];
+    }
+    Y = D_800C703F;
+    X = ((0xFC - Pos) >> 1) + 0x22;
+    for (i = 0; i < 2; i++) {
+        Mess_print(X, Y + i * 0x16, pLine[i], pMoji->Mess_attr2);
+    }
+    Y += Sel * 0x16;
+    if (D_800C703C.Cnt == 0) {
+        return;
+    }
+    switch (D_800C703C.Cnt) {
+    case 1:
+        Col0 = 0x48E02020;
+        Col1 = 0x48600000;
+        pMoji->Mess_time -= 1;
+        break;
+    case 2:
+        Col0 = 0x4820E0E0;
+        Col1 = 0x48006060;
+        pMoji->Mess_time -= 2;
+        break;
+    case 3:
+        Col0 = 0x482020E0;
+        Col1 = 0x48000060;
+        pMoji->Mess_time -= 4;
+        break;
+    }
+    if (pMoji->Mess_time & ((Main.Vloop == 1) ? 0x30 : 0x18)) {
+        pL = &((LINE_F3 *)((UCHAR *)pMoji + 0x7508))[G.Cbuf_id * 4];
+        SetLineF3(pL);
+        *(ULONG *)&pL->r0 = Col0;
+        pL->x0 = X - 5;
+        pL->y0 = Y - 3;
+        pL->x1 = Pos + X + 3;
+        pL->y1 = Y - 3;
+        pL->x2 = Pos + X + 3;
+        pL->y2 = Y + 15;
+        AddPrim(G.pOt0, pL);
+        pL++;
+        SetLineF3(pL);
+        *(ULONG *)&pL->r0 = Col1;
+        pL->x0 = X - 4;
+        pL->y0 = Y - 2;
+        pL->x1 = Pos + X + 4;
+        pL->y1 = Y - 2;
+        pL->x2 = Pos + X + 4;
+        pL->y2 = Y + 16;
+        AddPrim(G.pOt0 + 1, pL);
+        pL++;
+        SetLineF3(pL);
+        *(ULONG *)&pL->r0 = Col0;
+        pL->x0 = Pos + X + 3;
+        pL->y0 = Y + 15;
+        pL->x1 = X - 5;
+        pL->y1 = Y + 15;
+        pL->x2 = X - 5;
+        pL->y2 = Y - 3;
+        AddPrim(G.pOt0, pL);
+        pL++;
+        SetLineF3(pL);
+        *(ULONG *)&pL->r0 = Col1;
+        pL->x0 = Pos + X + 4;
+        pL->y0 = Y + 16;
+        pL->x1 = X - 4;
+        pL->y1 = Y + 16;
+        pL->x2 = X - 4;
+        pL->y2 = Y - 2;
+        AddPrim(G.pOt0, pL);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", mess_trans);
 
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Name_disp);
+void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item)
+{
+    UCHAR c;
+    SPRT *pP;
+    DR_TPAGE *pDr_alt;
+    ULONG Cbuf;
+    ULONG Mode;
+    ULONG Clut;
+    SPRT *pEnd;
+    DR_TPAGE *pOt;
+    UCHAR Col;
+    DR_TPAGE *pDr_mode;
+    LONG W;
+    UCHAR *pStr;
 
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Mess_print);
+    pP = Moji.pPrim14_cur;
+    Cbuf = G.Cbuf_id;
+    pEnd = Moji.Prim_sprt[Cbuf + 1];
+    if (pP >= pEnd) {
+        return;
+    }
+    Col = (Attr & 0xF0) >> 3;
+    W = (Attr & 7) * 2;
+    pDr_mode = &Moji.Moji_mode[Cbuf][W];
+    GetClut(0x100, Col | 0x1E0);
+    pStr = name_ptr_set(Item);
+    pDr_alt = pDr_mode + 1;
+    Attr |= 0x100;
+    Mode = Attr & 0x100;
+    c = *pStr;
+    if (c != 0xF7) {
+        do {
+            W = 14;
+            if (c != 0) {
+                switch (*pStr) {
+                case 0xEA:
+                    pStr++;
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x2E;
+                    break;
+                case 0xEB:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                    break;
+                case 0xEC:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                    break;
+                case 0xED:
+                    pStr++;
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                    break;
+                case 0xEE:
+                    pStr++;
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                    break;
+                case 0xEF:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                    break;
+                case 0xF0:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                    break;
+                default:
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 + 0x1C;
+                    W = Moji_char_width(Mode, *pStr, &x);
+                    break;
+                }
+                *(ULONG *)&pP->r0 = 0x64808080;
+                *(ULONG *)&pP->x0 = (x & 0xFFFF) | (y << 16);
+                *(ULONG *)&pP->w = 0xE000E;
+                pP->u0 = (UCHAR)(*pStr % 18) * 14;
+                pP->clut = Clut;
+                AddPrim(pOt, pP);
+                pP++;
+                if (pP >= pEnd) {
+                    break;
+                }
+            } else {
+                W = Moji_char_width(Mode, *pStr, &x);
+            }
+            x += W;
+            pStr++;
+            c = *pStr;
+        } while (c != 0xF7);
+    }
+    Moji.pPrim14_cur = pP;
+}
+
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr)
+{
+    UCHAR c;
+    SPRT *pP;
+    DR_TPAGE *pDr_alt;
+    ULONG Cbuf;
+    ULONG Mode;
+    ULONG Clut;
+    SPRT *pEnd;
+    DR_TPAGE *pOt;
+    UCHAR Col;
+    DR_TPAGE *pDr_mode;
+    LONG W;
+
+    pP = Moji.pPrim14_cur;
+    Cbuf = G.Cbuf_id;
+    pEnd = Moji.Prim_sprt[Cbuf + 1];
+    if (pP >= pEnd) {
+        return;
+    }
+    Col = (Attr & 0xF0) >> 3;
+    W = (Attr & 7) * 2;
+    Mode = (USHORT)(Attr & 0x100);
+    pDr_mode = &Moji.Moji_mode[Cbuf][W];
+    GetClut(0x100, Col | 0x1E0);
+    pDr_alt = pDr_mode + 1;
+    c = *pStr;
+    if (c != 0xFE) {
+        do {
+            W = 14;
+            if (c != 0) {
+                switch (*pStr) {
+                case 0xEA:
+                    pStr++;
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x2E;
+                    break;
+                case 0xEB:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                    break;
+                case 0xEC:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                    break;
+                case 0xED:
+                    pStr++;
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                    break;
+                case 0xEE:
+                    pStr++;
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                    break;
+                case 0xEF:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                    break;
+                case 0xF0:
+                    pStr++;
+                    pOt = pDr_alt;
+                    Clut = GetClut(0x100, Col + 0x1EA);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                    break;
+                case 0xF5:
+                    Moji_char_width(Mode, 0, (LONG *)&x);
+                    goto next;
+                case 0xF6:
+                    x += 7;
+                    goto next;
+                case 0xF3:
+                case 0xF4:
+                case 0xF8:
+                case 0xF9:
+                case 0xFA:
+                case 0xFD:
+                    pStr++;
+                case 0xFC:
+                    goto next;
+                case 0xF7:
+                case 0xFE:
+                    return;
+                default:
+                    pOt = pDr_mode;
+                    Clut = GetClut(0x100, Col + 0x1E0);
+                    pP->v0 = (UCHAR)(*pStr / 18) * 14 + 0x1C;
+                    W = Moji_char_width(Mode, *pStr, (LONG *)&x);
+                    break;
+                }
+                *(ULONG *)&pP->r0 = 0x64808080;
+                *(ULONG *)&pP->w = 0xE000E;
+                *(ULONG *)&pP->x0 = x | (y << 16);
+                pP->u0 = (UCHAR)(*pStr % 18) * 14;
+                pP->clut = Clut;
+                AddPrim(pOt, pP);
+                pP++;
+                if (pP >= pEnd) {
+                    break;
+                }
+            } else {
+                W = Moji_char_width(Mode, *pStr, (LONG *)&x);
+            }
+            x += W;
+        next:
+            pStr++;
+            c = *pStr;
+        } while (c != 0xFE);
+    }
+    Moji.pPrim14_cur = pP;
+}
 
 extern UCHAR D_800A0514[][4];
 extern ULONG D_800D2048[];
@@ -618,7 +1079,25 @@ UCHAR *name_ptr_set(UCHAR No)
     return pTop + pOfs[No];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", func_80031970);
+LONG func_80031970(ULONG Mode, ULONG Code, LONG *pPos)
+{
+    ULONG Idx;
+
+    if (Mode != 0) {
+        if (Code != 0x20) {
+            Idx = Code - 0x24;
+            if (Idx < 0x57) {
+                Idx += Idx;
+                *pPos -= msg_space[Idx];
+                return msg_space[Idx + 1] + msg_space[Idx];
+            }
+        } else {
+            *pPos -= msg_space[0];
+            return msg_space[1] + msg_space[0];
+        }
+    }
+    return 14;
+}
 
 LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos)
 {
