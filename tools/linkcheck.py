@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Private full link of one edited C file against the committed build objects.
 
-usage: tools/linkcheck.py src/game/XXXX.c
+usage: tools/linkcheck.py src/game/<module>.c
 Compiles FILE.c (same pipeline as the Makefile), links it with the other objects
 from build/ into a temp dir, and compares the whole executable with the target.
 Checks what fdiff.py can't: .rodata (jump tables, strings) placement and contents.
@@ -37,6 +37,7 @@ try:
     run(f"cpp -P -undef -D__GNUC__=2 -Dmips -D__psx__ -D_LANGUAGE_C -Iinclude -Isrc -I{PSYQ_INC} {cfile}"
         f" | tools/compilers/gcc-2.8.1-psx/cc1 -quiet -O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char -o -"
         f" | {sys.executable} tools/maspsx/maspsx.py --aspsx-version=2.77 -G0"
+        f" | {{ cat; printf '\\t.section .rodata\\n\\t.align 2\\n'; }}"
         f" | {BIN}as -EL -march=r3000 -mtune=r3000 -msoft-float -no-pad-sections -G0 -Iinclude -o {obj} -")
     ld = open(os.path.join(ROOT, BASE + ".ld")).read()
     own = f"build/{cfile}.o"

@@ -31,8 +31,7 @@ Build: `cpp | tools/compilers/gcc-2.8.1-psx/cc1 -O2 -G0 | maspsx --aspsx-version
 - 0x8001031C-0x800110F0 game .rdata (jump tables, strings, consts), in the same order as the functions
   that use them, so it is cut per C file; 0x800110F0-0x80011B80 library .rdata
 - 0x80011B80 crt0 (PsyQ NOHEAP module), 0x80011CF8 first game function (Cd_init, as RE2 CD.C)
-- 0x80011CF8-0x8007CFC8 game code in src/game/*.c (split by address for now; rename to RE2 module names
-  once the module boundaries are known)
+- 0x80011CF8-0x8007CFC8 game code in src/game/*.c, one file per original object (see Module map)
 - 0x8007CFC8-0x80094680 PsyQ 4.4 libs (libspu, libgte, libgpu, libcd/libds, libapi, libc, libcard, ...),
   names from tools/psyq/libsyms.py (signature match against the SDK .LIB files)
 
@@ -55,43 +54,46 @@ prologue/epilogue register save order should separate GCC 2.7.2 from 2.8.1/2.95.
   https://github.com/MeganGrass/bio2-ds (cloned at ../ref/bio2-ds). Same engine lineage, so struct and
   function names should carry over a lot. Its Makefile: PsyQ 4.0, GNU C 2.7.2.SN32.3.7, `-O2 -G 16 -mgpopt -membedded-data`.
 
-## Module map (from the first matching pass; starts are approximate, RE2 order is kept)
-| RE3 start | RE2 module | notes |
+## Module map (src/game, one file per original object)
+Files are split where the original objects begin, so each file's .rodata starts where the original
+object's .rdata did; that is what jump-table alignment needs (see "Fourth pass"). Names are RE2 module
+names where RE2 function names anchor the range; address-named files are objects whose RE2 name is unknown.
+Boundaries marked ~ are only pinned to a range (any function in the range gives the same bytes).
+| start | file | evidence / notes |
 |---|---|---|
-| 80011CF8 | CD.C | Cd_init .. Set_volume/Change_volume, plus RE3-only Cd_seek / fade |
-| 80015428 | DOOR.C | Door_main; 80016600-80017D9C RE3 door-model anim (DOOR_EX?) |
-| 80017DA4 | EM_SUB.C | Hani_ck .. Kage_work*; 8001B000-8001F000 EM_SUB2/EM_SET/ESP-like pools |
-| 80020298 | ESP_R.C | effect routines take the work ptr as an argument in RE3 |
-| 80022990 | TRANS.C | |
-| 80023268 | GAME.C | |
-| 800251FC | JOINT.C | |
-| 80028B1C | LINE_SCR.C | |
-| 80028F38 | MAIN.C | main, Swap_Cbuff, Init_system, Fade_*, Cut_*, Card_event_set |
-| 8002AB34 | SUB.C-like model helpers | Mapping_tmd counterpart |
-| 8002F2F8 | MOJIDISP.C | |
-| 80031DA8 | MONITOR.C | task scheduler, ~1:1 with RE2 |
-| 800321C4 | MOVIE.C | |
-| 80033508 | DOOR_EX / OBA? | unchecked |
-| 80035790 | OM.C, then OMA | |
-| 80037FA0 | PAD.C | |
-| 80038AAC | PLAYER.C | Pl_routine tbl 8009CD40 |
-| 8003DEA4 | PL_WEP.C / PL_WEP2.C | pl_mv05_w_tbl 8009CE88, pl_mv05_t2_spr 8009CED8 |
-| 80048520 | POLY_SUB / PSP / ROOM / ROOT_CK | ~ |
-| 8004A8BC | SABUN.C | |
-| 8004B7E8 | SCA.C | |
-| 800505AC | SCE_AT.C | |
-| 80051F78 | SCE0.C | |
-| 80052DE8 | SCE1.C | 1:1 with RE2, SCE_TASK 0x174 |
-| 80055A18 | SCE2.C | |
-| 80058A00 | SND.C (RE2) | |
-| 800601F0 | ? enemy/object routines | |
-| 800636D4 | STATUS / ST_SUB? | unconfirmed |
-| 80073E84 | RE3 sound driver | custom libspu sequencer, Snd_work 800E0610 |
-| 800784E0 | SUB.C | |
-| 80079EC0 | PC-host STR streaming | PCopen/PCread |
-| 8007C434 | handwritten asm | |
+| 80011CF8 | cd.c | Cd_init .. Set_volume/Change_volume, RE3-only Cd_seek/Xa_fade_set |
+| 80015428 | door.c | Door_main; 80016600-80017D9C RE3 door-model anim (maybe DOOR_EX) |
+| 80017DA4 | em_sub.c | Hani_ck .. Kage_work*; 8001A248-80020298 probably EM_SUB2/EM_SET/ESP (not split, no anchors) |
+| 80020298 | esp_r.c | effect routines |
+| 80022990 | trans.c | Trans_work_init, Trans_pointer_set (RE3 links TRANS before GAME) |
+| 80023268 | game.c | Gun_light_set/reset |
+| 800251FC | joint.c | PartsWork_set |
+| 80028B1C | line_scr.c | line_trans .. Line_work_init |
+| 80028F38 | main.c | main, Swap_Cbuff, Fade_*, Cut_*, Card_event_set |
+| 8002AB34 | md_sub.c | Md_adr_cnv, Md_set_abr; .rdata of MOJIDISP starts 800104E0 (8-aligned) |
+| 8002F2F8 | mojidisp.c | Print8/Print14, Moji_*; was split across two address files |
+| 80031DA8 | monitor.c | task scheduler, ~1:1 with RE2 |
+| 800321C4 | movie.c | Close_movie, RuntoImage, Mdec_callback |
+| 80033508 | 80033508.c | RE3-only collision object list (OBA? DOOR_EX?) |
+| 80035790 | om.c | Tex_chg*, Tex_ctr; probably OM + OMA; .rdata starts 80010704 (4 mod 8) |
+| 80037FA0 | pad.c | Pad_vib_* |
+| 80038AAC | player.c | Pl_move, pl_mvXX_pad, Pl_damage..Pl_life_up; .rdata 80010748 |
+| 8003DEA4 | pl_wep.c | PL_WEP + PL_WEP2 names mixed (RE3 has one object or two adjacent; not separated) |
+| 80048520 | 80048520.c | POLY_SUB / PSP / ROOM / ROOT_CK area, unsplit |
+| 8004A8BC | sabun.c | |
+| 8004B7E8 | sca.c | Sca_ck_circle*, Sca_high_* |
+| 800505AC | sce_at.c | |
+| 80051F78 | sce0.c | Sce_aot_init, Event_init/exec |
+| 80052DE8 | sce1.c | 1:1 with RE2, SCE_TASK 0x174 |
+| 80055A18 | sce2.c | SCE_TASK opcode handlers up to 80058CD0 |
+| 80058DD4 | 80058DD4.c | enemy/partner motion routines (ENEMY_WORK, pKan/pSeq) |
+| ~800597F0 | 800597F0.c | new object somewhere in 800594D8..8005CB2C (.rdata 80010D0C, 4 mod 8) |
+| ~800601F0 | 800601F0.c | new object somewhere in 8005F29C..80061DF4 (.rdata 80010D90) |
+| 800636D4 | 800636D4.c | STATUS / ST_SUB*? (.rdata 80010DCC, 4 mod 8) |
+| ~80073E84 | snd.c | RE3 sound driver (custom libspu sequencer, Snd_work 800E0610) |
+| ~800784E0 | sub.c | SetSpadStack, Vram_clr, Rot_*, Flg_*, Set_view, Set_light* |
+| 80079EC0 | 80079EC0.c | PC-host STR streaming (Pcstr_*) and handwritten asm from 8007C434 |
 
-Known splat issue: 80053FE0-800541E4 are `jlabel` case bodies of func_80053FAC's jump table, not functions.
 Matching rules learnt: functions must stay in address order in the .c (a misplaced INCLUDE_ASM shifted SCA by 8 bytes);
 `(UCHAR)pEm->Type` gives the `lbu` RE3 uses for the weapon/type byte; `G.Sce_work` must be indexed via pointer arithmetic.
 
@@ -127,3 +129,17 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   `sll idx` ahead of `lui jtbl` in the delay slot means a non-void function; an alias
   `T f_(..) __asm__("func_X");` handles callers with a different prototype; GTE code uses inline-asm macros
   with real opcode words (top of 80020298.c); permuting independent statement order fixes many reg swaps.
+
+### Fourth pass: file split at object boundaries
+- An object's jump tables are 8-aligned relative to that object's .rdata start (ASPSX `.align 3`), and
+  objects are word-packed. A table whose address parity disagrees with its file's .rodata start means a
+  missing object boundary: every switch-table function blocked in pass 3 fell on one.
+- The ld script packs objects with SUBALIGN(2); ASPSX padded each object's .rdata to a word, so the
+  Makefile (and linkcheck.py) append `.section .rodata; .align 2` to every C object. The old per-file
+  `__asm__(".section .rodata\n.align 2...")` pads are now redundant.
+- The six address files were re-cut into 32 with a top-level C splitter; where one object had been split
+  across two old files (mojidisp, pl_wep, sca) the second half's conflicting prototypes became
+  `__asm__` aliases with an `_<oldfile>` suffix.
+- syms/*.txt merged into syms/game.txt.
+- Making a .c file: add `[rodata_offset, .rodata, game/x]` and `[text_offset, c, game/x]` to the yaml,
+  write the C file with INCLUDE_ASM paths `asm/nonmatchings/game/x`, run `make split`, then `make`.

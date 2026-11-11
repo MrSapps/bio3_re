@@ -191,543 +191,14 @@ void func_8001AC58(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /*
 /* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
 #define PW_FREE(p) ((SHORT *)((UCHAR *)(p) + 0x74))
 
-void Cd_init(void)
-{
-    ULONG i;
-    tagCD *pCd = &CD;
-
-    for (i = CD_RING_BUFFERS; i != 0;) {
-        i--;
-        pCd->Ring_status[i] = 0;
-        pCd->Ring_size[i] = 0;
-    }
-
-    while (DsInit() == 0);
-
-    G.Status_flg &= ~STAT_XA_VOICE;
-    DsSetDebug(0);
-    DsReadyCallback(NULL);
-    DsSyncCallback(NULL);
-
-    while (DsCommand(DslSetmode, &Cd_mode, NULL, -1) == 0);
-
-    pCd->Vol = 0x46;
-    pCd->Cd_rtn_no = 0;
-    pCd->Xa_rtn_no = 0;
-    pCd->Use_mode = 0;
-    pCd->Unk8C2 = 0xFF;
-    pCd->Unk8C3 = 0xFF;
-    Set_volume(pCd->Vol);
-}
-
-void Cd_system_control(void)
-{
-    if (CD.Use_mode == 1) {
-        Xa_control();
-    }
-}
-
-INCLUDE_RODATA("asm/nonmatchings/game/80011CF8", D_8001031C);
-
+/* declarations from earlier parts of the original address-split file */
 extern USHORT D_800970DC[];
 extern USHORT D_800970E8[];
 extern SHORT D_800E0DD8;
 
-void Xa_play(ULONG mode, ULONG no)
-{
-    USHORT Xa_no[12] = { 0x538, 0x539, 0x1E5, 0x539, 0x285, 0x539, 0x319, 0x539, 0x3A8, 0x539, 0x428, 0x539 };
-    ULONG sub = mode & 1;
-    tagCD *pCd = &CD;
-    ULONG file_no;
-    USHORT *pwd;
-    ULONG mul;
-
-    if (mode >= 2) {
-        pwd = sub ? D_800970E8 : D_800970DC;
-        file_no = Xa_no[sub];
-    } else {
-        pwd = G.pXa_sector;
-        file_no = Xa_no[sub + (G.Unk783E + 1) * 2];
-    }
-    pwd += no * 3;
-    pCd->Filter.file = 1;
-    pCd->Filter.chan = pwd[0];
-    sub = sub ? 8 : 16;
-    pCd->Start_sector = (floc[file_no].sec_high << 16) + floc[file_no].sector;
-    pCd->End_sector = pCd->Start_sector;
-    pCd->Start_sector += pwd[1] * sub + pwd[0];
-    pCd->End_sector += (pwd[1] + pwd[2]) * sub + pwd[0] - 15;
-    pCd->Current_sector = pCd->Start_sector;
-    DsIntToPos(pCd->Start_sector, &pCd->Fpos);
-    func_80074658(1);
-    pCd->Vol = pCd->Vol * D_800E0DD8 / 127;
-    pCd->Xa_rtn_no = 1;
-    pCd->Fade_flg = 0;
-    pCd->Fade_step = 0;
-    pCd->Limit_break = 0;
-    pCd->Type = 0;
-    pCd->Status = 0;
-    pCd->Use_mode = 1;
-    Change_volume(1);
-    DsFlush();
-    DsSyncCallback((DslCB)Xa_seek);
-
-    while (DsCommand(DslPause, NULL, NULL, -1) == 0);
-    while (DsCommand(DslSetfilter, &pCd->Filter.file, NULL, -1) == 0);
-    while (DsCommand(DslSetmode, &Xa_cdmode, NULL, -1) == 0);
-    while (DsCommand(DslSeekL, &pCd->Fpos.minute, NULL, -1) == 0);
-    while (DsCommand(DslReadS, &pCd->Fpos.minute, NULL, -1) == 0);
-    G.Status_flg |= 0x20;
-}
-
-void Xa_error(void)
-{
-    func_80074658(0);
-    Change_volume(0);
-    CD.Xa_rtn_no = 3;
-}
-
-void Xa_control(void)
-{
-    Xa_control_tbl[CD.Xa_rtn_no]();
-}
-
-void Xa_control_stop(void)
-{
-    CD.Use_mode = 0;
-    CD.Xa_rtn_no = 0;
-    CD.Limit_break = 0;
-    G.Status_flg &= ~STAT_XA_VOICE;
-}
-
-void Xa_control_init(void)
-{
-    tagCD *pCd = &CD;
-
-    pCd->Time_ctr = 0;
-    do {
-        VSync(0);
-        if (++pCd->Time_ctr >= 0x3C) {
-            CD.Xa_rtn_no = 3;
-            return;
-        }
-    } while (DsQueueLen() != 0);
-    CD.Xa_rtn_no = 2;
-}
-
-void Xa_seek(UCHAR intr, UCHAR *result)
-{
-    tagCD *pCd = &CD;
-    ULONG i;
-
-    i = 7;
-    do {
-        pCd->Result[i] = result[i];
-    } while (i-- != 0);
-
-    if (intr == DslComplete) {
-        pCd->Status++;
-        pCd->Limit_break = 0;
-        if (DsQueueLen() == 0) {
-            DsSyncCallback((DslCB)Xa_ready_cb);
-        }
-    } else {
-        pCd->Status = 0;
-    }
-}
-
-void Xa_ready_cb(UCHAR intr, UCHAR *result)
-{
-    tagCD *pCd = &CD;
-    ULONG i;
-
-    i = 7;
-    do {
-        pCd->Result[i] = result[i];
-    } while (i-- != 0);
-
-    if (intr == DslComplete) {
-        pCd->Status = 1;
-        pCd->Limit_break = 0;
-        pCd->Result[8] = 0;
-        pCd->Current_sector = DsPosToInt((DslLOC *)&pCd->Result[5]);
-        if (pCd->End_sector <= pCd->Current_sector) {
-            pCd->Xa_rtn_no = 3;
-        }
-    } else {
-        pCd->Status = 0;
-    }
-}
-
-void Xa_control_play(void)
-{
-    tagCD *pCd = &CD;
-
-    if (DsSystemStatus() == DslReady) {
-        Xa_control_cdmode ^= 1;
-        if (Xa_control_cdmode != 0) {
-            while (DsCommand(DslGetlocP, NULL, NULL, -1) == 0);
-        }
-        if (pCd->Status == 0) {
-            pCd->Xa_rtn_no = 3;
-        }
-    }
-    if (pCd->Fade_flg != 0) {
-        if (pCd->Fade_step < pCd->Vol) {
-            pCd->Vol -= pCd->Fade_step;
-            Set_volume(pCd->Vol);
-        } else {
-            pCd->Xa_rtn_no = 3;
-        }
-    }
-    if (pCd->Current_sector < pCd->Start_sector) {
-        pCd->Xa_rtn_no = 3;
-    }
-    pCd->Limit_break++;
-    if (pCd->Limit_break > 0x3C) {
-        pCd->Xa_rtn_no = 3;
-    }
-}
-
-void Xa_control_end(void)
-{
-    CD.Fade_flg = 0;
-    CD.Vol = 0x46;
-    DsSyncCallback(NULL);
-
-    while (DsCommand(DslPause, NULL, NULL, -1) == 0);
-
-    CD.Xa_rtn_no = 0;
-    func_80074658(0);
-    Change_volume(0);
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Cd_read_s);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80012818);
-
 extern LONG D_800A0FEC[];
 void func_800783BC(ULONG no, ULONG size, ULONG a2);
 void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
-
-void func_80012ECC(tagCD *pCd)
-{
-    ULONG no;
-    LONG adr;
-
-    no = pCd->Ring_status[pCd->Write_ctr] & 0x7F;
-    while (SpuIsTransferCompleted(0) == 0);
-    if (pCd->First_flg == 0) {
-        switch (pCd->pEntry[no].Type) {
-        case 3:
-            adr = D_800A0FEC[4] - ((pCd->pEntry[no].Size + 0x3F) & ~0x3F);
-            break;
-        case 6:
-            adr = D_800A0FEC[6] - ((pCd->pEntry[no].Size + 0x3F) & ~0x3F);
-            break;
-        default:
-            adr = D_800A0FEC[pCd->pEntry[no].Type];
-            break;
-        }
-        pCd->Unk8AC = pCd->pEntry[no].Size;
-        SpuSetTransferStartAddr(adr);
-        pCd->First_flg = 1;
-    }
-    if (pCd->Unk8AC > 0x800) {
-        pCd->Unk8AC -= 0x800;
-        SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), 0x800);
-    } else {
-        adr = (pCd->Unk8AC + 0x3F) & ~0x3F;
-        pCd->Unk8AC = 0;
-        pCd->First_flg = 0;
-        SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), adr);
-        while (SpuIsTransferCompleted(0) == 0);
-        func_800783BC(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
-        if (pCd->pEntry[no].Type >= 5) {
-            func_800782F4(pCd->pEntry[no].Type - 5, pCd->pEntry[no].Id,
-                          pCd->pEntry[no].Type < 6 ? (ULONG *)0x801F7E00 : (ULONG *)0x801F2600);
-        }
-    }
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_800130A0);
-
-void func_80013754(void)
-{
-    tagCD *pCd = &CD;
-    UCHAR i;
-    UCHAR j;
-    ULONG Size;
-
-    pCd->Unk8C0 = 1;
-    pCd->Unk8C8 |= 1;
-    if (pCd->pEntry[0].Id == pCd->Unk8C2 && Snd_work.Seq_data[0].Id != pCd->pEntry[0].Id) {
-        pCd->Unk8C0 = 0;
-        return;
-    }
-    if (pCd->pEntry[2].Id == pCd->Unk8C2 && Snd_work.Seq_data[0].Id != pCd->pEntry[2].Id) {
-        i = 2;
-    } else {
-        for (i = 4; i < 8; i += 2) {
-            if (pCd->pEntry[i].Id == pCd->Unk8C3 && Snd_work.Seq_data[1].Id != pCd->pEntry[i].Id) {
-                break;
-            }
-        }
-        if (i >= 6) {
-            pCd->Unk8C8 |= 2;
-        }
-    }
-    j = 0;
-    Size = 0x800;
-    do {
-        Size += (pCd->pEntry[j].Size + 0x7FF) & ~0x7FF;
-    } while (++j < i);
-    Cd_set_read_pos(Size);
-    pCd->Entry_no = i;
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_800138B0);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_800139D8);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80013C1C);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80013EF8);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80014300);
-
-void func_8001480C(tagCD *pCd)
-{
-    CD_ENTRY *pEnt;
-    ULONG Size;
-    ULONG i;
-
-    i = 0;
-    switch (pCd->Entry_no) {
-    case 2:
-        pCd->Unk8C0 = 1;
-        i = 2;
-    case 4:
-        if (pCd->pEntry2[i].Id == pCd->Unk8C3 && D_800E06AC != pCd->pEntry2[i].Id) {
-            if (i == 0) {
-                return;
-            }
-            pCd->Unk8C0 = 1;
-            pCd->Entry_no = 4;
-        } else {
-            i += 2;
-            pCd->Unk8C0 = 1;
-            if (pCd->pEntry2[i].Id == pCd->Unk8C3 && D_800E06AC != pCd->pEntry2[i].Id) {
-                pCd->Entry_no = 6;
-            } else {
-                pCd->Entry_no = 8;
-            }
-        }
-        break;
-    case 6:
-        pCd->Unk8C0 = 1;
-        pCd->Entry_no = 8;
-        break;
-    default:
-        return;
-    }
-    i = 0;
-    if (pCd->Entry_no == 8) {
-        pCd->Unk8C8 |= 2;
-    }
-    Size = 0x800;
-    pCd->pEntry2 = pCd->pEntry;
-    pEnt = pCd->pEntry2;
-    do {
-        Size += (pEnt[i].Size + 0x7FF) & ~0x7FF;
-        i++;
-    } while (i < pCd->Entry_no);
-    Cd_set_read_pos(Size);
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80014968);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80014D10);
-
-void Cd_set_read_pos(ULONG size)
-{
-    tagCD *pCd = &CD;
-
-    pCd->Fsize_read = size;
-    pCd->Unk8B8 = size >> 11;
-    pCd->Fsector_read = size >> 11;
-    pCd->Fsize_now = pCd->Fsize - size;
-    pCd->Fsector_num = (pCd->Fsize_now + 0x7FF) >> 11;
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_800150E4);
-
-void Set_volume(ULONG vol)
-{
-    tagCD *pCd = &CD;
-
-    if (Stereo_flg == 0) {
-        pCd->Cdvol.val0 = vol;
-        pCd->Cdvol.val1 = 0;
-        pCd->Cdvol.val2 = vol;
-        pCd->Cdvol.val3 = 0;
-    } else {
-        pCd->Cdvol.val0 = vol >> 1;
-        pCd->Cdvol.val1 = vol >> 1;
-        pCd->Cdvol.val2 = vol >> 1;
-        pCd->Cdvol.val3 = vol >> 1;
-    }
-    DsMix(&pCd->Cdvol);
-}
-
-void Change_volume(ULONG mode)
-{
-    LONG i;
-
-    if (mode == 0) {
-        for (i = (LONG)CD.Vol; i >= 0; i--) {
-            Set_volume(i);
-        }
-    } else {
-        i = 0;
-        do {
-            Set_volume(i);
-            i++;
-        } while ((ULONG)i <= CD.Vol);
-    }
-}
-
-void Xa_fade_set(ULONG frames)
-{
-    tagCD *pCd = &CD;
-
-    pCd->Fade_flg = 1;
-    pCd->Fade_step = pCd->Vol / ((UCHAR)frames - 1);
-}
-
-void Cd_seek(ULONG File_no, ULONG Mode)
-{
-    tagCD *pCd = &CD;
-
-    if (Mode < 2) {
-        pCd->Fsum = floc[File_no].sum;
-        pCd->Fsize = floc[File_no].size;
-        pCd->Fsector = (ULONG)floc[File_no].sec_high * 0x10000 + floc[File_no].sector;
-    }
-    pCd->Fno = File_no;
-    pCd->Current_sector = pCd->Fsector;
-    DsFlush();
-    DsIntToPos(pCd->Current_sector, &pCd->Fpos);
-    while (DsCommand(DslPause, NULL, NULL, -1) == 0);
-    while (DsCommand(DslSeekL, (u_char *)&pCd->Fpos, NULL, -1) == 0);
-}
-
-void Door_main(void)
-{
-    UCHAR i;
-
-    for (i = 0; Door_proc_tbl[i] != NULL; i++) {
-        Door_proc_tbl[i]();
-    }
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Door_init);
-
-void Door_move(void)
-{
-    tagGLOBAL *pG;
-    SCENARIO *pSce;
-
-    while (G.System_flg & 0x800000) {
-        Task_sleep(1);
-    }
-    if (!(*(USHORT *)(D_800BA700[0] + 0xC0) & 0x4000)) {
-        Main.Vloop = 1;
-    }
-    if (Sce.Sce_task[10].Status != 0) {
-        pG = &G;
-        pSce = &Sce;
-loop:
-        if (!(pG->Status_flg & 0x800)) {
-            *(SHORT *)((UCHAR *)pG + 0x7828) = 0;
-        }
-        Door_scheduler_main();
-        func_80015964();
-        (*(USHORT *)((UCHAR *)D_800BA6F8 + 0x226))++;
-        Task_sleep(1);
-        if (pSce->Sce_task[10].Status != 0) {
-            goto loop;
-        }
-    }
-}
-
-void Door_scheduler_main(void)
-{
-    LONG Ifel_idx;
-    ULONG Op_result;
-    SCE_TASK *pSce;
-    ULONG Task_idx;
-
-    Sce.Type = 1;
-    Sce.pCScd = (UCHAR *)0x8019D008;
-    for (Task_idx = 10; Task_idx < 0xE; Task_idx++) {
-        pSce = &Sce.Sce_task[Task_idx];
-        if (pSce->Status == 0) {
-            continue;
-        }
-        while (1) {
-            Op_result = Sce_jmp_tbl[*pSce->Data](pSce);
-            if (Op_result == 1) {
-                continue;
-            }
-            if (Op_result == 2) {
-                break;
-            }
-            if (pSce->Ifel_ctr[pSce->Sub_ctr] < 0) {
-                break;
-            }
-            Op_result = (ULONG)pSce->pS_SP;
-            pSce->pS_SP = (ULONG *)(Op_result - 4);
-            Ifel_idx = pSce->Sub_ctr;
-            pSce->Data = (UCHAR *)*pSce->pS_SP;
-            pSce->Ifel_ctr[Ifel_idx]--;
-        }
-    }
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80015964);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80015D98);
-
-void Door_exit(void)
-{
-Door_exit_wait:
-    if (Fade_status(0) != 0) {
-        Task_sleep(1);
-        goto Door_exit_wait;
-    }
-    Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x10);
-    if (*(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) != 0) {
-        func_800746C0(0x401, NULL, 0, 0);
-    }
-    Main.Vloop = 2;
-    G.System_flg &= ~0x400000;
-    Task_exit();
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80016208);
-
-void Door_model_init(UCHAR *pDw)
-{
-    ULONG *pDoor_cur;
-    ULONG *Tmd_adr;
-
-    pDoor_cur = D_800BA6F8;
-    Tmd_adr = (ULONG *)D_800BA6F8[1];
-    *(ULONG *)(pDw + 0x74) = 0x808080;
-    *(ULONG **)(pDw + 0x14) = Tmd_adr + pDw[0xC2] * 6;
-    *D_800BA6F8 = func_8002AC98(pDw + 0x10, pDoor_cur[0]);
-}
 
 /* RE3 door model work (pDwork[] slot), only the fields used here */
 typedef struct {
@@ -770,41 +241,6 @@ typedef struct {
     USHORT Cdir_z;
 } DOOR_MODEL_SET_REC;
 
-ULONG Door_model_set(SCE_TASK *pSce)
-{
-    ULONG Free_flg;
-    MATRIX *pMat;
-    DOOR_WORK *pDw;
-    DOOR_MODEL_SET_REC *pData;
-
-    pData = (DOOR_MODEL_SET_REC *)pSce->Data;
-    pDw = (DOOR_WORK *)D_800BA700[pData->Unk_01];
-    pDw->Id = pData->Id;
-    pDw->Type = pData->Type;
-    pDw->Be_flg = pData->Be_flg;
-    pDw->Model_no = pData->Model_no;
-    Free_flg = pDw->Attribute2 = pData->Attribute2;
-    pDw->Attribute = pData->Attribute;
-    pDw->Pos_x = pData->Pos_x;
-    pDw->Pos_y = pData->Pos_y;
-    pDw->Pos_z = pData->Pos_z;
-    pDw->Cdir_x = pData->Cdir_x;
-    pDw->Cdir_y = pData->Cdir_y;
-    pDw->Cdir_z = pData->Cdir_z;
-    if (Free_flg & 0x100) {
-        pMat = &((DOOR_WORK *)D_800BA700[Free_flg & 0xF])->Workm;
-    } else {
-        pMat = &GsWSMATRIX;
-    }
-    pDw->pSuper = pMat;
-    if (Free_flg & 0x2000) {
-        *(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) = 1;
-    }
-    pSce->Data = (UCHAR *)(pData + 1);
-    Door_model_init((UCHAR *)pDw);
-    return 1;
-}
-
 /* door texture/sound info (12 bytes, RE2 DOOR_INFO) */
 typedef struct {
     USHORT Sound_size;                 /* 0x0 */
@@ -818,489 +254,6 @@ extern DOOR_INFO D_800971E4[];
 extern USHORT *D_800979D4[];
 extern ULONG D_800BA6F0;
 void func_8007836C(LONG no, ULONG *pAdr);
-
-void Door_snd_trans(void)
-{
-    ULONG Sound_size;
-    DOOR_INFO *pDoor_info;
-    ULONG Door_no;
-    UCHAR Sum;
-    tagCD *pCd;
-    ULONG File_no;
-    ULONG *Address;
-
-    Door_no = ((UCHAR *)G.pSce_aot_on)[0xC];
-    G.Status_flg |= 0x800;
-    pCd = &CD;
-    pDoor_info = &D_800971E4[((UCHAR *)G.pSce_aot_on)[0xC]];
-    while (D_800BA6F0 != 0) {
-        Task_sleep(1);
-    }
-    Sound_size = pDoor_info->Sound_size;
-    Sum = pDoor_info->Sound_sum;
-    File_no = D_800979D4[G.Unk783E][Door_no];
-    Address = (ULONG *)((UCHAR *)0x8019D000 - Sound_size);
-    pCd->Fsector = floc[File_no].sector + floc[File_no].sec_high * 0x10000;
-    pCd->Fsum = Sum;
-    pCd->Fsize = Sound_size;
-    func_80012818(File_no, Address, 3, "DOOR SOUND");
-    func_800100A4((void *)0x801FC100, Address, Address[5] + 0x10);
-    SpuSetTransferMode(0);
-    func_8007836C(4, (ULONG *)0x801FC100);
-    Snd_work.Bank_id[4].Id = 4;
-    Snd_work.Bank_id[4].pData = (UCHAR *)0x3DE10;
-    SpuSetTransferStartAddr(0x3DE10);
-    SpuRead((UCHAR *)Address + ((Address[5] + 0x10) >> 2 << 2), Address[4]);
-    while (SpuIsTransferCompleted(0) == 0);
-    G.Status_flg &= ~0x800;
-}
-
-void func_80016600(ENEMY_WORK *pEm, LONG a1, LONG a2)
-{
-    VECTOR v;
-    ULONG Flg;
-    ULONG R;
-
-    if (!(pEm->Type & 0x4000)) {
-        pEm->Type |= 0x5000;
-    }
-    if (!(pEm->Type & 0x1000)) {
-        v.vx = pEm->Unk14C;
-        v.vz = pEm->Unk14E;
-        v.vy = 0;
-        func_80049BA8(pEm, &v, 0, 0);
-    }
-    Flg = pEm->Unk144;
-    if (!(Flg & 0x10)) {
-        D_80097AA0[pEm->Routine_1](pEm, a1, a2);
-        pEm->Unk144 &= ~0x800;
-    } else if (pEm->Routine_1 != 20) {
-        if (!(Flg & 0x800)) {
-            D_80097AA0[pEm->Routine_1](pEm, a1, a2);
-            func_80060464(pEm, a1, a2);
-        } else {
-            func_8006037C(pEm, a1, a2, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200);
-        }
-    }
-    if (pEm->Unk144 & 1) {
-        func_80019318(pEm, 0, 0);
-    }
-    if (pEm->Unk144 & 2) {
-        func_80019318(pEm, 0, 1);
-    }
-    if (pEm->Unk120 & 0x80) {
-        func_8001A248(pEm, pEm->Cdir_y);
-    }
-}
-
-void func_800167AC(ENEMY_WORK *pEm)
-{
-    func_80017318(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr);
-    func_80017540(pEm);
-}
-
-void func_800167E4(ENEMY_WORK *pEm)
-{
-    func_80017318(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    func_80017540(pEm);
-}
-
-void func_8001681C(ENEMY_WORK *pEm)
-{
-    func_80017318(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr);
-    func_80017540(pEm);
-}
-
-void func_80016854(ENEMY_WORK *pEm)
-{
-    func_80017318(pEm, pEm->pSub1_kan_t_ptr, pEm->pSub1_seq_t_ptr);
-    func_80017540(pEm);
-}
-
-void func_8001688C(ENEMY_WORK *pEm)
-{
-    ULONG *pKan;
-    ULONG *pSeq;
-    LONG Move;
-
-    pKan = pEm->pKan_t_ptr;
-    pSeq = pEm->pSeq_t_ptr;
-    Move = D_80097A28[pEm->Id - 0x10];
-    if (pEm->Unk150 & 0x80) {
-        switch (pEm->Unk150 & 0x7F) {
-        case 0:
-            pKan = pEm->pUnk100_kan_t_ptr;
-            pSeq = pEm->pUnk104_seq_t_ptr;
-            break;
-        case 1:
-            break;
-        case 2:
-            pKan = pEm->pSub0_kan_t_ptr;
-            pSeq = pEm->pSub0_seq_t_ptr;
-            break;
-        case 3:
-            pKan = pEm->pSub1_kan_t_ptr;
-            pSeq = pEm->pSub1_seq_t_ptr;
-            break;
-        }
-        Move = pEm->Unk152;
-    }
-    switch (pEm->Routine_2) {
-    case 0:
-        *(ULONG *)&pEm->Move_no = Move + 0x70000;
-        pEm->Routine_2 = 1;
-    case 1:
-        if ((UCHAR)func_80017148(pEm, (LONG)pKan, (LONG)pSeq)) {
-            func_80018EC8(pEm, pKan, pSeq, 0);
-            pEm->Routine_2 = 2;
-        }
-        break;
-    case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pKan, (LONG)pSeq, 0)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
-            pEm->Routine_1 = 6;
-            pEm->Routine_2 = 0;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_1 = 4;
-                pEm->Routine_2 = 2;
-            }
-        }
-        break;
-    }
-    func_80017540(pEm);
-}
-
-void func_80016A40(ENEMY_WORK *pEm)
-{
-    ULONG *pKan;
-    ULONG *pSeq;
-    LONG Move;
-
-    pKan = pEm->pKan_t_ptr;
-    pSeq = pEm->pSeq_t_ptr;
-    Move = D_80097A50[pEm->Id - 0x10];
-    if (pEm->Unk150 & 0x80) {
-        switch (pEm->Unk150 & 0x7F) {
-        case 0:
-            pKan = pEm->pUnk100_kan_t_ptr;
-            pSeq = pEm->pUnk104_seq_t_ptr;
-            break;
-        case 1:
-            break;
-        case 2:
-            pKan = pEm->pSub0_kan_t_ptr;
-            pSeq = pEm->pSub0_seq_t_ptr;
-            break;
-        case 3:
-            pKan = pEm->pSub1_kan_t_ptr;
-            pSeq = pEm->pSub1_seq_t_ptr;
-            break;
-        }
-        Move = pEm->Unk152;
-    }
-    switch (pEm->Routine_2) {
-    case 0:
-        *(ULONG *)&pEm->Move_no = Move + 0x70000;
-        pEm->Routine_2 = 1;
-    case 1:
-        if ((UCHAR)func_80017148(pEm, (LONG)pKan, (LONG)pSeq)) {
-            func_80018EC8(pEm, pKan, pSeq, 0);
-            pEm->Routine_2 = 2;
-        }
-        break;
-    case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pKan, (LONG)pSeq, 0)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
-            pEm->Routine_1 = 6;
-            pEm->Routine_2 = 0;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_1 = 5;
-                pEm->Routine_2 = 2;
-            }
-        }
-        break;
-    }
-    func_80017540(pEm);
-}
-
-void func_80016BF4(ENEMY_WORK *pEm)
-{
-    switch (pEm->Routine_2) {
-    case 0:
-        *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A00[pEm->Id - 0x10] & 0x3F);
-        pEm->Routine_2 = 1;
-    case 1:
-        if (D_80097A00[pEm->Id - 0x10] & 0x80) {
-            func_80026BE8(pEm, (LONG)pEm->pSub0_kan_t_ptr, (LONG)pEm->pSub0_seq_t_ptr, 0x200);
-        } else {
-            func_80026BE8(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0x200);
-        }
-        break;
-    }
-}
-
-void func_80016C9C(ENEMY_WORK *pEm)
-{
-    switch (pEm->Routine_2) {
-    case 0:
-        *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A78[pEm->Id - 0x10] & 0x3F);
-        pEm->Routine_2 = 1;
-    case 1:
-        func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
-            pEm->Routine_1 = 6;
-            pEm->Routine_2 = 0;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_1 = 7;
-                pEm->Routine_2 = 2;
-            }
-        }
-        break;
-    }
-    func_80017540(pEm);
-}
-
-void func_80016DA0(ENEMY_WORK *pEm)
-{
-    switch (pEm->Routine_2) {
-    case 0:
-        pEm->Spd_z = 0;
-        *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A78[pEm->Id - 0x10] & 0x3F);
-        pEm->Routine_2 = 1;
-    case 1:
-        func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
-            pEm->Routine_1 = 6;
-            pEm->Routine_2 = 0;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_1 = 8;
-                pEm->Routine_2 = 2;
-            }
-        }
-        break;
-    }
-    func_80017540(pEm);
-}
-
-void func_80016E80(ENEMY_WORK *pEm)
-{
-    switch (pEm->Routine_2) {
-    case 0:
-        *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A28[pEm->Id - 0x10] & 0x3F);
-        pEm->Routine_2 = 1;
-    case 1:
-        if ((UCHAR)func_80017148(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
-            pEm->Routine_1 = 6;
-            pEm->Routine_2 = 0;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_1 = 9;
-                pEm->Routine_2 = 2;
-            }
-        }
-        break;
-    }
-    func_80017540(pEm);
-}
-
-void func_80016F44(ENEMY_WORK *pEm)
-{
-    switch (pEm->Routine_2) {
-    case 0:
-        *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A28[pEm->Id - 0x10] & 0x3F);
-        pEm->Routine_2 = 1;
-    case 1:
-        if ((UCHAR)func_800172AC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
-            pEm->Routine_1 = 6;
-            pEm->Routine_2 = 0;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_1 = 0x15;
-                pEm->Routine_2 = 2;
-            }
-        }
-        break;
-    }
-    func_80017540(pEm);
-}
-
-void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
-{
-    ULONG Flg;
-    ULONG R;
-
-    switch (pEm->Routine_2) {
-    case 0:
-        pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
-        if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
-        }
-    case 1:
-        if (func_80026BE8(pEm, a1, a2, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
-            pEm->Routine_2 = 2;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_2 = 1;
-            }
-            pEm->Cdir_y += pEm->Unk14A;
-        } else {
-            Flg = pEm->Unk144;
-            if (Flg & 8) {
-                if (func_80026BE8(pEm, a1, a2, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
-                    pEm->Routine_2 = 2;
-                    if (pEm->Unk144 & 4) {
-                        pEm->Routine_2 = 1;
-                    }
-                    pEm->Cdir_y += pEm->Unk14A;
-                }
-            }
-            pEm->Cdir_y += pEm->Add_dir;
-        }
-        break;
-    case 2:
-        break;
-    }
-}
-
-LONG func_80017148(ENEMY_WORK *pEm, LONG a1, LONG a2)
-{
-    if (Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x15E) == 0) {
-        func_80026BE8(pEm, a1, a2, 0x200);
-        return 1;
-    }
-    Goto00(pEm, pEm->Dest_x, pEm->Dest_z, pEm->Add_dir);
-    func_80026BE8(pEm, a1, a2, 0x200);
-    return 0;
-}
-
-LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3)
-{
-    LONG x, z;
-
-    Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (1 - ((USHORT)pEm->Spd_x >> 15) * 2) * pEm->Add_dir);
-    func_80026BE8(pEm, a1, a2, (a3 << 16) | 0x200);
-    Add_speedXZ(pEm, 0);
-    x = pEm->Pos_x - pEm->Dest_x;
-    z = pEm->Pos_z - pEm->Dest_z;
-    return SquareRoot0(x * x + z * z) < 100;
-}
-
-LONG func_800172AC(ENEMY_WORK *pEm, LONG a1, LONG a2)
-{
-    Goto01(pEm, pEm->Dest_x, pEm->Dest_z);
-    func_80026BE8(pEm, a1, a2, 0x200);
-    return pEm->Cdir_y == pEm->Dest_x;
-}
-
-void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
-{
-    ULONG Flg;
-    ULONG R;
-
-    switch (pEm->Routine_2) {
-    case 0:
-        pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
-        if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
-        }
-        func_80018EC8(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
-    case 1:
-        func_80018EC8(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
-        if (pEm->Unk144 & 0x10) {
-            pEm->Spd_x = pEm->Spd_x >> 1;
-            pEm->Spd_y = pEm->Spd_y >> 1;
-            pEm->Spd_z = pEm->Spd_z >> 1;
-        }
-        if (func_80026BE8(pEm, (LONG)pKan, (LONG)pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
-            pEm->Routine_2 = 2;
-            if (pEm->Unk144 & 4) {
-                pEm->Routine_2 = 1;
-                if (pEm->Unk144 & 0x10) {
-                    pEm->Unk144 |= 0x800;
-                }
-            }
-            pEm->Cdir_y += pEm->Unk14A;
-            if (!(pEm->Unk144 & 0x20)) {
-                ADD_SPEED_XZ3(pEm);
-            }
-        } else {
-            if (!(pEm->Unk144 & 0x20)) {
-                ADD_SPEED_XZ3(pEm);
-            }
-            Flg = pEm->Unk144;
-            if (Flg & 8) {
-                if (func_80026BE8(pEm, (LONG)pKan, (LONG)pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
-                    pEm->Routine_2 = 2;
-                    if (pEm->Unk144 & 4) {
-                        pEm->Routine_2 = 1;
-                    }
-                    pEm->Cdir_y += pEm->Unk14A;
-                }
-                if (!(pEm->Unk144 & 0x20)) {
-                    ADD_SPEED_XZ3(pEm);
-                }
-            }
-            pEm->Cdir_y += pEm->Add_dir;
-        }
-        break;
-    case 2:
-        break;
-    }
-}
-
-void func_80017540(ENEMY_WORK *pEm)
-{
-    if (!(pEm->Unk144 & 0x100)) {
-        Em_seq_sound(pEm);
-    }
-}
-
-void func_80017574(void)
-{
-    G_EMTBL *pG = (G_EMTBL *)&G;
-    ENEMY_WORK **ppEm;
-    ULONG Mem_top;
-    ULONG Em_num;
-    ULONG Em_size;
-    LONG i;
-
-    ppEm = &pG->pEm_tbl[1];
-    i = 41;
-    do {
-        *ppEm = (ENEMY_WORK *)((UCHAR *)pG + 0x2708);
-        i--;
-        ppEm++;
-    } while (i != 0);
-    Em_num = pG->Em_num;
-    pG->pEm_tbl[0] = (ENEMY_WORK *)((UCHAR *)pG + 0x248C);
-    pG->pEm_tbl[0]->Be_flg = 1;
-    pG->ppEnemy_end = &pG->pEm_tbl[2];
-    if (Em_num != 0) {
-        Em_size = 0x1FC;
-        Mem_top = (ULONG)pG->pEm_mem;
-        pG->pEm_mem = (ENEMY_WORK *)((ULONG)pG->pEm_mem + Em_num * Em_size);
-        i = 0;
-        do {
-            pG->pEm_tbl[i + 2] = (ENEMY_WORK *)Mem_top;
-            ((ENEMY_WORK *)Mem_top)->Be_flg = 0;
-            Mem_top += Em_size;
-            i++;
-        } while (--Em_num != 0);
-        pG->ppEnemy_end = &pG->pEm_tbl[i + 2];
-    }
-}
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001760C);
-
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80017ADC);
-
-void func_80017D9C(void) {
-}
 
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw)
 {
@@ -1393,7 +346,7 @@ LONG Direction_ck(LONG Hontai_x, LONG Hontai_z, LONG Target_x, LONG Target_z)
     return Dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Goto00);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Goto00);
 
 LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
 {
@@ -1409,7 +362,7 @@ LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
     return -(SHORT)Add_dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Goto01);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Goto01);
 
 LONG Goto01_ck(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir)
 {
@@ -1676,11 +629,11 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Spd_get);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80018EC8);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80018EC8);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80019178);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80019178);
 
 void Em_seq_sound(ENEMY_WORK *pEm)
 {
@@ -1905,9 +858,9 @@ void func_80019A50(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80019B3C);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80019B3C);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80019DF4);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80019DF4);
 
 void Kage_work_color_set(ULONG *pK, ULONG Color)
 {
@@ -1930,11 +883,11 @@ void Kage_work9_color_set(ULONG *pK, ULONG Color)
     } while (cnt != 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001A248);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001A248);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001A808);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001A808);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001AA3C);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001AA3C);
 
 void func_8001AC58(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
 {
@@ -1992,7 +945,7 @@ void func_8001AD78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
     pEm->pNow_seq = pSeq;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001AE2C);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001AE2C);
 
 void func_8001AECC(ENEMY_WORK *pEm, ULONG a1, ULONG a2)
 {
@@ -2178,11 +1131,11 @@ EFF_WORK *func_8001B35C(EFF_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG 
     return pEw;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001B484);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001B484);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001B894);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001B894);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001BA48);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BA48);
 
 void func_8001BB24(void)
 {
@@ -2214,9 +1167,9 @@ void func_8001BB24(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001BC80);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BC80);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001BCFC);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BCFC);
 
 void func_8001BFCC(EFF_WORK *pEw)
 {
@@ -2675,7 +1628,7 @@ void func_8001CFF4(EFF_WORK *pEw, ULONG n)
     pEw->UnkB4 = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001D210);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001D210);
 
 void func_8001D480(UCHAR *p)
 {
@@ -2748,7 +1701,7 @@ void func_8001D7C0(void) {
 void func_8001D7C8(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001D7D0);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001D7D0);
 
 LONG func_80044804(MATRIX *pM, ULONG a1, ULONG a2);
 LONG func_80047860(MATRIX *pM, ULONG a1, ULONG a2);
@@ -2832,7 +1785,7 @@ void func_8001E0F4(EFF_WORK *pEw)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001E444);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001E444);
 
 void func_8001F208(EFF_WORK *pEw)
 {

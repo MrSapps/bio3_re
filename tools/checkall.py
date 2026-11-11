@@ -8,10 +8,10 @@ bad = 0; n = 0
 for c in files:
     src = open(c).read()
     rel = os.path.relpath(c, os.path.join(ROOT, "src"))[:-2]
-    asmdir = os.path.join(ROOT, "asm/nonmatchings", rel)
+    asmdirs = [os.path.join(ROOT, d, rel) for d in ("asm/nonmatchings", "asm/matchings")]
     for m in re.finditer(r"^\w[\w \*]*?\b(\w+)\s*\([^;{]*\)\s*\{", src, re.M):
         fn = m.group(1)
-        if fn.startswith("__maspsx") or not os.path.exists(os.path.join(asmdir, fn + ".s")):
+        if fn.startswith("__maspsx") or not any(os.path.exists(os.path.join(d, fn + ".s")) for d in asmdirs):
             continue
         n += 1
         r = subprocess.run([sys.executable, os.path.join(ROOT, "tools/fdiff.py"), c, fn] + syms,
