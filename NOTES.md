@@ -112,3 +112,18 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
 - fdiff/make use pipefail: any cc1 error fails the build (conflicting prototypes were silently
   tolerated before).
 - syms/*.txt names are linked via build/syms.ld as PROVIDE(), so C definitions take precedence.
+
+### Third pass: rodata in C, alignment, more rules
+- Jump tables, strings and local const aggregates are written in C; cc1 emits them into .rodata in
+  function order. Verify with `tools/linkcheck.py FILE.c` (fdiff/checkall show false %hi/%lo diffs for them).
+- Last .rodata item in a file may need `__asm__(".section .rodata\n.align 2\n.section .text");` after it.
+- **Jump tables are 8-aligned relative to their original object's .rdata start**, and objects are only
+  4-aligned in the final link. Tables at the "wrong" mod-8 address for our address-split C files mean a
+  missing file boundary (e.g. 800303CC.c: PLAYER.C starts at 80038AAC; 8005003C.c: boundary in
+  800594D4-8005CB2C). Rewriting all `.align 3` to `.align 2` does NOT work (some tables need the padding).
+  Workaround used in 800601F0.c: computed goto table (`static void *const t[] = {&&c0,...}`).
+- Pass-3 rules: `x *= -1` on signed char/SHORT gives lb/lh+negu (`x = -x` gives lbu/lhu); `slti` in a
+  switch tree means the switch var is signed; a switch whose default returns garbage v0 has no final return;
+  `sll idx` ahead of `lui jtbl` in the delay slot means a non-void function; an alias
+  `T f_(..) __asm__("func_X");` handles callers with a different prototype; GTE code uses inline-asm macros
+  with real opcode words (top of 80020298.c); permuting independent statement order fixes many reg swaps.
