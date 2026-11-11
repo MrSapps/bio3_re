@@ -24,7 +24,7 @@ typedef struct tagROOM_WORK {
     UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (func_80048630) */
     UCHAR pad8[0x20 - 0x8];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */
-    UCHAR pad24[0x28 - 0x24];
+    RCUT *pRcut;                       /* 0x24 RE2 pRcut */
     VCUT *pVcut;                       /* 0x28 */
     ULONG *pLight;                     /* 0x2C RE2 LIGHT_CUT_DATA *pLight; RE3 adds a per-cut zone table (see sub.h) */
     UCHAR pad30[0x34 - 0x30];
@@ -32,8 +32,10 @@ typedef struct tagROOM_WORK {
     USHORT *pBlock;                    /* 0x38 RE2 pBlock (func_80049E80: [0] = count) */
     UCHAR *pMessage;                   /* 0x3C RE2 pMessage (offset table, then the text) */
     UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
-    UCHAR pad44[0x48 - 0x44];
+    ULONG *pUnk44;                     /* 0x44 second bg image (Swap_Cbuff) */
     UCHAR *pScd;                       /* 0x48 scenario data (Sce.pCScd) */
+    UCHAR pad4C[0x60 - 0x4C];
+    RCUT Cut[1];                       /* 0x60 RE2 Cut[] */
 } ROOM_WORK;
 
 /* screen fade (RE2 struct tagFADE; RE3 fades between two colours) */
@@ -72,9 +74,10 @@ typedef struct tagMAIN {
     UCHAR Vloop;                       /* 0x18C RE2 Main.Vloop (Door_exit) */
     UCHAR Bg_mode;                     /* 0x18D */
     UCHAR Unk18E;                      /* 0x18E flash request (func_80024F74) */
-    UCHAR pad18F[0x192 - 0x18F];
+    UCHAR pad18F[0x191 - 0x18F];
+    UCHAR Unk191;                      /* 0x191 bg image +0x14 offset (Swap_Cbuff) */
     UCHAR Curtain_kido;                /* 0x192 */
-    UCHAR pad193;
+    UCHAR Unk193;                      /* 0x193 set when the logo task is done (func_80029B94) */
     UCHAR Unk194;                      /* 0x194 */
     UCHAR Unk195;                      /* 0x195 */
     UCHAR Unk196;                      /* 0x196 */
@@ -99,7 +102,7 @@ typedef struct tagGAME {
     struct tagSAVE_POS *pSave;         /* 0x48 (func_80024B34) */
     UCHAR Unk4C;                       /* 0x4C */
     UCHAR Unk4D;                       /* 0x4D */
-    UCHAR pad4E;
+    UCHAR Unk4E;                       /* 0x4E (func_800248E4) */
     UCHAR Unk4F;                       /* 0x4F cleared by Init_system */
 } tagGAME;
 extern tagGAME Game;                   /* 0x800C7960 */

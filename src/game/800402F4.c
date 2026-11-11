@@ -18,10 +18,105 @@ void func_80047860(MATRIX *pM, ULONG Arg1, ULONG Type);
 extern ULONG D_8009DBB4[];
 ULONG func_800102E8(void);                 /* rand */
 SHORT Get_dir_xz(LONG X, LONG Z);
-void func_800455B4(void);
+LONG func_800455B4();
 LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_800402F4);
+extern UCHAR D_8009CD3D;
+LONG func_80026BE8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
+void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
+void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
+signed char func_8006CF0C_r(ULONG Arg0) __asm__("func_8006CF0C");
+void func_8003E088(ENEMY_WORK *pEm);
+
+void func_800402F4(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
+{
+    SHORT Mv0[3] = { 1, 4, 7 };
+    SHORT Mv1[3] = { 2, 5, 8 };
+
+    switch (pEm->Routine_3) {
+    case 0:
+        *(ULONG *)&pEm->Move_no = Mv0[D_8009CD3D] + 0x70000;
+        *(ULONG *)&pEm->Unk1A0 = Mv0[D_8009CD3D] + 0x70000;
+        Pad_vib_fade_set(10, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
+    case 1:
+        pEm->Move_no = Mv0[D_8009CD3D];
+        pEm->UnkCA = 7;
+        pEm->Unk1A0 = Mv0[D_8009CD3D];
+        pEm->Unk1A2 = 7;
+        pEm->Routine_3 = 2;
+        pEm->UnkE3 = 9;
+    case 2:
+        if ((pEm->Move_cnt % 3) == 0 && func_8006D030(0) == -1) {
+            pEm->Routine_3 = 3;
+            pEm->Be_flg |= 0x2000000;
+            return;
+        }
+        G.Unk75E8 |= 1;
+        ((void (*)(PLAYER_WORK *))pl_mv05_t2_spr[(UCHAR)pEm->Type - 1])(pEm);
+        func_80026BE8(pEm, G.Pl_unk180[3], G.Pl_unk180[2], 0x200);
+        pEm->Be_flg |= 0x2000000;
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, G.Pl_unk180[1], G.Pl_unk180[0], 0x200);
+        func_80079868(pEm, 0x200);
+        if (!(Key & 0x500)) {
+            *(USHORT *)&pEm->Routine_2 = 3;
+            return;
+        }
+        if ((Key & 0x10) && D_8009CD3D != 1) {
+            pEm->Routine_3 = 1;
+            D_8009CD3D = 1;
+            return;
+        }
+        if ((Key & 0x20) && D_8009CD3D != 2) {
+            pEm->Routine_3 = 1;
+            D_8009CD3D = 2;
+            return;
+        }
+        if (!(Key & 0x30) && D_8009CD3D != 0) {
+            pEm->Routine_3 = 1;
+            D_8009CD3D = 0;
+            return;
+        }
+        if (!(Key & 0x40)) {
+            pEm->Routine_3 = 3;
+            return;
+        }
+        if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500 && !(pEm->Move_cnt & 3)) {
+            func_8003E088(pEm);
+        }
+        break;
+    case 3:
+        *(ULONG *)&pEm->Move_no = Mv1[D_8009CD3D] + 0x70000;
+        *(ULONG *)&pEm->Unk1A0 = Mv1[D_8009CD3D] + 0x70000;
+        pEm->Routine_3 = 4;
+    case 4:
+        if (func_80026BE8(pEm, G.Pl_unk180[3], G.Pl_unk180[2], 0x200)) {
+            *(USHORT *)&pEm->Routine_2 = 1;
+        }
+        pEm->Be_flg |= 0x2000000;
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, G.Pl_unk180[1], G.Pl_unk180[0], 0x200);
+        func_80079868(pEm, 0x200);
+        if (Key & 0x40) {
+            if (func_8006D030(0) != -1) {
+                *(USHORT *)&pEm->Routine_2 = 2;
+                return;
+            }
+            if (G.Key_trg & 0x40) {
+                if (func_8006CF0C_r(0) == 0) {
+                    *(USHORT *)&pEm->Routine_2 = 4;
+                } else {
+                    func_800746C0(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+                }
+            }
+        }
+        break;
+    }
+    if (Key & 8) {
+        pEm->Cdir_y -= 8;
+    }
+    if (Key & 2) {
+        pEm->Cdir_y += 8;
+    }
+}
 
 LONG func_80026BE8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
 void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
@@ -63,7 +158,93 @@ void pl_mv05_w0b(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
     pl_mv05_w0b_tbl[pEm->Routine_2](pEm, Kan, Seq, Key);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", pl_mv05_w0b_t2);
+void Pl_wep_flag_set(PLAYER_WORK *pEm);
+
+void pl_mv05_w0b_t2(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
+{
+    PARTS_W *pP;
+    SVECTOR Sv;
+
+    switch (pEm->Routine_3) {
+    case 0:
+        *(ULONG *)&pEm->Move_no = 0x70001;
+        *(ULONG *)&pEm->Unk1A0 = 0x70001;
+        pEm->Routine_3 = 1;
+        func_800746C0(0x10112, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+        Pad_vib_fade_set(15, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
+    case 1:
+        Pl_wep_flag_set(pEm);
+        if (func_80026BE8(pEm, G.Pl_unk180[3], G.Pl_unk180[2], 0x200)) {
+            *(ULONG *)&pEm->Move_no = 0x70002;
+            *(ULONG *)&pEm->Unk1A0 = 0x70002;
+            pEm->Routine_3 = 2;
+        }
+        pEm->Be_flg |= 0x2000000;
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, G.Pl_unk180[1], G.Pl_unk180[0], 0x200);
+        func_80079868(pEm, 0x200);
+        pP = pEm->pSin_parts_ptr;
+        if ((pEm->Move_cnt % 6) == 0) {
+            Sv.vx = -0x6C;
+            Sv.vy = 0x4B0;
+            Sv.vz = 0;
+            func_8001B484(0x603, (USHORT)(signed char)func_800102E8() | 0x10000000, &pP[4].Workm, &Sv, 0);
+        }
+        if ((pEm->Move_cnt % 3) == 0) {
+            Sv.vx = -0xE6;
+            Sv.vy = 0x2BC;
+            Sv.vz = 0;
+            func_8001B484(0x503, (USHORT)(signed char)func_800102E8() | 0x1E000000, &pP[4].Workm, &Sv, 0);
+        }
+        break;
+    case 2:
+        Pl_wep_flag_set(pEm);
+        G.Unk75E8 |= 1;
+        ((void (*)(PLAYER_WORK *))pl_mv05_t2_spr[(UCHAR)pEm->Type - 1])(pEm);
+        func_80026BE8(pEm, G.Pl_unk180[3], G.Pl_unk180[2], 0x200);
+        pEm->Be_flg |= 0x2000000;
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, G.Pl_unk180[1], G.Pl_unk180[0], 0x200);
+        func_80079868(pEm, 0x200);
+        if (!(Key & 0x500)) {
+            *(USHORT *)&pEm->Routine_2 = 3;
+            func_800746C0(0x10113, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+            return;
+        }
+        if (!(Key & 0x40)) {
+            pEm->Routine_3 = 3;
+            return;
+        }
+        if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500 && !(pEm->Move_cnt & 3)) {
+            func_8003E088(pEm);
+        }
+        break;
+    case 3:
+        *(ULONG *)&pEm->Move_no = 0x70004;
+        *(ULONG *)&pEm->Unk1A0 = 0x70004;
+        pEm->Routine_3 = 4;
+        pEm->Spd_x = 0;
+        func_800746C0(0x10113, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+    case 4:
+        if (func_80026BE8(pEm, G.Pl_unk180[3], G.Pl_unk180[2], 0x200)) {
+            *(USHORT *)&pEm->Routine_2 = 1;
+        }
+        pEm->Be_flg |= 0x2000000;
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, G.Pl_unk180[1], G.Pl_unk180[0], 0x200);
+        func_80079868(pEm, 0x200);
+        if (Key & 0x40) {
+            *(USHORT *)&pEm->Routine_2 = 0x102;
+            return;
+        }
+        break;
+    case 5:
+        break;
+    }
+    if (Key & 8) {
+        pEm->Cdir_y -= 8;
+    }
+    if (Key & 2) {
+        pEm->Cdir_y += 8;
+    }
+}
 
 void Pl_wep_ready_reset(PLAYER_WORK *pEm)
 {
@@ -1030,7 +1211,101 @@ void func_800439F8(PLAYER_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80043BE4);
+extern PARTS_W *D_8009CD30;
+extern USHORT D_8009DCB4[];
+void func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
+
+void func_80043BE4(PLAYER_WORK *pEm)
+{
+    PARTS_W *pW;
+    PARTS_W *pTop;
+    UCHAR *pData;
+    LONG *pOfs;
+    ULONG Cnt;
+    UCHAR No;
+    ULONG *pTmd;
+    TIM_IMAGE *pTim;
+    TIM_IMAGE Tim;
+    ULONG *p;
+
+    pW = D_8009CD30;
+    pData = (UCHAR *)&pW[4];
+    func_80012818(D_8009DCB4[pEm->Id] + (UCHAR)pEm->Type, (ULONG *)pData, 0, "WEP DATA");
+    pOfs = (LONG *)(pData + *(LONG *)&pW[4]);
+    No = pEm->Parts_num;
+    Cnt = *(ULONG *)(pData + pOfs[7] + 4);
+    pEm->Parts_num = No + Cnt;
+    pEm->pSub0_seq_t_ptr = (ULONG *)(pData + pOfs[0]);
+    pEm->pSub0_kan_t_ptr = (ULONG *)(pData + pOfs[1]);
+    OpenTIM((ULONG *)(pData + pOfs[8]));
+    pTim = ReadTIM(&Tim);
+    pTim->prect->x = pEm->Tpage * 0x40 - 0x39C;
+    pTim->prect->y = 0x1E0;
+    pTim->prect->w = 0x1C;
+    pTim->prect->h = 0x20;
+    LoadImage(pTim->prect, pTim->paddr);
+    DrawSync(0);
+    pTim->crect->x = 0xF0;
+    pTim->crect->y = pEm->Clut + 0x1E1;
+    pTim->crect->w = 0x10;
+    pTop = pW;
+    LoadImage(pTim->crect, pTim->caddr);
+    DrawSync(0);
+    func_8002AB34((ULONG *)(pData + pOfs[7]), pEm->Tpage, pEm->Clut);
+    G.Pl_unk180[0] = (ULONG)(pData + pOfs[2]);
+    G.Pl_unk180[1] = (ULONG)(pData + pOfs[3]);
+    G.Pl_unk1B4 = (ULONG)(pData + pOfs[4]);
+    G.Pl_unk180[2] = (ULONG)(pData + pOfs[5]);
+    G.Pl_unk180[3] = (ULONG)(pData + pOfs[6]);
+    pTmd = (ULONG *)(pData + pOfs[7] + 8);
+    do {
+        pW->UnkA2 = 0;
+        pW->pSuper = &GsIDMATRIX;
+        pW->Old_x = 0;
+        pW->Pos_x = 0;
+        pW->Old_y = 0;
+        pW->Pos_y = 0;
+        pW->Old_z = 0;
+        pW->Pos_z = 0;
+        pW->pTmd = pTmd;
+        *(ULONG *)&pW->Workm.m[0][0] = 0x1000;
+        *(ULONG *)&pW->Workm.m[0][2] = 0;
+        *(ULONG *)&pW->Workm.m[1][1] = 0x1000;
+        *(ULONG *)&pW->Workm.m[2][0] = 0;
+        *(ULONG *)&pW->Workm.m[2][2] = 0x1000;
+        pW->Workm.t[0] = 0;
+        pW->Workm.t[1] = 0;
+        pW->Workm.t[2] = 0;
+        *(ULONG *)&pW->M[0][0] = 0x1000;
+        *(ULONG *)&pW->M[0][2] = 0;
+        *(ULONG *)&pW->M[1][1] = 0x1000;
+        *(ULONG *)&pW->M[2][0] = 0;
+        *(ULONG *)&pW->M[2][2] = 0x1000;
+        pW->Attribute = 0;
+        pW->Poly_rgb = 0x808080;
+        *(ULONG *)&pW->Cdir_x = 0;
+        pW->Cdir_z = 0;
+        pW->Be_flg = 0;
+        pW->Unk84 = No;
+        *(SHORT *)&pW->Workm.t[0] = 0;
+        pW->Unk94 = 0;
+        pW->Unk85 = 0;
+        pW->Unk86 = 0;
+        pW->Unk96 = 0;
+        No++;
+        pW++;
+        pTmd += 6;
+    } while (--Cnt != 0);
+    pW = pTop;
+    pTop = &pEm->pSin_parts_ptr[4];
+    p = pTop->pTmd;
+    pTop->pTmd = pW->pTmd;
+    Pl_wep_tmd = pW->pTmd;
+    pW->pTmd = p;
+    Pl_weapon_init[(UCHAR)pEm->Type](pEm);
+    func_8007809C(1, (UCHAR)pEm->Type, 0x801FBF00, 0x801C1814);
+}
 
 void Weapon_cls(PLAYER_WORK *pEm)
 {
@@ -1149,7 +1424,43 @@ INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_800441CC);
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80044420);
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_800445C8);
+typedef struct {
+    VECTOR *pPos;                      /* 0x00 */
+    SHORT *pBox;                       /* 0x04 x, z, w, d */
+    USHORT Dir;                        /* 0x08 */
+    UCHAR Id;                          /* 0x0A */
+} HIT_AREA;
+
+LONG func_800445C8(ULONG A0, ULONG A1, HIT_AREA *pA, ENEMY_WORK *pEm)
+{
+    SVECTOR Rot;
+    MATRIX M;
+    LONG Unused[8];
+    VECTOR V;
+    LONG Unused2[4];
+
+    Rot.vx = 0;
+    Rot.vy = -pA->Dir;
+    Rot.vz = 0;
+    RotMatrix_gte(&Rot, &M);
+    V.vx = pEm->Pos_x - pA->pPos->vx;
+    V.vy = 0;
+    V.vz = pEm->Pos_z - pA->pPos->vz;
+    ApplyMatrixLV(&M, &V, &V);
+    V.vx -= pA->pBox[0];
+    V.vz -= pA->pBox[1];
+    if ((ULONG)(pA->pBox[2] - V.vx) > (ULONG)(pA->pBox[2] * 2)) {
+        return 0;
+    }
+    if ((ULONG)(pA->pBox[3] - V.vz) > (ULONG)(pA->pBox[3] * 2)) {
+        return 0;
+    }
+    pEm->Unk16C = A0;
+    pEm->Unk170 = A1;
+    pEm->Be_flg |= 0x80000000;
+    pEm->UnkC7 = pA->Id;
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004470C);
 
@@ -1210,7 +1521,62 @@ LONG Pl_wep_eff_parts_init(PLAYER_WORK *pEm)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_800455B4);
+LONG func_800455B4(PLAYER_WORK *pEm)
+{
+    PARTS_W *pW;
+    PARTS_W *pP;
+    MATRIX *pM;
+    LONG i;
+    SVECTOR Dsv;
+    SVECTOR V;
+
+    pW = &pEm->pSin_parts_ptr[15];
+    pW->Unk90 = 12;
+    if ((UCHAR)pEm->Type == 0x14) {
+        pW->Unk90 = 0x14;
+    }
+    i = 6;
+    do {
+        i--;
+        if (pW->Unk74 == 0xFF) {
+            pW->Unk74 = 0;
+            pW->Be_flg = 0x23;
+            pW->Pos_x = 0xAA;
+            pW->Pos_y = 0x190;
+            pW->Pos_z = 0x76;
+            *(ULONG *)&pW->M[0][0] = 0x1000;
+            *(ULONG *)&pW->M[0][2] = 0;
+            *(ULONG *)&pW->M[1][1] = 0x1000;
+            *(ULONG *)&pW->M[2][0] = 0;
+            *(ULONG *)&pW->M[2][2] = 0x1000;
+            pW->UnkA2 |= 0x200B;
+            pW->Unk8A = pEm->Cdir_y;
+            if ((UCHAR)pEm->Type == 0x14) {
+                Dsv.vx = 0;
+                Dsv.vy = 0;
+                Dsv.vz = 0;
+                V.vx = 0;
+                V.vy = -150;
+                V.vz = 0;
+                func_8001B484(0x805, 0x4000000, &pW->Workm, &V, &Dsv);
+                Dsv.vx = 0;
+                Dsv.vy = 0x400;
+                Dsv.vz = 0;
+                func_8001B484(0x805, 0x4000000, &pW->Workm, &V, &Dsv);
+            } else {
+                func_8001B484(0x103, 0x10000000, &pW->Workm, 0, 0);
+            }
+            pP = pEm->pSin_parts_ptr;
+            pM = &pP[4].Workm;
+            pW->pSuper = pM;
+            pW->pOya_parts = &pP[4];
+            func_8002D4B0(pW->pSuper, (MATRIX *)pW->M, &pW->Workm);
+            pW->Unk7C = pEm->Unk122;
+            return 1;
+        }
+        pW++;
+    } while (i != 0);
+}
 
 UCHAR Pl_wep_eff_parts_cnt(void)
 {
@@ -1320,7 +1686,37 @@ SHORT Get_dir_xz(LONG X, LONG Z)
     return Dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80046C90);
+void func_80046C90(void)
+{
+    PL_WEP_POLY *pWp;
+    LONG i;
+    ULONG Tp;
+    ULONG Cl;
+
+    pWp = Pl_wep_poly;
+    i = 6;
+    Tp = G.Pl_tpage;
+    Cl = G.Pl_clut;
+    do {
+        pWp->Be_flg = 0;
+        pWp->Unk2 = 10;
+        *(ULONG *)&pWp->Poly[0].r0 = 0x808080;
+        SetPolyFT4(&pWp->Poly[0]);
+        SetSemiTrans(&pWp->Poly[0], 1);
+        pWp->Poly[0].tpage = GetTPage(1, 1, (Tp - 14) << 6, 0x100);
+        pWp->Poly[0].clut = GetClut(0, Cl + 0x1E2);
+        pWp->Poly[0].u0 = 0;
+        pWp->Poly[0].v0 = 0xEF;
+        pWp->Poly[0].u1 = 0x10;
+        pWp->Poly[0].v1 = 0xEF;
+        pWp->Poly[0].u2 = 0;
+        pWp->Poly[0].v2 = 0xFE;
+        pWp->Poly[0].u3 = 0x10;
+        pWp->Poly[0].v3 = 0xFE;
+        func_800100A4(&pWp->Poly[1], &pWp->Poly[0], 0x28);
+        pWp++;
+    } while (--i != 0);
+}
 
 void Pl_wep_poly_set(PL_WEP_POLY *pWp, SHORT Unk2, LONG Unk4)
 {
@@ -1343,7 +1739,29 @@ void func_80046DF8(PL_WEP_POLY *pWp)
     pWp->Be_flg = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80046E00);
+void func_80046E00(PL_WEP_POLY *pWp, SVECTOR *pV)
+{
+    LONG d;
+    ULONG Rgb;
+
+    pWp->Be_flg = 0;
+    d = (USHORT)((SVECTOR *)pWp->Unk4)->vz - (USHORT)pV[7].vx;
+    if ((USHORT)(d + 0xC7F) < 0x125B) {
+        pWp->Be_flg = 1;
+        Rgb = *(ULONG *)&pWp->Poly[0].r0 & 0xFFFFFF;
+        *(ULONG *)&pWp->Poly[0].r0 &= 0xFF000000;
+        *(ULONG *)&pWp->Poly[1].r0 &= 0xFF000000;
+        *(ULONG *)&pWp->Poly[0].r0 |= Rgb >> 1;
+        *(ULONG *)&pWp->Poly[1].r0 |= Rgb >> 1;
+    }
+    if ((USHORT)(d + 0xA8B) < 0xE73) {
+        pWp->Be_flg = 1;
+        *(ULONG *)&pWp->Poly[0].r0 &= 0xFF000000;
+        *(ULONG *)&pWp->Poly[1].r0 &= 0xFF000000;
+        *(ULONG *)&pWp->Poly[0].r0 |= Rgb;
+        *(ULONG *)&pWp->Poly[1].r0 |= Rgb;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80046EC4);
 
@@ -1369,9 +1787,78 @@ void Quake_add(LONG X, LONG Y)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004834C);
+extern ENEMY_WORK Pl_work;
+extern UCHAR D_8009DDC4[][2];
+extern UCHAR D_8009DE10;
+extern UCHAR D_8009DE24;
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80048520);
+void func_8004834C(ULONG Id, LONG Flg)
+{
+    UCHAR n;
+
+    n = Id - 0x10;
+    if (n == 0x26 && Flg != 0) {
+        return;
+    }
+    if ((Pl_work.Type & 0x1F) == 10) {
+        Quake_add((UCHAR)(D_8009DDC4[n][0] / 3), D_8009DDC4[n][1]);
+    } else {
+        Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1]);
+    }
+    if ((Pl_work.Type & 0x1F) == 1) {
+        if (n == 0x26) {
+            Quake_add(D_8009DE10, 0);
+        } else {
+            Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1] * 7);
+        }
+    }
+    if (D_8009DE24) {
+        Quake_add(D_8009DDC4[n][0] >> 1, D_8009DDC4[n][1] >> 1);
+    }
+    if (D_8009DE24 >= 2) {
+        Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1]);
+    }
+    if (D_8009DE24 >= 3) {
+        Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1]);
+    }
+    if (!Flg) {
+        D_8009DE24++;
+        if (G.Unk2116 < 15) {
+            G.Unk2116 += 15;
+        }
+    }
+}
+
+extern UCHAR D_8009DE24;
+extern USHORT D_8009DE26;
+extern signed char D_8009DE28;
+
+void func_80048520(void)
+{
+    tagGLOBAL *pG = &G;
+
+    if (pG->Unk2116 != 0) {
+        if ((USHORT)pG->Unk2118 != 0) {
+            Print_color(0xFF, 0, 0x100);
+            D_8009DE28 *= -1;
+            Print14_col(0xD6, D_8009DE28 + 0x20, 2, "[%dsec", (USHORT)pG->Unk2118);
+        }
+        pG->Unk2116--;
+        if (D_8009DE28 > 0) {
+            D_8009DE28--;
+        }
+        if (D_8009DE26 != (USHORT)pG->Unk2118) {
+            func_800746C0(0xF, 0, 0, 0);
+            D_8009DE28 = 4;
+        }
+        D_8009DE26 = pG->Unk2118;
+    } else {
+        D_8009DE24 = 0;
+        D_8009DE26 = 0;
+        pG->Unk2118 = 0;
+        D_8009DE28 = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_80048630);
 
@@ -1702,7 +2189,19 @@ LONG Sca_high_circle(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 
 
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004DF24);
+LONG Sca_high_naname_a(SCA_DATA *pT, VECTOR *pPos, LONG High);
+LONG Sca_high_naname_b(SCA_DATA *pT, VECTOR *pPos, LONG High);
+LONG Sca_high_naname_c(SCA_DATA *pT, VECTOR *pPos, LONG High);
+LONG Sca_high_naname_d(SCA_DATA *pT, VECTOR *pPos, LONG High);
+
+LONG func_8004DF24(SCA_DATA *pT, VECTOR *pPos, LONG Unused, LONG High)
+{
+    LONG (*Tbl[4])(SCA_DATA *, VECTOR *, LONG) = {
+        Sca_high_naname_a, Sca_high_naname_b, Sca_high_naname_c, Sca_high_naname_d
+    };
+
+    return Tbl[(pT->Id >> 4) & 3](pT, pPos, High);
+}
 
 LONG Sca_high_naname_a(SCA_DATA *pT, VECTOR *pPos, LONG High)
 {
@@ -1842,20 +2341,188 @@ LONG func_8004F034(ULONG P0, ULONG P1, SCA_DATA *pT)
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F098);
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F258);
+LONG func_8004F258(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[8];
+    LONG x0, x1, z0, z1;
+    ULONG Flg;
+    ULONG A, B;
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F3C8);
+    x0 = pT->X0 >> 1;
+    z0 = pT->Z0 >> 1;
+    Flg = pT->Type;
+    z1 = pT->Z1 >> 1;
+    x1 = pT->X1 >> 1;
+    A = (x0 << 16) | (z0 & 0xFFFF);
+    B = (x0 << 16) | (z1 & 0xFFFF);
+    if ((Flg & 0x100) && func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    A = (x1 << 16) | (z1 & 0xFFFF);
+    if ((Flg & 0x200) && func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    B = (x1 << 16) | (z0 & 0xFFFF);
+    if ((Flg & 0x400) && func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    A = (x0 << 16) | (z0 & 0xFFFF);
+    if ((Flg & 0x800) && func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F498);
+LONG func_8004F3C8(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[8];
+    ULONG Z0, Z1;
+    ULONG A, B;
+    LONG x0, x1, z0, z1;
+
+    x0 = pT->X0 >> 1;
+    z1 = pT->Z1 >> 1;
+    x1 = pT->X1 >> 1;
+    z0 = pT->Z0 >> 1;
+    A = (x0 << 16) | (Z1 = z1 & 0xFFFF);
+    B = (x1 << 16) | (Z0 = z0 & 0xFFFF);
+    if (func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    A &= 0xFFFF0000;
+    B &= 0xFFFF0000;
+    return func_8004EF74(P0, P1, A | Z0, B | Z1) != 0;
+}
+
+LONG func_8004F498(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[8];
+    LONG x0, x1, z0, z1, d;
+    ULONG A, B, Z0, Z1;
+
+    x0 = pT->X0 >> 1;
+    z0 = pT->Z0 >> 1;
+    d = (pT->Z1 - pT->Z0) >> 2;
+    z1 = pT->Z1 >> 1;
+    x1 = pT->X1 >> 1;
+    if (func_8004EF74(P0, P1, (x0 << 16) | ((z0 + d) & 0xFFFF), (x1 << 16) | ((z0 + d) & 0xFFFF))) {
+        return 1;
+    }
+    A = ((x0 + d) << 16) | (Z0 = z0 & 0xFFFF);
+    B = ((x1 - d) << 16) | (Z1 = z1 & 0xFFFF);
+    if (func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    A &= 0xFFFF0000;
+    B &= 0xFFFF0000;
+    return func_8004EF74(P0, P1, A | Z1, B | Z0) != 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F5B4);
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F6CC);
+LONG func_8004F6CC(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[8];
+    LONG x0, x1, z0, z1;
+    LONG xm, dz;
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F7A8);
+    x0 = pT->X0 >> 1;
+    x1 = pT->X1 >> 1;
+    z0 = pT->Z0 >> 1;
+    z1 = pT->Z1 >> 1;
+    xm = x0 + ((x1 - x0) >> 1);
+    dz = (z1 - z0) >> 1;
+    if (func_8004EF74(P0, P1, (xm << 16) | (z0 & 0xFFFF), (xm << 16) | (z1 & 0xFFFF))) {
+        return 1;
+    }
+    return func_8004EF74(P0, P1, (x0 << 16) | ((z0 + dz) & 0xFFFF), (x1 << 16) | ((z0 + dz) & 0xFFFF)) != 0;
+}
+
+LONG func_8004F7A8(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[8];
+    LONG x0, x1, z0, z1;
+    ULONG Flg;
+    LONG Ret;
+
+    Flg = pT->Id & 0x30;
+    x0 = pT->X0 >> 1;
+    x1 = pT->X1 >> 1;
+    z0 = pT->Z0 >> 1;
+    z1 = pT->Z1 >> 1;
+    if (Flg & 0x20) {
+        Ret = func_8004EF74(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z0 & 0xFFFF));
+    } else {
+        Ret = func_8004EF74(P0, P1, (x0 << 16) | (z1 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF));
+    }
+    if (Ret) {
+        return 1;
+    }
+    if (Flg & 0x10) {
+        Ret = func_8004EF74(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x0 << 16) | (z1 & 0xFFFF));
+    } else {
+        Ret = func_8004EF74(P0, P1, (x1 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF));
+    }
+    if (Ret) {
+        return 1;
+    }
+    if (Flg == 0 || Flg == 0x30) {
+        if (func_8004EF74(P0, P1, (x0 << 16) | (z1 & 0xFFFF), (x1 << 16) | (z0 & 0xFFFF))) {
+            return 2;
+        }
+    } else {
+        if (func_8004EF74(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF))) {
+            return 2;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004F928);
 
 INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004FBD4);
 
-INCLUDE_ASM("asm/nonmatchings/game/800402F4", func_8004FE70);
+LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+{
+    LONG ax, ay, bx, by;
+    LONG hi, lo, x0, x1;
+    ULONG P0, P1;
+    ULONG A, B;
+
+    ax = pA->vx;
+    ay = pA->vy;
+    bx = pB->vx;
+    by = pB->vy;
+    ax >>= 1;
+    ay >>= 1;
+    bx >>= 1;
+    by >>= 1;
+    P0 = (ax << 16) | (ay & 0xFFFF);
+    P1 = (bx << 16) | (by & 0xFFFF);
+    x0 = pT->X0 >> 1;
+    x1 = pT->X1 >> 1;
+    lo = -(*(signed char *)&pT->Floor * 1800) >> 1;
+    hi = pT->High >> 1;
+    if (ax < x0 || bx < x0 || x1 < ax || x1 < bx || ay < hi || by < hi || lo < ay || lo < by) {
+        A = (x0 << 16) | (lo & 0xFFFF);
+        B = (x0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF;
+        B &= 0xFFFF;
+        B |= x1 << 16;
+        A |= x1 << 16;
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A = (x0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF0000;
+        B &= 0xFFFF0000;
+        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+    }
+    return 1;
+}

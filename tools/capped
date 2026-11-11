@@ -1,0 +1,5 @@
+#!/bin/bash
+# Run a command inside the shared re3.slice cgroup (MemoryMax=2G across all users of
+# the slice) with a 1 GiB per-process address-space limit on top.
+# usage: tools/capped CMD...   e.g. tools/capped python3 tools/fdiff.py src/game/X.c func
+exec systemd-run --user --scope --quiet --slice=re3.slice -- bash -c 'ulimit -v 1048576; exec "$@"' -- "$@"

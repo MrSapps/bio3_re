@@ -10,6 +10,8 @@
 #include "sub.h"
 #include "joint.h"
 #include "sca.h"
+#include "cd.h"
+#include "sce0.h"
 
 /* raw access to ENEMY_WORK fields past the known layout */
 #define GW(T, Ofs) (*(T *)((UCHAR *)&G + (Ofs)))
@@ -28,6 +30,8 @@ typedef struct tagSAVE_POS {
     SHORT Life;                        /* 0x710 */
     UCHAR Id;                          /* 0x712 */
     UCHAR Unk713;                      /* 0x713 */
+    ULONG Unk714;                      /* 0x714 random seed (func_800248E4) */
+    USHORT Unk718;                     /* 0x718 */
 } SAVE_POS;
 
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
@@ -36,6 +40,34 @@ typedef struct tagSAVE_POS {
 /* RE2 ENEMY_WORK.M: rotation matrix at +0x20, its t[] is Pos_x..Pos_z */
 #define EM_M(p) ((MATRIX *)((UCHAR *)(p) + 0x20))
 #define EMW(p, T, Ofs) (*(T *)((UCHAR *)(p) + (Ofs)))
+
+/* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
+#define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
+#define gte_ldsv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 2(%0); lhu $14, 4(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_stsv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 2(%0); sh $14, 4(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
+#define gte_gpf12_b() __asm__ volatile(".word 0x4B98003D")
+#define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_ldsz3(r0, r1, r2) __asm__ volatile("mtc2 %0, $17; mtc2 %1, $18; mtc2 %2, $19" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy3_gt3(r0) __asm__ volatile("swc2 $12, 8(%0); swc2 $13, 20(%0); swc2 $14, 32(%0)" : : "r"(r0) : "memory")
+#define gte_nclip_b() __asm__ volatile(".word 0x4B400006")
+#define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_avsz3() __asm__ volatile("nop; nop; .word 0x4B58002D")
+#define gte_avsz4() __asm__ volatile("nop; nop; .word 0x4B68002E")
+#define gte_rtpt() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtps() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_SetRotMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $0; ctc2 $13, $1; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $2; ctc2 $13, $3; ctc2 $14, $4" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_SetLightMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $8; ctc2 $13, $9; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $10; ctc2 $13, $11; ctc2 $14, $12" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_SetTransMatrix(r0) __asm__ volatile("lw $12, 20(%0); lw $13, 24(%0); ctc2 $12, $5; lw $14, 28(%0); ctc2 $13, $6; ctc2 $14, $7" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_ldclmv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 6(%0); lhu $14, 12(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_stclmv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 6(%0); sh $14, 12(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
+#define gte_rtir() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_MulMatrix0(r1, r2, r3) { gte_SetRotMatrix(r1); gte_ldclmv(r2); gte_rtir(); gte_stclmv(r3); gte_ldclmv((char *)(r2) + 2); gte_rtir(); gte_stclmv((char *)(r3) + 2); gte_ldclmv((char *)(r2) + 4); gte_rtir(); gte_stclmv((char *)(r3) + 4); }
+#define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
+#define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
 /* RE3 effect work (ESP_R.C area; layout differs from RE2 ESP_WORK) */
 typedef struct tagESP3_WORK {
@@ -51,7 +83,8 @@ typedef struct tagESP3_WORK {
     UCHAR padE[0x10 - 0xE];
     SHORT Unk10;                       /* 0x10 */
     SHORT Unk12;                       /* 0x12 */
-    UCHAR pad14[0x18 - 0x14];
+    SHORT Unk14;                       /* 0x14 */
+    UCHAR pad16[0x18 - 0x16];
     UCHAR Unk18;                       /* 0x18 */
     UCHAR Unk19;                       /* 0x19 */
     UCHAR Unk1A;                       /* 0x1A */
@@ -62,7 +95,10 @@ typedef struct tagESP3_WORK {
     USHORT Unk22;                      /* 0x22 */
     USHORT Unk24;                      /* 0x24 */
     USHORT Unk26;                      /* 0x26 */
-    UCHAR pad28[0x2C - 0x28];
+    UCHAR pad28;
+    UCHAR Unk29;                       /* 0x29 */
+    UCHAR pad2A;
+    UCHAR Unk2B;                       /* 0x2B */
     USHORT Unk2C;                      /* 0x2C */
     USHORT Unk2E;                      /* 0x2E */
     SHORT Unk30;                       /* 0x30 */
@@ -71,7 +107,11 @@ typedef struct tagESP3_WORK {
     UCHAR pad36[0x38 - 0x36];
     VECTOR Unk38;                      /* 0x38 */
     VECTOR Pos;                        /* 0x48 */
-    UCHAR pad58[0x90 - 0x58];
+    UCHAR pad58[0x68 - 0x58];
+    SHORT Rot[3];                      /* 0x68 rotation (func_80022990) */
+    UCHAR pad6E;
+    UCHAR Anm_cnt;                     /* 0x6F index into pAnmseq */
+    MATRIX M70;                        /* 0x70 local matrix (func_80022990) */
     MATRIX Mat;                        /* 0x90 */
     UCHAR padB0[0xB3 - 0xB0];
     UCHAR UnkB3;                       /* 0xB3 */
@@ -81,7 +121,19 @@ typedef struct tagESP3_WORK {
     SHORT UnkBA;                       /* 0xBA */
     UCHAR padBC[0xC0 - 0xBC];
     MATRIX *pMat;                      /* 0xC0 */
+    struct tagESP3_SEQ *pAnmseq;       /* 0xC4 */
+    UCHAR padC8[0xD4 - 0xC8];
 } ESP3_WORK;
+
+/* effect animation sequence entry (8 bytes) */
+typedef struct tagESP3_SEQ {
+    UCHAR Unk0;                        /* 0x0 */
+    UCHAR nSpr;                        /* 0x1 */
+    UCHAR Unk2;                        /* 0x2 */
+    UCHAR Unk3;                        /* 0x3 */
+    ULONG Unk4;                        /* 0x4 */
+} ESP3_SEQ;
+extern ESP3_WORK D_800BA8A8[96];       /* effect works */
 
 /* 0x68 byte prim work (func_8002D41C) */
 typedef struct tagRGB_BLEND_WORK {
@@ -197,6 +249,14 @@ void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
 void func_80027A54(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 ULONG func_800102E8(void);   /* Rnd */
+ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
+ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
+void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
+void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void Set_light_pos(VECTOR *pPos);
+extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
+extern VECTOR *D_800C79F4;
 LONG func_80051E48(LONG Pos_x, LONG Pos_z);
 extern LONG D_800CA720;
 extern UCHAR D_80098728[];
@@ -207,7 +267,50 @@ ESP3_WORK *func_8001B35C(ESP3_WORK *pEsp, ULONG Attr, ULONG Ofs, MATRIX *pMat, V
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80020298);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_800204B8);
+typedef struct tagESP_PRM4B8 {
+    SHORT Cnt;
+    SHORT Flg;
+    SHORT Attr;
+    SHORT Base10;
+    SHORT Mul10;
+    SHORT Base12;
+    SHORT Mul12;
+    SHORT pad;
+} ESP_PRM4B8;
+
+void func_800204B8(ESP3_WORK *pEsp)
+{
+    ESP_PRM4B8 Tbl[4] = {
+        { 15, 1, 11, 10, 2, -200, 4, 0 },
+        { 25, 1, 11, 10, 2, -200, 5, 0 },
+        { 5, 0, 0, 0, 0, 0, 0, 0 },
+        { 6, 1, 10, 40, 3, -100, 10, 0 },
+    };
+    ESP3_WORK *pNew;
+    ESP_PRM4B8 *pT;
+    UCHAR r;
+
+    r = pEsp->Routine_1;
+    if (!(pEsp->UnkB4 & 1)) {
+        pT = &Tbl[r];
+        if (pT->Flg != 0) {
+            pNew = func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (pT->Attr << 8), (pEsp->Unk2E << 16) | (D_80098728[func_800102E8()] << 4), pEsp->pMat, &pEsp->Unk38, 0);
+            if (pNew != (ESP3_WORK *)-1) {
+                pNew->Unk10 = pT->Base10 + pEsp->UnkB4 * pT->Mul10 + (D_80098728[func_800102E8()] & 0xF);
+                pNew->Unk12 = pT->Base12 + pEsp->UnkB4 * pT->Mul12 + (D_80098728[func_800102E8()] & 0x1F);
+            }
+        }
+    }
+    if (Tbl[r].Cnt < ++pEsp->UnkB4) {
+        pEsp->Routine_1++;
+        if (r != 0) {
+            pEsp->UnkB4 = 0;
+        }
+    }
+    if (pEsp->Routine_1 == 4) {
+        pEsp->Unk24 = 0;
+    }
+}
 
 void func_80020700(ESP3_WORK *pEsp)
 {
@@ -226,7 +329,30 @@ void func_80020700(ESP3_WORK *pEsp)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80020820);
+void func_80020820(ESP3_WORK *pEsp)
+{
+    SHORT Tbl[3][4] = { { 2, 0, 50, -50 }, { 4, 0xE00, 60, -80 }, { 2, 0xA00, 70, -100 } };
+    ESP3_WORK *pNew;
+    ULONG n;
+    ULONG i;
+
+    n = pEsp->Routine_1;
+    pNew = func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | 0xC00, (pEsp->Unk2E << 16) | (USHORT)(pEsp->Unk2C + (signed char)D_80098728[func_800102E8()] * Tbl[n][0] + Tbl[n][1]), pEsp->pMat, &pEsp->Unk38, 0);
+    if (pNew != (ESP3_WORK *)-1) {
+        pNew->Unk10 = Tbl[n][2];
+        pNew->Unk12 = Tbl[n][3] + (D_80098728[func_800102E8()] & 0xF);
+        if (pNew->Unk18 != 0) {
+            pNew->Be_flg = 0;
+            pNew->Unk24 &= ~0x800;
+        }
+        for (i = 0; i < pEsp->Unk19; i++) {
+            func_8001BC80(pNew);
+        }
+    }
+    if (++pEsp->Routine_1 == 3) {
+        pEsp->Unk24 = 0;
+    }
+}
 
 void func_800209D8(ESP3_WORK *pEsp)
 {
@@ -274,11 +400,65 @@ void func_80020B6C(ESP3_WORK *pEsp)
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80020C0C);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80020DBC);
+void func_80020DBC(ESP3_WORK *pEsp)
+{
+    UCHAR Tbl[5] = { 4, 5, 0, 0, 7 };
+    SVECTOR Dir;
+
+    if (pEsp->Unk26 & 0x30) {
+        func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | 0xD00, (pEsp->Unk2E << 16) | pEsp->Unk2C, &GsIDMATRIX, &pEsp->Pos, 0);
+        Dir.vx = 0x400;
+        Dir.vy = 0;
+        Dir.vz = 0;
+        func_8001B35C(pEsp, ((Tbl[pEsp->UnkB3] & 0xF) << 24) | 0xA05, (pEsp->Unk2E << 16) | pEsp->Unk2C, &GsIDMATRIX, &pEsp->Pos, &Dir);
+        pEsp->Unk24 = 0;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80020EB8);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80021548);
+typedef struct tagESP_HIT {
+    VECTOR *pPos;                      /* 0x0 */
+    SHORT Unk4[3];                     /* 0x4 */
+    UCHAR pad[2];
+    SHORT Unk0C;                       /* 0xC */
+} ESP_HIT;
+extern ULONG D_80097FCC[];
+LONG func_800472EC(ESP_HIT *pHit, ULONG Arg);
+
+void func_80021548(ESP3_WORK *pEsp)
+{
+    ESP_HIT Hit;
+    VECTOR v;
+    LONG r1;
+    LONG a;
+    LONG r2;
+
+    pEsp->Unk2E += pEsp->Unk1C;
+    if (pEsp->Unk29 < 2) {
+        if ((SHORT)(pEsp->UnkB4 % 3) == 0) {
+            r1 = (signed char)func_800102E8() << (pEsp->UnkB4 / (100 - pEsp->Unk29 * 30) + 1);
+            r2 = (signed char)func_800102E8() << (pEsp->UnkB4 / (100 - pEsp->Unk29 * 30) + 1);
+            v.vx = pEsp->Pos.vx + r1;
+            v.vy = pEsp->Pos.vy;
+            v.vz = pEsp->Pos.vz + r2;
+            a = ((func_800102E8() & 1) << 8) | 0x2D;
+            func_8001B35C(pEsp, a, (((signed char)func_800102E8() << 1) + 0xC00) << 16, &GsIDMATRIX, &v, 0);
+        }
+        if (pEsp->UnkB4 >= 4 && pEsp->UnkB6 == 0) {
+            Hit.pPos = &pEsp->Pos;
+            Hit.Unk4[0] = 0;
+            Hit.Unk4[1] = 0;
+            Hit.Unk4[2] = 0;
+            Hit.Unk0C = pEsp->Unk2C;
+            if (func_800472EC(&Hit, D_80097FCC[pEsp->Unk18]) < 0) {
+                pEsp->UnkB6 = 1;
+                func_8001B35C(pEsp, 0x1503, (pEsp->Unk2E << 16) | pEsp->Unk2C, &GsIDMATRIX, &pEsp->Pos, 0);
+            }
+        }
+    }
+    pEsp->UnkB4++;
+}
 
 void func_8002174C(ESP3_WORK *pEsp)
 {
@@ -351,7 +531,34 @@ void func_80021EA4(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80021EAC);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_800221F0);
+void func_800221F0(ESP3_WORK *pEsp)
+{
+    VECTOR v;
+    ESP3_WORK *pNew;
+
+    if (!(pEsp->UnkB4 & 1)) {
+        v.vx = (signed char)func_800102E8();
+        v.vy = (signed char)func_800102E8();
+        v.vz = (signed char)func_800102E8();
+        pNew = func_8001B35C(pEsp, 0x81C, ((pEsp->Unk2E + pEsp->UnkB4 * 0x300 + func_800102E8()) << 16) | pEsp->Unk2C, &pEsp->Mat, &v, 0);
+        if (pNew != (ESP3_WORK *)-1) {
+            pNew->Unk12 = pEsp->UnkB4 * 30 - 300;
+        }
+    } else {
+        v.vx = (signed char)func_800102E8();
+        v.vy = (signed char)func_800102E8() - pEsp->UnkB4 * 300 - 50;
+        v.vz = (signed char)func_800102E8();
+        pNew = func_8001B35C(pEsp, 0x81C, ((pEsp->Unk2E + 0x1300 - (pEsp->UnkB4 << 8) + func_800102E8()) << 16) | pEsp->Unk2C, &pEsp->Mat, &v, 0);
+        if (pNew != (ESP3_WORK *)-1) {
+            pNew->Unk12 = -30;
+        }
+    }
+    if (pEsp->UnkB4 < 8) {
+        pEsp->UnkB4++;
+    } else {
+        pEsp->Unk24 = 0;
+    }
+}
 
 void func_80022398(void) {
 }
@@ -425,7 +632,29 @@ void func_80022500(ESP3_WORK *pEsp)
 void func_80022660(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80022668);
+void func_80022668(ESP3_WORK *pEsp)
+{
+    SHORT Tbl[6][3] = { { 0, 2, 4 }, { 0xFF, 0xFF, 0xFF }, { 1, 3, 5 }, { 0xFF, 0xFF, 0xFF }, { 0, 2, 4 }, { 0xFF, 0xFF, 0xFF } };
+    ESP3_WORK *pNew;
+    UCHAR i;
+    UCHAR j;
+    ULONG n;
+
+    n = (UCHAR)pEsp->UnkB4;
+    if (Tbl[n][0] != 0xFF) {
+        for (i = 0; i < 3; i++) {
+            pNew = func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (pEsp->Unk19 << 8) | pEsp->Unk18, (pEsp->Unk2E << 16) | (USHORT)(pEsp->Unk2C + Tbl[n][i] * 0x2AA + D_80098728[func_800102E8()]), pEsp->pMat, &pEsp->Unk38, 0);
+            if (pEsp->Unk1A != 0 && pNew != (ESP3_WORK *)-1) {
+                for (j = 0; j < 6; j++) {
+                    func_8001BC80(pNew);
+                }
+            }
+        }
+    }
+    if (++pEsp->UnkB4 == 5) {
+        pEsp->Unk24 = 0;
+    }
+}
 
 void func_8002289C(ESP3_WORK *pEsp)
 {
@@ -549,7 +778,80 @@ void Gun_light_reset(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_800245A0);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_800248E4);
+/* door AOT (RE2 SCE_AOT_DOOR next position part) */
+typedef struct tagDOOR_NEXT {
+    SHORT Next_pos_x;                  /* 0x0 */
+    SHORT Next_pos_y;                  /* 0x2 */
+    SHORT Next_pos_z;                  /* 0x4 */
+    SHORT Next_cdir_y;                 /* 0x6 */
+    UCHAR Next_stage;                  /* 0x8 */
+    UCHAR Next_room;                   /* 0x9 */
+    UCHAR Next_cut;                    /* 0xA */
+    UCHAR Next_nfloor;                 /* 0xB */
+} DOOR_NEXT;
+void func_80024C58(void);
+void Door_main(void);
+void Door_snd_trans(void);
+void func_80049898(void);
+void func_80077C4C(void);
+void func_800493EC(void);
+void func_80077F60(void);
+extern UCHAR D_800E0186;
+
+void func_800248E4(void)
+{
+    tagGLOBAL *pG;
+    DOOR_NEXT *pAot;
+    UCHAR n;
+
+    pG = &G;
+    pG->Unk2470 = 0;
+    if (pG->Status_flg & 0x40000000) {
+        func_80024C58();
+    }
+    pG->Pl_damage_cnt = 0;
+    pG->Pl_be_flg &= 0x9F4F;
+    *(USHORT *)&pG->Unk24D2 &= 0xBEFF;
+    pG->System_flg |= 0x400000;
+    Bg_set_mode(1, 0);
+    Task_execute(1, Door_main);
+    Task_sleep(1);
+    Door_snd_trans();
+    pAot = (DOOR_NEXT *)pG->pSce_aot_on;
+    pG->Pl_pos_x = pG->Pl_old_x = pAot->Next_pos_x;
+    pG->Unk25AE = pG->Pl_pos_y = pG->Pl_old_y = pAot->Next_pos_y;
+    pG->Pl_pos_z = pG->Pl_old_z = pAot->Next_pos_z;
+    pG->Pl_cdir_y = pAot->Next_cdir_y;
+    pG->Pl_nFloor = pAot->Next_nfloor;
+    n = pAot->Next_cut;
+    pG->Next_cut_no = n;
+    pG->Cut_no_old = pG->Unk7840 + (pG->Unk783E + 1) * 0x100;
+    pG->Cut_no = n;
+    pG->Unk7840 = pAot->Next_room;
+    if (pG->Unk783E != pAot->Next_stage % 9) {
+        pG->Unk783E = pAot->Next_stage % 9;
+        func_80049898();
+    }
+    func_80077C4C();
+    while (pG->Status_flg & 0x800) {
+        Task_sleep(1);
+    }
+    func_800493EC();
+    while (G.System_flg & 0x400000) {
+        Task_sleep(1);
+    }
+    func_80077F60();
+    Bg_set_mode(2, 0);
+    Cut_check(1);
+    Main.Unk18E = 1;
+    if (G.System_flg & 0x10000000) {
+        D_80098700 = Game.pSave->Unk714;
+        G.Unk784A = Game.pSave->Unk718;
+        D_800E0186 = 0;
+        Game.Unk4E = 1;
+    }
+    Task_sleep(1);
+}
 
 void func_80024B34(void)
 {
@@ -785,9 +1087,77 @@ loop1:
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80025610);
+void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM) __asm__("func_80025610");
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80025A28);
+void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+{
+    MATRIX M;
+    VECTOR Scale;
+    tagGLOBAL *pG;
+    ULONG Be;
+
+    pG = &G;
+    Be = pP->Be_flg;
+    if (Be & 0x20) {
+        if (func_8001020C(pM->t, pG->Cccut) == 0) {
+            return;
+        }
+    }
+    if (!(Flg & 0x210)) {
+        if (!(Flg & 0x1000)) {
+            gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
+            gte_SetLightMatrix(&M);
+        } else {
+            Set_light_pos((VECTOR *)pM->t);
+            gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
+            gte_SetLightMatrix(&M);
+            SetColorMatrix(&COLORMATRIX);
+            Set_light_pos((VECTOR *)&pEm->Pos_x);
+        }
+    }
+    if (!(Flg & 0x10)) {
+        func_8002D4B0(&GsWSMATRIX, pM, &M);
+        if (Be & 4) {
+            Scale.vx = pP->Size_x;
+            Scale.vy = pP->Size_y;
+            Scale.vz = pP->Size_z;
+            ScaleMatrix(&M, &Scale);
+        }
+        gte_SetRotMatrix(&M);
+        gte_SetTransMatrix(&M);
+    }
+    if (Flg & 0x20) {
+        pG->Unk208C = func_8002BA3C(pP->pTmd, pG->Unk208C, pP);
+        pG->Unk208C = func_8002C068(pP->pTmd, pG->Unk208C, pP);
+        func_8002783C(pP);
+    } else if (Flg & 0x10) {
+        D_800C79F0 = &M;
+        D_800C79F4 = &Scale;
+        func_80025DE8(&pP->Attribute, Flg, pP);
+    } else if (Flg & 2) {
+        func_80025C04(&pP->Attribute, Flg, pP);
+    }
+}
+
+
+void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+{
+    MATRIX M;
+    VECTOR M2;
+
+    D_800C79F0 = &M;
+    D_800C79F4 = &M2;
+    gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
+    gte_SetLightMatrix(&M);
+    func_8002D4B0(&GsWSMATRIX, pM, &M);
+    gte_SetRotMatrix(&M);
+    gte_SetTransMatrix(&M);
+    if (Flg & 1) {
+        if (Flg & 2) {
+            func_80025FB0(&pP->Attribute, (SHORT)pP->UnkA2, (ULONG *)pP);
+        }
+    }
+}
 
 void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
@@ -945,7 +1315,65 @@ void func_8002646C(ENEMY_WORK *pEm, SHORT A, SHORT B, UCHAR C)
     pEm->Be_flg = (pEm->Be_flg | 0x40000) & ~0x80000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80026498);
+void func_80026498(ENEMY_WORK *pEm)
+{
+    UCHAR Flg;
+    LONG d;
+    SHORT a;
+
+    Flg = pEm->Unk1C1;
+    if (Flg & 8) {
+        pEm->Be_flg = (pEm->Be_flg & ~0x40000) | 0x80000;
+        return;
+    }
+    if (Flg & 2) {
+        if (Flg & 4) {
+            if (Flg & 1) {
+                pEm->Unk1BC[1] += pEm->Unk1C2;
+            } else {
+                pEm->Unk1BC[1] -= pEm->Unk1C2;
+            }
+        } else {
+            pEm->Unk1BC[1] = 0;
+        }
+        if (pEm->Unk1C1 & 1) {
+            pEm->Unk1BC[0] -= pEm->Unk1C2;
+        } else {
+            pEm->Unk1BC[0] += pEm->Unk1C2;
+        }
+    } else {
+        if (Flg & 4) {
+            if (Flg & 1) {
+                pEm->Unk1BC[0] += pEm->Unk1C2;
+            } else {
+                pEm->Unk1BC[0] -= pEm->Unk1C2;
+            }
+        } else {
+            pEm->Unk1BC[0] = 0;
+        }
+        if (pEm->Unk1C1 & 1) {
+            pEm->Unk1BC[1] += pEm->Unk1C2;
+        } else {
+            pEm->Unk1BC[1] -= pEm->Unk1C2;
+        }
+    }
+    d = pEm->Unk1BC[0];
+    if (pEm->Unk1BA < __builtin_abs(d)) {
+        a = pEm->Unk1BA;
+        if (d <= 0) {
+            a = -a;
+        }
+        pEm->Unk1BC[0] = a;
+    }
+    d = pEm->Unk1BC[1];
+    if (pEm->Unk1BA < __builtin_abs(d)) {
+        a = pEm->Unk1BA;
+        if (d <= 0) {
+            a = -a;
+        }
+        pEm->Unk1BC[1] = a;
+    }
+}
 
 void func_80026648(ENEMY_WORK *pEm)
 {
@@ -982,9 +1410,104 @@ void func_80026648(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80026728);
+void MatrixNormal_0(MATRIX *m, MATRIX *n);
+void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate) __asm__("func_80026728");
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80026900);
+void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
+{
+    SVECTOR Sv;
+    LONG Rate0;
+
+    Rate0 = 0x1000 - Rate;
+    gte_lddp(Rate0);
+    gte_ldsv(&pM0->m[0][0]);
+    gte_gpf12();
+    gte_lddp(Rate);
+    gte_ldsv(&pM1->m[0][0]);
+    gte_gpl12();
+    gte_stsv(&pM2->m[0][0]);
+    gte_lddp(Rate0);
+    gte_ldsv(&pM0->m[1][1]);
+    gte_gpf12();
+    gte_lddp(Rate);
+    gte_ldsv(&pM1->m[1][1]);
+    gte_gpl12();
+    gte_stsv(&pM2->m[1][1]);
+    Sv.vx = pM0->m[1][0];
+    Sv.vy = pM0->m[2][1];
+    Sv.vz = pM0->m[2][2];
+    gte_lddp(Rate0);
+    gte_ldsv(&Sv);
+    gte_gpf12();
+    Sv.vx = pM1->m[1][0];
+    Sv.vy = pM1->m[2][1];
+    Sv.vz = pM1->m[2][2];
+    gte_lddp(Rate);
+    gte_ldsv(&Sv);
+    gte_gpl12();
+    gte_stsv(&Sv);
+    pM2->m[1][0] = Sv.vx;
+    pM2->m[2][1] = Sv.vy;
+    pM2->m[2][2] = Sv.vz;
+    MatrixNormal_0(pM2, pM2);
+}
+
+void MatrixNormal_2(MATRIX *m, MATRIX *n);
+
+void func_80026900(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
+{
+    SVECTOR Sv;
+    LONG Rate0;
+
+    Rate0 = 0x1000 - Rate;
+    gte_lddp(Rate0);
+    gte_ldsv(&pM0->m[0][0]);
+    gte_gpf12();
+    gte_lddp(Rate);
+    gte_ldsv(&pM1->m[0][0]);
+    gte_gpl12();
+    gte_stsv(&pM2->m[0][0]);
+    gte_lddp(Rate0);
+    gte_ldsv(&pM0->m[1][1]);
+    gte_gpf12();
+    gte_lddp(Rate);
+    gte_ldsv(&pM1->m[1][1]);
+    gte_gpl12();
+    gte_stsv(&pM2->m[1][1]);
+    Sv.vx = pM0->m[1][0];
+    Sv.vy = pM0->m[2][1];
+    Sv.vz = pM0->m[2][2];
+    gte_lddp(Rate0);
+    gte_ldsv(&Sv);
+    gte_gpf12();
+    Sv.vx = pM1->m[1][0];
+    Sv.vy = pM1->m[2][1];
+    Sv.vz = pM1->m[2][2];
+    gte_lddp(Rate);
+    gte_ldsv(&Sv);
+    gte_gpl12();
+    gte_stsv(&Sv);
+    pM2->m[1][0] = Sv.vx;
+    pM2->m[2][1] = Sv.vy;
+    pM2->m[2][2] = Sv.vz;
+    MatrixNormal_2(pM2, pM2);
+    Sv.vx = pM0->t[0];
+    Sv.vy = pM0->t[1];
+    Sv.vz = pM0->t[2];
+    gte_lddp(Rate0);
+    gte_ldsv(&Sv);
+    gte_gpf12();
+    Sv.vx = pM1->t[0];
+    Sv.vy = pM1->t[1];
+    Sv.vz = pM1->t[2];
+    gte_lddp(Rate);
+    gte_ldsv(&Sv);
+    gte_gpl12();
+    gte_stsv(&Sv);
+    pM2->t[0] = Sv.vx;
+    pM2->t[1] = Sv.vy;
+    pM2->t[2] = Sv.vz;
+}
 
 void func_80026BE8(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
 {
@@ -1012,9 +1535,95 @@ void func_80026BE8(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80026CF4);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002720C);
+void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate) __asm__("func_8002720C");
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80027338);
+void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
+{
+    LONG dx;
+    LONG dy;
+    LONG dz;
+
+    *(ULONG *)&pCur->vx &= 0xFFF0FFF;
+    pCur->vz &= 0xFFF;
+    gte_lddp(0x1000 - Rate);
+    gte_ldsv(pCur);
+    dx = pDst->vx - pCur->vx + 0x800;
+    dy = pDst->vy - pCur->vy + 0x800;
+    dz = pDst->vz - pCur->vz + 0x800;
+    if ((ULONG)dx > 0x1000) {
+        pDst->vx += (dx < 0) ? 0x1000 : -0x1000;
+    }
+    if ((ULONG)dy > 0x1000) {
+        pDst->vy += (dy >= 0) ? -0x1000 : 0x1000;
+    }
+    if ((ULONG)dz > 0x1000) {
+        pDst->vz += (dz >= 0) ? -0x1000 : 0x1000;
+    }
+    gte_gpf12_b();
+    gte_lddp(Rate);
+    gte_ldsv(pDst);
+    gte_gpl12();
+    gte_stsv(pOut);
+}
+
+void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190");
+ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027338");
+
+ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
+{
+    ENEMY_WORK *pEm;
+    PARTS_W *pP;
+    PARTS_W *pP_walk;
+    ULONG Max;
+    ULONG n;
+    LONG w;
+    VECTOR V;
+
+    pEm = G.pEm;
+    Max = *(USHORT *)(Seq_t_ptr + pEm->Move_no * 8);
+    if (Late_flg & 0xFFFF0000) {
+        No = ~No;
+        No &= 0xFF;
+    }
+    pP = pEm->pSin_parts_ptr;
+    pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
+    n = *(USHORT *)(Kan_t_ptr + 4);
+    pP_walk = pP;
+    if (pEm->UnkCA == 0) {
+        do {
+            pP_walk->Cdir_x = pP_walk->Unk88 + ((pP_walk->Unk90 * No) >> 8);
+            pP_walk->Cdir_y = pP_walk->Unk8A + ((pP_walk->Unk92 * No) >> 8);
+            pP_walk->Cdir_z = pP_walk->Unk8C + ((pP_walk->Unk8E * No) >> 8);
+            if (!(pP_walk->Be_flg & 0x10)) {
+                RotMatrix_gte((SVECTOR *)&pP_walk->Cdir_x, (MATRIX *)pP_walk->M);
+            }
+            pP_walk++;
+        } while (--n);
+    } else {
+        Late_flg &= 0xFFFF;
+        w = Late_flg * pEm->UnkCA;
+        V.vx = pP->Old_x;
+        V.vy = pP->Old_y;
+        V.vz = pP->Old_z;
+        gte_lddp(0x1000 - w);
+        gte_ldlvl(&pP->Pos_x);
+        gte_gpf12();
+        gte_lddp(w);
+        gte_ldlvl(&V);
+        gte_gpl12();
+        gte_stlvl(&pP->Pos_x);
+        pEm->UnkCA--;
+        func_8002B190_(n, pP, No, Late_flg);
+    }
+    pP->Old_x = pP->Pos_x;
+    pP->Old_y = pP->Pos_y;
+    pP->Old_z = pP->Pos_z;
+    if (++pEm->Move_cnt < Max) {
+        return 0;
+    }
+    pEm->Move_cnt = 0;
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80027568);
 
@@ -1077,7 +1686,62 @@ void func_80027940(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80027A54);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80027F8C);
+void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
+ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027F8C");
+
+ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
+{
+    ENEMY_WORK *pEm;
+    PARTS_W *pP;
+    PARTS_W *pP_walk;
+    ULONG Max;
+    ULONG n;
+    LONG w;
+    VECTOR V;
+
+    pEm = G.pEm;
+    Max = *(USHORT *)(Seq_t_ptr + pEm->Move_no * 8);
+    if (Late_flg & 0xFFFF0000) {
+        No = ~No;
+        No &= 0xFF;
+    }
+    pP = pEm->pSin_parts_ptr;
+    pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
+    n = 15;
+    pP_walk = pP;
+    if (pEm->UnkCA == 0) {
+        do {
+            pP_walk->Cdir_x = pP_walk->Unk88 + ((pP_walk->Unk90 * No) >> 8);
+            pP_walk->Cdir_y = pP_walk->Unk8A + ((pP_walk->Unk92 * No) >> 8);
+            pP_walk->Cdir_z = pP_walk->Unk8C + ((pP_walk->Unk8E * No) >> 8);
+            RotMatrix_gte((SVECTOR *)&pP_walk->Cdir_x, (MATRIX *)pP_walk->M);
+            pP_walk++;
+        } while (--n);
+    } else {
+        Late_flg &= 0xFFFF;
+        w = Late_flg * pEm->UnkCA;
+        V.vx = pP->Old_x;
+        V.vy = pP->Old_y;
+        V.vz = pP->Old_z;
+        gte_lddp(0x1000 - w);
+        gte_ldlvl(&pP->Pos_x);
+        gte_gpf12();
+        gte_lddp(w);
+        gte_ldlvl(&V);
+        gte_gpl12();
+        gte_stlvl(&pP->Pos_x);
+        pEm->UnkCA--;
+        func_800281B4(15, pP, No, Late_flg);
+    }
+    pP->Old_x = pP->Pos_x;
+    pP->Old_y = pP->Pos_y;
+    pP->Old_z = pP->Pos_z;
+    if (++pEm->Move_cnt < Max) {
+        return 0;
+    }
+    pEm->Move_cnt = 0;
+    return 1;
+}
 
 void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
 {
@@ -1104,9 +1768,74 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80028308);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_800288C8);
+void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80028B1C);
+void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+{
+    MATRIX M;
+    VECTOR Scale;
+    tagGLOBAL *pG;
+    ULONG Be;
+
+    pG = &G;
+    Be = pP->Be_flg;
+    if (!(Flg & 0x200)) {
+        gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
+        gte_SetLightMatrix(&M);
+    }
+    func_8002D4B0(&GsWSMATRIX, pM, &M);
+    if (Be & 4) {
+        Scale.vx = pP->Size_x;
+        Scale.vy = pP->Size_y;
+        Scale.vz = pP->Size_z;
+        ScaleMatrix(&M, &Scale);
+    }
+    gte_SetRotMatrix(&M);
+    gte_SetTransMatrix(&M);
+    if (Flg & 0x20) {
+        pG->Unk208C = func_8002BA3C(pP->pTmd, pG->Unk208C, pP);
+        pG->Unk208C = func_8002C068(pP->pTmd, pG->Unk208C, pP);
+        func_8002783C(pP);
+    } else if (Flg & 2) {
+        func_8002606C_(&pP->Attribute, Flg, pP);
+    }
+}
+
+void func_80028B1C(void)
+{
+    LINE_SCR *pLine;
+    ULONG Amp;
+
+    pLine = &Line;
+    if (!(G.Status_flg & 7)) {
+        Line.r_no_0 = 0;
+        return;
+    }
+    if (Line.r_no_0 == 0) {
+        pLine->Rect.x = 0;
+        pLine->Rect.w = 320;
+        pLine->Rect.y = 0;
+        pLine->Unk2D20[0] = 0;
+        pLine->Rect.h = 240;
+        pLine->Unk2D20[1] = 0;
+        pLine->Unk2D20[2] = 0;
+        pLine->Unk2D20[3] = 2;
+        pLine->Unk2D20[4] = 0x40;
+        pLine->Unk2D20[5] = 2;
+        Line.r_no_0++;
+    }
+    if (G.Status_flg & 4) {
+        line_mode_set(0, 7);
+        Amp = 1;
+    } else if (G.Status_flg & 2) {
+        line_mode_set(0, 7);
+        Amp = 2;
+    } else {
+        return;
+    }
+    func_80028BE8(Amp);
+    line_scr_end();
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80028BE8);
 
@@ -1250,7 +1979,48 @@ void func_800297FC(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80029988);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80029B94);
+extern SHORT D_800CCBBC;
+void func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+void func_800784E0(ULONG *p);
+void Task_lchain(ULONG Task_no);
+int PadGetState(int port);
+int PadSetMainMode(int socket, int offs, int lock);
+
+void func_80029B94(void)
+{
+    tagMAIN *pMain;
+    DBUF *pDb;
+    LONG i;
+
+    pMain = &Main;
+    Card_event_set();
+    func_80012818(0x63, (ULONG *)0x8011A000, 1, "TEX_TIM");
+    D_800CCBBC = 0x1C;
+    func_800784E0((ULONG *)0x8011A000);
+    for (i = 0; i < 2; i++) {
+        pDb = &pMain->Db[i];
+        SetTile(&pDb->Bg_clr);
+        *(ULONG *)&pDb->Bg_clr.r0 = 0x440000;
+        *(ULONG *)&pDb->Bg_clr.x0 = 0;
+        *(ULONG *)&pDb->Bg_clr.w = 0xF00140;
+    }
+    pMain->Bg_mode = 1;
+    pMain->Unk196 = 0;
+    if (PadGetState(0) != 0) {
+        while (PadGetState(0) != 2 && PadSetMainMode(0, 1, 2) == 0) {
+        }
+    }
+    DrawSync(0);
+    SetDispMask(1);
+    Bg_set_mode(1, 0);
+    Main.Unk193 = 0;
+    Task_lexecute(1, (void *)1);
+    while (Main.Unk193 == 0) {
+        Task_sleep(1);
+    }
+    G.System_flg |= 0x20000000;
+    Task_lchain(0);
+}
 
 void func_80029D00(void) {
 }
@@ -1287,7 +2057,86 @@ void Curtain_trans(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_80029E3C);
+void func_800486F0(void);
+void func_80048FF4(void);
+void Set_light_default(void);
+void Set_view(LONG *pView_p, LONG *pView_r);
+void func_80010000(ULONG *pSrc, ULONG *pDst);
+void func_8008F8A4(LONG mode);
+void func_8008FAD4(LONG mode);
+extern USHORT *D_8009DFD0[];           /* per stage room file numbers */
+
+void func_80029E3C(void)
+{
+    RECT Rect;
+    volatile UCHAR pad_save0;
+    volatile UCHAR pad_save1;
+    tagGLOBAL *pG;
+    USHORT *pBs_size;
+    ULONG Size;
+    USHORT Ctpage_save;
+    LONG i;
+    SHORT n;
+
+    pad_save0 = PadActData[0];
+    pad_save1 = PadActData[1];
+    PadActData[1] = 0;
+    PadActData[0] = 0;
+    pG = &G;
+    Ctpage_save = pG->Unk2484;
+    if (Main.Unk18E != 2) {
+        n = pG->Next_cut_no;
+        pG->Room_no_old = pG->Cut_no;
+        pG->Cut_no = n;
+        pG->Cccut = Ccut_search(n);
+        if (!(pG->System_flg & 0x80000000)) {
+            func_800486F0();
+        }
+        pBs_size = (USHORT *)(pG->Unk7840 * 2 + (ULONG)pG->pBs_size);
+        Size = pG->pUnk2128[*pBs_size + pG->Cut_no];
+        CD.Check_sum_flg = 2;
+        CD.Fsum = pG->pBs_check_sum[*pBs_size + pG->Cut_no];
+        CD.Fsize = Size;
+        CD.Fno = D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1;
+        CD.Fsector = (floc[CD.Fno].sec_high << 16) + floc[CD.Fno].sector + pG->Cut_no * 32;
+        func_80012818(CD.Fno, (ULONG *)0x80194000, 2, "BS");
+        CD.Check_sum_flg = 0;
+        if (*(ULONG *)(0x80193FFC + Size) != 0) {
+            func_80010000((ULONG *)(*(ULONG *)(0x80193FF8 + Size) + 0x80194000), (ULONG *)0x801AC000);
+            pG->Unk2484 = 0x15;
+            func_800784E0((ULONG *)0x801AC000);
+            pG->Unk2484 = Ctpage_save;
+        }
+    }
+    func_8008F8A4(0);
+    func_8008FB34(0);
+    DecDCTvlc((ULONG *)0x80194000, (ULONG *)0x801AA000);
+    func_8008F9FC((ULONG *)0x801AA000, 0);
+    func_8008FA78((ULONG *)0x8019C000, 0x780);
+    Rect.x = 0;
+    Rect.y = Main.Rect.y = Main.pDb->Draw.ofs[1];
+    Rect.w = 16;
+    Rect.h = 240;
+    SetGeomScreen(pG->pRoom->pRcut[pG->Cut_no].ViewR >> 7);
+    Set_view(pG->pRoom->pRcut[pG->Cut_no].View_p, pG->pRoom->pRcut[pG->Cut_no].View_r);
+    Sce.Cut = pG->pRoom->pRcut[pG->Cut_no];
+    if (G.Status_flg & 0x1000) {
+        func_80048FF4();
+    }
+    Set_light_default();
+    func_8008FAD4(0);
+    for (i = 1; i < 20;) {
+        func_8008FA78((ULONG *)0x8019C000 + (i % 2) * 0x780, 0x780);
+        LoadImage(&Rect, (ULONG *)0x8019C000 + ((i - 1) % 2) * 0x780);
+        i++;
+        Rect.x += 16;
+        func_8008FAD4(0);
+    }
+    LoadImage(&Rect, (ULONG *)0x8019DE00);
+    StoreImage(&Main.Rect, (ULONG *)0x8019C000);
+    PadActData[0] = pad_save0;
+    PadActData[1] = pad_save1;
+}
 
 void Soft_reset(void)
 {
@@ -1314,7 +2163,18 @@ void Soft_reset(void)
     Task_lexecute(0, NULL);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002A2B8);
+void func_8002A2B8(void)
+{
+    tagGLOBAL *pG;
+    tagMAIN *pMain;
+
+    Print_color(0xFF, 0, 0x100);
+    Print14(0x87, 0x6B, "Paused");
+    pG = &G;
+    pMain = &Main;
+    AddPrim(pG->pOt0 + 1, &pMain->pDb->Pause);
+    AddPrim(pG->pOt0 + 1, &pMain->pDb->Pause_Dm);
+}
 
 void Bg_set_mode(ULONG Mode, ULONG Rgb)
 {
@@ -1584,7 +2444,35 @@ void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002B2BC);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002B5FC);
+void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
+{
+    LONG w;
+    LONG w2;
+
+    do {
+        *(ULONG *)&pP->Unk90 &= 0xFFF0FFF;
+        pP->Unk90 -= pP->Unk88;
+        w = pP->Unk90;
+        w += 0x800;
+        if ((ULONG)w > 0x1000) {
+            pP->Unk90 += !(w & 0x80000000) ? -0x1000 : 0x1000;
+        }
+        pP->Unk92 -= pP->Unk8A;
+        w2 = pP->Unk92;
+        w2 += 0x800;
+        if ((ULONG)w2 > 0x1000) {
+            pP->Unk92 += !(w2 & 0x80000000) ? -0x1000 : 0x1000;
+        }
+        pP->Unk8E &= 0xFFF;
+        pP->Unk8E -= pP->Unk8C;
+        w = pP->Unk8E;
+        w += 0x800;
+        if ((ULONG)w > 0x1000) {
+            pP->Unk8E += !(w & 0x80000000) ? -0x1000 : 0x1000;
+        }
+        pP++;
+    } while (--Cnt);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002B6FC);
 
@@ -1777,11 +2665,94 @@ void Print14_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...)
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002F440);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002F98C);
+void func_8002F98C(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
+{
+    ULONG Col;
+    ULONG Mode;
+    ULONG Clut;
+    ULONG Tag;
+    ULONG c;
+    SPRT_8 *pPrim;
+    SPRT_8 *pEnd;
+    ULONG *pPrev;
+
+    if (*pStr == 0) {
+        return;
+    }
+    Col = (Attr & 0xF8) >> 3;
+    Mode = Attr & 7;
+    pPrim = pMoji->pPrim8_cur;
+    pEnd = &pMoji->Prim_sprt_8[G.Cbuf_id][128];
+    Clut = GetClut(0x100, Col | 0x1E0) << 16;
+    Col = (Col & 1) << 25;
+    pPrev = (ULONG *)&pMoji->Moji_mode[G.Cbuf_id][Mode * 2];
+    Tag = *pPrev;
+    do {
+        if (*pStr != ' ') {
+            *(ULONG *)&pPrim->r0 = Col | 0x74808080;
+            *(ULONG *)&pPrim->x0 = Xy;
+            c = *pStr - 0x20;
+            *(ULONG *)&pPrim->u0 = ((c & 0x1F) << 3) + ((c & 0xE0) << 6) + Clut;
+            *pPrev = (*pPrev & 0xFF000000) | ((ULONG)pPrim & 0xFFFFFF);
+            pPrev = (ULONG *)pPrim;
+            pPrim++;
+            if (pPrim == pEnd) {
+                break;
+            }
+        }
+        pStr++;
+        Xy += 8;
+    } while (*pStr);
+    *pPrev = (*pPrev & 0xFF000000) | (Tag & 0xFFFFFF);
+    pMoji->pPrim8_cur = pPrim;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002FB14);
 
-INCLUDE_ASM("asm/nonmatchings/game/80020298", func_8002FD30);
+LONG func_8002FD30(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data)
+{
+    MOJIDISP *pMoji;
+    tagGLOBAL *pG;
+    UCHAR *pTop;
+
+    pMoji = &Moji;
+    pG = &G;
+    if (pMoji->Mess_flg & 0x80) {
+        return -1;
+    }
+    pMoji->Mess_flg = 0x80;
+    pG->Unk7848 = 0;
+    pMoji->Stop_data = Stop_data;
+    pMoji->Mess_r_no0 = 0;
+    pMoji->Mess_attr2 = Attr | 0x100;
+    pG->Status_flg |= 0x100;
+    pMoji->Stop_keep = pG->Unk2468;
+    switch (Attr & 0x3000) {
+    case 0:
+        pMoji->Pos_x_def = 0x22;
+        pMoji->Pos_y_def = 0xB9;
+        pMoji->Mess_top = D_80098E88 + D_80099654[Mess_no];
+        break;
+    case 0x1000:
+        pMoji->Pos_x_def = 0xE;
+        pMoji->Pos_y_def = 0xAD;
+        pMoji->Mess_top = D_800996E4 + D_8009BDB4[Mess_no];
+        break;
+    case 0x2000:
+        pMoji->Pos_x_def = 0x22;
+        pMoji->Pos_y_def = 0xB9;
+        pTop = pG->pRoom->pMessage;
+        pMoji->Mess_top = pTop;
+        pMoji->Mess_top = pTop + *(USHORT *)(pTop + (Mess_no << 1));
+        break;
+    default:
+        pMoji->Pos_x_def = Pos_xy;
+        pMoji->Pos_y_def = Pos_xy >> 16;
+        pMoji->Mess_top = (UCHAR *)Mess_no;
+        break;
+    }
+    return 0;
+}
 
 void Moji_trans_main(void)
 {

@@ -43,7 +43,9 @@ typedef struct tagCD {
     USHORT Ring_size[CD_RING_BUFFERS];   /* 0x880 */
     struct tagCD_ENTRY *pEntry;        /* 0x8A0 packed file directory (func_800138B0) */
     struct tagCD_ENTRY *pEntry2;       /* 0x8A4 */
-    UCHAR pad8A8[0x8B8 - 0x8A8];
+    UCHAR pad8A8[0x8AC - 0x8A8];
+    LONG Unk8AC;                       /* 0x8AC bytes left to transfer to the SPU (func_80012ECC) */
+    UCHAR pad8B0[0x8B8 - 0x8B0];
     ULONG Unk8B8;                      /* 0x8B8 */
     ULONG Unk8BC;                      /* 0x8BC */
     UCHAR Unk8C0;                      /* 0x8C0 */
@@ -60,7 +62,8 @@ typedef struct tagCD {
 /* packed file directory entry (8 bytes) */
 typedef struct tagCD_ENTRY {
     ULONG Size;                        /* 0x0 */
-    UCHAR pad4[3];
+    UCHAR Type;                        /* 0x4 */
+    UCHAR pad5[2];
     UCHAR Id;                          /* 0x7 0x80: more entries follow */
 } CD_ENTRY;
 

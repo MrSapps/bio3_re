@@ -51,7 +51,7 @@ typedef struct tagEFF_WORK {
     USHORT Unk1C;                      /* 0x1C */
     USHORT Unk1E;                      /* 0x1E */
     USHORT Unk20;                      /* 0x20 */
-    UCHAR pad22[0x24 - 0x22];
+    USHORT Unk22;                      /* 0x22 */
     USHORT Be_flg;                     /* 0x24 */
     USHORT Flg2;                       /* 0x26 */
     USHORT Id;                         /* 0x28 */
@@ -62,7 +62,11 @@ typedef struct tagEFF_WORK {
     SHORT Rot_x;                       /* 0x30 */
     SHORT Rot_y;                       /* 0x32 */
     SHORT Rot_z;                       /* 0x34 */
-    UCHAR pad36[0x48 - 0x36];
+    UCHAR pad36[0x38 - 0x36];
+    LONG Unk38;                        /* 0x38 */
+    LONG Unk3C;                        /* 0x3C */
+    LONG Unk40;                        /* 0x40 */
+    UCHAR pad44[0x48 - 0x44];
     LONG Pos_x;                        /* 0x48 */
     LONG Pos_y;                        /* 0x4C */
     LONG Pos_z;                        /* 0x50 */
@@ -70,9 +74,15 @@ typedef struct tagEFF_WORK {
     LONG Old_x;                        /* 0x58 */
     LONG Old_y;                        /* 0x5C */
     LONG Old_z;                        /* 0x60 */
-    UCHAR pad64[0x6F - 0x64];
+    UCHAR pad64[0x68 - 0x64];
+    SHORT Unk68;                       /* 0x68 */
+    SHORT Unk6A;                       /* 0x6A */
+    SHORT Unk6C;                       /* 0x6C */
+    UCHAR pad6E;
     UCHAR Seq_no;                      /* 0x6F */
-    UCHAR pad70[0xB3 - 0x70];
+    MATRIX Workm;                      /* 0x70 */
+    MATRIX Workm2;                     /* 0x90 copy of Workm (func_8001BCFC) */
+    UCHAR padB0[0xB3 - 0xB0];
     UCHAR UnkB3;                       /* 0xB3 */
     SHORT UnkB4;                       /* 0xB4 */
     SHORT UnkB6;                       /* 0xB6 */
@@ -174,6 +184,12 @@ void Set_view(VECTOR *pView_p, VECTOR *pView_r);
 extern EFF_WORK *D_8009808C;           /* pool 2 start */
 extern EFF_WORK *D_80098090;           /* pool 2 end */
 LONG func_80026BE8(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
+ULONG func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
+void func_8001B894(ULONG Id, ULONG Key);
+void func_8001CFF4(EFF_WORK *pEw, ULONG n);
+void func_8001AC58(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
+/* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
+#define PW_FREE(p) ((SHORT *)((UCHAR *)(p) + 0x74))
 
 void Cd_init(void)
 {
@@ -213,7 +229,56 @@ void Cd_system_control(void)
 
 INCLUDE_RODATA("asm/nonmatchings/game/80011CF8", D_8001031C);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Xa_play);
+extern USHORT D_800970DC[];
+extern USHORT D_800970E8[];
+extern SHORT D_800E0DD8;
+
+void Xa_play(ULONG mode, ULONG no)
+{
+    USHORT Xa_no[12] = { 0x538, 0x539, 0x1E5, 0x539, 0x285, 0x539, 0x319, 0x539, 0x3A8, 0x539, 0x428, 0x539 };
+    ULONG sub = mode & 1;
+    tagCD *pCd = &CD;
+    ULONG file_no;
+    USHORT *pwd;
+    ULONG mul;
+
+    if (mode >= 2) {
+        pwd = sub ? D_800970E8 : D_800970DC;
+        file_no = Xa_no[sub];
+    } else {
+        pwd = G.pXa_sector;
+        file_no = Xa_no[sub + (G.Unk783E + 1) * 2];
+    }
+    pwd += no * 3;
+    pCd->Filter.file = 1;
+    pCd->Filter.chan = pwd[0];
+    sub = sub ? 8 : 16;
+    pCd->Start_sector = (floc[file_no].sec_high << 16) + floc[file_no].sector;
+    pCd->End_sector = pCd->Start_sector;
+    pCd->Start_sector += pwd[1] * sub + pwd[0];
+    pCd->End_sector += (pwd[1] + pwd[2]) * sub + pwd[0] - 15;
+    pCd->Current_sector = pCd->Start_sector;
+    DsIntToPos(pCd->Start_sector, &pCd->Fpos);
+    func_80074658(1);
+    pCd->Vol = pCd->Vol * D_800E0DD8 / 127;
+    pCd->Xa_rtn_no = 1;
+    pCd->Fade_flg = 0;
+    pCd->Fade_step = 0;
+    pCd->Limit_break = 0;
+    pCd->Type = 0;
+    pCd->Status = 0;
+    pCd->Use_mode = 1;
+    Change_volume(1);
+    DsFlush();
+    DsSyncCallback((DslCB)Xa_seek);
+
+    while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+    while (DsCommand(DslSetfilter, &pCd->Filter.file, NULL, -1) == 0);
+    while (DsCommand(DslSetmode, &Xa_cdmode, NULL, -1) == 0);
+    while (DsCommand(DslSeekL, &pCd->Fpos.minute, NULL, -1) == 0);
+    while (DsCommand(DslReadS, &pCd->Fpos.minute, NULL, -1) == 0);
+    G.Status_flg |= 0x20;
+}
 
 void Xa_error(void)
 {
@@ -341,7 +406,49 @@ INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Cd_read_s);
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80012818);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80012ECC);
+extern LONG D_800A0FEC[];
+void func_800783BC(ULONG no, ULONG size, ULONG a2);
+void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
+
+void func_80012ECC(tagCD *pCd)
+{
+    ULONG no;
+    LONG adr;
+
+    no = pCd->Ring_status[pCd->Write_ctr] & 0x7F;
+    while (SpuIsTransferCompleted(0) == 0);
+    if (pCd->First_flg == 0) {
+        switch (pCd->pEntry[no].Type) {
+        case 3:
+            adr = D_800A0FEC[4] - ((pCd->pEntry[no].Size + 0x3F) & ~0x3F);
+            break;
+        case 6:
+            adr = D_800A0FEC[6] - ((pCd->pEntry[no].Size + 0x3F) & ~0x3F);
+            break;
+        default:
+            adr = D_800A0FEC[pCd->pEntry[no].Type];
+            break;
+        }
+        pCd->Unk8AC = pCd->pEntry[no].Size;
+        SpuSetTransferStartAddr(adr);
+        pCd->First_flg = 1;
+    }
+    if (pCd->Unk8AC > 0x800) {
+        pCd->Unk8AC -= 0x800;
+        SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), 0x800);
+    } else {
+        adr = (pCd->Unk8AC + 0x3F) & ~0x3F;
+        pCd->Unk8AC = 0;
+        pCd->First_flg = 0;
+        SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), adr);
+        while (SpuIsTransferCompleted(0) == 0);
+        func_800783BC(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
+        if (pCd->pEntry[no].Type >= 5) {
+            func_800782F4(pCd->pEntry[no].Type - 5, pCd->pEntry[no].Id,
+                          pCd->pEntry[no].Type < 6 ? (ULONG *)0x801F7E00 : (ULONG *)0x801F2600);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_800130A0);
 
@@ -622,9 +729,131 @@ void Door_model_init(UCHAR *pDw)
     *D_800BA6F8 = func_8002AC98(pDw + 0x10, pDoor_cur[0]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Door_model_set);
+/* RE3 door model work (pDwork[] slot), only the fields used here */
+typedef struct {
+    ULONG Be_flg;                      /* 0x00 */
+    UCHAR pad04[0x10 - 0x4];
+    LONG Attribute;                    /* 0x10 */
+    UCHAR pad14[0x34 - 0x14];
+    LONG Pos_x;                        /* 0x34 */
+    LONG Pos_y;                        /* 0x38 */
+    LONG Pos_z;                        /* 0x3C */
+    UCHAR pad40[0x4A - 0x40];
+    UCHAR Id;                          /* 0x4A */
+    UCHAR pad4B;
+    MATRIX Workm;                      /* 0x4C */
+    SHORT Cdir_x;                      /* 0x6C */
+    SHORT Cdir_y;                      /* 0x6E */
+    SHORT Cdir_z;                      /* 0x70 */
+    UCHAR pad72[0x78 - 0x72];
+    MATRIX *pSuper;                    /* 0x78 */
+    UCHAR pad7C[0xC0 - 0x7C];
+    USHORT Attribute2;                 /* 0xC0 */
+    UCHAR Model_no;                    /* 0xC2 */
+    UCHAR Type;                        /* 0xC3 */
+} DOOR_WORK;
+/* Door_model_set script record (22 bytes) */
+typedef struct {
+    UCHAR Unk_00;
+    UCHAR Unk_01;
+    UCHAR Id;
+    UCHAR Type;
+    UCHAR Be_flg;
+    UCHAR Model_no;
+    USHORT Attribute2;
+    SHORT Attribute;
+    SHORT Pos_x;
+    SHORT Pos_y;
+    SHORT Pos_z;
+    USHORT Cdir_x;
+    USHORT Cdir_y;
+    USHORT Cdir_z;
+} DOOR_MODEL_SET_REC;
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", Door_snd_trans);
+ULONG Door_model_set(SCE_TASK *pSce)
+{
+    ULONG Free_flg;
+    MATRIX *pMat;
+    DOOR_WORK *pDw;
+    DOOR_MODEL_SET_REC *pData;
+
+    pData = (DOOR_MODEL_SET_REC *)pSce->Data;
+    pDw = (DOOR_WORK *)D_800BA700[pData->Unk_01];
+    pDw->Id = pData->Id;
+    pDw->Type = pData->Type;
+    pDw->Be_flg = pData->Be_flg;
+    pDw->Model_no = pData->Model_no;
+    Free_flg = pDw->Attribute2 = pData->Attribute2;
+    pDw->Attribute = pData->Attribute;
+    pDw->Pos_x = pData->Pos_x;
+    pDw->Pos_y = pData->Pos_y;
+    pDw->Pos_z = pData->Pos_z;
+    pDw->Cdir_x = pData->Cdir_x;
+    pDw->Cdir_y = pData->Cdir_y;
+    pDw->Cdir_z = pData->Cdir_z;
+    if (Free_flg & 0x100) {
+        pMat = &((DOOR_WORK *)D_800BA700[Free_flg & 0xF])->Workm;
+    } else {
+        pMat = &GsWSMATRIX;
+    }
+    pDw->pSuper = pMat;
+    if (Free_flg & 0x2000) {
+        *(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) = 1;
+    }
+    pSce->Data = (UCHAR *)(pData + 1);
+    Door_model_init((UCHAR *)pDw);
+    return 1;
+}
+
+/* door texture/sound info (12 bytes, RE2 DOOR_INFO) */
+typedef struct {
+    USHORT Sound_size;                 /* 0x0 */
+    USHORT Data_size;                  /* 0x2 */
+    ULONG Sector_offset;               /* 0x4 */
+    UCHAR Sound_sum;                   /* 0x8 */
+    UCHAR Data_sum;                    /* 0x9 */
+    UCHAR padA[2];
+} DOOR_INFO;
+extern DOOR_INFO D_800971E4[];
+extern USHORT *D_800979D4[];
+extern ULONG D_800BA6F0;
+void func_8007836C(LONG no, ULONG *pAdr);
+
+void Door_snd_trans(void)
+{
+    ULONG Sound_size;
+    DOOR_INFO *pDoor_info;
+    ULONG Door_no;
+    UCHAR Sum;
+    tagCD *pCd;
+    ULONG File_no;
+    ULONG *Address;
+
+    Door_no = ((UCHAR *)G.pSce_aot_on)[0xC];
+    G.Status_flg |= 0x800;
+    pCd = &CD;
+    pDoor_info = &D_800971E4[((UCHAR *)G.pSce_aot_on)[0xC]];
+    while (D_800BA6F0 != 0) {
+        Task_sleep(1);
+    }
+    Sound_size = pDoor_info->Sound_size;
+    Sum = pDoor_info->Sound_sum;
+    File_no = D_800979D4[G.Unk783E][Door_no];
+    Address = (ULONG *)((UCHAR *)0x8019D000 - Sound_size);
+    pCd->Fsector = floc[File_no].sector + floc[File_no].sec_high * 0x10000;
+    pCd->Fsum = Sum;
+    pCd->Fsize = Sound_size;
+    func_80012818(File_no, Address, 3, "DOOR SOUND");
+    func_800100A4((void *)0x801FC100, Address, Address[5] + 0x10);
+    SpuSetTransferMode(0);
+    func_8007836C(4, (ULONG *)0x801FC100);
+    Snd_work.Bank_id[4].Id = 4;
+    Snd_work.Bank_id[4].pData = (UCHAR *)0x3DE10;
+    SpuSetTransferStartAddr(0x3DE10);
+    SpuRead((UCHAR *)Address + ((Address[5] + 0x10) >> 2 << 2), Address[4]);
+    while (SpuIsTransferCompleted(0) == 0);
+    G.Status_flg &= ~0x800;
+}
 
 void func_80016600(ENEMY_WORK *pEm, LONG a1, LONG a2)
 {
@@ -1031,7 +1260,40 @@ void func_80017540(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_80017574);
+void func_80017574(void)
+{
+    G_EMTBL *pG = (G_EMTBL *)&G;
+    ENEMY_WORK **ppEm;
+    ULONG Mem_top;
+    ULONG Em_num;
+    ULONG Em_size;
+    LONG i;
+
+    ppEm = &pG->pEm_tbl[1];
+    i = 41;
+    do {
+        *ppEm = (ENEMY_WORK *)((UCHAR *)pG + 0x2708);
+        i--;
+        ppEm++;
+    } while (i != 0);
+    Em_num = pG->Em_num;
+    pG->pEm_tbl[0] = (ENEMY_WORK *)((UCHAR *)pG + 0x248C);
+    pG->pEm_tbl[0]->Be_flg = 1;
+    pG->ppEnemy_end = &pG->pEm_tbl[2];
+    if (Em_num != 0) {
+        Em_size = 0x1FC;
+        Mem_top = (ULONG)pG->pEm_mem;
+        pG->pEm_mem = (ENEMY_WORK *)((ULONG)pG->pEm_mem + Em_num * Em_size);
+        i = 0;
+        do {
+            pG->pEm_tbl[i + 2] = (ENEMY_WORK *)Mem_top;
+            ((ENEMY_WORK *)Mem_top)->Be_flg = 0;
+            Mem_top += Em_size;
+            i++;
+        } while (--Em_num != 0);
+        pG->ppEnemy_end = &pG->pEm_tbl[i + 2];
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001760C);
 
@@ -1232,7 +1494,62 @@ ULONG Gacha_ch(void)
     return (G.Key_trg & 0xF4F) != 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_800185D0);
+ULONG func_800185D0(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi)
+{
+    LONG Dir;
+    LONG x;
+    LONG z;
+    ULONG L;
+    SVECTOR Sv;
+    MATRIX M;
+    MATRIX M1;
+    SVECTOR Sck0;
+    SVECTOR Sck1;
+    SVECTOR Tp0;
+    SVECTOR Tp1;
+    SVECTOR Tp2;
+
+    Dir = (SHORT)Direction_ck((SHORT)pEm->Pos_x, (SHORT)pEm->Pos_z, (SHORT)pAi->vx, (SHORT)pAi->vz);
+    x = (pEm->Pos_x - pAi->vx) >> 1;
+    z = (pEm->Pos_z - pAi->vz) >> 1;
+    L = SquareRoot0(x * x + z * z) * 2;
+
+
+    *(LONG *)&Sv = Dir << 16;
+    Sv.vz = 0;
+    RotMatrix(&Sv, &M);
+    *(LONG *)&Sv = L;
+    ApplyMatrixSV(&M, &Sv, &Sck0);
+    *(LONG *)&Sv = 0;
+    Sv.vz = Han;
+    ApplyMatrixSV(&M, &Sv, &Sck1);
+
+    *(LONG *)&Tp0 = pTa->vx - (pEm->Pos_x + Sck1.vx);
+    Tp0.vz = pTa->vz - (pEm->Pos_z + Sck1.vz);
+    *(LONG *)&Tp1 = pTa->vx - (pEm->Pos_x - Sck1.vx);
+    Tp1.vz = pTa->vz - (pEm->Pos_z - Sck1.vz);
+    *(LONG *)&Tp2 = pTa->vx - (Tp0.vx + Sck0.vx);
+    Tp2.vz = pTa->vz - (Tp0.vz + Sck0.vz);
+
+    *(LONG *)&M.m[0][0] = Sck0.vx;
+    M.m[0][2] = Sck0.vz;
+    M.m[1][0] = Sck1.vx;
+    *(LONG *)&M.m[1][1] = Sck1.vz << 16;
+
+    *(LONG *)&M1.m[1][1] = 0;
+    M1.m[0][0] = Tp0.vx;
+    M1.m[0][1] = Tp2.vx;
+    *(LONG *)&M1.m[0][2] = Tp1.vx;
+    M1.m[2][0] = Tp0.vz;
+    M1.m[2][1] = Tp2.vz;
+    M1.m[2][2] = Tp1.vz;
+
+    MulMatrix0(&M, &M1, &M);
+    if ((M.m[0][0] & 0x8000) != (M.m[0][1] & 0x8000) && (M.m[1][0] & 0x8000) != (M.m[1][2] & 0x8000)) {
+        return 1;
+    }
+    return 0;
+}
 
 void Set_base_pos(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
 {
@@ -1619,7 +1936,34 @@ INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001A808);
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001AA3C);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001AC58);
+void func_8001AC58(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
+{
+    LONG dx, dz, dy, dxz;
+    ULONG t;
+    LONG Dir;
+
+    dx = pB->vx - pA->vx;
+    dz = pB->vz - pA->vz;
+    dy = pA->vy - pB->vy;
+    dxz = SquareRoot0(dx * dx + dz * dz);
+    if (dz != 0) {
+        t = dz & 0x80000000;
+        t = t == 0;
+        pRot->vy = (t << 11) + 0x400;
+    }
+    if (dx != 0) {
+        Dir = 0x1000 - catan((dz << 12) / dx);
+        pRot->vy = (Dir - (((ULONG)dx >> 20) & 0x800)) & 0xFFF;
+    }
+    if (dy != 0) {
+        t = dy & 0x80000000;
+        t = t == 0;
+        pRot->vz = (t << 11) + 0xC00;
+    }
+    if (dxz != 0) {
+        pRot->vz = (0x1000 - catan((dy << 12) / dxz)) & 0xFFF;
+    }
+}
 
 void func_8001AD78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
 {
@@ -1693,7 +2037,32 @@ ENEMY_WORK *func_8001B048(ULONG Id)
     return pRet;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001B08C);
+
+void func_8001B08C(void)
+{
+    ULONG i;
+    ULONG *pEnd;
+    TBL12 *pT;
+
+    for (i = 0x60; i != 0; ) {
+        i--;
+        D_800BA8A8[i].Be_flg = 0;
+    }
+    pT = &D_800BA728[32];
+    do {
+        pT--;
+        pT->Id = 0xFF;
+        pT->pData = NULL;
+        pT->pData2 = NULL;
+    } while (pT > D_800BA728);
+    i = func_80012818(0x14, (ULONG *)0x801FC200, 0, "CORE00.ESP");
+    pEnd = (ULONG *)0x801FC200;
+    pEnd += i >> 2;
+    if (i & 3) {
+        pEnd++;
+    }
+    func_8001B204((UCHAR *)0x801FC200, pEnd - 1, 0);
+}
 
 LONG func_8001B148(void)
 {
@@ -1720,7 +2089,35 @@ LONG func_8001B148(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001B204);
+ULONG func_8001B204(UCHAR *pData, ULONG *pOfs, ULONG Mode)
+{
+    TBL12 *pT;
+    ULONG i;
+    ULONG *p;
+    ULONG c;
+    ULONG n;
+
+    i = 0;
+    if ((UCHAR)Mode != 0) {
+        pT = D_800BA7E8;
+    } else {
+        pT = D_800BA728;
+    }
+    do {
+        c = pData[i];
+        pT->Id = c;
+        if (c == 0xFF) {
+            return (UCHAR)i;
+        }
+        p = (ULONG *)(pOfs[-i] + (ULONG)pData);
+        pT->pData = p;
+        n = *p >> 16;
+        pT->pData2 = (ULONG *)((UCHAR *)p + ((*p & 0xFFFF) * 2 + n + 2) * 4);
+        pT++;
+        i++;
+    } while (i < 16);
+    return (UCHAR)i;
+}
 
 void func_8001B2A4(ULONG *pTim)
 {
@@ -1990,7 +2387,77 @@ void func_8001C49C(EFF_WORK *pEw)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001C5BC);
+void func_8001C5BC(EFF_WORK *pEw)
+{
+    VECTOR Unused;
+    SVECTOR Rot;
+    LONG d;
+    EFF_WORK *p;
+    ULONG r;
+
+    d = 0;
+    if (pEw->Unk03 == 0) {
+        func_8001CFF4(pEw, (UCHAR)pEw->Unk1C);
+        pEw->Unk03 = 1;
+    }
+    if (pEw->Routine_1 == 2) {
+        if (pEw->Unk20 == 0) {
+            pEw->UnkB6++;
+            d = (pEw->UnkB6 * pEw->Unk22 * pEw->Unk2E) >> 12;
+            if ((ULONG)(pEw->Unk2E - d) <= 0x300) {
+                pEw->Be_flg = 0;
+                return;
+            }
+        } else {
+            pEw->Unk20--;
+        }
+    }
+    if (pEw->UnkB4 == 0) {
+        if (pEw->Unk1E == 0 || D_80098728[func_800102E8()] % pEw->Unk1E == 0) {
+            if (pEw->Routine_1 == 3) {
+                p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+                                  ((pEw->Unk2E + D_80098728[func_800102E8()] * 4 - d) << 16) |
+                                      (USHORT)(pEw->Unk2C + ((signed char)func_800102E8() << pEw->Unk22)),
+                                  (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+            } else {
+                Rot.vx = pEw->Unk68;
+                Rot.vy = pEw->Unk6A;
+                Rot.vz = pEw->Unk6C;
+                r = func_800102E8();
+                p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+                                  ((pEw->Unk2E + D_80098728[r] * 4 - d) << 16) |
+                                      (USHORT)(pEw->Unk2C + ((D_80098728[func_800102E8()] - 0x80) >> pEw->Unk1B)),
+                                  (MATRIX *)pEw->Key, &pEw->Unk38, (ULONG)&Rot);
+            }
+            if (pEw->Routine_1 == 5) {
+                func_800746C0((pEw->Unk22 + (func_800102E8() & 1)) | 0x10200, (VECTOR *)&pEw->Pos_x, 0, 0);
+            }
+            if (pEw->Routine_1 == 6) {
+                func_800746C0(pEw->Unk22 | 0x10200, (VECTOR *)&pEw->Pos_x, 0, 0);
+            }
+            if (pEw->Routine_1 == 1) {
+                if (--pEw->Unk22 == 0) {
+                    pEw->Be_flg = 0;
+                    return;
+                }
+            }
+            if (pEw->Routine_1 == 4 && p != (EFF_WORK *)-1) {
+                p->Spd_x += D_80098728[func_800102E8()] % pEw->Unk22;
+                p->Spd_y += D_80098728[func_800102E8()] % pEw->Unk22;
+            }
+            if (p != (EFF_WORK *)-1) {
+                p->pUnkBC = pEw->pUnkBC;
+            }
+            if (!(pEw->Flg2 & 0x100) && p != (EFF_WORK *)-1) {
+                p->Flg2 |= 0x100;
+                pEw->Flg2 |= 0x100;
+            }
+            pEw->UnkB4 = pEw->Unk1A;
+        }
+    } else {
+        pEw->UnkB4--;
+    }
+}
 
 void func_8001C98C(EFF_WORK *pEw)
 {
@@ -2171,7 +2638,42 @@ void func_8001CF24(EFF_WORK *pEw, ULONG a1, ULONG a2)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001CFF4);
+void func_8001CFF4(EFF_WORK *pEw, ULONG n)
+{
+    EFF_WORK *p;
+    ULONG i;
+    ULONG r;
+
+    for (i = 0; i < n; i++) {
+        if (pEw->UnkB4 == 0) {
+            pEw->UnkB4 = pEw->Unk1A;
+            r = func_800102E8();
+            p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+                                 ((pEw->Unk2E + D_80098728[r] * 4) << 16) |
+                                     (USHORT)(pEw->Unk2C + ((D_80098728[func_800102E8()] - 0x80) >> pEw->Unk1B)),
+                                 (MATRIX *)pEw->Key, (LONG *)((UCHAR *)pEw + 0x38), 0);
+        } else {
+            pEw->UnkB4--;
+        }
+        if (p != (EFF_WORK *)-1) {
+            p->UnkB6 = 1;
+        }
+        for (p = D_80098090 - 1; p >= D_8009808C; p--) {
+            if (p->UnkB6 != 0 && p->Id == *(USHORT *)&pEw->Unk18) {
+                D_80097BD4[p->Routine_0](p);
+                func_8001BC80(p);
+                func_8001BCFC(p);
+                func_8001C168(p);
+            }
+        }
+    }
+    for (p = D_80098090 - 1; p >= D_8009808C; p--) {
+        if (p->Id == *(USHORT *)&pEw->Unk18) {
+            p->UnkB6 = 0;
+        }
+    }
+    pEw->UnkB4 = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001D210);
 
@@ -2187,7 +2689,58 @@ void func_8001D480(UCHAR *p)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001D534);
+void func_8001D534(EFF_WORK *pEw)
+{
+    VECTOR Pos;
+    HIT_REQ Req;
+    UCHAR Hit;
+
+    Hit = 0;
+    if (pEw->Routine_1 == 0) {
+        if (pEw->Unk1A != 0) {
+            pEw->Spd_x = ((pEw->Spd_x + (signed char)func_800102E8() % pEw->Unk1A) * pEw->Unk2E) >> 12;
+        }
+        if (pEw->Unk1B != 0) {
+            pEw->Spd_y = ((pEw->Spd_y + (signed char)func_800102E8() % pEw->Unk1B) * pEw->Unk2E) >> 12;
+        }
+        pEw->Routine_1++;
+        pEw->Spd_z = (pEw->Spd_z * pEw->Unk2E) >> 12;
+    }
+    if (!(pEw->UnkBA & 1)) {
+        Req.pPos = &pEw->Pos_x;
+        Req.W = 0;
+        Req.H = 0;
+        Req.D = 0;
+        Req.R = pEw->Unk2C;
+        Hit |= func_800472EC(&Req, D_80097FCC[30]);
+        if (Hit) {
+            pEw->Be_flg = 0;
+        }
+    }
+    if (pEw->Flg2 & 8) {
+        Pos.vx = pEw->Pos_x;
+        Pos.vy = pEw->Pos_y;
+        Pos.vz = pEw->Pos_z;
+        func_8001B35C(pEw, 0x1503, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
+        pEw->Be_flg = 0;
+        return;
+    }
+    if (!(pEw->UnkBA & 1)) {
+        func_8001B35C(pEw, 0x3003603,
+                      (((pEw->Unk2E >> 1) - (pEw->Unk2E >> 2) + ((signed char)func_800102E8() << 3)) << 16) | pEw->Unk2C,
+                      &GsIDMATRIX, &pEw->Pos_x, 0);
+    }
+    if (pEw->Flg2 & 0x30) {
+        if (pEw->Unk22 == 0) {
+            Pos.vx = pEw->Pos_x;
+            Pos.vy = pEw->Pos_y + 400;
+            Pos.vz = pEw->Pos_z;
+            func_8001B35C(pEw, 0x205, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
+        }
+        pEw->Be_flg = 0;
+    }
+    pEw->UnkBA++;
+}
 
 void func_8001D7C0(void) {
 }
@@ -2197,7 +2750,87 @@ void func_8001D7C8(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001D7D0);
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001E0F4);
+LONG func_80044804(MATRIX *pM, ULONG a1, ULONG a2);
+LONG func_80047860(MATRIX *pM, ULONG a1, ULONG a2);
+extern ULONG D_8009DBB4;
+
+void func_8001E0F4(EFF_WORK *pEw)
+{
+    VECTOR Spd;
+    SVECTOR Rot;
+    VECTOR Pos;
+    LONG Hit;
+    EFF_WORK *p;
+
+    Hit = 0;
+    switch (pEw->Routine_2) {
+    case 0:
+        if (pEw->Unk2C != 0) {
+            pEw->UnkBA = pEw->Unk2C;
+            pEw->Unk2C = 0;
+        }
+        if (pEw->Routine_1 == 0) {
+            Rot.vx = 0;
+            Rot.vy = 0;
+            Rot.vz = 0x400;
+            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, (ULONG)&Rot);
+            Rot.vx = 0;
+            Rot.vy = 0x400;
+            Rot.vz = 0x400;
+            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, (ULONG)&Rot);
+        }
+        pEw->Routine_2++;
+    case 1:
+        if (pEw->Pos_x >= 0x7918) {
+            Hit |= 1;
+        }
+        if (pEw->Pos_x < -0x7917) {
+            Hit |= 1;
+        }
+        if (pEw->Pos_z >= 0x7918) {
+            Hit |= 1;
+        }
+        if (pEw->Pos_z < -0x7917) {
+            Hit |= 1;
+        }
+        if (pEw->UnkB8 != 0) {
+            if (pEw->UnkB8 == 10) {
+                pEw->Be_flg = 0x8000;
+                func_8001B894(0xD02, (ULONG)&pEw->Workm2);
+            }
+            if (--pEw->UnkB8 == 1) {
+                pEw->Be_flg = 0;
+            }
+            break;
+        }
+        if (pEw->Rot_y >= 30000) {
+            p = func_8001B484(((pEw->UnkB3 & 0xF) << 24) | (((UCHAR *)&pEw->Id)[1] << 8) | ((UCHAR *)&pEw->Id)[0],
+                              (pEw->Unk2E << 16) | pEw->Unk2C, &pEw->Workm2, NULL, 0);
+            func_8001BC80(p);
+            func_8001BCFC(p);
+            pEw->UnkB8 = 10;
+        }
+        if (pEw->Flg2 & 0x30) {
+            Hit |= 1;
+        }
+        Pos.vx = (pEw->Pos_x + pEw->Old_x) / 2;
+        Pos.vy = (pEw->Pos_y + pEw->Old_y) / 2;
+        Pos.vz = (pEw->Pos_z + pEw->Old_z) / 2;
+        Hit |= func_80044804(&pEw->Workm2, D_8009DBB4, 10);
+        Hit |= func_80047860(&pEw->Workm2, D_8009DBB4, 10);
+        Spd.vx = (signed char)D_80098728[func_800102E8()] >> 1;
+        Spd.vy = 500;
+        Spd.vz = (signed char)D_80098728[func_800102E8()] >> 1;
+        func_8001B35C(pEw, 0xC03, 0x18000000, &pEw->Workm2, &Spd.vx, 0);
+        if (Hit) {
+            func_8001B894(0xD02, (ULONG)&pEw->Workm2);
+            func_800746C0(0x1010A, (VECTOR *)&pEw->Pos_x, 0, 0);
+            func_8001B35C(pEw, 0x203, (USHORT)pEw->UnkBA | 0xD000000, &GsIDMATRIX, &Pos.vx, 0);
+            pEw->Be_flg = 0;
+        }
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001E444);
 
@@ -2301,11 +2934,165 @@ void func_8001F4F4(EFF_WORK *pEw)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001F674);
+void func_8001F674(EFF_WORK *pEw)
+{
+    SHORT Ofs[3] = { -200, 0, 200 };
+    SHORT Spd[3] = { -2, 0, -2 };
+    UCHAR i;
+    EFF_WORK *p;
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001F824);
+    if (++pEw->UnkB4 & 1) {
+        for (i = 0; i < 3; i++) {
+            p = func_8001B35C(pEw, 0x2103,
+                              ((0x2800 - pEw->UnkB4 * 1000) << 16) |
+                                  (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] + Ofs[i]),
+                              &GsIDMATRIX, &pEw->Old_x, 0);
+            if (p != (EFF_WORK *)-1) {
+                p->Spd_x -= pEw->UnkB4 * 10;
+                p->Spd_y = Spd[i];
+                if (pEw->UnkBA == 0) {
+                    p->UnkBA = 1;
+                }
+            }
+        }
+        if (pEw->UnkB6 != 0) {
+            pEw->Be_flg = 0;
+        }
+    }
+    if (pEw->UnkB4 >= 5) {
+        pEw->Be_flg = 0;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001FA90);
+/* Spd[] above is the last .rodata of this file: aspsx padded the section to a word */
+__asm__(".section .rodata\n.align 2\n.section .text");
+
+void func_8001F824(EFF_WORK *pEw)
+{
+    VECTOR Unused;
+    VECTOR Pos;
+    EFF_WORK *p;
+
+    switch (pEw->Routine_1) {
+    case 0:
+        func_8001CDA4((UCHAR *)pEw, pEw->Unk18);
+        func_8001CE24(pEw, pEw->Unk1A, 0);
+        pEw->Routine_1++;
+        break;
+    case 1:
+        pEw->Unk2E += ((SHORT)pEw->Unk1C * (SHORT)pEw->Unk2E) >> 12;
+        pEw->Unk1C -= pEw->Unk1E;
+        break;
+    }
+    if (pEw->Flg2 & 0x30) {
+        pEw->Be_flg &= 0xFFED;
+    }
+    if ((pEw->Flg2 & 0x20) && pEw->UnkB4 < 8) {
+        Pos.vx = pEw->Old_x;
+        Pos.vy = pEw->Old_y;
+        Pos.vz = pEw->Old_z;
+        p = func_8001B35C(pEw, 0x505, ((pEw->Unk2E - ((signed char)func_800102E8() << 4)) << 16) | pEw->Unk2C,
+                          &GsIDMATRIX, &Pos.vx, 0);
+        if (p != (EFF_WORK *)-1) {
+            p->UnkBA = 1;
+            if (!(pEw->Flg2 & 0x80)) {
+                p->UnkBA = 0x81;
+            }
+        }
+        pEw->UnkB4 = 8;
+    } else {
+        if (pEw->UnkB4 == 1 || pEw->UnkB4 == 7) {
+            Pos.vx = pEw->Old_x;
+            Pos.vy = pEw->Old_y;
+            Pos.vz = pEw->Old_z;
+            p = func_8001B35C(pEw, 0x405, ((pEw->Unk2E - ((signed char)func_800102E8() << 4)) << 16) | pEw->Unk2C,
+                              &GsIDMATRIX, &Pos.vx, 0);
+            if (p != (EFF_WORK *)-1) {
+                p->Spd_x = (D_80098728[func_800102E8()] & 0x1F) + 0x50;
+                if (pEw->UnkB4 == 7) {
+                    p->UnkBA = 1;
+                }
+            }
+        }
+        pEw->UnkB4++;
+    }
+}
+
+void func_8001FA90(EFF_WORK *pEw)
+{
+    VECTOR Pos;
+    HIT_REQ Req;
+    UCHAR Hit;
+
+    Hit = 0;
+    switch (pEw->Routine_1) {
+    case 0:
+        if (pEw->Unk18 == 0) {
+            pEw->UnkB4 = (D_80098728[func_800102E8()] & 0xF) | 0x10;
+            pEw->UnkB6 = (((D_80098728[func_800102E8()] & 0xF) + 0x10) * pEw->Unk2E) >> 11;
+        } else {
+            pEw->UnkB4 = (D_80098728[func_800102E8()] & 0xF) + 0x18;
+            pEw->UnkB6 = (((D_80098728[func_800102E8()] & 0xF) + 0x18) * pEw->Unk2E) >> 11;
+            if (!(pEw->UnkBA & 0x80)) {
+                pEw->Be_flg &= 0xFFFD;
+            }
+        }
+        pEw->UnkB8 = 0;
+        pEw->Routine_1++;
+    case 1:
+        pEw->Unk0A -= pEw->UnkB4;
+        pEw->Unk2E -= pEw->UnkB6;
+        if (pEw->Unk18 == 0) {
+            if (pEw->UnkBA != 0) {
+                if (++pEw->UnkB8 >= 21) {
+                    pEw->UnkBA = 0;
+                }
+                if (pEw->UnkB8 >= 16) {
+                    Req.pPos = &pEw->Pos_x;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = pEw->Unk2C;
+                    Hit |= func_800472EC(&Req, D_80097FCC[17]);
+                    Hit |= func_80047BD0(&Req, D_80097FCC[17]);
+                    if (Hit) {
+                        pEw->UnkBA = 0;
+                        pEw->Unk0A += pEw->UnkB4 << 5;
+                        pEw->Unk2E += pEw->UnkB6 << 5;
+                    }
+                }
+            }
+        } else if (pEw->Unk2E <= 0x2000) {
+            pEw->Be_flg |= 2;
+        }
+        if ((USHORT)pEw->Unk0A <= 0x500 || pEw->Unk2E <= 0x300) {
+            pEw->Be_flg = 0;
+        }
+        break;
+    }
+    if (!(pEw->Flg2 & 8)) {
+        if (pEw->Spd_x < 0 || (pEw->Flg2 & 0x20)) {
+            if (pEw->Acc_x == 0) {
+                pEw->Spd_y = 0;
+                pEw->Acc_y = 0;
+            }
+            pEw->Spd_x = 0;
+            pEw->Acc_x = 0;
+        }
+        if (!(pEw->Flg2 & 0x10)) {
+            return;
+        }
+        pEw->Spd_y = 0;
+        if (pEw->Flg2 & 0x40) {
+            return;
+        }
+    }
+    Pos.vx = pEw->Pos_x;
+    Pos.vy = pEw->Pos_y;
+    Pos.vz = pEw->Pos_z;
+    func_8001B35C(pEw, 0x1503, ((pEw->Unk2E >> 2) << 16) | pEw->Unk2C, (MATRIX *)pEw->Key, &Pos.vx, 0);
+    pEw->Be_flg = 0;
+}
 
 void func_8001FDD0(EFF_WORK *pEw)
 {
@@ -2340,4 +3127,45 @@ void func_8001FDD0(EFF_WORK *pEw)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80011CF8", func_8001FF6C);
+void func_8001FF6C(EFF_WORK *pEw)
+{
+    VECTOR Pos;
+
+    switch (pEw->Routine_1) {
+    case 0:
+        func_8001B35C(pEw, 0x108, pEw->Unk2C | 0x10000000, (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        pEw->Routine_1++;
+        break;
+    case 1:
+        func_8001B35C(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] * 7 + 0x800) | 0x9000000,
+                      (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        func_8001B35C(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] * 7 + 0x800) | 0xB000000,
+                      (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        func_8001B35C(pEw, 0x109, (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] * 4 + 0x800) | 0xA000000,
+                      (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        func_8001B35C(pEw, 0x209, (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] * 2 + 0x800) | 0x7000000,
+                      (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        func_8001B35C(pEw, 0x309, (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] * 6 + 0x800) | 0x8000000,
+                      (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        func_8001B35C(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] * 7) | 0xB000000,
+                      (MATRIX *)pEw->Key, &pEw->Unk38, 0);
+        Pos.vx = pEw->Unk38;
+        Pos.vy = pEw->Unk3C + 200;
+        Pos.vz = pEw->Unk40;
+        func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | 0x300, 0x10000000, (MATRIX *)pEw->Key, &Pos.vx, 0);
+        pEw->Routine_1++;
+        break;
+    case 2:
+        if (++pEw->UnkB4 >= 9) {
+            pEw->Routine_1++;
+        }
+        break;
+    case 3:
+        Pos.vx = pEw->Unk38;
+        Pos.vy = pEw->Unk3C + 200;
+        Pos.vz = pEw->Unk40;
+        func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | 0x200, 0x10000000, (MATRIX *)pEw->Key, &Pos.vx, 0);
+        pEw->Be_flg = 0;
+        break;
+    }
+}

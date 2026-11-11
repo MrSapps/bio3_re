@@ -14,6 +14,8 @@ typedef struct tagVM_WORK {
     UCHAR Cbuf_id;                     /* 0x15 */
     USHORT Movie_w;                    /* 0x16 */
     UCHAR Movie_sync;                  /* 0x18 */
+    UCHAR pad19[0x2E - 0x19];
+    UCHAR Movie_Isrgb24;               /* 0x2E RE2 G.Movie_Isrgb24 */
 } VM_WORK;
 extern VM_WORK Vm_work;                /* 0x800DCD88 */
 
@@ -29,6 +31,7 @@ typedef struct tagVM_DISP {
     USHORT Size;                       /* 0x54 */
     USHORT Count;                      /* 0x56 */
     USHORT Loop;                       /* 0x58 */
+    USHORT Attribute;                  /* 0x5A */
 } VM_DISP;
 extern VM_DISP Vm_disp;                /* 0x800DCD20 */
 

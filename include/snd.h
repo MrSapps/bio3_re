@@ -20,7 +20,13 @@ typedef struct tagSND_SEQ {
     UCHAR pad39[0x3C - 0x39];
     ULONG Unk3C;                       /* 0x03C fade volume, 0..0x3FFF */
     ULONG Unk40;                       /* 0x040 fade step */
-    UCHAR pad44[0x15C - 0x44];
+    UCHAR pad44[0x54 - 0x44];
+    UCHAR Unk54;                       /* 0x054 */
+    UCHAR pad55[0x5C - 0x55];
+    struct {
+        LONG Unk0;                     /* +0 cleared by Snd_work_init */
+        UCHAR pad4[0x10 - 4];
+    } Trk[16];                         /* 0x05C */
 } SND_SEQ;
 
 /* voice slot (0x20 bytes, 24 of them in SND_WORK) */
@@ -87,8 +93,9 @@ typedef struct tagSND_WORK {
     UCHAR pad7C6[0x7C8 - 0x7C6];
     SHORT Unk7C8;                      /* 0x7C8 master volume (0..127) */
     SHORT Unk7CA;                      /* 0x7CA */
-    UCHAR pad7CC[0xAD4 - 0x7CC];
-    struct tagSND_REQ *pReq;           /* 0xAD4 request queue write pointer; the queue ends here */
+    UCHAR pad7CC[0x7D4 - 0x7CC];
+    SND_REQ Req[24];                   /* 0x7D4 request queue */
+    struct tagSND_REQ *pReq;          /* 0xAD4 request queue write pointer; the queue ends here */
     UCHAR padAD8[0xB1C - 0xAD8];
     UCHAR UnkB1C;                      /* 0xB1C */
     UCHAR padB1D[0xB28 - 0xB1D];

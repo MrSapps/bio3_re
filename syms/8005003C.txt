@@ -65,3 +65,4 @@ Mess_set = 0x8002FD30; // type:func  RE2 MOJIDISP Mess_set
 pCAot = 0x800DECB0;          // RE2 pCAot (AOT being processed)
 St = 0x800E01C0;            // RE2 St (status screen work)
 Sce_at_jump_tbl = 0x8009E0BC; // RE2 Sce_at_jump_tbl (AOT handlers)
+D_800DEC9E = 0x800DEC9E;   // RE2 Item_box_entrance static Spd_add

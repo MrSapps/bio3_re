@@ -16,7 +16,10 @@ typedef struct tagENEMY_WORK {
     UCHAR Parts_num;                   /* 0x008 RE3 moved it here (PartsWork_set) */
     signed char nFloor;                /* 0x009 RE2 nFloor (Pos_y / -1800) */
     SHORT Water;                       /* 0xA RE2 Water (Sce_Water) */
-    UCHAR padC[0x14 - 0xC];
+    UCHAR UnkC;                        /* 0x00C */
+    UCHAR UnkD;                        /* 0x00D */
+    UCHAR padE[0x10 - 0xE];
+    ULONG Attribute;                   /* 0x010 RE2 Attribute */
     ULONG *pTmd;                       /* 0x014 byte at [-4] = part count */
     UCHAR pad18[0x34 - 0x18];
     LONG Pos_x;                        /* 0x034 */
@@ -24,7 +27,8 @@ typedef struct tagENEMY_WORK {
     LONG Pos_z;                        /* 0x03C */
     SHORT Unk40[3];                    /* 0x040 copy of the position (func_80024B34) */
     USHORT Type;                       /* 0x046 low byte = player weapon (RE2 Type & 0xfff) */
-    UCHAR pad48[0x4A - 0x48];
+    UCHAR Tpage;                       /* 0x048 RE2 Tpage */
+    UCHAR Clut;                        /* 0x049 RE2 Clut */
     UCHAR Id;                          /* 0x04A enemy kind (0x10+ for enemies, Pl_Em_damage indexes by Id - 0x10) */
     UCHAR Unk4B;                       /* 0x4B */
     UCHAR pad4C[0x6C - 0x4C];
@@ -44,7 +48,7 @@ typedef struct tagENEMY_WORK {
     SHORT Spd_y;                       /* 0x0C2 */
     SHORT Spd_z;                       /* 0x0C4 */
     UCHAR UnkC6;                       /* 0xC6 */
-    UCHAR padC7[0xC8 - 0xC7];
+    UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (func_800445C8) */
     UCHAR Move_no;                     /* 0x0C8 */
     UCHAR Move_cnt;                    /* 0x0C9 */
     UCHAR UnkCA;                       /* 0x0CA joint interpolation rate (func_8002B190) */
@@ -84,7 +88,7 @@ typedef struct tagENEMY_WORK {
     SHORT Spd_base_y;                  /* 0x126 */
     SHORT Spd_base_z;                  /* 0x128 */
     SHORT Unk12A;                      /* 0x12A */
-    UCHAR pad12C[0x12D - 0x12C];
+    UCHAR Unk12C;                      /* 0x12C */
     UCHAR Damage_cnt;                  /* 0x12D player: |= 0x80 on game over (Pl_life_down) */
     UCHAR pad12E[0x130 - 0x12E];
     SHORT Unk130;                      /* 0x130 direction */
@@ -97,7 +101,8 @@ typedef struct tagENEMY_WORK {
     UCHAR *pUnk13C;                    /* 0x13C */
     LONG Unk140;                       /* 0x140 */
     USHORT Unk144;                     /* 0x144 0x100: no seq sound */
-    UCHAR pad146[0x148 - 0x146];
+    UCHAR Unk146;                      /* 0x146 RE2 Set_flg_no */
+    UCHAR Unk147;                      /* 0x147 flag no (func_8001AE2C) */
     SHORT Add_dir;                     /* 0x148 turn speed passed to Goto00 */
     SHORT Unk14A;                      /* 0x14A */
     SHORT Unk14C;                      /* 0x14C */
@@ -106,16 +111,23 @@ typedef struct tagENEMY_WORK {
     SHORT Unk152;                      /* 0x152 */
     ULONG Unk154;                      /* 0x154 */
     LONG Unk158;                       /* 0x158 distance to target? (masked 0x3FFFFFFF) */
-    UCHAR pad15C[0x160 - 0x15C];
+    LONG *pUnk15C;                     /* 0x15C target position (func_8003CEA0) */
     struct tagKAGE_WORK9 *pKage_work;  /* 0x160 */
-    UCHAR pad164[0x178 - 0x164];
+    SHORT Unk164;                      /* 0x164 */
+    SHORT Unk166;                      /* 0x166 */
+    SHORT Unk168;                      /* 0x168 */
+    UCHAR pad16A[0x16C - 0x16A];
+    ULONG Unk16C;                      /* 0x16C (func_800445C8 arg 0) */
+    ULONG Unk170;                      /* 0x170 (func_800445C8 arg 1) */
+    UCHAR pad174[0x178 - 0x174];
     USHORT Unk178[3];                  /* 0x178 copied to D_80098B08 (func_800254AC) */
     USHORT Unk17E;                     /* 0x17E */
     ULONG Unk180[4];                   /* 0x180 args of func_80079690 / func_80026BE8 */
     UCHAR pad190[0x1A0 - 0x190];
     UCHAR Unk1A0;                      /* 0x1A0 */
     UCHAR Unk1A1;                      /* 0x1A1 */
-    UCHAR pad1A2[0x1B8 - 0x1A2];
+    UCHAR Unk1A2;                      /* 0x1A2 (func_800402F4) */
+    UCHAR pad1A3[0x1B8 - 0x1A3];
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */
     SHORT Unk1BA;                      /* 0x1BA func_8002646C */
     SHORT Unk1BC[2];                   /* 0x1BC decayed by Unk1C2 (func_80026648) */
