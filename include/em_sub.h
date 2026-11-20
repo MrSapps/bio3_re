@@ -33,7 +33,7 @@ typedef struct tagENEMY_WORK {
     UCHAR Clut;                        /* 0x049 RE2 Clut */
     UCHAR Id;                          /* 0x04A enemy kind (0x10+ for enemies, Pl_Em_damage indexes by Id - 0x10) */
     UCHAR Unk4B;                       /* 0x4B */
-    UCHAR pad4C[0x6C - 0x4C];
+    MATRIX Super_matrix;               /* 0x04C RE2 Super_matrix (em10 Kahannsin_walk: lower half on its own) */
     SHORT Cdir_x;                      /* 0x06C */
     SHORT Cdir_y;                      /* 0x06E */
     SHORT Cdir_z;                      /* 0x070 */
@@ -44,9 +44,12 @@ typedef struct tagENEMY_WORK {
     UCHAR Col_id;                      /* 0x080 collision object node (COL_OBJ, oba.h) at 0x80: Id */
     UCHAR Col_flg;                     /* 0x081 COL_OBJ.Flg */
     UCHAR Col_type;                    /* 0x082 COL_OBJ.Type */
-    UCHAR pad83;
-    struct tagENEMY_WORK *pCol_em;     /* 0x084 COL_OBJ.pEm */
-    UCHAR pad88[0x9A - 0x88];
+    UCHAR Col_unk3;                    /* 0x083 COL_OBJ.Unk3 (RE2 At_em_no: 0xFF = touching no work) */
+    struct tagENEMY_WORK *pCol_em;    /* 0x084 COL_OBJ.pEm */
+    LONG Col_pos_x;                    /* 0x088 COL_OBJ.Pos_x */
+    LONG Col_pos_y;                    /* 0x08C COL_OBJ.Pos_y */
+    LONG Col_pos_z;                    /* 0x090 COL_OBJ.Pos_z */
+    UCHAR pad94[0x9A - 0x94];
     USHORT Col_w0;                     /* 0x09A COL_OBJ.W0 */
     USHORT Col_d0;                     /* 0x09C COL_OBJ.D0 */
     USHORT Col_h;                      /* 0x09E COL_OBJ.H */
@@ -54,12 +57,13 @@ typedef struct tagENEMY_WORK {
     SHORT Col_unk24;                   /* 0x0A4 COL_OBJ.Unk24 */
     SHORT Col_unk26;                   /* 0x0A6 COL_OBJ.Unk26 */
     SHORT Col_unk28;                   /* 0x0A8 COL_OBJ.Unk28 */
-    UCHAR padAA[0xAE - 0xAA];
+    UCHAR padAA[0xAC - 0xAA];
+    SHORT Col_unk2C;                   /* 0x0AC COL_OBJ.Unk2C (em20 reads it with UnkAE as one word, RE2 Sca_info) */
     USHORT UnkAE;                      /* 0x0AE */
     UCHAR padB0[0xB9 - 0xB0];
     signed char Col_unk39;             /* 0x0B9 COL_OBJ.Unk39 (em10 pldm00 passes it to func_8002646C) */
     USHORT UnkBA;                      /* 0xBA COL_OBJ.Unk3A: bits of the works hit (RE2 At_em_flg, em10 pldm00) */
-    UCHAR padBC[0xC0 - 0xBC];
+    struct tagSCA_DATA *pSca_hit_data; /* 0x0BC RE2 pSca_hit_data (wall hit by Sca_ck_em) */
     SHORT Spd_x;                       /* 0x0C0 */
     SHORT Spd_y;                       /* 0x0C2 */
     SHORT Spd_z;                       /* 0x0C4 */
@@ -132,7 +136,8 @@ typedef struct tagENEMY_WORK {
     SHORT Unk164;                      /* 0x164 */
     SHORT Unk166;                      /* 0x166 */
     SHORT Unk168;                      /* 0x168 */
-    UCHAR pad16A[0x16C - 0x16A];
+    UCHAR Unk16A;                      /* 0x16A em22: set on a seq flag 0x800 (id 0x24) */
+    UCHAR Unk16B;                      /* 0x16B */
     ULONG Unk16C;                      /* 0x16C (func_800445C8 arg 0) */
     ULONG Unk170;                      /* 0x170 (func_800445C8 arg 1) */
     ULONG (*pUnk174)[6];               /* 0x174 0x18-byte model data records, part pTmd = pUnk174[n] (em10 Init) */
@@ -143,7 +148,11 @@ typedef struct tagENEMY_WORK {
     UCHAR Unk1A0;                      /* 0x1A0 */
     UCHAR Unk1A1;                      /* 0x1A1 */
     UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */
-    UCHAR pad1A3[0x1B4 - 0x1A3];
+    UCHAR pad1A3;
+    SHORT Unk1A4[3];                   /* 0x1A4 em23 damage: hit offset? */
+    UCHAR pad1AA[0x1AC - 0x1AA];
+    SHORT Unk1AC[3];                   /* 0x1AC em23 damage */
+    UCHAR pad1B2[0x1B4 - 0x1B2];
     ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Pl_unk1B4, select overlay) */
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */
     SHORT Unk1BA;                      /* 0x1BA func_8002646C */
@@ -151,7 +160,7 @@ typedef struct tagENEMY_WORK {
     UCHAR pad1C0;
     UCHAR Unk1C1;                      /* 0x1C1 func_8002646C */
     SHORT Unk1C2;                      /* 0x1C2 func_8002646C */
-    UCHAR pad1C4[0x1C8 - 0x1C4];
+    ULONG Unk1C4;                      /* 0x1C4 em23: Routine_0..3 of the last frame */
     SHORT Unk1C8;                      /* 0x1C8 */
     SHORT Unk1CA;                      /* 0x1CA */
     ULONG Unk1CC[12];                  /* 0x1CC copied to G.Unk7D90 (func_80024C58) */
@@ -198,5 +207,6 @@ void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
 void Null_pos_set2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
 void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
 void Em_seq_sound(ENEMY_WORK *pEm);
+void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
 
 #endif /* EM_SUB_H */
