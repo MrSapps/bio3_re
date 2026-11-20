@@ -8,34 +8,28 @@
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
+#include "sca.h"
 #include "oba.h"
 
-extern COL_OBJ *D_800DCDD0[];
-
-/* ENEMY_WORK fields not in em_sub.h yet */
-#define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
-#define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
-
+extern COL_OBJ *D_800DCDD0[];             /* objects collected this frame, NULL terminated */
 extern ULONG D_8009CBC8[];
-extern SHORT D_800DEB58[];
+/* SCA hit work (0x800DEB58, same layout as SCA_WORK in sca.c) */
+typedef struct tagSCA_WORK {
+    ULONG Pt0;                         /* 0x00 */
+    ULONG Pt1;                         /* 0x04 */
+    SHORT Unk8;                        /* 0x08 (func_8004B7E8) */
+    SHORT padA;
+    LONG X;                            /* 0x0C */
+    LONG Z;                            /* 0x10 */
+    LONG Old_x;                        /* 0x14 */
+    LONG Old_z;                        /* 0x18 */
+} SCA_WORK;
+extern SCA_WORK D_800DEB58;
 extern COL_ENT D_800DEB48;
 LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
 void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
 
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-
-/* array inside G at an offset not yet in tagGLOBAL (keeps the &G + index*size + ofs addressing) */
-#define G_ARR(type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)&G)->a)
-#define P_ARR(p, type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)(p))->a)
-
-typedef ULONG OT8[8];
-
-extern ULONG D_800CC87C;
 extern ULONG D_800D1F2C;
-extern UCHAR D_8009CD3C;
-ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
-LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
 
 /* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
 typedef struct {
@@ -54,30 +48,6 @@ void func_80033B88(COL_OBJ *pTop);
 COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
 void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
 
-/* declarations from earlier parts of the original address-split file */
-extern UCHAR D_800A0514[][4];
-extern ULONG D_800D2048[];
-extern UCHAR D_8009BEE4[];
-extern USHORT D_8009C7C0[];
-
-extern USHORT D_80099654[];
-extern UCHAR D_80098E88[];
-extern UCHAR D_800CC84D;
-extern UCHAR D_800D4433;
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
-
-static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
-{
-    return D_80098E88 + D_80099654[No];
-}
-
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-extern LOADTASK D_8009C944[];
-ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
-
-void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
-
-extern void (*D_8009CBB4[])(void);
 
 void func_80033508(void)
 {
@@ -86,9 +56,9 @@ void func_80033508(void)
 
     D_800DCED0.pTail = NULL;
     D_800DCED0.pTop = NULL;
-    D_800DCED0.Ent[0].UnkC = -1;
+    D_800DCED0.Ent[0].C.All = -1;
     pEm = &Pl_work;
-    pObj = (COL_OBJ *)((UCHAR *)pEm + 0x80);
+    pObj = EM_COL(pEm);
     pObj->pEm = pEm;
     pObj->W0 = pObj->D0 = 450;
     pObj->W1 = pObj->D1 = 450;
@@ -196,14 +166,14 @@ void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
         if (p->Flg & 7) {
             pEnt = func_80033CF4(p, pEnt);
         } else {
-            pEnt->Unk8 = 0xFE40;
-            pEnt->UnkA = 0xF00;
-            pEnt->UnkC = 0;
+            pEnt->Id = 0xFE40;
+            pEnt->Area = 0xF00;
+            pEnt->C.All = 0;
             func_80034284(p, pEnt);
         }
         pEnt++;
     }
-    pEnt->UnkC = -1;
+    pEnt->C.All = -1;
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_8003389C);
@@ -245,19 +215,19 @@ void func_80033B88(COL_OBJ *pTop)
         pV->vx = p->Pos_x;
         pV->vz = p->Pos_z;
         pV->vy = y = p->Pos_y;
-        if (EM_SHORT(pEm, 0x1B8) != 0) {
-            pV->vy = y - EM_SHORT(pEm, 0x1B8);
+        if (pEm->Unk1B8 != 0) {
+            pV->vy = y - pEm->Unk1B8;
         }
-        D_800DEB58[4] = 0;
+        D_800DEB58.Unk8 = 0;
         p->Unk39 &= ~8;
         if (p->Hit_flg & 0x80) {
             func_8004B7E8(pEm, p, func_8004D720(pV, W, Tbl, 9));
         }
-        if (D_800DEB58[4] == 0) {
+        if (D_800DEB58.Unk8 == 0) {
             p->Unk39 |= 8;
             p->Hit_flg &= ~0x40;
             if (p->Type < 3) {
-                EM_UCHAR(pEm, 0x1C1) = p->Unk39;
+                pEm->Unk1C1 = p->Unk39;
             }
         }
     }
@@ -331,13 +301,13 @@ void func_80034124(COL_OBJ *pObj)
     V.vy = pObj->Old_y = pObj->Pos_y = pEm->Pos_y + V.vy;
     V.vz = pObj->Old_z = pObj->Pos_z = pEm->Pos_z + V.vz;
     if (pObj->Type < 3) {
-        EM_SHORT(pEm, 0x122) = func_8004D720(&V, pObj->W0, D_8009CBC8[pObj->Type], 9);
+        pEm->Unk122 = func_8004D720(&V, pObj->W0, D_8009CBC8[pObj->Type], 9);
     }
 }
 
 void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt)
 {
-    SHORT *pCam;
+    SCA_HEAD *pSca;
     LONG x0;
     LONG x1;
     LONG z0;
@@ -345,50 +315,49 @@ void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt)
     LONG px;
     LONG pz;
 
-    pCam = *(SHORT **)((UCHAR *)G.pRoom + 0x20);
+    pSca = G.pRoom->pSca;
     x0 = pObj->Old_x - pObj->W0 - 900;
     x1 = pObj->Old_x + pObj->W0 + 900;
     z0 = pObj->Old_z - pObj->W0 - 900;
     z1 = pObj->Old_z + pObj->W0 + 900;
-    px = pCam[2];
-    pz = pCam[3];
+    px = pSca->Cx0;
+    pz = pSca->Cz0;
     if (px <= x0 || px <= x1) {
         if (pz <= z0 || pz <= z1) {
-            pEnt->UnkA |= 1;
+            pEnt->Area |= 1;
         }
         if (pz >= z0 || pz >= z1) {
-            pEnt->UnkA |= 4;
+            pEnt->Area |= 4;
         }
     }
     if (px >= x0 || px >= x1) {
         if (pz <= z0 || pz <= z1) {
-            pEnt->UnkA |= 2;
+            pEnt->Area |= 2;
         }
         if (pz >= z0 || pz >= z1) {
-            pEnt->UnkA |= 8;
+            pEnt->Area |= 8;
         }
     }
-    px = pCam[4];
-    pz = pCam[5];
+    px = pSca->Cx1;
+    pz = pSca->Cz1;
     if (px <= x0 || px <= x1) {
         if (pz <= z0 || pz <= z1) {
-            pEnt->UnkA |= 0x10;
+            pEnt->Area |= 0x10;
         }
         if (pz >= z0 || pz >= z1) {
-            pEnt->UnkA |= 0x40;
+            pEnt->Area |= 0x40;
         }
     }
     if (px >= x0 || px >= x1) {
         if (pz <= z0 || pz <= z1) {
-            pEnt->UnkA |= 0x20;
+            pEnt->Area |= 0x20;
         }
         if (pz >= z0 || pz >= z1) {
-            pEnt->UnkA |= 0x80;
+            pEnt->Area |= 0x80;
         }
     }
 }
 
-#define EM_COL(p) ((COL_OBJ *)((UCHAR *)(p) + 0x80))
 LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     SVECTOR Sv;
@@ -428,9 +397,9 @@ LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     return !((ULONG)(dz + d) > (ULONG)(d * 2));
 }
 
-LONG func_800346AC(COL_OBJ *pObj, ENEMY_WORK *pEm, ENEMY_WORK *pT);
+LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT);
 
-LONG func_800345C0(COL_OBJ *pObj, ENEMY_WORK *pEm)
+LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm)
 {
     ENEMY_WORK **pp;
     ENEMY_WORK *pT;
@@ -451,22 +420,70 @@ LONG func_800345C0(COL_OBJ *pObj, ENEMY_WORK *pEm)
         if ((Be & 0x6000) == 0x6000) {
             continue;
         }
-        if (EM_UCHAR(pT, 0x80) == EM_UCHAR(pEm, 0x80)) {
+        if (EM_COL(pT)->Id == EM_COL(pEm)->Id) {
             continue;
         }
-        if (func_800346AC(pObj, pEm, pT)) {
+        if (func_800346AC(pPos, pEm, pT)) {
             return 1;
         }
     }
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_800346AC);
+LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
+{
+    COL_OBJ *pA;
+    COL_OBJ *pB;
+    LONG w;
+    LONG r;
+    LONG dx;
+    LONG dz;
+    LONG dy;
+    LONG h;
+
+    if ((pEm->Be_flg | pT->Be_flg) & 0x4000) {
+        return 0;
+    }
+    if ((pEm->Be_flg & pT->Be_flg) & 0x800) {
+        return 0;
+    }
+    pA = EM_COL(pEm);
+    pB = EM_COL(pT);
+    if (!(pA->Id & pB->Id)) {
+        return 0;
+    }
+    w = pA->W0;
+    r = w + pB->W0;
+    if (pB->Hit_flg & 0x4000) {
+        dx = pB->Pos_x - (pPos->vx + w);
+        dz = pB->Pos_z - (pPos->vz + w);
+    } else {
+        dx = pB->Old_x - (pPos->vx + w);
+        dz = pB->Old_z - (pPos->vz + w);
+    }
+    if ((ULONG)(dx + r) > (ULONG)(r * 2)) {
+        return 0;
+    }
+    if ((ULONG)(dz + r) > (ULONG)(r * 2)) {
+        return 0;
+    }
+    if (r - SquareRoot0(dx * dx + dz * dz) <= 0) {
+        return 0;
+    }
+    h = pB->H + pA->H;
+    dy = pB->Pos_y - (pPos->vy + pA->Unk26);
+    if (-h >= dy || dy >= h) {
+        return 0;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034814);
 
 LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
+LONG func_8004AF04(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT);
 
 void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
 {
@@ -479,12 +496,12 @@ void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
                 pEnt->pObj->Hit_flg |= 0x10;
                 pEnt->pObj->Unk3A |= 0x8000;
             } else {
-                EM_SHORT(pPl, 0x1C8) = 1;
+                pPl->Unk1C8 = 1;
             }
         }
     } else if (Type == 8 && !(pObj->Hit_flg & 0x600)) {
         if (func_8004B374(pEnt, 8, 0)) {
-            EM_SHORT(pPl, 0x1C8) = 0;
+            pPl->Unk1C8 = 0;
         }
     }
 }
@@ -497,6 +514,36 @@ INCLUDE_ASM("asm/nonmatchings/game/oba", func_80035184);
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_800353CC);
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_8003553C);
+LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT)
+{
+    LONG r;
+    LONG dx;
+    LONG dz;
+    LONG a;
+
+    r = pObj->W0 + pT->W0;
+    if (__builtin_abs(pObj->Pos_x - pT->Old_x) >= r) {
+        dx = pObj->Pos_x - pT->Pos_x;
+        a = __builtin_abs(dx);
+        if (a < r) {
+            a = r - a;
+            pObj->Pos_x += dx > 0 ? a : -a;
+            pObj->pEm->Pos_x += dx > 0 ? a : -a;
+            return 1;
+        }
+    }
+    r = pObj->D0 + pT->D0;
+    if (__builtin_abs(pObj->Pos_z - pT->Old_z) >= r) {
+        dz = pObj->Pos_z - pT->Pos_z;
+        a = __builtin_abs(dz);
+        if (a < r) {
+            a = r - a;
+            pObj->Pos_z += dz > 0 ? a : -a;
+            pObj->pEm->Pos_z += dz > 0 ? a : -a;
+            return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80035678);

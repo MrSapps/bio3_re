@@ -3,6 +3,7 @@
 #include "monitor.h"
 #include "pl_wep2.h"
 #include "pad.h"
+#include "sub.h"
 
 /* RE2 Esp_call-like effect spawn; returns the effect work or -1 */
 typedef struct {
@@ -38,6 +39,7 @@ void Mag_set(PLAYER_WORK *pEm);
 void Pl_wep_flag_set(PLAYER_WORK *pEm);
 
 #define RND() ((signed char)func_800102E8())
+LONG Rnd_l(void) __asm__("func_800102E8");
 
 extern PARTS_W *D_8009CD30;
 extern USHORT D_8009DCB4[];
@@ -78,26 +80,49 @@ INCLUDE_ASM("asm/nonmatchings/game/psp", Psp_set);
 
 INCLUDE_ASM("asm/nonmatchings/game/psp", Psp_trans);
 
+/* rain drop primitive: draw mode word + LINE_G2 */
 typedef struct {
     ULONG Tag;                         /* 0x00 */
     ULONG Tpage;                       /* 0x04 */
     ULONG pad8;
-    ULONG Code;                        /* 0x0C */
-    UCHAR pad10[0x1C - 0x10];
+    ULONG Code;                        /* 0x0C rgb0 + code */
+    ULONG Xy0;                         /* 0x10 */
+    ULONG Rgb1;                        /* 0x14 */
+    ULONG Xy1;                         /* 0x18 */
 } PRIM_1C;
+typedef struct tagPSP_POS {
+    LONG x;
+    LONG y;
+    LONG z;
+} PSP_POS;
 typedef struct {
     UCHAR *p0;                         /* 0x00 */
-    UCHAR *p1;                         /* 0x04 */
+    struct tagPSP_POS *pPos;           /* 0x04 [100] drop positions (func_80048FF4) */
     PRIM_1C *pPrim;                    /* 0x08 */
-    UCHAR padC[0x16 - 0xC];
+    SHORT Cx;                          /* 0x0C centre of the camera view (func_80048FF4) */
+    SHORT Cz;                          /* 0x0E */
+    USHORT R;                          /* 0x10 radius */
+    USHORT Unk12;                      /* 0x12 */
+    USHORT Num;                        /* 0x14 drops in use */
     SHORT Unk16;                       /* 0x16 */
-    UCHAR pad18[0x20 - 0x18];
+    SHORT Unk18;                       /* 0x18 */
+    SHORT Unk1A;                       /* 0x1A */
+    SHORT Dx;                          /* 0x1C drop direction x */
+    SHORT Dz;                          /* 0x1E drop direction z */
     UCHAR Unk20;                       /* 0x20 */
-    UCHAR Unk21;                       /* 0x21 */
+    UCHAR Unk21;                       /* 0x21 shake routine (func_80049218) */
+    UCHAR Unk22;                       /* 0x22 frames of the current step */
+    UCHAR Unk23;                       /* 0x23 frame counter */
+    SHORT Unk24;                       /* 0x24 start G.Unk75E4 */
+    SHORT Unk26;                       /* 0x26 start G.Unk75E6 */
+    SHORT Unk28;                       /* 0x28 delta x */
+    SHORT Unk2A;                       /* 0x2A delta y */
 } W_DEB18;
 extern W_DEB18 D_800DEB18;
 void func_80010150(void *p, ULONG Size);
 void func_80048FF4(void);
+
+extern s8 D_80098728[];                /* random offsets (Sce_rnd_set) */
 
 void func_80048974(SHORT Arg)
 {
@@ -109,7 +134,7 @@ void func_80048974(SHORT Arg)
     p = (UCHAR *)G.pEm_mem;
     D_800DEB18.p0 = p;
     p += 0x64;
-    pW->p1 = p;
+    pW->pPos = (PSP_POS *)p;
     p += 0x4B0;
     pW->pPrim = (PRIM_1C *)p;
     p += 0x1900;
@@ -135,4 +160,38 @@ INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048E34);
 
 INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048FF4);
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", func_80049218);
+void func_80049218(W_DEB18 *pW)
+{
+    tagGLOBAL *pG;
+
+    switch (pW->Unk21) {
+    case 0:
+        if (--pW->Unk22 == 0) {
+            pW->Unk21 = 1;
+        }
+        break;
+    case 1:
+        pG = &G;
+        pW->Unk24 = pG->Unk75E4;
+        pW->Unk26 = pG->Unk75E6;
+        pW->Unk28 = (Rnd_l() << 4) - pG->Unk75E4;
+        pW->Unk2A = Rnd_l() * 250 / 256 - pG->Unk75E6;
+        pW->Unk22 = (Rnd_l() >> 4) + 10;
+        pW->Unk23 = 0;
+        pW->Unk21 = 2;
+    case 2:
+        pW->Unk23++;
+        G.Unk75E4 = pW->Unk24 + pW->Unk28 * pW->Unk23 / pW->Unk22;
+        G.Unk75E6 = pW->Unk26 + pW->Unk2A * pW->Unk23 / pW->Unk22;
+        if (pW->Unk23 == pW->Unk22) {
+            pW->Unk21 = 3;
+        }
+        break;
+    case 3:
+        G.Unk75E4 = pW->Unk24 + pW->Unk28;
+        G.Unk75E6 = pW->Unk26 + pW->Unk2A;
+        pW->Unk22 = Rnd_l();
+        pW->Unk21 = 0;
+        break;
+    }
+}

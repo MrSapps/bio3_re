@@ -141,7 +141,10 @@ typedef struct tagGLOBAL {
     SHORT Pl_life;                     /* 0x2558 Player.Life */
     UCHAR pad255A[0x255E - 0x255A];
     USHORT Pl_status_flg;              /* 0x255E Player.Status_flg */
-    UCHAR pad2560[0x2594 - 0x2560];
+    UCHAR pad2560[0x2584 - 0x2560];
+    ULONG *Pl_pSub1_kan_t_ptr;         /* 0x2584 Player.pSub1_kan_t_ptr (em21 peck) */
+    ULONG *Pl_pSub1_seq_t_ptr;         /* 0x2588 Player.pSub1_seq_t_ptr */
+    UCHAR pad258C[0x2594 - 0x258C];
     struct tagPARTS_W *Pl_pSin_parts_ptr; /* 0x2594 Player.pSin_parts_ptr */
     UCHAR pad2598[0x259C - 0x2598];
     struct tagENEMY_WORK *Pl_pEnemy_ptr;/* 0x259C Player.pEnemy_ptr */

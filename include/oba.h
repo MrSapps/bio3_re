@@ -40,16 +40,23 @@ typedef struct tagCOL_OBJ {
     LONG Unk3C;                        /* 0x3C */
 } COL_OBJ;
 
-/* entry of the collected collision list (0x18 bytes) */
+/* entry of the collected collision list (0x18 bytes); starts like SCA_DATA */
 typedef struct tagCOL_ENT {
-    SHORT X0;                          /* 0x00 shape, laid out like SCA_DATA */
+    SHORT X0;                          /* 0x00 shape corners */
     SHORT Z0;                          /* 0x02 */
     SHORT X1;                          /* 0x04 */
     SHORT Z1;                          /* 0x06 */
-    USHORT Unk8;                       /* 0x08 SCA_DATA.Id */
-    USHORT UnkA;                       /* 0x0A */
-    LONG UnkC;                         /* 0x0C -1 terminates */
-    UCHAR Type;                        /* 0x10 */
+    USHORT Id;                         /* 0x08 SCA_DATA.Id, & 0xF: shape */
+    USHORT Area;                       /* 0x0A SCA_DATA.Type: area bits */
+    union {
+        LONG All;                      /* -1 terminates the list */
+        struct {
+            signed char Floor_lo;      /* 0x0C */
+            signed char Floor_hi;      /* 0x0D */
+            SHORT High;                /* 0x0E */
+        } f;
+    } C;                               /* 0x0C SCA_DATA.Floor_lo/Floor_hi/High */
+    UCHAR Type;                        /* 0x10 COL_OBJ.Type */
     UCHAR Em_idx;                      /* 0x11 */
     UCHAR pad12[2];
     COL_OBJ *pObj;                     /* 0x14 */
@@ -61,5 +68,8 @@ typedef struct tagCOL_WORK {
     COL_ENT Ent[1];                    /* 0x08 */
 } COL_WORK;
 extern COL_WORK D_800DCED0;
+
+/* a character's collision object (ENEMY_WORK + 0x80) */
+#define EM_COL(pEm) ((COL_OBJ *)((UCHAR *)(pEm) + 0x80))
 
 #endif /* OBA_H */

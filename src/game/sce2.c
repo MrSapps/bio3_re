@@ -82,7 +82,7 @@ extern SHORT D_800D1F82;
 extern s8 D_80098728[];
 UCHAR func_800102E8(void);             /* sld.s Rnd? */
 void func_80034124(void *p);
-LONG Get_matrix(s8 Work_kind, s8 Work_no);
+MATRIX *Get_matrix(s8 Work_kind, s8 Work_no);
 void Spl();
 extern ENEMY_WORK *D_800E01A8;
 extern USHORT D_800E01B4;
@@ -118,7 +118,7 @@ extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
-void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
+void func_8001B484(ULONG A0, ULONG A1, MATRIX *pM, SVECTOR *pSv, ULONG A4);
 typedef struct {
     ULONG Be_flg;                      /* 0x000 */
     UCHAR pad4[0x20 - 0x4];
@@ -391,7 +391,27 @@ ULONG Aot_reset(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Aot_on);
+/* RE2 Aot_on; RE3 also points G.pEm at the task's work (1 = player) */
+ULONG Aot_on(SCE_TASK *pSce)
+{
+    UCHAR *pAot;
+    UCHAR *pArg;
+
+    pCAot = pAot = (UCHAR *)G.Sce_aot[pSce->Data[1]];
+    if (pAot[1] & 0x80) {
+        pArg = pAot + 0x14;
+    } else {
+        pArg = pAot + 0xC;
+    }
+    if (pSce->pWork == (ENEMY_WORK *)1) {
+        G.pEm = (ENEMY_WORK *)&G.Pl_be_flg;
+    } else {
+        G.pEm = pSce->pWork;
+    }
+    Sce_at_jump_tbl[pAot[0]](pArg);
+    pSce->Data += 2;
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sce2", Get_matrix);
 
@@ -400,7 +420,7 @@ ULONG Sce_espr_on(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
-    LONG Mat;
+    MATRIX *Mat;
     ULONG Dir;
     SVECTOR Svec;
 
@@ -423,7 +443,7 @@ ULONG Sce_espr_on2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
-    LONG Mat;
+    MATRIX *Mat;
     ULONG Dir;
     SVECTOR Svec;
 
@@ -446,7 +466,7 @@ ULONG Sce_espr3d_on(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
-    LONG Mat;
+    MATRIX *Mat;
     ULONG Dir;
     SVECTOR Svec;
     SVECTOR Svec2;
@@ -473,7 +493,7 @@ ULONG Sce_espr3d_on2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG D0;
-    LONG Mat;
+    MATRIX *Mat;
     ULONG Dir;
     SVECTOR Svec;
     SVECTOR Svec2;
@@ -497,10 +517,10 @@ ULONG Sce_espr3d_on2(SCE_TASK *pSce)
 
 ULONG Sce_espr_kill(SCE_TASK *pSce)
 {
-    LONG Ret;
+    MATRIX *pM;
 
-    Ret = Get_matrix((s8)pSce->Data[3], (s8)pSce->Data[4]);
-    func_8001B894((pSce->Data[2] << 8) | pSce->Data[1], Ret);
+    pM = Get_matrix((s8)pSce->Data[3], (s8)pSce->Data[4]);
+    func_8001B894((pSce->Data[2] << 8) | pSce->Data[1], pM);
     pSce->Data += 5;
     return 1;
 }
