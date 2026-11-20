@@ -60,8 +60,9 @@ typedef struct tagENEMY_WORK {
     UCHAR padAA[0xAC - 0xAA];
     SHORT Col_unk2C;                   /* 0x0AC COL_OBJ.Unk2C (em20 reads it with UnkAE as one word, RE2 Sca_info) */
     USHORT UnkAE;                      /* 0x0AE */
-    UCHAR padB0[0xB9 - 0xB0];
-    signed char Col_unk39;             /* 0x0B9 COL_OBJ.Unk39 (em10 pldm00 passes it to func_8002646C) */
+    MATRIX *pCol_m;                    /* 0x0B0 COL_OBJ.pM (em30 sub-works: matrix of the followed part) */
+    UCHAR padB4[0xB9 - 0xB4];
+    signed char Col_unk39;            /* 0x0B9 COL_OBJ.Unk39 (em10 pldm00 passes it to func_8002646C) */
     USHORT UnkBA;                      /* 0xBA COL_OBJ.Unk3A: bits of the works hit (RE2 At_em_flg, em10 pldm00) */
     struct tagSCA_DATA *pSca_hit_data; /* 0x0BC RE2 pSca_hit_data (wall hit by Sca_ck_em) */
     SHORT Spd_x;                       /* 0x0C0 */

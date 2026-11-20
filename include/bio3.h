@@ -96,7 +96,8 @@ typedef struct tagGLOBAL {
     struct tagENEMY_WORK *pEm;         /* 0x2140 current enemy (RE2 G.pEm) */
     struct tagVCUT *Cccut;             /* 0x2144 RE2 G.Cccut (current camera cut zone) */
     struct tagVCUT *Cccut_next;        /* 0x2148 */
-    UCHAR pad214C[0x2154 - 0x214C];
+    ULONG *pOld_tim;                   /* 0x214C RE2 pOld_tim (Sce_model_init) */
+    ULONG *pOld_tmd;                   /* 0x2150 RE2 pOld_tmd */
     void *pSce_aot_on;                 /* 0x2154 RE2 pSce_aot_on (door AOT data) */
     struct tagSCE_AOT *Sce_aot[32];    /* 0x2158 RE2 Sce_aot (cleared by Sce_aot_init) */
     void *pAot_data;                   /* 0x21D8 RE2 pAot_data */
