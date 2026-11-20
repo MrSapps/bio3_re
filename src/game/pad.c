@@ -1,250 +1,231 @@
 #include "common.h"
-#include "monitor.h"
+#include "main.h"
 #include "mojidisp.h"
 #include "pad.h"
-#include "em_sub.h"
-#include "om.h"
-#include "pl_wep2.h"
-#include "movie.h"
-#include "player.h"
-#include "cd.h"
 
-/* RE3-only collision object list (80033508..80035790). Nodes are linked through pNext;
- * the player's node lives at Pl_work + 0x80. */
-typedef struct tagCOL_OBJ {
-    UCHAR Id;                          /* 0x00 */
-    UCHAR Flg;                         /* 0x01 */
-    UCHAR Type;                        /* 0x02 0 = player, < 3 = character */
-    UCHAR Unk3;                        /* 0x03 */
-    ENEMY_WORK *pEm;                   /* 0x04 */
-    LONG Pos_x;                        /* 0x08 */
-    LONG Pos_y;                        /* 0x0C */
-    LONG Pos_z;                        /* 0x10 */
-    SHORT Old_x;                       /* 0x14 */
-    SHORT Old_y;                       /* 0x16 */
-    SHORT Old_z;                       /* 0x18 */
-    USHORT W0;                         /* 0x1A */
-    USHORT D0;                         /* 0x1C */
-    USHORT H;                          /* 0x1E */
-    USHORT W1;                         /* 0x20 */
-    USHORT D1;                         /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
-    SHORT Unk26;                       /* 0x26 */
-    SHORT Unk28;                       /* 0x28 */
-    SHORT Unk2A;                       /* 0x2A */
-    SHORT Unk2C;                       /* 0x2C */
-    USHORT Hit_flg;                    /* 0x2E */
-    MATRIX *pM;                        /* 0x30 */
-    struct tagCOL_OBJ *pNext;          /* 0x34 */
-    UCHAR Em_idx;                      /* 0x38 */
-    UCHAR Unk39;                       /* 0x39 */
-    SHORT Unk3A;                       /* 0x3A */
-    LONG Unk3C;                        /* 0x3C */
-} COL_OBJ;
-
-typedef struct tagCOL_ENT {            /* 0x18 bytes */
-    SHORT X0;                          /* 0x00 */
-    SHORT Z0;                          /* 0x02 */
-    SHORT X1;                          /* 0x04 */
-    SHORT Z1;                          /* 0x06 */
-    USHORT Unk8;                       /* 0x08 */
-    USHORT UnkA;                       /* 0x0A */
-    LONG UnkC;                         /* 0x0C -1 terminates */
-    UCHAR Type;                        /* 0x10 */
-    UCHAR Em_idx;                      /* 0x11 */
-    UCHAR pad12[2];
-    COL_OBJ *pObj;                     /* 0x14 */
-} COL_ENT;
-
-typedef struct tagCOL_WORK {
-    COL_OBJ *pTop;                     /* 0x00 */
-    COL_OBJ *pTail;                    /* 0x04 */
-    COL_ENT Ent[1];                    /* 0x08 */
-} COL_WORK;
-extern COL_WORK D_800DCED0;
-extern COL_OBJ *D_800DCDD0[];
-
-/* ENEMY_WORK fields not in em_sub.h yet */
-#define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
-#define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
-
-extern ULONG D_8009CBC8[];
-extern SHORT D_800DEB58[];
-extern COL_ENT D_800DEB48;
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
-void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
-
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-
-/* array inside G at an offset not yet in tagGLOBAL (keeps the &G + index*size + ofs addressing) */
-#define G_ARR(type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)&G)->a)
-#define P_ARR(p, type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)(p))->a)
-
-typedef ULONG OT8[8];
-
-extern ULONG D_800CC87C;
-extern ULONG D_800D1F2C;
-extern UCHAR D_8009CD3C;
-ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
-LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
-typedef struct {
-    UCHAR pad0[0x265C];
-    ENEMY_WORK *pWork[42];             /* 0x265C */
-} G_WORKS;
-
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
-LONG func_800336B4(ENEMY_WORK *pEm);
-void func_80034124(COL_OBJ *pObj);
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_80033FBC(COL_OBJ *pTop);
-void func_80033B88(COL_OBJ *pTop);
-COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
-
-/* declarations from earlier parts of the original address-split file */
-extern UCHAR D_800A0514[][4];
-extern ULONG D_800D2048[];
-extern UCHAR D_8009BEE4[];
-extern USHORT D_8009C7C0[];
-
-extern USHORT D_80099654[];
-extern UCHAR D_80098E88[];
-extern UCHAR D_800CC84D;
-extern UCHAR D_800D4433;
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
-
-static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
-{
-    return D_80098E88 + D_80099654[No];
-}
-
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-extern LOADTASK D_8009C944[];
-ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
-
-void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
-
-extern void (*D_8009CBB4[])(void);
-
-#define EM_COL(p) ((COL_OBJ *)((UCHAR *)(p) + 0x80))
-
-LONG func_800346AC(COL_OBJ *pObj, ENEMY_WORK *pEm, ENEMY_WORK *pT);
-
-LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
-LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
-
-void func_8002AB34(ULONG *pTmd, ULONG Tpage, ULONG Clut);
-PARTS_W *func_8002E61C(ENEMY_WORK *pEm, PARTS_W *pParts);
-PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
-void func_8003589C(ENEMY_WORK *pEm, ULONG *pData);
-
-extern UCHAR D_800CC84B;
-
-ULONG Tex_chg_(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr) __asm__("Tex_chg");
-
-typedef struct tagOM_WORK {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR Routine_0;                   /* 0x004 */
-    UCHAR pad5[0x194 - 0x5];
-} OM_WORK;
-extern void (*D_8009CC64[])(OM_WORK *pOm);
-extern LONG D_800DD4AC;
-extern ENEMY_WORK *D_800DD4B0;
-void func_80036570(void);
-
-extern SHORT D_800DE614;
-extern SHORT D_800DE618;
-extern SHORT D_800DE61A;
-extern SHORT D_800DE61E;
-
-extern ULONG D_800D20D4[];
-void Flg_on(ULONG *pFlg, ULONG Id);
-void func_800366EC(ENEMY_WORK *pEm, ULONG Arg1, ULONG Arg2);
-void Em_routine0_set1_80036640(ENEMY_WORK *pEm);
-
-LONG func_8004D720_3(VECTOR *pV, ULONG W, ULONG Arg2) __asm__("func_8004D720");
-
-extern SHORT D_800DD492;
-extern SHORT D_800DD494;
-extern SHORT D_800DD496;
-extern SHORT D_800DD498;
-extern SHORT D_800DD49A;
-extern SHORT D_800DD49C;
-extern SVECTOR D_800DD4A0;
-extern UCHAR D_800DD4A8;
-void Rot_add_matrix(LONG *pPos, SHORT *pDir, MATRIX *pM, SVECTOR *Add_dir);
-
-typedef struct {
-    LONG *pPos;
-    SHORT W;
-    SHORT H;
-    SHORT D;
-    SHORT padA;
-    SHORT R;
-    SHORT padE;
-} HIT_REQ;
-LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
-LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
-
-typedef struct {                       /* object model part, 0xBC bytes (func_80037680) */
-    ULONG Be_flg;                      /* 0x00 */
-    UCHAR pad4[0x74 - 0x4];
-    SHORT Cdir_y;                      /* 0x74 */
-    SHORT Unk76;                       /* 0x76 */
-    SHORT Unk78;                       /* 0x78 */
-    SHORT Unk7A;                       /* 0x7A */
-    USHORT Unk7C;                      /* 0x7C */
-    SHORT pad7E;
-    SHORT Unk80;                       /* 0x80 */
-    UCHAR pad82[0xA2 - 0x82];
-    USHORT UnkA2;                      /* 0xA2 */
-    UCHAR padA4[0xBC - 0xA4];
-} OM_PARTS;
-
-typedef struct {
-    UCHAR pad0[2];
-    UCHAR Num;
-    UCHAR Idx;
-} OM_BREAK_TBL;
-extern OM_BREAK_TBL D_8009CBEC[];
-extern ULONG D_8009CC54[];
-
-typedef struct {
-    OBJ_MODEL_WORK Om[32];
-    OBJ_MODEL_WORK *pEnd;              /* G + 0x75A8 */
-} OB_MODEL_TBL;
-extern OB_MODEL_TBL D_800CEA60;        /* G.Ob_model */
-
-typedef ULONG ULONG4[4];
-ULONG func_80037D50(VECTOR *pPos);
-
-LONG func_800101C8(VECTOR *pPos, UCHAR *pArea);
-
-INCLUDE_ASM("asm/nonmatchings/game/pad", Pad_set);
-
-typedef struct {
-    UCHAR pad0[4];
-    SHORT Unk4;                        /* 0x04 */
+/* key repeat / stop state (D_800DE628) */
+typedef struct tagPAD_WORK {
+    ULONG Stop_bak;                    /* 0x00 G.Unk2468 saved while the game is stopped (RE2 static Stp_bak) */
+    union {
+        SHORT Both;                    /* set with one sh by func_80038634 */
+        UCHAR Time[2];                 /* [0] first repeat delay, [1] repeat interval */
+    } Rep;                             /* 0x04 */
     UCHAR Num;                         /* 0x06 */
     UCHAR pad7;
-    UCHAR Tbl[16][2];                  /* 0x08 */
-} PAD_WORK_800DE628;
-extern PAD_WORK_800DE628 D_800DE628;
+    UCHAR Tbl[8][2];                   /* 0x08 {Padd bit no, countdown} */
+} PAD_WORK;
+extern PAD_WORK Pad_work;              /* 0x800DE628 */
+extern UCHAR Pad_type_old;             /* 0x800DE640 */
+extern UCHAR Pad_act_set;              /* 0x800DE641 RE2 UnknownPadSetFlag: 1 PadSetAct done, 2 aligned */
+extern UCHAR Pad_act_align[];          /* 0x80098928 */
+extern USHORT Key_type[][16];          /* 0x8009CC9C RE2 Key_type, row Main.Unk195 */
+extern USHORT Key_type_demo[16];       /* 0x8009CC7C used while a demo plays back */
+
+/* demo pad data (RE2 struct PDEMO), after the save block in Game.pSave */
+typedef struct tagSAVE_POS {
+    UCHAR pad0[0x71A];
+    USHORT Pdemo_cnt;                  /* 0x71A */
+    USHORT Padd[1];                    /* 0x71C */
+} SAVE_POS;
+
+/* tagGAME (main.h) ends at 0x4F; Pad_set uses the word after it */
+typedef struct {
+    tagGAME Base;
+    ULONG Pdemo_cnt;                   /* 0x50 RE2 G.Pdemo_cnt */
+} GAME_EXT;
+extern GAME_EXT Game_ext __asm__("Game");
+
+/* RE2 Padd_trg / Padd_rep are ULONG; tagGLOBAL has USHORT views (lhu readers elsewhere) */
+#define PADD_TRG(pG) (*(ULONG *)&(pG)->Unk20FC)
+#define PADD_REP(pG) (*(ULONG *)&(pG)->Unk2100)
+
+void Pad_set(void)
+{
+    tagGLOBAL *pG = &G;
+    PAD_WORK *pW = &Pad_work;
+    ULONG Work;                        /* PadGetState result, small motor power, Padd_rep bit */
+    UCHAR Vib_mode = Vib_mode;
+    UCHAR Stk_x = Stk_x;
+    UCHAR Stk_y = Stk_y;
+    UCHAR Stk_act = Stk_act;
+    USHORT *pKey;
+    ULONG Padd, Bit;
+    ULONG Work2;                       /* large motor power, Padd trigger, repeat table count */
+    UCHAR *pT;
+
+    Work = PadGetState(0);
+    if (Work >= 2) {
+        pG->Pad_type = PadInfoMode(0, 1, 0);
+        Vib_mode = PadInfoMode(0, 2, 0);
+        if (Pad_type_old != pG->Pad_type) {
+            Pad_act_set = 0;
+        }
+        switch (pG->Pad_type) {
+        case 7:
+            Stk_x = pG->Padd_data[0][6];
+            Stk_y = pG->Padd_data[0][7];
+        case 4:
+            if (Pad_act_set == 0) {
+                PadSetAct(0, PadActData, 2);
+                if (Work == 2) {
+                    Pad_act_set = 1;
+                } else if (Work == 6 && PadSetActAlign(0, Pad_act_align) != 0) {
+                    Pad_act_set = 2;
+                }
+            }
+            goto accepted;
+        }
+    }
+    pG->Padd_data[0][3] = 0xFF;
+    pG->Padd_data[0][2] = 0xFF;
+    pG->Padd_data[1][3] = 0xFF;
+    pG->Padd_data[1][2] = 0xFF;
+    Pad_act_set = 0;
+    pG->Pad_type = 0;
+accepted:
+    PadActData[1] = 0;
+    PadActData[0] = 0;
+    Pad_type_old = pG->Pad_type;
+    if (pG->Unk2488 == 0) {
+        if ((!(Moji.Mess_flg & 0x80) || (G.Status_flg & STAT_CINESCO)) && !(G.System_flg & 0x10000000)) {
+            Work = SetPadActData(Vib_req0);
+            Work2 = SetPadActData(Vib_req1);
+            if (Vib_mode) {
+                PadActData[0] = Work;
+                PadActData[1] = Work2;
+            } else if (Work != 0 || Work2 != 0) {
+                PadActData[0] = 0x40;
+                PadActData[1] = 0xFF;
+            }
+        }
+    }
+    if (Main.Unk196 & 0x80) {
+        PadActData[1] = 0;
+        PadActData[0] = 0;
+    }
+    pKey = Key_type[Main.Unk195];
+    PADD_TRG(pG) = pG->Unk20F8;
+    if (!(G.System_flg & 0x10000000)) {
+        Padd = ~(pG->Padd_data[0][2] << 8 | pG->Padd_data[0][3]);
+        pG->Unk20F8 = (USHORT)Padd;
+        if (pG->Pad_type == 7) {
+            Stk_act = 0;
+            if (!(Padd & 0xF000)) {
+                if (Stk_y < 0x30) {
+                    pG->Unk20F8 |= 0x1000;
+                }
+                if (Stk_y > 0xD0) {
+                    pG->Unk20F8 |= 0x4000;
+                }
+                if (Stk_x < 0x50) {
+                    if (Stk_x != 0) {
+                        Stk_x = 0x50 - Stk_x;
+                    }
+                    Stk_act = 1;
+                    pG->Unk20F8 |= 0x8000;
+                }
+                if (Stk_x > 0xB0) {
+                    if (Stk_x < 0xFF) {
+                        Stk_x += 0x50;
+                    }
+                    Stk_act |= 1;
+                    pG->Unk20F8 |= 0x2000;
+                }
+            }
+            if (pG->Unk20F8 & 0x400) {
+                pG->Unk20F8 |= 0x800;
+            }
+        }
+    } else if (G.System_flg & 0x8000000) {
+        Padd = pG->Padd_data[0][2] << 8 | pG->Padd_data[0][3];
+        pG->Unk20F8 = (USHORT)~Padd;
+        Work2 = (PADD_TRG(pG) ^ pG->Unk20F8) & pG->Unk20F8;
+        switch (Game_ext.Base.Unk4E) {
+        case 1:
+            if (Game_ext.Pdemo_cnt < Game_ext.Base.pSave->Pdemo_cnt - 0x1F && !(Work2 & 0xC00)) {
+                break;
+            }
+            Game_ext.Base.Unk4E = 2;
+        case 2:
+            Fade_set(1, 0, 2, 2, 0, 0xFFFFFF, 0x1E);
+            Game_ext.Base.Unk4E = 3;
+        case 3:
+            if (Fade_status(1) & 4) {
+                Game_ext.Base.Unk4E = 0;
+                Main.Unk196 = Game_ext.Base.Unk4D;
+                Main.Unk195 = Game_ext.Base.Unk4C;
+                G.System_flg |= 0x200000;
+            }
+            break;
+        }
+        if (Game_ext.Base.Unk4E != 0) {
+            pKey = Key_type_demo;
+            *(USHORT *)&G.Unk20F8 = Game_ext.Base.pSave->Padd[Game_ext.Pdemo_cnt++];
+        }
+    }
+    Padd = pG->Unk20F8;
+    pG->Key_old = pG->Key;
+    pG->Key = 0;
+    Bit = 1;
+    do {
+        if (Padd & *pKey) {
+            pG->Key |= Bit;
+        }
+        Bit <<= 1;
+        pKey++;
+    } while (Bit & 0xFFFF);
+    if (G.Unk2468 & 0x1000000) {
+        pG->Key &= 0x3000;
+        Pad_work.Stop_bak = pG->Unk2468;
+    } else if (Pad_work.Stop_bak & 0x1000000) {
+        Pad_work.Stop_bak = 0;
+        pG->Key_old = pG->Key;
+    }
+    if (!(G.System_flg & 0x10000000) && pG->Pad_type == 7 && Stk_act) {
+        if (Stk_x != 0xFF) {
+            pG->Unk20F8 &= ~0x2000;
+            PADD_TRG(pG) &= ~0x2000;
+        }
+        if (Stk_x != 0) {
+            pG->Unk20F8 &= ~0x8000;
+            PADD_TRG(pG) &= ~0x8000;
+        }
+    }
+    PADD_REP(pG) = 0;
+    PADD_TRG(pG) = (PADD_TRG(pG) ^ pG->Unk20F8) & pG->Unk20F8;
+    pG->Key_trg = (pG->Key_old ^ pG->Key) & pG->Key;
+    if (pW->Num != 0) {
+        Work2 = pW->Num;
+        pT = pW->Tbl[0];
+        do {
+            Work = 1 << pT[0];
+            if (PADD_TRG(pG) & Work) {
+                pT[1] = pW->Rep.Time[0];
+                PADD_REP(pG) |= Work;
+            }
+            if (pG->Unk20F8 & Work) {
+                if (pT[1] != 0) {
+                    pT[1]--;
+                } else {
+                    pT[1] = pW->Rep.Time[1];
+                    PADD_REP(pG) |= Work;
+                }
+            }
+            pT += 2;
+        } while (--Work2 != 0);
+    }
+}
+
 
 void func_80038634(ULONG Flg, SHORT Val)
 {
-    PAD_WORK_800DE628 *pW;
+    PAD_WORK *pW;
     UCHAR *p;
     LONG i;
     LONG n;
 
-    pW = &D_800DE628;
-    pW->Unk4 = Val;
+    pW = &Pad_work;
+    pW->Rep.Both = Val;
     p = pW->Tbl[0];
     i = 0;
     n = 0;
@@ -302,7 +283,33 @@ void Pad_vib_fade_set(LONG Time, LONG Pow_st, LONG Pow_ed, ULONG Attr)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pad", func_8003884C);
+/* vibration script: USHORT records {1, Time, Attr} -> Pad_vib_set0, {2, Time, Power, Attr} -> Pad_vib_set1,
+ * {3, Time, Pow_st | Pow_ed << 8, Attr} -> Pad_vib_fade_set; 0xFFFF ends. pTbl starts with byte offsets. */
+void func_8003884C(USHORT *pTbl, ULONG No)
+{
+    USHORT *p = (USHORT *)((UCHAR *)pTbl + pTbl[No]);
+    ULONG Time, Pow, Attr;
+
+    while (*p != 0xFFFF) {
+        switch (*p) {
+        case 1:
+            Pad_vib_set0(p[1], p[2]);
+            p += 3;
+            break;
+        case 2:
+            Pad_vib_set1(p[1], p[2], p[3]);
+            p += 4;
+            break;
+        case 3:
+            Time = p[1];
+            Attr = p[3];
+            Pow = p[2];
+            Pad_vib_fade_set(Time, Pow & 0xFF, Pow >> 8, Attr);
+            p += 4;
+            break;
+        }
+    }
+}
 
 void Pad_vib_init(void)
 {

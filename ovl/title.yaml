@@ -1,0 +1,48 @@
+name: TITLE.BIN
+sha1: e9d96c6f43881f00fb3777f1fadf4eec8012ebad
+options:
+  basename: title
+  target_path: iso/BIN/TITLE.BIN
+  elf_path: build/ovl/title.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/title.ld
+  ld_dependencies: False
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/title.syms.txt
+  undefined_funcs_auto_path: ovl/title.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/title.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: title
+    type: code
+    start: 0x0
+    vram: 0x80194000
+    subsegments:
+      - [0x0, rodata, ovl/title/header]
+      - [0x4, .rodata, ovl/title/title]
+      - [0xe8, c, ovl/title/title]
+      - [0x34b4, data, ovl/title/data]
+  - [0x37a8]

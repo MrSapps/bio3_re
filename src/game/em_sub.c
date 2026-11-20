@@ -241,17 +241,6 @@ typedef struct {
     USHORT Cdir_z;
 } DOOR_MODEL_SET_REC;
 
-/* door texture/sound info (12 bytes, RE2 DOOR_INFO) */
-typedef struct {
-    USHORT Sound_size;                 /* 0x0 */
-    USHORT Data_size;                  /* 0x2 */
-    ULONG Sector_offset;               /* 0x4 */
-    UCHAR Sound_sum;                   /* 0x8 */
-    UCHAR Data_sum;                    /* 0x9 */
-    UCHAR padA[2];
-} DOOR_INFO;
-extern DOOR_INFO D_800971E4[];
-extern USHORT *D_800979D4[];
 extern ULONG D_800BA6F0;
 void func_8007836C(LONG no, ULONG *pAdr);
 
@@ -858,6 +847,18 @@ void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
     }
 }
 
+/* GTE inline macros (PsyQ inline_c.h with the opcodes written out) */
+#define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
+#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_rtps() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
+#define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_avsz4() __asm__ volatile("nop; nop; .word 0x4B68002E")
+#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work_sort);
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work9_sort);
@@ -885,9 +886,137 @@ void Kage_work9_color_set(ULONG *pK, ULONG Color)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Rot_neck);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Rot_neck_em);
+void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
+{
+    ULONG Own_neck_no;
+    ULONG Enemy_neck_no;
+    USHORT Body_dir_y;
+    PARTS_W *pEn_parts;
+    PARTS_W *pOwn_parts;
+    PARTS_W *pEn_p;
+    PARTS_W *pOwn_p;
+    SHORT Vel;
+    ULONG Ang_dif;
+    SHORT Free_dif;
+    ULONG Free_dif12;
+    ULONG Spd_lim;
+    ENEMY_WORK *pNeck_enemy;
+    SHORT Dir_sum;
+    SVECTOR Neck_rot;
+    VECTOR Neck_tgt;
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Rot_neck_em_n);
+    if (!(pPm->Unk120 & 1)) {
+        Own_neck_no = pPm->Neck_no;
+        pOwn_parts = pPm->pSin_parts_ptr;
+        pOwn_p = &pOwn_parts[Own_neck_no];
+        pNeck_enemy = pPm->pEnemy_ptr;
+        Enemy_neck_no = pNeck_enemy->Neck_no;
+        Body_dir_y = pOwn_parts->Cdir_y;
+        pEn_parts = pNeck_enemy->pSin_parts_ptr;
+        pEn_p = &pEn_parts[Enemy_neck_no];
+        Neck_tgt = *(VECTOR *)pEn_p->Workm.t;
+        Dir_sum = Cdir_y + Body_dir_y;
+        Neck_Dir_ZY((VECTOR *)pOwn_p->Workm.t, &Neck_tgt, &Neck_rot, Dir_sum);
+        if (pPm->Unk120 & 2) {
+            Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
+        }
+        if (pPm == pNeck_enemy) {
+            Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
+            Neck_rot.vz = 0;
+        }
+        Spd_lim = (USHORT)PW_FREE(pOwn_p)[2];
+        Vel = PW_FREE(pOwn_p)[4];
+        if (pPm->Unk120 & 0x80) {
+            Spd_lim = (UCHAR)PW_FREE(pOwn_p)[6];
+        }
+        Ang_dif = (Neck_rot.vy - Cdir_y) - (SHORT)Body_dir_y;
+        if ((LONG)((Ang_dif + Vel) & 0xFFF) > Vel * 2) {
+            if (!(Ang_dif & 0x800)) {
+                Neck_rot.vy = Vel + Dir_sum;
+            } else {
+                Neck_rot.vy = Dir_sum - Vel;
+            }
+        }
+        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_FREE(pOwn_p)[0] + (Cdir_y + (USHORT)pOwn_p->Cdir_y + Body_dir_y)));
+        Vel = PW_FREE(pOwn_p)[0] - Spd_lim;
+        Free_dif12 = Free_dif & 0xFFF;
+        PW_FREE(pOwn_p)[0] = Vel;
+        if (!(Free_dif & 0x800)) {
+            PW_FREE(pOwn_p)[0] = Vel + Spd_lim * 2;
+        }
+        if ((LONG)Free_dif12 < (LONG)(Spd_lim << 16) >> 15) {
+            PW_FREE(pOwn_p)[0] = Neck_rot.vy - (Cdir_y + pOwn_p->Cdir_y + Body_dir_y);
+        }
+        pOwn_p->Cdir_y += PW_FREE(pOwn_p)[0];
+        RotMatrix_gte((SVECTOR *)&pOwn_p->Cdir_x, (MATRIX *)pOwn_p->M);
+        pOwn_p->Cdir_y -= PW_FREE(pOwn_p)[0];
+    }
+}
+
+void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir)
+{
+    ULONG Own_neck_no;
+    ULONG Enemy_neck_no;
+    USHORT Body_dir_y;
+    PARTS_W *pEn_parts;
+    PARTS_W *pOwn_parts;
+    PARTS_W *pEn_p;
+    PARTS_W *pOwn_p;
+    SHORT Vel;
+    ULONG Ang_dif;
+    SHORT Free_dif;
+    ULONG Free_dif12;
+    ULONG Spd_lim;
+    ENEMY_WORK *pNeck_enemy;
+    SHORT Dir_sum;
+    SVECTOR Neck_rot;
+    VECTOR Neck_tgt;
+
+    if (!(pPm->Unk120 & 1)) {
+        Own_neck_no = pPm->Neck_no;
+        pOwn_parts = pPm->pSin_parts_ptr;
+        pOwn_p = &pOwn_parts[Own_neck_no];
+        pNeck_enemy = pPm->pEnemy_ptr;
+        Enemy_neck_no = pNeck_enemy->Neck_no;
+        Body_dir_y = pOwn_parts->Cdir_y;
+        pEn_parts = pNeck_enemy->pSin_parts_ptr;
+        pEn_p = &pEn_parts[Enemy_neck_no];
+        Neck_tgt = *(VECTOR *)pEn_p->Workm.t;
+        Dir_sum = Cdir_y + Body_dir_y;
+        Neck_Dir_ZY((VECTOR *)pOwn_p->Workm.t, &Neck_tgt, &Neck_rot, Dir_sum);
+        if (pPm->Unk120 & 2) {
+            Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
+        }
+        if (pPm == pNeck_enemy) {
+            Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
+            Neck_rot.vz = 0;
+        }
+        Spd_lim = (USHORT)PW_FREE(pOwn_p)[2];
+        Vel = PW_FREE(pOwn_p)[4];
+        if (pPm->Unk120 & 0x80) {
+            Spd_lim = (UCHAR)PW_FREE(pOwn_p)[6];
+        }
+        Ang_dif = (Neck_rot.vy - Cdir_y) - (SHORT)Body_dir_y;
+        if ((LONG)((Ang_dif + Vel) & 0xFFF) > Vel * 2) {
+            if (!(Ang_dif & 0x800)) {
+                Neck_rot.vy = Vel + Dir_sum;
+            } else {
+                Neck_rot.vy = Dir_sum - Vel;
+            }
+        }
+        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_FREE(pOwn_p)[0] + (Cdir_y + (USHORT)pOwn_p->Cdir_y + Body_dir_y)));
+        Vel = PW_FREE(pOwn_p)[0] - Spd_lim;
+        Free_dif12 = Free_dif & 0xFFF;
+        PW_FREE(pOwn_p)[0] = Vel;
+        if (!(Free_dif & 0x800)) {
+            PW_FREE(pOwn_p)[0] = Vel + Spd_lim * 2;
+        }
+        if ((LONG)Free_dif12 < (LONG)(Spd_lim << 16) >> 15) {
+            PW_FREE(pOwn_p)[0] = Neck_rot.vy - (Cdir_y + pOwn_p->Cdir_y + Body_dir_y);
+        }
+        *pDir = PW_FREE(pOwn_p)[0];
+    }
+}
 
 void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
 {
@@ -945,7 +1074,19 @@ void func_8001AD78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
     pEm->pNow_seq = pSeq;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Em_dead_flg_on_cand);
+void Em_dead_flg_on_cand(ENEMY_WORK *pEm)
+{
+    if (G.System_flg & 0x80) {
+        if (Flg_ck(G.Unk7890, pEm->Unk147) == 0) {
+            func_8004834C(pEm->Id, 0);
+        }
+        Flg_on(G.Unk7890, pEm->Unk147);
+    } else if (G.Unk783E >= 2) {
+        Flg_on(G.Unk78B0, pEm->Unk147);
+    } else {
+        Flg_on(G.Unk7890, pEm->Unk147);
+    }
+}
 
 void func_8001AECC(ENEMY_WORK *pEm, ULONG a1, ULONG a2)
 {

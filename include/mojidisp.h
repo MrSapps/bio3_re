@@ -51,5 +51,6 @@ long Print_main(ULONG Pos, USHORT Attr, void *pArgs);
 void Moji_trans_main(void);
 void Mess_disp(MOJIDISP *pMoji);
 void mess_trans(MOJIDISP *pMoji);
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 #endif /* MOJIDISP_H */

@@ -1,0 +1,48 @@
+name: EPILOG.BIN
+sha1: c5d4599350daad34a34c49d2d8eef9e4a07d34ba
+options:
+  basename: epilog
+  target_path: iso/BIN/EPILOG.BIN
+  elf_path: build/ovl/epilog.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/epilog.ld
+  ld_dependencies: False
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/epilog.syms.txt
+  undefined_funcs_auto_path: ovl/epilog.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/epilog.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: epilog
+    type: code
+    start: 0x0
+    vram: 0x801c2000
+    subsegments:
+      - [0x0, rodata, ovl/epilog/header]
+      - [0x4, .rodata, ovl/epilog/epilog]
+      - [0x4c, c, ovl/epilog/epilog]
+      - [0xb4c, data, ovl/epilog/data]
+  - [0xd8c]

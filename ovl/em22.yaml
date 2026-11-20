@@ -1,0 +1,49 @@
+name: em22_1.bin
+sha1: 7b10d0b1fde4a979919997bdca7adff570068361
+options:
+  basename: em22
+  target_path: iso/EM/em22_1.bin
+  elf_path: build/ovl/em22.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em22.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em22.syms.txt
+  undefined_funcs_auto_path: ovl/em22.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em22.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em22
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em22/header]
+      - [0x4, .rodata, ovl/em22/em22]
+      - [0xbc, c, ovl/em22/em22]
+      - [0x9360, data, ovl/em22/data]
+  - [0x94bc]

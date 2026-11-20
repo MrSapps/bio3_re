@@ -1,0 +1,50 @@
+name: em23_1.bin
+sha1: 7e17a5e7ca9bc13f3e7d93553d9b25d49f0975b5
+options:
+  basename: em23
+  target_path: iso/EM/em23_1.bin
+  elf_path: build/ovl/em23.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em23.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em23.syms.txt
+  undefined_funcs_auto_path: ovl/em23.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em23.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em23
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em23/header]
+      - [0x4, .rodata, ovl/em23/em23]
+      - [0x144, c, ovl/em23/em23]
+      - [0xc7c8, data, ovl/em23/data]
+      - [0xcc08, bin, ovl/em23/tail]
+  - [0xcc09]

@@ -1,0 +1,49 @@
+name: em2c_1.bin
+sha1: d5032024231909f30fa2735120e8859c7f57e8d9
+options:
+  basename: em2c
+  target_path: iso/EM/em2c_1.bin
+  elf_path: build/ovl/em2c.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em2c.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em2c.syms.txt
+  undefined_funcs_auto_path: ovl/em2c.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em2c.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em2c
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em2c/header]
+      - [0x4, .rodata, ovl/em2c/em2c]
+      - [0x1c, c, ovl/em2c/em2c]
+      - [0x4e4, data, ovl/em2c/data]
+  - [0x4f8]

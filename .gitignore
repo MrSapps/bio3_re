@@ -21,3 +21,5 @@ tools/compilers/
 tools/maspsx/
 tools/m2c/
 tools/asm-differ/
+ovl/*.undefined_funcs_auto.txt
+ovl/*.undefined_syms_auto.txt

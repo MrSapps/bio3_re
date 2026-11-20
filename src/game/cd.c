@@ -8,6 +8,23 @@
 #include "joint.h"
 #include "snd.h"
 
+/* room sound directory at 0x801C181C (CD_ENTRY list, Id bit 7 = more entries follow) */
+#define CD_DIR ((CD_ENTRY *)0x801C181C)
+#define CD_DIR_HEAD ((ULONG *)0x801C1814)
+/* ROOM_WORK fields not in main.h yet */
+typedef struct {
+    UCHAR pad0[8];
+    CD_LINK *pLink;                    /* 0x08 */
+    UCHAR padC[0x5C - 0xC];
+    ULONG Unk5C;                       /* 0x5C */
+} ROOM_SND;
+/* G.Unk2484 as the RE2 Ctpage/Cclut bytes */
+typedef struct {
+    UCHAR pad[0x2484];
+    UCHAR Ctpage;                      /* 0x2484 */
+    UCHAR Cclut;                       /* 0x2485 */
+} G_CTPAGE;
+
 /* local declarations (80011CF8.c) */
 void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80017540(ENEMY_WORK *pEm);
@@ -128,12 +145,15 @@ void Door_scheduler_main(void);
 void Door_Trans(void);              /* RE2 Door_Trans */
 void Door_model_init(UCHAR *pDw);
 void func_8001CE24(EFF_WORK *pEw, ULONG a1, ULONG a2);
-ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG a2);
+ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan);
 EFF_WORK *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4);
 void func_8001BCFC(EFF_WORK *pEw);
 void func_8001BFCC(EFF_WORK *pEw);
 extern UCHAR D_800E017F;
 void func_800139D8(void);
+void func_80014968(tagCD *pCd);
+void func_8001480C(tagCD *pCd);
+void func_80013754(void);
 /* hit-check request passed to func_800472EC */
 typedef struct {
     LONG *pPos;                        /* 0x0 */
@@ -184,7 +204,6 @@ void Set_view(VECTOR *pView_p, VECTOR *pView_r);
 extern EFF_WORK *D_8009808C;           /* pool 2 start */
 extern EFF_WORK *D_80098090;           /* pool 2 end */
 LONG Joint_move(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
 void func_8001B894(ULONG Id, ULONG Key);
 void func_8001CFF4(EFF_WORK *pEw, ULONG n);
 void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
@@ -402,11 +421,309 @@ void Xa_control_end(void)
     Change_volume(0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", Cd_read_s);
+extern UCHAR Cd_read_s_cdmode;          /* 0x800971E1 RE2 static cdread_s_cdmode */
+extern UCHAR Cd_read_cdmode;            /* 0x800971E2 RE2 static cdread_cdmode */
+extern LONG D_800A0FEC[];              /* SPU transfer address per bank type */
+void func_80013C1C(UCHAR intr, UCHAR *result);
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", Cd_read);
+/* RE2 Cd_read_s: streams a file through the ring buffer to SPU memory (RE3: libspu, no libsnd VAB) */
+ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, char *Mess)
+{
+    tagCD *pCd = &CD;
+    ULONG Mode_org = Mode;
+    ULONG i;
 
-extern LONG D_800A0FEC[];
+retry:
+    Mode = Mode_org;
+    if (!(Mode_org & 1)) {
+        pCd->Fsum = floc[File_no].sum;
+        pCd->Fsize = floc[File_no].size;
+        pCd->Fsector = (ULONG)floc[File_no].sec_high * 0x10000 + floc[File_no].sector;
+    }
+    for (i = 0; i < CD_RING_BUFFERS; i++) {
+        pCd->Ring_status[i] = 0;
+        pCd->Ring_size[i] = 0;
+    }
+    pCd->Fno = File_no;
+    pCd->Buff_adr = Address;
+    pCd->Cd_rtn_no = 1;
+    pCd->Type = 2;
+    pCd->Fsector_read = 0;
+    pCd->Fsize_read = 0;
+    pCd->Limit_break = 0;
+    pCd->Sum_cnt = 0;
+    pCd->Sum = 0;
+    pCd->Write_ctr = 0;
+    pCd->Read_ctr = 0;
+    pCd->First_flg = 0;
+    pCd->Unk85F = 0;
+    pCd->Fsector_num = (pCd->Fsize + 0x7FF) >> 11;
+    pCd->Current_sector = pCd->Fsector;
+    pCd->Fsize_now = pCd->Fsize;
+
+    DsFlush();
+    DsIntToPos(pCd->Current_sector, &CD.Fpos);
+
+    while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+    while (DsCommand(DslSetmode, &Cd_read_s_cdmode, NULL, -1) == 0);
+    while (DsCommand(DslSeekL, &CD.Fpos.minute, NULL, -1) == 0);
+
+    DsReadyCallback((DslRCB)func_80013C1C);
+
+    while (DsCommand(DslReadN, &CD.Fpos.minute, NULL, -1) == 0);
+
+    while (1) {
+        if (DsSystemStatus() == DslReady) {
+            if ((DsStatus() & DslStatRead) == 0) {
+                pCd->Cd_rtn_no = 6;
+            } else if (pCd->Fsize_now == 0 && pCd->Fsector_num == 0) {
+                if (CD.Sum == CD.Fsum) {
+                    pCd->Cd_rtn_no = 0;
+                } else {
+                    pCd->Cd_rtn_no = 4;
+                }
+                pCd->Limit_break = 0;
+                while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+            }
+        }
+
+        while (pCd->Ring_status[pCd->Write_ctr] != 0) {
+            if (pCd->First_flg != 0) {
+                while (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0);
+            } else {
+                if (Type == 6) {
+                    SpuSetTransferStartAddr(D_800A0FEC[6] - pCd->Fsize);
+                } else {
+                    SpuSetTransferStartAddr(D_800A0FEC[Type]);
+                }
+                pCd->First_flg = 1;
+            }
+            SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), pCd->Ring_size[pCd->Write_ctr]);
+            while (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0);
+            pCd->Ring_status[pCd->Write_ctr] = 0;
+            if (++pCd->Write_ctr == CD_RING_BUFFERS) {
+                pCd->Write_ctr = 0;
+            }
+        }
+
+        if (Mode < 2) {
+            Task_sleep(1);
+        } else {
+            VSync(0);
+        }
+
+        if (pCd->Cd_rtn_no > 1) {
+            goto retry;
+        }
+        if (pCd->Cd_rtn_no == 0) {
+            return pCd->Fsize_read;
+        }
+    }
+}
+
+extern LONG D_800DECC0[5];
+void func_80012ECC(tagCD *pCd);
+void func_800130A0(tagCD *pCd);
+void func_80013EF8(UCHAR intr, UCHAR *result);
+void func_80014300(UCHAR intr, UCHAR *result);
+void func_800150E4(void);
+void func_80014D10(void);
+
+/* RE2 Cd_read. Mode 0/1: floc[File_no], 2/3: CD.Fsize etc. preset (0/2 wait with VSync, 1/3 with Task_sleep);
+ * 4/5: room sound pack (Type 3/4) streamed to the SPU through the ring */
+ULONG Cd_read(ULONG File_no, ULONG *Address, ULONG Mode, char *Mess)
+{
+    tagCD *pCd = &CD;
+    ULONG Mode_org = Mode;
+    ULONG i;
+    LONG Ret;
+    LONG *pFlg;
+
+retry:
+    Mode = Mode_org;
+retry2:
+    pCd->Type = 1;
+    switch (Mode) {
+    case 4:
+    case 5:
+        for (i = 0; i < CD_RING_BUFFERS; i++) {
+            pCd->Ring_status[i] = 0;
+            pCd->Ring_size[i] = 0;
+        }
+        if (Mode == 4) {
+            pCd->Type = 3;
+        } else {
+            pCd->Type = 4;
+        }
+    case 0:
+    case 1:
+        pCd->Fsum = floc[File_no].sum;
+        pCd->Fsize = floc[File_no].size;
+        pCd->Fsector = (ULONG)floc[File_no].sec_high * 0x10000 + floc[File_no].sector;
+        break;
+    default:
+        Mode -= 2;
+        break;
+    }
+    pCd->pEntry = pCd->pEntry2 = CD_DIR;
+    pCd->Buff_adr = (ULONG *)0x801C2014;
+    pCd->Cd_rtn_no = 1;
+    pCd->Fno = File_no;
+    pCd->Read_adr = Address;
+    pCd->Unk8A8 = 0;
+    pCd->Fsector_read = 0;
+    pCd->Fsize_read = 0;
+    pCd->Limit_break = 0;
+    pCd->Sum_cnt = 0;
+    pCd->Sum = 0;
+    pCd->Write_ctr = 0;
+    pCd->Read_ctr = 0;
+    pCd->First_flg = 0;
+    pCd->Unk85F = 0;
+    pCd->Unk8AC = 0;
+    pCd->Unk8B0 = 0;
+    pCd->Unk8B4 = 0;
+    pCd->Entry_no = 0;
+    pCd->Unk8C8 = 0;
+    pCd->Unk8C0 = 0;
+    pCd->Unk8B8 = 0;
+    pCd->Unk8BC = 0;
+    pCd->Time_out = 0;
+    pCd->Fsector_num = (pCd->Fsize + 0x7FF) >> 11;
+    pCd->Current_sector = pCd->Fsector;
+    pCd->Fsize_now = pCd->Fsize;
+    pCd->Unk8D0 = ((G_CTPAGE *)&G)->Ctpage;
+    pCd->Unk8D1 = ((G_CTPAGE *)&G)->Cclut;
+    pCd->Unk8CC = (ULONG)G.pEm_mem;
+    if (pCd->Type == 4) {
+        i = 0;
+        pFlg = D_800DECC0;
+        Sce.Unk148E = 0xFF;
+        Sce.Unk148F = 0xFF;
+        Sce.Unk1494 = 0xFF;
+        Sce.Unk1488 = 0;
+        Sce.pUnk1460 = G.pEnemy[0];
+        for (; i < 5; i++) {
+            *pFlg++ = -1;
+        }
+    }
+
+    DsFlush();
+    DsIntToPos(pCd->Current_sector, &CD.Fpos);
+
+    while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+    while (DsCommand(DslSetmode, &Cd_read_cdmode, NULL, -1) == 0);
+    while (DsCommand(DslSeekL, &CD.Fpos.minute, NULL, -1) == 0);
+
+    switch (pCd->Type) {
+    case 3:
+        DsReadyCallback((DslRCB)func_80013EF8);
+        break;
+    case 4:
+        func_800150E4();
+        DsReadyCallback((DslRCB)func_80014300);
+        break;
+    default:
+        DsReadyCallback((DslRCB)func_80013C1C);
+        break;
+    }
+
+    while (DsCommand(DslReadN, &pCd->Fpos.minute, NULL, -1) == 0);
+
+    while (1) {
+        Ret = DsSystemStatus();
+        if (Ret == DslReady) {
+            if ((DsStatus() & DslStatRead) == 0) {
+                pCd->Cd_rtn_no = 6;
+            } else if (pCd->Fsize_now == 0 && pCd->Fsector_num == 0) {
+                if (pCd->Type >= 3 || pCd->Sum == pCd->Fsum || pCd->Check_sum_flg == Ret) {
+                    pCd->Cd_rtn_no = 0;
+                } else {
+                    pCd->Cd_rtn_no = 4;
+                }
+                pCd->Limit_break = 0;
+                while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+            }
+        }
+        if (pCd->Type >= 3) {
+            while (pCd->Ring_status[pCd->Write_ctr] != 0) {
+                switch (pCd->pEntry[pCd->Ring_status[pCd->Write_ctr] & 0x7F].Unk5) {
+                case 0:
+                case 1:
+                    func_800130A0(&CD);
+                    break;
+                case 2:
+                    func_80012ECC(&CD);
+                    break;
+                }
+                pCd->Ring_status[pCd->Write_ctr] = 0;
+                if (++pCd->Write_ctr == CD_RING_BUFFERS) {
+                    pCd->Write_ctr = 0;
+                }
+            }
+            switch (Ret = pCd->Unk8C0) {
+            case 1:
+                if (pCd->First_flg == 2) {
+                    break;
+                }
+                pCd->Current_sector = pCd->Fsector + pCd->Unk8B8;
+                DsFlush();
+                DsIntToPos(pCd->Current_sector, &pCd->Fpos);
+                while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+                while (DsCommand(DslSetmode, &Cd_read_cdmode, NULL, -1) == 0);
+                while (DsCommand(DslSeekL, &pCd->Fpos.minute, NULL, -1) == 0);
+                pCd->Unk8C0 = 0;
+                while (DsCommand(DslReadN, &pCd->Fpos.minute, NULL, -1) == 0);
+                pCd->pEntry2 = &pCd->pEntry[pCd->Entry_no];
+                pCd->Unk8B0 = pCd->pEntry2->Size;
+                break;
+            case 2:
+                DsReadyCallback(NULL);
+                if (pCd->Cd_rtn_no != Ret) {
+                    Mode = Mode_org;
+                    goto retry2;
+                }
+                while (DsCommand(DslPause, NULL, NULL, -1) == 0);
+                DsReset();
+                Mode = Mode_org;
+                VSync(3);
+                goto retry2;
+            case 0xFF:
+                DsReadyCallback(NULL);
+                pCd->Unk8C0 = 0;
+                break;
+            }
+        }
+        if (Mode != 0) {
+            Task_sleep(1);
+        } else {
+            VSync(0);
+        }
+        if (pCd->Time_out++ > 600) {
+            goto retry;
+        }
+        if (pCd->Cd_rtn_no > 1) {
+            goto retry;
+        }
+        if (pCd->Cd_rtn_no == 0 && pCd->First_flg == 0) {
+            break;
+        }
+    }
+    switch (pCd->Type) {
+    case 3:
+        while (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0);
+        return pCd->pEntry[8].Size;
+    case 4:
+        if (pCd->Em_id[0] < 0x50) {
+            func_80014D10();
+        }
+        G.pEm_mem = (ENEMY_WORK *)pCd->Unk8CC;
+        break;
+    default:
+        return pCd->Fsize_read;
+    }
+}
+
 void func_800783BC(ULONG no, ULONG size, ULONG a2);
 void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
 
@@ -486,15 +803,418 @@ void func_80013754(void)
     pCd->Entry_no = i;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_800138B0);
+
+void func_800138B0(void)
+{
+    tagGLOBAL *pG;
+    tagCD *pCd;
+    CD_ENTRY *pEnt;
+    ULONG Size;
+    ULONG i;
+    ULONG Key;
+
+    Size = 0;
+    i = 0;
+    pEnt = CD_DIR;
+    pG = &G;
+    pCd = &CD;
+    Key = D_800E017F | 0x80;
+    pCd->Unk8C8 |= 1;
+    do {
+        if (pEnt->Id == Key) {
+            ((ROOM_SND *)pG->pRoom)->Unk5C = pCd->Unk8CC;
+            if (pEnt == CD_DIR) {
+                pCd->Unk8BC = pCd->pEntry[0].Size;
+            } else {
+                for (; &pCd->pEntry[i] != pEnt; i++) {
+                    Size += (pCd->pEntry[i].Size + 0x7FF) & ~0x7FF;
+                }
+                Size += 0x800;
+                Cd_set_read_pos(Size);
+                pCd->Entry_no = i;
+                pCd->Unk8C0 = 1;
+                pCd->Unk8BC = pCd->pEntry[i].Size;
+            }
+            return;
+        }
+        pEnt++;
+    } while (pEnt->Id & 0x80);
+    func_800139D8();
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/cd", func_800139D8);
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_80013C1C);
+/* RE2 Cd_ready_cb: DsReadyCallback during Cd_read / Cd_read_s */
+void func_80013C1C(UCHAR intr, UCHAR *result)
+{
+    tagCD *pCd = &CD;
+    ULONG read_num;
+    ULONG Size;
+    ULONG i;
+    UCHAR *sum_ck;
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_80013EF8);
+    read_num = pCd->Read_ctr;
+    i = 4;
+    if (intr == DslDataReady) {
+        DsGetSector(pCd->Work_buf, 3);
+        if (pCd->Current_sector != DsPosToInt((DslLOC *)pCd->Work_buf)) {
+            pCd->Cd_rtn_no = 3;
+            return;
+        }
+        pCd->Current_sector++;
+        pCd->Limit_break = 0;
+        pCd->Fsector_num--;
+        pCd->Fsector_read++;
+        if (pCd->Type == 1) {
+            if (pCd->Fsize_now > 0x800) {
+                DsGetSector(pCd->Read_adr, 0x200);
+                sum_ck = (UCHAR *)pCd->Read_adr;
+                pCd->Fsize_now -= 0x800;
+                pCd->Fsize_read += 0x800;
+                do {
+                    pCd->Sum ^= *sum_ck;
+                    sum_ck += 0x200;
+                    pCd->Sum_cnt += 0x200;
+                } while (--i != 0);
+                pCd->Read_adr += 0x200;
+            } else {
+                DsGetSector(pCd->Work_buf, 0x200);
+                func_800100A4(pCd->Read_adr, pCd->Work_buf, pCd->Fsize_now);
+                sum_ck = pCd->Work_buf;
+                pCd->Fsize_read += pCd->Fsize_now;
+                pCd->Fsize_now = 0;
+                do {
+                    pCd->Sum ^= *sum_ck;
+                    sum_ck += 0x200;
+                    pCd->Sum_cnt += 0x200;
+                } while (pCd->Sum_cnt < pCd->Fsize_read);
+                DsReadyCallback(NULL);
+            }
+        } else if (pCd->Type == 2) {
+            if (pCd->Ring_status[read_num] != 0) {
+                pCd->Cd_rtn_no = 5;
+                return;
+            }
+            DsGetSector((UCHAR *)pCd->Buff_adr + (read_num << 11), 0x200);
+            pCd->Ring_status[read_num] = 1;
+            if (pCd->Fsize_now > 0x800) {
+                pCd->Fsize_now -= 0x800;
+                pCd->Ring_size[read_num] = 0x800;
+                sum_ck = (UCHAR *)pCd->Buff_adr + (read_num << 11);
+                pCd->Fsize_read += 0x800;
+                do {
+                    pCd->Sum ^= *sum_ck;
+                    sum_ck += 0x200;
+                    pCd->Sum_cnt += 0x200;
+                } while (--i != 0);
+            } else {
+                pCd->Ring_size[read_num] = pCd->Fsize_now;
+                Size = pCd->Fsize_now;
+                pCd->Fsize_now = 0;
+                sum_ck = (UCHAR *)pCd->Buff_adr + (read_num << 11);
+                pCd->Fsize_read += Size;
+                do {
+                    pCd->Sum ^= *sum_ck;
+                    sum_ck += 0x200;
+                    pCd->Sum_cnt += 0x200;
+                } while (pCd->Sum_cnt < pCd->Fsize_read);
+                DsReadyCallback(NULL);
+            }
+            if (++pCd->Read_ctr == CD_RING_BUFFERS) {
+                pCd->Read_ctr = 0;
+            }
+        }
+    }
+    if (intr == DslDiskError) {
+        DsSyncCallback(NULL);
+        DsReadyCallback(NULL);
+        pCd->Cd_rtn_no = 2;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_80014300);
+/* DsReadyCallback for a room sound pack (Cd_read Type 3): directory sector, then the entries into the ring */
+void func_80013EF8(UCHAR intr, UCHAR *result)
+{
+    tagCD *pCd = &CD;
+    ULONG read_num;
+    ULONG Size;
+    ULONG i;
+    LONG Len;
+    UCHAR *pBuf;
+    UCHAR *sum_ck;
+
+    read_num = pCd->Read_ctr;
+    if (intr == DslDataReady) {
+        if (pCd->Unk8C0 != 0) {
+            return;
+        }
+        DsGetSector(pCd->Work_buf, 3);
+        if (pCd->Current_sector != DsPosToInt((DslLOC *)pCd->Work_buf)) {
+            if (pCd->Fsector_read != 0) {
+                goto retry;
+            }
+            pCd->Unk8C0 = 2;
+            pCd->Cd_rtn_no = 4;
+            return;
+        }
+        pCd->Current_sector++;
+        pCd->Fsector_num--;
+        pCd->Fsize_now -= 0x800;
+        pCd->Fsize_read += 0x800;
+        if (++pCd->Fsector_read == 1) {
+            DsGetSector(CD_DIR_HEAD, 0x200);
+            pCd->Unk8B4 = *CD_DIR_HEAD;
+            if (CD_ENTRY_KIND(&pCd->pEntry[0]) != 5 || CD_ENTRY_KIND(&pCd->pEntry[1]) != 0x205) {
+                pCd->Unk8C0 = 2;
+                pCd->Cd_rtn_no = 4;
+                return;
+            }
+            func_80013754();
+            pCd->pEntry2 = &pCd->pEntry[pCd->Entry_no];
+            if ((pCd->Unk8B0 = pCd->pEntry2->Size) < 0) {
+                pCd->Unk8C0 = 2;
+                pCd->Cd_rtn_no = 4;
+                pCd->Unk8B0 = 0x800;
+            }
+            return;
+        }
+        if (pCd->Ring_status[read_num] != 0) {
+            pCd->Limit_break = 3;
+            goto retry;
+        }
+        pBuf = (UCHAR *)pCd->Buff_adr + (read_num << 11);
+        DsGetSector(pBuf, 0x200);
+        pCd->Ring_status[read_num] = pCd->Entry_no | 0x80;
+        pCd->Ring_size[read_num] = 0x800;
+        Len = 0x800;
+        if (pCd->Unk8B0 < 0x800) {
+            Len = pCd->Unk8B0;
+        }
+        sum_ck = pBuf;
+        pCd->Unk8B0 -= 0x800;
+        pCd->Sum_cnt = 0;
+        do {
+            pCd->Sum ^= *sum_ck;
+            sum_ck += 0x200;
+            pCd->Sum_cnt += 0x200;
+        } while ((LONG)pCd->Sum_cnt < Len);
+        if (++pCd->Read_ctr == CD_RING_BUFFERS) {
+            pCd->Read_ctr = 0;
+        }
+        if (pCd->Unk8B0 > 0) {
+            goto end;
+        }
+        if (pCd->Sum == pCd->pEntry2->Sum) {
+            goto match;
+        }
+    retry:
+        Size = 0x800;
+        for (i = 0; i < pCd->Entry_no; i++) {
+            Size += (pCd->pEntry[i].Size + 0x7FF) & ~0x7FF;
+        }
+        for (i = 0; i < CD_RING_BUFFERS; i++) {
+            if (pCd->Entry_no == (pCd->Ring_status[i] & 0x7F)) {
+                pCd->Ring_status[i] = 0;
+                pCd->Ring_size[i] = 0;
+            }
+        }
+        pCd->Read_ctr = pCd->Write_ctr;
+        if (pCd->Ring_status[pCd->Read_ctr] != 0) {
+            do {
+                if (++pCd->Read_ctr >= CD_RING_BUFFERS) {
+                    pCd->Read_ctr = 0;
+                }
+                if (pCd->Ring_status[pCd->Read_ctr] == 0) {
+                    goto set;
+                }
+            } while (pCd->Read_ctr != pCd->Write_ctr);
+            pCd->Unk8C0 = 2;
+            return;
+        }
+        pCd->First_flg = 0;
+    set:
+        pCd->Unk8C0 = 1;
+        Cd_set_read_pos(Size);
+        if (pCd->Limit_break++ >= 4) {
+            pCd->Unk8C0++;
+        }
+        goto next;
+    match:
+        if (pCd->Fsize_now == 0) {
+            pCd->Unk8C0 = 0xFF;
+            return;
+        }
+        pCd->pEntry2++;
+        pCd->Limit_break = 0;
+        pCd->Entry_no++;
+        if ((pCd->Unk8C8 & 3) != 3) {
+            func_8001480C(pCd);
+        }
+    next:
+        pCd->Unk8B0 = pCd->pEntry2->Size;
+        pCd->Sum = 0;
+    }
+end:
+    if (intr == DslDiskError) {
+        pCd->Unk8C0 = 2;
+        pCd->Cd_rtn_no = 2;
+    }
+}
+
+void func_80014300(UCHAR intr, UCHAR *result)
+{
+    tagCD *pCd = &CD;
+    ULONG read_num;
+    ULONG Size;
+    ULONG i;
+    LONG Len;
+    UCHAR *pBuf;
+    ULONG *p;
+    UCHAR *sum_ck;
+
+    read_num = pCd->Read_ctr;
+    if (intr == DslDataReady) {
+        if (pCd->Unk8C0 != 0) {
+            return;
+        }
+        DsGetSector(pCd->Work_buf, 3);
+        if (pCd->Current_sector != DsPosToInt((DslLOC *)pCd->Work_buf)) {
+            if (pCd->Fsector_read != 0) {
+                goto retry;
+            }
+            pCd->Unk8C0 = 2;
+            pCd->Cd_rtn_no = 4;
+            return;
+        }
+        pCd->Current_sector++;
+        pCd->Fsector_num--;
+        pCd->Fsize_now -= 0x800;
+        pCd->Fsize_read += 0x800;
+        if (++pCd->Fsector_read == 1) {
+            DsGetSector(CD_DIR_HEAD, 0x200);
+            pCd->Unk8B4 = *CD_DIR_HEAD;
+            p = CD_DIR_HEAD + 0x100;
+            do {
+                if (*p++ != 0) {
+                    goto err;
+                }
+            } while (p != CD_DIR_HEAD + 0x200);
+            if (pCd->pEntry[0].Id & 0x80) {
+                func_800138B0();
+            } else {
+                pCd->Unk8C8 |= 1;
+                func_800139D8();
+            }
+            pCd->pEntry2 = &pCd->pEntry[pCd->Entry_no];
+            if ((pCd->Unk8B0 = pCd->pEntry2->Size) < 0) {
+                pCd->Unk8C0 = 2;
+                pCd->Cd_rtn_no = 4;
+                pCd->Unk8B0 = 0x800;
+            }
+            return;
+        }
+        if (pCd->Ring_status[read_num] != 0) {
+            pCd->Limit_break = 3;
+            goto retry;
+        }
+        pBuf = (UCHAR *)pCd->Buff_adr + (read_num << 11);
+        DsGetSector(pBuf, 0x200);
+        pCd->Ring_status[read_num] = pCd->Entry_no | 0x80;
+        pCd->Ring_size[read_num] = 0x800;
+        Len = 0x800;
+        if (pCd->Unk8B0 < 0x800) {
+            Len = pCd->Unk8B0;
+        }
+        sum_ck = pBuf;
+        pCd->Unk8B0 -= 0x800;
+        pCd->Sum_cnt = 0;
+        do {
+            pCd->Sum ^= *sum_ck;
+            sum_ck += 0x200;
+            pCd->Sum_cnt += 0x200;
+        } while ((LONG)pCd->Sum_cnt < Len);
+        if (++pCd->Read_ctr == CD_RING_BUFFERS) {
+            pCd->Read_ctr = 0;
+        }
+        if (pCd->Unk8B0 > 0) {
+            goto end;
+        }
+        if (pCd->Sum == pCd->pEntry2->Sum) {
+            goto match;
+        }
+    retry:
+        Size = 0x800;
+        for (i = 0; i < pCd->Entry_no; i++) {
+            Size += (pCd->pEntry[i].Size + 0x7FF) & ~0x7FF;
+        }
+        for (i = 0; i < CD_RING_BUFFERS; i++) {
+            if (pCd->Entry_no == (pCd->Ring_status[i] & 0x7F)) {
+                pCd->Ring_status[i] = 0;
+                pCd->Ring_size[i] = 0;
+            }
+        }
+        pCd->Read_ctr = pCd->Write_ctr;
+        if (pCd->Ring_status[pCd->Read_ctr] != 0) {
+            do {
+                if (++pCd->Read_ctr >= CD_RING_BUFFERS) {
+                    pCd->Read_ctr = 0;
+                }
+                if (pCd->Ring_status[pCd->Read_ctr] == 0) {
+                    goto set;
+                }
+            } while (pCd->Read_ctr != pCd->Write_ctr);
+            pCd->Unk8C0 = 2;
+            return;
+        }
+        pCd->First_flg = 0;
+    set:
+        pCd->Unk8C0 = 1;
+        Cd_set_read_pos(Size);
+        if (pCd->Unk85F != 0) {
+            pCd->Fsize_now = (pCd->pEntry2->Size + 0x7FF) & ~0x7FF;
+            pCd->Fsize_read = (pCd->Fsize - (pCd->pEntry2->Size + 0x7FF)) & ~0x7FF;
+            pCd->Fsector_num = pCd->Fsize_now >> 11;
+            pCd->Fsector_read = pCd->Fsize_read >> 11;
+        }
+        if (pCd->Limit_break++ >= 4) {
+            pCd->Unk8C0++;
+        }
+        goto next;
+    match:
+        if (pCd->Fsize_now == 0) {
+            pCd->Unk8C0 = 0xFF;
+            return;
+        }
+        pCd->pEntry2++;
+        pCd->Limit_break = 0;
+        pCd->Entry_no++;
+        if ((pCd->Unk8C8 & 3) != 3) {
+            if (G.Em_num == 0 && !(G.pUnk2660->Be_flg & 1)) {
+                pCd->Fsize_now = 0;
+                pCd->Fsector_num = 0;
+                pCd->Unk8C0 = 0xFF;
+                return;
+            }
+            func_800139D8();
+            goto next;
+        err:
+            pCd->Unk8C0 = 2;
+            pCd->Cd_rtn_no = 4;
+            return;
+        }
+        if (pCd->pEntry2->Unk5 != 2) {
+            func_80014968(pCd);
+        }
+    next:
+        pCd->Unk8B0 = pCd->pEntry2->Size;
+        pCd->Sum = 0;
+    }
+end:
+    if (intr == DslDiskError) {
+        pCd->Unk8C0 = 2;
+        pCd->Cd_rtn_no = 2;
+    }
+}
 
 void func_8001480C(tagCD *pCd)
 {
@@ -545,9 +1265,165 @@ void func_8001480C(tagCD *pCd)
     Cd_set_read_pos(Size);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_80014968);
+/* picks the next enemy sound bank to stream (Unk8C8 holds 3 state bits per CD.Em_id slot) */
+void func_80014968(tagCD *pCd)
+{
+    CD_ENTRY *pEnt;
+    ULONG Size;
+    ULONG n;
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_80014D10);
+    pEnt = CD_DIR;
+    n = 0;
+    pCd->Unk8D5 = 0;
+    while (((pCd->Unk8C8 >> (pCd->Unk8D5 * 3)) & 0x1C) == 0x1C) {
+        pCd->Unk8D5++;
+    }
+    if (pCd->Em_id[pCd->Unk8D5] >= 0x50) {
+        pCd->Unk8C8 |= 4 << (pCd->Unk8D5 * 3);
+    }
+    switch ((pCd->Unk8C8 >> (pCd->Unk8D5 * 3)) & 0x1C) {
+    case 0:
+        Size = 0x800;
+        for (; pEnt[1].Size != 0; pEnt++, n++) {
+            if (!(pEnt->Id & 0x80) && pEnt->Type != 3 && pEnt->Id == pCd->Em_id[pCd->Unk8D5]) {
+                break;
+            }
+            Size += (pEnt->Size + 0x7FF) & ~0x7FF;
+        }
+        if (pCd->Unk8D5 != 0) {
+            n++;
+            Size += (pEnt->Size + 0x7FF) & ~0x7FF;
+            G.Unk4326 = 1;
+        } else {
+            G.Unk4322 = 1;
+        }
+        pCd->Unk8C8 |= 4 << (pCd->Unk8D5 * 3);
+        Cd_set_read_pos(Size);
+        pCd->Entry_no = n;
+        pCd->Unk8C0 = 1;
+        break;
+    case 4:
+        pCd->Unk8C8 |= 8 << (pCd->Unk8D5 * 3);
+        if (G.Unk4322 == 0 && pCd->Em_id[pCd->Unk8D5] < 0x50) {
+            return;
+        }
+        Size = 0x800;
+        for (; pEnt[1].Size != 0; pEnt++, n++) {
+            if (!(pEnt->Id & 0x80) && pEnt->Type != 3 && pEnt->Id == pCd->Em_id[pCd->Unk8D5]) {
+                break;
+            }
+            Size += (pEnt->Size + 0x7FF) & ~0x7FF;
+        }
+        if (pCd->Em_id[pCd->Unk8D5] < 0x50) {
+            n += 2;
+            Size += (pEnt[0].Size + 0x7FF) & ~0x7FF;
+            Size += (pEnt[1].Size + 0x7FF) & ~0x7FF;
+        }
+        Cd_set_read_pos(Size);
+        pCd->Entry_no = n;
+        pCd->Unk8C0 = 1;
+        break;
+    case 0xC:
+        pCd->Unk8C8 |= 0x10 << (pCd->Unk8D5 * 3);
+        if (pCd->Em_id[pCd->Unk8D5 + 1] == 0xFF || pCd->Unk8D5 == 3) {
+            pCd->Fsize_now = (pCd->pEntry2->Size + 0x7FF) & ~0x7FF;
+            pCd->Fsize_read = (pCd->Fsize - (pCd->pEntry2->Size + 0x7FF)) & ~0x7FF;
+            pCd->Unk85F = 1;
+            pCd->Fsector_num = pCd->Fsize_now >> 11;
+            pCd->Fsector_read = pCd->Fsize_read >> 11;
+            pCd->Unk8B8 += ((pCd->pEntry2->Size + 0x7FF) & ~0x7FF) >> 11;
+        }
+        break;
+    }
+}
+
+/* ENEMY_WORK fields not in em_sub.h yet */
+typedef struct {
+    UCHAR pad0[0x11C];
+    ULONG *pUnk11C;                    /* 0x11C */
+    UCHAR pad120[0x174 - 0x120];
+    ULONG Unk174;                      /* 0x174 */
+    UCHAR pad178[0x1B4 - 0x178];
+    ULONG Unk1B4;                      /* 0x1B4 */
+} EM_CD;
+#define EM_CD(p) ((EM_CD *)(p))
+void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData);
+void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pData);
+
+/* enemies of the same kind share the model data of the first one (CD.Em_id[0], then Em_id[1]) */
+void func_80014D10(void)
+{
+    G_EMTBL *pG = (G_EMTBL *)&G;
+    tagCD *pCd = &CD;
+    ENEMY_WORK *pSrc;
+    ENEMY_WORK *pEm;
+    ULONG Work;
+    UCHAR Second;
+    UCHAR i;
+
+    i = 2;
+    if (pCd->Em_id[0] >= 0x50) {
+        return;
+    }
+    for (; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
+        if (pG->pEm_tbl[i]->Id == pCd->Em_id[0]) {
+            pSrc = pG->pEm_tbl[i];
+            i++;
+            break;
+        }
+    }
+    Second = pCd->Em_id[1] >= 0x50;
+    if (&pG->pEm_tbl[i] == pG->ppEnemy_end && Second) {
+        if (*EM_CD(pSrc)->pUnk11C != 0) {
+            func_8007A2D4(pSrc, EM_CD(pSrc)->pUnk11C);
+        }
+        return;
+    }
+    Work = pCd->Unk8CC;
+copy:
+    for (; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
+        pEm = pG->pEm_tbl[i];
+        if (pEm->Id == pSrc->Id) {
+            pEm->pUnk10C = pEm->pKan_t_ptr = pSrc->pKan_t_ptr;
+            pEm->pSeq_t_ptr = pSrc->pSeq_t_ptr;
+            pEm->pTmd = pSrc->pTmd;
+            EM_CD(pEm)->Unk174 = EM_CD(pSrc)->Unk174;
+            pEm->pSub0_kan_t_ptr = pSrc->pSub0_kan_t_ptr;
+            pEm->pSub0_seq_t_ptr = pSrc->pSub0_seq_t_ptr;
+            pEm->pSub1_kan_t_ptr = pSrc->pSub1_kan_t_ptr;
+            pEm->pSub1_seq_t_ptr = pSrc->pSub1_seq_t_ptr;
+            pEm->pUnk118 = pSrc->pUnk118;
+            EM_CD(pEm)->pUnk11C = EM_CD(pSrc)->pUnk11C;
+            pEm->Tpage = pSrc->Tpage;
+            pEm->Clut = pSrc->Clut;
+            EM_CD(pEm)->Unk1B4 = EM_CD(Sce.pUnk1460)->Unk1B4;
+            pEm->Unk180[0] = Sce.pUnk1460->Unk180[0];
+            pEm->Unk180[1] = Sce.pUnk1460->Unk180[1];
+            pEm->Unk180[2] = Sce.pUnk1460->Unk180[2];
+            pEm->Unk180[3] = Sce.pUnk1460->Unk180[3];
+            Work = PartsWork_set(pEm, Work);
+            Work = func_800261AC(pEm, Work, pEm->pUnk10C);
+            Sa_dat_set(pEm, pEm->pUnk118);
+        }
+    }
+    if (!Second) {
+        for (i = 2; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
+            if (pG->pEm_tbl[i]->Id == pCd->Em_id[1]) {
+                pSrc = pG->pEm_tbl[i];
+                break;
+            }
+        }
+        i++;
+        Second = 1;
+        goto copy;
+    }
+    for (i = 2; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
+        if ((pG->pEm_tbl[i]->Be_flg & 1) && *EM_CD(pG->pEm_tbl[i])->pUnk11C != 0) {
+            func_8007A2D4(pG->pEm_tbl[i], EM_CD(pG->pEm_tbl[i])->pUnk11C);
+        }
+    }
+    pCd->Unk8CC = Work;
+}
 
 void Cd_set_read_pos(ULONG size)
 {
@@ -560,7 +1436,41 @@ void Cd_set_read_pos(ULONG size)
     pCd->Fsector_num = (pCd->Fsize_now + 0x7FF) >> 11;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_800150E4);
+/* collects the distinct enemy kinds of the room in CD.Em_id[], sorted ascending, 0xFF = unused */
+void func_800150E4(void)
+{
+    G_EMTBL *pG = (G_EMTBL *)&G;
+    tagCD *pCd = &CD;
+    UCHAR i, j, n;
+
+    for (j = 0; j < 4; j++) {
+        pCd->Em_id[j] = 0xFF;
+    }
+    i = 1;
+    n = 0;
+    for (; pG->ppEnemy_end != &pG->pEm_tbl[i]; i++) {
+        if (pG->pEm_tbl[i]->Id != 0 && pCd->Em_id[n] == 0xFF) {
+            for (j = 0; j < n; j++) {
+                if (pCd->Em_id[j] == pG->pEm_tbl[i]->Id) {
+                    break;
+                }
+            }
+            if (n == j) {
+                pCd->Em_id[n] = pG->pEm_tbl[i]->Id;
+                n++;
+            }
+        }
+    }
+    for (j = 0; j < 3; j++) {
+        for (n = j + 1; n < 4; n++) {
+            if (pCd->Em_id[j] > pCd->Em_id[n]) {
+                i = pCd->Em_id[j];
+                pCd->Em_id[j] = pCd->Em_id[n];
+                pCd->Em_id[n] = i;
+            }
+        }
+    }
+}
 
 void Set_volume(ULONG vol)
 {

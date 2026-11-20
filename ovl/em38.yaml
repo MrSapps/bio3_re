@@ -1,0 +1,50 @@
+name: em38_1.bin
+sha1: 73e685cc1e1ffba02c10d6f06b0da78d5b6d3631
+options:
+  basename: em38
+  target_path: iso/EM/em38_1.bin
+  elf_path: build/ovl/em38.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em38.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em38.syms.txt
+  undefined_funcs_auto_path: ovl/em38.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em38.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em38
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em38/header]
+      - [0x4, .rodata, ovl/em38/em38]
+      - [0x154, c, ovl/em38/em38]
+      - [0xca0c, data, ovl/em38/data]
+      - [0xcff8, bin, ovl/em38/tail]
+  - [0xcff9]

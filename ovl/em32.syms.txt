@@ -1,0 +1,1 @@
+// em32.BIN symbols (loaded at 0x80100000)

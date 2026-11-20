@@ -630,7 +630,78 @@ ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top)
     return work_top + pEm->Parts_num * sizeof(PARTS_W);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/joint", func_800261AC);
+ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
+{
+    LONG Unused[28];
+    ULONG Link_cnt;
+    ULONG Part_no;
+    PARTS_W *pTop;
+    PARTS_W *pCur;
+    UCHAR *pLink_top;
+    UCHAR *pChild;
+    ULONG *pTmd_cur;
+    ULONG *pLink;
+    ULONG n;
+    ULONG Cnt;
+    SHORT *pPos;
+
+    Part_no = 0;
+    pPos = (SHORT *)pKan + 4;
+    n = pEm->Parts_num;
+    pCur = pEm->pSin_parts_ptr;
+    pTmd_cur = pEm->pTmd;
+    pLink_top = (UCHAR *)pKan + (*(USHORT *)pKan & 0xFFFC);
+    pLink = (ULONG *)pLink_top;
+    Link_cnt = ((USHORT *)pKan)[2];
+    pTop = pCur;
+    pCur->pSuper = (MATRIX *)pEm->Workm_m;
+    pCur->pOya_parts = (PARTS_W *)pEm;
+    while (n-- != 0) {
+        Copy_matrix(&GsIDMATRIX, &pCur->Workm);
+        Copy_rot_matrix(&GsIDMATRIX, (MATRIX *)pCur->M);
+        pCur->Poly_rgb = 0x808080;
+        pCur->Attribute = 0;
+        *(ULONG *)&pCur->Cdir_x = 0;
+        pCur->Cdir_z = 0;
+        PW_FREE(pCur)[0] = 0;
+        PW_FREE(pCur)[1] = 0;
+        PW_FREE(pCur)[2] = 0;
+        PW_FREE(pCur)[3] = 0;
+        PW_FREE(pCur)[4] = 0;
+        PW_FREE(pCur)[5] = 0;
+        pCur->Be_flg = 1;
+        *(SHORT *)&pCur->Workm.t[0] = 0;
+        pCur->Unk84 = Part_no;
+        pCur->UnkA2 = 0xB;
+        pCur->pTmd = pTmd_cur;
+        if ((USHORT)pTmd_cur[2] < 4) {
+            pCur->UnkA2 = 0;
+            pTmd_cur[2] = 0;
+        }
+        pCur->Old_x = pCur->Pos_x = pPos[0];
+        pCur->Old_y = pCur->Pos_y = pPos[1];
+        pCur->Old_z = pCur->Pos_z = pPos[2];
+        pPos += 3;
+        if (Link_cnt != 0) {
+            pChild = pLink_top + (*pLink >> 16);
+            Cnt = *pLink & 0xFFFF;
+            while (Cnt-- != 0) {
+                pTop[*pChild].pSuper = &pCur->Workm;
+                pTop[*pChild].pOya_parts = pCur;
+                pChild++;
+            }
+            pLink++;
+            Link_cnt--;
+        } else {
+            pCur->pSuper = &GsIDMATRIX;
+            pCur->pOya_parts = NULL;
+        }
+        pCur++;
+        pTmd_cur += 6;
+        Part_no++;
+    }
+    return work_top;
+}
 
 void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan)
 {
@@ -968,7 +1039,63 @@ ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/joint", func_80027568);
+LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3); /* RE2 Sca_get_ground */
+void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4); /* RE2 Esp_call */
+
+void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
+{
+    MATRIX M;
+    SVECTOR Sv;
+    VECTOR Pos;
+    LONG Floor_y;
+
+    if (pP_ptr->Unk96 == 0) {
+        Sv.vy = pP_ptr->Old_x;
+        Sv.vz = 0;
+        Sv.vx = 0;
+        RotMatrix(&Sv, &M);
+        Sv.vx = pP_ptr->Old_z;
+        Sv.vy = pP_ptr->Old_y;
+        ApplyMatrixSV(&M, &Sv, (SVECTOR *)&pP_ptr->Old_x);
+        pP_ptr->Unk96 = 3;
+        pP_ptr->Unk86 = 0xF;
+    }
+    if (pP_ptr->Unk96 > 1) {
+        Pos = *(VECTOR *)pP_ptr->Workm.t;
+        Floor_y = func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1);
+        wm->t[0] += pP_ptr->Old_x;
+        pP_ptr->Old_y += (signed char)pP_ptr->Unk85;
+        wm->t[1] += pP_ptr->Old_y;
+        wm->t[2] += pP_ptr->Old_z;
+        if (func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1) < Floor_y) {
+            *(VECTOR *)pP_ptr->Workm.t = Pos;
+            pP_ptr->Old_x >>= 2;
+            pP_ptr->Old_z >>= 2;
+            pP_ptr->Old_x *= -1;
+            pP_ptr->Old_z *= -1;
+        }
+        if (Floor_y < wm->t[1]) {
+            pP_ptr->Unk96--;
+            wm->t[1] -= pP_ptr->Old_y;
+            pP_ptr->Old_y = (SHORT)(pP_ptr->Old_y * -1) >> 2;
+            pP_ptr->Old_x >>= 2;
+            pP_ptr->Old_z >>= 2;
+            func_8001B484(0x1900, 0x7D00000 | (USHORT)(func_800102E8() << 4), &pP_ptr->Workm, NULL, 0);
+            if (pP_ptr->Unk96 == 1) {
+                pP_ptr->Be_flg &= ~1;
+                func_8001B894(0xFF05, &pP_ptr->Workm);
+            }
+        }
+    }
+    if (pP_ptr->Unk90 != 0xFF && pP_ptr->Unk86 >= 0) {
+        Sv.vx = pP_ptr->Unk90;
+        Sv.vy = pP_ptr->Unk92;
+        Sv.vz = pP_ptr->Unk8E;
+        RotMatrix(&Sv, &M);
+        func_80026728_(&pP_ptr->Workm, &M, &pP_ptr->Workm, 0x1000 - pP_ptr->Unk86 * 0x100);
+        pP_ptr->Unk86--;
+    }
+}
 
 void func_8002783C(PARTS_W *pP_ptr)
 {

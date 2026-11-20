@@ -1,0 +1,48 @@
+name: em40_1.bin
+sha1: e6f671d4e1b108ee813993cc9a9dc2e2fe02dc0f
+options:
+  basename: em40
+  target_path: iso/EM/em40_1.bin
+  elf_path: build/ovl/em40.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em40.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em40.syms.txt
+  undefined_funcs_auto_path: ovl/em40.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em40.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em40
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em40/header]
+      - [0x4, c, ovl/em40/em40]
+      - [0xd4, data, ovl/em40/data]
+  - [0xe8]

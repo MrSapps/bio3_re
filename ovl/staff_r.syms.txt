@@ -1,0 +1,1 @@
+// STAFF_R.BIN symbols (loaded at 0x801c2000)

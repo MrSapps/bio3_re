@@ -1,0 +1,49 @@
+name: em3e_1.bin
+sha1: b996cb7e22084c2e217fb33a8d454cd67f3cc2ae
+options:
+  basename: em3e
+  target_path: iso/EM/em3e_1.bin
+  elf_path: build/ovl/em3e.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em3e.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em3e.syms.txt
+  undefined_funcs_auto_path: ovl/em3e.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em3e.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em3e
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em3e/header]
+      - [0x4, .rodata, ovl/em3e/em3e]
+      - [0x20, c, ovl/em3e/em3e]
+      - [0x1754, data, ovl/em3e/data]
+  - [0x1808]

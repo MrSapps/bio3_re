@@ -59,5 +59,6 @@ typedef struct tagMD_HEAD {
 void Md_adr_cnv(MD_HEAD *pMd);      /* relocate MD_OBJ offsets */
 ULONG func_8002AB34(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
 void Md_set_abr(MD_OBJ *pObj, ULONG Abr);           /* set semi-trans rate of all prims */
+ULONG Flg_ck(ULONG *pFlg, ULONG Id);                 /* bit Id of a flag array */
 
 #endif /* SUB_H */

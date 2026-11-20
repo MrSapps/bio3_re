@@ -301,6 +301,11 @@ void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
 void func_80068024(ST_WORK *pSt);
 void func_8006CD68(UCHAR no);
 LONG func_800759D8(LONG x);
+LONG func_80075A80(LONG x, LONG frac);
+LONG func_800770DC_l(LONG lo, ULONG hi) __asm__("func_800770DC");
+ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones);
+void func_800762C8(UCHAR *pSeq, UCHAR *pTr, ULONG mask);
+void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan);
 void func_8007836C(LONG no, ULONG *pAdr);
 extern UCHAR D_800A0FE4[];
 extern UCHAR D_800A0FDC[];
@@ -417,7 +422,7 @@ void Snd_work_init(void)
         pW->Seq[i].Unk54 = 0;
         pW->Seq[i].Unk38 = 0;
         for (j = 0; j < 16; j++) {
-            pW->Seq[i].Trk[j].Unk0 = 0;
+            pW->Seq[i].Trk[j].Mask = 0;
         }
     }
     for (i = 0; i < 24; i++) {
@@ -427,13 +432,13 @@ void Snd_work_init(void)
         pW->Req[i].Unk18 = 0;
         pW->Req[i].Unk1A = 0;
     }
-    FLD(pW, 0xB38, LONG) = 1;
-    FLD(pW, 0xB1C, LONG) = 0;
-    FLD(pW, 0xB20, LONG) = 0;
-    FLD(pW, 0xB24, LONG) = 0;
-    FLD(pW, 0xB78, UCHAR) = 0;
+    pW->UnkB38 = 1;
+    pW->UnkB1C = 0;
+    pW->UnkB20 = 0;
+    pW->UnkB24 = 0;
+    pW->UnkB78 = 0;
     pW->UnkB76 = 0;
-    FLD(pW, 0xB77, UCHAR) = 0;
+    pW->UnkB77 = 0;
     pW->pReq = pW->Req;
 }
 
@@ -726,9 +731,173 @@ void func_800762C8(UCHAR *pSeq, UCHAR *pTr, ULONG mask)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_8007638C);
+/* sequencer note on: keys a voice for every tone of the program that covers the note */
+void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
+{
+    struct {
+        ULONG voice;
+        ULONG mask;
+        SpuVolume volume;              /* 0x08 the only part Snd_pan_vol writes */
+        UCHAR padC[0x20 - 0xC];
+    } Attr;
+    SND_WORK *pW;
+    VabHdr *pVh;
+    VagAtr *pVag;
+    SND_VOICE *pV;
+    ULONG mask;
+    LONG Vel;
+    LONG Pan;
+    LONG v;
+    USHORT Vol;
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_8007688C);
+    pTr->Note = *pSeq->pData;
+    Vel = *++pSeq->pData;
+    pSeq->pData++;
+    pW = &Snd_work;
+    pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
+    pTr->UnkB = pW->Unk7CA * pVh->mvol / 127;
+    pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
+    pTr->UnkB = pTr->UnkB * pW->Unk7C4 / 127;
+    pTr->UnkB = pTr->UnkB * Vel / 127;
+    pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
+    Vol = pTr->Vol2;
+    mask = Snd_tone_mask((VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3], pTr,
+                         ((ProgAtr *)pVh + pTr->Prog + 2)->tones);
+    if (Vel != 0) {
+        Pan = pTr->Pan + pTr->Pan2 - 0x40;
+        pTr->UnkD = 0;
+        while (mask != 0) {
+            if (mask & 1) {
+                pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3] + pTr->UnkD;
+                Snd_pan_vol((SpuVoiceAttr *)&Attr, pTr->UnkB * pVag->vol / 127, Pan + (pVag->pan - 0x40));
+                Attr.volume.right = (Attr.volume.right * Attr.volume.right * 133135) >> 17;
+                Attr.volume.left = (Attr.volume.left * Attr.volume.left * 133135) >> 17;
+                if (pSeq->Unk38 != 0) {
+                    Attr.volume.right = Attr.volume.right * pSeq->Unk3C / 0x3FFF;
+                    Attr.volume.left = Attr.volume.left * pSeq->Unk3C / 0x3FFF;
+                }
+                if (Attr.volume.right | Attr.volume.left) {
+                    v = func_800770DC_l(8, 24);
+                    if (v != 0xFF) {
+                        pV = &pW->Voice[v];
+                        pV->Unk1D = 1;
+                        pV->Unk17 = pTr->Prog;
+                        pV->Unk18 = pTr->UnkD;
+                        pV->Unk19 = pTr->Note;
+                        pV->Unk14 = pTr->Bend;
+                        pV->Unk1B = pTr->Bank;
+                        pV->Unk12 = pTr->UnkE;
+                        pV->Unk1C = pSeq->No;
+                        pV->Unk4 = 0;
+                        if (pW->UnkB75) {
+                            if (Attr.volume.left > Attr.volume.right) {
+                                Attr.volume.right = Attr.volume.left;
+                            } else {
+                                Attr.volume.left = Attr.volume.right;
+                            }
+                        }
+                        pV->UnkA = pV->UnkC = Attr.volume.right;
+                        pV->Unk16 = Pan;
+                        pV->Unk8 = pV->UnkE = Attr.volume.left;
+                        pV->pVag = (UCHAR *)pVag;
+                        pV->Unk10 = Vol;
+                        if (pVag->mode) {
+                            pW->UnkB30 |= 1 << v;
+                        } else {
+                            pW->UnkB34 |= 1 << v;
+                        }
+                        pW->UnkB28 |= 1 << v;
+                        pW->UnkB2C |= 1 << v;
+                        pTr->Mask |= 1 << v;
+                    }
+                }
+            }
+            mask >>= 1;
+            pTr->UnkD++;
+        }
+    } else {
+        func_800762C8((UCHAR *)pSeq, (UCHAR *)pTr, mask);
+    }
+    pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
+}
+
+/* sequencer control change */
+void func_8007688C(SND_SEQ *pSeq, SND_TRACK *pTr)
+{
+    UCHAR *p = pSeq->pData;
+    SND_VOICE *pV;
+    signed char i;
+
+    switch (*p) {
+    case 0:
+        pSeq->pData = p + 1;
+        pTr->Bank = p[1];
+        pSeq->pData++;
+        break;
+    case 6:
+        pSeq->pData = p + 1;
+        if (pSeq->Nrpn == 0x14) {
+            pSeq->Loop_mode = 1;
+            pSeq->Loop_cnt = *pSeq->pData;
+        }
+        pSeq->pData++;
+        break;
+    case 7:
+        pSeq->pData = p + 1;
+        pTr->Vol2 = p[1];
+        for (i = 8; i < 24 && pTr->Mask != 0; i++) {
+            if (!(pTr->Mask & (1 << i))) {
+                continue;
+            }
+            pV = &Snd_work.Voice[i];
+            if (pV->Unk1D == 0 || pV->Unk4 == 0) {
+                continue;
+            }
+            if (pV->Unk10 != 0) {
+                pV->UnkA = pV->UnkA * pTr->Vol2 / pV->Unk10;
+                pV->Unk8 = pV->Unk8 * pTr->Vol2 / pV->Unk10;
+                if (Snd_work.UnkB75) {
+                    if (pV->UnkA < pV->Unk8) {
+                        pV->UnkA = pV->Unk8;
+                    } else {
+                        pV->Unk8 = pV->UnkA;
+                    }
+                }
+                pV->UnkC = pV->UnkA;
+                pV->UnkE = pV->Unk8;
+                pV->Unk10 = pTr->Vol2;
+                SpuSetVoiceVolume(i, pV->UnkA, pV->Unk8);
+            } else {
+                SpuSetVoiceVolume(i, 0, 0);
+            }
+        }
+        pSeq->pData++;
+        break;
+    case 10:
+        pSeq->pData = p + 1;
+        pTr->Pan = p[1];
+        pSeq->pData++;
+        break;
+    case 99:
+        pSeq->pData = p + 1;
+        pSeq->Nrpn = p[1];
+        pSeq->pData++;
+        if (pSeq->Nrpn == 0x1E) {
+            pSeq->Loop_mode = 2;
+        }
+        break;
+    case 11:
+    case 64:
+    case 91:
+    case 98:
+    case 100:
+    case 101:
+    case 121:
+        pSeq->pData += 2;
+        break;
+    }
+    pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
+}
 
 void func_80076BAC(UCHAR *pSeq, UCHAR *pTr)
 {
@@ -749,7 +918,48 @@ void func_80076BAC(UCHAR *pSeq, UCHAR *pTr)
 
 INCLUDE_ASM("asm/nonmatchings/game/snd", func_80076C64);
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_80076E7C);
+/* sequencer meta event: 0x51 set tempo, 0x2F end of track */
+void func_80076E7C(SND_SEQ *pSeq)
+{
+    SND_WORK *pW = &Snd_work;
+    ULONG Tempo;
+    signed char i;
+    LONG Unused[6];
+
+    if (pSeq->Status != 0xF) {
+        return;
+    }
+    if (*pSeq->pData == 0x51) {
+        Tempo = 0;
+        i = 1;
+        do {
+            Tempo |= *++pSeq->pData << ((3 - i) * 8);
+        } while (i++ < 3);
+        pSeq->Tempo_cnt = pSeq->Tempo = Tempo * 1000 / pSeq->Resolution;
+        pSeq->pData++;
+        pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
+    } else if (*pSeq->pData == 0x2F && pSeq->pData[1] == 0) {
+        if (pSeq->Unk18 == 0) {
+            if (pSeq->Loop_mode == 2) {
+                if (pSeq->Loop_cnt == 0x7F || --pSeq->Loop_cnt != 0) {
+                    pSeq->pData = pSeq->pLoop;
+                }
+                pSeq->Loop_mode = 0;
+            } else {
+                pSeq->Unk2C = 0;
+                pW->UnkB74 &= ~(1 << pSeq->No);
+                pW->UnkB76 &= ~(1 << pSeq->No);
+            }
+        } else {
+            pSeq->pData = pSeq->pTop;
+        }
+        if (pSeq->Unk2C == 0) {
+            pSeq->Delta = 1;
+        } else {
+            pSeq->Delta = 0;
+        }
+    }
+}
 
 void func_80077030(LONG *p)
 {
@@ -1112,7 +1322,7 @@ void func_80078204(void)
         return;
     }
     *(LONG **)&D_800BA6E8 = p;
-    FLD(pW, 0xB78, UCHAR) = ((FC_ROOM *)G.pRoom)->Unk6 * 4;
+    pW->UnkB78 = ((FC_ROOM *)G.pRoom)->Unk6 * 4;
     while (*p != -1) {
         p++;
     }
@@ -1124,9 +1334,42 @@ void func_80078204(void)
     func_800783BC(2, p[0x30], 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_800782F4);
+/* registers a sequence pack (and its VAB) loaded for enemy slot no */
+void func_800782F4(ULONG no, ULONG id, ULONG *pAdr)
+{
+    SND_WORK *pW = &Snd_work;
+    ULONG *p = pAdr;
+    ULONG bank = no + 5;
+    VabHdr *pVh;
+    ProgAtr *pPa;
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_8007836C);
+    pW->Seq_data[no].Id = id;
+    pW->Seq_data[no].Unk1 = 0;
+    pW->Seq_data[no].pData = pAdr;
+    if (no != 0) {
+        pAdr = (ULONG *)((UCHAR *)pAdr + *pAdr);
+        pW->Seq_data[no + 1].Id = id;
+        pW->Seq_data[no + 1].Unk1 = 0;
+        p = pAdr;
+        pW->Seq_data[no + 1].pData = pAdr;
+    }
+    pW->Bank[bank].pHead = (ULONG *)(pVh = (VabHdr *)((UCHAR *)pAdr + *p));
+    pPa = (ProgAtr *)(pVh + 1);
+    pW->Bank[bank].Unk4 = (ULONG *)(pPa + pVh->ps);
+}
+
+/* registers the VAB of bank no, D_800A0FE4[no] words into the file at pAdr */
+void func_8007836C(LONG no, ULONG *pAdr)
+{
+    SND_WORK *pW = &Snd_work;
+    VabHdr *pVh;
+    ProgAtr *pPa;
+
+    pW->pAdr[no] = pAdr;
+    pW->Bank[no].pHead = (ULONG *)(pVh = (VabHdr *)(pAdr + D_800A0FE4[no]));
+    pPa = (ProgAtr *)(pVh + 1);
+    pW->Bank[no].Unk4 = (ULONG *)(pPa + pVh->ps);
+}
 
 void func_800783BC(ULONG no, ULONG size)
 {

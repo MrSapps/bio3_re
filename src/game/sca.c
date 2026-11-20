@@ -1,93 +1,48 @@
-/* ---- from 800402F4.c ---- */
-#include "pl_wep.h"
+/*
+ * SCA.C (RE2 name): room collision against the SCA shapes of the room and
+ * the collision object list of oba.c. RE3 shapes are two corners (see sca.h);
+ * shapes with Type & 0x1000 are rotated by 45 degrees (181 / 256 = cos 45).
+ */
+#include "em_sub.h"
+#include "main.h"
 #include "sca.h"
-#include "monitor.h"
-#include "pl_wep2.h"
-#include "pad.h"
+#include "oba.h"
 
-/* RE2 Esp_call-like effect spawn; returns the effect work or -1 */
-typedef struct {
-    UCHAR pad0[0x10];
-    SHORT Unk10;                       /* 0x10 */
-    SHORT Unk12;                       /* 0x12 */
-    SHORT Unk14;                       /* 0x14 */
-} ESP_WORK;
-ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv);
-SHORT func_8006D030(ULONG Arg0);
-void func_80044804(MATRIX *pM, ULONG Arg1, ULONG Type);
-void func_80047860(MATRIX *pM, ULONG Arg1, ULONG Type);
-extern ULONG D_8009DBB4[];
-ULONG func_800102E8(void);                 /* rand */
-SHORT Get_dir_xz(LONG X, LONG Z);
-LONG func_800455B4();
-LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);
+void func_80034E78(COL_OBJ *pObj, SCA_DATA *pT);  /* oba.c: shape of an object as SCA_DATA */
+extern LONG (*D_8009E088[])(ULONG P0, ULONG P1, SCA_DATA *pT); /* line test per shape (Id & 0xF) */
+LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
+LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
 
-extern UCHAR D_8009CD3D;
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
-signed char func_8006CF0C_r(ULONG Arg0) __asm__("func_8006CF0C");
-void Pl_water(ENEMY_WORK *pEm);
+/* SCA hit work shared with sabun.c / oba.c (0x800DEB58) */
+typedef struct tagSCA_WORK {
+    ULONG Pt0;                         /* 0x00 line end points, (x << 16) | (z & 0xFFFF) */
+    ULONG Pt1;                         /* 0x04 */
+    SHORT Unk8;                        /* 0x08 (func_8004B7E8) */
+    SHORT padA;
+    LONG X;                            /* 0x0C position rotated into a 45 degree shape's frame */
+    LONG Z;                            /* 0x10 */
+    LONG Old_x;                        /* 0x14 */
+    LONG Old_z;                        /* 0x18 */
+    UCHAR pad1C[0x28 - 0x1C];
+    ENEMY_WORK *pEm_hit;               /* 0x28 character hit by Sca_ck_line-like scans (func_8004ED4C) */
+    ENEMY_WORK *pEm_hit2;              /* 0x2C same, for objects of type >= 3 */
+} SCA_WORK;
+extern SCA_WORK D_800DEB58;
+extern SCA_DATA D_800DEB48;            /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
 
-/* declarations from earlier parts of the original address-split file */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
-void func_8006CF0C(ULONG Arg0);
-void Mag_set(PLAYER_WORK *pEm);
+ULONG func_8004B874(COL_OBJ *pObj, LONG R, ULONG Arg2);
+ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
+ULONG func_8004C960(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
+ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
+ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT);
 
-void Pl_wep_flag_set(PLAYER_WORK *pEm);
+/* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
+#define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
 
-#define RND() ((signed char)func_800102E8())
 
-extern PARTS_W *D_8009CD30;
-extern USHORT D_8009DCB4[];
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
-
-typedef struct {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
-
-extern ENEMY_WORK Pl_work;
-extern UCHAR D_8009DDC4[][2];
-extern UCHAR D_8009DE10;
-extern UCHAR D_8009DE24;
-
-extern UCHAR D_8009DE24;
-extern USHORT D_8009DE26;
-extern signed char D_8009DE28;
-
-extern LONG D_800D204C[];
-
-typedef struct {
-    ULONG Tag;                         /* 0x00 */
-    ULONG Tpage;                       /* 0x04 */
-    ULONG pad8;
-    ULONG Code;                        /* 0x0C */
-    UCHAR pad10[0x1C - 0x10];
-} PRIM_1C;
-typedef struct {
-    UCHAR *p0;                         /* 0x00 */
-    UCHAR *p1;                         /* 0x04 */
-    PRIM_1C *pPrim;                    /* 0x08 */
-    UCHAR padC[0x16 - 0xC];
-    SHORT Unk16;                       /* 0x16 */
-    UCHAR pad18[0x20 - 0x18];
-    UCHAR Unk20;                       /* 0x20 */
-    UCHAR Unk21;                       /* 0x21 */
-} W_DEB18;
-extern W_DEB18 D_800DEB18;
-void func_80010150(void *p, ULONG Size);
-void func_80048FF4(void);
-
-ULONG func_800102E8(void);
-extern USHORT **D_800CC86C;
-
-extern SHORT D_800DEB60;
+LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);  /* do segments P0-P1 and P2-P3 cross (GTE nclip) */
 
 void func_8004B7E8(ENEMY_WORK *pEm, LONG Arg1, LONG Y)
 {
@@ -96,7 +51,7 @@ void func_8004B7E8(ENEMY_WORK *pEm, LONG Arg1, LONG Y)
     if (!(pEm->Be_flg & 0x400)) {
         pEm->Base_pos_y = pEm->Pos_y = pEm->Unk122;
     }
-    if (D_800DEB60 != 0) {
+    if (D_800DEB58.Unk8 != 0) {
         pEm->Pos_y += pEm->Unk1B8;
         if (pEm->Unk122 < pEm->Pos_y) {
             pEm->Pos_y = pEm->Unk122;
@@ -120,11 +75,119 @@ INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C85C);
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C960);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004CC54);
+ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
+{
+    SCA_WORK *pW;
+    LONG Lim;
+    LONG Mx;
+    LONG Mz;
+    LONG X;
+    LONG Z;
+
+    Lim = 400;
+    pW = &D_800DEB58;
+    if (pObj->W0 < 401) {
+        Lim = pObj->W0;
+    }
+    Mz = 0;
+    Mx = Mz;
+    switch (((ULONG)(Dx ^ (pW->X - pW->Old_x)) >> 31) | ((ULONG)(Dz ^ (pW->Z - pW->Old_z)) >> 30 & 2)) {
+    case 1:
+        if (Lim < __builtin_abs(Dx)) {
+            goto both;
+        }
+        Mx = Dx;
+        break;
+    case 2:
+        if (__builtin_abs(Dz) <= Lim) {
+            Mz = Dz;
+            break;
+        }
+    case 3:
+    both:
+        if (__builtin_abs(Dx) < __builtin_abs(Dz)) {
+            if (Lim * 2 < __builtin_abs(Dx)) {
+                goto hit;
+            }
+            Mx = Dx;
+        } else {
+            if (Lim * 2 < __builtin_abs(Dz)) {
+                goto hit;
+            }
+            Mz = Dz;
+        }
+        break;
+    default:
+        if (__builtin_abs(Dx) < __builtin_abs(Dz)) {
+            Mx = Dx;
+        } else {
+            Mz = Dz;
+        }
+        break;
+    hit:
+        pObj->Hit_flg |= 0x100;
+        return 1;
+    }
+    if (pT->Type & 0x1000) {
+        X = (Mx + Mz) * 181 >> 8;
+        Z = (Mz - Mx) * 181 >> 8;
+    } else {
+        X = Mx;
+        Z = Mz;
+    }
+    pObj->Pos_x += X;
+    pObj->Pos_z += Z;
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004CE2C);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D194);
+ULONG func_8004D194(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    ULONG Ret;
+    ULONG Dir;
+    ULONG Type;
+
+    Ret = 0;
+    pW = &D_800DEB58;
+    Dir = (pT->Id >> 4) & 3;
+    Type = pT->Type;
+    if (Type & 0x100) {
+        if (Dir & 2) {
+            pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
+            pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z0;
+            Ret = func_8004B874(pObj, R, Arg3);
+        } else {
+            pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z1;
+            pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z1;
+            Ret = func_8004B874(pObj, R, Arg3);
+        }
+    }
+    if (Type & 0x200) {
+        if (Dir & 1) {
+            pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
+            pW->Pt1 = (pT->X0 << 16) | (USHORT)pT->Z1;
+            Ret |= func_8004B874(pObj, R, Arg3);
+        } else {
+            pW->Pt0 = (pT->X1 << 16) | (USHORT)pT->Z0;
+            pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z1;
+            Ret |= func_8004B874(pObj, R, Arg3);
+        }
+    }
+    if (Type & 0x400) {
+        if (Dir == 0 || Dir == 3) {
+            pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z1;
+            pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z0;
+            Ret |= func_8004B874(pObj, R, Arg3);
+        } else {
+            pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
+            pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z1;
+            Ret |= func_8004B874(pObj, R, Arg3);
+        }
+    }
+    return Ret;
+}
 
 ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT)
 {
@@ -288,7 +351,7 @@ LONG Sca_high_naname_d(SCA_DATA *pT, VECTOR *pPos, LONG High)
 
 
 
-LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High)
+LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High, LONG Unused)
 {
     LONG X;
     LONG Z;
@@ -298,7 +361,7 @@ LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High)
 
     X = pPos->vx;
     Z = pPos->vz;
-    Lo = -(*(signed char *)&pT->Floor * 1800);
+    Lo = -(pT->Floor_lo * 1800);
     Hi = pT->High + 1800;
     Range = Hi - Lo;
     switch ((pT->Id >> 4) & 3) {
@@ -329,7 +392,46 @@ LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High)
     return High;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E230);
+LONG func_8004E230(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+{
+    LONG Dir;
+    LONG Lo;
+    LONG Hi;
+    LONG H;
+
+    Dir = (pT->Id >> 4) & 3;
+    D_800DEB58.Unk8 = 1;
+    if (Flg & 1) {
+        return func_8004E10C(pT, pPos, Flg, High);
+    }
+    if (Flg & 2) {
+        return pT->High;
+    }
+    Hi = pT->High + 1800;
+    Lo = -(pT->Floor_lo * 1800);
+    switch (Dir) {
+    case 0:
+        H = (pT->X0 - pPos->vx) / 540 * 450;
+        break;
+    case 1:
+        H = (pPos->vx - pT->X1) / 540 * 450;
+        break;
+    case 2:
+        H = (pT->Z0 - pPos->vz) / 540 * 450;
+        break;
+    case 3:
+        H = (pPos->vz - pT->Z1) / 540 * 450;
+        break;
+    }
+    H += Lo;
+    if (H < Hi) {
+        H = Hi;
+    }
+    if (Lo < H) {
+        H = Lo;
+    }
+    return H;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E38C);
 
@@ -350,7 +452,7 @@ LONG func_8004E750(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     dx = pPos->vx - (pT->X0 + R);
     dz = pPos->vz - (pT->Z0 + R);
     h = pT->High;
-    Sl = h + *(signed char *)&pT->Floor * 1800;
+    Sl = h + pT->Floor_lo * 1800;
     d = SquareRoot0(dx * dx + dz * dz);
     if (R - d > 0) {
         return (SHORT)h - Sl * d / R;
@@ -455,7 +557,29 @@ LONG func_8004F498(ULONG P0, ULONG P1, SCA_DATA *pT)
     return func_8004EF74(P0, P1, A | Z1, B | Z0) != 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004F5B4);
+LONG func_8004F5B4(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[8];
+    LONG x0, x1, z0, z1, d;
+    ULONG A, B;
+
+    x0 = pT->X0 >> 1;
+    x1 = pT->X1 >> 1;
+    z0 = pT->Z0 >> 1;
+    d = (pT->X1 - pT->X0) >> 2;
+    z1 = pT->Z1 >> 1;
+    if (func_8004EF74(P0, P1, ((x0 + d) << 16) | (z0 & 0xFFFF), ((x0 + d) << 16) | (z1 & 0xFFFF))) {
+        return 1;
+    }
+    A = (x0 << 16) | ((z0 + d) & 0xFFFF);
+    B = (x1 << 16) | ((z1 - d) & 0xFFFF);
+    if (func_8004EF74(P0, P1, A, B)) {
+        return 1;
+    }
+    A &= 0xFFFF;
+    B &= 0xFFFF;
+    return func_8004EF74(P0, P1, A | (x1 << 16), B | (x0 << 16)) != 0;
+}
 
 LONG func_8004F6CC(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
@@ -515,9 +639,161 @@ LONG func_8004F7A8(ULONG P0, ULONG P1, SCA_DATA *pT)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004F928);
+LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+{
+    LONG ax, ay, bx, by;
+    LONG hi, lo, x0, x1;
+    ULONG P0, P1;
+    ULONG A, B;
+    LONG Id;
+    LONG Shape;
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004FBD4);
+    ax = pA->vx;
+    ay = pA->vy;
+    bx = pB->vx;
+    by = pB->vy;
+    hi = pT->High;
+    Id = pT->Id;
+    ax >>= 1;
+    ay >>= 1;
+    bx >>= 1;
+    by >>= 1;
+    hi >>= 1;
+    Shape = Id & 0xF;
+    P0 = (ax << 16) | (ay & 0xFFFF);
+    P1 = (bx << 16) | (by & 0xFFFF);
+    x0 = pT->X0 >> 1;
+    x1 = pT->X1 >> 1;
+    lo = -(pT->Floor_lo * 1800) >> 1;
+    if (Shape >= 9) {
+        hi += 900;
+        if (!(Id & 0x20)) {
+            if (Id & 0x10) {
+                A = (x0 << 16) | (lo & 0xFFFF);
+                B = (x0 << 16) | (hi & 0xFFFF);
+                if (func_8004EF74(P0, P1, A, B)) {
+                    return 1;
+                }
+                A &= 0xFFFF;
+                if (func_8004EF74(P0, P1, A | (x1 << 16), B)) {
+                    return 1;
+                }
+            } else {
+                A = (x1 << 16) | (lo & 0xFFFF);
+                B = (x1 << 16) | (hi & 0xFFFF);
+                if (func_8004EF74(P0, P1, A, B)) {
+                    return 1;
+                }
+                A &= 0xFFFF;
+                if (func_8004EF74(P0, P1, A | (x0 << 16), B)) {
+                    return 1;
+                }
+            }
+            if (func_8004EF74(P0, P1, (x0 << 16) | (lo & 0xFFFF), (x1 << 16) | (lo & 0xFFFF))) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    if (ax < x0 || bx < x0 || x1 < ax || x1 < bx || ay < hi || by < hi || lo < ay || lo < by) {
+        A = (x0 << 16) | (lo & 0xFFFF);
+        B = (x0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF;
+        B &= 0xFFFF;
+        B |= x1 << 16;
+        A |= x1 << 16;
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A = (x0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF0000;
+        B &= 0xFFFF0000;
+        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+    }
+    return 1;
+}
+
+LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+{
+    LONG az, ay, bz, by;
+    LONG hi, lo, z0, z1;
+    ULONG P0, P1;
+    ULONG A, B;
+    LONG Id;
+    LONG Shape;
+
+    az = pA->vz;
+    ay = pA->vy;
+    bz = pB->vz;
+    by = pB->vy;
+    hi = pT->High;
+    Id = pT->Id;
+    az >>= 1;
+    ay >>= 1;
+    bz >>= 1;
+    by >>= 1;
+    hi >>= 1;
+    Shape = Id & 0xF;
+    P0 = (az << 16) | (ay & 0xFFFF);
+    P1 = (bz << 16) | (by & 0xFFFF);
+    z0 = pT->Z0 >> 1;
+    z1 = pT->Z1 >> 1;
+    lo = -(pT->Floor_lo * 1800) >> 1;
+    if (Shape >= 9) {
+        hi += 900;
+        if (Id & 0x20) {
+            if (Id & 0x10) {
+                B = (z0 << 16) | (hi & 0xFFFF);
+                if (func_8004EF74(P0, P1, (z0 << 16) | (lo & 0xFFFF), B)) {
+                    return 1;
+                }
+                if (func_8004EF74(P0, P1, (z1 << 16) | (lo & 0xFFFF), B)) {
+                    return 1;
+                }
+            } else {
+                B = (z1 << 16) | (hi & 0xFFFF);
+                if (func_8004EF74(P0, P1, (z1 << 16) | (lo & 0xFFFF), B)) {
+                    return 1;
+                }
+                if (func_8004EF74(P0, P1, (z0 << 16) | (lo & 0xFFFF), B)) {
+                    return 1;
+                }
+            }
+            if (func_8004EF74(P0, P1, (z0 << 16) | (lo & 0xFFFF), (z1 << 16) | (lo & 0xFFFF))) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    if (az < z0 || bz < z0 || z1 < az || z1 < bz || ay < hi || by < hi || lo < ay || lo < by) {
+        A = (z0 << 16) | (lo & 0xFFFF);
+        B = (z0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF;
+        B &= 0xFFFF;
+        B |= z1 << 16;
+        A |= z1 << 16;
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A = (z0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF0000;
+        B &= 0xFFFF0000;
+        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+    }
+    return 1;
+}
 
 LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
 {
@@ -538,7 +814,7 @@ LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     P1 = (bx << 16) | (by & 0xFFFF);
     x0 = pT->X0 >> 1;
     x1 = pT->X1 >> 1;
-    lo = -(*(signed char *)&pT->Floor * 1800) >> 1;
+    lo = -(pT->Floor_lo * 1800) >> 1;
     hi = pT->High >> 1;
     if (ax < x0 || bx < x0 || x1 < ax || x1 < bx || ay < hi || by < hi || lo < ay || lo < by) {
         A = (x0 << 16) | (lo & 0xFFFF);
@@ -563,196 +839,54 @@ LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     }
     return 1;
 }
-/* ---- from 8005003C.c ---- */
-#include "sce0.h"
-#include "em_sub.h"
-#include "main.h"
-#include "sca.h"
-#include "line_scr.h"
-#include "sub.h"
-#include "player.h"
-#include "om.h"
 
 
+USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT);
 
-extern UCHAR D_800D442C[];
-extern UCHAR D_800E017F[];
-extern ULONG Old_Fatari;               /* 0x800DECB4 RE2 Old_Fatari */
-extern ULONG Old_Uatari;               /* 0x800DECB8 RE2 Old_Uatari */
-extern ULONG *Flg_addr[];              /* 0x8009E3F8 RE2 Flg_addr */
-extern UCHAR D_800DBB58;
-LONG Mess_set(ULONG A0, ULONG Attr, ULONG No, ULONG Flg); /* 0x8002FD30 RE2 Mess_set */
-void Save_entrance();
-void func_80051D60();
-extern UCHAR D_800E01C4[];
-void Item_box_entrance();
-extern UCHAR *pCAot;                    /* 0x800DECB0 RE2 pCAot */
-void func_800511B0();
-extern LONG D_800DEC98;
-LONG func_8006CD68(UCHAR No);
-s8 func_8006CCF0(UCHAR No, ULONG A1, ULONG A2);
-extern UCHAR D_800E017E[];
-void Aida_move();
-s8 Search_item_id(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
-extern UCHAR D_800C703E[];
-extern UCHAR D_800D442E[];
-extern UCHAR D_800E0175[];
-LONG func_80048974();
-LONG Init_movie_work();
-LONG Quake_add();
-LONG Pad_vib_set0_8005003C() __asm__("Pad_vib_set0");
-LONG Pad_vib_set1_8005003C() __asm__("Pad_vib_set1");
-LONG Pad_vib_fade_set_8005003C() __asm__("Pad_vib_fade_set");
-LONG func_8001B894_8005003C() __asm__("func_8001B894");
-void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
-extern UCHAR D_8009E340[];
-extern UCHAR D_800E0170;
-typedef struct {
-    void *pData;                       /* 0x0 */
-    UCHAR pad4;
-    UCHAR Id;                          /* 0x5 */
-    UCHAR pad6[2];
-} SCE_UNK_DECC0;
-extern SCE_UNK_DECC0 D_800DECC0[];
-LONG Xa_play();
-typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
-typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern EM_FUNC D_8009ECDC[];
-extern EM_FUNC D_8009ECF8[];
-extern EM_FUNC3 D_8009ED24[];
-extern EM_FUNC3 D_8009ED84[];
-extern EM_FUNC3 D_8009E7DC[];
-extern EM_FUNC3 D_8009E82C[];
-extern EM_FUNC3 D_8009E87C[];
-extern EM_FUNC3 D_8009E8CC[];
-extern EM_FUNC3 D_8009E91C[];
-extern EM_FUNC3 D_8009E96C[];
-extern EM_FUNC3 D_8009E9BC[];
-extern EM_FUNC3 D_8009EA0C[];
-extern EM_FUNC3 D_8009EA5C[];
-extern EM_FUNC3 D_8009EAAC[];
-extern EM_FUNC3 D_8009EAFC[];
-extern EM_FUNC3 D_8009EB4C[];
-extern EM_FUNC3 D_8009EB9C[];
-extern EM_FUNC3 D_8009EBEC[];
-typedef struct {
-    UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5[0xB8 - 0x5];
-    SHORT UnkB8;                       /* 0xB8 */
-} ST_WORK;
-extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
-extern UCHAR D_800A0FDC[];
-extern SHORT D_800D1F8E[];
-extern SHORT D_800D1F82;
-extern s8 D_80098728[];
-UCHAR func_800102E8_8005003C(void) __asm__("func_800102E8");             /* sld.s Rnd? */
-void func_80034124(void *p);
-LONG Get_matrix(s8 Work_kind, s8 Work_no);
-void Spl();
-extern ENEMY_WORK *D_800E01A8;
-extern USHORT D_800E01B4;
-void func_80052968(void);
-void Sce_scheduler_main(void);
-void Sce_kirakira_set(void);
-void func_8001BA48();
-void func_80052644(void);
-void func_8005283C(void);
-LONG Joint_move(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079868(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_800E01C6[];
-void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-typedef struct {
-    LONG Unk0;                         /* 0x00 */
-    LONG Pos[3];                       /* 0x04 */
-    LONG Tgt[3];                       /* 0x10 */
-} SCE_CAMERA;
-extern SCE_CAMERA D_800E0150;
-LONG Set_view(LONG *pPos, LONG *pTgt);
-typedef struct {
-    UCHAR Unk0;                        /* 0x00 */
-    UCHAR Unk1;                        /* 0x01 */
-    UCHAR pad2[0x24 - 0x2];
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0xC0 - 0x26];
-    LONG UnkC0;                        /* 0xC0 */
-    UCHAR padC4[0xD4 - 0xC4];
-} SCE_UNK_D4;
-extern SCE_UNK_D4 D_800BA8A8[];
-extern UCHAR D_8009E70C[];
-extern UCHAR D_8009E70D[];
-extern UCHAR D_8009EC3C[];
-extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
-void func_8001B484_8005003C(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4) __asm__("func_8001B484");
-typedef struct {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR pad4[0x20 - 0x4];
-    LONG Pos[3];                       /* 0x020 */
-    UCHAR pad2C[0x4A - 0x2C];
-    UCHAR Attr;                        /* 0x04A */
-    UCHAR pad4B[0xC1 - 0x4B];
-    UCHAR UnkC1;                       /* 0x0C1 */
-    UCHAR padC2;
-    UCHAR UnkC3;                       /* 0x0C3 */
-    UCHAR padC4[0x194 - 0xC4];
-} SCE_OM_WORK;
-extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
-extern ENEMY_WORK *D_800E01AC;
-extern USHORT D_800E01B6;
-ENEMY_WORK *Spl_em_cdir_ck();
-ENEMY_WORK *Spl_pllock_get();
-extern UCHAR D_800A0514[];
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
-extern UCHAR D_8009CDE0[];
-void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
-ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void Snd_se_walk(ULONG A0, ULONG No, ENEMY_WORK *pEm);
-void Flg_on(ULONG *pFlg, ULONG Bit);
-LONG Flg_off(ULONG *pFlg, ULONG Bit);
-LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch_init(ENEMY_WORK *pEm);
-extern UCHAR D_800E01E8;
-extern UCHAR D_8009E710[];
-extern void (*D_8009E720[])(ENEMY_WORK *pEm);
-ULONG func_800632B8(ENEMY_WORK *pEm, ULONG A1);
-LONG func_800261AC(ENEMY_WORK *pEm, ULONG A1, void *A2);
-extern USHORT D_800D1F94;
-extern ULONG D_800D258C[];
-ULONG func_800634F4(ENEMY_WORK *pEm, ULONG A1);
-LONG Weapon_parts_clr(ENEMY_WORK *pEm);
-extern UCHAR D_800E0171[];
-extern ULONG D_800E01D4[];
-extern ULONG D_8009DBB4_8005003C __asm__("D_8009DBB4");
-LONG func_80044804_8005003C(void *p, ULONG A1, ULONG A2) __asm__("func_80044804");
-extern ULONG D_800DECAC;
-ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
-extern UCHAR D_8009E6BC[];
-extern SHORT D_8009E6D4[];
-extern SHORT D_8009E6DC[];
-extern SHORT D_8009E6E4[];
-extern void (*D_8009E6EC[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Spl_Root_ck_sys(ENEMY_WORK *pEm);
-void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
-void Spl_enemy_ck();
-ULONG Spl_em_pos_ck(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_8009E7D8[];
-extern UCHAR D_8009E7C8[];
-extern void (*D_8009E788[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
-extern ULONG *D_8009E414;              /* Flg_addr[7] */
-extern ULONG *D_8009E418;              /* Flg_addr[8] */
-void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Cut_chg_main(ULONG Cut);
+LONG func_8005003C(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+{
+    LONG az, ay, bz, by;
+    LONG hi, lo, z0, z1;
+    ULONG P0, P1;
+    ULONG A, B;
 
-/* ---- end externs ---- */
-
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8005003C);
+    az = pA->vz;
+    ay = pA->vy;
+    bz = pB->vz;
+    by = pB->vy;
+    az >>= 1;
+    ay >>= 1;
+    bz >>= 1;
+    by >>= 1;
+    P0 = (az << 16) | (ay & 0xFFFF);
+    P1 = (bz << 16) | (by & 0xFFFF);
+    z0 = pT->Z0 >> 1;
+    z1 = pT->Z1 >> 1;
+    lo = -(pT->Floor_lo * 1800) >> 1;
+    hi = pT->High >> 1;
+    if (az < z0 || bz < z0 || z1 < az || z1 < bz || ay < hi || by < hi || lo < ay || lo < by) {
+        A = (z0 << 16) | (lo & 0xFFFF);
+        B = (z0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF;
+        B &= 0xFFFF;
+        B |= z1 << 16;
+        A |= z1 << 16;
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A = (z0 << 16) | (hi & 0xFFFF);
+        if (func_8004EF74(P0, P1, A, B)) {
+            return 1;
+        }
+        A &= 0xFFFF0000;
+        B &= 0xFFFF0000;
+        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+    }
+    return 1;
+}
 
 void Sca_search(ULONG Type, ULONG Id, ULONG Floor)
 {
@@ -772,7 +906,7 @@ void Sca_search(ULONG Type, ULONG Id, ULONG Floor)
     pData++;
     goto test;
 loop:
-        if ((pData->Type & Type) && (pData->Id & Id) && Floor >= ((s8 *)&pData->Floor)[0] && ((s8 *)&pData->Floor)[1] >= Floor) {
+        if ((pData->Type & Type) && (pData->Id & Id) && Floor >= pData->Floor_lo && pData->Floor_hi >= Floor) {
             *ppList++ = pData;
             Cnt++;
             *ppList = NULL;

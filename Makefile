@@ -32,14 +32,14 @@ CFLAGS   := -quiet -O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char
 MASPSX   := $(PYTHON) tools/maspsx/maspsx.py --aspsx-version=2.77 -G0
 
 S_FILES  := $(wildcard asm/*.s asm/data/*.s)
-C_FILES  := $(shell find src -name '*.c' 2>/dev/null)
+C_FILES  := $(shell find src/game -name '*.c' 2>/dev/null)
 O_FILES  := $(patsubst %.s,$(BUILD)/%.s.o,$(S_FILES)) $(patsubst %.c,$(BUILD)/%.c.o,$(C_FILES))
 
 .DELETE_ON_ERROR:
 
-.PHONY: all split check clean distclean progress
+.PHONY: all split split-ovl check check-ovl clean distclean progress
 
-all: check
+all: check check-ovl
 
 split:
 	$(SPLAT) split $(BASENAME).yaml
@@ -66,6 +66,57 @@ $(BUILD)/$(BASENAME).elf: $(O_FILES) $(BASENAME).ld undefined_funcs_auto.txt und
 
 $(BUILD)/$(BASENAME): $(BUILD)/$(BASENAME).elf
 	$(OBJCOPY) -O binary $< $@
+
+# Code overlays (CD_DATA/BIN/*.BIN), one splat config each: ovl/<name>.yaml (tools/mkovl.py)
+OVLS     := $(basename $(notdir $(wildcard ovl/*.yaml)))
+OVL_BINS := $(foreach o,$(OVLS),$(BUILD)/ovl/$(o).bin)
+
+$(BUILD)/assets/%.bin.o: assets/%.bin
+	@mkdir -p $(dir $@)
+	$(OBJCOPY) -I binary -O elf32-tradlittlemips --rename-section .data=.data,alloc,load,data,contents $< $@
+
+define OVL_RULES
+$(BUILD)/ovl/$(1).elf: $$(patsubst %.s,$(BUILD)/%.s.o,$$(wildcard asm/data/ovl/$(1)/*.s)) \
+		$$(patsubst %.bin,$(BUILD)/%.bin.o,$$(wildcard assets/ovl/$(1)/*.bin)) \
+		$$(patsubst %.c,$(BUILD)/%.c.o,$$(wildcard src/ovl/$(1)/*.c)) ovl/$(1).ld
+	@mkdir -p $(BUILD)/ovl
+	$$(LD) $$(LDFLAGS) -T ovl/$(1).ld -T ovl/$(1).undefined_funcs_auto.txt -T ovl/$(1).undefined_syms_auto.txt \
+		$$(addprefix -T ,$$(wildcard ovl/$(1).bss.ld)) \
+		-Map $(BUILD)/ovl/$(1).map -o $$@
+endef
+$(foreach o,$(OVLS),$(eval $(call OVL_RULES,$(o))))
+
+# Enemy modules are linked for two load slots: split for slot 1 (0x80100000), relinked for slot 2.
+EMS      := $(filter em%,$(OVLS))
+OVL_BINS += $(foreach o,$(EMS),$(BUILD)/ovl/$(o)_2.bin)
+define EM_SLOT2
+$(BUILD)/ovl/$(1)_2.ld: ovl/$(1).ld
+	@mkdir -p $(BUILD)/ovl
+	sed 's/0x80100000/0x8010D000/; s|build/asm/data/ovl/$(1)/header.rodata.s.o|$(BUILD)/ovl/$(1)_2.header.s.o|' $$< > $$@
+$(BUILD)/ovl/$(1)_2.header.s.o: ovl/$(1)_2.header.s
+	$$(AS) $$(ASFLAGS) -o $$@ $$<
+$(BUILD)/ovl/$(1)_2.bin: $(BUILD)/ovl/$(1)_2.elf $$(wildcard ovl/$(1)_2.fixup)
+	$$(OBJCOPY) -O binary $$< $$@
+	$$(if $$(wildcard ovl/$(1)_2.fixup),$$(PYTHON) tools/fixup.py $$@ ovl/$(1)_2.fixup)
+$(BUILD)/ovl/$(1)_2.elf: $(BUILD)/ovl/$(1).elf $(BUILD)/ovl/$(1)_2.ld $(BUILD)/ovl/$(1)_2.header.s.o
+	$$(LD) $$(LDFLAGS) -T $(BUILD)/ovl/$(1)_2.ld -T ovl/$(1).undefined_funcs_auto.txt \
+		-T ovl/$(1).undefined_syms_auto.txt -T ovl/$(1).bss.ld -Map $(BUILD)/ovl/$(1)_2.map -o $$@
+endef
+$(foreach o,$(EMS),$(eval $(call EM_SLOT2,$(o))))
+
+$(BUILD)/ovl/%.bin: $(BUILD)/ovl/%.elf
+	$(OBJCOPY) -O binary $< $@
+
+$(BUILD)/asm/data/ovl/%.s.o: asm/data/ovl/%.s
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+split-ovl:
+	for y in ovl/*.yaml; do $(SPLAT) split $$y > /dev/null || exit 1; done
+	for o in $(EMS); do $(PYTHON) tools/mkovl.py --bss $$o || exit 1; done
+
+check-ovl: $(OVL_BINS)
+	@cd $(BUILD)/ovl && sha1sum -c ../../ovl/overlays.sha1
 
 progress:
 	@$(PYTHON) tools/progress.py

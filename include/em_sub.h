@@ -21,7 +21,9 @@ typedef struct tagENEMY_WORK {
     UCHAR padE[0x10 - 0xE];
     ULONG Attribute;                   /* 0x010 RE2 Attribute */
     ULONG *pTmd;                       /* 0x014 byte at [-4] = part count */
-    UCHAR pad18[0x34 - 0x18];
+    UCHAR pad18[0x20 - 0x18];
+    SHORT Workm_m[3][3];               /* 0x020 RE2 Workm.m (Workm.t is Pos_x..Pos_z) */
+    UCHAR pad32[0x34 - 0x32];
     LONG Pos_x;                        /* 0x034 */
     LONG Pos_y;                        /* 0x038 */
     LONG Pos_z;                        /* 0x03C */
@@ -155,6 +157,8 @@ extern MATRIX GsIDMATRIX;              /* 0x80098970 */
 void func_8002D4B0(MATRIX *m0, MATRIX *m1, MATRIX *m2); /* RE2 CompM */
 void Snd_se_enem(ULONG No, ENEMY_WORK *pEm);          /* RE2 Snd_se_enem */
 void func_800100A4(void *pDst, void *pSrc, ULONG Size); /* RE2 Memcpy */
+void func_8001012C(void *pDst, void *pSrc, ULONG Size); /* sld.s byte copy */
+void func_80010150(void *p, ULONG Size);             /* RE2 Memclr */
 
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw);
 void Add_speedXZ(ENEMY_WORK *pEm, LONG muki);

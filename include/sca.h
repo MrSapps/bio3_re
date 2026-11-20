@@ -26,7 +26,8 @@ typedef struct tagSCA_DATA {
     SHORT Z1;                          /* 0x6 */
     USHORT Id;                         /* 0x8 & 0xF: shape */
     USHORT Type;                       /* 0xA area bits, 0x1000 rotated 45 deg */
-    SHORT Floor;                       /* 0xC */
+    signed char Floor_lo;              /* 0xC lowest floor (y = -1800 * floor) */
+    signed char Floor_hi;              /* 0xD highest floor (Sca_search) */
     SHORT High;                        /* 0xE */
 } SCA_DATA;
 

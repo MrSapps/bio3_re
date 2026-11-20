@@ -1,6 +1,7 @@
 #ifndef PAD_H
 #define PAD_H
 #include "bio3.h"
+#include <libpad.h>
 
 /* 10-byte vibration request record (RE2 VIB_REQ, same layout in RE3) */
 typedef struct VIB_REQ {
@@ -25,5 +26,6 @@ void Pad_vib_fade_set(LONG Time, LONG Pow_st, LONG Pow_ed, ULONG Attr);
 void Pad_vib_init(void);
 VIB_REQ *Pad_vib_get_free(VIB_REQ *pReq);
 LONG Pad_vib_count(VIB_REQ *pReq);
+UCHAR SetPadActData(VIB_REQ *pReq);
 
 #endif /* PAD_H */

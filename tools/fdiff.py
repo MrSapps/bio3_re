@@ -8,7 +8,7 @@ as in the target asm. Symbol addresses come from symbol_addrs.txt, the
 undefined_*_auto.txt files, NAME_XXXXXXXX-style names, and --syms FILE
 (lines "name = 0xADDR;") for names you introduced. Exit 0 on match.
 """
-import argparse, os, re, subprocess, sys, tempfile, struct
+import argparse, os, re, shutil, subprocess, sys, tempfile, struct
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BIN = os.path.join(ROOT, "tools/binutils/usr/bin/mipsel-linux-gnu-")
@@ -34,9 +34,15 @@ def sym_addr(name, syms):
     r = re.search(r"_([0-9A-F]{8})$", name)
     return int(r.group(1), 16) if r else None
 
-def target_words(func):
+def target_words(func, cfile=None):
     path = None
-    for d, _, fs in os.walk(os.path.join(ROOT, "asm")):
+    if cfile:  # prefer the asm of this C file (overlays reuse addresses, so names repeat)
+        rel = os.path.relpath(os.path.abspath(cfile), os.path.join(ROOT, "src"))[:-2]
+        for sub in ("nonmatchings", "matchings"):
+            p = os.path.join(ROOT, "asm", sub, rel, func + ".s")
+            if os.path.exists(p):
+                path = p
+    for d, _, fs in ([] if path else os.walk(os.path.join(ROOT, "asm"))):
         if func + ".s" in fs:
             path = os.path.join(d, func + ".s"); break
     if not path:
@@ -80,6 +86,7 @@ def build(cfile, cc, flags):
     r = subprocess.run(["bash", "-o", "pipefail", "-c", f"cd {ROOT} && {cpp} | {cc1} | {masp} | {asm}"],
                        env=ENV, capture_output=True, text=True)
     if r.returncode or not os.path.exists(obj):
+        shutil.rmtree(tmp, ignore_errors=True)
         sys.exit("build failed:\n" + r.stderr[-3000:])
     return obj
 
@@ -156,9 +163,17 @@ def main():
     ap.add_argument("-v", action="store_true")
     ap.add_argument("--syms", action="append", default=[], help="extra 'name = 0xADDR;' file")
     a = ap.parse_args()
+    m = re.search(r"src/ovl/(\w+)/", os.path.abspath(a.cfile))
+    if m:  # overlay: its own symbols first, then its view of the exe
+        o = os.path.join(ROOT, "ovl", m.group(1))
+        a.syms = [o + ".syms.txt", o + ".undefined_funcs_auto.txt", o + ".undefined_syms_auto.txt"] + a.syms
     syms = load_syms(a.syms)
-    tw, tm, tt, tr = target_words(a.func)
-    ow, ot, orel, ostart = obj_func(build(a.cfile, a.cc, a.flags), a.func)
+    tw, tm, tt, tr = target_words(a.func, a.cfile)
+    obj = build(a.cfile, a.cc, a.flags)
+    try:
+        ow, ot, orel, ostart = obj_func(obj, a.func)
+    finally:  # one temp dir per run: never leave it behind (36k of them once filled the disk)
+        shutil.rmtree(os.path.dirname(obj), ignore_errors=True)
     ores = resolve_compiled(ow, orel, syms, ostart)
     # strip trailing alignment nops from compiled output
     while len(ow) > len(tw) and ow[-1] == 0: ow.pop(); ot.pop()

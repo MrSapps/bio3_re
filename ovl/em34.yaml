@@ -1,0 +1,50 @@
+name: em34_1.bin
+sha1: f2148e1ccfbba808c339edc49776f7caad07ecdb
+options:
+  basename: em34
+  target_path: iso/EM/em34_1.bin
+  elf_path: build/ovl/em34.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/em34.ld
+  ld_dependencies: False
+  ld_bss_is_noload: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/em34.syms.txt
+  undefined_funcs_auto_path: ovl/em34.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/em34.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: em34
+    type: code
+    start: 0x0
+    vram: 0x80100000
+    subsegments:
+      - [0x0, rodata, ovl/em34/header]
+      - [0x4, .rodata, ovl/em34/em34]
+      - [0x180, c, ovl/em34/em34]
+      - [0xbf28, data, ovl/em34/data]
+      - [0xc564, bin, ovl/em34/tail]
+  - [0xc566]

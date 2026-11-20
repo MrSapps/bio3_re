@@ -1,0 +1,48 @@
+name: R214_OL.BIN
+sha1: ce136af3b4d34179ba99cfa06ebeee85a04fbf35
+options:
+  basename: r214_ol
+  target_path: iso/BIN/R214_OL.BIN
+  elf_path: build/ovl/r214_ol.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+  asm_path: asm
+  src_path: src
+  build_path: build
+  ld_script_path: ovl/r214_ol.ld
+  ld_dependencies: False
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+  ld_align_segment_start: False
+  find_file_boundaries: False
+  o_as_suffix: False
+  use_legacy_include_asm: False
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  symbol_addrs_path:
+    - symbol_addrs.txt
+    - syms/game.txt
+    - ovl/r214_ol.syms.txt
+  undefined_funcs_auto_path: ovl/r214_ol.undefined_funcs_auto.txt
+  undefined_syms_auto_path: ovl/r214_ol.undefined_syms_auto.txt
+  subalign: 2
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+  include_asm_macro_style: maspsx_hack
+  migrate_rodata_to_functions: True
+  asm_jtbl_label_macro: jlabel
+  disassemble_all: True
+  gp_value: 0x80094680
+segments:
+  - name: r214_ol
+    type: code
+    start: 0x0
+    vram: 0x801c2000
+    subsegments:
+      - [0x0, rodata, ovl/r214_ol/header]
+      - [0x4, .rodata, ovl/r214_ol/r214_ol]
+      - [0x20, c, ovl/r214_ol/r214_ol]
+      - [0xb5c, data, ovl/r214_ol/data]
+  - [0xfcc]

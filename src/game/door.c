@@ -209,7 +209,72 @@ void Door_main(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", Door_init);
+void Door_init(void)
+{
+    ULONG *Data_adr;
+    UCHAR i;
+    ULONG Tmd_tpage;
+    ULONG Tmd_clut;
+
+    D_800BA6F0 = 1;
+    Door_texture_load();
+    D_800BA6F4 = 0xA14;
+    D_800BA6F8 = (ULONG *)0x801B8E00;
+    G.System_flg |= 0x400000;
+    for (i = 0; i < 10; i++) {
+        D_800BA700[i] = (UCHAR *)0x801B9A58 + i * 0xC8 - D_800BA6F4;
+        func_80010150(D_800BA700[i], 0xC8);
+    }
+    Data_adr = (ULONG *)((UCHAR *)Door_data + (ULONG)Door_data->pTim);
+    D_800BA6F8[0] = (ULONG)Data_adr;
+    G.Unk2484 = 0x1F15;
+    Door_data->pTim = Data_adr;
+    Door_data->pTmd = (ULONG *)((UCHAR *)Door_data + (ULONG)Door_data->pTmd);
+    Mapping_tim(Data_adr);
+    Data_adr = Door_data->pTmd;
+    D_800BA6F8[1] = (ULONG)Door_data->pTmd;
+    if (((UCHAR *)G.pSce_aot_on)[0xC] != 0x1F) {
+        Tmd_tpage = 0x15;
+        Tmd_clut = 0x1F;
+    } else {
+        Tmd_tpage = 0;
+        Tmd_clut = 0;
+    }
+    func_8002AB34(Data_adr, Tmd_tpage, Tmd_clut);
+    i = 10;
+    D_800BA6F0 = 0;
+    D_800BA6F8[3] = 3;
+    D_800BA6F8[4] = 0x140;
+    D_800BA6F8[5] = 0xF0;
+    D_800BA6F8[1] += 8;
+    for (; i < 14; i++) {
+        Sce.Sce_task[i].Task_level = i;
+        Sce.Sce_task[i].Status = 0;
+        Sce.Sce_task[i].Sub_ctr = 0;
+        Sce.Sce_task[i].Ifel_ctr[0] = -1;
+        Sce.Sce_task[i].Loop_ctr[0] = -1;
+    }
+    Sce.pCScd = Door_data->Scd;
+    Event_init(&Sce.Sce_task[10], 0);
+    func_80010150(&Sce.Cut, sizeof(RCUT));
+    Sce.Cut.ViewR = 0x912D;
+    Sce.Cut.View_p[0] = 0x2CEC;
+    Sce.Cut.View_p[1] = -0x384;
+    Sce.Cut.View_r[0] = 0;
+    Sce.Cut.View_r[1] = -0xC8;
+    SetGeomScreen(0x122);
+    Set_view((VECTOR *)Sce.Cut.View_p, (VECTOR *)Sce.Cut.View_r);
+    Bg_set_mode(1, 0);
+    for (i = 0; i < 4; i++) {
+        Fade_off(i);
+    }
+    G.DSce_work[1] = 1;
+    G.DSce_work[0] = ((UCHAR *)G.pSce_aot_on)[0xD] & 0xFF7F;
+    G.DSce_work[2] = ((UCHAR *)G.pSce_aot_on)[0xD] & 0x80;
+    G.DSce_work[3] = ((UCHAR *)G.pSce_aot_on)[0xC];
+    *(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) = 0;
+    *(USHORT *)((UCHAR *)D_800BA6F8 + 0x226) = 0;
+}
 
 void Door_move(void)
 {
@@ -293,7 +358,25 @@ Door_exit_wait:
     Task_exit();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", Door_texture_load);
+void Door_texture_load(void)
+{
+    ULONG Sector;
+    ULONG File_no;
+    DOOR_INFO *pDoor_info;
+    UCHAR Door_no;
+    tagCD *pCd;
+
+    pCd = &CD;
+    Door_no = ((UCHAR *)G.pSce_aot_on)[0xC];
+    pDoor_info = &D_800971E4[Door_no];
+    File_no = D_800979D4[G.Unk783E][Door_no];
+    Sector = floc[File_no].sector + floc[File_no].sec_high * 0x10000 + pDoor_info->Sector_offset;
+    pCd->Fsum = pDoor_info->Data_sum;
+    pCd->Fsize = pDoor_info->Data_size;
+    G.Status_flg |= 0x800;
+    pCd->Fsector = Sector;
+    Cd_read(File_no, (ULONG *)0x8019D000, 3, "DOOR TEXTURE");
+}
 
 void Door_model_init(UCHAR *pDw)
 {
@@ -383,17 +466,6 @@ ULONG Door_model_set(SCE_TASK *pSce)
     return 1;
 }
 
-/* door texture/sound info (12 bytes, RE2 DOOR_INFO) */
-typedef struct {
-    USHORT Sound_size;                 /* 0x0 */
-    USHORT Data_size;                  /* 0x2 */
-    ULONG Sector_offset;               /* 0x4 */
-    UCHAR Sound_sum;                   /* 0x8 */
-    UCHAR Data_sum;                    /* 0x9 */
-    UCHAR padA[2];
-} DOOR_INFO;
-extern DOOR_INFO D_800971E4[];
-extern USHORT *D_800979D4[];
 extern ULONG D_800BA6F0;
 void func_8007836C(LONG no, ULONG *pAdr);
 

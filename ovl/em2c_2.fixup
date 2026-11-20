@@ -1,0 +1,2 @@
+# slot 2 linker filler bytes (offset value), applied after objcopy
+0x1b 0x55

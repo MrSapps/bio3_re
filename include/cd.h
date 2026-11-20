@@ -27,9 +27,11 @@ typedef struct tagCD {
     ULONG Start_sector;                /* 0x030 */
     ULONG Current_sector;              /* 0x034 */
     ULONG End_sector;                  /* 0x038 */
-    UCHAR pad03C[0x044 - 0x03C];
+    ULONG Time_out;                    /* 0x03C poll counter (Cd_read) */
+    ULONG *Read_adr;                   /* 0x040 */
     UCHAR Result[12];                  /* 0x044 */
-    UCHAR pad050[0x854 - 0x050];
+    UCHAR pad050[0x054 - 0x050];
+    UCHAR Work_buf[0x800];             /* 0x054 sector header / partial sector buffer */
     UCHAR Use_mode;                    /* 0x854 */
     UCHAR Limit_break;                 /* 0x855 */
     UCHAR Status;                      /* 0x856 */
@@ -43,9 +45,10 @@ typedef struct tagCD {
     USHORT Ring_size[CD_RING_BUFFERS];   /* 0x880 */
     struct tagCD_ENTRY *pEntry;        /* 0x8A0 packed file directory (func_800138B0) */
     struct tagCD_ENTRY *pEntry2;       /* 0x8A4 */
-    UCHAR pad8A8[0x8AC - 0x8A8];
+    ULONG Unk8A8;                      /* 0x8A8 */
     LONG Unk8AC;                       /* 0x8AC bytes left to transfer to the SPU (func_80012ECC) */
-    UCHAR pad8B0[0x8B8 - 0x8B0];
+    LONG Unk8B0;                       /* 0x8B0 bytes of the current entry left to read (func_80013EF8) */
+    ULONG Unk8B4;                      /* 0x8B4 first word of the directory sector */
     ULONG Unk8B8;                      /* 0x8B8 */
     ULONG Unk8BC;                      /* 0x8BC */
     UCHAR Unk8C0;                      /* 0x8C0 */
@@ -55,17 +58,31 @@ typedef struct tagCD {
     UCHAR Em_id[4];                    /* 0x8C4 sorted enemy kinds in the room (func_800150E4) */
     ULONG Unk8C8;                      /* 0x8C8 flags */
     ULONG Unk8CC;                      /* 0x8CC */
-    UCHAR pad8D0[0x8D2 - 0x8D0];
+    UCHAR Unk8D0;                      /* 0x8D0 copy of G.Unk2484 (Cd_read) */
+    UCHAR Unk8D1;                      /* 0x8D1 copy of G.Unk2485 */
     UCHAR Fade_flg;                    /* 0x8D2 volume fade-out active */
     UCHAR Fade_step;                   /* 0x8D3 volume fade-out step */
+    UCHAR pad8D4;
+    UCHAR Unk8D5;                      /* 0x8D5 enemy slot being loaded (3 flag bits each in Unk8C8) */
+    UCHAR pad8D6[0x8D8 - 0x8D6];
+    struct tagCD_LINK *pLink;          /* 0x8D8 room link list being scanned (func_800139D8) */
 } tagCD;
+/* room sound link record (ROOM_WORK +0x08 list, 0xFFFF terminated) */
+typedef struct tagCD_LINK {
+    USHORT Id;                         /* 0x0 0xFFFF ends the list */
+    UCHAR Room[2];                     /* 0x2 */
+} CD_LINK;
 /* packed file directory entry (8 bytes) */
 typedef struct tagCD_ENTRY {
     ULONG Size;                        /* 0x0 */
     UCHAR Type;                        /* 0x4 */
-    UCHAR pad5[2];
+    UCHAR Unk5;                        /* 0x5 */
+    UCHAR Sum;                         /* 0x6 XOR checksum */
     UCHAR Id;                          /* 0x7 0x80: more entries follow */
 } CD_ENTRY;
+
+/* Type and Unk5 read as one USHORT */
+#define CD_ENTRY_KIND(p) (*(USHORT *)&(p)->Type)
 
 extern tagCD CD;                       /* 0x800B9E10 */
 
