@@ -155,7 +155,7 @@ void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
 void func_80060464(ENEMY_WORK *pEm, LONG a1, LONG a2);
 void func_8006037C(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
-void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
+void Rot_neck(ENEMY_WORK *pEm, SHORT Dir);
 /* G viewed with the work pointer table as one array (RE2 pEnemy[]: [0] player, [1] sub player, [2..] enemies) */
 typedef struct {
     UCHAR pad0[0x213C];
@@ -579,7 +579,7 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
     ULONG w;
     ULONG r;
     USHORT rr;
-    UCHAR *pP;
+    PARTS_W *pP;
     UCHAR *Bone_adr;
 
     pEm = G.pEm;
@@ -606,10 +606,10 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
                 func_8002B2BC(Kan, Seq, pSeq - 1, 0);
             }
         }
-        pP = (UCHAR *)pEm->pSin_parts_ptr;
-        pSv->vx = *(USHORT *)(pP + 0xAC) + ((*(SHORT *)(pP + 0xB4) * rr) >> 8);
+        pP = pEm->pSin_parts_ptr;
+        pSv->vx = (USHORT)pP->UnkAC + ((pP->UnkB4 * rr) >> 8);
         pSv->vy = 0;
-        pSv->vz = *(USHORT *)(pP + 0xB0) + ((*(SHORT *)(pP + 0xB2) * rr) >> 8);
+        pSv->vz = (USHORT)pP->UnkB0 + ((pP->UnkB2 * rr) >> 8);
     } else {
         Bone_adr = (UCHAR *)Kan + ((KAN_HEAD *)Kan)->Bone_ofs + (((KAN_HEAD *)Kan)->Rec_sz >> 18) * (f_base + (w & 0xFF)) * 4;
         pSv->vx = ((SVECTOR *)Bone_adr)->vx;
@@ -642,13 +642,13 @@ void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no)
     if (pEm->Status_flg & 0x80) {
         return;
     }
-    pM = (MATRIX *)((UCHAR *)pEm + 0x20);
+    pM = (MATRIX *)pEm->Workm_m;
     pP_ptr = pEm->pSin_parts_ptr;
     RotMatrix((SVECTOR *)&pEm->Cdir_x, pM);
     if (pEm->Be_flg & 0xC0000) {
         Rot.vy = 0;
-        Rot.vx = *(SHORT *)((UCHAR *)pEm + 0x1BC);
-        Rot.vz = *(SHORT *)((UCHAR *)pEm + 0x1BE);
+        Rot.vx = pEm->Unk1BC[0];
+        Rot.vz = pEm->Unk1BC[1];
         RotMatrix_gte(&Rot, &Mat);
         MulMatrix2(&Mat, pM);
     }
@@ -749,16 +749,6 @@ void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
 #define KAGE9_UV2(w, A, B, C, D, E, F, G_, H) \
     p = &(w)->Prim[0]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); \
     p = &(w)->Prim[1]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); (w)++
-#define KAGE9_UV(p, A, B, C, D, E, F, G_, H) \
-    (p)->u0 = (A); (p)->v0 = (B); (p)->u1 = (C); (p)->v1 = (D); (p)->u2 = (E); (p)->v2 = (F); (p)->u3 = (G_); (p)->v3 = (H)
-#define KAGE9_UV2(w, A, B, C, D, E, F, G_, H) \
-    p = &(w)->Prim[0]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); \
-    p = &(w)->Prim[1]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); (w)++
-#define KAGE9_UV(p, A, B, C, D, E, F, G_, H) \
-    (p)->u0 = (A); (p)->v0 = (B); (p)->u1 = (C); (p)->v1 = (D); (p)->u2 = (E); (p)->v2 = (F); (p)->u3 = (G_); (p)->v3 = (H)
-#define KAGE9_UV2(w, A, B, C, D, E, F, G_, H) \
-    p = &(w)->Prim[0]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); \
-    p = &(w)->Prim[1]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); (w)++
 void Kage_work9_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
 {
     KAGE_WORK9 *pK9;
@@ -846,18 +836,6 @@ void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
         }
     }
 }
-
-/* GTE inline macros (PsyQ inline_c.h with the opcodes written out) */
-#define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
-#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
-#define gte_rtps() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
-#define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
-#define gte_avsz4() __asm__ volatile("nop; nop; .word 0x4B68002E")
-#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
-#define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
-#define gte_stsxy(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
-#define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work_sort);
 
@@ -1111,7 +1089,7 @@ ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc)
     pG->pEm_mem++;
     *pG->pEm_tbl[i] = *pSrc;
     pG->pEm_mem = (ENEMY_WORK *)func_800261AC(pG->pEm_tbl[i], PartsWork_set(pG->pEm_tbl[i], (ULONG)pG->pEm_mem),
-                                              *(ULONG *)((UCHAR *)pG->pEm_tbl[i] + 0x10C));
+                                              (ULONG)pG->pEm_tbl[i]->pUnk10C);
     return pG->pEm_tbl[i];
 }
 
@@ -1745,7 +1723,7 @@ void func_8001CFF4(EFF_WORK *pEw, ULONG n)
             p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
                                  ((pEw->Unk2E + D_80098728[r] * 4) << 16) |
                                      (USHORT)(pEw->Unk2C + ((D_80098728[func_800102E8()] - 0x80) >> pEw->Unk1B)),
-                                 (MATRIX *)pEw->Key, (LONG *)((UCHAR *)pEw + 0x38), 0);
+                                 (MATRIX *)pEw->Key, &pEw->Unk38, 0);
         } else {
             pEw->UnkB4--;
         }
@@ -1769,7 +1747,64 @@ void func_8001CFF4(EFF_WORK *pEw, ULONG n)
     pEw->UnkB4 = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001D210);
+void func_8001D210(EFF_WORK *pEw)
+{
+    VECTOR Pos;
+    UCHAR Hit;
+    UCHAR n;
+
+    switch (pEw->Routine_1) {
+    case 0:
+        func_8001CDA4((UCHAR *)pEw, 3);
+        pEw->Spd_x += D_80098728[func_800102E8()] & 0xF;
+        pEw->Spd_y += D_80098728[func_800102E8()] & 0xF;
+        pEw->Routine_1++;
+        break;
+    case 1:
+        if (pEw->Flg2 & 8) {
+            Pos.vx = pEw->Pos_x;
+            Pos.vy = pEw->Pos_y;
+            Pos.vz = pEw->Pos_z;
+            func_8001B35C(pEw, 0xF1C, pEw->Unk2C | 0x8000000, &GsIDMATRIX, &Pos.vx, 0);
+            pEw->Be_flg = 0;
+            break;
+        }
+        Hit = 0;
+        if (pEw->Flg2 & 0x10) {
+            if (pEw->UnkB4 > 0) {
+                pEw->Be_flg = 0;
+                break;
+            }
+            pEw->Spd_x = pEw->Spd_x * 60 / 100;
+            pEw->Spd_y = -(pEw->Spd_y * 40) / 100;
+            pEw->Spd_z = (D_80098728[func_800102E8()] & 3) * 3;
+            pEw->UnkB4++;
+            Hit = 1;
+        }
+        if (pEw->Flg2 & 0x20) {
+            if (pEw->UnkB6 >= 2) {
+                pEw->Be_flg = 0;
+                break;
+            }
+            pEw->Spd_x *= -1;
+            pEw->Spd_z = (D_80098728[func_800102E8()] & 3) * 3;
+            pEw->UnkB6++;
+            Hit = 1;
+        }
+        if (Hit) {
+            if (pEw->Key == (ULONG)&G.Pl_pSin_parts_ptr[4].Workm) {
+                n = 2;
+                if (((UCHAR *)&pEw->Id)[1] == 2) {
+                    n = 0xD;
+                }
+                Snd_se_stad(n | 0x10100, (VECTOR *)&pEw->Pos_x, 0, 0);
+            } else {
+                Snd_se_stad(0x10314, (VECTOR *)&pEw->Pos_x, 0, 0);
+            }
+        }
+        break;
+    }
+}
 
 void func_8001D480(UCHAR *p)
 {
@@ -1937,9 +1972,9 @@ void func_8001F208(EFF_WORK *pEw)
     case 0:
         pEw->Routine_1++;
     case 1:
-        Pos.vx = *(LONG *)((UCHAR *)pEw + 0x38);
-        Pos.vy = *(LONG *)((UCHAR *)pEw + 0x3C) - 100;
-        Pos.vz = *(LONG *)((UCHAR *)pEw + 0x40);
+        Pos.vx = pEw->Unk38;
+        Pos.vy = pEw->Unk3C - 100;
+        Pos.vz = pEw->Unk40;
         Rot.vx = 0;
         Rot.vy = 0;
         Rot.vz = 0;
@@ -2195,7 +2230,7 @@ void func_8001FDD0(EFF_WORK *pEw)
 
     for (i = 0; i < 2; i++) {
         pNew = func_8001B35C(pEw, 0x3000F00, (pEw->Unk2E << 16) | (USHORT)(pEw->Unk2C + (signed char)func_800102E8() * 4),
-                             (MATRIX *)pEw->Key, (LONG *)((UCHAR *)pEw + 0x38), 0);
+                             (MATRIX *)pEw->Key, &pEw->Unk38, 0);
         if (pNew != (EFF_WORK *)-1) {
             pNew->Spd_x = (D_80098728[func_800102E8()] & 0x3F) + 0x82;
             pNew->Spd_y = (D_80098728[func_800102E8()] & 0x7F) - 100;

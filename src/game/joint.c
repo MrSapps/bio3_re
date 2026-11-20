@@ -38,7 +38,7 @@ typedef struct tagSAVE_POS {
 #define PW_FREE(p) ((USHORT *)&(p)->Unk74)
 #define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 /* RE2 ENEMY_WORK.M: rotation matrix at +0x20, its t[] is Pos_x..Pos_z */
-#define EM_M(p) ((MATRIX *)((UCHAR *)(p) + 0x20))
+#define EM_M(p) ((MATRIX *)(p)->Workm_m)
 #define EMW(p, T, Ofs) (*(T *)((UCHAR *)(p) + (Ofs)))
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
@@ -247,7 +247,7 @@ void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
 void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 ULONG func_800102E8(void);   /* Rnd */
 ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
 ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
@@ -1154,7 +1154,100 @@ void Joint_move2(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_f
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/joint", J_seq2);
+ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
+{
+    ENEMY_WORK *pEm;
+    ULONG *pRot;
+    PARTS_W *pP;
+    LONG w;
+    ULONG Hokan;
+    ULONG n;
+    ULONG Max;
+    VECTOR V;
+    MATRIX M;
+
+    pEm = G.pEm;
+    pRot = (ULONG *)(Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
+    pRot = (ULONG *)((UCHAR *)pRot + (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (((USHORT *)(Seq_t_ptr + pEm->Move_no * 8))[2] + *(UCHAR *)pSeq) * 4);
+    pP = pEm->pSin_parts_ptr;
+    w = ((SHORT *)pRot)[3];
+    w *= pEm->Unk12A;
+    pP->Pos_y = w >> 12;
+    Hokan = pEm->UnkCA;
+    n = *(USHORT *)(Kan_t_ptr + 4);
+    Max = Late_flg >> 16;
+    if (Hokan != 0) {
+        V.vx = pP->Old_x;
+        V.vy = pP->Old_y;
+        V.vz = pP->Old_z;
+        w = (Late_flg & 0xFFFF) * Hokan;
+        LoadAverage12((VECTOR *)&pP->Pos_x, &V, 0x1000 - w, w, (VECTOR *)&pP->Pos_x);
+    }
+    pRot += 2;
+    pP->Old_x = pP->Pos_x;
+    pP->Old_y = pP->Pos_y;
+    pP->Old_z = pP->Pos_z;
+    *(ULONG *)&pP[0].Unk88 = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
+    pP[0].Unk8C = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
+    *(ULONG *)&pP[1].Unk88 = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
+    pP[1].Unk8C = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
+    *(ULONG *)&pP[2].Unk88 = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
+    pP[2].Unk8C = ((USHORT *)pRot)[6] & 0xFFF;
+    *(ULONG *)&pP[3].Unk88 = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
+    pP[3].Unk8C = (pRot[4] & 0xFFF0) >> 4;
+    *(ULONG *)&pP[4].Unk88 = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
+    pP[4].Unk8C = (pRot[5] & 0xFFF00) >> 8;
+    *(ULONG *)&pP[5].Unk88 = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
+    pP[5].Unk8C = (pRot[6] & 0xFFF000) >> 12;
+    *(ULONG *)&pP[6].Unk88 = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
+    pP[6].Unk8C = (pRot[7] & 0xFFF0000) >> 16;
+    *(ULONG *)&pP[7].Unk88 = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
+    pP[7].Unk8C = pRot[8] >> 20;
+    *(ULONG *)&pP[8].Unk88 = (((USHORT *)pRot)[18] & 0xFFF) | ((pRot[9] & 0xFFF000) << 4);
+    pP[8].Unk8C = ((UCHAR *)pRot)[39] | ((((USHORT *)pRot)[20] & 0xF) << 8);
+    *(ULONG *)&pP[9].Unk88 = ((pRot[10] & 0xFFF0) >> 4) | (pRot[10] & 0xFFF0000);
+    pP[9].Unk8C = (pRot[10] >> 28) | (((UCHAR *)pRot)[44] << 4);
+    *(ULONG *)&pP[10].Unk88 = ((pRot[11] & 0xFFF00) >> 8) | ((pRot[11] & 0xFFF00000) >> 4);
+    pP[10].Unk8C = ((USHORT *)pRot)[24] & 0xFFF;
+    *(ULONG *)&pP[11].Unk88 = ((pRot[12] & 0xFFF000) >> 12) | (((pRot[12] & 0xFF000000) >> 8) | ((pRot[13] & 0xF) << 24));
+    pP[11].Unk8C = (pRot[13] & 0xFFF0) >> 4;
+    *(ULONG *)&pP[12].Unk88 = ((LONG)(pRot[13] & 0xFFF0000) >> 16) | (((pRot[13] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[56] << 20));
+    pP[12].Unk8C = (pRot[14] & 0xFFF00) >> 8;
+    *(ULONG *)&pP[13].Unk88 = (pRot[14] >> 20) | ((pRot[15] & 0xFFF) << 16);
+    pP[13].Unk8C = (pRot[15] & 0xFFF000) >> 12;
+    *(ULONG *)&pP[14].Unk88 = ((UCHAR *)pRot)[63] | ((((USHORT *)pRot)[32] & 0xF) << 8) | ((pRot[16] & 0xFFF0) << 12);
+    pP[14].Unk8C = (pRot[16] & 0xFFF0000) >> 16;
+    if (Hokan == 0) {
+    copy:
+        *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Unk88;
+        pP->Cdir_z = pP->Unk8C;
+        RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        pP++;
+        if (--n != 0) {
+            goto copy;
+        }
+    } else {
+        pEm->UnkCA--;
+    hokan:
+        if (n >= 7) {
+            func_8002720C_((SVECTOR *)&pP->Unk88, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
+            RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        } else {
+            RotMatrix_gte((SVECTOR *)&pP->Unk88, &M);
+            func_80026728_((MATRIX *)pP->M, &M, (MATRIX *)pP->M, 0xFFF - w);
+        }
+        pP++;
+        n--;
+        if (n != 0) {
+            goto hokan;
+        }
+    }
+    if (++pEm->Move_cnt >= Max) {
+        pEm->Move_cnt = 0;
+        return 1;
+    }
+    return 0;
+}
 
 void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
 ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027F8C");

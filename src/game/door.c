@@ -209,74 +209,7 @@ void Door_main(void)
     }
 }
 
-void Door_init(void)
-{
-    ULONG *Data_adr;
-    ULONG *pHdr;
-    UCHAR i;
-    ULONG Tmd_tpage;
-    ULONG Tmd_clut;
-
-    D_800BA6F0 = 1;
-    Door_texture_load();
-    D_800BA6F4 = 0xA14;
-    D_800BA6F8 = (ULONG *)0x801B8E00;
-    G.System_flg |= 0x400000;
-    for (i = 0; i < 10; i++) {
-        D_800BA700[i] = (UCHAR *)(0x801B9A58 - D_800BA6F4) + i * 0xC8;
-        func_80010150(D_800BA700[i], 0xC8);
-    }
-    pHdr = (ULONG *)&Door_data->pTim;
-    Data_adr = (ULONG *)((UCHAR *)Door_data + *pHdr);
-    D_800BA6F8[0] = (ULONG)Data_adr;
-    G.Unk2484 = 0x1F15;
-    *pHdr = (ULONG)Data_adr;
-    Door_data->pTmd = (ULONG *)((UCHAR *)Door_data + (ULONG)Door_data->pTmd);
-    Mapping_tim(Data_adr);
-    Data_adr = Door_data->pTmd;
-    D_800BA6F8[1] = (ULONG)Door_data->pTmd;
-    if (((UCHAR *)G.pSce_aot_on)[0xC] != 0x1F) {
-        Tmd_tpage = 0x15;
-        Tmd_clut = 0x1F;
-    } else {
-        Tmd_tpage = 0;
-        Tmd_clut = 0;
-    }
-    func_8002AB34(Data_adr, Tmd_tpage, Tmd_clut);
-    i = 10;
-    D_800BA6F0 = 0;
-    D_800BA6F8[3] = 3;
-    D_800BA6F8[4] = 0x140;
-    D_800BA6F8[5] = 0xF0;
-    D_800BA6F8[1] += 8;
-    for (; i < 14; i++) {
-        Sce.Sce_task[i].Task_level = i;
-        Sce.Sce_task[i].Status = 0;
-        Sce.Sce_task[i].Sub_ctr = 0;
-        Sce.Sce_task[i].Ifel_ctr[0] = -1;
-        Sce.Sce_task[i].Loop_ctr[0] = -1;
-    }
-    Sce.pCScd = Door_data->Scd;
-    Event_init(&Sce.Sce_task[10], 0);
-    func_80010150(&Sce.Cut, sizeof(RCUT));
-    Sce.Cut.ViewR = 0x912D;
-    Sce.Cut.View_p[0] = 0x2CEC;
-    Sce.Cut.View_p[1] = -0x384;
-    Sce.Cut.View_r[0] = 0;
-    Sce.Cut.View_r[1] = -0xC8;
-    SetGeomScreen(0x122);
-    Set_view((VECTOR *)Sce.Cut.View_p, (VECTOR *)Sce.Cut.View_r);
-    Bg_set_mode(1, 0);
-    for (i = 0; i < 4; i++) {
-        Fade_off(i);
-    }
-    G.DSce_work[0] = ((UCHAR *)G.pSce_aot_on)[0xD] & 0xFF7F;
-    G.DSce_work[1] = 1;
-    G.DSce_work[2] = ((UCHAR *)G.pSce_aot_on)[0xD] & 0x80;
-    G.DSce_work[3] = ((UCHAR *)G.pSce_aot_on)[0xC];
-    *(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) = 0;
-    *(USHORT *)((UCHAR *)D_800BA6F8 + 0x226) = 0;
-}
+INCLUDE_ASM("asm/nonmatchings/game/door", Door_init);
 
 void Door_move(void)
 {
@@ -294,7 +227,7 @@ void Door_move(void)
         pSce = &Sce;
 loop:
         if (!(pG->Status_flg & 0x800)) {
-            *(SHORT *)((UCHAR *)pG + 0x7828) = 0;
+            pG->DSce_work[1] = 0;
         }
         Door_scheduler_main();
         Door_Trans();
@@ -314,7 +247,7 @@ void Door_scheduler_main(void)
     ULONG Task_idx;
 
     Sce.Type = 1;
-    Sce.pCScd = (UCHAR *)0x8019D008;
+    Sce.pCScd = Door_data->Scd;
     for (Task_idx = 10; Task_idx < 0xE; Task_idx++) {
         pSce = &Sce.Sce_task[Task_idx];
         if (pSce->Status == 0) {
@@ -610,7 +543,7 @@ void func_8001688C(ENEMY_WORK *pEm)
     case 2:
         func_80018EC8(pEm, pKan, pSeq, 0);
         if ((UCHAR)func_800171DC(pEm, (LONG)pKan, (LONG)pSeq, 0)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
+            Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -664,7 +597,7 @@ void func_80016A40(ENEMY_WORK *pEm)
     case 2:
         func_80018EC8(pEm, pKan, pSeq, 0);
         if ((UCHAR)func_800171DC(pEm, (LONG)pKan, (LONG)pSeq, 0)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
+            Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -702,7 +635,7 @@ void func_80016C9C(ENEMY_WORK *pEm)
     case 1:
         func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
         if ((UCHAR)func_800171DC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
+            Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -725,7 +658,7 @@ void func_80016DA0(ENEMY_WORK *pEm)
     case 1:
         func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         if ((UCHAR)func_800171DC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
+            Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -746,7 +679,7 @@ void func_80016E80(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)func_80017148(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
+            Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -767,7 +700,7 @@ void func_80016F44(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)func_800172AC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, *((UCHAR *)pEm + 0x146));
+            Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {

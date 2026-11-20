@@ -41,10 +41,24 @@ typedef struct tagENEMY_WORK {
     ULONG Poly_rgb;                    /* 0x074 */
     MATRIX *pSuper;                    /* 0x078 */
     ULONG Unk7C;                       /* 0x07C */
-    UCHAR pad80[0xAE - 0x80];
+    UCHAR Col_id;                      /* 0x080 collision object node (COL_OBJ, oba.h) at 0x80: Id */
+    UCHAR Col_flg;                     /* 0x081 COL_OBJ.Flg */
+    UCHAR Col_type;                    /* 0x082 COL_OBJ.Type */
+    UCHAR pad83;
+    struct tagENEMY_WORK *pCol_em;     /* 0x084 COL_OBJ.pEm */
+    UCHAR pad88[0x9A - 0x88];
+    USHORT Col_w0;                     /* 0x09A COL_OBJ.W0 */
+    USHORT Col_d0;                     /* 0x09C COL_OBJ.D0 */
+    USHORT Col_h;                      /* 0x09E COL_OBJ.H */
+    UCHAR padA0[0xA4 - 0xA0];
+    SHORT Col_unk24;                   /* 0x0A4 COL_OBJ.Unk24 */
+    SHORT Col_unk26;                   /* 0x0A6 COL_OBJ.Unk26 */
+    SHORT Col_unk28;                   /* 0x0A8 COL_OBJ.Unk28 */
+    UCHAR padAA[0xAE - 0xAA];
     USHORT UnkAE;                      /* 0x0AE */
-    UCHAR padB0[0xBA - 0xB0];
-    USHORT UnkBA;                      /* 0xBA */
+    UCHAR padB0[0xB9 - 0xB0];
+    signed char Col_unk39;             /* 0x0B9 COL_OBJ.Unk39 (em10 pldm00 passes it to func_8002646C) */
+    USHORT UnkBA;                      /* 0xBA COL_OBJ.Unk3A: bits of the works hit (RE2 At_em_flg, em10 pldm00) */
     UCHAR padBC[0xC0 - 0xBC];
     SHORT Spd_x;                       /* 0x0C0 */
     SHORT Spd_y;                       /* 0x0C2 */
@@ -67,7 +81,7 @@ typedef struct tagENEMY_WORK {
     SHORT Base_pos_y;                  /* 0x0DE */
     SHORT Base_pos_z;                  /* 0x0E0 */
     s8 UnkE2;                          /* 0xE2 */
-    UCHAR UnkE3;                       /* 0xE3 */
+    signed char UnkE3;                 /* 0xE3 RE2 Timer3 (lb in em10) */
     USHORT *pNow_seq;                  /* 0x0E4 */
     ULONG *pKan_t_ptr;                 /* 0x0E8 RE3 moved it here (RE2: after Parts_num) */
     ULONG *pSeq_t_ptr;                 /* 0x0EC */
@@ -121,15 +135,16 @@ typedef struct tagENEMY_WORK {
     UCHAR pad16A[0x16C - 0x16A];
     ULONG Unk16C;                      /* 0x16C (func_800445C8 arg 0) */
     ULONG Unk170;                      /* 0x170 (func_800445C8 arg 1) */
-    UCHAR pad174[0x178 - 0x174];
-    USHORT Unk178[3];                  /* 0x178 copied to D_80098B08 (func_800254AC) */
+    ULONG (*pUnk174)[6];               /* 0x174 0x18-byte model data records, part pTmd = pUnk174[n] (em10 Init) */
+    SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */
     USHORT Unk17E;                     /* 0x17E */
     ULONG Unk180[4];                   /* 0x180 args of func_80079690 / Joint_move */
     UCHAR pad190[0x1A0 - 0x190];
     UCHAR Unk1A0;                      /* 0x1A0 */
     UCHAR Unk1A1;                      /* 0x1A1 */
     UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */
-    UCHAR pad1A3[0x1B8 - 0x1A3];
+    UCHAR pad1A3[0x1B4 - 0x1A3];
+    ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Pl_unk1B4, select overlay) */
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */
     SHORT Unk1BA;                      /* 0x1BA func_8002646C */
     SHORT Unk1BC[2];                   /* 0x1BC decayed by Unk1C2 (func_80026648) */

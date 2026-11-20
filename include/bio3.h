@@ -170,8 +170,8 @@ typedef struct tagGLOBAL {
     UCHAR pad4324[0x4326 - 0x4324];
     USHORT Unk4326;                    /* 0x4326 set when a later enemy sound bank is loaded */
     UCHAR Ob_model[32][0x194];         /* 0x4328 RE2 Ob_model (OBJ_MODEL_WORK, 0x194 bytes each) */
-    UCHAR pad75A8[0x75AC - 0x75A8];
-    USHORT *pUnk75AC[10];              /* 0x75AC per object model flag word (func_800557A0); OM_TARGET records (pl_wep.h) */
+    UCHAR *pUnk75A8;                   /* 0x75A8 set to Ob_model[0] (diedemo func_80194574) */
+    USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (func_800557A0); OM_TARGET records (pl_wep.h) */
     ULONG Om_target_num;               /* 0x75D4 used entries of pUnk75AC (Obj_model_set; sce0 clears it as pUnk75AC[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
@@ -182,7 +182,10 @@ typedef struct tagGLOBAL {
     UCHAR pad75E4[0x75E8 - 0x75E4];
     USHORT Unk75E8;                    /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */
     USHORT Unk75EA;                    /* 0x75EA */
-    UCHAR pad75EC[0x75F0 - 0x75EC];
+    UCHAR Unk75EC;                     /* 0x75EC cleared on exit by the PC_SYS overlay */
+    UCHAR Unk75ED;                     /* 0x75ED routine of the PC_SYS overlay task */
+    UCHAR Unk75EE;                     /* 0x75EE PC_SYS window open/close request (1..4) */
+    UCHAR Unk75EF;                     /* 0x75EF PC_SYS window zoom direction (0 open, 1 close) */
     UCHAR Card_head[0x200];            /* 0x75F0 save image start: memory card file header (mem_card writes 0x980 bytes from here) */
     ULONG Game_time;                   /* 0x77F0 play time in frames (result grade) */
     ULONG Status_flg;                  /* 0x77F4 */
@@ -221,7 +224,8 @@ typedef struct tagGLOBAL {
     USHORT Unk785E;                    /* 0x785E counter (func_8003CEA0) */
     SHORT Unk7860;                     /* 0x7860 */
     SHORT Unk7862;                     /* 0x7862 */
-    UCHAR pad7864[0x7868 - 0x7864];
+    SHORT Unk7864;                     /* 0x7864 set with Unk784E by the title extra menu */
+    UCHAR pad7866[0x7868 - 0x7866];
     ULONG Unk7868[8];                  /* 0x7868 flag bits (Flg_ck, status room/cut checks) */
     ULONG Unk7888;                     /* 0x7888 cleared on room init (Sce_work_clr_set) */
     ULONG Unk788C;                     /* 0x788C */
@@ -257,6 +261,12 @@ typedef struct tagGLOBAL {
     } Unk7DC0[8];
     LONG Unk7E20;                      /* 0x7E20 */
     SHORT Unk7E24[8];                  /* 0x7E24 cleared by func_800528D4 */
+    UCHAR pad7E34[0x7E98 - 0x7E34];
+    LONG Unk7E98[3];                   /* 0x7E98 saved/restored by func_80078FE8/func_8007906C (sub) */
+    UCHAR Unk7EA4[3];                  /* 0x7EA4 */
+    UCHAR pad7EA7;
+    LONG Unk7EA8[3];                   /* 0x7EA8 */
+    LONG Unk7EB4;                      /* 0x7EB4 */
 } tagGLOBAL;
 extern tagGLOBAL G;                    /* 0x800CA738 */
 
@@ -314,7 +324,7 @@ typedef struct tagPARTS_W {
     SHORT Size_x;                      /* 0x9C RE2 Size_x */
     SHORT Size_y;                      /* 0x9E RE2 Size_y */
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */
-    USHORT UnkA2;                      /* 0xA2 */
+    SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
     struct tagPARTS_W *pOya_parts;     /* 0xA4 */
     UCHAR padA8[0xAC - 0xA8];
     SHORT UnkAC;                       /* 0xAC Pos_x base (get_null_pos2) */
