@@ -740,7 +740,197 @@ void func_8006446C(ST_WORK *pSt)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800646F0);
+extern ST_ITEM *D_800D23B4;
+void func_80065BA4(UCHAR a, UCHAR b);
+void func_80065C8C(UCHAR dst, UCHAR src);
+void func_8006ABF8(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
+void func_8006AE20(UCHAR dst, UCHAR src);
+
+void func_800646F0(ST_WORK *pSt)
+{
+    ST_ITEM tmp;
+    RECT r;
+    ST_ITEM *pI;
+    ST_ITEM *pB;
+    GLOBAL_X *pG;
+    signed char n;
+    UCHAR *pInfo;
+    signed char no;
+    signed char i;
+    UCHAR f;
+    UCHAR m;
+
+    if (G.Key_trg & 0x2000) {
+        pSt->Rtn1 = 0;
+        pSt->Unk22 = 0;
+        pSt->Unk24 = 0;
+        Snd_se_stad(5, 0, 0, 0);
+        return;
+    }
+    if (G.Key_trg & 0x1000) {
+        no = pSt->Unk1C;
+        pI = &GX.pUnk7C7C->Item[no];
+        if (pI->Id == 0) {
+            no = Search_item_id(0, 0);
+        }
+        do {
+            if (GX.pUnk7C7C->Unk128 == no) {
+                GX.pUnk7C7C->Unk129 = 0;
+                GX.pUnk7C7C->Unk128 = 0xFF;
+                func_8006AE20(10, 11);
+            }
+            pInfo = D_800A0514[pI->Id];
+            switch (pInfo[0]) {
+            case 2:
+            case 5:
+            case 6:
+                f = 1;
+                break;
+            default:
+                f = 0;
+                break;
+            }
+            pI = &D_800D23B4[no];
+            pB = &D_800D23B4[pSt->Unk1F + 10];
+            m = 0;
+            if (pI->Id == pB->Id && f == 1) {
+                m = pInfo[1] >= pI->Num + pB->Num;
+            }
+            if (pI->Id == 0x20 && pB->Id == 0x2A && pI->Num + pB->Num < 4) {
+                m = 2;
+            }
+            if (pI->Id == 0x2A && pB->Id == 0x20 && pI->Num + pB->Num < 4) {
+                m = 3;
+            }
+            switch (m) {
+            case 0:
+                func_80065BA4(no, pSt->Unk1F % 8);
+                tmp.Id = pB->Id;
+                tmp.Num = pB->Num;
+                tmp.Flg = pB->Flg;
+                pB->Id = pI->Id;
+                pB->Num = pI->Num;
+                pB->Flg = pI->Flg;
+                pI->Id = tmp.Id;
+                pI->Num = tmp.Num;
+                pI->Flg = tmp.Flg;
+                break;
+            case 2:
+                pI->Id = pB->Id;
+                pI->Num += pB->Num;
+                pI->Flg = pB->Flg;
+                func_80065BA4(no, pSt->Unk1F % 8);
+                goto clear;
+            case 1:
+            case 3:
+                pI->Num += pB->Num;
+            clear:
+                func_80065C8C(pSt->Unk1F % 8, 11);
+                pB->Id = 0;
+                pB->Num = 0;
+                pB->Flg = 0;
+                break;
+            }
+        } while (0);
+        if (pI->Id == 0 && pB->Id != 0) {
+            pSt->Rtn1 = 2;
+            pSt->Rtn2 = no;
+            pSt->Unk13 = 2;
+        } else {
+            pSt->Rtn1 = 0;
+            pSt->Unk22 = 0;
+            pSt->Unk24 = 0;
+        }
+        Snd_se_stad(6, 0, 0, 0);
+        return;
+    }
+    pSt->Flg &= ~0x10000;
+    pSt->Flg &= ~0x8000;
+    if ((USHORT)G.Unk20F8 & 0x1000) {
+        if (--pSt->Unk1F < 0) {
+            pSt->Unk1F = 0x3F;
+        }
+        n = pSt->Unk1F - 2;
+        if (n < 0) {
+            n = pSt->Unk1F + 0x3E;
+        }
+        Snd_se_stad(0x215, 0, 0, 0);
+        pSt->UnkC8 = -0x14;
+        pSt->Rtn1 = 3;
+        pSt->UnkCA = 0;
+        pSt->Flg |= 0x10000;
+    }
+    if ((USHORT)G.Unk20F8 & 0x4000) {
+        if (++pSt->Unk1F >= 0x40) {
+            pSt->Unk1F = 0;
+        }
+        n = pSt->Unk1F + 2;
+        if (n >= 0x40) {
+            n = pSt->Unk1F - 0x3E;
+        }
+        Snd_se_stad(0x215, 0, 0, 0);
+        pSt->UnkCA = 1;
+        pSt->UnkC8 = 0x14;
+        pSt->Rtn1 = 3;
+        pSt->Flg |= 0x8000;
+    }
+    if (G.Unk20F8 & 0x5000) {
+        pI = &GX.pUnk7C7C->Item[n + 10];
+        func_8006ABF8(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
+        DrawSync(0);
+    }
+    if (pSt->Rtn1 == 3) {
+        return;
+    }
+    if ((G.Unk20F8 & 0xC) == 0) {
+        pSt->UnkCB = 0;
+    } else if ((G.Unk20F8 & 0xC) == 0xC) {
+        if (G.Unk20FC & 4) {
+            pSt->UnkCB = 1;
+        }
+        if (G.Unk20FC & 8) {
+            pSt->UnkCB = 2;
+        }
+    } else {
+        if ((USHORT)G.Unk20F8 & 4) {
+            pSt->UnkCB = 1;
+        }
+        if ((USHORT)G.Unk20F8 & 8) {
+            pSt->UnkCB = 2;
+        }
+    }
+    if ((G.Unk2100 & 4) && pSt->UnkCB == 1) {
+        if ((pSt->Unk1F -= 5) < 0) {
+            pSt->Unk1F += 0x40;
+        }
+        Snd_se_stad(0x215, 0, 0, 0);
+        pSt->Flg |= 0x10000;
+    } else if ((G.Unk2100 & 8) && pSt->UnkCB == 2) {
+        if ((pSt->Unk1F += 5) >= 0x40) {
+            pSt->Unk1F -= 0x40;
+        }
+        Snd_se_stad(0x215, 0, 0, 0);
+        pSt->UnkCB = 2;
+        pSt->Flg |= 0x8000;
+    }
+    pG = &GX;
+    if (*(ULONG *)&pG->Unk2100 & 0xC) {
+        r.w = 20;
+        r.h = 30;
+        n = pSt->Unk1F - 2;
+        if (n < 0) {
+            n = pSt->Unk1F + 0x3E;
+        }
+        for (i = 0; i < 5; i++) {
+            pI = &GX.pUnk7C7C->Item[n + 10];
+        func_8006ABF8(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
+            DrawSync(0);
+            if (++n >= 0x40) {
+                n = 0;
+            }
+        }
+    }
+}
 
 void func_8006AD38(UCHAR a, UCHAR b);
 
