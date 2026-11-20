@@ -1110,7 +1110,45 @@ void func_80065C8C(UCHAR dst, UCHAR src)
     DrawSync(0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_80065D04);
+void func_80065D04(ST_WORK *pSt, UCHAR no, SHORT y0)
+{
+    POLY_FT4 *p = (POLY_FT4 *)0x8019D4C8;
+    signed char n = no - 3;
+    UCHAR clut;
+    SHORT y;
+    ULONG i;
+    LONG x, tp, ot, h, w;
+    UCHAR v;
+
+    x = 0xA5;
+    tp = 0x17;
+    ot = 5;
+    h = 0x16;
+    w = 0x1D;
+    clut = pSt->UnkD1;
+    y = y0 + 0x19;
+    if (n < 0) {
+        n = no + 0x3D;
+    }
+    n %= 8;
+    if (G.Cbuf_id) {
+        p++;
+    }
+    for (i = 0; i < 7; i++) {
+        setPolyFT4(p);
+        setRGB0(p, 0x80, 0x80, 0x80);
+        v = n * 30;
+        setUV4(p, 0, v, 0x28, v, 0, v + 30, 0x28, v + 30);
+        p->tpage = getTPage(1, 0, (tp & 0xF) << 6, (tp & 0x10) << 4);
+        p->clut = (clut + 0x1E0) << 6;
+        setXY4(p, x, y + i * 24, x + w, y + i * 24, x, y + h + i * 24, x + w, y + h + i * 24);
+        AddPrim(G.pOt0 + ot, p);
+        p += 2;
+        if (++n >= 8) {
+            n = 0;
+        }
+    }
+}
 
 void func_80065EE0(ST_WORK *pSt)
 {
