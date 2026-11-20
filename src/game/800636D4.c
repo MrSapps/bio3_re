@@ -744,7 +744,6 @@ extern ST_ITEM *D_800D23B4;
 void func_80065BA4(UCHAR a, UCHAR b);
 void func_80065C8C(UCHAR dst, UCHAR src);
 void func_8006ABF8(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
-void func_8006AE20(UCHAR dst, UCHAR src);
 
 void func_800646F0(ST_WORK *pSt)
 {
@@ -2209,7 +2208,6 @@ UCHAR func_80069614(ST_WORK *pSt, LONG a1)
 }
 
 
-void func_8006AD38(UCHAR a, UCHAR b);
 
 void func_80069A6C(ST_WORK *pSt)
 {
@@ -2255,7 +2253,6 @@ void func_80069A6C(ST_WORK *pSt)
 
 
 signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id");
-extern UCHAR D_800DBB5B;
 
 void func_80069C3C(ST_WORK *pSt)
 {
@@ -2410,7 +2407,6 @@ void func_80069C3C(ST_WORK *pSt)
 
 
 extern ULONG D_800CC840;
-void func_8006AC88(UCHAR no);
 
 void func_8006A234(ST_WORK *pSt)
 {
@@ -2495,8 +2491,6 @@ void func_8006A234(ST_WORK *pSt)
 }
 
 extern USHORT D_800A00B0[];
-void func_8006AE20(UCHAR dst, UCHAR src);
-void func_8006AD38(UCHAR a, UCHAR b);
 
 void func_8006A59C(ST_WORK *pSt)
 {
@@ -2778,8 +2772,6 @@ extern USHORT D_8009FF44[];
 extern USHORT D_8009FF50[];
 extern SHORT D_8009FF5C[];
 extern SHORT D_8009FB90[];
-void func_8006E6D8(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void func_8006E7D4(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n);
 void func_8006E84C(ST_WORK *pSt);
 
 void func_8006AE90(ST_WORK *pSt)
@@ -3453,7 +3445,6 @@ void func_8006D720(void)
 INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010FEC);
 
 /* needs file-level: Cd_seek_s alias, D_800D442C/D/E, Weapon_cls, Pl_weapon_ch, func_8006AE90(ST_WORK*) decls (see func_8006E0A4 draft) */
-extern USHORT D_800A00B0[];
 void func_80038634(ULONG Flg, SHORT Val);
 void func_8006511C(ST_WORK *pSt);
 LONG Cd_read_l(LONG Fno, ULONG *pAdr, LONG a2, char *pName) __asm__("Cd_read");
