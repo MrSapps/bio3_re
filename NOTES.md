@@ -15,9 +15,31 @@
 - Stack top is read from 0x80098A68, heap stuff written to 0x80094684/88.
 
 ## Overlays
-`CD_DATA/BIN/*.BIN` (17 files, 1-24 KB: TITLE, OPTION, MEM_CARD, SELECT, RESULT, DIEDEMO, ...) look like
-headerless code overlays. Load addresses TBD (RE2 overlays load at 0x8011A000 / 0x80100000 — check RE3's loader).
-Rooms (`.ARD`/`.RDT`-like in STAGEn) and enemy `.DO*`/`.PLW` files may contain code too.
+Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A000, 0x801C2000, ...).
+- `CD_DATA/BIN/*.BIN` (17 files): `[file-number word][.rdata][.text][.data]`. Base 0x801C2000, except
+  TITLE/DIEDEMO/ENDING 0x80194000 and WARNING 0x80184000 (WARNING has no file-number word).
+- Room archives `STAGEn/Rxxx.BIN`: word 0 total size, word 1 entry count, then (size, info) pairs; entries
+  start at 0x800, sector aligned. info>>24 = enemy id, info&0xFFFF = type; types 1/2 are the enemy code
+  module linked for load slot 1 (0x80100000) / slot 2 (0x8010D000). Same layout as BIN overlays (word 0 =
+  file number, differs per slot). 162 rooms hold only 21 distinct modules (ids sharing code have identical
+  modules) = ~1080 functions. `tools/extract_em.py` writes iso/EM/emXX_{1,2}.bin + modules.txt.
+- Slot 2 is slot 1 relinked at +0xD000 (verified: every differing word is a relocation), so only slot 1 is
+  split; the Makefile relinks the same objects with a sed'ed ld script and the slot-2 header word
+  (ovl/emXX_2.header.s). Module BSS past the file end is referenced as absolute D_ symbols by splat:
+  `tools/mkovl.py --bss emXX` rewrites them module-relative (ovl/emXX.bss.ld). em2c slot 2 differs in one
+  .rdata padding byte (linker filler): ovl/em2c_2.fixup, applied by tools/fixup.py.
+- Workflow: `tools/mkovl.py NAME TEXT DATA` writes ovl/<name>.yaml; `make split-ovl`; C in
+  src/ovl/<name>/<name>.c; check with `tools/ovlcheck.sh <name>` (parallel-safe) or `make check-ovl`.
+  fdiff.py picks the overlay's own asm/syms from the C path. The overlay link uses only the generated
+  undefined_*_auto files, so new names in ovl/<name>.syms.txt take effect after a re-split; until then
+  name data in C with `__asm__("D_xxx")`.
+- Overlays see G with fields past tagGLOBAL's end; an overlay-local view `extern T Gr __asm__("G")` works,
+  but fields used together must come from the same symbol for gcc to share the &G base.
+
+## Process notes
+- Never run a full `make` while agents edit src/: it rebuilds build/ objects from half-edited files and
+  breaks every other agent's linkcheck (which links against build/). Restore from a clean worktree build.
+- fdiff.py used to leak one /tmp dir per run (36k dirs, 3 GB, filled the disk); fixed.
 
 ## Compiler (confirmed)
 **PsyQ 4.4: CC1PSX = GNU C 2.8.1 SN32 (BUILD 4.0.0010), ASPSX 2.77**, `-O2 -G0`.
@@ -184,3 +206,30 @@ diffs on jump tables and local rodata; linkcheck.py is the authority.
 - Statement order sometimes fixes whole schedules (RE2 order first in Pl_init).
 - Return-type aliases (`LONG f_l(...) __asm__("f")`) remove andi/sll-sra after UCHAR/char returns.
 Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_set_draft_full.c, bd_best.c, mt_last.c.
+
+### Sixth pass (parallel agents): rules learnt
+- Args set up in each branch but one shared `jal`, or one tail call after two prints: the source had the call
+  in both branches and gcc cross-jumped the identical tails.
+- Case bodies jumping to a shared test with `slt` in the delay slot: each case set a flag, tested after the switch.
+- Case/default bodies are laid out in source order; a case falling into another reproduces the layout.
+- A large constant kept in a register (`lui` early): the variable was assigned more than once
+  (`Ret = 0x80000000; ... Ret &= x;`); a single assignment re-materializes the lui at the use.
+- `Area = x; Area |= y;` allocates differently from one expression (destination live earlier).
+- PsyQ headers define register-name macros (`R2`, ...): don't use them as variable names.
+- GTE without nops: RE3 uses no-nop GTE command macros with statements between load and command; those
+  statements must sit there in source too (asm volatile blocks scheduling).
+- A counter in an s-register that never crosses a call: the variable was reused later for a value that does.
+- `G.arr[G.Cbuf_id]` vs `pG->arr[pG->Cbuf_id]`: the direct form keeps `addiu base,0x44`, the pG form folds it.
+- lhu from a LONG field: `(USHORT)G.f`. lb+lbu of one signed char before a branch: read it once into a local.
+- Loop counter init placement (`Try = 0` after the first call, or `for (Try = 0;;)`) changes prologue scheduling.
+- `(a - '0') * 10 + b - '0'` folds the offsets; a temp for `a - '0'` keeps the separate addiu.
+- Inline lwl/lwr copies need `__builtin_memcpy` (the build uses -fno-builtin).
+- Callees given char args with no andi/sign-extension at the call site were called through int prototypes.
+- Overlay .rodata can end with unreferenced junk bytes: emit them with a top-level `__asm__(".byte ...")`.
+- gcc 2.8 hoists a loop invariant only if threshold*savings >= loop insn count; read `-dL`. A goto into a
+  `for(;;)` disables loop optimisation. Count-down loops came from `for (i = 6; i != 0; i--) arr[i + 6]`.
+- Some hh:mm:ss `/10` mismatches change with dead code before the division (pseudo numbering); one matched
+  only with a dead `Min = Time / 60;` (result.c func_801C3344, commented in source).
+- Handwritten asm left as INCLUDE_ASM: BIOS jump stubs (`li t2,0xA0; jr t2; li t1,n`), libcard
+  `_card_clear` (older-compiler epilogue), md_sub func_8002E318/D5D8/D4B0 (t-reg saves around jal, s-regs
+  in a leaf, `jr ra; nop`).

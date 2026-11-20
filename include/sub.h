@@ -38,6 +38,7 @@ extern SVECTOR Rot_vector_super_Svec;  /* 0x800A11C8, static in RE2 Rot_vector_s
 LONG func_800101C8(LONG *pPos, SHORT *pXz); /* sld.s: point in zone */
 LIGHT_CUT_DATA *Get_light_cut(LONG *pPos);
 void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV);
+void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight);
 
 /* RE3 model object entry (0x18 bytes; RE2 Mapping_tmd works on TMD objects instead).
  * The pointer fields hold file offsets until Md_adr_cnv relocates them. */
@@ -60,5 +61,9 @@ void Md_adr_cnv(MD_HEAD *pMd);      /* relocate MD_OBJ offsets */
 ULONG func_8002AB34(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
 void Md_set_abr(MD_OBJ *pObj, ULONG Abr);           /* set semi-trans rate of all prims */
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);                 /* bit Id of a flag array */
+
+void func_800790F0(ULONG *pAdr);                     /* load and run the INIT_SUB code at pAdr */
+void func_800791F0(void);                            /* restore the saved game state (load) */
+void func_800792FC(void);                            /* read INIT_SUB to 0x80101000 */
 
 #endif /* SUB_H */

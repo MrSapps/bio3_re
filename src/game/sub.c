@@ -543,9 +543,68 @@ void Set_light_pos(VECTOR *pV)
     Set_light(Get_light_cut((LONG *)pV), pV);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sub", Set_light_default);
+void Set_light_default(void)
+{
+    VECTOR V;
+    ULONG *pLight;
+    LIGHT_CUT_DATA *pData;
+    ULONG Zone;
+    LIGHT_ZONE *pZone;
 
-INCLUDE_ASM("asm/nonmatchings/game/sub", Set_light);
+    pLight = G.pRoom->pLight;
+    Zone = pLight[G.Cut_no + 1];
+    pData = (LIGHT_CUT_DATA *)((UCHAR *)pLight + pLight[0]);
+    pZone = (LIGHT_ZONE *)((UCHAR *)pLight + (Zone >> 16));
+    V.vx = 0;
+    V.vy = 0;
+    V.vz = 0;
+    Set_light(&pData[pZone[(Zone & 0xFFFF) - 1].No], &V);
+}
+
+void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV)
+{
+    VECTOR Vec;
+    UCHAR Col[4];
+    ULONG No;
+    LONG modeOfs;
+    LONG atten;
+    LONG dist;
+    ULONG lightRng;
+    UCHAR *pRgb;
+
+    No = 0;
+    modeOfs = 4;
+    do {
+        if (pLightCut->Mode[No] == 0) {
+            Vec.vx = (pV->vx - pLightCut->Pos[No][0]) >> 4;
+            Vec.vy = (pV->vy - pLightCut->Pos[No][1]) >> 4;
+            Vec.vz = (pV->vz - pLightCut->Pos[No][2]) >> 4;
+            lightRng = pLightCut->L[No] >> 4;
+            dist = SquareRoot0(Vec.vx * Vec.vx + Vec.vz * Vec.vz);
+            atten = lightRng - dist;
+            if (atten < 0) {
+                atten = 0;
+            }
+            if (lightRng != 0) {
+                Col[0] = (LONG)(pLightCut->Col[No][0] * atten) / (LONG)lightRng;
+                Col[1] = (LONG)(pLightCut->Col[No][1] * atten) / (LONG)lightRng;
+                Col[2] = (LONG)(pLightCut->Col[No][2] * atten) / (LONG)lightRng;
+            } else {
+                *(ULONG *)Col = 0;
+            }
+            pRgb = Col;
+        } else {
+            Vec.vx = pLightCut->Pos[No][0];
+            Vec.vy = pLightCut->Pos[No][1];
+            Vec.vz = pLightCut->Pos[No][2];
+            pRgb = (UCHAR *)pLightCut + modeOfs;
+        }
+        modeOfs += 3;
+        Set_Light_data(No, &Vec, pRgb, pLightCut);
+        No++;
+    } while ((LONG)No < 3);
+    SetBackColor(pLightCut->Ambient[0], pLightCut->Ambient[1], pLightCut->Ambient[2]);
+}
 
 void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight)
 {

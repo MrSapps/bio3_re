@@ -134,6 +134,7 @@ void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
 void Init_movie_work(ULONG Id)
 {
     MOVIE_TBL *pTbl;
+    SND_WORK *pSnd = &Snd_work;
     VM_WORK *pWork = &Vm_work;
     VM_DISP *pDisp = &Vm_disp;
 
@@ -143,8 +144,8 @@ void Init_movie_work(ULONG Id)
     else
         pWork->pFree_work = (UCHAR *)0x80194000;
     if (pTbl->Attribute & 8) {
-        Snd_work.UnkB1C = 0x80;
-        Snd_work.UnkB24 = Snd_work.UnkB20 = 0x3FFF;
+        pSnd->UnkB1C = 0x80;
+        pSnd->UnkB24 = pSnd->UnkB20 = 0x3FFF;
         pWork->Save_flg = G.Unk2468;
         G.Unk2468 |= 0xFF000000;
     }
@@ -213,13 +214,58 @@ void Movie(void)
     } while (pWork->Rno < 2);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", Movie_init);
+/* VRAM saved under an overlay movie (Movie_init) and restored by Movie_exit */
+static const RECT Movie_save_rect __asm__("D_800106EC") = {0x140, 0, 0xA0, 0x1E0};
+static const RECT Movie_save_rect2 __asm__("D_800106F4") = {0x1C0, 0xF0, 0x20, 0xF0};
+
+void Movie_init(void)
+{
+    VM_WORK *pWork = &Vm_work;
+    VM_DISP *pDisp = &Vm_disp;
+    RECT Rect = Movie_save_rect;
+    RECT Rect2 = Movie_save_rect2;
+
+    if (pDisp->Attribute & 8) {
+        Set_movie_volume2(pWork->Movie_volume);
+        func_80074658(1);
+        *(ULONG *)&Rect.w = 0x10000A0;
+        StoreImage(&Rect, (ULONG *)(((ULONG)Vm_work.pFree_work + 15) & ~15));
+        Vm_work.pFree_work += 0x14010;
+        StoreImage(&Rect2, (ULONG *)(((ULONG)Vm_work.pFree_work + 15) & ~15));
+        Vm_work.pFree_work += 0x3C10;
+        DrawSync(0);
+        if (Open_movie(pWork->Movie_id)) {
+            Movie_end();
+            pWork->Status = 1;
+            pWork->Rno += 2;
+        } else {
+            pWork->Status = 0;
+            pWork->Frame = 0;
+            pWork->Rno++;
+        }
+    } else if (pWork->Eom) {
+        Movie_end();
+        pWork->Rno += 2;
+    } else {
+        Set_movie_volume2(pWork->Movie_volume);
+        func_80074658(1);
+        if (Open_movie(pWork->Movie_id)) {
+            Movie_end();
+            pWork->Status = 1;
+            pWork->Rno += 2;
+        } else {
+            pWork->Status = 0;
+            if (pDisp->Attribute & 1) {
+                Fade_off(0);
+                Bg_set_mode(0, 0);
+            }
+            pWork->Frame = 0;
+            pWork->Rno++;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/movie", Movie_main);
-
-INCLUDE_RODATA("asm/nonmatchings/game/movie", D_800106EC);
-
-INCLUDE_RODATA("asm/nonmatchings/game/movie", D_800106F4);
 
 void Movie_end(void)
 {

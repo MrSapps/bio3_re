@@ -1,1 +1,7 @@
 // ENDING.BIN symbols (loaded at 0x80194000)
+Ending_main = 0x80194004; // type:func  task entry (proposed)
+Ending_status_clr = 0x80194080; // type:func  G.Status_flg &= 0xFFFF0000 (proposed)
+Ending_game = 0x8019409C; // type:func  movie, result screens, reload (proposed)
+Ending_movie = 0x801942DC; // type:func  ending movie 10/11 (proposed)
+Ending_load = 0x801943A4; // type:func  result then restore save (proposed)
+Ending_next_game = 0x801943E4; // type:func  (proposed)

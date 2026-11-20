@@ -212,6 +212,7 @@ void Door_main(void)
 void Door_init(void)
 {
     ULONG *Data_adr;
+    ULONG *pHdr;
     UCHAR i;
     ULONG Tmd_tpage;
     ULONG Tmd_clut;
@@ -222,13 +223,14 @@ void Door_init(void)
     D_800BA6F8 = (ULONG *)0x801B8E00;
     G.System_flg |= 0x400000;
     for (i = 0; i < 10; i++) {
-        D_800BA700[i] = (UCHAR *)0x801B9A58 + i * 0xC8 - D_800BA6F4;
+        D_800BA700[i] = (UCHAR *)(0x801B9A58 - D_800BA6F4) + i * 0xC8;
         func_80010150(D_800BA700[i], 0xC8);
     }
-    Data_adr = (ULONG *)((UCHAR *)Door_data + (ULONG)Door_data->pTim);
+    pHdr = (ULONG *)&Door_data->pTim;
+    Data_adr = (ULONG *)((UCHAR *)Door_data + *pHdr);
     D_800BA6F8[0] = (ULONG)Data_adr;
     G.Unk2484 = 0x1F15;
-    Door_data->pTim = Data_adr;
+    *pHdr = (ULONG)Data_adr;
     Door_data->pTmd = (ULONG *)((UCHAR *)Door_data + (ULONG)Door_data->pTmd);
     Mapping_tim(Data_adr);
     Data_adr = Door_data->pTmd;
@@ -268,8 +270,8 @@ void Door_init(void)
     for (i = 0; i < 4; i++) {
         Fade_off(i);
     }
-    G.DSce_work[1] = 1;
     G.DSce_work[0] = ((UCHAR *)G.pSce_aot_on)[0xD] & 0xFF7F;
+    G.DSce_work[1] = 1;
     G.DSce_work[2] = ((UCHAR *)G.pSce_aot_on)[0xD] & 0x80;
     G.DSce_work[3] = ((UCHAR *)G.pSce_aot_on)[0xC];
     *(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) = 0;

@@ -567,7 +567,58 @@ void Snd_seq_fade_out(SND_SEQ *pSeq)
 
 INCLUDE_ASM("asm/nonmatchings/game/snd", func_800749A0);
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_80074CD0);
+/* keys voice v for SND_VOICE pV: reverb, pitch, ADSR and volume from its VagAtr */
+void func_80074CD0(SND_VOICE *pV, signed char v)
+{
+    SpuVoiceAttr Attr;
+    SND_WORK *pW = &Snd_work;
+    VagAtr *pVag;
+    ULONG Note;
+
+    pVag = (VagAtr *)pW->Bank[pV->Unk1B].Unk4 + (pV->Unk18 + pV->Unk17 * pW->Bank[pV->Unk1B].pHead[3]);
+    pW->UnkB18 = 0;
+    if (pV->Unk1B < 5) {
+        if (pVag->mode & pW->UnkB78) {
+            pW->UnkB18 = 1 << v;
+            SpuSetReverbVoice(1, pW->UnkB18);
+        } else {
+            pW->UnkB18 = 1 << v;
+            SpuSetReverbVoice(0, pW->UnkB18);
+        }
+    }
+    Attr.voice = 1 << v;
+    Attr.mask = 0x60093;
+    Attr.addr = (ULONG)Snd_bank_get_tone(pV->Unk1B, pVag->vag);
+    Note = (pV->Unk19 << 7) | pVag->shift;
+    if (pV->Unk14 > 0x2000) {
+        Note += ((pV->Unk14 - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
+    }
+    if (pV->Unk14 < 0x2000) {
+        Note -= ((0x2000 - pV->Unk14) << 7) * pVag->pbmin / 0x1FFF;
+    }
+    Attr.pitch = func_80075A80(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F);
+    Attr.adsr1 = pVag->adsr1;
+    Attr.adsr2 = pVag->adsr2;
+    Attr.ar = (Attr.adsr1 & 0x7F00) >> 8;
+    Attr.dr = (Attr.adsr1 & 0xF0) >> 4;
+    Attr.sl = Attr.adsr1 & 0xF;
+    Attr.rr = Attr.adsr2 & 0x1F;
+    Attr.sr = (Attr.adsr2 & 0x1FC0) >> 6;
+    if (Attr.adsr1 & 0x8000) {
+        Attr.a_mode = 5;
+    } else {
+        Attr.a_mode = 1;
+    }
+    if (Attr.adsr2 & 0x20) {
+        Attr.r_mode = 7;
+    } else {
+        Attr.r_mode = 3;
+    }
+    Attr.s_mode = (Attr.adsr2 >> 14) + 1;
+    Attr.volume.left = pV->UnkA;
+    Attr.volume.right = pV->Unk8;
+    SpuSetVoiceAttr(&Attr);
+}
 
 LONG func_80074F44(UCHAR *pD, LONG v, SND_REQ *pReq)
 {
@@ -743,6 +794,7 @@ void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
     SND_WORK *pW;
     VabHdr *pVh;
     VagAtr *pVag;
+    ProgAtr *pPa;
     SND_VOICE *pV;
     ULONG mask;
     LONG Vel;
@@ -760,11 +812,12 @@ void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
     pTr->UnkB = pTr->UnkB * pW->Unk7C4 / 127;
     pTr->UnkB = pTr->UnkB * Vel / 127;
     pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
+    pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3];
+    pPa = (ProgAtr *)pVh + pTr->Prog + 2;
     Vol = pTr->Vol2;
-    mask = Snd_tone_mask((VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3], pTr,
-                         ((ProgAtr *)pVh + pTr->Prog + 2)->tones);
+    mask = Snd_tone_mask(pVag, pTr, pPa->tones);
     if (Vel != 0) {
-        Pan = pTr->Pan + pTr->Pan2 - 0x40;
+        Pan = pTr->Pan2 + (pTr->Pan - 0x40);
         pTr->UnkD = 0;
         while (mask != 0) {
             if (mask & 1) {
@@ -797,10 +850,10 @@ void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
                             }
                         }
                         pV->UnkA = pV->UnkC = Attr.volume.right;
-                        pV->Unk16 = Pan;
                         pV->Unk8 = pV->UnkE = Attr.volume.left;
                         pV->pVag = (UCHAR *)pVag;
                         pV->Unk10 = Vol;
+                        pV->Unk16 = Pan;
                         if (pVag->mode) {
                             pW->UnkB30 |= 1 << v;
                         } else {

@@ -121,7 +121,8 @@ typedef struct tagSND_WORK {
     UCHAR pad7CC[0x7D4 - 0x7CC];
     SND_REQ Req[24];                   /* 0x7D4 request queue */
     struct tagSND_REQ *pReq;          /* 0xAD4 request queue write pointer; the queue ends here */
-    UCHAR padAD8[0xB1C - 0xAD8];
+    UCHAR padAD8[0xB18 - 0xAD8];
+    ULONG UnkB18;                      /* 0xB18 voice bit of the last reverb on/off (func_80074CD0) */
     LONG UnkB1C;                       /* 0xB1C volume fade frames (0x80 on option screen enter/exit) */
     LONG UnkB20;                       /* 0xB20 volume fade level */
     LONG UnkB24;                       /* 0xB24 volume fade step */
