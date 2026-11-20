@@ -3,6 +3,7 @@
 #include "snd.h"
 #include "em_sub.h"
 #include "cd.h"
+#include "monitor.h"
 
 typedef struct tagST_POS {
     SHORT X;                           /* 0x0 */
@@ -73,7 +74,9 @@ typedef struct tagST_WORK {
     UCHAR pad31;
     SHORT Unk32;                       /* 0x32 */
     UCHAR Unk34;                       /* 0x34 condition (func_8006E598) */
-    UCHAR pad35[0x3A - 0x35];
+    UCHAR Unk35;                       /* 0x35 life to restore */
+    UCHAR Unk36;                       /* 0x36 cures poison */
+    UCHAR pad37[0x3A - 0x37];
     UCHAR Unk3A;                       /* 0x3A */
     UCHAR Unk3B;                       /* 0x3B */
     UCHAR Unk3C;                       /* 0x3C */
@@ -84,7 +87,8 @@ typedef struct tagST_WORK {
     UCHAR pad46[0x48 - 0x46];
     ST_ITEM *Unk48;                    /* 0x48 combine: item A */
     ST_ITEM *Unk4C;                    /* 0x4C combine: item B */
-    UCHAR pad50[0x58 - 0x50];
+    UCHAR *Unk50;                      /* 0x50 D_800A0514 entry of Unk48 */
+    UCHAR *Unk54;                      /* 0x54 D_800A0514 entry of Unk4C */
     UCHAR *Unk58;                      /* 0x58 combine table record (8 bytes, D_800A07C4) */
     UCHAR *Unk5C;                      /* 0x5C combine: slot no of item A */
     UCHAR *Unk60;                      /* 0x60 combine: slot no of item B */
@@ -92,7 +96,8 @@ typedef struct tagST_WORK {
     UCHAR Unk65;                       /* 0x65 combine result count */
     SHORT Unk66;                       /* 0x66 */
     SHORT Unk68;                       /* 0x68 */
-    UCHAR pad6A[0x6E - 0x6A];
+    UCHAR Unk6A;                       /* 0x6A weapon of a combine (D_800A00EC) */
+    UCHAR pad6B[0x6E - 0x6B];
     UCHAR Unk6E;                       /* 0x6E */
     UCHAR Unk6F;                       /* 0x6F */
     UCHAR Unk70;                       /* 0x70 */
@@ -141,7 +146,7 @@ typedef struct tagST_WORK {
     SHORT UnkC8;                       /* 0xC8 */
     UCHAR UnkCA;                       /* 0xCA */
     UCHAR UnkCB;                       /* 0xCB */
-    UCHAR padCC[0xD0 - 0xCC];
+    ULONG *UnkCC;                      /* 0xCC MAP.MAP data */
     UCHAR UnkD0;                       /* 0xD0 clut rows of the status textures */
     UCHAR UnkD1;                       /* 0xD1 */
     UCHAR UnkD2;                       /* 0xD2 */
@@ -158,7 +163,39 @@ typedef struct tagST_WORK {
     DR_TPAGE Tpage[2][2];              /* 0x3E4 */
     DR_TPAGE Tp404[4];                 /* 0x404 */
     DR_TPAGE Tp424[2];                 /* 0x424 */
+    DR_TPAGE Tp434[2];                 /* 0x434 */
 } ST_WORK;
+
+/* MAP.MAP (St.UnkCC) */
+typedef struct tagST_MAP_PART {
+    UCHAR U0;                          /* 0x0 */
+    UCHAR V0;                          /* 0x1 */
+    UCHAR U1;                          /* 0x2 */
+    UCHAR V1;                          /* 0x3 */
+    SHORT X;                           /* 0x4 */
+    SHORT Y;                           /* 0x6 */
+    UCHAR Clut;                        /* 0x8 */
+    UCHAR Tpage;                       /* 0x9 */
+    UCHAR padA[2];
+} ST_MAP_PART;
+/* MAP.MAP header: room count, then per room the part list offset and part counts */
+typedef struct tagST_MAP_PARTS {
+    ULONG Ofs;                         /* 0x0 */
+    USHORT N0;                         /* 0x4 */
+    USHORT N1;                         /* 0x6 */
+} ST_MAP_PARTS;
+typedef struct tagST_MAP_HDR {
+    ULONG Num;                         /* 0x0 */
+    ST_MAP_PARTS Room[1];               /* 0x4 */
+} ST_MAP_HDR;
+typedef struct tagST_MAP_ARROW {
+    SHORT U0;                          /* 0x0 */
+    SHORT V0;                          /* 0x2 */
+    SHORT U1;                          /* 0x4 */
+    SHORT V1;                          /* 0x6 */
+    SHORT X;                           /* 0x8 */
+    SHORT Y;                           /* 0xA */
+} ST_MAP_ARROW;
 
 /* overlays for G areas past the named fields */
 typedef struct { UCHAR pad[0x265C]; ENEMY_WORK *pEm[42]; } G265C;  /* 0x265C: pUnk265C, pUnk2660, pEnemy[] as one array */
@@ -169,26 +206,40 @@ typedef struct tagUNK7C7C {
     UCHAR Unk129;                      /* 0x129 equipped item id */
     UCHAR Num;                         /* 0x12A */
     UCHAR pad12B;
-    SHORT Unk12C[10];                  /* 0x12C */
+    USHORT Unk12C[10];                 /* 0x12C */
 } UNK7C7C;
 typedef struct tagGLOBAL_X {
-    UCHAR pad0[0x2120];
+    UCHAR pad0[0x2100];
+    USHORT Unk2100;                    /* 0x2100 G.Unk2100 */
+    UCHAR pad2102[0x2108 - 0x2102];
+    ULONG Key_trg;                     /* 0x2108 G.Key_trg */
+    UCHAR pad210C[0x2120 - 0x210C];
     ULONG System_flg;                  /* 0x2120 */
     UCHAR pad2124[0x21D8 - 0x2124];
     UCHAR *pUnk21D8;                   /* 0x21D8 G.pAot_data */
     ST_AOT_ITEM *pUnk21DC;             /* 0x21DC */
-    UCHAR pad21E0[0x2489 - 0x21E0];
+    UCHAR pad21E0[0x2474 - 0x21E0];
+    ULONG Unk2474[4];                  /* 0x2474 flag bits (Flg_ck) */
+    UCHAR Ctpage;                      /* 0x2484 RE2 Ctpage (tpage x of the next Mapping_tim) */
+    UCHAR Cclut;                       /* 0x2485 RE2 Cclut (clut row) */
+    UCHAR pad2486[0x2489 - 0x2486];
     UCHAR Unk2489;                     /* 0x2489 */
-    UCHAR pad248A[0x24D6 - 0x248A];
+    UCHAR pad248A[0x248C - 0x248A];
+    ULONG Pl_be_flg;                   /* 0x248C start of the player ENEMY_WORK */
+    UCHAR pad2490[0x24D6 - 0x2490];
     UCHAR Unk24D6;                     /* 0x24D6 player +0x4A (8..10: alternate status panel) */
-    UCHAR pad24D7[0x255E - 0x24D7];
+    UCHAR pad24D7[0x2558 - 0x24D7];
+    SHORT Pl_life;                     /* 0x2558 G.Pl_life */
+    SHORT Pl_life_max;                 /* 0x255A player max life */
+    UCHAR pad255C[0x255E - 0x255C];
     USHORT Pl_status_flg;              /* 0x255E G.Pl_status_flg */
     UCHAR pad2560[0x77F8 - 0x2560];
     ULONG Unk77F8[3];                  /* 0x77F8 flag words (Flg_ck 6..10) */
     UCHAR pad7804[0x7806 - 0x7804];
     USHORT Unk7806;                    /* 0x7806 */
     UCHAR Unk7808;                     /* 0x7808 */
-    UCHAR pad7809[0x7814 - 0x7809];
+    UCHAR pad7809[0x7812 - 0x7809];
+    SHORT Unk7812;                     /* 0x7812 G.Sce_work[2]: id of the item last used */
     USHORT Unk7814;                    /* 0x7814 last picked item id */
     UCHAR pad7816[0x783E - 0x7816];
     UCHAR Unk783E;                     /* 0x783E */
@@ -208,38 +259,13 @@ typedef struct tagGLOBAL_X {
     UNK7C7C Unk79FC[2];                /* 0x79FC, 0x140 bytes each */
     UNK7C7C *pUnk7C7C;                 /* 0x7C7C */
     LONG Unk7C80;                      /* 0x7C80 */
-    SHORT Unk7C84[(0x7E98 - 0x7C84) / 2]; /* 0x7C84 */
+    SHORT Unk7C84[(0x7E94 - 0x7C84) / 2]; /* 0x7C84 */
+    LONG Unk7E94;                      /* 0x7E94 total life healed? */
 } GLOBAL_X;
 #define GX (*(GLOBAL_X *)&G)
-
-#define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
-#define ST_P(p, ofs, type) FLD(p, ofs, type)
-
-/* ---- merged helpers (forks + parent) ---- */
-typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
-typedef struct { UCHAR b[0x140]; } FA_B140R;
-typedef DR_TPAGE FA_TP2[2][2];
-typedef UCHAR FA_B140[2][0x140];
-extern UCHAR D_800CC848;
 void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
 void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
-void func_80060E90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern SHORT D_8009EDA4[];
-extern SHORT D_8009EDCC[];
-extern SHORT D_8009EDF4[];
-extern SHORT D_8009EE1C[];
-void Spl_sce05(ENEMY_WORK *pEm);
-LONG func_800634F4(ENEMY_WORK *pEm, LONG f);
-void func_8001B484(LONG no, ULONG dir, void *p, SVECTOR *pSv, LONG a4);
-LONG func_80044804(void *p, LONG a1, LONG a2);
-extern LONG D_8009DBD4;
-void FA_Add_speedXZ3(ENEMY_WORK *pEm, LONG a, LONG b) __asm__("Add_speedXZ");
-void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG f);
-LONG func_80063198(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-void Spl_sce04(ENEMY_WORK *pEm);
-LONG func_800632B8(ENEMY_WORK *pEm, LONG f);
-void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b);
 extern UCHAR D_8009F2EC[];
 extern UCHAR D_8009F2F8[];
@@ -247,9 +273,8 @@ extern UCHAR D_8009F304[];
 extern UCHAR D_8009F310[];
 extern UCHAR D_8009F31C[];
 void func_8006E600(ST_WORK *pSt, SPRT *p, UCHAR *pTbl, ULONG f);
-void FA_func_8006EBEC(ULONG *p) __asm__("func_8006EBEC");
+void func_8006EBEC_p(ULONG *p) __asm__("func_8006EBEC");
 void func_80063E9C(ST_WORK *pSt);
-LONG func_80062B68(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern USHORT D_8009F26C[];
 extern ULONG D_8009EF90[];
 extern UCHAR D_8009EED8[];
@@ -257,149 +282,20 @@ extern char D_80010DCC[];
 extern SHORT D_800CCBBC;
 void Mapping_tim(ULONG *p);
 void func_8006ED28(ST_WORK *pSt);
-void FB_OpenTIM(void) __asm__("OpenTIM");
-typedef struct { UCHAR pad[0x2484]; UCHAR Unk2484; UCHAR Unk2485; } FB_G2484;
-UCHAR FB_func_8006E598(void) __asm__("func_8006E598");
+void OpenTIM_v(void) __asm__("OpenTIM");
+UCHAR func_8006E598_u(void) __asm__("func_8006E598");
 extern UCHAR D_800A04F8[];
 extern UCHAR D_800A07C4[];
 extern UCHAR D_800A0514[][4];
-/* ---- forkC: sound driver ---- */
-typedef struct tagFC_SNDW {
-    UCHAR pad0[0x7C0];
-    UCHAR Rv_mode;                     /* 0x7C0 requested reverb mode */
-    UCHAR Rv_cur;                      /* 0x7C1 current reverb mode */
-    UCHAR Rv_step;                     /* 0x7C2 */
-    signed char Rv_cnt;                /* 0x7C3 */
-    SHORT Vol[8];                      /* 0x7C4 (Vol[2] = SND_WORK.Unk7C8) */
-    UCHAR pad7D4[0xAD8 - 0x7D4];
-    LONG Cam_x;                        /* 0xAD8 listener position */
-    LONG Cam_y;                        /* 0xADC */
-    LONG Cam_z;                        /* 0xAE0 */
-    UCHAR padAE4[0xAE8 - 0xAE4];
-    SpuCommonAttr Cattr;               /* 0xAE8 */
-    UCHAR padB10[0xB3C - (0xAE8 + sizeof(SpuCommonAttr))];
-    LONG Dist[8];                      /* 0xB3C */
-    UCHAR Vprio[24];                   /* 0xB5C */
-    UCHAR UnkB74;                      /* 0xB74 */
-    UCHAR padB75[0xB77 - 0xB75];
-    UCHAR UnkB77;                      /* 0xB77 */
-    UCHAR padB78;
-    UCHAR UnkB79;                      /* 0xB79 */
-} FC_SNDW;
-#define FC_SW (*(FC_SNDW *)&Snd_work)
-typedef struct { UCHAR pad[6]; UCHAR Unk6; UCHAR pad7; LONG *pSnd; UCHAR pad0C[0x34 - 0xC]; SHORT *pSnd_area; } FC_ROOM;
-typedef struct { UCHAR pad[0x213C]; UCHAR *Unk213C; } FC_G;
-extern SpuReverbAttr D_800A1108[];
-extern UCHAR D_800A10F4[][0x14];
 
-typedef struct { UCHAR pad[0x2484]; UCHAR Tp_x; UCHAR Clut_y; } FC_G2;
-typedef struct {
-    USHORT Cdir_y;                     /* 0x0 */
-    SHORT Pos_x;                       /* 0x2 */
-    SHORT Pos_y;                       /* 0x4 */
-    SHORT Pos_z;                       /* 0x6 */
-    USHORT Life;                       /* 0x8 */
-    UCHAR UnkA;                        /* 0xA */
-    UCHAR UnkB;                        /* 0xB */
-    UCHAR Save[0x908];                 /* 0xC */
-} FC_SAVE;
-extern FC_SAVE D_800C7048;
-typedef struct { UCHAR pad[0x24D6]; UCHAR Unk24D6; UCHAR pad24D7[0x2558 - 0x24D7]; USHORT Life; UCHAR pad255A[0x255E - 0x255A]; USHORT Unk255E; } FC_G3;
-#define FC_G3X (*(FC_G3 *)&G)
-void func_80078FE8(void);
-void func_8007906C(void);
-void func_800792FC(void);
-void func_800790F0(ULONG *pAdr);
-
-typedef struct { ULONG Mask; UCHAR pad4[0xC]; } FC_TR;
-typedef struct { UCHAR pad0[0x5C]; FC_TR Tr[16]; } FC_SEQX;
-typedef struct { UCHAR pad0[0xAC]; FC_SEQX Seq[3]; } FC_SNDW2;
-
-extern LONG D_800E0608;
-void func_80075C30(void);
-
-typedef struct {
-    ULONG Mask;                        /* 0x0 */
-    SHORT Pitch;                       /* 0x4 */
-    UCHAR pad6[2];
-    UCHAR Pan;                         /* 0x8 */
-    UCHAR pad9;
-    UCHAR Vol;                         /* 0xA */
-    UCHAR padB[3];
-    UCHAR UnkE;                        /* 0xE */
-    UCHAR UnkF;                        /* 0xF */
-} FC_TRK;
-typedef struct {
-    ULONG *pHead;                      /* 0x00 */
-    UCHAR *pPtr;                       /* 0x04 */
-    UCHAR *pLoop;                      /* 0x08 */
-    LONG Delta;                        /* 0x0C */
-    ULONG Tempo;                       /* 0x10 */
-    ULONG Tempo2;                      /* 0x14 */
-    LONG Unk18;                        /* 0x18 */
-    UCHAR pad1C[4];
-    LONG Unk20;                        /* 0x20 */
-    SHORT Unk24;                       /* 0x24 */
-    SHORT No;                          /* 0x26 */
-    UCHAR pad28[4];
-    UCHAR Play;                        /* 0x2C */
-    UCHAR Stop;                        /* 0x2D */
-    UCHAR pad2E[0x38 - 0x2E];
-    UCHAR Fade;                        /* 0x38 */
-    UCHAR pad39[3];
-    ULONG Fade_vol;                    /* 0x3C */
-    ULONG Fade_step;                   /* 0x40 */
-    UCHAR pad44[0x56 - 0x44];
-    USHORT Reso;                       /* 0x56 */
-    UCHAR pad58[0x5C - 0x58];
-    FC_TRK Tr[16];                     /* 0x5C */
-} FC_SEQ2;
-typedef struct {
-    UCHAR pad0[0x14];
-    SHORT Unk14;
-    UCHAR pad16[0x1D - 0x16];
-    UCHAR Unk1D;
-    UCHAR pad1E[2];
-} FC_VOICE;
-typedef struct {
-    UCHAR pad0[0xAC];
-    FC_SEQ2 Seq[3];                    /* 0x0AC */
-    FC_VOICE Voice[24];                /* 0x4C0 */
-    UCHAR pad7C0[0xB74 - 0x7C0];
-    UCHAR UnkB74;                      /* 0xB74 */
-    UCHAR padB75;
-    UCHAR UnkB76;                      /* 0xB76 */
-} FC_SNDW4;
-
-typedef struct { UCHAR pad[0x24]; LONG *pCam; } FC_ROOM2;
-#define FC_SQ(x) ((x) * (x))
-
-typedef struct { UCHAR A0; UCHAR B0; UCHAR A1; UCHAR B1; } FC_MAP;
-extern FC_MAP D_800A0430[];
-LONG func_8004D720(VECTOR *pV, LONG a1, LONG a2, LONG a3);
-extern MATRIX D_800E1200[];
-extern MATRIX D_800E1220;
-extern MATRIX D_800E1260;
-extern MATRIX D_800E1280;
-typedef struct tagMY_JNT {
-    SVECTOR a;
-    SVECTOR b;
-    SHORT c[2];
-} MY_JNT;
-void HMatrix(MATRIX *a, MATRIX *b, MATRIX *c, LONG r);
-void MulLMatrix(MATRIX *a, MATRIX *b, MATRIX *c);
-void func_80079374(MATRIX *a, MATRIX *b, LONG *t, MY_JNT *j);
-void func_80079CC0(ENEMY_WORK *pEm, LONG h);
-void MY_func_800611E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("Spl_sce07");
-LONG func_80062BFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-LONG MY_func_80077B84(LONG x, LONG z, LONG a) __asm__("func_80077B84");
-void Pad_vib_fade_set(LONG a0, LONG a1, LONG a2, LONG a3);
-void MY_func_8001B484(LONG id, ULONG code, MATRIX *pM, SVECTOR *pOfs, SVECTOR *p5) __asm__("func_8001B484");
-
-/* ---- merged helpers (forks + parent) ---- */
-
+typedef struct { UCHAR A0; UCHAR B0; UCHAR A1; UCHAR B1; } ST_ROOM_MAP;
+extern ST_ROOM_MAP D_800A0430[];
 
 /* local prototypes (this module) */
+UCHAR *func_8006A898(ST_WORK *pSt, UCHAR a, UCHAR b);
+void func_8006A9AC(UCHAR no, UCHAR idx);
+void func_8006AC88(UCHAR no);
+void func_8006AE20(UCHAR dst, UCHAR src);
 void Cd_seek_s(ULONG File_no, ULONG Mode, char *pName) __asm__("Cd_seek");
 LONG Weapon_cls(ENEMY_WORK *pEm);
 LONG Pl_weapon_ch(ENEMY_WORK *pEm);
@@ -407,71 +303,30 @@ extern UCHAR D_800D442C;
 extern UCHAR D_800D442D;
 extern UCHAR D_800D442E;
 extern ULONG D_800D258C[];
-LONG Snd_seq_get_vlq(UCHAR **pp);
-UCHAR func_80077220_u(LONG a0, LONG a1, LONG a2, LONG a3) __asm__("func_80077220");
-extern ULONG D_800D1FC0[];
-extern LONG D_800A1140[];
-extern LONG D_800A1170[];
-extern ULONG D_800CC858;
-void func_800749A0(SND_REQ *pReq, USHORT a1, ULONG *p, LONG bank);
-UCHAR func_80062CD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern ULONG D_800A0FEC[];
-extern ULONG D_800A1000;
 void Pl_wep_eff_parts_init(void *p);
 void func_80046C90(void);
 extern ULONG D_8009F678[];
 void func_80010000(ULONG a0, ULONG *pDst);
-LONG Joint_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-LONG func_80079690(ENEMY_WORK *pEm, UCHAR *pKan, UCHAR *pSeq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, LONG rate);
-extern void (*D_8009EEA4[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern UCHAR D_8009F568[];
 extern char D_80010F84[];
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern USHORT D_8009F4F8[][2];
 extern LONG D_800D23B8;
 extern ST_WORK St;
-extern UCHAR *D_800BA6E8;
 void func_80073CCC(UCHAR *a, UCHAR *b);
-extern SpuCommonAttr D_800E10F8;
-LONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
 extern UCHAR D_800DBB58;
-extern SHORT D_800D1F80;
-extern ULONG *D_800E01C8;
 extern USHORT D_800A004C[][2];
 void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
 void func_80068024(ST_WORK *pSt);
 void func_8006CD68(UCHAR no);
-LONG func_800759D8(LONG x);
-void func_8007836C(LONG no, ULONG *pAdr);
-extern UCHAR D_800A0FE4[];
-extern UCHAR D_800A0FDC[];
-extern UCHAR D_800CCBBF;
-extern SHORT D_800E067C;
 extern UCHAR D_800A0BB4[];
 extern UCHAR D_800A0BC4[];
-void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern void (*D_8009F4E4[])(ST_WORK *pSt);
 extern void (*D_800A0100[])(ST_WORK *pSt);
 extern void (*D_800A0138[])(ST_WORK *pSt);
 extern void (*D_800A0500[])(ST_WORK *pSt);
 extern ULONG D_800D20DC[];
 UCHAR func_80069614(ST_WORK *pSt, LONG a1);
-void func_80027338(ULONG *pKan, ULONG *pSeq, ULONG a2, ULONG Flg);
-void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
-void Foot_set_pl(ENEMY_WORK *pEm, LONG a1, LONG a2);
-void func_80060464(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_8006037C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-extern void (*D_8009EE44[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm);
-void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8006055C(ENEMY_WORK *pEm);
-void func_8002B2BC(ULONG *pKan, ULONG *pSeq, USHORT *pNow_seq, ULONG R_flg);
-
-/* declarations from earlier parts of the original address-split file */
-signed char func_800102E8(void);
-LONG FF_func_8001B484(LONG no, ULONG dir, void *p, SVECTOR *pSv, LONG a4) __asm__("func_8001B484");
-
 void func_800636D4(ST_WORK *pSt)
 {
     ULONG i, sum, n;
@@ -494,7 +349,7 @@ void func_800636D4(ST_WORK *pSt)
     Cd_read(0x1C, pSt->pBuf, 2, D_80010DCC);
     p = pSt->pBuf;
     D_800CCBBC = 0xA17;
-    FA_func_8006EBEC(p);
+    func_8006EBEC_p(p);
     func_800641D0(pSt, pSt->UnkBC, pSt->UnkBD);
     pSt->Rtn1 = 0;
     pSt->UnkBE = 0;
@@ -663,9 +518,9 @@ void func_80063CAC(ST_WORK *pSt)
             *pA = 0;
             n = pD[6];
             if (pG->Unk783E < 2) {
-                Flg_on((ULONG *)((UCHAR *)pG + 0x78D0), *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78D0, *(USHORT *)(pD + 4));
             } else {
-                Flg_on((ULONG *)((UCHAR *)pG + 0x78F0), *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
             ofs = (n & 0xFF) * 0x194;
             func_8001B894(0x705, D_800CEA80 + ofs);
@@ -710,21 +565,21 @@ void func_80063E9C(ST_WORK *pSt)
 
 void func_80063FE4(ST_WORK *pSt)
 {
-    UCHAR *p;
+    SPRT *p;
     UCHAR c;
 
     AddPrim(G.pOt0 + 4, pSt->Tpage[G.Cbuf_id]);
     AddPrim(G.pOt0 + 3, &pSt->Tpage[G.Cbuf_id][1]);
     AddPrim(G.pOt0 + 2, &pSt->Ot[G.Cbuf_id][16]);
-    func_800642D4(pSt, (void *)0x801ADA90, D_8009F2EC, 0x1101);
+    func_800642D4(pSt, (SPRT *)0x801ADA90, D_8009F2EC, 0x1101);
     if (pSt->UnkBC == 0x1B) {
-        p = (UCHAR *)0x801ADA90;
+        p = (SPRT *)0x801ADA90;
         if (G.Cbuf_id) {
-            p = (UCHAR *)0x801ADAA4;
+            p = (SPRT *)0x801ADAA4;
         }
-        FLD(p, 0xA, SHORT) = (USHORT)pSt->Pos[17].Y + 0x24;
+        p->y0 = (USHORT)pSt->Pos[17].Y + 0x24;
     }
-    func_800642D4(pSt, (void *)0x801ADAB8, D_8009F2F8, 0x11201);
+    func_800642D4(pSt, (SPRT *)0x801ADAB8, D_8009F2F8, 0x11201);
     if (pSt->Flg & 0x80000) {
         func_8006E8BC(pSt, (SPRT *)0x801ADAE0, D_8009F310, 0x101301);
     }
@@ -732,16 +587,16 @@ void func_80063FE4(ST_WORK *pSt)
         func_8006E8BC(pSt, (SPRT *)0x801ADB08, D_8009F304, 0x101401);
     }
     if (pSt->Flg & 0x20000) {
-        p = (UCHAR *)0x801ADB80;
-        if (D_800CC848) {
-            p = (UCHAR *)0x801ADB94;
+        p = (SPRT *)0x801ADB80;
+        if (G.Cbuf_id) {
+            p = (SPRT *)0x801ADB94;
         }
         if (pSt->UnkBF == 0) {
             c = pSt->UnkD3 + 7;
         } else {
             c = pSt->UnkD3;
         }
-        FLD(p, 0xE, SHORT) = ((c + 0x1E0) << 6) | 0x13;
+        p->clut = ((c + 0x1E0) << 6) | 0x13;
         func_8006E8BC(pSt, (SPRT *)0x801ADB80, D_8009F31C, 0x101501);
     }
 }
@@ -1129,6 +984,7 @@ void func_80065EE0(ST_WORK *pSt)
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800661B4);
+
 
 void func_80066530(ST_WORK *pSt)
 {
@@ -1581,6 +1437,7 @@ void func_80066CA0(ST_WORK *pSt)
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800676B8);
 
+
 void func_80067B70(ST_WORK *pSt)
 {
     D_800A0138[pSt->Rtn2](pSt);
@@ -1600,7 +1457,120 @@ void func_80067BAC(ST_WORK *pSt)
     pSt->Pos[13].Y = ((signed char)pSt->Unk1D >> 1) * 30;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_80067C14);
+extern signed char D_800A00EC[][2];
+LONG Pl_wep_eff_parts_cnt_l(void) __asm__("Pl_wep_eff_parts_cnt"); /* UCHAR result used as int */
+
+void func_80067C14(ST_WORK *pSt)
+{
+    GLOBAL_X *pG = &GX;
+    ST_ITEM *p;
+    ST_ITEM *q;
+    UCHAR *pc;
+    SHORT n;
+    LONG i;
+    UCHAR c;
+    LONG se;
+
+    p = &pG->pUnk7C7C->Item[pSt->Unk1C];
+    n = 0;
+    if (pG->Key_trg & 0x2000) {
+        pSt->Rtn1 = 3;
+        pSt->Flg &= ~0x2000000;
+        pSt->Flg &= ~0x20000000;
+        Snd_se_stad(5, 0, 0, 0);
+        return;
+    }
+    if (pG->Key_trg & 0x1000) {
+        q = &pG->pUnk7C7C->Item[(signed char)pSt->Unk1D];
+        pc = func_8006A898(pSt, p->Id, q->Id);
+        pSt->Unk48 = p;
+        pSt->Unk4C = q;
+        pSt->Unk58 = pc;
+        if (pc != (UCHAR *)-1 && pSt->Unk1C != (signed char)pSt->Unk1D) {
+            switch (pc[0]) {
+            case 2:
+                for (i = 0; D_800A00EC[i][0] != -1; i++) {
+                    if (D_800A00EC[i][0] == pc[3]) {
+                        break;
+                    }
+                }
+                c = pSt->Unk6A = D_800A00EC[i][1];
+                switch (c) {
+                case 0:
+                case 1:
+                    n = 6;
+                    break;
+                }
+                i = n;
+                if (i != 0 && i < pG->pUnk7C7C->Unk12C[c]) {
+                    Mess_set(0, 0x1400, 13, 0);
+                    pSt->Rtn2 = 5;
+                    pSt->Flg &= ~0x20000000;
+                    return;
+                }
+                break;
+            case 0:
+                if (pc[1] == 12) {
+                    if (p->Id != 12) {
+                        p = q;
+                    }
+                    if (p->Num == 0) {
+                        if (Pl_wep_eff_parts_cnt_l()) {
+                            Mess_set(0, 0x1400, 9, 0);
+                            pSt->Rtn2 = 4;
+                            pSt->Flg &= ~0x20000000;
+                            return;
+                        }
+                        Pl_wep_eff_parts_init(&pG->Pl_be_flg);
+                        func_80046C90();
+                    } else {
+                        Mess_set(0, 0x1000, 10, 0);
+                        pSt->Rtn2 = 2;
+                        pSt->Flg &= ~0x20000000;
+                        Snd_se_stad(7, 0, 0, 0);
+                        return;
+                    }
+                }
+                break;
+            }
+            func_80068024(pSt);
+        } else {
+            Snd_se_stad(7, 0, 0, 0);
+        }
+        return;
+    }
+    se = 0;
+    if (pG->Unk2100 & 0x1000) {
+        if ((signed char)pSt->Unk1D >= 2) {
+            pSt->Unk1D -= 2;
+            se = 1;
+        }
+    }
+    if (G.Unk2100 & 0x4000) {
+        if ((signed char)pSt->Unk1D < GX.pUnk7C7C->Num - 2) {
+            pSt->Unk1D += 2;
+            se = 1;
+        }
+    }
+    if (G.Unk2100 & 0x8000) {
+        if (pSt->Unk1D & 1) {
+            pSt->Unk1D--;
+            se = 1;
+        }
+    }
+    if (G.Unk2100 & 0x2000) {
+        if (!(pSt->Unk1D & 1)) {
+            pSt->Unk1D++;
+            se = 1;
+        }
+    }
+    if (se == 1) {
+        Snd_se_stad(4, 0, 0, 0);
+    }
+    pSt->Pos[13].X = (pSt->Unk1D & 1) * 40;
+    pSt->Pos[13].Y = ((signed char)pSt->Unk1D >> 1) * 30;
+}
+
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_80068024);
 
@@ -1634,7 +1604,7 @@ void func_80068AB4(ST_WORK *pSt)
 void func_80068B5C(ST_WORK *pSt)
 {
     if (!(D_800DBB58 & 0x80)) {
-        switch (D_800D1F80) {
+        switch (G.Unk7848) {
         case 0:
             pSt->Unk58 += 8;
         case 1:
@@ -2405,7 +2375,7 @@ void func_8006A888(ST_WORK *pSt)
     pSt->Rtn1 = 0;
 }
 
-UCHAR *func_8006A898(LONG a0, UCHAR a, UCHAR b)
+UCHAR *func_8006A898(ST_WORK *pSt, UCHAR a, UCHAR b)
 {
     UCHAR *p = D_800A07C4;
     UCHAR c = p[1];
@@ -2476,7 +2446,7 @@ void func_8006AA84(UCHAR no)
     CD.Fsize = 0x800;
     CD.Fsector = (floc[0x34].sec_high << 16) + floc[0x34].sector + no;
     CD.Fsum = D_8009F568[no];
-    Cd_read(0x34, D_800E01C8, 2, D_80010F84);
+    Cd_read(0x34, St.pBuf, 2, D_80010F84);
 }
 
 void func_8006AB08(UCHAR no)
@@ -2487,7 +2457,7 @@ void func_8006AB08(UCHAR no)
     r.y = D_800A004C[no][1];
     r.w = 0x14;
     r.h = 0x1E;
-    LoadImage(&r, D_800E01C8);
+    LoadImage(&r, St.pBuf);
 }
 
 void func_8006AB68(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
@@ -2716,7 +2686,28 @@ void func_8006AE90(ST_WORK *pSt)
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006B66C);
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006C370);
+void func_8006C370(ST_WORK *pSt)
+{
+    POLY_FT4 *p;
+    SHORT w, h;
+    SHORT x, y;
+
+    p = (POLY_FT4 *)0x801AEA58;
+    if (G.Cbuf_id) {
+        p = (POLY_FT4 *)0x801AEA80;
+    }
+    setPolyFT4(p);
+    setRGB0(p, 0x80, 0x80, 0x80);
+    setUV4(p, 0, 0, 0x70, 0, 0, 0x48, 0x70, 0x48);
+    p->tpage = 0x97;
+    p->clut = (pSt->UnkD4 + 0x1E0) << 6;
+    w = (signed char)pSt->Unk6F;
+    h = (signed char)pSt->Unk70;
+    x = pSt->Pos[15].X + pSt->Pos[8].X;
+    y = pSt->Pos[15].Y + pSt->Pos[8].Y;
+    setXY4(p, x - w, y - h, x + w, y - h, x - w, y + h, x + w, y + h);
+    AddPrim(G.pOt0 + 1, p);
+}
 
 typedef struct tagST_RGB_STEP {
     UCHAR R, G, B;                     /* 0x0 */
@@ -2840,7 +2831,76 @@ SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006CA10);
+typedef struct tagST_ICON {
+    UCHAR U;                           /* 0x0 */
+    UCHAR pad1;
+    UCHAR V;                           /* 0x2 */
+    UCHAR pad3;
+    USHORT W;                          /* 0x4 */
+    USHORT H;                          /* 0x6 */
+    UCHAR pad8[4];
+} ST_ICON;
+extern ST_ICON D_8009F9F8[];
+
+void func_8006CA10(ST_WORK *pSt)
+{
+    SPRT *p;
+    DR_TPAGE *pTp;
+    ST_ICON *pI;
+    ULONG i;
+    LONG k;
+    SHORT x, y;
+
+    p = (SPRT *)0x801AC500;
+    pTp = &pSt->Tp434[0];
+    if (G.Cbuf_id) {
+        pTp = &pSt->Tp434[1];
+    }
+    SetDrawTPage(pTp, 0, 0, 0x97);
+    AddPrim(G.pOt0 + 7, pTp);
+    i = 0;
+    if (G.Cbuf_id) {
+        p = (SPRT *)0x801AC514;
+    }
+    k = 24;
+    for (; i < 30; p += 2, i++) {
+        pI = &D_8009F9F8[D_800A00B0[i]];
+        setSprt(p);
+        setRGB0(p, 0x80, 0x80, 0x80);
+        p->w = pI->W;
+        p->h = pI->H;
+        p->clut = (pSt->UnkD8 + 0x1E0) << 6;
+        if (Flg_ck(GX.Unk79F4, D_800A00B0[i])) {
+            p->u0 = pI->U;
+            p->v0 = pI->V;
+        } else {
+            p->u0 = D_8009F9F8[31].U;
+            p->v0 = D_8009F9F8[31].V;
+        }
+        if (GX.Unk79F8 == 30 && i == 0) {
+            p->u0 = D_8009F9F8[30].U;
+            p->v0 = D_8009F9F8[30].V;
+        }
+        if (i < 15) {
+            LONG ox = pSt->Pos[k].X;
+            LONG oy;
+            x = ox + ((i % 5) * 32 + 0x10);
+            oy = pSt->Pos[k].Y;
+            y = oy + ((i / 5) * 32 + 0x58);
+        } else {
+            LONG ox = pSt->Pos[k].X;
+            LONG oy;
+            x = ox + ((i % 5) * 32 + 0x10);
+            x += 0xD0;
+            oy = pSt->Pos[k].Y;
+            y = oy + (((i - 15) / 5) * 32 + 0x58);
+        }
+        p->x0 = x;
+        p->y0 = y;
+        AddPrim(pTp, p);
+    }
+}
+
 
 signed char Search_item_id(UCHAR id, signed char i)
 {
@@ -3126,10 +3186,10 @@ void func_8006D0D8(void)
     pG2 = &GX;
     pG2->Unk79F4[0] = 0;
     pG2->Unk79F8 = 0;
-    Flg_on(&pG2->Unk79F4, 0x1E);
+    Flg_on(pG2->Unk79F4, 0x1E);
     if (!Flg_ck(&pG2->System_flg, 0x18) && pG2->Unk7806) {
-        Flg_on(&pG2->Unk79F4, 0);
-        Flg_on(&pG2->Unk79F4, 0x1C);
+        Flg_on(pG2->Unk79F4, 0);
+        Flg_on(pG2->Unk79F4, 0x1C);
         pG2->Unk79F8 = 2;
     }
     if (Flg_ck(&GX.System_flg, 0x18)) {
@@ -3154,8 +3214,8 @@ void func_8006D720(void)
     UCHAR n;
     LONG pad[2];
 
-    if (Flg_ck(&D_800CC858, 0x18)) {
-        switch (FLD(&D_800CC858, 0x3B6, UCHAR)) {
+    if (Flg_ck(&G.System_flg, 0x18)) {
+        switch (GX.Unk24D6) {
         case 8:
             Cd_read(0x5A, (ULONG *)0x801B1500, 0, "STMAIN1.TIM");
             break;
@@ -3232,9 +3292,9 @@ void func_8006D948(ST_WORK *pSt)
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
-    FLD(pW, 0xB1C, LONG) = 0x80;
-    FLD(pW, 0xB20, LONG) = 0x3FFF;
-    FLD(pW, 0xB24, LONG) = 0xB00;
+    pW->UnkB1C = 0x80;
+    pW->UnkB20 = 0x3FFF;
+    pW->UnkB24 = 0xB00;
     Cd_seek_s(0x34, 0, "SEEK ITEMI.PIX");
     if (pSt->Flg14 & 0x40000000) {
         Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
@@ -3268,7 +3328,7 @@ void func_8006D948(ST_WORK *pSt)
     pSt->Unk3C = 0;
     pSt->Unk3D = 0;
     pSt->Unk28 = ((GLOBAL_X *)pG)->pUnk7C7C->Unk129;
-    pSt->Unk29 = ((FC_G3 *)pG)->Unk24D6;
+    pSt->Unk29 = ((GLOBAL_X *)pG)->Unk24D6;
     pSt->Unk32 = 0;
     pSt->Unk22 = 0;
     pSt->Unk24 = 0;
@@ -3402,7 +3462,7 @@ void func_8006D948(ST_WORK *pSt);
 void func_8006E0A4(ST_WORK *pSt);
 void func_8006E268(ST_WORK *pSt);
 void func_8006E34C(ST_WORK *pSt);
-void FC_func_80073E7C(ST_WORK *pSt) __asm__("func_80073E7C");
+void func_80073E7C_p(ST_WORK *pSt) __asm__("func_80073E7C");
 
 void func_8006DFDC(void)
 {
@@ -3415,7 +3475,7 @@ void func_8006DFDC(void)
             func_8006E268(pSt);
         }
         func_8006E34C(pSt);
-        FC_func_80073E7C(pSt);
+        func_80073E7C_p(pSt);
         Task_sleep(1);
     }
     func_8006E0A4(pSt);
@@ -3479,7 +3539,7 @@ void func_8006E0A4(ST_WORK *pSt)
 
 void func_8006E268(ST_WORK *pSt)
 {
-    pSt->Unk34 = FB_func_8006E598();
+    pSt->Unk34 = func_8006E598_u();
     if (*(USHORT *)&pSt->Rtn0 == 0x205) {
         return;
     }
@@ -3542,7 +3602,7 @@ void func_8006E424(ST_WORK *pSt)
     if (Fade_status(0) != 0) {
         return;
     }
-    if (FLD(pW, 0xB1C, LONG) != 0) {
+    if (pW->UnkB1C != 0) {
         return;
     }
     switch (pSt->Unk4) {
@@ -3573,13 +3633,13 @@ void func_8006E4CC(ST_WORK *pSt)
     switch (pSt->Rtn1) {
     case 0:
         Fade_set(0, 0, 2, 2, 0, 0xFFFFFF, 6);
-        FLD(pW, 0xB1C, LONG) = 0x80;
-        FLD(pW, 0xB20, LONG) = 0;
-        FLD(pW, 0xB24, LONG) = -0xB00;
+        pW->UnkB1C = 0x80;
+        pW->UnkB20 = 0;
+        pW->UnkB24 = -0xB00;
         pSt->Rtn1++;
         break;
     case 1:
-        if ((Fade_status(0) & 4) && FLD(pW, 0xB1C, LONG) == 0) {
+        if ((Fade_status(0) & 4) && pW->UnkB1C == 0) {
             pSt->Unk27 = 0;
         }
         break;
@@ -3771,17 +3831,17 @@ void func_8006EBEC(void)
     TIM_IMAGE *p;
     LONG y;
 
-    FB_OpenTIM();
+    OpenTIM_v();
     p = ReadTIM(&tim);
-    p->prect->x = (((FB_G2484 *)&G)->Unk2484 << 6) - (((FB_G2484 *)&G)->Unk2484 >= 0x10 ? 0x400 : 0);
+    p->prect->x = (GX.Ctpage << 6) - (GX.Ctpage >= 0x10 ? 0x400 : 0);
     y = p->prect->y;
-    if (((FB_G2484 *)&G)->Unk2484 >= 0x10) {
+    if (GX.Ctpage >= 0x10) {
         y += 0x100;
     }
     p->prect->y = y;
     LoadImage(p->prect, p->paddr);
     if (p->caddr) {
-        p->crect->y = ((FB_G2484 *)&G)->Unk2485 + 0x1E0;
+        p->crect->y = GX.Cclut + 0x1E0;
         LoadImage(p->crect, p->caddr);
     }
     DrawSync(0);
@@ -4246,9 +4306,9 @@ void func_80070024(ST_WORK *pSt)
             *pA = 0;
             n = pD[6];
             if (pG->Unk783E < 2) {
-                Flg_on((ULONG *)((UCHAR *)pG + 0x78D0), *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78D0, *(USHORT *)(pD + 4));
             } else {
-                Flg_on((ULONG *)((UCHAR *)pG + 0x78F0), *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
             ofs = (n & 0xFF) * 0x194;
             func_8001B894(0x705, D_800CEA80 + ofs);
@@ -4273,11 +4333,326 @@ void func_80070024(ST_WORK *pSt)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_80070244);
+/* MAP.MAP room part: texture rect, position, clut/tpage (0xC bytes) */
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8007116C);
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800713DC);
+extern ULONG D_800D2124[];
+extern ULONG D_800D2128[];
+extern ST_MAP_ARROW D_800A03D0[][4];
+extern UCHAR D_800A0328[];
+extern USHORT D_800A038C[];
+void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
+ULONG func_80071668(UCHAR a, UCHAR b);
+LONG func_800716A4(UCHAR st, UCHAR rm);
+LONG func_80071878(UCHAR st, UCHAR rm, UCHAR no);
+LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR no);
+LONG func_80072AEC(UCHAR st, UCHAR rm, UCHAR no);
+LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR no);
+LONG func_800738CC(UCHAR st, UCHAR rm, UCHAR no);
+void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut);
+
+void func_80070244(ST_WORK *pSt)
+{
+    ST_MAP_PARTS *pRoom;
+    ULONG num;
+    ST_MAP_HDR *pHdr;
+    DR_TPAGE *pOt0;
+    DR_TPAGE *pOt1;
+    DR_TPAGE *pOt2;
+    UCHAR col;
+    POLY_FT4 *pP;
+    ST_MAP_PART *pPt;
+    ST_MAP_ARROW *pA;
+    LINE_F2 *pL;
+    TILE *pT;
+    SPRT *pS;
+    SHORT *pRm;
+    UCHAR c;
+    LONG i, j, f;
+    LONG mx, my;
+    LONG px, pz, zoom, dx, dy, ox, oy;
+
+    pP = (POLY_FT4 *)0x801AC000;
+    pOt0 = &pSt->Tp404[0];
+    pOt1 = &pSt->Tp404[2];
+    pOt2 = &pSt->Tp424[0];
+    col = (UCHAR)pSt->Unk22 * 2 + 0x40;
+    pHdr = (ST_MAP_HDR *)(pSt->UnkCC[1] + (ULONG)pSt->UnkCC);
+    pRoom = pHdr->Room;
+    num = pHdr->Num;
+    if (G.Cbuf_id) {
+        pP = (POLY_FT4 *)0x801AC028;
+        pOt0 = &pSt->Tp404[1];
+        pOt1 = &pSt->Tp404[3];
+        pOt2 = &pSt->Tp424[1];
+    }
+    AddPrim(G.pOt0 + 1, pOt2);
+    AddPrim(G.pOt0 + 1, pOt0);
+    AddPrim(G.pOt0 + 6, pOt1);
+    for (i = 0; i < num; i++, pRoom++) {
+        if (!Flg_ck(D_800D2124, pSt->UnkAB)) {
+            if (i >= 0x30) {
+                continue;
+            }
+            if (!func_80071668(pSt->UnkAB, i)) {
+                continue;
+            }
+        } else if (pSt->UnkAB == 4 && (ULONG)(i - 0xB) < 5) {
+            if (!func_80071668(pSt->UnkAB, i)) {
+                continue;
+            }
+        }
+        if (!func_800716A4(pSt->UnkAB, i)) {
+            continue;
+        }
+        pPt = (ST_MAP_PART *)(pRoom->Ofs + (ULONG)pHdr);
+        for (j = 0; j < pRoom->N0; j++, pPt++) {
+            if (func_80071878(pSt->UnkAB, i, j)) {
+                func_8007116C(pSt, pP, pPt, func_8007275C(pSt->UnkAB, i, j));
+                if ((UCHAR)func_80072AEC(pSt->UnkAB, i, j)) {
+                    setRGB0(pP, col, col, col);
+                }
+                SetSemiTrans(pP, 1);
+                addPrim((ULONG *)G.pOt0[5], pP);
+                pP += 2;
+            }
+        }
+        for (j = 0; j < pRoom->N1; j++, pPt++) {
+            if (func_80072D38(pSt->UnkAB, i, j)) {
+                c = func_800738CC(pSt->UnkAB, i, j);
+                func_8007116C(pSt, pP, pPt, (c != 0) * 2);
+                if (c) {
+                    setRGB0(pP, col, col, col);
+                }
+                addPrim((ULONG *)G.pOt0[4], pP);
+                pP += 2;
+            }
+        }
+    }
+    f = pSt->UnkAB == pSt->UnkAA;
+    if (pSt->UnkAD && (signed char)pSt->UnkAF != (signed char)pSt->UnkAE) {
+        f = 0;
+    }
+    if (f) {
+        pRm = (SHORT *)pSt->pUnkB4;
+        pRm = (SHORT *)((UCHAR *)pRm + *(ULONG *)pRm);
+        pRm += pSt->UnkAC * 4;
+        px = G.Pl_pos_x;
+        pz = G.Pl_pos_z;
+        if (G.Unk783E == 1 && G.Unk7840 == 0xF && px >= -0x2276) {
+            px += 0x251D;
+        }
+        if (G.Unk783E == 3 && G.Unk7840 == 0x15 && G.Pl_pos_x >= 0x320) {
+            px = G.Pl_pos_x - 0x2328;
+            pz = G.Pl_pos_z;
+        }
+        dx = pRm[0] + (px - pRm[2]) / 450;
+        dy = pRm[1] - (pz - pRm[3]) / 450;
+        mx = (dx + pSt->Unk94) * pSt->UnkA4 / 100 - pSt->Unk94 + pSt->Unk7C;
+        my = (dy + pSt->Unk98) * pSt->UnkA4 / 100 - pSt->Unk98 + pSt->Unk80;
+        pP = (POLY_FT4 *)0x801AFE80;
+        if (G.Cbuf_id) {
+            pP = (POLY_FT4 *)0x801AFEA8;
+        }
+        setXY4(pP, mx + 0x9C, my + 0x74, mx + 0xA4, my + 0x74, mx + 0x9C, my + 0x7C, mx + 0xA4, my + 0x7C);
+        setRGB0(pP, col, col, col);
+        addPrim((ULONG *)G.pOt0[1], pP);
+    }
+    if (pSt->UnkA9) {
+        pP = (POLY_FT4 *)0x801AFED0;
+        if (G.Cbuf_id) {
+            pP = (POLY_FT4 *)0x801AFEF8;
+        }
+        for (j = 0; j < 4; j++) {
+            if (pSt->UnkAD) {
+                if ((ULONG)(j - 2) < 2) {
+                    continue;
+                }
+                if ((signed char)pSt->UnkAE == 0 && j == 1) {
+                    continue;
+                }
+                if ((signed char)pSt->UnkAE == pSt->UnkB0 - 1 && j == 0) {
+                    continue;
+                }
+            }
+            i = 0;
+            switch (j) {
+            case 0:
+                if (pSt->Unk80 >= pSt->Unk98 + 0xE0) {
+                    i = 1;
+                }
+                break;
+            case 1:
+                if (pSt->Unk80 <= pSt->Unk98 - 0xE0) {
+                    i = 1;
+                }
+                break;
+            case 2:
+                if (pSt->Unk7C >= pSt->Unk94 + 0x140) {
+                    i = 1;
+                }
+                break;
+            case 3:
+                if (pSt->Unk7C <= pSt->Unk94 - 0x140) {
+                    i = 1;
+                }
+                break;
+            }
+            if (i) {
+                setRGB0(pP, 0x18, 0x18, 0x18);
+            } else {
+                i = pSt->Unk24;
+                setRGB0(pP, 0x80, 0x80, 0x80);
+            }
+            pA = &D_800A03D0[i][j];
+            dx = pA->X;
+            dy = pA->Y;
+            setXY4(pP, dx - 7, dy - 6, dx + 6, dy - 6, dx - 7, dy + 6, dx + 6, dy + 6);
+            setUV4(pP, pA->U0, pA->V0, pA->U1, pA->V0, pA->U0, pA->V1, pA->U1, pA->V1);
+            setSemiTrans(pP, 1);
+            addPrim((ULONG *)G.pOt0[1], pP);
+            pP += 2;
+        }
+    }
+    if (!pSt->UnkAD) {
+        pL = (LINE_F2 *)0x801B0010;  /* two TILEs (LINE_F2 shares the layout used here) */
+        if (G.Cbuf_id) {
+            pL = (LINE_F2 *)0x801B0020;
+        }
+        setRGB0(pL, pSt->Unk22 + 0x50, pSt->Unk22 + 0x40, pSt->Unk22 & 0x1F);
+        addPrim(pOt0, pL);
+        pL += 2;
+        setRGB0(pL, pSt->Unk22 + 0x50, pSt->Unk22 + 0x40, pSt->Unk22 & 0x1F);
+        addPrim(pOt0, pL);
+    }
+    pL = (LINE_F2 *)0x801B0050;
+    if (G.Cbuf_id) {
+        pL = (LINE_F2 *)0x801B0060;
+    }
+    zoom = pSt->UnkA4;
+    dy = pSt->Unk98 - pSt->UnkA0;
+    dx = pSt->Unk94 - pSt->Unk9C;
+    ox = pSt->Unk7C - pSt->Unk94 + 0xA0;
+    oy = pSt->Unk80 - pSt->Unk98 + 0x78;
+    for (i = 1; i < 0x14; i++) {
+        pL->x1 = pL->x0 = (dx + i * 0x20) * zoom / 100 + ox;
+        pL->y0 = dy * zoom / 100 + oy;
+        pL->y1 = (dy + 0x1C0) * zoom / 100 + oy;
+        addPrim(pOt1, pL);
+        pL += 2;
+    }
+    for (i = 1; i < 0xE; i++) {
+        pL->x0 = dx * zoom / 100 + ox;
+        pL->x1 = (dx + 0x280) * zoom / 100 + ox;
+        pL->y1 = pL->y0 = (dy + i * 0x20) * zoom / 100 + oy;
+        addPrim(pOt1, pL);
+        pL += 2;
+    }
+    pS = (SPRT *)0x801B0510;
+    if (G.Cbuf_id) {
+        pS = (SPRT *)0x801B0524;
+    }
+    addPrim(pOt0, pS);
+    pS += 2;
+    if (pSt->Rtn1 != 1) {
+        if (pSt->UnkA8 == 0) {
+            addPrim(pOt0, pS);
+            pS += 2;
+            addPrim(pOt0, pS);
+            pS += 2;
+            pS += 4;
+        } else {
+            pS += 4;
+            addPrim(pOt0, pS);
+            pS += 2;
+            addPrim(pOt0, pS);
+            pS += 2;
+        }
+    } else {
+        pS += 8;
+    }
+    addPrim(pOt0, pS);
+    pS += 2;
+    for (i = 0; i < (signed char)pSt->UnkAE; i++) {
+        pS += 2;
+    }
+    addPrim(pOt0, pS);
+    if (pSt->Rtn1 == 2) {
+        pT = (TILE *)0x801B06A0;
+        if (G.Cbuf_id) {
+            pT = (TILE *)0x801B06B0;
+        }
+        setXY0(pT, 0x3D, 0x78 - pSt->Unk13 * 8);
+        setWH(pT, 0xC8, pSt->Unk13 * 16);
+        addPrim(pOt2, pT);
+        if (pSt->Rtn2 == 1) {
+            Mess_print(0x68, 0x34, D_800A0328 + D_800A038C[7], 0x501);
+            if (pSt->UnkB1 < 0x3F) {
+                Mess_print(0x47, (signed char)pSt->UnkBB * 16 + 0x4C, D_800A0328 + D_800A038C[8], 0x501);
+            }
+            for (i = 0; i < 7; i++) {
+                if (Flg_ck(D_800D2128, D_800A04F8[i])) {
+                    Mess_print(0x55, i * 16 + 0x4C, D_800A0328 + D_800A038C[D_800A04F8[i]], 0x501);
+                } else {
+                    Mess_print(0x55, i * 16 + 0x4C, D_800A0328 + D_800A038C[9], 0x531);
+                }
+            }
+        }
+    }
+}
+
+
+/* needs ST_MAP_PART (see func_80070244.c draft) and ST_WORK Unk7C..UnkA4 */
+void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut)
+{
+    LONG x, y, w, h, ox, oy, zoom;
+
+    if (pPt->Clut == 7) {
+        clut = 0;
+    }
+    w = pPt->U1 - pPt->U0 + 1;
+    h = pPt->V1 - pPt->V0 + 1;
+    x = pPt->X + pSt->Unk94;
+    y = pPt->Y + pSt->Unk98;
+    ox = pSt->Unk7C - pSt->Unk94 + 0xA0;
+    oy = pSt->Unk80 - pSt->Unk98 + 0x78;
+    zoom = pSt->UnkA4;
+    SetPolyFT4(p);
+    setXY4(p, x * zoom / 100 + ox, y * zoom / 100 + oy, (x + w) * zoom / 100 + ox, y * zoom / 100 + oy, x * zoom / 100 + ox, (y + h) * zoom / 100 + oy, (x + w) * zoom / 100 + ox, (y + h) * zoom / 100 + oy);
+    setUV4(p, pPt->U0, pPt->V0, pPt->U1 + 1, pPt->V0, pPt->U0, pPt->V1 + 1, pPt->U1 + 1, pPt->V1 + 1);
+    p->tpage = (((pPt->Tpage >> 1) + 7) & 0xF) | 0x10;
+    setRGB0(p, 0x80, 0x80, 0x80);
+    p->clut = ((pPt->Clut + ((pPt->Tpage & 1) * 8 + 0x1EA) + clut) << 6) | 0x13;
+}
+
+
+/* MATCH (fdiff shows 2 false %hi/%lo diffs for the "MAP.MAP" string; check with linkcheck) */
+extern UCHAR D_800A03A0[];
+extern ULONG D_800A03AC[];
+
+void func_800713DC(ST_WORK *pSt, UCHAR no)
+{
+    ULONG i, sum;
+
+    i = 0;
+    pSt->UnkCC = pSt->pBuf;
+    CD.Fno = 0x3A;
+    sum = 0;
+    CD.Fsize = D_800A03AC[no];
+    CD.Fsector = (floc[0x3A].sec_high << 16) + floc[0x3A].sector;
+    for (; i < no; i++) {
+        sum += D_800A03AC[i];
+    }
+    CD.Fsector += sum >> 11;
+    CD.Fsum = D_800A03A0[no];
+    Cd_read(0x3A, pSt->UnkCC, 2, "MAP.MAP");
+    pSt->pUnkB4 = (ULONG *)(pSt->UnkCC[3] + (ULONG)pSt->UnkCC);
+    D_800CCBBC = 0xA17;
+    Mapping_tim((ULONG *)(pSt->UnkCC[5] + (ULONG)pSt->UnkCC));
+    D_800CCBBC = 0x1A18;
+    func_8006EBEC_p((ULONG *)(pSt->UnkCC[7] + (ULONG)pSt->UnkCC));
+}
+
 
 void func_80071510(UCHAR a, UCHAR b)
 {
@@ -4308,12 +4683,67 @@ ULONG func_80071668(UCHAR a, UCHAR b)
     return *p & (0x80000000U >> (b & 0x1F));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800716A4);
+extern ULONG D_800D1FA0[];
+UCHAR func_80073BC8_u(ST_WORK *pSt, UCHAR st, UCHAR rm) __asm__("func_80073BC8");
+
+LONG func_800716A4(UCHAR st, UCHAR rm)
+{
+    ST_WORK *pSt = &St;
+    USHORT code = pSt->UnkAC | (pSt->UnkAA << 8);
+    LONG f;
+
+    switch (st) {
+    case 0:
+        if ((UCHAR)(rm - 0x11) < 10) {
+            return 0;
+        }
+        break;
+    case 1:
+        if ((code == 0x10C || code == 0x115) && Flg_ck(D_800D1FA0, 0x3A) && rm != 0xC) {
+            return 0;
+        }
+        if ((USHORT)(G.Unk783E - 2) < 3 && rm == 0xC) {
+            return 0;
+        }
+        if (rm == (code == 0x10F ? 0x10 : 0xF)) {
+            return 0;
+        }
+        if (code == 0x112) {
+            if (rm == 0x11) {
+                return 0;
+            }
+        } else if (rm == 0x12) {
+            return 0;
+        }
+        break;
+    case 3:
+        f = Flg_ck(D_800D1FA0, 0xC4);
+        if (rm == (f ? 0x11 : 0x15)) {
+            return 0;
+        }
+        if (code == 0x310) {
+            if (rm == 0x11 || rm == 0x15) {
+                return 0;
+            }
+            if (rm == 0xD) {
+                return 0;
+            }
+        } else if (rm == 0x10) {
+            return 0;
+        }
+        break;
+    }
+    if (St.UnkAD && (signed char)St.UnkAE != func_80073BC8_u(pSt, st, rm)) {
+        return 0;
+    }
+    return 1;
+}
+
 
 LONG func_80071878(UCHAR st, UCHAR rm, UCHAR cut)
 {
     tagGLOBAL *pG = &G;
-    UCHAR *p = St.pUnkB4;
+    UCHAR *p = (UCHAR *)St.pUnkB4;
     USHORT cur = St.UnkAC | (St.UnkAA << 8);
     UCHAR fl = pG->Pl_nFloor;
     ULONG *pF0 = pG->Unk78D0;
@@ -4979,7 +5409,7 @@ LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR cut)
         break;
     }
     if (!Flg_ck(&G.System_flg, 0x18)) {
-        p = St.pUnkB4;
+        p = (UCHAR *)St.pUnkB4;
         for (p += ((LONG *)p)[3]; (signed char)p[0] != -1; p += 4) {
             if (p[0] == rm && p[1] == cut) {
                 if (p[3]) {
@@ -5417,7 +5847,7 @@ LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR cut)
         }
         break;
     }
-    p = St.pUnkB4;
+    p = (UCHAR *)St.pUnkB4;
     p += ((LONG *)p)[4];
     while ((signed char)p[0] != -1) {
         if (p[0] == rm && p[1] == cut) {
@@ -5516,7 +5946,7 @@ LONG func_800738CC(UCHAR st, UCHAR rm, UCHAR cut)
         }
         return 0;
     }
-    p = St.pUnkB4;
+    p = (UCHAR *)St.pUnkB4;
     for (p += ((LONG *)p)[2]; (signed char)p[0] != -1; p += 4) {
         if (p[0] == rm && p[1] == cut) {
             switch (p[3]) {
@@ -5592,11 +6022,11 @@ void func_80073CCC(UCHAR *pA, UCHAR *pB)
         *pB = 0x11;
         return;
     }
-    if (*pA == 4 && *pB == 2 && Flg_ck(D_800D1FC0, 0x1F)) {
+    if (*pA == 4 && *pB == 2 && Flg_ck(&G.Unk7888, 0x1F)) {
         *pB = 0x11;
         return;
     }
-    if (*pA == 2 && *pB == 0x17 && G.Pl_pos_z >= -0x2C24 && !Flg_ck((ULONG *)((UCHAR *)&G + 0x7868), 200)) {
+    if (*pA == 2 && *pB == 0x17 && G.Pl_pos_z >= -0x2C24 && !Flg_ck(G.Unk7868, 200)) {
         *pB = 2;
     }
     if (*pA >= 5) {

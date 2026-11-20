@@ -309,7 +309,7 @@ typedef struct tagPARTS_W {
     SHORT Unk7C;                       /* 0x7C (func_800455B4) */
     UCHAR pad7E[0x84 - 0x7E];
     UCHAR Unk84;                       /* 0x84 part number (Pl_weapon_ch) */
-    UCHAR Unk85;                       /* 0x85 */
+    signed char Unk85;                 /* 0x85 RE2 Timer1 (signed counter) */
     signed char Unk86;                 /* 0x86 */
     UCHAR pad87;
     SHORT Unk88;                       /* 0x88 rotation x (func_8002B190) */
