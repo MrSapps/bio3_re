@@ -30,6 +30,9 @@ typedef struct tagG_CTP {
 #define G_CTPAGE (((G_CTP *)&G)->Ctpage)
 #define G_CCLUT  (((G_CTP *)&G)->Cclut)
 
+/* a SHORT [3][3] rotation matrix written as words (identity init) */
+#define MAT_WORD(m, i) (((ULONG *)(m))[i])
+
 /* one draw buffer of a sprite: SPRT with the colour/code as one word */
 typedef struct tagSEL_SPRT {
     ULONG Tag;                         /* 0x00 */

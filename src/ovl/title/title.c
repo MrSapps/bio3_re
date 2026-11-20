@@ -1,11 +1,363 @@
 #include "common.h"
 #include "ovl/title.h"
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_801940E8);
+/* main loop */
+void func_801940E8(void)
+{
+    func_80038634(0x5000, 0x20A);
+    Title_wk.Timer = 300;
+    TITLE_RTN_SET(&Title_wk, 0);
+    Main.Vloop = 1;
+    do {
+        Title_main_tbl[Title_wk.Main_rtn](&Title_wk);
+        Task_sleep(1);
+    } while (1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80194444);
+/* Capcom logo (after a reset only), then the opening movie; START skips.
+ * splat did not split it from func_801940E8 (it is only referenced from Title_main_tbl) */
+void func_80194160(TITLE_WORK *pTi)
+{
+    ULONG Step;
+    LONG Timer;
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_801945E4);
+    Main.Unk193 = 2;
+    Task_sleep(1);
+    Step = 0;
+    if (G.System_flg & 0x20000000) {
+        while (Main.Unk193 != 0) {
+            Task_sleep(1);
+        }
+        while (1) {
+            switch (Step) {
+            case 0:
+                Snd_work_t.Unk7C0 = 2;
+                func_80197414();
+                Bg_set_mode(1, 0);
+                Fade_set(0, 0, FADE_HOLD, 1, 0, 0xFFFFFF, 30);
+                Step++;
+                break;
+            case 1:
+                if (Fade_status(0) & FADE_END) {
+                    Step++;
+                }
+                break;
+            case 2:
+                Bg_set_mode(2, 0);
+                Fade_set(0, 0, 0, 1, 0xFFFFFF, 0, 30);
+                Step++;
+            case 3:
+                if (Fade_status(0) == 0) {
+                    Step++;
+                }
+                break;
+            case 4:
+                func_801973E4();
+                Timer = 120;
+                Step++;
+            case 5:
+                if (Timer-- == 0) {
+                    Step++;
+                }
+                break;
+            case 6:
+                Fade_set(0, 0, FADE_HOLD, 1, 0, 0xFFFFFF, 30);
+                Step++;
+            case 7:
+                if (Fade_status(0) & FADE_END) {
+                    Step++;
+                }
+                break;
+            case 8:
+                Bg_set_mode(1, 0);
+                Fade_set(0, 0, 0, 1, 0xFFFFFF, 0, 30);
+                Step++;
+            case 9:
+                if (Fade_status(0) == 0) {
+                    Step++;
+                }
+                break;
+            }
+            if (Step == 10) {
+                break;
+            }
+            if (G.Unk20FC & 0x800) {
+                Bg_set_mode(1, 0);
+                Fade_off(0);
+                Task_sleep(2);
+                if (Step < 5) {
+                    func_801973E4();
+                }
+                break;
+            }
+            Task_sleep(1);
+        }
+    } else {
+        Bg_set_mode(1, 0);
+        func_801973E4();
+    }
+    if (!(G.System_flg & 0x80)) {
+        Init_movie_work(12);
+        while (G.System_flg & 0x10000) {
+            Task_sleep(1);
+        }
+    }
+    Main.Unk191 = 1;
+    Fade_set(1, 1, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
+    pTi->Main_rtn = 1;
+}
+
+/* title init: sound banks, menu sprites, title picture */
+void func_80194444(TITLE_WORK *pTi)
+{
+    Main.Vloop = 1;
+    Fade_set(1, 1, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
+    if (!(G.System_flg & 0x80)) {
+        func_8007809C(0, 1, 0x801FBC00, 0x801C1814);
+    } else {
+        func_8007809C(0, 11, 0x801FBC00, 0x801C1814);
+    }
+    Cd_read(0x121, (ULONG *)0x801F7E00, 1, "OPTION BGM");
+    func_800782F4(0, 0x38, (ULONG *)0x801F7E00);
+    func_800783BC(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
+    Main.Unk191 = 1;
+    Bg_set_mode(1, 0);
+    pTi->Timer = 900;
+    TITLE_RTN_SET(pTi, 2);
+    func_801945E4(pTi);
+    pTi->Kido_cnt = 0;
+    pTi->Kido = Title_sin_tbl[0] / 3 - 0x80;
+    if (G.System_flg & 0x80) {
+        pTi->Cur = 0;
+        pTi->Cur_old = 0;
+    } else {
+        pTi->Cur = 1;
+        pTi->Cur_old = 1;
+    }
+    func_80197448();
+    Bg_set_mode(2, 0);
+}
+
+/* menu sprites of both draw buffers */
+void func_801945E4(TITLE_WORK *pTi)
+{
+    TITLE_BUF *pBuf;
+    SPRT *pSp;
+    ULONG i;
+
+    pBuf = pTi->Buf;
+    i = 0;
+    do {
+        pSp = &pBuf->Menu.Logo;
+        SetSprt(pSp);
+        pSp->y0 = 0xD5;
+        pSp->v0 = 0xA0;
+        pSp->w = 0xD0;
+        pSp->h = 0x10;
+        pSp->r0 = 0x80;
+        pSp->g0 = 0x80;
+        pSp->b0 = 0x80;
+        pSp->clut = 0x7FC0;
+        pSp->x0 = 0x3C;
+        pSp->u0 = 0;
+        pSp = &pBuf->Menu.Item[0];
+        if (G.System_flg & 0x80) {
+            SetSprt(pSp);
+            pSp->x0 = 0x85;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0x8C;
+            pSp->v0 = 0x90;
+            pSp->u0 = 0;
+            pSp->w = 0x36;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[1];
+            SetSprt(pSp);
+            pSp->x0 = 0x8F;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0x9E;
+            pSp->u0 = 0x40;
+            pSp->v0 = 0x90;
+            pSp->w = 0x22;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[2];
+            SetSprt(pSp);
+            pSp->x0 = 0x82;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xB0;
+            pSp->u0 = 0;
+            pSp->v0 = 0x80;
+            pSp->w = 0x3C;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[3];
+            SetSprt(pSp);
+            pSp->x0 = 0x95;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xC2;
+            pSp->u0 = 0x68;
+            pSp->v0 = 0x90;
+            pSp->w = 0x16;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[4];
+            SetSprt(pSp);
+            pSp->x0 = 0x86;
+            pSp->r0 = 0;
+            pSp->g0 = 0;
+            pSp->b0 = 0;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0x8D;
+            pSp->v0 = 0x90;
+            pSp->u0 = 0;
+            pSp->w = 0x36;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[5];
+            SetSprt(pSp);
+            pSp->r0 = 0;
+            pSp->g0 = 0;
+            pSp->b0 = 0;
+            pSp->clut = 0x7FC0;
+            pSp->x0 = 0x90;
+            pSp->y0 = 0x9F;
+            pSp->u0 = 0x40;
+            pSp->v0 = 0x90;
+            pSp->w = 0x22;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[6];
+            SetSprt(pSp);
+            pSp->x0 = 0x83;
+            pSp->r0 = 0;
+            pSp->g0 = 0;
+            pSp->b0 = 0;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xB1;
+            pSp->u0 = 0;
+            pSp->v0 = 0x80;
+            pSp->w = 0x3C;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[7];
+            SetSprt(pSp);
+            pSp->x0 = 0x96;
+            pSp->r0 = 0;
+            pSp->g0 = 0;
+            pSp->b0 = 0;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xC3;
+            pSp->u0 = 0x68;
+            pSp->v0 = 0x90;
+            pSp->w = 0x16;
+            pSp->h = 0xC;
+        } else {
+            SetSprt(pSp);
+            pSp->x0 = 0x44;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xC1;
+            pSp->u0 = 0;
+            pSp->v0 = 0x68;
+            pSp->w = 0x30;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[1];
+            SetSprt(pSp);
+            pSp->x0 = 0x84;
+            pSp->u0 = 0x40;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xC1;
+            pSp->v0 = 0x68;
+            pSp->w = 0x32;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[2];
+            SetSprt(pSp);
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->x0 = 0xC8;
+            pSp->y0 = 0xC1;
+            pSp->u0 = 0;
+            pSp->v0 = 0x80;
+            pSp->w = 0x3C;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[3];
+            SetSprt(pSp);
+            pSp->x0 = 0x4C;
+            pSp->y0 = 0x9C;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->u0 = 0;
+            pSp->v0 = 0;
+            pSp->w = 0xA8;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[4];
+            SetSprt(pSp);
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->x0 = 0x50;
+            pSp->y0 = 0xC1;
+            pSp->u0 = 0;
+            pSp->v0 = 0x80;
+            pSp->w = 0x3C;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[5];
+            SetSprt(pSp);
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->x0 = 0xB4;
+            pSp->y0 = 0xC1;
+            pSp->u0 = 0x40;
+            pSp->v0 = 0x80;
+            pSp->w = 0x3E;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[6];
+            SetSprt(pSp);
+            pSp->x0 = 0x50;
+            pSp->u0 = 0x38;
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->y0 = 0xC1;
+            pSp->v0 = 0xB0;
+            pSp->w = 0x38;
+            pSp->h = 0xC;
+            pSp = &pBuf->Menu.Item[7];
+            SetSprt(pSp);
+            pSp->r0 = 0x80;
+            pSp->g0 = 0x80;
+            pSp->b0 = 0x80;
+            pSp->clut = 0x7FC0;
+            pSp->x0 = 0xB4;
+            pSp->y0 = 0xC1;
+            pSp->u0 = 0;
+            pSp->v0 = 0xB0;
+            pSp->w = 0x36;
+            pSp->h = 0xC;
+        }
+        SetDrawTPage(&pBuf->Menu.Tpage, 0, 0, 5);
+        pBuf++;
+    } while (++i < 2);
+}
 
 void func_80194ADC(TITLE_WORK *pTi)
 {
@@ -13,7 +365,39 @@ void func_80194ADC(TITLE_WORK *pTi)
     func_80194C4C(&Title_wk);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80194B08);
+/* "press start": the logo slides in, then the menu fades in */
+void func_80194B08(TITLE_WORK *pTi)
+{
+    switch (pTi->Sub_rtn) {
+    case 0:
+        pTi->Moji_y = 0xA0;
+        pTi->Mode = 0;
+        pTi->Sub_rtn++;
+    case 1:
+        pTi->Moji_y -= 30;
+        if (pTi->Moji_y < 0) {
+            Fade_set(0, 0, 0, 1, 0, 0xFFFFFF, 5);
+            pTi->Moji_y = 0;
+            pTi->Sub_rtn++;
+        }
+        break;
+    case 2:
+        if (Fade_status(0) != 0) {
+            break;
+        }
+        Fade_set(1, 1, 0, 2, 0xFFFFFF, 0, 60);
+        pTi->Sub_rtn++;
+    case 3:
+        if (Fade_status(1) == 0) {
+            pTi->Mode = 1;
+            pTi->Unk9 = 1;
+            pTi->UnkA = 0;
+            pTi->Sub_rtn++;
+            TITLE_RTN_SET(pTi, 3);
+        }
+        break;
+    }
+}
 
 /* menu draw: extra menu layout once the game is cleared */
 void func_80194C4C(TITLE_WORK *pTi)
@@ -27,9 +411,79 @@ void func_80194C4C(TITLE_WORK *pTi)
 
 INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80194C8C);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_801952D8);
+/* menu draw after clearing the game: the item under the cursor pulses */
+void func_801952D8(TITLE_WORK *pTi)
+{
+    TITLE_BUF *pBuf;
+    SPRT *pSp0;
+    SPRT *pSp1;
+    SPRT *pSp2;
+    SPRT *pSp3;
+    UCHAR Kido;
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_801954D0);
+    Kido = pTi->Kido;
+    pBuf = &pTi->Buf[G.Cbuf_id];
+    pSp0 = &pBuf->Menu.Item[0];
+    SetSemiTrans(pSp0, 0);
+    pSp1 = &pBuf->Menu.Item[1];
+    SetSemiTrans(pSp1, 0);
+    pSp2 = &pBuf->Menu.Item[2];
+    SetSemiTrans(pSp2, 0);
+    pSp3 = &pBuf->Menu.Item[3];
+    SetSemiTrans(pSp3, 0);
+    setRGB0(&pBuf->Menu.Item[0], 0x40, 0x40, 0x40);
+    setRGB0(&pBuf->Menu.Item[1], 0x40, 0x40, 0x40);
+    setRGB0(&pBuf->Menu.Item[2], 0x40, 0x40, 0x40);
+    setRGB0(&pBuf->Menu.Item[3], 0x40, 0x40, 0x40);
+    if (pTi->Cur == 0) {
+        setRGB0(&pBuf->Menu.Item[0], Kido, Kido, Kido);
+    }
+    if (pTi->Cur == 1) {
+        setRGB0(&pBuf->Menu.Item[1], Kido, Kido, Kido);
+    }
+    if (pTi->Cur == 2) {
+        setRGB0(&pBuf->Menu.Item[2], Kido, Kido, Kido);
+    }
+    if (pTi->Cur == 3) {
+        setRGB0(&pBuf->Menu.Item[3], Kido, Kido, Kido);
+    }
+    AddPrim(G.pOt0 + 3, pSp0);
+    AddPrim(G.pOt0 + 3, pSp1);
+    AddPrim(G.pOt0 + 3, pSp2);
+    AddPrim(G.pOt0 + 3, pSp3);
+    AddPrim(G.pOt0 + 3, &pBuf->Menu.Item[4]);
+    AddPrim(G.pOt0 + 3, &pBuf->Menu.Item[5]);
+    AddPrim(G.pOt0 + 3, &pBuf->Menu.Item[6]);
+    AddPrim(G.pOt0 + 3, &pBuf->Menu.Item[7]);
+    AddPrim(G.pOt0 + 3, &pBuf->Menu.Tpage);
+}
+
+/* start the game with the sound bank of the player */
+void func_801954D0(TITLE_WORK *pTi)
+{
+    switch (G.Pl_id) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        func_8007809C(0, 2, 0x801FBC00, 0x801C1814);
+        break;
+    case 8:
+        func_8007809C(0, 8, 0x801FBC00, 0x801C1814);
+        break;
+    case 9:
+        func_8007809C(0, 9, 0x801FBC00, 0x801C1814);
+        break;
+    case 10:
+        func_8007809C(0, 10, 0x801FBC00, 0x801C1814);
+        break;
+    }
+    Task_chain(Game_loop);
+}
 
 /* menu: blinking cursor, then the sub routine */
 void func_80195564(TITLE_WORK *pTi)
@@ -139,9 +593,189 @@ void func_801957F0(TITLE_WORK *pTi)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80195988);
+/* new game: flash, then the game task (or the extra game) */
+void func_80195988(TITLE_WORK *pTi)
+{
+    Pad_vib_set0(7, 0);
+    Pad_vib_set1(9, 0xFF, 0);
+    Pad_vib_fade_set(4, 0xFF, 0x3C, 10);
+    Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 4);
+    Snd_se_stad(0, NULL, 0, 0);
+    while (Fade_status(0) != 0) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Fade_set(0, 1, 0, 1, 0xFFFFFF, 0, 12);
+    while (Fade_status(0) != 0) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Fade_set(0, 0, 0, 2, 0, 0xFFFFFF, 180);
+    while (Fade_status(0) != 0) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    G.Unk2115 = 0;
+    G.System_flg |= 0x40000;
+    Task_lexecute_no(1, 2);
+    Task_sleep(1);
+    if (G.Unk2115 != 0) {
+        Task_lexecute_no(1, 10);
+        Task_sleep(1);
+        pTi->Main_rtn = 1;
+        Fade_set(1, 7, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
+        return;
+    }
+    if (G.System_flg & 0x40000) {
+        G.System_flg &= ~0x40000;
+        pTi->Main_rtn = 1;
+        Fade_set(1, 7, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
+        return;
+    }
+    if (G.System_flg & 0x80) {
+        G.System_flg &= ~0x40000;
+        pTi->Main_rtn = 1;
+        return;
+    }
+    if (Flg_ck(G.Unk77F8, 0x1F) != 0) {
+        G.System_flg |= 0x100;
+    }
+    if (G.System_flg & 0x20) {
+        G.System_flg |= 0x1000;
+        pTi->Main_rtn = 3;
+        pTi->Sub_rtn = 1;
+        return;
+    }
+    G.Unk2115 = 1;
+    Task_execute(1, D_80031BDC);
+    G.System_flg &= ~0x1000;
+    pTi->Main_rtn = 4;
+}
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80195C68);
+/* file names of the save image and extra game sound banks (also used by func_80196800) */
+const char Title_str_init_sub[] __asm__("D_80194098") = "INIT_SUB";
+const char Title_str_omake_bgm[] __asm__("D_801940A4") = "OMAKE BGM";
+const char Title_str_omake_vb[] __asm__("D_801940B0") = "OMAKE VB";
+const char Title_str_init_tbl[] __asm__("D_801940BC") = "INIT_TBL";
+
+/* game mode (after "new game" with the extra game unlocked), then start */
+void func_80195C68(TITLE_WORK *pTi)
+{
+    ULONG i;
+
+    if (!(G.System_flg & 0x80)) {
+        if (G.System_flg & 0x20) {
+            func_80078FE8();
+            goto init_tbl;
+        }
+        if (G.Unk20FC & 0x2000) {
+            pTi->Cur++;
+        }
+        if (G.Unk20FC & 0x8000) {
+            pTi->Cur--;
+        }
+        if (pTi->Cur >= 2) {
+            pTi->Cur = 0;
+        }
+        if (pTi->Cur < 0) {
+            pTi->Cur = 1;
+        }
+        if (pTi->Cur != pTi->Cur_old) {
+            pTi->Timer = 900;
+            pTi->Kido_cnt = 0;
+            Snd_se_stad(4, NULL, 0, 0);
+        }
+        pTi->Cur_old = pTi->Cur;
+        if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+            pTi->Kido_cnt = 0;
+            switch (pTi->Cur) {
+            case 0:
+                G.System_flg &= ~0x100;
+                break;
+            case 1:
+                G.System_flg |= 0x100;
+                break;
+            }
+        } else {
+            if ((G.Key_trg & 0x2000) && pTi->Page == 5) {
+                Snd_se_stad(5, NULL, 0, 0);
+                pTi->Sub_rtn = 0;
+                pTi->Cur = 0;
+                pTi->Cur_old = 0;
+                pTi->Page++;
+            }
+            return;
+        }
+    }
+    if (!(G.System_flg & 0x10000000)) {
+        Pad_vib_set0(7, 0);
+        Pad_vib_set1(9, 0xFF, 0);
+        Pad_vib_fade_set(4, 0xFF, 0x3C, 10);
+        Snd_se_stad(0, NULL, 0, 0);
+    }
+    Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 4);
+    while (Fade_status(0) != 0) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Fade_set(0, 1, 0, 1, 0xFFFFFF, 0, 12);
+    while (Fade_status(0) != 0) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 180);
+    while (!(Fade_status(0) & FADE_END)) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Main.Unk18E = 0;
+    G.System_flg |= 0x1000;
+    if (G.System_flg & 0x80) {
+        func_80078FE8();
+        Cd_read(0x2F, (ULONG *)G.Card_head, 0, (char *)Title_str_init_sub);
+        G.Next_cut_no = G.Cut_no;
+        Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
+        func_800782F4(0, 0x39, (ULONG *)0x801F7E00);
+        func_800783BC(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        func_8007906C();
+        G.Pl_poison_timer = 0;
+        G.Pl_status_flg &= ~0x200;
+        Task_lexecute_no(1, 6);
+        Task_sleep(1);
+    } else {
+    init_tbl:
+        Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);
+        if (G.System_flg & 0x20) {
+            func_8007906C();
+            G.Save_cnt = 0;
+        } else {
+            for (i = 0; i < 3; i++) {
+                GT->Merc_time[i] = -1;
+                GT->Merc_grade[i] = 0xFF;
+                GT->Merc_money[i] = 0;
+            }
+        }
+        G.Next_cut_no = G.Cut_no;
+        Task_lexecute_no(1, 5);
+        Task_sleep(1);
+        Init_movie_work(0);
+        while (G.System_flg & 0x10000) {
+            Task_sleep(1);
+        }
+        Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
+        if (G.System_flg & 0x100) {
+            Flg_on(G.Unk77F8, 0x1F);
+        }
+    }
+    func_8006D0D8();
+    if (G.System_flg & 0x80) {
+        G.Unk2115 = 2;
+    } else {
+        G.Unk2115 = 0;
+    }
+    Task_execute(1, D_80031BDC);
+    pTi->Main_rtn = 4;
+}
 
 void func_801961D4(TITLE_WORK *pTi)
 {
@@ -205,9 +839,44 @@ void func_80196378(TITLE_WORK *pTi)
     pTi->Main_rtn = 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_8019644C);
+/* option: movie of the opening */
+void func_8019644C(TITLE_WORK *pTi)
+{
+    Fade_set(0, 1, FADE_HOLD, 2, 0, 0xFFFFFF, 12);
+    while (!(Fade_status(0) & FADE_END)) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Init_movie_work(13);
+    while (G.System_flg & 0x10000) {
+        Task_sleep(1);
+    }
+    func_801973E4();
+    pTi->Main_rtn = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80196528);
+/* option screen */
+void func_80196528(TITLE_WORK *pTi)
+{
+    ULONG Flg;
+
+    Fade_set(0, 1, FADE_HOLD, 2, 0, 0xFFFFFF, 12);
+    while (!(Fade_status(0) & FADE_END)) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Flg = G.Unk77F8[0];
+    G.Unk2115 = 0;
+    Task_lexecute_no(1, 8);
+    Task_sleep(1);
+    if (Flg != G.Unk77F8[0]) {
+        func_800791F0();
+    }
+    Main.Vloop = 1;
+    Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
+    Main.Unk191 = 1;
+    pTi->Main_rtn = 1;
+}
 
 void func_8019662C(TITLE_WORK *pTi)
 {
@@ -225,19 +894,58 @@ void func_80196634(TITLE_WORK *pTi)
     pTi->Main_rtn = 1;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/title/title", D_80194098);
-
-INCLUDE_RODATA("asm/nonmatchings/ovl/title/title", D_801940A4);
-
-INCLUDE_RODATA("asm/nonmatchings/ovl/title/title", D_801940B0);
-
-INCLUDE_RODATA("asm/nonmatchings/ovl/title/title", D_801940BC);
-
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_801966CC);
+/* demo play */
+void func_801966CC(TITLE_WORK *pTi)
+{
+    Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 60);
+    while (!(Fade_status(0) & FADE_END)) {
+        func_80194C4C(pTi);
+        Task_sleep(1);
+    }
+    Cd_read(Title_pdemo_cd[Game_t.Demo_no], (ULONG *)0x80192000, 0, "Pdemo");
+    Game_t.pDemo = (UCHAR *)0x80192000;
+    G.Pl_id = Game_t.pDemo[0x712];
+    if (++Game_t.Demo_no >= 3) {
+        Game_t.Demo_no = 0;
+    }
+    Game_t.Demo_cnt = 0;
+    Game_t.Demo_time = 0;
+    G.Unk2115 = 3;
+    Task_execute(1, D_80031BDC);
+    G.System_flg = (G.System_flg | 0x10000000) & ~0x1000;
+    pTi->Main_rtn = 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_80196800);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/title/title", func_801971D8);
+/* extra menu draw: the selected character lit, dark tiles over the others */
+void func_801971D8(TITLE_WORK *pTi)
+{
+    TILE *pTl;
+    SPRT *pSp;
+    ULONG i;
+
+    pTl = pTi->Buf[G.Cbuf_id].Ex.Shade;
+    for (i = 0; i < 4; i++) {
+        if (i == pTi->Cur) {
+            pSp = &pTi->Buf[G.Cbuf_id].Ex.Pic;
+            pSp->x0 = (i & 1) * 135 + 0x1C;
+            pSp->y0 = (i >> 1) * 93 + 0x26;
+            pSp->r0 = pTi->Kido;
+            pSp->g0 = pTi->Kido;
+            pSp->b0 = pTi->Kido;
+        } else {
+            pTl->x0 = (i & 1) * 135 + 0x1C;
+            pTl->y0 = (i >> 1) * 93 + 0x26;
+            pTl++;
+        }
+    }
+    AddPrim(G.pOt0 + 3, &pTi->Buf[G.Cbuf_id].Ex.Shade[0]);
+    AddPrim(G.pOt0 + 3, &pTi->Buf[G.Cbuf_id].Ex.Shade[1]);
+    AddPrim(G.pOt0 + 3, &pTi->Buf[G.Cbuf_id].Ex.Shade[2]);
+    AddPrim(G.pOt0 + 3, &pTi->Buf[G.Cbuf_id].Ex.Pic);
+    AddPrim(G.pOt0 + 3, &pTi->Buf[G.Cbuf_id].Ex.Tpage);
+}
 
 void func_801973E4(void)
 {

@@ -1,1 +1,2 @@
 // TITLE.BIN symbols (loaded at 0x80194000)
+func_80194160 = 0x80194160; // type:func
