@@ -27,7 +27,7 @@ typedef struct tagROOM_WORK {
     RCUT *pRcut;                       /* 0x24 RE2 pRcut */
     VCUT *pVcut;                       /* 0x28 */
     ULONG *pLight;                     /* 0x2C RE2 LIGHT_CUT_DATA *pLight; RE3 adds a per-cut zone table (see sub.h) */
-    UCHAR pad30[0x34 - 0x30];
+    struct tagMODEL_LINK_INFO *pOmodel; /* 0x30 RE2 pOmodel (Sce_model_init) */
     USHORT *pUnk34;                    /* 0x34 count, then 0xC byte records (Flr_set) */
     USHORT *pBlock;                    /* 0x38 RE2 pBlock (Rnd_area: [0] = count) */
     UCHAR *pMessage;                   /* 0x3C RE2 pMessage (offset table, then the text) */

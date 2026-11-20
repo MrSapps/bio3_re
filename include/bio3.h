@@ -313,7 +313,8 @@ typedef struct tagPARTS_W {
     SHORT Unk78;                       /* 0x78 ground height (func_800452E8) */
     UCHAR pad7A[0x7C - 0x7A];
     SHORT Unk7C;                       /* 0x7C (func_800455B4) */
-    UCHAR pad7E[0x84 - 0x7E];
+    UCHAR pad7E[0x82 - 0x7E];
+    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (func_800336B4) */
     UCHAR Unk84;                       /* 0x84 part number (Pl_weapon_ch) */
     signed char Unk85;                 /* 0x85 RE2 Timer1 (signed counter) */
     signed char Unk86;                 /* 0x86 */

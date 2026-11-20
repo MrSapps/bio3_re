@@ -78,9 +78,10 @@ typedef struct {
 extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern UCHAR D_800A0FDC[];
 extern SHORT D_800D1F8E[];
-extern SHORT D_800D1F82;
+extern SHORT D_800D1F82;              /* RE2 G.SaveData.Sce_random */
 extern s8 D_80098728[];
 UCHAR func_800102E8(void);             /* sld.s Rnd? */
+UCHAR Rnd(void) __asm__("func_800102E8"); /* RE2 Rnd (sld.s) */
 void func_80034124(void *p);
 LONG Get_matrix(s8 Work_kind, s8 Work_no);
 void Spl();
@@ -118,7 +119,7 @@ extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
-void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
+void func_8001B484(ULONG A0, ULONG A1, MATRIX *pM, SVECTOR *pSv, ULONG A4);
 typedef struct {
     ULONG Be_flg;                      /* 0x000 */
     UCHAR pad4[0x20 - 0x4];
@@ -189,7 +190,59 @@ extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd *
 extern SHORT D_800DEC9E;               /* RE2 Item_box_entrance static Spd_add */
 extern OBJ_MODEL_WORK *D_800DECA0;     /* RE2 Item_box_entrance static pOwork */
 
-INCLUDE_ASM("asm/nonmatchings/game/sce0", func_80051F78);
+/* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
+struct tagSCE_AOT {
+    UCHAR Id;                          /* 0x00 */
+    UCHAR Type;                        /* 0x01 */
+    signed char nFloor;                /* 0x02 */
+    UCHAR Super;                       /* 0x03 */
+    SHORT X;                           /* 0x04 */
+    SHORT Z;                           /* 0x06 */
+    USHORT W;                          /* 0x08 */
+    USHORT D;                          /* 0x0A */
+    USHORT Data[4];                    /* 0x0C */
+    PARTS_W *pParts;                   /* 0x14 */
+};
+
+/* AOT for a dropped part (func_800452E8: a part landing on the floor) */
+void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
+{
+    struct tagSCE_AOT *pAot;
+    tagGLOBAL *pG = &G;
+
+    if (!(Mode & 1)) {
+        if (pG->Sce_aot[31] == NULL) {
+            pAot = (struct tagSCE_AOT *)pG->pEm_mem;
+            pG->pEm_mem = (ENEMY_WORK *)(pAot + 1);
+            pG->Sce_aot[31] = pAot;
+            pAot->Id = 0;
+            pG->nSce_aot++;
+        }
+        return;
+    }
+    if (pG->Sce_aot[31] == NULL) {
+        pAot = (struct tagSCE_AOT *)pG->pEm_mem;
+        pG->pEm_mem = (ENEMY_WORK *)(pAot + 1);
+        pG->Sce_aot[31] = pAot;
+        pAot->Id = 0;
+        pG->nSce_aot++;
+    } else {
+        pAot = pG->Sce_aot[31];
+    }
+    pAot->Id = 2;
+    pAot->Type = 0x51;
+    pAot->nFloor = pP->Workm.t[1] / -1800;
+    pAot->Super = 0;
+    pAot->X = pP->Workm.t[0] - 800;
+    pAot->Z = pP->Workm.t[2] - 800;
+    pAot->W = 1000;
+    pAot->D = 1000;
+    pAot->Data[0] = pArg[0];
+    pAot->Data[1] = pArg[1];
+    pAot->Data[2] = *(USHORT *)(pArg + 2);
+    pAot->Data[3] = 0xFFFF;
+    pAot->pParts = pP;
+}
 
 UCHAR Em_kind_search(ULONG Id)
 {
@@ -246,7 +299,58 @@ void Sce_aot_init(void)
     G.nSce_aot = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce0", Sce_model_init);
+/* G.Unk2484 as the RE2 Ctpage/Cclut bytes */
+typedef struct {
+    UCHAR pad[0x2484];
+    UCHAR Ctpage;                      /* 0x2484 */
+    UCHAR Cclut;                       /* 0x2485 */
+} G_CTPAGE;
+
+/* RE2 Sce_model_init */
+void Sce_model_init(void)
+{
+    ULONG i;
+    ULONG *pTim;
+    OBJ_MODEL_WORK *pOm;
+    MODEL_LINK_INFO *pMi;
+    UCHAR Tpage, Clut;
+    tagGLOBAL *pG;
+
+    pG = &G;
+    pG->pOld_tim = NULL;
+    pG->pOld_tmd = NULL;
+    pOm = (OBJ_MODEL_WORK *)pG->Ob_model;
+    for (i = 32; i != 0; i--) {
+        pOm->Be_flg = 0;
+        pOm->UnkC3 = 0;
+        pOm++;
+    }
+
+    i = pG->pRoom->nOmodel;
+    pMi = pG->pRoom->pOmodel;
+    pOm = (OBJ_MODEL_WORK *)pG->Ob_model;
+    for (; i != 0; i--) {
+        Tpage = ((G_CTPAGE *)pG)->Ctpage;
+        pTim = pMi->Tim_adr;
+        Clut = ((G_CTPAGE *)pG)->Cclut;
+        pOm->Tpage = Tpage;
+        pOm->Unk49 = Clut;
+        if (pG->pOld_tim != pTim) {
+            pG->pOld_tim = pTim;
+            if (pTim != (ULONG *)pG->pRoom) {
+                Mapping_tim(pTim);
+            } else {
+                pOm->Be_flg = 0x80000000;
+            }
+        } else {
+            /* same TIM as the previous model: share its tpage/clut */
+            pOm->Tpage = pOm[-1].Tpage;
+            pOm->Unk49 = pOm[-1].Unk49;
+        }
+        pOm++;
+        pMi++;
+    }
+}
 
 void Sce_work_clr(void)
 {
@@ -304,7 +408,15 @@ void Sce_work_clr_set(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce0", Sce_rnd_set);
+/* RE2 Sce_rnd_set (RE3: two Rnd() bytes plus a table step) */
+void Sce_rnd_set(void)
+{
+    LONG D0;
+
+    D0 = (s8)Rnd() << 8;
+    D0 += Rnd() + D_80098728[Sce.Unk149E++];
+    D_800D1F82 = D0;
+}
 
 /* RE2 Event_init */
 void Event_init(SCE_TASK *pSce, ULONG Evt_no)
@@ -374,7 +486,31 @@ void Event_exec(ULONG Task_level, ULONG Evt_no)
     Event_init(pTask, Evt_no);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce0", Sce_kirakira_set);
+/* RE2 Sce_kirakira_set: sparkle effect on the object models flagged in UnkC3 */
+void Sce_kirakira_set(void)
+{
+    ULONG Cnt;
+    ULONG i;
+    ULONG D0;
+    SVECTOR Svec;
+    OBJ_MODEL_WORK *pOm;
+
+    Cnt = G.pRoom->nOmodel;
+    for (i = 0; i < Cnt;) {
+        pOm = &((OBJ_MODEL_WORK *)G.Ob_model)[i++];
+        if ((pOm->Be_flg & 1) == 0) {
+            continue;
+        }
+        D0 = pOm->UnkC3;
+        if ((D0 & 0x80) == 0) {
+            continue;
+        }
+        Svec.vx = 0;
+        Svec.vy = -90;
+        Svec.vz = 0;
+        func_8001B484(((D0 & 0x60) << 19) | 0x705, 0x28000000, &pOm->M, &Svec, 0);
+    }
+}
 
 extern UCHAR D_800B9E21;
 void Xa_fade_set(ULONG frames);

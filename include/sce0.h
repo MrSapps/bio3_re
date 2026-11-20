@@ -38,6 +38,12 @@ typedef struct tagSCE_TASK {
 
 #define SCE_TASK_MAX 14
 
+/* room object model link (RE2 struct tagMODEL_LINK_INFO, ROOM_WORK.pOmodel) */
+typedef struct tagMODEL_LINK_INFO {
+    ULONG *Tim_adr;                    /* 0x0 */
+    ULONG *Tmd_adr;                    /* 0x4 */
+} MODEL_LINK_INFO;
+
 /* Scenario state (RE2 struct tagSCENARIO; RE3 tail layout differs) */
 typedef struct tagSCENARIO {
     SCE_TASK Sce_task[SCE_TASK_MAX];   /* 0x0000 */

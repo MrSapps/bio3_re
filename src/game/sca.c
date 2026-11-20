@@ -31,7 +31,7 @@ extern SCA_WORK D_800DEB58;
 extern SCA_DATA D_800DEB48;            /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
 
 ULONG func_8004B874(COL_OBJ *pObj, LONG R, ULONG Arg2);
-ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
+ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
 ULONG func_8004C960(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
 ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
 ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT);
@@ -211,7 +211,53 @@ ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT)
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D404);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D590);
+ULONG func_8004D590(COL_OBJ *pObj, LONG R, ULONG P0)
+{
+    SCA_WORK *pW;
+    LONG X;
+    LONG Z;
+    LONG Dx;
+    LONG Dz;
+    ULONG P1;
+    ULONG P2;
+    ULONG P3;
+    ULONG Ret;
+    ULONG Sign;
+    LONG Opz[4];
+
+    pW = &D_800DEB58;
+    P2 = pW->Pt0;
+    P3 = pW->Pt1;
+    X = pObj->Pos_x;
+    Z = pObj->Pos_z;
+    Dx = pObj->Old_x - X;
+    Dz = pObj->Old_z - Z;
+    Ret = 0;
+    if ((Dx | Dz) != 0) {
+        P1 = (X << 16) | (Z & 0xFFFF);
+        gte_ldsxy3(P0, P2, P3);
+        gte_nclip();
+        gte_stopz(&Opz[0]);
+        gte_ldsxy3(P1, P2, P3);
+        gte_nclip();
+        gte_stopz(&Opz[1]);
+        Sign = 0x80000000;
+        if (((Opz[0] ^ Opz[1]) & Sign) != 0) {
+            gte_ldsxy3(P2, P0, P1);
+            gte_nclip();
+            gte_stopz(&Opz[2]);
+            gte_ldsxy3(P3, P0, P1);
+            gte_nclip();
+            gte_stopz(&Opz[3]);
+            if (((Opz[2] ^ Opz[3]) & Sign) != 0) {
+                Ret = 1;
+                pObj->Pos_x += Dx;
+                pObj->Pos_z += Dz;
+            }
+        }
+    }
+    return Ret;
+}
 
 LONG func_8004D6B0(void)
 {
@@ -464,7 +510,29 @@ INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_ck_line);
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004ED4C);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004EF74);
+LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3)
+{
+    LONG Opz[2];
+    ULONG Ret;
+
+    gte_ldsxy3(P0, P2, P3);
+    gte_nclip();
+    gte_stopz(&Opz[0]);
+    gte_ldsxy3(P1, P2, P3);
+    gte_nclip();
+    gte_stopz(&Opz[1]);
+    Ret = 0x80000000;
+    if (((Opz[0] ^ Opz[1]) & Ret) == 0) {
+        return 0;
+    }
+    gte_ldsxy3(P2, P0, P1);
+    gte_nclip();
+    gte_stopz(&Opz[0]);
+    gte_ldsxy3(P3, P0, P1);
+    gte_nclip();
+    gte_stopz(&Opz[1]);
+    return ((Opz[0] ^ Opz[1]) & Ret) != 0;
+}
 
 LONG func_8004F02C(void)
 {
