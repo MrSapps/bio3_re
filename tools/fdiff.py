@@ -163,6 +163,8 @@ def main():
     ap.add_argument("-v", action="store_true")
     ap.add_argument("--syms", action="append", default=[], help="extra 'name = 0xADDR;' file")
     a = ap.parse_args()
+    if "src/ovl/warning/" in os.path.abspath(a.cfile):  # per-object flag, see Makefile
+        a.flags += " -mno-split-addresses"
     m = re.search(r"src/ovl/(\w+)/", os.path.abspath(a.cfile))
     if m:  # overlay: its own symbols first, then its view of the exe
         o = os.path.join(ROOT, "ovl", m.group(1))

@@ -12,6 +12,7 @@ options:
   build_path: build
   ld_script_path: ovl/warning.ld
   ld_dependencies: False
+  ld_bss_is_noload: True
   ld_align_section_vram_end: False
   ld_align_segment_vram_end: False
   ld_align_segment_start: False
@@ -42,6 +43,6 @@ segments:
     vram: 0x80184000
     subsegments:
       - [0x0, .rodata, ovl/warning/warning]
-      - [0x164, c, ovl/warning/warning]
+      - [0xf8, c, ovl/warning/warning]
       - [0x1560, data, ovl/warning/data]
   - [0x1620]

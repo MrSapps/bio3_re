@@ -48,9 +48,12 @@ $(BUILD)/%.s.o: %.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
+# WARNING.BIN was compiled without address splitting (lw $x,sym / lui+addu+lbu %lo(sym) forms)
+$(BUILD)/src/ovl/warning/warning.c.o: CFLAGS += -mno-split-addresses
+
 $(BUILD)/%.c.o: %.c
 	@mkdir -p $(dir $@)
-	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | $(CC1) $(CFLAGS) -o - | $(MASPSX) | { cat; $(RODATA_PAD); } | $(AS) $(ASFLAGS) -o $@ -
+	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | $(CC1) $(CFLAGS) -o -| $(MASPSX) | { cat; $(RODATA_PAD); } | $(AS) $(ASFLAGS) -o $@ -
 
 -include $(shell find $(BUILD) -name '*.d' 2>/dev/null)
 

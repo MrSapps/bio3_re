@@ -1,5 +1,7 @@
 #include "common.h"
 
+INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_801840F8);
+
 INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_80184164);
 
 INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_80184A9C);
