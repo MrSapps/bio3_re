@@ -61,6 +61,7 @@ void Md_adr_cnv(MD_HEAD *pMd);      /* relocate MD_OBJ offsets */
 ULONG func_8002AB34(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
 void Md_set_abr(MD_OBJ *pObj, ULONG Abr);           /* set semi-trans rate of all prims */
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);                 /* bit Id of a flag array */
+void Flg_on(ULONG *pFlg, ULONG Id);                  /* set bit Id of a flag array */
 
 void func_800790F0(ULONG *pAdr);                     /* load and run the INIT_SUB code at pAdr */
 void func_800791F0(void);                            /* restore the saved game state (load) */
