@@ -375,7 +375,30 @@ void Pcstr_set_buf(ULONG *pBuf, LONG size)
     Pcstr.pBuf[1] = pBuf + (size << 8);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Pcstr_open);
+LONG Pcstr_open(char *pName)
+{
+    ULONG Sub0;
+    ULONG Sub1;
+
+    if ((Pcstr.Fd = PCopen(pName, 0, 0)) < 0)
+        return -1;
+    Pcstr.Interleave = 0;
+    PCread(Pcstr.Fd, (char *)Pcstr.Sub_head, 8);
+    Pcstr.Sub_head[0] = Sub0 = Pcstr.Sub_head[0] & 0xFF0000;
+    Pcstr.Sub_head[1] = Sub1 = Pcstr.Sub_head[1] & 0xFF0000;
+    /* sector subheaders of a raw (interleaved) STR: video or data submode in both copies */
+    if ((Sub0 == 0x420000 && Sub1 == 0x420000) || (Sub0 == 0x480000 && Sub1 == 0x480000)
+        || (Sub0 == 0x640000 && Sub1 == 0x640000))
+        Pcstr.Interleave = 1;
+    PClseek(Pcstr.Fd, 0, 0);
+    Pcstr.Head[Pcstr.Buf_no].Frame_count = 0;
+    do {
+        Pcstr_read_frame(Pcstr.pBuf[Pcstr.Buf_no]);
+    } while (Pcstr.Head[Pcstr.Buf_no].Frame_count < Pcstr.Start_frame);
+    if (Pcstr.Start_func != NULL)
+        Pcstr.Start_func();
+    return 0;
+}
 
 void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), void (*end_func)(void))
 {
@@ -489,9 +512,85 @@ loop:
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A350);
+/* model sort environment shared by the sort routines below */
+typedef struct tagSORT_ENV {
+    ENEMY_WORK *pEm;                   /* 0x00 G.pEm */
+    ULONG Unk4;                        /* 0x04 */
+    MATRIX *pWs;                       /* 0x08 &GsWSMATRIX */
+    MATRIX *pM;                        /* 0x0C D_800C79F0 */
+    VECTOR *pV;                        /* 0x10 D_800C79F4 */
+} SORT_ENV;
+extern SORT_ENV D_800E15A0;
+extern UCHAR D_800E1388[];
+extern MATRIX *D_800C79F0;
+extern VECTOR *D_800C79F4;
+extern MATRIX GsWSMATRIX;
+void func_8007A600(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007A918(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007AC8C(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007B2FC(UCHAR *pDst, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007B518(UCHAR *pDst, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007B824(UCHAR *pDst, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A490);
+void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
+{
+    UCHAR *pHead;
+    ULONG Ofs;
+    UCHAR *pData;
+    SORT_ENV *pEnv = &D_800E15A0;
+
+    pHead = (UCHAR *)pP->pUnkA8;
+    Ofs = ((ULONG *)pHead)[0];
+    pEnv->pEm = G.pEm;
+    pEnv->Unk4 = Arg2;
+    pEnv->pWs = &GsWSMATRIX;
+    pEnv->pM = D_800C79F0;
+    pEnv->pV = D_800C79F4;
+    pData = (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF));
+    func_8007A600(pWork0, pWork1, pEnv, pData);
+    func_8007B2FC(D_800E1388, pP, pEnv, pData);
+    if ((Ofs >>= 16) != 0) {
+        func_8007A918(pWork0, pWork1, pEnv, pHead + Ofs);
+        func_8007B518(D_800E1388, pP, pEnv, pHead + Ofs);
+    }
+    if ((Ofs = ((ULONG *)pHead)[1]) != 0) {
+        func_8007AC8C(pWork0, pWork1, pEnv, pHead + Ofs);
+        func_8007B824(D_800E1388, pP, pEnv, pHead + Ofs);
+    }
+}
+
+extern UCHAR *D_800E15C8;              /* sort data of the part being drawn (func_8007A490) */
+extern ULONG D_800E1598;               /* its current offset word */
+void func_8007BFBC(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007C434(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007C91C(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+
+/* func_8007A350 for parts drawn with the alternate (Flg 0x400) routines */
+void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
+{
+    SORT_ENV *pEnv = &D_800E15A0;
+    UCHAR *pHead;
+    ULONG Ofs;
+
+    D_800E15C8 = pHead = (UCHAR *)pP->pUnkA8;
+    Ofs = ((ULONG *)pHead)[0];
+    pEnv->pEm = G.pEm;
+    pEnv->Unk4 = Arg2;
+    pEnv->pWs = &GsWSMATRIX;
+    pEnv->pM = D_800C79F0;
+    pEnv->pV = D_800C79F4;
+    D_800E1598 = Ofs;
+    func_8007BFBC(pWork0, pWork1, pEnv, (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF)));
+    func_8007B2FC(D_800E1388, pP, pEnv, D_800E15C8 + (USHORT)D_800E1598);
+    if ((D_800E1598 >>= 16) != 0) {
+        func_8007C434(pWork0, pWork1, pEnv, D_800E15C8 + D_800E1598);
+        func_8007B518(D_800E1388, pP, pEnv, D_800E15C8 + D_800E1598);
+    }
+    if ((D_800E1598 = ((ULONG *)D_800E15C8)[1]) != 0) {
+        func_8007C91C(pWork0, pWork1, pEnv, D_800E15C8 + D_800E1598);
+        func_8007B824(D_800E1388, pP, pEnv, D_800E15C8 + D_800E1598);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A600);
 
@@ -505,7 +604,47 @@ INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B518);
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B824);
 
+#define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_ldsz3(r0, r1, r2) __asm__ volatile("mtc2 %0, $17; mtc2 %1, $18; mtc2 %2, $19" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_nclip_b() __asm__ volatile(".word 0x4B400006")
+#define gte_avsz3() __asm__ volatile("nop; nop; .word 0x4B58002D")
+#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy3_gt3(r0) __asm__ volatile("swc2 $12, 8(%0); swc2 $13, 20(%0); swc2 $14, 32(%0)" : : "r"(r0) : "memory")
+
+/* textured gouraud triangle of a sort list: uv words with the vertex numbers in the top bytes */
+typedef union tagSORT_GT3 {
+    ULONG W[3];
+    struct {
+        UCHAR pad0[7];
+        signed char V0;                /* 0x07 */
+        UCHAR pad8[2];
+        UCHAR V1;                      /* 0x0A */
+        signed char V2;                /* 0x0B */
+    } I;
+} SORT_GT3;
+
+typedef struct tagSORT_HDR {
+    UCHAR pad0[0xC];
+    SORT_GT3 *pGt3;                    /* 0x0C */
+    struct tagSORT_GT4 *pGt4;           /* 0x10 */
+    USHORT N_gt3;                      /* 0x14 */
+    USHORT N_gt4;                      /* 0x16 */
+} SORT_HDR;
+
+typedef struct tagSORT_PRM {
+    SORT_HDR *pHdr;                    /* 0x00 */
+    ULONG Unk4;                        /* 0x04 */
+    ULONG *pOt;                        /* 0x08 */
+    ULONG *pRgb;                       /* 0x0C per-vertex colours */
+} SORT_PRM;
+
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BC7C);
+
+/* textured gouraud quad of a sort list: the vertex numbers are the top two bytes of W[2] and W[3] */
+typedef struct tagSORT_GT4 {
+    LONG W[4];
+} SORT_GT4;
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BDF8);
 

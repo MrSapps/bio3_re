@@ -61,7 +61,7 @@ typedef struct tagGLOBAL {
     ULONG *pOt0;                      /* 0x0040 */
     ULONG Ot1[2][0x400];               /* 0x0044 RE2 Ot1, index Cbuf_id */
     ULONG *pOt1;                       /* 0x2044 */
-    UCHAR pad2048[0x2088 - 0x2048];
+    ULONG Ot2[2][8];                   /* 0x2048 RE2 Ot2, index Cbuf_id (main) */
     ULONG *pOt2;                       /* 0x2088 */
     ULONG Unk208C;                     /* 0x208C packet pointer (func_80025FB0) */
     ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (Psp_trans) */
@@ -107,7 +107,7 @@ typedef struct tagGLOBAL {
     void (*pPldie_Em[64])();           /* 0x22E8 RE2 pPldie_Em (Pl_Em_die) */
     struct tagSCA_DATA *Sca_list[32];  /* 0x23E8 SCA shapes matching the last search (NULL terminated) */
     ULONG Unk2468;                     /* 0x2468 flags; 0x1000000 tested by pl_mv06_pad / Pl_move */
-    ULONG Unk246C;                     /* 0x246C cleared by Init_global (Init_global) */
+    LONG Unk246C;                      /* 0x246C flags, cleared by Init_global; < 0 blocks the pause (main) */
     ULONG Unk2470;                     /* 0x2470 */
     ULONG Unk2474[4];                  /* 0x2474 */
     USHORT Unk2484;                    /* 0x2484 RE2 Ctpage/Cclut pair (Bg_draw saves it) */
@@ -179,8 +179,9 @@ typedef struct tagGLOBAL {
     UCHAR Back_func_rtn;               /* 0x75DB RE2 Back_func_rtn */
     void (*Front_func)();              /* 0x75DC RE2 Front_func */
     void (*Back_func)();               /* 0x75E0 RE2 Back_func */
-    UCHAR pad75E4[0x75E8 - 0x75E4];
-    USHORT Unk75E8;                    /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */
+    SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp func_80049218) */
+    SHORT Unk75E6;                     /* 0x75E6 screen shake y? */
+    USHORT Unk75E8;                   /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */
     USHORT Unk75EA;                    /* 0x75EA */
     UCHAR Unk75EC;                     /* 0x75EC cleared on exit by the PC_SYS overlay */
     UCHAR Unk75ED;                     /* 0x75ED routine of the PC_SYS overlay task */
@@ -326,7 +327,7 @@ typedef struct tagPARTS_W {
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */
     SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
     struct tagPARTS_W *pOya_parts;     /* 0xA4 */
-    UCHAR padA8[0xAC - 0xA8];
+    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (func_8007A2D4, func_8007A350) */
     SHORT UnkAC;                       /* 0xAC Pos_x base (get_null_pos2) */
     SHORT UnkAE;                       /* 0xAE Pos_y base (func_80027338) */
     SHORT UnkB0;                       /* 0xB0 Pos_z base */

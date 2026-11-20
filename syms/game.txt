@@ -380,3 +380,4 @@ DecDCTin = 0x8008F9FC;
 DecDCTout = 0x8008FA78;
 DecDCTinSync = 0x8008FA98;
 DecDCToutCallback = 0x8008FB34;
+__main = 0x80011C20;

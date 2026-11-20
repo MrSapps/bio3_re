@@ -35,9 +35,14 @@ typedef struct tagOBJ_MODEL_WORK {
     SVECTOR Cdir;                      /* 0x6C */
     ULONG Poly_rgb;                    /* 0x74 */
     MATRIX *pSuper;                    /* 0x78 */
-    UCHAR pad7C[0xBA - 0x7C];
+    UCHAR pad7C[0xAE - 0x7C];
+    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (func_80036570) */
+    UCHAR padB0[0xBA - 0xB0];
     USHORT UnkBA;                      /* 0xBA */
-    UCHAR padBC[0xC3 - 0xBC];
+    UCHAR padBC[0xC0 - 0xBC];
+    UCHAR Push_cnt;                    /* 0xC0 frames pushed (func_80036570) */
+    UCHAR UnkC1;                       /* 0xC1 index into G.pUnk75AC */
+    UCHAR UnkC2;                       /* 0xC2 flag id set when done (func_80036C60) */
     UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
     struct tagPARTS_W *pParts;         /* 0xC4 */
     UCHAR padC8[0x130 - 0xC8];
@@ -84,5 +89,7 @@ void Tex_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr);
 void Om_chg_init_80036234(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
 void Col_chg_ctr_80036248(CC_PARTS_WORK *pCcp);
 void Tex_ctr(void);
+void Om_trans(void);
+void func_80037C38(void);                /* set the OT pointer of every enemy and object model */
 
 #endif /* OM_H */
