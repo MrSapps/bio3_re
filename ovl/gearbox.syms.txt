@@ -1,1 +1,19 @@
 // GEARBOX.BIN symbols (loaded at 0x801c2000)
+// proposed names (not used by the link yet; C keeps func_/D_ names)
+Gear_main = 0x801C2008; // type:func
+Gear_init = 0x801C20B8; // type:func
+Gear_line_init = 0x801C21A4; // type:func
+Gear_exit = 0x801C2244; // type:func
+Gear_ctrl = 0x801C22CC; // type:func
+Gear_cursor_move = 0x801C2464; // type:func
+Gear_om_set = 0x801C2540; // type:func
+Gear_cursor_draw = 0x801C2660; // type:func
+Gear_count_print = 0x801C27A0; // type:func
+Gear_check = 0x801C27E4; // type:func
+Gear_turn = 0x801C2888; // type:func
+Gear_dir_tbl = 0x801C2AB0; // type:s8 size:0x18
+Gear_cursor_tbl = 0x801C2AC8; // type:u8 size:0x14
+Gear_link_tbl = 0x801C2ADC; // type:s8 size:0x1C
+Gear_pos_tbl = 0x801C2AF8; // type:s16 size:0x20
+Gear_answer_tbl = 0x801C2B18; // type:u8 size:0x20
+Gear_wk = 0x801C2B38; // size:0x74

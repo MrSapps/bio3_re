@@ -1,1 +1,32 @@
 // STAFF_R.BIN symbols (loaded at 0x801c2000)
+// proposed names (not used by the link yet; C keeps func_/D_ names)
+Staff_main = 0x801C206C; // type:func
+Staff_init = 0x801C2104; // type:func
+Staff_roll = 0x801C21E8; // type:func
+Staff_exit = 0x801C2228; // type:func
+Staff_page_init = 0x801C22AC; // type:func
+Staff_page_main = 0x801C256C; // type:func
+Staff_nop = 0x801C25FC; // type:func
+Staff_page_move = 0x801C2604; // type:func
+Staff_page_end = 0x801C2974; // type:func
+Staff_bg_init = 0x801C2984; // type:func
+Staff_bg_main = 0x801C2B30; // type:func
+Staff_bg_start = 0x801C2BB8; // type:func
+Staff_bg_move = 0x801C2CBC; // type:func
+Staff_credit_move = 0x801C2CE4; // type:func
+Staff_bg_scroll = 0x801C2F8C; // type:func
+Staff_logo = 0x801C32DC; // type:func
+Staff_bg_end = 0x801C36F4; // type:func
+Staff_tim_set = 0x801C3704; // type:func
+Staff_cross_fade = 0x801C3A98; // type:func
+Staff_mess_data = 0x801C3E24;
+Staff_mess_ofs = 0x801C404C;
+Staff_main_tbl = 0x801C4050;
+Staff_tex = 0x801C405C;
+Staff_mess = 0x801C4094;
+Staff_roll_tbl = 0x801C40A0;
+Staff_page_tbl = 0x801C40B0;
+Staff_bg_tbl = 0x801C40BC;
+Staff_seq = 0x801C40D0; // size:0x18
+Staff_wk = 0x801C40E8; // size:0x810
+Staff_fade = 0x801C48F8; // size:0x10

@@ -1,1 +1,27 @@
 // JILL_SEL.BIN symbols (loaded at 0x801c2000)
+// proposed names (not used by the link yet; C keeps func_/D_ names)
+Jill_main = 0x801C2050; // type:func
+Jill_sprt_draw = 0x801C20A8; // type:func
+Jill_pl_move = 0x801C2118; // type:func
+Jill_pl_idle = 0x801C2170; // type:func
+Jill_init = 0x801C21C8; // type:func
+Jill_wait = 0x801C2780; // type:func
+Jill_exit = 0x801C27C0; // type:func
+Jill_pl_load = 0x801C2858; // type:func
+Jill_pl_trans = 0x801C29E0; // type:func
+Jill_wep_load = 0x801C2A68; // type:func
+Jill_light_set = 0x801C2D3C; // type:func
+Jill_bg_load = 0x801C2DF4; // type:func
+Jill_obj_init = 0x801C2E54; // type:func
+Jill_obj_draw = 0x801C2FC4; // type:func
+Jill_obj_rgb = 0x801C31F8; // type:func
+Jill_mess = 0x801C3220; // type:u8
+Jill_mess_ofs = 0x801C3284; // type:u16 size:0x14
+Jill_pl_cd = 0x801C3298; // type:u16
+Jill_wep_cd = 0x801C32A4; // type:u16
+Jill_view_eye = 0x801C32B0;
+Jill_view_ref = 0x801C32C0;
+Jill_sprt_def = 0x801C336C; // size:0xFC
+Jill_proc_tbl = 0x801C3468;
+Jill_wk = 0x801C3480; // size:0x10
+Jill_obj = 0x801C3490;

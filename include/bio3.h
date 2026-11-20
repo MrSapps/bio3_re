@@ -120,7 +120,8 @@ typedef struct tagGLOBAL {
     UCHAR Pl_routine_0;                /* 0x2490 Player.Routine_0 */
     UCHAR Pl_routine_1;                /* 0x2491 Player.Routine_1 */
     UCHAR Pl_routine_2;                /* 0x2492 Player.Routine_2 */
-    UCHAR pad2493[0x2495 - 0x2493];
+    UCHAR Pl_routine_3;                /* 0x2493 Player.Routine_3 */
+    UCHAR pad2494;
     signed char Pl_nFloor;             /* 0x2495 Player.nFloor (Player at 0x248C?) */
     SHORT Pl_water;                    /* 0x2496 Player.Water */
     UCHAR pad2498[0x24C0 - 0x2498];
