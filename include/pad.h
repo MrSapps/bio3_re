@@ -27,5 +27,6 @@ void Pad_vib_init(void);
 VIB_REQ *Pad_vib_get_free(VIB_REQ *pReq);
 LONG Pad_vib_count(VIB_REQ *pReq);
 UCHAR SetPadActData(VIB_REQ *pReq);
+void func_80038634(ULONG Flg, SHORT Val);           /* pad key repeat set */
 
 #endif /* PAD_H */

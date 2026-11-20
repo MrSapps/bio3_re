@@ -1,1 +1,7 @@
 // R214_OL.BIN symbols (loaded at 0x801c2000)
+// proposed names (not used by the link yet; C keeps func_/D_ names)
+R214_main = 0x801C2020; // type:func
+R214_ctr = 0x801C2210; // type:func
+R214_draw = 0x801C275C; // type:func
+R214_digit_set = 0x801C2A38; // type:func
+R214_wk = 0x801C2C80;

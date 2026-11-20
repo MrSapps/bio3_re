@@ -1,1 +1,8 @@
 // MUSICBOX.BIN symbols (loaded at 0x801c2000)
+// proposed names (not used by the link yet; C keeps func_/D_ names)
+Mbox_main = 0x801C2030; // type:func
+Mbox_ctr = 0x801C2228; // type:func
+Mbox_mess = 0x801C2A44;
+Mbox_mess_ofs = 0x801C2B50;
+Mbox_pos = 0x801C2B60;
+Mbox_wk = 0x801C2BC0;

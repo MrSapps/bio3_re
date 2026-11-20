@@ -1,8 +1,28 @@
 #include "common.h"
+#include "ovl/em27.h"
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_8010001C);
+/* RE2 EM_MAIN */
+void func_8010001C(ENEMY_WORK *pEm)
+{
+    Em27_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
+}
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_80100060);
+/* stay on the floor: undo the move when the ground height changes */
+void func_80100060(ENEMY_WORK *pEm)
+{
+    VECTOR V;
+
+    V.vx = pEm->Pos_x;
+    V.vz = pEm->Pos_z;
+    V.vy = pEm->Unk122;
+    if (func_8004D720(&V, 350, 0x8000, 0) != pEm->Unk122) {
+        pEm->Pos_x = pEm->Unk40[0];
+        pEm->Pos_z = pEm->Unk40[2];
+    } else {
+        pEm->Unk40[0] = pEm->Pos_x;
+        pEm->Unk40[2] = pEm->Pos_z;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801000E0);
 
@@ -12,7 +32,17 @@ INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_80100518);
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801005F8);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_80100688);
+/* wait, then pick the next move (Routine_1 = 1) */
+void func_80100688(ENEMY_WORK *pEm)
+{
+    if (EM27_W(pEm)->Wait) {
+        EM27_W(pEm)->Wait--;
+        return;
+    }
+    EM27_W(pEm)->Wait = (Rnd() & 0x2F) + 0x40;
+    EM_RTN(pEm) = 0x101;
+    pEm->Damage_cnt &= 0x7F;
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801006E8);
 
@@ -36,7 +66,10 @@ INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801010D8);
 void func_8010131C(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_80101324);
+void func_80101324(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    Joint_move(pEm, Kan, Seq, 0x400);
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_80101344);
 
@@ -53,4 +86,15 @@ INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801017FC);
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801018D8);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801019BC);
+/* number of other live enemies of id 0x23 / 0x28 */
+LONG func_801019BC(ENEMY_WORK *pEm)
+{
+    ENEMY_WORK **ppEm;
+    LONG n = 0;
+
+    for (ppEm = &G.pUnk265C; ppEm != G.ppEnemy_end; ppEm++) {
+        if (((*ppEm)->Be_flg & 1) && ((*ppEm)->Id == 0x23 || (*ppEm)->Id == 0x28) && *ppEm != pEm)
+            n++;
+    }
+    return n;
+}
