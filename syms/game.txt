@@ -381,3 +381,5 @@ DecDCTout = 0x8008FA78;
 DecDCTinSync = 0x8008FA98;
 DecDCToutCallback = 0x8008FB34;
 __main = 0x80011C20;
+Hiki_pAot = 0x800DECA4;
+Hiki_pItem_dat = 0x800DECA8;

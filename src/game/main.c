@@ -190,14 +190,14 @@ void _bu_init(void);
 void func_800912C4(void);
 void Init_main(void);
 void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
-extern LONG D_800D454C;                /* right after Main.Fade[] */
+extern volatile ULONG D_800D454C;      /* right after Main.Fade[]: vsync counter */
 extern UCHAR D_800DBB58;
 extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
 extern USHORT D_8009BDB4[];
 extern UCHAR D_80098E88[];
 extern USHORT D_80099654[];
 extern ULONG D_80098700;
-void func_80078FE8(ULONG *p);
+void func_80078FE8(void);
 void func_8007906C(void);
 void func_80010150(void *p, ULONG Size);    /* RE2 Memclr */
 
@@ -323,11 +323,141 @@ ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) 
 
 void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
 
-INCLUDE_ASM("asm/nonmatchings/game/main", main);
+void Pad_set(void);
+void func_8007745C(ULONG No);
+void Snd_seq_play_ck(ULONG No);
+void func_800741A0(void);
+void Swap_Cbuff(void);
+void func_80029700(void);
+void Movie(void);
+void Bg_draw(void);
+void func_8002A2B8(void);
+
+void main(void)
+{
+    tagMAIN *pMain;
+    tagGLOBAL *pG;
+    ULONG i;
+
+    Init_system();
+    pMain = &Main;
+    pG = &G;
+    while (1) {
+        if (Main.Pollhost_flg != 0) {
+            __asm__ volatile(".word 0x0001000D"); /* break 1 (RE2 trap(0x400)) */
+        }
+        pG->pOt0 = pG->Ot0[pG->Cbuf_id];
+        pG->pOt1 = pG->Ot1[pG->Cbuf_id];
+        pG->pOt2 = pG->Ot2[pG->Cbuf_id];
+        pMain->pDb = &pMain->Db[pG->Cbuf_id];
+        ClearOTagR(pG->pOt0, 8);
+        ClearOTagR(pG->pOt1, 0x400);
+        ClearOTagR(pG->pOt2, 8);
+        if (pG->Unk2470) {
+            i = 0;
+            do {
+                ClearOTagR(pG->pOt_sub[pG->Cbuf_id][i + 1], 0x400);
+                i++;
+            } while (i < pG->Unk2470);
+        }
+        Moji_mode_init();
+        if (pG->Padd_data[0][0] != 0) {
+            pG->Padd_data[0][3] = 0xFF;
+            pG->Padd_data[0][2] = 0xFF;
+            pG->Padd_data[1][3] = 0xFF;
+            pG->Padd_data[1][2] = 0xFF;
+        }
+        if (pG->Padd_data[1][0] != 0) {
+            pG->Padd_data[1][3] = 0xFF;
+            pG->Padd_data[1][2] = 0xFF;
+        }
+        Pad_set();
+        if (G.System_flg & 0x200000) {
+            Soft_reset();
+            continue;
+        }
+        if ((G.System_flg & 0x8000000) && Main.Unk18E == 0 && *(USHORT *)&Game.Doordemo_flg == 0
+            && *(USHORT *)&CD.Cd_rtn_no == 0 && !(G.Unk2468 & 0x1000000)
+            && !(G.System_flg & 0x10594240) && !(G.Status_flg & 0x400208) && Main.Unk194 == 0) {
+            if ((G.Unk20FC & 0x800) && G.Unk246C >= 0) {
+                G.Unk20FC ^= 0x800;
+                Main.Unk194 = 2;
+            } else if (pG->Padd_data[0][0] == 0xFF) {
+                Main.Unk194 = 1;
+            } else {
+                goto no_pause;
+            }
+            func_8007745C(0);
+            func_8007745C(1);
+            func_8007745C(2);
+            G.Unk2488 = 1;
+        }
+    no_pause:
+        if (Main.Unk194 != 0) {
+            func_8002A2B8();
+            if ((Main.Unk194 == 1 && pG->Padd_data[0][0] != 0xFF) || (Main.Unk194 == 2 && (G.Unk20FC & 0x800))) {
+                Snd_seq_play_ck(0);
+                Snd_seq_play_ck(1);
+                Snd_seq_play_ck(2);
+                G.Unk2488 = 0;
+                Main.Unk194 = 0;
+            }
+        }
+        Scheduler();
+        pMain->Unk198 = pG->Status_flg;
+        pG->Status_flg &= 0xFF3FFFFF;
+        if (G.System_flg & 0x800000) {
+            Fade_out_reset();
+            continue;
+        }
+        func_800741A0();
+        Cd_system_control();
+        System_trans_all();
+        Swap_Cbuff();
+        func_800102E8();
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/main", Swap_Cbuff);
 
-INCLUDE_ASM("asm/nonmatchings/game/main", func_80029700);
+void func_80029700(void)
+{
+    RECT Rect;
+    tagMAIN *pM;
+    ULONG *p;
+    ULONG i;
+    ULONG j;
+    LONG y;
+
+    pM = &Main;
+    pM->Vloop = 4;
+    if (G.Unk20FC & 0x20) {
+        D_800CA720 = 0;
+    }
+    if (!(pM->Unk198 & 0x400000)) {
+        y = pM->pDb->Draw.ofs[1];
+        if (y == 0) {
+            y = 240;
+        } else {
+            y = 0;
+        }
+        Rect.y = y;
+        Rect.x = 0;
+        Rect.w = 320;
+        Rect.h = 120;
+        for (i = 0; i < 2; i++) {
+            DrawSync(0);
+            StoreImage(&Rect, (ULONG *)0x801C1814);
+            p = (ULONG *)0x801C1814;
+            for (j = 0; j < 0x4B00; j++) {
+                *p = ~*p;
+                p++;
+            }
+            LoadImage(&Rect, (ULONG *)0x801C1814);
+            Rect.y += 120;
+        }
+    }
+}
 
 void Init_system(void)
 {
@@ -373,7 +503,59 @@ void Init_system(void)
     D_800D454C = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/main", Init_global);
+void Init_global(void)
+{
+    tagGLOBAL *pG;
+    TILE *pT;
+    ULONG i;
+    ULONG j;
+
+    pG = &G;
+    if (pG->System_flg & 0x80) {
+        func_80078FE8();
+    }
+    func_80010150(&pG->Unk2468, 0x5A90);
+    if (pG->System_flg & 0x80) {
+        func_8007906C();
+    }
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 2; j++) {
+            pT = &Main.Db[i].Curtain[j];
+            SetTile(pT);
+            pT->x0 = 0;
+            pT->y0 = j * 216;
+            pT->w = 320;
+            pT->h = 24;
+            setSemiTrans(pT, 1);
+        }
+        SetDrawTPage(&Main.Db[i].Curtain_Dm, 0, 0, GetTPage(0, 2, 0, 0));
+    }
+    G.Unk246C = 0;
+    *(ULONG *)pG->Padd_data[0] = 0xFFFF0000;
+    *(ULONG *)pG->Padd_data[1] = 0xFFFF0000;
+    pG->Room_no_old = -1;
+    pG->Cut_no_old = -1;
+    D_800DBB58 = 0;
+    Main.Unk194 = 0;
+    G.System_flg &= 0x80;
+    D_80098700 = 0xD2706CA4;
+    for (i = 0; i < 4; i++) {
+        Fade_off(i);
+    }
+    for (i = 0; i < 2; i++) {
+        pT = &Main.Db[i].Pause;
+        SetTile(pT);
+        SetSemiTrans(pT, 1);
+        pT->w = 320;
+        pT->r0 = 0;
+        pT->g0 = 0;
+        pT->b0 = 0;
+        pT->x0 = 0;
+        pT->y0 = 0;
+        pT->h = 240;
+        SetDrawTPage(&Main.Db[i].Pause_Dm, 0, 0, 0);
+    }
+}
 
 extern SHORT D_800CCBBC;
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);

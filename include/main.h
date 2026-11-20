@@ -74,7 +74,8 @@ typedef struct tagMAIN {
     UCHAR Vloop;                       /* 0x18C RE2 Main.Vloop (Door_exit) */
     UCHAR Bg_mode;                     /* 0x18D */
     UCHAR Unk18E;                      /* 0x18E flash request (func_80024F74) */
-    UCHAR pad18F[0x191 - 0x18F];
+    UCHAR Pollhost_flg;                /* 0x18F RE2 Pollhost_flg: main loop breaks into the debugger */
+    UCHAR pad190;
     UCHAR Unk191;                      /* 0x191 bg image +0x14 offset (Swap_Cbuff) */
     UCHAR Curtain_kido;                /* 0x192 */
     UCHAR Unk193;                      /* 0x193 set when the logo task is done (Init_main) */

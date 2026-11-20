@@ -72,7 +72,9 @@ extern EM_FUNC3 D_8009EBEC[];
 typedef struct {
     UCHAR pad0[4];
     UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5[0xB8 - 0x5];
+    UCHAR pad5;
+    UCHAR Unk6;                        /* 0x06 set when the drawer item is shown (Hikidashi_entrance) */
+    UCHAR pad7[0xB8 - 0x7];
     SHORT UnkB8;                       /* 0xB8 */
 } ST_WORK;
 extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
@@ -184,9 +186,84 @@ extern ULONG *D_8009E418;              /* Flg_addr[8] */
 void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Cut_chg_main(ULONG Cut);
 
+/* AOT entry (RE2 struct tagSCE_AOT, SCE1.H) */
+struct tagSCE_AOT {
+    UCHAR Id;                          /* 0x00 */
+    UCHAR Type;                        /* 0x01 */
+    UCHAR nFloor;                      /* 0x02 */
+    UCHAR Super;                       /* 0x03 */
+    SHORT X;                           /* 0x04 */
+    SHORT Z;                           /* 0x06 */
+    USHORT W;                          /* 0x08 */
+    USHORT D;                          /* 0x0A */
+    USHORT Data;                       /* 0x0C */
+};
+
+/* item AOT data (RE2 struct tagSCE_ITEM_DATA, SCE_AT.H) */
+typedef struct tagSCE_ITEM_DATA {
+    SHORT Data0;                       /* 0x0 */
+    SHORT Data1;                       /* 0x2 */
+    USHORT Data2;                      /* 0x4 item flag bit */
+    UCHAR Om_no;                       /* 0x6 */
+    UCHAR Free;                        /* 0x7 */
+} SCE_ITEM_DATA;
+
+void Hikidashi_entrance(void);
+
+/* door AOT (RE2 IN_DOOR_WORK; RE3 layout) */
+typedef struct tagSCE_AOT_DOOR {
+    UCHAR pad0[0xD];
+    UCHAR UnkD;                        /* 0x0D 4: "locked from the other side" message */
+    UCHAR UnkE;                        /* 0x0E selects the door sound */
+    UCHAR Key_id;                      /* 0x0F 0x80: locked, low 6 bits key flag */
+    UCHAR Key_type;                    /* 0x10 item id of the key, 0xFE/0xFF special */
+    UCHAR Mess;                        /* 0x11 0x80: message in low 4 bits, 0x40: ask first */
+} SCE_AOT_DOOR;
+void Key_lost(void);
+void func_800510B0(void);
+extern void *Hiki_pAot;                /* 0x800DECA4 RE2 Hikidashi_entrance static pAot */
+extern SCE_ITEM_DATA *Hiki_pItem_dat;  /* 0x800DECA8 RE2 Hikidashi_entrance static pItem_dat */
+
 INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_at_check);
 
-INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_at);
+void Sce_at(void)
+{
+    ENEMY_WORK *pEw;
+    ENEMY_WORK **ppEw;
+    OBJ_MODEL_WORK *pOm_end;
+
+    if (G.Pl_life < 0) {
+        return;
+    }
+    G.Pl_water = 0;
+    D_800DECAC = 0;
+    if (G.Pl_damage_cnt != 0 || Game.Unk1 != 0) {
+        G.Status_flg &= ~0x800000;
+    }
+    if (G.Status_flg & 0x800000) {
+        Sce_at_check(&G.Pl_be_flg, 1, 0x10);
+    }
+    Sce_at_check(&G.Pl_be_flg, 1, 0);
+    for (ppEw = G.pEnemy; ppEw != G.ppEnemy_end; ppEw++) {
+        pEw = *ppEw;
+        if (pEw->Be_flg & 1) {
+            pEw->Water = 0;
+            Sce_at_check(pEw, 2, 0);
+        }
+    }
+    pEw = (ENEMY_WORK *)G.Ob_model;
+    pOm_end = (OBJ_MODEL_WORK *)G.Ob_model + G.pRoom->nOmodel;
+    for (; pEw < (ENEMY_WORK *)pOm_end; pEw = (ENEMY_WORK *)((OBJ_MODEL_WORK *)pEw + 1)) {
+        if (pEw->Be_flg & 1) {
+            pEw->Water = 0;
+            Sce_at_check(pEw, 4, 0);
+        }
+    }
+    if (G.pUnk2660->Be_flg & 1) {
+        G.pUnk2660->Water = 0;
+        Sce_at_check(G.pUnk2660, 8, 0);
+    }
+}
 
 /* RE2 Nothing */
 ULONG Nothing(void *pAot)
