@@ -396,7 +396,93 @@ void func_800792FC(void)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/sub", func_80079374);
+void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
+{
+    MATRIX m0;
+    MATRIX m1;
+    LONG x;
+    LONG y;
+    LONG z;
+    LONG xy2;
+    LONG dxy;
+    LONG d;
+    LONG c;
+    LONG s;
+    LONG l1;
+    LONG l2;
+    LONG sum;
+    LONG d2;
+    LONG l1_2;
+    LONG l2_2;
+
+    x = pT[0];
+    y = pT[1];
+    z = -pT[2];
+    xy2 = x * x + y * y;
+    dxy = SquareRoot0(xy2);
+    d = SquareRoot0(xy2 + z * z);
+    c = (dxy << 12) / d;
+    s = (z << 12) / d;
+    ((LONG *)m0.m)[0] = 0x1000;
+    ((LONG *)m0.m)[1] = 0;
+    m0.m[1][1] = c;
+    m0.m[1][2] = s;
+    m0.m[2][0] = 0;
+    m0.m[2][1] = -s;
+    m0.m[2][2] = c;
+    c = (y << 12) / dxy;
+    s = (x << 12) / dxy;
+    m1.m[0][0] = c;
+    m1.m[0][1] = s;
+    m1.m[0][2] = 0;
+    m1.m[1][0] = -s;
+    m1.m[1][1] = c;
+    m1.m[1][2] = 0;
+    ((LONG *)m1.m)[3] = 0;
+    ((LONG *)m1.m)[4] = 0x1000;
+    func_8002D4B0(&m1, &m0, &m1);
+    l1 = pJ->a.pad;
+    l2 = pJ->b.pad;
+    sum = l1 + l2;
+    if (d < sum) {
+        d2 = d * d;
+        l1_2 = l1 * l1;
+        l2_2 = l2 * l2;
+        c = ((d2 + l1_2 - l2_2) << 3) / l1;
+        c <<= 8;
+        c /= d;
+        s = SquareRoot0(0x1000000 - c * c);
+        m0.m[0][0] = c;
+        m0.m[0][1] = s;
+        m0.m[0][2] = 0;
+        m0.m[1][0] = -s;
+        m0.m[1][1] = c;
+        m0.m[1][2] = 0;
+        ((LONG *)m0.m)[3] = 0;
+        ((LONG *)m0.m)[4] = 0x1000;
+        MulMatrix(&m1, &m0);
+        if (sum + 500 < d) {
+            c = ((l2_2 + l1_2 - d2) << 3) / l1;
+            c <<= 8;
+            c /= l2;
+        } else {
+            c = ((l2_2 + l1_2 - d2) << 4) / l1;
+            c <<= 7;
+            c /= l2;
+        }
+        s = SquareRoot0(0x1000000 - c * c);
+        pM1->m[0][0] = -c;
+        pM1->m[0][1] = -s;
+        pM1->m[0][2] = 0;
+        pM1->m[1][0] = s;
+        pM1->m[1][1] = -c;
+        pM1->m[1][2] = 0;
+        ((LONG *)pM1->m)[3] = 0;
+        ((LONG *)pM1->m)[4] = 0x1000;
+    }
+    MulMatrix(pM0, &m1);
+}
+
 
 void Copy_rot_matrix(MATRIX *m0, MATRIX *m1)
 {
