@@ -62,6 +62,26 @@ extern UCHAR D_8009DE24;
 extern USHORT D_8009DE26;
 extern signed char D_8009DE28;
 
+typedef struct {
+    ULONG Tag;
+    ULONG Tpage;
+    ULONG Code;
+    ULONG Xy;
+    ULONG Uv;
+    ULONG Wh;
+} PSP_PRIM;
+typedef struct {
+    USHORT Uv;
+    UCHAR X;
+    UCHAR Y;
+    USHORT Otz;
+    USHORT Wh;
+    ULONG Size;
+} PSP_REC;
+extern SHORT *D_800DEB0C;               /* per-sprite OT z */
+extern UCHAR *D_800DEB08;               /* per-sprite group id (Cut_flg bit) */
+extern PSP_PRIM *D_800DEB10;            /* two prims per sprite (double buffer) */
+
 INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048630);
 
 extern LONG D_800D204C[];
@@ -76,9 +96,100 @@ void func_800486C8(void)
     } while (--i != 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", Psp_set);
+void Psp_set(void)
+{
+    ROOM_WORK *pRoom;
+    USHORT *pSp;
+    PSP_REC *pRec;
+    SHORT *pOtz;
+    UCHAR *pId;
+    PSP_PRIM *pPrim;
+    ULONG nGrp;
+    ULONG Grp;
+    ULONG n;
+    LONG ox;
+    LONG oy;
+    ULONG Xy;
+    ULONG Uv;
+    ULONG Wh;
+    LONG j;
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", Psp_trans);
+    pRoom = G.pRoom;
+    pSp = (USHORT *)pRoom->pRcut[G.Cut_no].pSp;
+    if (*(LONG *)pSp == -1) {
+        pRoom->nSprite = 0;
+        return;
+    }
+    pOtz = D_800DEB0C;
+    pId = D_800DEB08;
+    pPrim = D_800DEB10;
+    nGrp = pSp[0];
+    pRoom->nSprite = ((UCHAR *)pSp)[2];
+    pSp += 2;
+    pRec = (PSP_REC *)(pSp + nGrp * 4);
+    for (Grp = 0; Grp < nGrp; Grp++) {
+        n = pSp[0];
+        ox = (SHORT)pSp[2];
+        oy = (SHORT)pSp[3];
+        while (n--) {
+            *pOtz = pRec->Otz;
+            *pId = Grp;
+            Wh = pRec->Wh;
+            Xy = (ox + pRec->X) | ((oy + pRec->Y) << 16);
+            Uv = pRec->Uv + 0x78000000;
+            if (Wh != 0) {
+                Wh |= Wh << 16;
+                pRec = (PSP_REC *)&pRec->Size;
+            } else {
+                Wh = pRec->Size;
+                pRec++;
+            }
+            for (j = 2; j != 0; j--) {
+                pPrim->Xy = Xy;
+                pPrim->Uv = Uv;
+                pPrim->Wh = Wh;
+                pPrim++;
+            }
+            pOtz++;
+            pId++;
+        }
+        pSp += 4;
+    }
+}
+
+void Psp_trans(void)
+{
+    tagGLOBAL *pG;
+    SHORT *pOtz;
+    UCHAR *pId;
+    PSP_PRIM *pPrim;
+    ULONG *pFlg;
+    ULONG *pOt;
+    ULONG n;
+    ULONG Tag;
+
+    pOtz = D_800DEB0C;
+    pG = &G;
+    n = pG->pRoom->nSprite;
+    pId = D_800DEB08;
+    pPrim = &D_800DEB10[pG->Cbuf_id];
+    pFlg = &pG->Cut_flg[pG->Cut_no];
+    while (n--) {
+        if (Flg_ck(pFlg, *pId)) {
+            if ((USHORT)*pOtz < 0x400) {
+                pOt = pG->pOt1 + (USHORT)*pOtz;
+            } else {
+                pOt = pG->pOt_sub[pG->Cbuf_id][(*pOtz & 0xFFFF) >> 10] + (*pOtz & 0x3FF);
+            }
+            Tag = *pOt;
+            *pOt = (ULONG)pPrim & 0xFFFFFF;
+            pPrim->Tag = Tag | 0x05000000;
+        }
+        pPrim += 2;
+        pOtz++;
+        pId++;
+    }
+}
 
 /* rain drop primitive: draw mode word + LINE_G2 */
 typedef struct {
