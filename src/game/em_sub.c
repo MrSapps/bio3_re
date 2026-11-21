@@ -837,7 +837,96 @@ void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work_sort);
+/* GTE inline macros (PsyQ inline_c.h with the opcodes written out) */
+#define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
+#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_rtps() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
+#define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_avsz4() __asm__ volatile("nop; nop; .word 0x4B68002E")
+#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+
+void Kage_work_sort(void)
+{
+    KAGE_WORK *pKw;
+    POLY_FT4 *pTag;
+    ULONG *pOt;
+    ULONG Ot_base;
+    LONG Unit;
+    LONG i;
+    LONG Hx;
+    VCUT *pCut;
+    MATRIX Mx;
+    MATRIX M2;
+    SVECTOR Sv[4];
+    VECTOR Pos;
+    ULONG Otz;
+    SHORT *pXy0;
+    SHORT *pXy1;
+
+    i = 0x32;
+    pKw = G.Kage;
+    pCut = G.Cccut;
+    Unit = 0x1000;
+    do {
+        if (pKw->Be_flg & 4) if (!(pKw->Be_flg & 8)) {
+            Ot_base = func_80037D50(pKw->pPos);
+            *(LONG *)&Mx.m[0][0] = Unit;
+            *(LONG *)&Mx.m[0][2] = 0;
+            *(LONG *)&Mx.m[1][1] = Unit;
+            *(LONG *)&Mx.m[2][0] = 0;
+            *(LONG *)&Mx.m[2][2] = Unit;
+            RotMatrixY(pKw->Dir_y, &Mx);
+            Mx.t[0] = pKw->Pos_x;
+            Mx.t[1] = pKw->Pos_y;
+            Mx.t[2] = pKw->Pos_z;
+            func_8002D4B0(&GsWSMATRIX, &Mx, &M2);
+            SetRotMatrix(&M2);
+            SetTransMatrix(&M2);
+            Hx = pKw->Half_x;
+            Sv[0].vz = pKw->Half_z;
+            Sv[1].vz = pKw->Half_z;
+            *(LONG *)&Sv[0] = ~Hx - 1;
+            *(LONG *)&Sv[1] = Hx;
+            *(LONG *)&Sv[2] = ~Hx - 1;
+            *(LONG *)&Sv[3] = Hx;
+            Sv[3].vz = Sv[2].vz = ~pKw->Half_z - 1;
+            Pos = *(VECTOR *)Mx.t;
+            pTag = &pKw->Prim[G.Cbuf_id];
+            if (func_8001020C((LONG *)&Pos, pCut) != 0) {
+                gte_ldv3(&Sv[0], &Sv[1], &Sv[2]);
+                pXy0 = &pTag->x0;
+                pXy1 = &pTag->x1;
+                gte_rtpt_b();
+                gte_nclip();
+                gte_stopz(&Otz);
+                gte_stsxy3(pXy0, pXy1, &pTag->x2);
+                gte_ldv0(&Sv[3]);
+                gte_rtps();
+                pXy0 = &pTag->x3;
+                gte_stsxy(pXy0);
+                gte_avsz4();
+                gte_stotz(&Otz);
+                Otz += 0x20;
+                if (Otz > 0x1FFF) {
+                    Otz = 0x1FFF;
+                }
+                if (pKw->Be_flg & 0x40) {
+                    Otz = 0x1FFF;
+                    Ot_base = (ULONG)G.pOt_sub[G.Cbuf_id][2];
+                }
+                pOt = (ULONG *)((Otz >> 3) * 4 + Ot_base);
+                addPrim(pOt, pTag);
+            }
+        }
+        /* the nested do/while (0) raises the giv's allocation weight (s0 for &pKw->Be_flg) */
+        do { do { do { pKw++; } while (0); } while (0); } while (0);
+        i--;
+    } while (i != 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work9_sort);
 

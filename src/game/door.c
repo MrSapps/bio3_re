@@ -888,7 +888,101 @@ void Enemy_work_set(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", func_8001760C);
+/* RE2 Emd_load (EM_SET.C), relocation part: Mem_top holds the loaded EMD, its first word the offset of
+   the table of section offsets */
+ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
+{
+    ULONG *pChg;
+    ULONG Size;
+    ULONG Tmd_size;
+    LONG Work;
+    SHORT Ofs;
+    tagGLOBAL *pG;
+
+    pChg = (ULONG *)(Mem_top + *(ULONG *)Mem_top);
+    Size = CD.pEntry[CD.Ring_status[CD.Write_ctr] & 0x7F].Size;
+    pEm->pUnk11C = (ULONG *)(Mem_top + pChg[0]);
+    pEm->pUnk118 = (ULONG *)(Mem_top + pChg[1]);
+    pEm->pSeq_t_ptr = (ULONG *)(Mem_top + pChg[2]);
+    pEm->pUnk10C = pEm->pKan_t_ptr = (ULONG *)(Mem_top + pChg[3]);
+    pEm->pSub0_seq_t_ptr = (ULONG *)(Mem_top + pChg[4]);
+    pEm->pSub0_kan_t_ptr = (ULONG *)(Mem_top + pChg[5]);
+    pEm->pSub1_seq_t_ptr = (ULONG *)(Mem_top + pChg[6]);
+    pEm->pSub1_kan_t_ptr = (ULONG *)(Mem_top + pChg[7]);
+    pEm->pUnk1B4 = (ULONG *)(Mem_top + pChg[8]);
+    pEm->Unk180[0] = Mem_top + pChg[9];
+    pEm->Unk180[1] = Mem_top + pChg[10];
+    pEm->Unk180[2] = Mem_top + pChg[11];
+    pEm->Unk180[3] = Mem_top + pChg[12];
+    pEm->pTmd = (ULONG *)(Mem_top + pChg[14]);
+    pEm->Poly_rgb = 0x808080;
+    pEm->pUnk174 = (void *)(Mem_top + pChg[13]);
+    pG = &G;
+    if (*(ULONG *)pEm->pUnk174 != 0) {
+        func_8002AB34((ULONG *)pEm->pUnk174, pEm->Tpage, pEm->Clut);
+        pEm->pUnk174 = (void *)((ULONG *)pEm->pUnk174 + 2);
+    }
+    Tmd_size = Size - pChg[14];
+    if (pEm->Unk4B & 0x80) {
+        func_800100A4((void *)(Mem_top + pChg[4]), (void *)(Mem_top + pChg[14]), Tmd_size);
+        pEm->pTmd = (ULONG *)(Mem_top + pChg[4]);
+        pEm->pSub0_kan_t_ptr = pData->pSub0_kan_t_ptr;
+        pEm->pSub0_seq_t_ptr = pData->pSub0_seq_t_ptr;
+        pEm->pSub1_kan_t_ptr = pData->pSub1_kan_t_ptr;
+        pEm->pSub1_seq_t_ptr = pData->pSub1_seq_t_ptr;
+    }
+    if (pEm->Unk4B & 0x40) {
+        func_800100A4((void *)(Mem_top + pChg[2]), (void *)(Mem_top + pChg[4]), Size - pChg[4]);
+        Work = pChg[4] - pChg[2];
+        Work >>= 2;
+        pEm->pTmd -= Work;
+        pEm->pSub0_seq_t_ptr -= Work;
+        pEm->pSub0_kan_t_ptr -= Work;
+        pEm->pSub1_seq_t_ptr -= Work;
+        pEm->pSub1_kan_t_ptr -= Work;
+        pEm->pSeq_t_ptr = pG->Pl_pSeq_t_ptr;
+        pEm->pUnk10C = pEm->pKan_t_ptr = pG->Pl_pKan_t_ptr;
+    }
+    if (pEm->Unk4B & 0x20) {
+        Work = Mem_top + pChg[3];
+        Ofs = ((SHORT *)Work)[1];
+        func_800100A4((void *)(Work + Ofs), (void *)(Mem_top + pChg[14]), Tmd_size);
+        pEm->pTmd = (ULONG *)(Mem_top + pChg[3] + Ofs);
+        pEm->pKan_t_ptr = pData->pKan_t_ptr;
+        pEm->pSeq_t_ptr = pData->pSeq_t_ptr;
+        pEm->pSub0_seq_t_ptr = pData->pSub0_seq_t_ptr;
+        pEm->pSub0_kan_t_ptr = pData->pSub0_kan_t_ptr;
+        pEm->pSub1_seq_t_ptr = pData->pSub1_seq_t_ptr;
+        pEm->pSub1_kan_t_ptr = pData->pSub1_kan_t_ptr;
+        pEm->pUnk1B4 = pData->pUnk1B4;
+        pEm->Unk180[0] = pData->Unk180[0];
+        pEm->Unk180[1] = pData->Unk180[1];
+        pEm->Unk180[2] = pData->Unk180[2];
+        pEm->Unk180[3] = pData->Unk180[3];
+    }
+    if (pEm->Id >= 0x50 && (pG->Status_flg & 0x20000000)) {
+        pG->Status_flg &= ~0x20000000;
+        Work = pChg[4] - pChg[2];
+        func_800100A4((void *)0x8010D000, (void *)(Mem_top + pChg[2]), Work);
+        pEm->pSeq_t_ptr = (ULONG *)0x8010D000;
+        pEm->pUnk10C = pEm->pKan_t_ptr = (ULONG *)(pChg[3] - pChg[2] + 0x8010D000);
+        func_800100A4((void *)(Mem_top + pChg[2]), (void *)(Mem_top + pChg[4]), Size - pChg[4]);
+        Work >>= 2;
+        pEm->pTmd -= Work;
+        pEm->pSub0_seq_t_ptr -= Work;
+        pEm->pSub0_kan_t_ptr -= Work;
+        pEm->pSub1_seq_t_ptr -= Work;
+        pEm->pSub1_kan_t_ptr -= Work;
+        pEm->pUnk1B4 -= Work;
+        pEm->Unk180[0] -= Work * 4;
+        pEm->Unk180[1] -= Work * 4;
+        pEm->Unk180[2] -= Work * 4;
+        pEm->Unk180[3] -= Work * 4;
+    }
+    func_8002AB34(pEm->pTmd, pEm->Tpage, pEm->Clut);
+    pEm->pTmd += 2;
+    return (ULONG)(pEm->pTmd + ((Tmd_size >> 2) - 2));
+}
 
 /* move routines of the enemy overlays as linked into bank 0 (0x80100000) and bank 1 (0x8010D000) */
 void Em40(ENEMY_WORK *pEm);

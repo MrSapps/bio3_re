@@ -35,7 +35,7 @@ typedef struct tagEM33_FREE {
     UCHAR Rtn;                         /* 0x13 (0x1DF) sub routine (D_801074E0) */
     SHORT Unk14;                       /* 0x14 (0x1E0) */
     SHORT Unk16;                       /* 0x16 (0x1E2) */
-    UCHAR pad18;
+    signed char Unk18;                 /* 0x18 (0x1E4) side of the last dive */
     signed char Unk19;                 /* 0x19 (0x1E5) */
     UCHAR pad1A[0x1C - 0x1A];
     ULONG Rtn_save;                    /* 0x1C (0x1E8) Routine_0..3 to return to after the dive */
@@ -94,7 +94,11 @@ typedef struct tagEM33_G {
     ENEMY_WORK *pEm_mem;               /* 0x213C */
     UCHAR pad2140[0x2487 - 0x2140];
     UCHAR Em_num;                      /* 0x2487 */
-    UCHAR pad2488[0x265C - 0x2488];
+    UCHAR pad2488[0x24C0 - 0x2488];
+    LONG Pl_pos_x;                     /* 0x24C0 Pl_work.Pos_x */
+    LONG Pl_pos_y;                     /* 0x24C4 Pl_work.Pos_y */
+    LONG Pl_pos_z;                     /* 0x24C8 Pl_work.Pos_z */
+    UCHAR pad24CC[0x265C - 0x24CC];
     ENEMY_WORK *pEm_tbl[42];           /* 0x265C */
     ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
 } EM33_G;

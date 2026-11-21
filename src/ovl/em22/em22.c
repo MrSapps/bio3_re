@@ -2029,7 +2029,76 @@ void func_80106118(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em22/em22", func_801061FC);
+/* RE2 Em_damage (Em22_Damage) */
+void func_801061FC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    EM22_FREE *pFp;
+    LONG Flg;
+    LONG Bit;
+
+    pEm->Unk132 &= 0x3FFF;
+    Flg = 1;
+    EM22_W(pEm)->Unk03 = 0;
+    EM22_W(pEm)->Unk1B = 1;
+    EM22_W(pEm)->Unk02 = 1;
+    if ((ULONG)(pEm->Unk12C - 6) < 4)
+        Flg = (Rnd() & 3) != 0;
+    if (!EM22_W(pEm)->Unk13) {
+        Flg = 0;
+        EM22_W(pEm)->Unk2B = 0;
+        EM22_W(pEm)->Unk12 = 1;
+    }
+    if (pEm->Unk12C == 14 || pEm->Unk12C == 15) {
+        pFp = EM22_W(pEm);
+        if (++EM22_W(pEm)->Unk2B >= 3) {
+            EM22_W(pEm)->Unk2B = 0;
+        } else if ((pEm->Unk1C4 & 0xF) == 1) {
+            pFp->Unk11 = 0;
+            EM22_W(pEm)->Unk10 = 0;
+            pEm->Timer0 = 1;
+            EM_RTN(pEm) = pEm->Unk1C4;
+            func_8010649C(pEm);
+            func_80100680(pEm, Kan, Seq);
+            return;
+        }
+        goto common;
+    }
+    if (Em22_dm_mask[pEm->Unk12C - 1] && Flg) {
+        Bit = pEm->Unk132 & 0xC;
+        Bit >>= 1;
+        if (!Bit)
+            Bit = 1;
+        if (Bit & Em22_dm_mask[pEm->Unk12C - 1])
+            goto common;
+    }
+    if ((pEm->Unk1C4 & 0xF) == 1 && EM22_W(pEm)->Unk12) {
+        EM22_W(pEm)->Unk11 = 0;
+        EM22_W(pEm)->Unk10 = 0;
+        pEm->Timer0 = 1;
+        EM_RTN(pEm) = pEm->Unk1C4;
+        func_8010649C(pEm);
+        func_80100680(pEm, Kan, Seq);
+        EM22_W(pEm)->Unk12 ^= 1;
+        return;
+    }
+common:
+    func_8010649C(pEm);
+    if (!EM22_W(pEm)->Unk10) {
+        func_80106774(pEm, Kan, Seq);
+        pEm->pSin_parts_ptr[11].Poly_rgb = 0x808080;
+        pEm->pSin_parts_ptr[12].Poly_rgb = 0x808080;
+        pEm->pSin_parts_ptr[13].Poly_rgb = 0x808080;
+    }
+    pEm->Routine_2 = EM22_W(pEm)->Unk10;
+    pEm->Routine_3 = EM22_W(pEm)->Unk11;
+    Em22_dm_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    pEm->Unk1C4 = EM_RTN(pEm);
+    if (pEm->Id == 0x24) {
+        if (*pEm->pNow_seq & 0x800)
+            pEm->Unk16A = 1;
+        func_80108DAC(pEm);
+    }
+}
 
 /* blood spray while Timer0 runs, from the parts hit */
 #define EM22_BLOOD_RND()                    \

@@ -101,7 +101,7 @@ typedef struct tagENEMY_WORK {
     struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */
     ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */
-    UCHAR pad11C[0x120 - 0x11C];
+    ULONG *pUnk11C;                    /* 0x11C (func_8001760C: first EMD section) */
     UCHAR Unk120;                      /* 0x120 */
     UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */
     SHORT Unk122;                      /* 0x122 */

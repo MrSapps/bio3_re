@@ -2481,9 +2481,42 @@ void Plw02_init(PLAYER_WORK *pEm)
     pO->UnkA2 |= 0xB;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Plw_init_43FF0);
+void Plw_init_43FF0(PLAYER_WORK *pEm)
+{
+    PARTS_W *pP = pEm->pSin_parts_ptr;
+    PARTS_W *pO;
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Plw_init_44054);
+    Pl_wep_oya = &pP[4];
+    pO = pEm->pSin_parts_ptr;
+    Pl_wep_parts = &pO[22];
+    pO[22].Be_flg = 1;
+    pO = &pO[22];
+    pO->Pos_x = 0x51;
+    pO->Pos_y = 0x284;
+    pO->pSuper = &pP[4].Workm;
+    pO->Pos_z = 0x37;
+    pO->pOya_parts = &pP[4];
+    pO->Unk96 = 0xFF;
+    pO->UnkA2 |= 0xB;
+}
+
+void Plw_init_44054(PLAYER_WORK *pEm)
+{
+    PARTS_W *pP = pEm->pSin_parts_ptr;
+    PARTS_W *pO;
+
+    Pl_wep_oya = &pP[4];
+    pO = pEm->pSin_parts_ptr;
+    Pl_wep_parts = &pO[22];
+    pO[22].Be_flg = 1;
+    pO = &pO[22];
+    pO->pSuper = &pP[4].Workm;
+    pO->Pos_x = -0xC4;
+    pO->pOya_parts = &pP[4];
+    pO->Pos_y = 0x18B;
+    pO->Pos_z = 0;
+    pO->UnkA2 |= 0xB;
+}
 
 void Plw_init_440AC(PLAYER_WORK *pEm)
 {
