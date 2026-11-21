@@ -43,7 +43,7 @@ typedef struct tagEFF_WORK {
     SHORT Spd_x;                       /* 0x10 */
     SHORT Spd_y;                       /* 0x12 */
     SHORT Spd_z;                       /* 0x14 */
-    UCHAR pad16[0x18 - 0x16];
+    USHORT Unk16;                      /* 0x16 or'ed into Unk46 (func_8001B484) */
     UCHAR Unk18;                       /* 0x18 */
     UCHAR Snd_no;                      /* 0x19 */
     UCHAR Unk1A;                       /* 0x1A */
@@ -66,7 +66,8 @@ typedef struct tagEFF_WORK {
     LONG Unk38;                        /* 0x38 */
     LONG Unk3C;                        /* 0x3C */
     LONG Unk40;                        /* 0x40 */
-    UCHAR pad44[0x48 - 0x44];
+    USHORT Unk44;                      /* 0x44 clut (func_8001B484) */
+    USHORT Unk46;                      /* 0x46 tpage */
     LONG Pos_x;                        /* 0x48 */
     LONG Pos_y;                        /* 0x4C */
     LONG Pos_z;                        /* 0x50 */
@@ -82,7 +83,7 @@ typedef struct tagEFF_WORK {
     UCHAR Seq_no;                      /* 0x6F */
     MATRIX Workm;                      /* 0x70 */
     MATRIX Workm2;                     /* 0x90 copy of Workm (func_8001BCFC) */
-    UCHAR padB0[0xB3 - 0xB0];
+    UCHAR Col[3];                      /* 0xB0 light colour (func_8001B484) */
     UCHAR UnkB3;                       /* 0xB3 */
     SHORT UnkB4;                       /* 0xB4 */
     SHORT UnkB6;                       /* 0xB6 */
@@ -91,7 +92,8 @@ typedef struct tagEFF_WORK {
     ULONG *pUnkBC;                     /* 0xBC */
     ULONG Key;                         /* 0xC0 */
     SEQ8 *pSeq;                        /* 0xC4 */
-    UCHAR padC8[0xD0 - 0xC8];
+    ULONG *pUnkC8;                     /* 0xC8 */
+    ULONG *pUnkCC;                     /* 0xCC current move record */
     struct tagEFF_WORK *pLink;         /* 0xD0 killed when the linked work dies */
 } EFF_WORK;
 void Flg_on(ULONG *pFlg, ULONG Id);
