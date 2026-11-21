@@ -966,7 +966,103 @@ INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", func_8010318C);
 void func_80103AD0(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", func_80103AD8);
+/* motion 6: running shoulder attack */
+void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    tagGLOBAL *pG = &G;
+    ENEMY_WORK *pSpl = pG->pUnk2660;
+    ENEMY_WORK *pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
+    PARTS_W *pP;
+    SVECTOR Ofs;
+    EM34_AT_POINT At;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x70009;
+        pEm->Routine_2 = 1;
+        pEm->Timer0 = pEm->Spd_x;
+        EM34_W(pEm)->Flg |= 1;
+        pP = &pEm->pSin_parts_ptr[8];
+        pP->pTmd = Em34_tmd_old8;
+        pEm->Unk120 |= 3;
+        PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
+        if (Rnd() & 1)
+            Snd_se_enem(14, pEm);
+        if (EM34_W(pEm)->Flg & 0x80) {
+            pEm->Move_cnt = 8;
+            Spd_get(pEm, pKan, pSeq, 0);
+        }
+        EM34_W(pEm)->Unk13--;
+    case 1:
+        if (pEm->Move_cnt < 30)
+            Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x30);
+        func_80018EC8(pEm, pKan, pSeq, 0);
+        if (pEm->Timer0 > 0)
+            pEm->Timer0 -= 20;
+        pEm->Spd_x += pEm->Timer0;
+        if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+            EM_RTN(pEm) = 0x101;
+            pP = &pEm->pSin_parts_ptr[8];
+            pP->pTmd = Em34_tmd_new8;
+            if (!(pEm->Type & 1) && (LONG)pEm->Unk154 > 3000 && !(Rnd() & 1))
+                EM_RTN(pEm) = 0xA01;
+            EM34_W(pEm)->Unk00 = 20;
+            pEm->Unk120 &= ~3;
+            EM34_W(pEm)->Flg &= ~1;
+        }
+        Add_speedXZ(pEm, 0);
+        if (*pEm->pNow_seq & 0x800) {
+            pP = &pEm->pSin_parts_ptr[8];
+            if (!pPl->Damage_cnt) {
+                Ofs.vy = 300;
+                Ofs.vx = 0;
+                Ofs.vz = 0;
+                Ofs.pad = 700;
+                if (func_80044420(&pP->Workm, &Ofs, pPl)) {
+                    EM_RTN(pPl) = (Cdir_ck_l(pEm, pPl) + 2) << 8 | 2;
+                    pPl->Damage_cnt |= 0x80;
+                    Snd_se_enem(4, pEm);
+                    Pl_life_down(25, 1);
+                    Pad_vib_set0(3, 0);
+                    Pad_vib_set1(8, 250, 0);
+                }
+            }
+            if (pG->Em_num >= 2) {
+                At.pPos = pP->Workm.t;
+                At.Ofs.vx = 0;
+                At.Ofs.vy = 300;
+                At.Ofs.vz = 0;
+                At.Dir = pEm->Cdir_y;
+                if (func_80047F70(pEm, &At, Em34_at_data))
+                    Snd_se_enem(4, pEm);
+            }
+            if (D_800D1F2C < 0 && !pSpl->Damage_cnt) {
+                Ofs.vy = 300;
+                Ofs.vx = 0;
+                Ofs.vz = 0;
+                Ofs.pad = 700;
+                if (func_80044420(&pP->Workm, &Ofs, pSpl)) {
+                    EM_RTN(pSpl) = (Cdir_ck_l(pEm, pSpl) + 2) << 8 | 2;
+                    pSpl->Damage_cnt |= 0x80;
+                    if (func_8005F984(15, 0) == 2)
+                        EM_RTN(pSpl) = 3;
+                    Snd_se_enem(4, pEm);
+                }
+            }
+        }
+        break;
+    }
+    if (*pEm->pNow_seq & 0x400) {
+        Em34_hit_area.pPos = &pEm->Pos_x;
+        Em34_hit_area.pBox = Em34_at_box2;
+        Em34_hit_area.Dir = pEm->Cdir_y;
+        Em34_hit_area.Id = 1;
+        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+        Em34_hit_area.pBox = Em34_at_box3;
+        Em34_hit_area.Id = 2;
+        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+    }
+}
 
 void func_80103F30(void) {
 }
@@ -1772,7 +1868,115 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80106F94(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", func_80106F9C);
+/* motion 17: swings the partner (enemy 0x37) like a club */
+void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    PARTS_W *pP;
+    LONG Hit;
+    SVECTOR Ofs;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0xF0022;
+        pEm->Routine_2 = 1;
+        EM34_W(pEm)->Flg |= 1;
+        if (EM34_W(pEm)->pPartner) {
+            EM34_W(pEm)->pPartner->Routine_0 = 1;
+            EM34_W(pEm)->pPartner->Routine_1 = 8;
+            EM34_W(pEm)->pPartner->Routine_2 = 0;
+            EM34_W(pEm)->pPartner->Spd_y = 0x1400;
+            EM34_W(pEm)->pPartner->Spd_x = 0x180;
+        }
+        pEm->UnkE3 = 0;
+        pEm->Unk120 |= 3;
+        PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
+        pEm->UnkE2 = 0;
+        if (Rnd() & 1)
+            Snd_se_enem(15, pEm);
+    case 1:
+        if (pEm->Move_cnt < 33)
+            Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x30);
+        func_80018EC8(pEm, pKan, pSeq, 0);
+        if (pEm->UnkE3) {
+            pEm->Spd_x = 0;
+            pEm->Spd_z = 0;
+            pEm->UnkE3 = 0;
+        }
+        if (Joint_move(pEm, pKan, pSeq, 0x100)) {
+            EM_RTN(pEm) = 0x101;
+            if (!(Rnd() & 1))
+                EM_RTN(pEm) = 0x201;
+            if (pEm->UnkE2 & 0x80) {
+                EM_RTN(pEm) = 0x201;
+                if (!(Rnd() & 3))
+                    EM_RTN(pEm) = 0xB01;
+            }
+            EM34_W(pEm)->Unk00 = 15;
+            EM34_W(pEm)->Flg &= ~1;
+            pEm->Unk120 &= ~3;
+        }
+        Add_speedXZ(pEm, 0);
+        if ((*pEm->pNow_seq & 0x800) && !pPl->Damage_cnt) {
+            Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x10);
+            Ofs.vy = 200;
+            Ofs.vx = 0;
+            Ofs.vz = 0;
+            Ofs.pad = 400;
+            pP = EM34_W(pEm)->pPartner->pSin_parts_ptr;
+            Hit = 0;
+            Hit |= func_80044420(&pP[1].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[2].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[3].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[5].Workm, &Ofs, pPl);
+            if (Hit) {
+                EM_RTN(pPl) = (Cdir_ck_l(pEm, pPl) + 2) << 8 | 2;
+                pPl->Damage_cnt |= 0x80;
+                Snd_se_stad(0x1020D, (VECTOR *)&pEm->Pos_x, 0, 0);
+                if (Pl_life_down(25, 0) == 2)
+                    EM_RTN(pPl) = 3;
+                Pad_vib_set0(10, 0);
+                Pad_vib_set1(5, 250, 0);
+                pEm->UnkE2 = -123;
+            }
+        }
+        if (pEm->UnkE2 & 0x7F) {
+            pEm->UnkE2--;
+            pP = &EM34_W(pEm)->pPartner->pSin_parts_ptr[5];
+            Ofs.vx = pP->Workm.t[0];
+            Ofs.vy = pP->Workm.t[1];
+            Ofs.vz = pP->Workm.t[2];
+            func_8001B484(0x1700, ((Rnd() * 2 + 0x1800) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Ofs, NULL);
+        }
+        if (pEm->Move_cnt == 39)
+            Snd_se_stad(0x1020E, (VECTOR *)&pEm->Pos_x, 0, 0);
+        break;
+    }
+    if (*pEm->pNow_seq & 0x400) {
+        pP = &EM34_W(pEm)->pPartner->pSin_parts_ptr[3];
+        Em34_hit_area.pBox = Em34_at_box6;
+        /* pPos is declared after the first Em34_hit_area access, so it loses the
+           global-alloc priority tie against the %hi(Em34_hit_area) pseudo */
+        {
+            LONG *pPos = pP->Workm.t;
+
+            Em34_hit_area.pPos = pPos;
+            Em34_hit_area.Dir = pEm->Cdir_y;
+            Em34_hit_area.Id = 1;
+            if (!(Rnd() & 3))
+                Em34_hit_area.Id = 3;
+            func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+            Em34_hit_area.pPos = pPos;
+            Em34_hit_area.pBox = Em34_at_box7;
+            Em34_hit_area.Dir = pEm->Cdir_y;
+            Em34_hit_area.Id = 2;
+            if (!(Rnd() & 3))
+                Em34_hit_area.Id = 3;
+            func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+        }
+    }
+}
 
 void func_80107434(void) {
 }
