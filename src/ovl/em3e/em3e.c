@@ -35,7 +35,79 @@ void func_80100020(ENEMY_WORK *pEm)
     EM3E_W(pEm)->Old_life = pEm->Life;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em3e/em3e", func_801000A0);
+/* Em3e_init */
+void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    COL_OBJ *pCol;
+    PARTS_W *pP;
+
+    EM_MOVE(pEm) = 0x70000;
+    EM_RTN(pEm) = 4;
+    Joint_move(pEm, pKan, pSeq, 0x100);
+    pEm->Unk134 = 1800;
+    pEm->Unk136 = -2700;
+    pEm->Unk138 = 0x78;
+    pEm->Unk139 = 0xBC;
+    pEm->Unk13A = 2700;
+    pEm->Unk140 = 0;
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[4].Workm;
+    pCol = (COL_OBJ *)&pEm->Col_id;
+    pCol->H = 4500;
+    pCol->pEm = pEm;
+    pCol->D0 = 2700;
+    pCol->W0 = 2700;
+    pCol->Unk24 = 0;
+    pCol->Unk28 = 0;
+    pCol->Unk26 = 1800;
+    pCol->Flg = 0;
+    pCol->Type = 2;
+    func_80033580(pCol, 0);
+    EM3E_W(pEm)->Sway_rtn = 0;
+    EM3E_W(pEm)->Bob_rtn = 0;
+    EM3E_W(pEm)->Time = 0;
+    EM3E_W(pEm)->Shot_wait = 20;
+    EM3E_W(pEm)->Tilt = 0;
+    pEm->Spd_x = 0;
+    pEm->Spd_y = 0;
+    pEm->Spd_z = 0;
+    pEm->Spd_base_x = 0;
+    pEm->Spd_base_y = 0;
+    pEm->Spd_base_z = 0;
+    pP = pEm->pSin_parts_ptr;
+    pP->Cdir_x = 0;
+    pP = &pEm->pSin_parts_ptr[1];
+    pEm->Unk120 = 0;
+    pEm->Neck_no = 4;
+    PW_FREE(pP)[2] = 0x40;
+    PW_FREE(pP)[3] = 0x40;
+    PW_FREE(pP)[4] = 0x200;
+    PW_FREE(pP)[5] = 0x138;
+    PW_FREE(pP)[0] = 0;
+    PW_FREE(pP)[1] = 0;
+    if (G.System_flg & 0x100)
+        pEm->Max_life = pEm->Life = 250;
+    else
+        pEm->Max_life = pEm->Life = 350;
+    if (pEm->Type & 1) {
+        pEm->Routine_1 = 1;
+        EM3E_W(pEm)->Parts_num = 5;
+        EM3E_W(pEm)->Abr0 = 2;
+        EM3E_W(pEm)->Rotor0 = 1;
+        EM3E_W(pEm)->Rotor1 = 4;
+    } else {
+        EM3E_W(pEm)->Parts_num = 8;
+        EM3E_W(pEm)->Rotor0 = 2;
+        EM3E_W(pEm)->Abr0 = 3;
+        pEm->Routine_1 = 0;
+        EM3E_W(pEm)->Rotor1 = 7;
+        func_80100D24(pEm);
+    }
+    pEm->Unk14E = 0x110;
+    func_80100DC0(pEm, EM3E_W(pEm)->Abr0);
+    func_80100DC0(pEm, EM3E_W(pEm)->Rotor1);
+    EM_MOVE(pEm) = 0;
+    Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
+}
 
 /* Em3e_move: Routine_0 1 */
 void func_8010027C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
