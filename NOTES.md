@@ -52,6 +52,11 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   constants into s-regs), and D_80185618/D_80185619 are separate UCHARs (as an array their accesses
   share a base register). The second symbol is in ovl/warning.syms.txt and was added by hand to the
   ignored asm/data/ovl/warning/data.data.s, so a re-split gives the same file.
+  Search for an unpatched compiler (kept the patch, user decision): decompals cdk 0.14-0.17 and PsyQ 4.1
+  CC1PSX.EXE (same cygnus-2.7.2-970404) give the same 5 diffs unpatched; FSF 2.7.0-2.7.2.3, PsyQ 4.0
+  2.7.2.SN32 and all 2.5.7/2.6.x builds have the loop problem; 2.8.x turns `j end` into `jr $ra`. The
+  original is a Cygnus/SN snapshot between PsyQ 4.0 and 4.1 that is not available. Untested: DOS-only
+  PsyQ 3.x and the Net Yaroze DJGPP gcc (need DOSBox), or building cygnus-2.7.2-961023 from source.
 - Overlays see G with fields past tagGLOBAL's end; an overlay-local view `extern T Gr __asm__("G")` works,
   but fields used together must come from the same symbol for gcc to share the &G base.
 
