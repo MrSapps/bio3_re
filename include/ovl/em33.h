@@ -112,6 +112,11 @@ typedef struct tagEM33_GPL {
 } EM33_GPL;
 extern EM33_GPL G_pl __asm__("G");
 
+/* Spd_z by Move_cnt / 10 while surfacing (copied to the stack as one block) */
+typedef struct tagEM33_SPD_TBL {
+    SHORT Spd[8];
+} EM33_SPD_TBL;
+
 /* hit area handed to func_800445C8 (pl_wep.c HIT_AREA) */
 typedef struct tagEM33_HIT_AREA {
     LONG *pPos;                        /* 0x00 centre (VECTOR) */
