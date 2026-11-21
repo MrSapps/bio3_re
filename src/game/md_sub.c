@@ -375,6 +375,13 @@ void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
     } while (--Cnt);
 }
 
+/* The GT3/GT4 sort family (B6FC, B86C, CF90, D6D8, D898, DC98, DE0C, DFE0, E160) is hand-edited
+   compiler output: D6D8/D898/DE0C/DFE0/E160 have frames of 0x1C/0x24 (gcc 2.8 always rounds to 8;
+   no other function in the exe does this), D6D8/E160 leave a hole in the s-reg save area, D898
+   copies a1 to t0 twice, and every one copies params into t-regs (`addu t0,a1,zero`) to free the
+   a-regs as temporaries. gcc 2.8.1 keeps pPacket in a1 (its copy preference outranks pZ0's two
+   refs), and no PsyQ inline_c.h macro (4.3-4.5) uses fixed registers, so the copy has no clean
+   C source. */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B6FC);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B86C);
