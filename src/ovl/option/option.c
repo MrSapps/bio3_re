@@ -261,7 +261,121 @@ void func_801C2AC4(void)
     Snd_work.UnkB24 = 0xB00;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/option/option", func_801C2C58);
+/* screen init: set up the primitives of both buffers (background, text tpage, icons, pad picture, pieces, shade panel and its lines) */
+void func_801C2C58(void)
+{
+    SPRT *pBg;
+    SPRT *pIcon;
+    DR_TPAGE *pTpage;
+    SPRT *p;
+    POLY_FT4 *pPoly;
+    TILE *pTile;
+    ULONG i;
+    ULONG Clut0;
+    ULONG Clut1;
+    ULONG Tpage0;
+    ULONG Tpage1;
+    ULONG j;
+
+    Clut0 = GetClut(0x100, 0x1FE);
+    Clut1 = GetClut(0x100, 0x1FF);
+    Tpage0 = GetTPage(0, 0, 0x380, 0x100);
+    Tpage1 = GetTPage(0, 0, 0x3C0, 0x100);
+    pBg = Opt.Bg[0];
+    pTpage = Opt.Bg_tpage[0];
+    pIcon = Opt.Icon[0];
+    for (i = 0; i < 2; i++) {
+        SetSprt(pBg);
+        pBg->r0 = 0x80;
+        pBg->g0 = 0x80;
+        pBg->b0 = 0x80;
+        pBg->x0 = 0;
+        pBg->y0 = 0;
+        pBg->u0 = 0;
+        pBg->v0 = 0;
+        pBg->clut = Clut0;
+        pBg->w = 0x100;
+        pBg->h = 0xF0;
+        pBg++;
+        SetSprt(pBg);
+        pBg->r0 = 0x80;
+        pBg->g0 = 0x80;
+        pBg->b0 = 0x80;
+        pBg->x0 = 0x100;
+        pBg->y0 = 0;
+        pBg->u0 = 0;
+        pBg->v0 = 0x80;
+        pBg->clut = Clut0;
+        pBg->w = 0x40;
+        pBg->h = 0x80;
+        pBg++;
+        SetSprt(pBg);
+        pBg->r0 = 0x80;
+        pBg->g0 = 0x80;
+        pBg->b0 = 0x80;
+        pBg->x0 = 0x100;
+        pBg->y0 = 0x80;
+        pBg->u0 = 0x40;
+        pBg->v0 = 0x80;
+        pBg->clut = Clut0;
+        pBg->w = 0x40;
+        pBg->h = 0x70;
+        pBg++;
+        SetDrawTPage(pTpage, 0, 0, Tpage1);
+        pTpage++;
+        SetDrawTPage(pTpage, 0, 0, Tpage0);
+        pTpage++;
+        SetDrawTPage(&Opt.Moji_tpage[i], 0, 0, Tpage0);
+        for (j = 0; j < 4; j++) {
+            SetSprt(pIcon);
+            pIcon->r0 = 0x80;
+            pIcon->g0 = 0x80;
+            pIcon->b0 = 0x80;
+            pIcon->clut = Clut1;
+            pIcon->w = 0xE;
+            pIcon->h = 0xE;
+            pIcon++;
+        }
+        p = Opt.Button[i];
+        SetSprt(p);
+        p->r0 = 0x80;
+        p->g0 = 0x80;
+        p->b0 = 0x80;
+        p->clut = Clut1;
+        p->w = 0x48;
+        p->h = 0x10;
+        p->x0 = D_801C54FC[0];
+        p->y0 = D_801C54FC[1];
+        for (j = 0; j < 20; j++) {
+            pPoly = &Opt.Piece[j].Poly[i];
+            SetPolyFT4(pPoly);
+            SetSemiTrans(pPoly, 1);
+            pPoly->r0 = 0x80;
+            pPoly->g0 = 0x80;
+            pPoly->b0 = 0x80;
+            pPoly->clut = Clut0;
+            pPoly->tpage = Tpage0;
+        }
+        pTile = &Opt.Shade[i];
+        SetTile(pTile);
+        setRGB0(pTile, 0x10, 0x10, 0x10);
+        Opt.Shade[i].x0 = 0;
+        Opt.Shade[i].y0 = 0x25;
+        Opt.Shade[i].w = 0x140;
+        Opt.Shade[i].h = 0xA0;
+        SetSemiTrans(pTile, 1);
+        SetDrawTPage(&Opt.Shade_tpage[i], 0, 0, GetTPage(0, 2, 0, 0));
+        for (j = 0; j < 2; j++) {
+            SetLineF2(&Opt.Line[i][j]);
+            SetSemiTrans(&Opt.Line[i][j], 1);
+            setRGB0(&Opt.Line[i][j], 0x18, 0x18, 0x18);
+            Opt.Line[i][j].x0 = 0;
+            Opt.Line[i][j].y0 = j * 0xA1 + 0x24;
+            Opt.Line[i][j].x1 = 0x140;
+            Opt.Line[i][j].y1 = j * 0xA1 + 0x24;
+        }
+    }
+}
 
 /* screen exit: reload the game texture page and restore the main bg settings */
 void func_801C30E8(void)
