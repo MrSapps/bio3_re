@@ -75,12 +75,14 @@ def target_words(func, cfile=None):
             break
     return words, masks, text, rel
 
-def build(cfile, cc, flags):
+def build(cfile, cc, flags, aspsx="2.77"):
     tmp = tempfile.mkdtemp(dir=os.environ.get("TMPDIR"))
     obj = os.path.join(tmp, "o.o")
     cpp = f"cpp -P -undef -D__GNUC__=2 -Dmips -D__psx__ -D_LANGUAGE_C -I{ROOT}/include -I{ROOT}/src -I{PSYQ_INC} {cfile}"
     cc1 = f"{ROOT}/tools/compilers/{cc}/cc1 -quiet {flags} -o -"
-    masp = f"{sys.executable} {ROOT}/tools/maspsx/maspsx.py --aspsx-version=2.77 -G0"
+    masp = f"{sys.executable} {ROOT}/tools/maspsx/maspsx.py --aspsx-version={aspsx} -G0"
+    if aspsx == "none":  # plain GNU as in reorder mode (no ASPSX emulation)
+        masp = "cat"
     asm = f"{BIN}as -EL -march=r3000 -mtune=r3000 -msoft-float -no-pad-sections -G0 -I{ROOT}/include -I{ROOT} -o {obj} -"
     # pipefail: a cc1 error must fail the build, not yield a partial object
     r = subprocess.run(["bash", "-o", "pipefail", "-c", f"cd {ROOT} && {cpp} | {cc1} | {masp} | {asm}"],
@@ -161,6 +163,7 @@ def main():
     ap.add_argument("--cc", default="gcc-2.8.1-psx")
     ap.add_argument("--flags", default="-O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char")
     ap.add_argument("-v", action="store_true")
+    ap.add_argument("--aspsx", default="2.77", help="maspsx --aspsx-version, or 'none' for plain GNU as")
     ap.add_argument("--syms", action="append", default=[], help="extra 'name = 0xADDR;' file")
     a = ap.parse_args()
     if "src/ovl/warning/" in os.path.abspath(a.cfile):  # per-object flag, see Makefile
@@ -171,7 +174,7 @@ def main():
         a.syms = [o + ".syms.txt", o + ".undefined_funcs_auto.txt", o + ".undefined_syms_auto.txt"] + a.syms
     syms = load_syms(a.syms)
     tw, tm, tt, tr = target_words(a.func, a.cfile)
-    obj = build(a.cfile, a.cc, a.flags)
+    obj = build(a.cfile, a.cc, a.flags, a.aspsx)
     try:
         ow, ot, orel, ostart = obj_func(obj, a.func)
     finally:  # one temp dir per run: never leave it behind (36k of them once filled the disk)
