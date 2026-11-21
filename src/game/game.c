@@ -175,7 +175,9 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, SHORT Flg, MATRIX *pM);
 /* flash state (func_80024F74) */
 typedef struct tagFLASH_WORK {
     UCHAR Flg;                         /* 0x0 */
-    UCHAR pad1[3];
+    UCHAR Unk1;                        /* 0x1 */
+    UCHAR Mess_no;                     /* 0x2 message shown by func_80024CE8 */
+    UCHAR Unk3;                        /* 0x3 */
     UCHAR Cnt;                         /* 0x4 */
 } FLASH_WORK;
 extern FLASH_WORK D_800C703C;
@@ -355,7 +357,111 @@ void Gun_light_reset(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/game", func_800245A0);
+void func_80024B34(void);
+void Esp_init_C(void);
+void Trans_work_init(void);
+void func_8006D720(void);
+void Em_move_tbl_set(void);
+void Spl_set(void);
+void Set_stage(void);
+void func_80077C4C(void);
+void Set_room(void);
+void func_80077F60(void);
+void Player_set(ENEMY_WORK *pEm);
+
+extern UCHAR D_800E0186[];             /* an array: stores to it stay after loads of struct fields */
+extern UCHAR D_800D442C;
+
+/* game start: place the player (new game, demo or loaded save), load the stage and room */
+void func_800245A0(void)
+{
+    tagGLOBAL *pG = &G;
+    tagMAIN *pMain = &Main;
+    ENEMY_WORK *pPl;
+    ULONG Be;
+
+    Bg_set_mode(1, 0);
+    func_80038634(0, 0);
+    pG->pUnk265C = PLAYER;
+    pPl = PLAYER;
+    if (pG->System_flg & 0x1000) {
+        if (pG->System_flg & 0x80) {
+            pPl->Max_life = pPl->Life = 200;
+            pPl->Pos_x = pPl->Unk40[0] = -18415;
+            pPl->Pos_z = pPl->Unk40[2] = -22736;
+            pPl->Cdir_y = 0x4A8;
+            pPl->Pos_y = pPl->Unk40[1] = 0;
+            pPl->Unk122 = 0;
+            pPl->nFloor = 0;
+            pG->Unk783E = 6;
+            pG->Unk7840 = 12;
+            pG->Cut_no = 2;
+        } else {
+            pPl->Max_life = pPl->Life = 200;
+            pPl->Pos_x = pPl->Unk40[0] = 13262;
+            pPl->Pos_z = pPl->Unk40[2] = -12537;
+            pPl->Cdir_y = 0x720;
+            pPl->Pos_y = pPl->Unk40[1] = 0;
+            pPl->Unk122 = 0;
+            pPl->nFloor = 0;
+            pPl->Status_flg = 0;
+            pG->Unk7840 = 13;
+            pG->Unk783E = 0;
+            pG->Cut_no = 11;
+            pG->Unk7864 = 0;
+            pG->Unk784E = 0;
+        }
+    } else if (pG->System_flg & 0x10000000) {
+        func_80024B34();
+        pG->pUnk7C7C = G.Item_work[G.Item_work_no];
+        goto set;
+    } else {
+        pPl->Max_life = 200;
+        pPl->Unk40[0] = pPl->Pos_x;
+        pPl->Unk40[1] = pPl->Pos_y;
+        pPl->Unk40[2] = pPl->Pos_z;
+        pPl->Unk122 = pPl->Pos_y;
+        pPl->nFloor = (SHORT)pPl->Pos_y / -1800;
+    }
+set:
+    pPl->Be_flg = 1;
+    ((ENEMY_WORK *)pG->pad2708)->Col_id = 0;
+    Esp_init_C();
+    Trans_work_init();
+    func_8006D720();
+    Em_move_tbl_set();
+    Spl_set();
+    Set_stage();
+    func_80077C4C();
+    if (G.System_flg & 0x10000000) {
+        D_80098700 = Game.pSave->Unk714;
+        G.Unk784A = Game.pSave->Unk718;
+        D_800E0186[0] = 0;
+    }
+    Set_room();
+    func_80077F60();
+    pG->pEm = (ENEMY_WORK *)&pG->Pl_be_flg;
+    Player_set(pG->pEm);
+    SetBackColor(0x80, 0x80, 0x80);
+    pMain->Unk191 = 0;
+    Bg_set_mode(2, 0);
+    pMain->Unk18E = 1;
+    SetGeomOffset(160, 120);
+    while (Main.Unk193) {
+        Task_sleep(1);
+    }
+    pG->Game_time_offset = VSync(-1);
+    D_800D442C = 2;
+    Game.Unk1 = 0;
+    G.System_flg |= 0x8000000;
+    if (G.System_flg & 0x10000000) {
+        D_80098700 = Game.pSave->Unk714;
+        G.Unk784A = Game.pSave->Unk718;
+        D_800E0186[0] = 0;
+        Game.Unk4E = 1;
+    }
+    Task_sleep(1);
+}
 
 /* door AOT (RE2 SCE_AOT_DOOR next position part) */
 typedef struct tagDOOR_NEXT {
@@ -375,7 +481,6 @@ void Set_stage(void);
 void func_80077C4C(void);
 void Set_room(void);
 void func_80077F60(void);
-extern UCHAR D_800E0186;
 
 void Set_door(void)
 {
@@ -426,7 +531,7 @@ void Set_door(void)
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
-        D_800E0186 = 0;
+        D_800E0186[0] = 0;
         Game.Unk4E = 1;
     }
     Task_sleep(1);
@@ -480,7 +585,62 @@ void func_80024C58(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/game", func_80024CE8);
+LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data);
+void Pad_vib_init(void);
+ULONG func_80024F74(void);
+
+void func_80024CE8(void)
+{
+    ULONG i;
+
+    G.System_flg |= 0x400;
+    D_800D442C = 3;
+    G.Status_flg &= ~4;
+    G.Status_flg &= ~2;
+    G.Status_flg &= ~1;
+    Pad_vib_init();
+    Flash_fade_in();
+    Fade_set(2, 0, 0, 2, 0xFFFFFF, 0xFFFFFF, 1);
+    Task_sleep(1);
+    D_800C703C.Flg = 1;
+    Flash_fade_out();
+    Flash_fade_in();
+    Mess_set(0, 0x2001, D_800C703C.Mess_no, 0);
+    D_800C703C.Unk3 = 0x62;
+    D_800C703C.Cnt = 0;
+    Flash_fade_out();
+    Flash_fade_in();
+    Fade_set(2, 0, 0, 1, 0xFFFFFF, 0xFFFFFF, 1);
+    D_800C703C.Unk3 = 0xB3;
+    Task_sleep(1);
+    D_800C703C.Flg = 0;
+    Fade_set(2, 0, 0, 1, 0xFFFFFF, 0, 4);
+    while (Fade_status(2) != 0) {
+        Task_sleep(1);
+    }
+    D_800C703C.Unk1 = 1;
+    D_800D442C = 2;
+    G.System_flg &= ~0x400;
+    if (!func_80024F74() && !func_80024F74()) {
+        D_800C703C.Cnt++;
+        while (G.Status_flg & 0x10000000) {
+            Task_sleep(1);
+        }
+    }
+    G.System_flg |= 0x400;
+    D_800C703C.Flg = 1;
+    func_8003884C(Vib_data_tbl, 0);
+    Snd_se_stad(0x22E, NULL, 0, 0);
+    i = 7;
+    do {
+        Task_sleep(1);
+    } while (i-- != 0);
+    D_800C703C.Flg = 0;
+    D_800D442C = 2;
+    D_800C703C.Unk1 = 0;
+    G.System_flg &= ~0x400;
+    Task_exit();
+}
 
 ULONG func_80024F74(void)
 {

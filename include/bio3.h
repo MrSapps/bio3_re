@@ -146,11 +146,13 @@ typedef struct tagGLOBAL {
     UCHAR pad2560[0x2584 - 0x2560];
     ULONG *Pl_pSub1_kan_t_ptr;         /* 0x2584 Player.pSub1_kan_t_ptr (em21 peck) */
     ULONG *Pl_pSub1_seq_t_ptr;         /* 0x2588 Player.pSub1_seq_t_ptr */
-    UCHAR pad258C[0x2594 - 0x258C];
+    ULONG *Pl_pUnk100_kan_t_ptr;       /* 0x258C Player.pUnk100_kan_t_ptr (func_800498F0) */
+    ULONG *Pl_pUnk104_seq_t_ptr;       /* 0x2590 Player.pUnk104_seq_t_ptr */
     struct tagPARTS_W *Pl_pSin_parts_ptr; /* 0x2594 Player.pSin_parts_ptr */
     UCHAR pad2598[0x259C - 0x2598];
     struct tagENEMY_WORK *Pl_pEnemy_ptr;/* 0x259C Player.pEnemy_ptr */
-    UCHAR pad25A0[0x25AE - 0x25A0];
+    UCHAR pad25A0[0x25AD - 0x25A0];
+    UCHAR Pl_neck_no;                  /* 0x25AD Player.Neck_no */
     SHORT Unk25AE;                     /* 0x25AE Player +0x122, set from the door y (Set_door) */
     UCHAR pad25B0[0x25B9 - 0x25B0];
     UCHAR Pl_damage_cnt;               /* 0x25B9 Player.Damage_cnt */
@@ -170,9 +172,10 @@ typedef struct tagGLOBAL {
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
     void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
     void (*Unk3EE0[24])();             /* 0x3EE0 all set to Spl by Spl_set */
-    UCHAR pad3F40[0x4322 - 0x3F40];
+    UCHAR pad3F40[0x4320 - 0x3F40];
+    USHORT Unk4320;                    /* 0x4320 0xFF on room load (Set_room) */
     USHORT Unk4322;                    /* 0x4322 set when the first enemy sound bank is loaded (func_80014968) */
-    UCHAR pad4324[0x4326 - 0x4324];
+    USHORT Unk4324;                    /* 0x4324 0xFF on room load (Set_room) */
     USHORT Unk4326;                    /* 0x4326 set when a later enemy sound bank is loaded */
     UCHAR Ob_model[32][0x194];         /* 0x4328 RE2 Ob_model (OBJ_MODEL_WORK, 0x194 bytes each) */
     UCHAR *pUnk75A8;                   /* 0x75A8 set to Ob_model[0] (diedemo func_80194574) */
@@ -221,12 +224,13 @@ typedef struct tagGLOBAL {
     SHORT Unk784A;                     /* 0x784A (Set_door) */
     SHORT Unk784C;                     /* 0x784C */
     SHORT Unk784E;                     /* 0x784E player Id chosen in the select overlay */
-    UCHAR pad7850[0x7852 - 0x7850];
+    USHORT Unk7850;                    /* 0x7850 sub player Status_flg kept across rooms (Spl_Init) */
     SHORT Unk7852;                     /* 0x7852 player life restore value? */
     SHORT Unk7854;                     /* 0x7854 */
     SHORT Unk7856;                     /* 0x7856 */
     SHORT Unk7858;                     /* 0x7858 bg scroll y, -0xEF..0xEF (Swap_Cbuff) */
-    UCHAR pad785A[0x785E - 0x785A];
+    UCHAR pad785A[0x785C - 0x785A];
+    SHORT Unk785C;                     /* 0x785C cleared by em36 (Nemesis) death */
     USHORT Unk785E;                    /* 0x785E counter (func_8003CEA0) */
     SHORT Unk7860;                     /* 0x7860 */
     SHORT Unk7862;                     /* 0x7862 */

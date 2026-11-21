@@ -18,11 +18,12 @@ typedef struct tagVCUT {
 /* room header (RE2 struct tagROOM_HEAD) */
 typedef struct tagROOM_WORK {
     UCHAR nSprite;                     /* 0x00 RE2 nSprite (Psp_trans) */
-    UCHAR pad1;
+    UCHAR nCut;                        /* 0x01 RE2 nCut (Set_room) */
     UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
     UCHAR pad3[7 - 3];
     UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (func_80048630) */
-    UCHAR pad8[0x20 - 0x8];
+    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room */
+    UCHAR padC[0x20 - 0xC];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */
     RCUT *pRcut;                       /* 0x24 RE2 pRcut */
     VCUT *pVcut;                       /* 0x28 */
@@ -34,7 +35,8 @@ typedef struct tagROOM_WORK {
     UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
     ULONG *pUnk44;                     /* 0x44 second bg image (Swap_Cbuff) */
     UCHAR *pScd;                       /* 0x48 scenario data (Sce.pCScd) */
-    UCHAR pad4C[0x60 - 0x4C];
+    UCHAR pad4C[0x5C - 0x4C];
+    UCHAR *pEdd;                       /* 0x5C enemy sub animation data: offset table at [0], count at [4] (func_800498F0) */
     RCUT Cut[1];                       /* 0x60 RE2 Cut[] */
 } ROOM_WORK;
 

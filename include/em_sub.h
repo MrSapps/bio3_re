@@ -145,7 +145,10 @@ typedef struct tagENEMY_WORK {
     SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */
     USHORT Unk17E;                     /* 0x17E */
     ULONG Unk180[4];                   /* 0x180 args of func_80079690 / Joint_move */
-    UCHAR pad190[0x1A0 - 0x190];
+    ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (func_800498F0) */
+    ULONG *pUnk194_kan_t_ptr;          /* 0x194 */
+    ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */
+    ULONG *pUnk19C_kan_t_ptr;          /* 0x19C */
     UCHAR Unk1A0;                      /* 0x1A0 */
     UCHAR Unk1A1;                      /* 0x1A1 */
     UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */

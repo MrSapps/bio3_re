@@ -467,7 +467,76 @@ void Spl_sce03(ENEMY_WORK *pEm)
     func_8006055C(pEm);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/spl_sce", Spl_sce04);
+void Spl_sce04(ENEMY_WORK *pEm)
+{
+    ULONG *pKan = pEm->pSub0_kan_t_ptr;
+    ULONG *pSeq = pEm->pSub0_seq_t_ptr;
+    LONG n = 0;
+
+    if (pEm->Unk150 & 0x80) {
+        switch (pEm->Unk150 & 0x7F) {
+        case 0:
+            pKan = pEm->pUnk100_kan_t_ptr;
+            pSeq = pEm->pUnk104_seq_t_ptr;
+            break;
+        case 1:
+            pKan = pEm->pKan_t_ptr;
+            pSeq = pEm->pSeq_t_ptr;
+            break;
+        case 2:
+            break;
+        case 3:
+            pKan = pEm->pSub1_kan_t_ptr;
+            pSeq = pEm->pSub1_seq_t_ptr;
+            break;
+        }
+        n = pEm->Unk152;
+    }
+    switch (pEm->Routine_2) {
+    case 0:
+        *(LONG *)&pEm->Move_no = n + 0x70000;
+        pEm->Routine_2 = 1;
+    case 1:
+        if ((UCHAR)func_80062B68(pEm, pKan, pSeq)) {
+            Spd_get(pEm, pKan, pSeq, 0);
+            if (pEm->UnkAE & 0x40) {
+                if (func_800632B8(pEm, 0) & 0x1000) {
+                    *(ULONG *)&pEm->Routine_0 = 0xC04;
+                } else {
+                    *(ULONG *)&pEm->Routine_0 = 0x20C04;
+                }
+                func_800608C8(pEm, pKan, pSeq);
+                return;
+            }
+            pEm->Routine_2 = 2;
+        }
+        break;
+    case 2:
+        if (pEm->UnkAE & 0x40) {
+            if (func_800632B8(pEm, 0) & 0x1000) {
+                *(ULONG *)&pEm->Routine_0 = 0xC04;
+            } else {
+                *(ULONG *)&pEm->Routine_0 = 0x20C04;
+            }
+            func_800608C8(pEm, pKan, pSeq);
+            return;
+        }
+        Spd_get(pEm, pKan, pSeq, 0);
+        if ((UCHAR)func_80062BFC(pEm, pKan, pSeq, 0)) {
+            Flg_on(D_800D1FC0, pEm->Unk146);
+            pEm->Routine_1 = 6;
+            pEm->Routine_2 = 0;
+            pEm->Unk152 = 0;
+            pEm->Unk150 = 0;
+            if (pEm->Unk144 & 4) {
+                pEm->Routine_1 = 4;
+                pEm->Routine_2 = 2;
+            }
+        }
+        break;
+    }
+    func_8006055C(pEm);
+}
 
 void func_800608C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
@@ -1527,9 +1596,105 @@ LONG func_80063198(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d)
     return SquareRoot0(x * x + z * z) < 0x64;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/spl_sce", func_800632B8);
+extern SHORT D_8009EEC8[];             /* direction by Col_unk39 & 7 */
+extern UCHAR D_8009ED88[];             /* move offset by func_80063690 result */
+LONG func_80063690(ENEMY_WORK *pEm);
+extern UCHAR D_8009E70C[];
 
-INCLUDE_ASM("asm/nonmatchings/game/spl_sce", func_800634F4);
+/* direction to turn to (bit 0x1000: turn around); with f set, also picks the turn move */
+LONG func_800632B8(ENEMY_WORK *pEm, LONG f)
+{
+    SHORT n;
+    LONG Dir;
+    ULONG d;
+    LONG Mv;
+    LONG Ret;
+
+    n = func_80063690(pEm);
+    Dir = D_8009EEC8[(UCHAR)pEm->Col_unk39 & 7];
+    d = (Dir - pEm->Cdir_y) & 0xFFF;
+    Ret = Dir;
+    if (d - 0x400 > 0x800) {
+        if (d - 0x258 <= 0xB50) {
+            return Dir;
+        }
+        if (f) {
+            pEm->Move_cnt *= 34;
+            pEm->Move_cnt /= 30;
+            if (pEm->Move_cnt >= 3) {
+                pEm->Move_cnt -= 3;
+            } else {
+                pEm->Move_cnt += 31;
+            }
+            Mv = D_8009ED88[n] * 4;
+            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+                Mv = 0xC;
+            }
+            *(LONG *)&pEm->Move_no = (pEm->Move_cnt << 8) + 0x70000 + Mv;
+            *(LONG *)&pEm->Unk1A0 = (pEm->Move_cnt << 8) + 0x70000;
+        }
+        return Ret + 0x1000;
+    }
+    if (d - 0x5A9 <= 0x4AE) {
+        if (f) {
+            pEm->Move_cnt *= 34;
+            pEm->Move_cnt /= 30;
+            if (pEm->Move_cnt >= 4) {
+                pEm->Move_cnt -= 2;
+            } else {
+                pEm->Move_cnt += 30;
+            }
+            Mv = D_8009ED88[n] * 4 + 1;
+            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+                Mv = 0xD;
+            }
+            *(LONG *)&pEm->Move_no = (pEm->Move_cnt << 8) + 0x70000 + Mv;
+            *(LONG *)&pEm->Unk1A0 = (pEm->Move_cnt << 8) + 0x70001;
+        }
+        return ((Ret + 0x800) & 0xFFF) | 0x1000;
+    }
+    return (Dir + 0x800) & 0xFFF;
+}
+
+LONG func_800634F4(ENEMY_WORK *pEm, LONG f)
+{
+    SHORT n;
+    LONG Dir;
+    ULONG d;
+    LONG Mv;
+    LONG Ret;
+
+    n = func_80063690(pEm);
+    Dir = D_8009EEC8[(UCHAR)pEm->Col_unk39 & 7];
+    d = (Dir - pEm->Cdir_y) & 0xFFF;
+    Ret = Dir;
+    if (d - 0x400 > 0x800) {
+        if (d - 0x258 <= 0xB50) {
+            return Dir;
+        }
+        if (f) {
+            Mv = D_8009ED88[n] * 4 + 2;
+            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+                Mv = 0xE;
+            }
+            *(LONG *)&pEm->Move_no = (pEm->Move_cnt << 8) + 0x70000 + Mv;
+            *(LONG *)&pEm->Unk1A0 = (pEm->Move_cnt << 8) + 0x70002;
+        }
+        return Ret + 0x1000;
+    }
+    if (d - 0x5A9 <= 0x4AE) {
+        if (f) {
+            Mv = D_8009ED88[n] * 4 + 3;
+            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+                Mv = 0xF;
+            }
+            *(LONG *)&pEm->Move_no = (pEm->Move_cnt << 8) + 0x70000 + Mv;
+            *(LONG *)&pEm->Unk1A0 = (pEm->Move_cnt << 8) + 0x70003;
+        }
+        return ((Ret + 0x800) & 0xFFF) | 0x1000;
+    }
+    return (Dir + 0x800) & 0xFFF;
+}
 
 LONG func_80063690(ENEMY_WORK *pEm)
 {

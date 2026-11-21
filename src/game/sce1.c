@@ -6,6 +6,7 @@
 #include "sub.h"
 #include "player.h"
 #include "om.h"
+#include "snd.h"
 
 
 
@@ -1798,7 +1799,104 @@ offset_done:
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce1", Sce_bgm_control);
+void func_8007745C(LONG no);
+void Snd_seq_play_ck(LONG no);
+
+/* VAB head: header and program attributes */
+typedef struct {
+    VabHdr Hdr;                        /* 0x000 */
+    ProgAtr Prog[128];                 /* 0x020 */
+} VAB_HEAD;
+
+/* VAB head of the bgm bank of sequence No */
+#define BGM_VH(pW, No) ((VAB_HEAD *)(pW)->Bank[(No) ? 6 : 5].pHead)
+
+/* bgm control: 0 volume/pan, 1 stop jingle, 2 stop, 3 play, 4 ?, 5 fade out */
+ULONG Sce_bgm_control(SCE_TASK *pSce)
+{
+    UCHAR *pData;
+    ULONG No;
+    ULONG Type;
+    ULONG Prog;
+    ULONG Vol;
+    ULONG Pan;
+    LONG D0;
+    UCHAR Mvol;
+    UCHAR Mpan;
+    signed char i;
+    SND_TRACK *pTrk;
+    SND_WORK *pW;
+
+    pW = &Snd_work;
+    pData = pSce->Data;
+    Type = pData[2];
+    No = pData[1];
+    Prog = pData[3];
+    Vol = pData[4];
+    Pan = pData[5];
+    switch (Type) {
+    case 0:
+        if (Prog == 0) {
+            if (Vol < 0x80) {
+                BGM_VH(pW, No)->Hdr.mvol = Vol;
+            }
+            if (Pan < 0x80) {
+                BGM_VH(pW, No)->Hdr.pan = Pan;
+            }
+            break;
+        }
+        if (Vol < 0x80) {
+            BGM_VH(pW, No)->Prog[Prog - 1].mvol = Vol;
+        }
+        if (Pan < 0x80) {
+            BGM_VH(pW, No)->Prog[Prog - 1].mpan = Pan;
+        }
+        D0 = BGM_VH(pW, No)->Hdr.mvol;
+        Mvol = D0 * BGM_VH(pW, No)->Prog[Prog - 1].mvol / 127;
+        Mpan = BGM_VH(pW, No)->Hdr.pan + 0xC0;
+        Mpan = BGM_VH(pW, No)->Prog[Prog - 1].mpan + Mpan;
+        pTrk = pW->Seq[No].Trk;
+        for (i = 0; i < 16; i++, pTrk++) {
+            if (pTrk->Prog == Prog - 1) {
+                pTrk->Vol = Mvol;
+                pTrk->Pan2 = Mpan;
+            }
+        }
+        break;
+    case 1:
+        if (G.System_flg & 0x400000) {
+            pW->UnkB77 = 1 << No;
+        } else {
+            Snd_se_stad((No + 5) << 8, 0, 0, 0);
+        }
+        break;
+    case 2:
+        if (G.System_flg & 0x400000) {
+            pW->UnkB79 = 1 << No;
+        } else {
+            pW->UnkB79 = 0;
+        }
+        Snd_seq_stop(No);
+        break;
+    case 4:
+        func_8007745C(No);
+        break;
+    case 3:
+        Snd_seq_play_ck(No);
+        break;
+    case 5:
+        if (pW->Seq[No].Unk2C != 0 && pW->Seq[No].Unk2D == 0) {
+            if (pW->Seq[No].Unk38 != 2) {
+                pW->Seq[No].Unk38 = 2;
+                pW->Seq[No].Unk3C = 0x3FFF;
+            }
+            pW->Seq[No].Unk40 = 0x3FFF / Vol + 1;
+        }
+        break;
+    }
+    pSce->Data = pData + 6;
+    return 1;
+}
 
 ULONG Xa_on(SCE_TASK *pSce)
 {

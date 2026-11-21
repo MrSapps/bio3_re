@@ -76,8 +76,9 @@ typedef struct tagESP3_WORK {
     UCHAR Routine_2;                   /* 0x02 */
     UCHAR pad3;
     USHORT Unk4;                       /* 0x04 */
-    UCHAR pad6[0xA - 0x6];
-    SHORT UnkA;                        /* 0x0A */
+    UCHAR pad6[0x8 - 0x6];
+    USHORT Transx;                     /* 0x08 sprite scale x (Esp_trans_main) */
+    USHORT Transy;                     /* 0x0A sprite scale y */
     UCHAR padC;
     signed char UnkD;                  /* 0x0D */
     UCHAR padE[0x10 - 0xE];
@@ -105,7 +106,9 @@ typedef struct tagESP3_WORK {
     SHORT Unk32;                       /* 0x32 */
     SHORT Unk34;                       /* 0x34 */
     UCHAR pad36[0x38 - 0x36];
-    VECTOR Unk38;                      /* 0x38 */
+    LONG Unk38[3];                     /* 0x38 */
+    USHORT Clut;                       /* 0x44 */
+    USHORT Tpage;                      /* 0x46 */
     VECTOR Pos;                        /* 0x48 */
     UCHAR pad58[0x68 - 0x58];
     SHORT Rot[3];                      /* 0x68 rotation (Eff_sprt_trans) */
@@ -113,7 +116,7 @@ typedef struct tagESP3_WORK {
     UCHAR Anm_cnt;                     /* 0x6F index into pAnmseq */
     MATRIX M70;                        /* 0x70 local matrix (Eff_sprt_trans) */
     MATRIX Mat;                        /* 0x90 */
-    UCHAR padB0[0xB3 - 0xB0];
+    UCHAR Rgb[3];                      /* 0xB0 prim colour, UnkB3 is the prim code byte */
     UCHAR UnkB3;                       /* 0xB3 */
     SHORT UnkB4;                       /* 0xB4 */
     SHORT UnkB6;                       /* 0xB6 */
@@ -122,7 +125,8 @@ typedef struct tagESP3_WORK {
     UCHAR padBC[0xC0 - 0xBC];
     MATRIX *pMat;                      /* 0xC0 */
     struct tagESP3_SEQ *pAnmseq;       /* 0xC4 */
-    UCHAR padC8[0xD4 - 0xC8];
+    struct tagSPR_GP *pSprg;           /* 0xC8 sprite groups */
+    UCHAR padCC[0xD4 - 0xCC];
 } ESP3_WORK;
 
 /* effect animation sequence entry (8 bytes) */
