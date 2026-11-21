@@ -32,7 +32,7 @@ extern SCA_DATA D_800DEB48;            /* RE2 Tmp_Sca: temporary shape passed to
 
 ULONG func_8004B874(COL_OBJ *pObj, LONG R, ULONG Arg2);
 ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
-ULONG func_8004C960(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
+ULONG func_8004C960(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
 ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
 ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT);
 
@@ -65,13 +65,110 @@ INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004B874);
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004BB4C);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C408);
+ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    ULONG Rot;
+    LONG X;
+    LONG Z;
+    LONG Half;
+    LONG Dx;
+    LONG Dz;
+    LONG D;
+    LONG Len;
+    LONG Mx;
+    LONG Mz;
+
+    Rot = 0;
+    pW = &D_800DEB58;
+    if (R < 0) {
+        do { /* (matching: raises R's register priority) */
+            R = -R;
+        } while (0);
+        X = pW->X;
+        Z = pW->Z;
+        Rot = 1;
+    } else {
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    }
+    Half = (pT->X1 - pT->X0) >> 1;
+    Dx = X - (pT->X0 + Half);
+    Dz = Z - (pT->Z0 + Half);
+    D = Half + R;
+    Len = SquareRoot0(Dx * Dx + Dz * Dz);
+    D -= Len;
+    if (D <= 0) {
+        return 0;
+    }
+    if (Dx > 0) {
+        Dx = (Dx + 8) * D / Len;
+    } else {
+        Dx = (Dx - 8) * D / Len;
+    }
+    if (Dz > 0) {
+        Dz = (Dz + 8) * D / Len;
+    } else {
+        Dz = (Dz - 8) * D / Len;
+    }
+    if (Rot) {
+        Mx = (Dx + Dz) * 181 >> 8;
+        Mz = (Dz - Dx) * 181 >> 8;
+    } else {
+        Mx = Dx;
+        Mz = Dz;
+    }
+    pObj->Pos_x += Mx;
+    pObj->Pos_z += Mz;
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C57C);
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C6EC);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C85C);
+ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
+{
+    SCA_WORK *pW;
+    LONG X;
+    LONG Z;
+    LONG Dx;
+    LONG Dz;
+    ULONG Side;
+    ULONG Still;
+    LONG Hx;
+    LONG Hz;
+    LONG Near;
+
+    pW = &D_800DEB58;
+    X = pW->X;
+    Dx = X - pW->Old_x;
+    Side = (ULONG)Dx >> 31;
+    Z = pW->Z;
+    Dz = Z - pW->Old_z;
+    Side |= (ULONG)Dz >> 30 & 2;
+    Hx = pT->X1 + pObj->W0 - X + 1;
+    Near = pT->X0 - pObj->W0 - X - 1;
+    Dx |= Dz;
+    Still = Dx == 0;
+    if (!Still) {
+        if (!(Side & 1)) {
+            Hx = Near;
+        }
+    } else if (-Near < Hx) {
+        Hx = Near;
+    }
+    Hz = pT->Z1 + pObj->D0 - Z + 1;
+    Near = pT->Z0 - pObj->D0 - Z - 1;
+    if (!Still) {
+        if (!(Side & 2)) {
+            Hz = Near;
+        }
+    } else if (-Near < Hz) {
+        Hz = Near;
+    }
+    return func_8004CC54(pObj, Hx, Hz, pT);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C960);
 
@@ -264,7 +361,23 @@ LONG func_8004D6B0(void)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D6B8);
+/* area bits of (X, Z) against the room's two split points (RE2 Sca_get_area twice) */
+ULONG func_8004D6B8(LONG X, LONG Z)
+{
+    SCA_HEAD *pH = G.pRoom->pSca;
+    LONG Sx;
+    LONG Sz;
+    ULONG Area;
+
+    Sx = pH->Cx0;
+    Sz = pH->Cz0;
+    Area = (1 << ((ULONG)(X - Sx) >> 31)) << (((Z - Sz) & 0x80000000) >> 30);
+    do { /* (matching: keeps the second pair of loads after the first area) */
+        Sx = pH->Cx1;
+        Sz = pH->Cz1;
+    } while (0);
+    return Area | (((1 << ((ULONG)(X - Sx) >> 31)) << (((Z - Sz) & 0x80000000) >> 30)) << 4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D720);
 
@@ -508,7 +621,63 @@ LONG func_8004E750(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_ck_line);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004ED4C);
+/* Sca_ck_line-like scan of the collision object list: segment pA-pB against every
+ * object (shape test D_8009E088[Id & 0xF]); with Flg & 1 the hit is confirmed in 3D */
+LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
+{
+    SCA_WORK *pW;
+    COL_ENT *pEnt;
+    SCA_DATA *pT;
+    ULONG P0;
+    ULONG P1;
+    LONG Ret;
+
+    Ret = 0;
+    pT = (SCA_DATA *)G.pRoom->pSca;
+    pW = &D_800DEB58;
+    if (pT->X0 == 0) {
+        return Ret;
+    }
+    pT = (SCA_DATA *)D_800DCED0.Ent;
+    P0 = ((pA->vx >> 1) << 16) | ((pA->vz >> 1) & 0xFFFF);
+    P1 = ((pB->vx >> 1) << 16) | ((pB->vz >> 1) & 0xFFFF);
+    for (pEnt = (COL_ENT *)pT; ((COL_ENT *)pT)->C.All != -1 && Ret == 0; pEnt = (COL_ENT *)pT) {
+        if (pT->Id & Att) {
+            if (!(pEnt->pObj->Flg & 7)) {
+                pT = &D_800DEB48;
+                func_80034E78(pEnt->pObj, pT);
+            }
+            Ret = D_8009E088[pT->Id & 0xF](P0, P1, pT);
+            if (!(Flg & 1)) {
+                if (Ret != 0) {
+                    if (pEnt->Type < 3) {
+                        pW->pEm_hit = pEnt->pObj->pEm;
+                        pW->pEm_hit2 = NULL;
+                    } else {
+                        pW->pEm_hit2 = pEnt->pObj->pEm;
+                        pW->pEm_hit = NULL;
+                    }
+                }
+            } else if (Ret != 0) {
+                Ret = func_8004F928(pA, pB, pT);
+                if (Ret != 0) {
+                    Ret = func_8004FBD4(pA, pB, pT);
+                    if (Ret != 0) {
+                        if (pEnt->Type < 3) {
+                            pW->pEm_hit = pEnt->pObj->pEm;
+                            pW->pEm_hit2 = NULL;
+                        } else {
+                            pW->pEm_hit2 = pEnt->pObj->pEm;
+                            pW->pEm_hit = NULL;
+                        }
+                    }
+                }
+            }
+        }
+        pT = (SCA_DATA *)(pEnt + 1);
+    }
+    return Ret;
+}
 
 LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3)
 {
@@ -987,8 +1156,65 @@ test:
     if (pData != pEnd) goto loop;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_800502B8);
+/* RE2 Sca_get_dir: side of the shape the point is on (45 degree shapes are rotated first) */
+USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT)
+{
+    VECTOR Pos;
+    VECTOR *pP;
+    ULONG Dir;
+    LONG Dx;
+    LONG Dz;
+    LONG Slope;
+
+    Dir = 0;
+    pP = &Pos;
+    if (pT->Type & 0x1000) {
+        Dx = pPos->vx - pT->X0;
+        Dz = pPos->vz - pT->Z0;
+        Pos.vx = (Dx - Dz) * 181 >> 8;
+        Pos.vz = (Dx + Dz) * 181 >> 8;
+        Pos.vx += pT->X0;
+        Pos.vz += pT->Z0;
+    } else {
+        Pos.vx = pPos->vx;
+        Pos.vz = pPos->vz;
+    }
+    Slope = (pT->Z1 - pT->Z0) * (pP->vx - pT->X0) / (pT->X1 - pT->X0);
+    if (Slope < pP->vz - pT->Z0) {
+        Dir |= 2;
+        if (-Slope < pP->vz - pT->Z1) {
+            Dir |= 1;
+        }
+    } else if (-Slope > pP->vz - pT->Z1) {
+        Dir |= 1;
+    }
+    return Dir;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_800503E8);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_80050524);
+/* is the object inside the extent of the wall it hit, along the wall's axis (func_800502B8 = RE2 Sca_get_dir) */
+LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT)
+{
+    LONG Pos;
+    LONG Min;
+    LONG Max;
+
+    if (func_800502B8((VECTOR *)&pObj->Pos_x, pT) & 1) {
+        Min = pT->X0;
+        Max = pT->X1;
+        Pos = pObj->Pos_x;
+        Min += pObj->W0;
+        Max -= pObj->W0;
+    } else {
+        Min = pT->Z0;
+        Max = pT->Z1;
+        Pos = pObj->Pos_z;
+        Min += pObj->W0;
+        Max -= pObj->W0;
+    }
+    if (Pos < Min) {
+        return 0;
+    }
+    return Pos <= Max;
+}
