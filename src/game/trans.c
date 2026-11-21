@@ -290,7 +290,115 @@ typedef struct tagESP_HIT {
 extern ULONG D_80097FCC[];
 LONG func_800472EC(ESP_HIT *pHit, ULONG Arg);
 
-INCLUDE_ASM("asm/nonmatchings/game/trans", Eff_sprt_trans);
+#define gte_rtps_b() __asm__ volatile(".word 0x4A180001")
+#define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
+#define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
+#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_stsxy(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+#define gte_stsz(r0) __asm__ volatile("swc2 $19, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsz3(r0, r1, r2) __asm__ volatile("swc2 $17, 0(%0); swc2 $18, 0(%1); swc2 $19, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+
+/* sprite group entry: texture position and offset from the hot spot */
+typedef struct tagSPR_GP {
+    UCHAR U;                           /* 0x0 */
+    UCHAR V;                           /* 0x1 */
+    signed char Ofsx;                  /* 0x2 */
+    signed char Ofsy;                  /* 0x3 */
+} SPR_GP;
+
+void Esp_trans_main(POLY_FT4 *pP, ESP3_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity,
+                    ULONG pG_offset);
+void Esp_trans_3d(POLY_FT4 *pP, ESP3_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity,
+                  ULONG pG_offset);
+
+/* RE2 Eff_sprt_trans: effect works to POLY_FT4 sprites (flat, or 3D with their own matrix) */
+void Eff_sprt_trans(void)
+{
+    POLY_FT4 *pP;
+    POLY_FT4 *pP_limit;
+    ESP3_WORK *pEff;
+    ESP3_SEQ *pAseq;
+    VCUT *pCcut;
+    ULONG nSpr;
+    ULONG *pOt;
+    LONG Proj;
+    LONG D0;
+    LONG D1;
+    LONG D2;
+    ULONG Be_flg;
+    ULONG Flg;
+    MATRIX m;
+    MATRIX workm;
+    MATRIX workm2;
+    VECTOR Vec;
+    MATRIX *pWs;
+
+    Trans_pointer_set();
+    pWs = &GsWSMATRIX;
+    pEff = &D_800BA8A8[96];
+    pP = Trans.pPoly_ft4_keep;
+    D2 = G.Cbuf_id;
+    pP_limit = Trans.Prim_poly_ft4[D2] + 384;
+    Proj = G.pRoom->Cut[G.Cut_no].ViewR >> 7;
+    pCcut = G.Cccut;
+    SetRotMatrix(pWs);
+    SetTransMatrix(pWs);
+loop:
+    pEff--;
+    D2 = pEff->Pos.vx;
+    D0 = pEff->Pos.vy;
+    D1 = pEff->Pos.vz;
+    workm.t[0] = D2;
+    workm.t[1] = D0;
+    workm.t[2] = D1;
+    Be_flg = pEff->Unk24;
+    pAseq = pEff->pAnmseq + pEff->Anm_cnt;
+    nSpr = pAseq->nSpr;
+    if ((Be_flg & 0xA000) == 0xA000 && func_8001020C(workm.t, pCcut) != 0 && nSpr != 0) {
+        pOt = (ULONG *)func_80037D50((VECTOR *)workm.t);
+        D2 = 0x2C;
+        if (Be_flg & 0x1000) {
+            D2 = 0x2E;
+        }
+        D0 = pAseq->Unk3;
+        D1 = pAseq->Unk0;
+        if (Be_flg & 0x200) {
+            workm.t[0] = pEff->Unk38[0] + pEff->Unk30;
+            workm.t[1] = pEff->Unk38[1] + pEff->Unk32;
+            workm.t[2] = pEff->Unk38[2] + pEff->Unk34;
+            RotMatrix((SVECTOR *)pEff->Rot, &workm);
+            func_8002D4B0(&pEff->M70, &workm, &workm2);
+            func_8002D4B0(&GsWSMATRIX, &workm2, &m);
+            gte_SetRotMatrix(&m);
+            gte_SetTransMatrix(&m);
+            if (pP + nSpr < pP_limit) {
+                Esp_trans_3d(pP, pEff, D0, nSpr, Proj, pOt, D2, D1);
+                pP += nSpr;
+                Flg = 1;
+            } else {
+                goto kill;
+            }
+        } else {
+            if (Flg != 0) {
+                gte_SetRotMatrix(pWs);
+                gte_SetTransMatrix(pWs);
+                Flg = 0;
+            }
+            if (pP_limit <= pP + nSpr) {
+            kill:
+                pEff->Unk24 = 0;
+            } else {
+                Esp_trans_main(pP, pEff, D0, nSpr, Proj, pOt, D2, D1);
+                pP += nSpr;
+            }
+        }
+    }
+    if (pEff != D_800BA8A8) {
+        goto loop;
+    }
+    Trans.pPoly_ft4_keep = pP;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/trans", Esp_trans_main);
 

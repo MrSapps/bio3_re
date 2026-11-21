@@ -197,7 +197,18 @@ struct tagSCE_AOT {
     USHORT W;                          /* 0x08 */
     USHORT D;                          /* 0x0A */
     USHORT Data;                       /* 0x0C */
+    USHORT Data1;                      /* 0x0E water AOT: Ob_model index (0xFFFF: none) */
 };
+
+/* 4-point AOT (Type & 0x80): the area is given by four points, the data follows them */
+typedef struct tagSCE_AOT4 {
+    UCHAR Id;                          /* 0x00 */
+    UCHAR Type;                        /* 0x01 */
+    UCHAR nFloor;                      /* 0x02 */
+    UCHAR Super;                       /* 0x03 */
+    USHORT Xz[4][2];                   /* 0x04 */
+    USHORT Data;                       /* 0x14 */
+} SCE_AOT4;
 
 /* item AOT data (RE2 struct tagSCE_ITEM_DATA, SCE_AT.H) */
 typedef struct tagSCE_ITEM_DATA {
@@ -209,6 +220,13 @@ typedef struct tagSCE_ITEM_DATA {
 } SCE_ITEM_DATA;
 
 void Hikidashi_entrance(void);
+
+/* G with Ob_model typed as in RE2 (OBJ_MODEL_WORK Ob_model[32]); bio3.h keeps it as raw rows. The typed
+ * array is needed for the pG + index*0x194 operand order. */
+typedef struct {
+    UCHAR pad0[0x4328];
+    OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 */
+} G_OM_VIEW;
 
 /* door AOT (RE2 IN_DOOR_WORK; RE3 layout) */
 typedef struct tagSCE_AOT_DOOR {
@@ -273,7 +291,84 @@ ULONG Nothing(void *pAot)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_Door);
+ULONG Sce_Door(void *pAot)
+{
+    tagGLOBAL *pG;
+    SCE_AOT_DOOR *pDoor;
+    ULONG Key_type;
+    LONG Key_work;
+
+    pG = &G;
+    pDoor = (SCE_AOT_DOOR *)pAot;
+    pG->pAot_data = pCAot;
+    pG->Unk21DC = (LONG)pAot;
+    if (!(pG->Status_flg & 0x400000)) {
+        if (pDoor->Key_id & 0x80) {
+            if (pG->System_flg & 0x80) {
+                Mess_set(0, 0, 0xC, 0xFF000000);
+                return 0;
+            }
+            if (!Flg_ck(pG->Unk7994, pDoor->Key_id & 0x3F)) {
+                Key_type = pDoor->Key_type;
+                if (Key_type == 0xFE) {
+                    Snd_se_stad(0x226, 0, 0, 0);
+                    Mess_set(0, 0, 0x11, 0xFF000000);
+                    goto door_in;
+                }
+                if (Key_type == 0xFF) {
+                    Snd_se_stad(0x216, 0, 0, 0);
+                    Mess_set(0, 0, 0x12, 0xFF000000);
+                    return 0;
+                }
+                Key_work = Search_item_id(Key_type, 0);
+                if (Key_work >= 0) {
+                    Moji.Mess_item = Key_type;
+                    Mess_set(0, 0, 5, 0xFF000000);
+                    if (pDoor->UnkE == 0) {
+                        Snd_se_stad(0x225, 0, 0, 0);
+                    } else {
+                        Snd_se_stad(0x204, 0, 0, 0);
+                    }
+                    pG->Front_func = Key_lost;
+                    pG->Front_func_rtn = Key_work + 1;
+                door_in:
+                    Flg_on(pG->Unk7994, pDoor->Key_id & 0x3F);
+                    return 0;
+                }
+                if (pDoor->Mess & 0x80) {
+                    if (pDoor->UnkE == 0) {
+                        Snd_se_stad(0x216, 0, 0, 0);
+                    } else {
+                        Snd_se_stad(0x205, 0, 0, 0);
+                    }
+                    Mess_set(0, 0x2000, pDoor->Mess & 0xF, 0xFF000000);
+                    return 0;
+                }
+                if (pDoor->UnkE == 0) {
+                    Snd_se_stad(0x216, 0, 0, 0);
+                } else {
+                    Snd_se_stad(0x205, 0, 0, 0);
+                }
+                Mess_set(0, 0, Key_type - 0x5F, 0xFF000000);
+                return 0;
+            }
+        }
+        if (pDoor->Mess & 0x40) {
+            if (pDoor->UnkD == 4) {
+                Mess_set(0, 0, 0xA, 0xFF000000);
+            } else {
+                Mess_set(0, 0, 0xB, 0xFF000000);
+            }
+            pG->Front_func = func_800510B0;
+            pG->Front_func_rtn = 0;
+            return 0;
+        }
+        Game.Doordemo_flg = 1;
+        G.pSce_aot_on = pAot;
+        G.Unk2468 |= 0xFF000000;
+        return 0;
+    }
+}
 
 void Key_lost(void)
 {
@@ -518,9 +613,113 @@ ULONG func_80051684(void *pAot)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_Hikidashi);
+ULONG Sce_Hikidashi(void *pAot)
+{
+    tagGLOBAL *pG;
+    USHORT *pDat;
+    ULONG *pFlg;
 
-INCLUDE_ASM("asm/nonmatchings/game/sce_at", Hikidashi_entrance);
+    pG = &G;
+    pDat = (USHORT *)pAot;
+    if (pG->Front_func == NULL && pG->Pl_damage_cnt == 0 && !(pG->Status_flg & 0x300)
+        && pG->Next_cut_no == pG->Cut_no) {
+        if (pG->Unk783E < 2) {
+            pFlg = pG->Unk78D0;
+        } else {
+            pFlg = pG->Unk78F0;
+        }
+        if (!Flg_ck(pFlg, ((SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data)->Data2)) {
+            if (!Flg_ck(pG->Unk7994, pDat[0])) {
+                if (Search_item_id(0x72, 0) >= 0) {
+                    pG->Front_func_rtn = 1;
+                    pG->Unk21DC = (LONG)pAot;
+                    pG->pAot_data = pCAot;
+                    pG->Front_func = Hikidashi_entrance;
+                } else {
+                    Mess_set(0, 0x2000, pDat[2] >> 8, 0xFF000000);
+                }
+            } else {
+                pG->Unk21DC = (LONG)pAot;
+                pG->pAot_data = pCAot;
+                Snd_se_stad(0x228, 0, 0, 0);
+                ((G_OM_VIEW *)pG)->Ob_model[((SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data)->Om_no].Be_flg |= 0x41;
+                Cut_change(((UCHAR *)pDat)[4]);
+                Game.Stop_bak = pG->Unk2468;
+                G.Unk2468 |= 0xFF000000;
+                G.Status_flg |= 0x100;
+                pG->Cccut_next->Xz[0][0] = -0x7FBC;
+                pG->Cccut_next->Xz[1][0] = -0x7FBC;
+                pG->Cccut_next->Xz[2][0] = -0x7F58;
+                pG->Cccut_next->Xz[3][0] = -0x7F58;
+                pG->Cccut_next->Xz[0][1] = -0x7FBC;
+                pG->Cccut_next->Xz[1][1] = -0x7F58;
+                pG->Cccut_next->Xz[2][1] = -0x7F58;
+                pG->Cccut_next->Xz[3][1] = -0x7FBC;
+                pG->Front_func_rtn = 0x23;
+                pG->Front_func = Hikidashi_entrance;
+            }
+        } else {
+            Mess_set(0, 0, 4, 0xFF000000);
+        }
+    }
+    return 0;
+}
+
+void Hikidashi_entrance(void)
+{
+    tagGLOBAL *pG;
+    USHORT *pDat;
+
+    pG = &G;
+    pDat = (USHORT *)pG->Unk21DC;
+    switch (pG->Front_func_rtn) {
+    case 0:
+        break;
+    case 1:
+        Moji.Mess_item = 0x72;
+        Mess_set(0, 0x2000, (pDat[2] >> 8) + 1, 0xFF000000);
+        pG->Front_func_rtn = 2;
+        break;
+    case 2:
+        if (Moji.Mess_flg & 0x80) {
+            break;
+        }
+        if (!(pG->Unk7848 & 1)) {
+            Flg_on(pG->Unk7994, pDat[0]);
+            Moji.Mess_item = 0x72;
+            Mess_set(0, 0, 5, 0xFF000000);
+        }
+        pG->Front_func = NULL;
+        pG->Front_func_rtn = 0;
+        break;
+    case 4:
+        if (G.Status_flg & 0x200) {
+            break;
+        }
+        G.Status_flg &= ~0x80;
+        ((G_OM_VIEW *)pG)->Ob_model[Hiki_pItem_dat->Om_no].Be_flg &= ~0x41;
+        pG->Front_func = NULL;
+        pG->Front_func_rtn = 0;
+        break;
+    case 5:
+        Hiki_pAot = pG->pAot_data;
+        Hiki_pItem_dat = (SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data;
+        pG->pAot_data = pG->Sce_aot[pDat[1]];
+        pG->Unk21DC = (LONG)&pG->Sce_aot[pDat[1]]->Data;
+        St.St_type = 1;
+        G.Status_flg = (G.Status_flg & ~0x100) | 0x200;
+        Game.Unk1 = 1;
+        Cut_change(pG->Room_no_old);
+        pG->Cut_no = pG->Room_no_old;
+        St.Unk6 = 1;
+        G.Status_flg |= 0x80;
+        pG->Front_func_rtn--;
+        break;
+    default:
+        pG->Front_func_rtn--;
+        break;
+    }
+}
 
 /* RE2 Sce_Damage */
 ULONG Sce_Damage(void *pAot)

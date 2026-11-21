@@ -95,7 +95,7 @@ typedef struct tagESP3_WORK {
     USHORT Unk22;                      /* 0x22 */
     USHORT Unk24;                      /* 0x24 */
     USHORT Unk26;                      /* 0x26 */
-    UCHAR pad28;
+    UCHAR Unk28;                       /* 0x28 */
     UCHAR Unk29;                       /* 0x29 */
     UCHAR pad2A;
     UCHAR Unk2B;                       /* 0x2B */
@@ -119,7 +119,7 @@ typedef struct tagESP3_WORK {
     SHORT UnkB6;                       /* 0xB6 */
     SHORT UnkB8;                       /* 0xB8 */
     SHORT UnkBA;                       /* 0xBA */
-    UCHAR padBC[0xC0 - 0xBC];
+    ENEMY_WORK *pEm;                   /* 0xBC enemy the effect belongs to (func_80020EB8) */
     MATRIX *pMat;                      /* 0xC0 */
     struct tagESP3_SEQ *pAnmseq;       /* 0xC4 */
     UCHAR padC8[0xD4 - 0xC8];
@@ -499,8 +499,6 @@ void func_80020DBC(ESP3_WORK *pEsp)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/esp_r", func_80020EB8);
-
 typedef struct tagESP_HIT {
     VECTOR *pPos;                      /* 0x0 */
     SHORT Unk4[3];                     /* 0x4 */
@@ -509,6 +507,148 @@ typedef struct tagESP_HIT {
 } ESP_HIT;
 extern ULONG D_80097FCC[];
 LONG func_800472EC(ESP_HIT *pHit, ULONG Arg);
+
+/* hit box test around a point (pl_wep.c func_800445C8) */
+typedef struct tagHIT_AREA {
+    VECTOR *pPos;                      /* 0x00 */
+    SHORT *pBox;                       /* 0x04 x, z, w, d */
+    USHORT Dir;                        /* 0x08 */
+    UCHAR Id;                          /* 0x0A */
+} HIT_AREA;
+LONG func_800445C8(VECTOR *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
+extern SHORT D_80098074[];
+extern SHORT D_8009807C[];
+extern ENEMY_WORK Pl_work;
+LONG Dir_ck_l(LONG Dir0, LONG Dir1) __asm__("Dir_ck"); /* Dir_ck with its result used as int */
+
+/* effect hitting the player or the sub player (ESP_HIT / HIT_AREA tests) */
+void func_80020EB8(ESP3_WORK *pEsp)
+{
+    ESP_HIT Hit;
+    VECTOR Ofs;
+    SVECTOR Dir;
+    HIT_AREA Area;
+    LONG Hit_flg;
+    USHORT Rot;
+    LONG y;
+    LONG d;
+
+    Hit_flg = 0;
+    if (pEsp->Routine_1 == 0) {
+        switch (pEsp->Unk22) {
+        case 2:
+            pEsp->UnkB8 = pEsp->Unk2C;
+            pEsp->Unk2C = 0;
+            pEsp->Unk26 |= 0x100;
+            break;
+        case 4:
+            pEsp->Unk22 = 3;
+            pEsp->Unk26 |= 0x100;
+            break;
+        }
+        func_8001CE24(pEsp, pEsp->Unk1A, pEsp->Unk1B);
+        pEsp->Routine_1++;
+    }
+    if (pEsp->Unk22 == 2) {
+        Rot = pEsp->UnkB8;
+    } else {
+        Rot = pEsp->Unk2C;
+    }
+    if (pEsp->UnkB4 >= 3 && (pEsp->Unk26 & 0x100)) {
+        Hit.pPos = &pEsp->Pos;
+        Hit.Unk4[0] = 0;
+        Hit.Unk4[1] = 0;
+        Hit.Unk4[2] = 0;
+        Hit.Unk0C = Rot;
+        Hit_flg |= func_800472EC(&Hit, D_80097FCC[pEsp->Unk18]);
+        if (Hit_flg != 0 && pEsp->Unk22 == 1) {
+            G.Pl_status_flg |= 0x200;
+        }
+    } else {
+        pEsp->UnkB4++;
+    }
+    if (Hit_flg != 0) {
+        if (Hit_flg < 0) {
+            d = Dir_ck_l((SHORT)Rot, G.Pl_cdir_y);
+            if (G.Pl_routine_0 == 2) {
+                G.Pl_routine_1 = ((UCHAR *)D_80097FCC[pEsp->Unk18])[1] * 2 - 0x28 + d;
+            }
+        }
+        if (Hit_flg & 0x40000000) {
+            d = Dir_ck_l((SHORT)Rot, G.pUnk2660->Cdir_y);
+            if (G.pUnk2660->Routine_0 == 2) {
+                G.pUnk2660->Routine_1 = ((UCHAR *)D_80097FCC[pEsp->Unk18])[1] * 2 - 0x28 + d;
+            }
+        }
+    }
+    if (pEsp->Unk22 == 2) {
+        if (pEsp->UnkB4 >= 3) {
+            y = func_8004D720(&pEsp->Pos, 2, 0x2000, 4);
+            if (y < pEsp->Pos.vy) {
+                if (y < pEsp->Pos.pad) {
+                    pEsp->Unk26 |= 0x20;
+                } else {
+                    pEsp->Unk26 |= 0x10;
+                }
+            } else {
+                pEsp->Pos.pad = y;
+            }
+        }
+        Ofs.vx = (signed char)D_80098728[func_800102E8()] >> 1;
+        Ofs.vy = 0;
+        Ofs.vz = (signed char)D_80098728[func_800102E8()] >> 1;
+        func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (USHORT)(pEsp->Unk28 | 0x500),
+                      (pEsp->Unk2E + (signed char)func_800102E8()) << 16, &pEsp->Mat, &Ofs, 0);
+        Area.pPos = &pEsp->Pos;
+        Area.pBox = D_80098074;
+        Area.Dir = Rot;
+        Area.Id = 0x42;
+        func_800445C8(&pEsp->Pos, &pEsp->pEm->Pos_x, &Area, &Pl_work);
+        Area.pPos = &pEsp->Pos;
+        Area.pBox = D_8009807C;
+        Area.Dir = Rot;
+        Area.Id = 0x41;
+        func_800445C8(&pEsp->Pos, &pEsp->pEm->Pos_x, &Area, &Pl_work);
+    } else {
+        if (pEsp->Unk26 & 4) {
+            pEsp->UnkBA = 1;
+        }
+        if (pEsp->UnkBA == 0) {
+            pEsp->Unk2E += ((SHORT)pEsp->Unk1C * (SHORT)pEsp->Unk2E) >> 12;
+            pEsp->Unk1C -= pEsp->Unk1E;
+        }
+    }
+    if ((pEsp->Unk26 & 0x30) || Hit_flg != 0) {
+        switch (pEsp->Unk22) {
+        case 2:
+            func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (USHORT)(pEsp->Unk28 | 0x600), (pEsp->Unk2E << 16) | Rot,
+                          &GsIDMATRIX, &pEsp->Pos, 0);
+        case 3:
+            func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (USHORT)(pEsp->Unk28 | 0x1100), (pEsp->Unk2E << 16) | Rot,
+                          &GsIDMATRIX, &pEsp->Pos, 0);
+            if (pEsp->Unk26 & 0x10) {
+                Dir.vx = 0x400;
+                Dir.vy = 0;
+                Dir.vz = 0;
+                if ((pEsp->Unk26 & 0x100) && (func_800102E8() & 3) == 0) {
+                    func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | ((func_800102E8() & 1) << 8) | 0x3E,
+                                  (((pEsp->Unk2E >> 2) + ((signed char)func_800102E8() << 2)) << 16) | Rot,
+                                  &GsIDMATRIX, &pEsp->Pos, &Dir);
+                } else {
+                    func_8001B35C(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (((func_800102E8() & 1) + 2) << 8) | 0x3E,
+                                  (((pEsp->Unk2E >> 2) + ((signed char)func_800102E8() << 2)) << 16) | Rot,
+                                  &GsIDMATRIX, &pEsp->Pos, &Dir);
+                }
+            }
+            break;
+        }
+        Snd_se_enem(pEsp->pEm->Id == 0x28 ? 0xC : pEsp->Unk19, pEsp->pEm);
+        func_8001B35C(pEsp, ((pEsp->Unk20 & 0xFF) << 8) | (pEsp->Unk20 >> 8), (pEsp->Unk2E << 16) | Rot, &GsIDMATRIX,
+                      &pEsp->Pos, 0);
+        pEsp->Unk24 = 0;
+    }
+}
 
 void func_80021548(ESP3_WORK *pEsp)
 {

@@ -14,6 +14,9 @@ python3 -m venv .venv && .venv/bin/pip install "splat64[mips]" pycdlib pycparser
 (mkdir -p tools/deb && cd tools/deb && apt-get download binutils-mipsel-linux-gnu && dpkg-deb -x *.deb ../binutils)
 # 4. decomp tools (local copies, gitignored): old-gcc PSX builds, maspsx, m2c, asm-differ
 cp -r ../../UnfilteredSyphon/tools/compilers ../../UnfilteredSyphon/tools/{maspsx,m2c,asm-differ} tools/
+# maspsx fix: a split load `lw $x,%lo(sym)($y)` was treated as an $at macro (no load-delay nop)
+(cd tools/maspsx && patch -p1 < ../maspsx-lo-load.patch)
+# WARNING.BIN's own objects need decompals old-gcc gcc-2.7.2-cdk (release 0.14) in tools/compilers/gcc-2.7.2-cdk
 # 5. split + build + verify
 make split && make
 ```

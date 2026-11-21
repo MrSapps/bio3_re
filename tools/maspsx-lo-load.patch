@@ -1,0 +1,13 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -187,6 +187,10 @@
+ def uses_at(line: str) -> bool:
+     line = strip_comments(line)
+ 
++    # lw	$3,%lo(sym)($6): an already split load, it does not use $at
++    if re.match(r"^l[a-z]+\s+(\$[a-z0-9]+),\s*%lo\(", line):
++        return False
++
+     # sw	$2,%lo(s_attr)($3)
+     if match := re.match(
+         r"^s(?:[wbh]|w[lr])\s+(\$[a-z0-9]+),\s*%lo\(([^(]+)\)\(([^)]+)\)", line
