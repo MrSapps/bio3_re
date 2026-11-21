@@ -82,7 +82,30 @@ extern SHORT *D_800DEB0C;               /* per-sprite OT z */
 extern UCHAR *D_800DEB08;               /* per-sprite group id (Cut_flg bit) */
 extern PSP_PRIM *D_800DEB10;            /* two prims per sprite (double buffer) */
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048630);
+void func_80048630(void)
+{
+    tagGLOBAL *pG;
+    UCHAR *p;
+    ULONG n;
+    PSP_PRIM *pPrim;
+    PSP_PRIM *pP;
+
+    pG = &G;
+    n = pG->pRoom->nSprite_max;
+    p = (UCHAR *)pG->pEm_mem;
+    D_800DEB0C = (USHORT *)p;
+    p += n * 2;
+    D_800DEB08 = p;
+    D_800DEB10 = pPrim = (PSP_PRIM *)(((ULONG)(p + n) + 3) & ~3);
+    n *= 2;
+    pG->pEm_mem = (struct tagENEMY_WORK *)(pPrim + n);
+    pP = pPrim;
+    while (n--) {
+        pP->Tpage = 0xE1000095;
+        pP->Code = 0x64808080;
+        pP++;
+    }
+}
 
 extern LONG D_800D204C[];
 
@@ -269,7 +292,62 @@ INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048A3C);
 
 INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048E34);
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048FF4);
+void func_80048FF4(void)
+{
+    LONG *pP;
+    LONG *pR;
+    ULONG d;
+    LONG R;
+    LONG dx;
+    LONG dz;
+    LONG cx;
+    LONG cz;
+    LONG y;
+    ULONG i;
+    LONG r;
+    UCHAR *pFlg;
+    PSP_POS *pV;
+
+    pP = G.pRoom->pRcut[G.Cut_no].View_p;
+    pR = G.pRoom->pRcut[G.Cut_no].View_r;
+    dx = pR[0] - pP[0];
+    dz = pR[2] - pP[2];
+    D_800DEB18.Cx = (pP[0] + pR[0]) >> 1;
+    D_800DEB18.Cz = (pP[2] + pR[2]) >> 1;
+    d = SquareRoot0(dx * dx + dz * dz);
+    if (d >= 9000) {
+        if (d < 19801) {
+            R = d;
+        } else {
+            R = 19800;
+        }
+    } else {
+        R = 9000;
+    }
+    do {
+        i = 0;
+    } while (0); /* needed for register allocation */
+    pFlg = D_800DEB18.p0;
+    cx = D_800DEB18.Cx;
+    D_800DEB18.R = R;
+    y = G.Pl_pos_y;
+    cz = D_800DEB18.Cz;
+    func_80010150(pFlg, 100);
+    pV = D_800DEB18.pPos;
+    if (D_800DEB18.Num != 0) {
+        do {
+            *pFlg = 1;
+            r = RND();
+            pV->x = ((r + D_80098728[D_800DEB18.Unk20++]) * D_800DEB18.R >> 8) + cx;
+            pV->y = y - (UCHAR)Rnd_l() * 40;
+            r = RND();
+            pV->z = ((r + D_80098728[D_800DEB18.Unk20++]) * D_800DEB18.R >> 8) + cz;
+            pFlg++;
+            i++;
+            pV++;
+        } while (i != 100 && i < D_800DEB18.Num);
+    }
+}
 
 void func_80049218(W_DEB18 *pW)
 {

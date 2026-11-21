@@ -72,4 +72,18 @@ extern COL_WORK D_800DCED0;
 /* a character's collision object (ENEMY_WORK + 0x80) */
 #define EM_COL(pEm) ((COL_OBJ *)((UCHAR *)(pEm) + 0x80))
 
+/* C.All = High << 16 | Floor_hi << 8 | Floor_lo, both floor bytes set to Floor.
+ * The do/while wrappers are load-bearing (they change register allocation). */
+#define COL_ENT_SET_C(pEnt, High, Floor)                                                 \
+    do {                                                                                 \
+        (pEnt)->C.All = ((High) << 16) | ((((Floor) << 8) & 0xFF00) | ((Floor) & 0xFF)); \
+    } while (0)
+/* entry height = top of the object (Pos_y - H) */
+#define COL_ENT_SET_HIGH(pEnt, pObj, Y, Floor) \
+    do {                                       \
+        Y = (pObj)->Pos_y;                     \
+        Y -= (pObj)->H;                        \
+        COL_ENT_SET_C(pEnt, Y, Floor);         \
+    } while (0)
+
 #endif /* OBA_H */

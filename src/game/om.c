@@ -784,7 +784,58 @@ void func_8003783C(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", Om_trans);
+void Set_light_pos(VECTOR *pPos);
+void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC");
+void Parts_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_80035B84");
+void Om_sort_om(OBJ_MODEL_WORK *pOm, ULONG Abr) __asm__("func_8002E74C");
+extern MATRIX GsWSMATRIX;              /* 0x80098990 */
+extern MATRIX LIGHTMATRIX;             /* 0x80098950 */
+extern MATRIX COLORMATRIX;             /* 0x80098930 */
+
+
+void Om_trans(void)
+{
+    MATRIX M;
+    OBJ_MODEL_WORK *pOm;
+    ULONG Cnt;
+    ULONG nOmodel;
+    tagGLOBAL *pG;
+
+    nOmodel = G.pRoom->nOmodel;
+    if (nOmodel == 0)
+        return;
+    for (Cnt = 0; Cnt < nOmodel;) {
+        pG = &G;
+        pOm = (OBJ_MODEL_WORK *)G.Ob_model + Cnt;
+        pG->pEm = (struct tagENEMY_WORK *)pOm;
+        Cnt++;
+        if (!(pOm->Be_flg & 1))
+            continue;
+        if (pOm->Be_flg & 0x10)
+            continue;
+        RotMatrix(&pOm->Cdir, &pOm->M);
+        func_8002D4B0(pOm->pSuper, &pOm->M, &pOm->Workm);
+        Set_light_pos((VECTOR *)pOm->Workm.t);
+        SetColorMatrix(&COLORMATRIX);
+        if (pOm->Unk4A == 2)
+            pOm->Workm.t[1] -= 900;
+        if (pOm->Unk4A == 1) {
+            MulMatrix0(&LIGHTMATRIX, &pOm->Workm, &M);
+            SetLightMatrix(&M);
+            func_8002D4B0(&GsWSMATRIX, &pOm->Workm, &M);
+            SetRotMatrix(&M);
+            SetTransMatrix(&M);
+            Om_sort_om(pOm, 1);
+        } else {
+            Joint_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
+            Parts_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
+            pOm->Be_flg &= 0xF0FFFFFF;
+        }
+        pOm->Old_x = pOm->M.t[0];
+        pOm->Old_y = pOm->M.t[1];
+        pOm->Old_z = pOm->M.t[2];
+    }
+}
 
 typedef struct {
     OBJ_MODEL_WORK Om[32];

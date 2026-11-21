@@ -184,6 +184,12 @@ extern ULONG *D_8009E418;              /* Flg_addr[8] */
 void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Cut_chg_main(ULONG Cut);
 
+/* G seen with its object model array typed (bio3.h keeps G.Ob_model as raw bytes) */
+typedef struct {
+    UCHAR pad[0x4328];
+    OBJ_MODEL_WORK Om[32];             /* 0x4328 G.Ob_model */
+} G_OM;
+
 /* declarations from earlier parts of the original address-split file */
 extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
 extern SHORT D_800DEC9E;               /* RE2 Item_box_entrance static Spd_add */
@@ -921,9 +927,158 @@ ULONG func_800574B8(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Item_aot_set);
+/* SCE opcode Item_aot_set (RE2 struct Item_aot_set; iItem is a byte here) */
+typedef struct {
+    UCHAR Opcode;                      /* 0x00 */
+    UCHAR Aot;                         /* 0x01 G.Sce_aot index */
+    UCHAR Id;                          /* 0x02 SCE_AOT starts here */
+    UCHAR Type;                        /* 0x03 */
+    UCHAR nFloor;                      /* 0x04 */
+    UCHAR Super;                       /* 0x05 */
+    SHORT X;                           /* 0x06 */
+    SHORT Z;                           /* 0x08 */
+    USHORT W;                          /* 0x0A */
+    USHORT D;                          /* 0x0C */
+    UCHAR iItem;                       /* 0x0E */
+    UCHAR padF;
+    USHORT nItem;                      /* 0x10 */
+    USHORT Item_flg;                   /* 0x12 */
+    UCHAR Om_no;                       /* 0x14 */
+    UCHAR Action;                      /* 0x15 */
+} SCE_ITEM_AOT_SET;
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Item_aot_set_4p);
+/* The two do/while(0) wrappers are needed for register allocation. */
+ULONG Item_aot_set(SCE_TASK *pSce)
+{
+    LONG Unused[2];
+    SCE_ITEM_AOT_SET *pData;
+    ULONG Flg_bit;
+    ULONG Om_no;
+    UCHAR Aot;
+    ULONG *pFlg;
+    UCHAR Item;
+    tagGLOBAL *pG;
+
+    pData = (SCE_ITEM_AOT_SET *)pSce->Data;
+    Flg_bit = pData->Item_flg;
+    do {
+        Om_no = pData->Om_no;
+    } while (0);
+    pSce->Data = (UCHAR *)(pData + 1);
+    pG = &G;
+    Aot = pData->Aot;
+    if (pG->Sce_aot[Aot] == NULL) {
+        pG->nSce_aot++;
+    }
+    pG->Sce_aot[Aot] = (struct tagSCE_AOT *)&pData->Id;
+    if (pG->Unk783E >= 2 && !(pG->System_flg & 0x80)) {
+        pFlg = D_8009E418;
+    } else {
+        pFlg = D_8009E414;
+    }
+    if (G.System_flg & 0x100) {
+        Item = pData->iItem;
+        if (Item == 0x81) {
+            do {
+                Flg_on(pFlg, Flg_bit);
+            } while (0);
+        }
+        if ((ULONG)(Item - 0x15) < 0xB) {
+            pData->nItem <<= 1;
+        }
+    }
+    if (Flg_ck(pFlg, Flg_bit)) {
+        *(UCHAR *)pG->Sce_aot[Aot] = 0;
+        if (Om_no < 0x20) {
+            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
+            ((G_OM *)pG)->Om[Om_no].UnkC3 = 0;
+        }
+    } else if (Om_no < 0x20) {
+        Aot = pData->Action;
+        ((G_OM *)pG)->Om[Om_no].UnkC3 = Aot;
+        if (Aot & 2) {
+            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
+        }
+    }
+    return 1;
+}
+
+/* SCE opcode Item_aot_set_4p (RE2 struct Item_aot_set_4p; iItem/nItem are bytes here) */
+typedef struct {
+    UCHAR Opcode;                      /* 0x00 */
+    UCHAR Aot;                         /* 0x01 G.Sce_aot index */
+    UCHAR Id;                          /* 0x02 SCE_AOT starts here */
+    UCHAR Type;                        /* 0x03 */
+    UCHAR nFloor;                      /* 0x04 */
+    UCHAR Super;                       /* 0x05 */
+    SHORT Xz[4][2];                    /* 0x06 */
+    UCHAR iItem;                       /* 0x16 */
+    UCHAR pad17;
+    UCHAR nItem;                       /* 0x18 */
+    UCHAR pad19;
+    USHORT Item_flg;                   /* 0x1A */
+    UCHAR Om_no;                       /* 0x1C */
+    UCHAR Action;                      /* 0x1D */
+} SCE_ITEM_AOT_SET_4P;
+
+/* The do/while(0) wrappers are needed for register allocation (loop-depth weighting). */
+ULONG Item_aot_set_4p(SCE_TASK *pSce)
+{
+    LONG Unused[2];
+    SCE_ITEM_AOT_SET_4P *pData;
+    ULONG Flg_bit;
+    ULONG Om_no;
+    UCHAR Aot;
+    ULONG *pFlg;
+    UCHAR Item;
+    tagGLOBAL *pG;
+
+    pData = (SCE_ITEM_AOT_SET_4P *)pSce->Data;
+    do {
+        pData->Type |= 0x80;
+        Flg_bit = pData->Item_flg;
+        Om_no = pData->Om_no;
+    } while (0);
+    pSce->Data = (UCHAR *)(pData + 1);
+    pG = &G;
+    Aot = pData->Aot;
+    if (pG->Sce_aot[Aot] == NULL) {
+        pG->nSce_aot++;
+    }
+    pG->Sce_aot[Aot] = (struct tagSCE_AOT *)&pData->Id;
+    if (pG->Unk783E >= 2 && !(pG->System_flg & 0x80)) {
+        pFlg = D_8009E418;
+    } else {
+        pFlg = D_8009E414;
+    }
+    if (G.System_flg & 0x100) {
+        Item = pData->iItem;
+        if (Item == 0x81) {
+            do {
+                Flg_on(pFlg, Flg_bit);
+            } while (0);
+        }
+        if ((ULONG)(Item - 0x15) < 0xB) {
+            pData->nItem <<= 1;
+        }
+    }
+    if (Flg_ck(pFlg, Flg_bit)) {
+        do {
+        *(UCHAR *)pG->Sce_aot[Aot] = 0;
+        } while (0);
+        if (Om_no < 0x20) {
+            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
+            ((G_OM *)pG)->Om[Om_no].UnkC3 = 0;
+        }
+    } else if (Om_no < 0x20) {
+        Aot = pData->Action;
+        ((G_OM *)pG)->Om[Om_no].UnkC3 = Aot;
+        if (Aot & 2) {
+            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
+        }
+    }
+    return 1;
+}
 
 /* RE2 Kage_set */
 ULONG Kage_set(SCE_TASK *pSce)

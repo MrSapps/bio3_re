@@ -135,7 +135,38 @@ LONG func_800336B4(ENEMY_WORK *pEm)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_800336F0);
+void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt)
+{
+    COL_OBJ *p;
+    ENEMY_WORK *pEm;
+    ULONG Be;
+    LONG n;
+    LONG Pass;
+
+    n = 0;
+    for (Pass = -1; Pass != 1; Pass++) {
+        for (p = D_800DCED0.pTop; p != NULL; p = p->pNext) {
+            pEm = p->pEm;
+            if (p->Id != 0) {
+                Be = pEm->Be_flg;
+                if ((Be & 0x11) == 1 && (Be & 0x6000) != 0x6000) {
+                    goto add;
+                }
+            }
+            if (!(p->Id & 0x80)) {
+                continue;
+            }
+        add:
+            if (Pass < 0 && p->Type < 3) {
+                continue;
+            }
+            do {
+                D_800DCDD0[n++] = p;
+            } while (0); /* needed for register allocation */
+        }
+    }
+    D_800DCDD0[n] = NULL;
+}
 
 void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
 {
@@ -235,7 +266,18 @@ void func_80033B88(COL_OBJ *pTop)
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80033CF4);
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80033F38);
+void func_80033F38(COL_OBJ *pObj, COL_ENT *pEnt, LONG n)
+{
+    SVECTOR Unused[3];
+    LONG y;
+
+    pEnt->Type = pObj->Type;
+    pEnt->Id = 0x8008;
+    pEnt->pObj = pObj;
+    pEnt->Area = 0xF00;
+    func_80034284(pObj, pEnt);
+    COL_ENT_SET_HIGH(pEnt, pObj, y, n);
+}
 
 void func_80033FBC(COL_OBJ *pTop)
 {
