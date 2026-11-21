@@ -117,7 +117,49 @@ void func_80100688(ENEMY_WORK *pEm)
     pEm->Damage_cnt &= 0x7F;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em27/em27", func_801006E8);
+/* mv[0]: crawl in short bursts towards the player or a random point */
+void func_801006E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x70000;
+        pEm->Spd_x = 300;
+        pEm->Timer0 = 0;
+        pEm->Damage_cnt |= 0x80;
+        pEm->Routine_2++;
+        if (Rnd() & 3) {
+            pEm->Dest_x = pPl->Pos_x;
+            pEm->Dest_z = pPl->Pos_z;
+        } else {
+            pEm->Dest_x = pEm->Pos_x + (Rnd() - 0x7F) * 2;
+            pEm->Dest_z = pEm->Pos_z + (Rnd() - 0x7F) * 2;
+        }
+    case 1:
+        pEm->Routine_2 += Joint_move(pEm, Kan, Seq, 0x200);
+        pEm->Spd_z = 0;
+        pEm->Spd_x -= 4;
+        Add_speedXZ(pEm, 0);
+        break;
+    case 2:
+        pEm->Damage_cnt &= 0x7F;
+        if (++pEm->Timer0 >= 9) {
+            pEm->Timer0 = 0;
+            pEm->Spd_x = 300;
+            pEm->Routine_2--;
+            if (Rnd() & 3) {
+                pEm->Dest_x = pPl->Pos_x;
+                pEm->Dest_z = pPl->Pos_z;
+            } else {
+                pEm->Dest_x = pEm->Pos_x + (Rnd() - 0x7F) * 2;
+                pEm->Dest_z = pEm->Pos_z + (Rnd() - 0x7F) * 2;
+            }
+        }
+        break;
+    }
+    Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (Rnd() & 0xF) | 0x20);
+}
 
 /* mv_br[1]: wander; leap at a near player (Routine_1 2); shaken off by a step move */
 void func_801008EC(ENEMY_WORK *pEm)

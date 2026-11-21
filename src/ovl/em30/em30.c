@@ -17,7 +17,8 @@ void func_80104920(ENEMY_WORK *pEm);
 ENEMY_WORK *func_80104E58(ENEMY_WORK *pEm);
 void func_80100B34(ENEMY_WORK *pSub, LONG No, ENEMY_WORK *pEm, LONG Parts_no);
 void Em30_Pldie(ENEMY_WORK *pPl) __asm__("func_80108A28");
-void func_80104F20(ENEMY_WORK *pEm);
+LONG func_80104F20(ENEMY_WORK *pEm);
+LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54");
 void func_8010682C(ENEMY_WORK *pEm);
 void func_80106130(ENEMY_WORK *pEm);
 void func_80102250(ENEMY_WORK *pEm, LONG No, LONG Big);
@@ -137,7 +138,141 @@ void func_801000AC(ENEMY_WORK *pEm)
     func_80106130(pEm);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em30/em30", func_80100544);
+/* RE2 Em30_Init: the body, its seven collision sub-works and their shadows */
+void func_80100544(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    COL_OBJ *pCol;
+    PARTS_W *pP;
+    ENEMY_WORK *pSub;
+    PARTS_W *pBody;
+    UCHAR i;
+
+    EM_RTN(pEm) = 1;
+    EM30_W(pEm)->Unk13 = 0;
+    pBody = pEm->pSin_parts_ptr;
+    EM30_W(pEm)->Unk0F = 10;
+    EM30_W(pEm)->Unk13 = 1;
+    pEm->Unk16B = 0;
+    pEm->Unk16A = 0;
+    pEm->Damage_cnt = 0;
+    EM30_W(pEm)->Unk00 = 0;
+    EM30_W(pEm)->Unk01 = 0;
+    EM30_W(pEm)->Unk02 = 0;
+    EM30_W(pEm)->Unk03 = 0;
+    EM30_W(pEm)->Unk0A = 0;
+    EM30_W(pEm)->Unk0B = 0;
+    EM30_W(pEm)->Unk10 = 0;
+    EM30_W(pEm)->Unk19 = 0;
+    EM30_W(pEm)->Unk0C = 0;
+    EM30_W(pEm)->Unk11 = 0;
+    EM30_W(pEm)->Unk12 = 0;
+    EM30_W(pEm)->Unk24 = 0;
+    EM30_W(pEm)->Unk0F = 0;
+    EM30_W(pEm)->Unk14 = 0x210;
+    EM30_W(pEm)->Unk16 = 0;
+    EM30_W(pEm)->Unk28 = 0;
+    Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0x5140514, 0, (VECTOR *)pBody->Workm.t);
+    pEm->Be_flg |= 0x9000;
+    pEm->Status_flg |= 0x100;
+    pCol = EM_COL(pEm);
+    pCol->W0 = pCol->D0 = 1100;
+    pCol->Unk24 = 400;
+    pCol->pEm = pEm;
+    pCol->H = 800;
+    pCol->Unk28 = 0;
+    pCol->Unk26 = 0;
+    pCol->Flg = 0;
+    pCol->Type = 2;
+    func_80033580(pCol, 0);
+    pEm->Unk134 = 1800;
+    pEm->Unk136 = -1200;
+    pEm->Unk138 = 0x78;
+    pEm->Unk139 = 0xB4;
+    pEm->Unk13A = 1000;
+    pEm->Neck_no = 8;
+    pEm->Unk140 = 0;
+    pEm->Unk120 = 0;
+    EM30_W(pEm)->Unk0E = pEm->Col_id |= 0x80;
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pP = &pEm->pSin_parts_ptr[8];
+    PW_FREE(pP)[2] = 0x40;
+    PW_FREE(pP)[0] = 0;
+    PW_FREE(pP)[1] = 0;
+    PW_FREE(pP)[3] = 0;
+    PW_FREE(pP)[4] = 0x300;
+    PW_FREE(pP)[5] = 0;
+    pEm->Be_flg |= 0xC00000;
+    if (G.System_flg & 0x100) {
+        pEm->Life = 600;
+        pEm->Max_life = 600;
+        EM30_W(pEm)->Unk26 = 600;
+    } else {
+        pEm->Life = 800;
+        pEm->Max_life = 800;
+        EM30_W(pEm)->Unk26 = 800;
+    }
+    pEm->Max_life += 100;
+    pEm->Life += 100;
+    if (Flg_ck(G.Unk7890, 0xDC))
+    {
+        pEm->Life *= 3;
+        pEm->Life /= 4;
+    }
+    EM_MOVE(pEm) = 0;
+    Joint_move(pEm, Kan, Seq, 0x400);
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 1, pEm, 8);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 2, pEm, 1);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[1].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 3, pEm, 2);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[2].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 4, pEm, 3);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 5, pEm, 4);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 6, pEm, 5);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[5].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    pSub = func_80104E58(pEm);
+    pSub->Be_flg |= 0xC00010;
+    func_80100B34(pSub, 7, pEm, 6);
+    Kage_work_set((ULONG *)&pSub->pKage_work, 0, 0x3E803E8, 0, (VECTOR *)pEm->pSin_parts_ptr[6].Workm.t);
+    pSub->pKage_work->Be_flg |= 0x80;
+    G.pPldie_Em[pEm->Id - 0x10] = Em30_Pldie;
+    i = 0;
+    do {
+        pP = pEm->pSin_parts_ptr + i;
+        pP->Be_flg |= 0x20;
+    } while (++i < 17);
+    EM30_W(pEm)->Unk20 = 0;
+    EM30_W(pEm)->Unk22 = 0;
+    pEm->Add_dir = 0;
+    i = 0;
+    do {
+        pP = pEm->pSin_parts_ptr + i;
+        pP->UnkA2 &= ~1;
+    } while (++i < 18);
+    EM_MOVE(pEm) = 5;
+    pEm->Pos_y += 0x1518;
+    G.Unk75EA = 0;
+}
 
 /* a collision sub-work No following part Parts_no of the body pEm */
 void func_80100B34(ENEMY_WORK *pSub, LONG No, ENEMY_WORK *pEm, LONG Parts_no)
@@ -1625,7 +1760,85 @@ ENEMY_WORK *func_80104E58(ENEMY_WORK *pEm)
     return pG->pEm_tbl[n];
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em30/em30", func_80104F20);
+/* morph the body (keys 0..2 of parts 1..3) in a cycle, faster with the speed.
+   Returns the last sabun call's value (only one path returns): that explicit v0 use is what
+   makes reload put the /50 mfhi in a3. */
+LONG func_80104F20(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP = &pEm->pSin_parts_ptr[1];
+    LONG Step;
+
+    if (EM_RTN01(pEm) != 0x301 || pEm->Routine_2 == 2) {
+        Step = EM30_W(pEm)->Unk14 * pEm->Spd_x / 50;
+        if (Step < 0)
+            Step = 0;
+        switch (EM30_W(pEm)->Unk01) {
+        case 0:
+            EM30_SABUN_P(&pP[0])->Key[0].Rate += Step;
+            EM30_SABUN_P(&pP[1])->Key[0].Rate += Step;
+            EM30_SABUN_P(&pP[2])->Key[0].Rate += Step;
+            if (EM30_SABUN_P(&pP[0])->Key[0].Rate > 0xC00) {
+                EM30_SABUN_P(&pP[0])->Key[0].Rate = 0xC00;
+                EM30_SABUN_P(&pP[1])->Key[0].Rate = 0xC00;
+                EM30_SABUN_P(&pP[2])->Key[0].Rate = 0xC00;
+                EM30_W(pEm)->Unk01 = 1;
+            }
+            break;
+        case 1:
+            EM30_SABUN_P(&pP[0])->Key[0].Rate -= Step;
+            EM30_SABUN_P(&pP[1])->Key[0].Rate -= Step;
+            EM30_SABUN_P(&pP[2])->Key[0].Rate -= Step;
+            if (EM30_SABUN_P(&pP[0])->Key[0].Rate < 0) {
+                EM30_SABUN_P(&pP[0])->Key[0].Rate = 0;
+                EM30_SABUN_P(&pP[1])->Key[0].Rate = 0;
+                EM30_SABUN_P(&pP[2])->Key[0].Rate = 0;
+            }
+            EM30_SABUN_P(&pP[0])->Key[1].Rate += Step;
+            EM30_SABUN_P(&pP[1])->Key[1].Rate += Step;
+            EM30_SABUN_P(&pP[2])->Key[1].Rate += Step;
+            if (EM30_SABUN_P(&pP[0])->Key[1].Rate > 0xC00) {
+                EM30_SABUN_P(&pP[0])->Key[1].Rate = 0xC00;
+                EM30_SABUN_P(&pP[1])->Key[1].Rate = 0xC00;
+                EM30_SABUN_P(&pP[2])->Key[1].Rate = 0xC00;
+                EM30_W(pEm)->Unk01 = 2;
+            }
+            break;
+        case 2:
+            EM30_SABUN_P(&pP[0])->Key[1].Rate -= Step;
+            EM30_SABUN_P(&pP[1])->Key[1].Rate -= Step;
+            EM30_SABUN_P(&pP[2])->Key[1].Rate -= Step;
+            if (EM30_SABUN_P(&pP[0])->Key[1].Rate < 0) {
+                EM30_SABUN_P(&pP[0])->Key[1].Rate = 0;
+                EM30_SABUN_P(&pP[1])->Key[1].Rate = 0;
+                EM30_SABUN_P(&pP[2])->Key[1].Rate = 0;
+            }
+            EM30_SABUN_P(&pP[0])->Key[2].Rate += Step;
+            EM30_SABUN_P(&pP[1])->Key[2].Rate += Step;
+            EM30_SABUN_P(&pP[2])->Key[2].Rate += Step;
+            if (EM30_SABUN_P(&pP[0])->Key[2].Rate > 0xC00) {
+                EM30_SABUN_P(&pP[0])->Key[2].Rate = 0xC00;
+                EM30_SABUN_P(&pP[1])->Key[2].Rate = 0xC00;
+                EM30_SABUN_P(&pP[2])->Key[2].Rate = 0xC00;
+                EM30_W(pEm)->Unk01 = 3;
+            }
+            break;
+        case 3:
+            EM30_SABUN_P(&pP[0])->Key[2].Rate -= Step;
+            EM30_SABUN_P(&pP[1])->Key[2].Rate -= Step;
+            EM30_SABUN_P(&pP[2])->Key[2].Rate -= Step;
+            if (EM30_SABUN_P(&pP[0])->Key[2].Rate < 0) {
+                EM30_SABUN_P(&pP[0])->Key[2].Rate = 0;
+                EM30_SABUN_P(&pP[1])->Key[2].Rate = 0;
+                EM30_SABUN_P(&pP[2])->Key[2].Rate = 0;
+                EM30_W(pEm)->Unk01 = 0;
+            }
+            break;
+        }
+        func_8004AC54(pEm, &pP[0]);
+        func_8004AC54(pEm, &pP[1]);
+        return func_8004AC54_l(pEm, &pP[2]);
+    }
+}
 
 /* morph key 0 of part 8 one step towards 0 (Dir != 0) or 0x1000 */
 void func_8010532C(ENEMY_WORK *pEm, LONG Step, LONG Dir)

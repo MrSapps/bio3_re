@@ -1666,7 +1666,108 @@ void Em34_side_step(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80106AC4(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", func_80106ACC);
+/* motion 16: hits the player with the partner held like a club, then may throw it */
+void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Ofs;
+    UCHAR Id_tbl[8] = { 3, 6, 3, 3, 3, 3, 7, 3 };
+    ENEMY_WORK *pPl = &Pl_work;
+    PARTS_W *pP;
+    LONG *pPos;
+    LONG Hit;
+    LONG Dir;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x1F0021;
+        pEm->Routine_2 = 1;
+        EM34_W(pEm)->Flg |= 1;
+        if (EM34_W(pEm)->pPartner) {
+            EM34_W(pEm)->pPartner->Routine_0 = 1;
+            EM34_W(pEm)->pPartner->Routine_1 = 7;
+            EM34_W(pEm)->pPartner->Routine_2 = 0;
+        }
+        pEm->Unk120 |= 3;
+        PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
+        pEm->UnkE3 = 0;
+        if (Rnd() & 1) {
+            Snd_se_enem(14, pEm);
+        } else {
+            Snd_se_enem(11, pEm);
+            pEm->UnkE3 = 1;
+        }
+    case 1:
+        if (pEm->Move_cnt < 20)
+            Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x20);
+        func_80018EC8(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+            EM_RTN(pEm) = 0x101;
+            EM34_W(pEm)->Unk00 = 15;
+            pEm->Unk120 &= ~3;
+            EM34_W(pEm)->Flg &= ~1;
+        }
+        if ((*pEm->pNow_seq & 0x800) && !pPl->Damage_cnt) {
+            Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x20);
+            Ofs.vx = 0;
+            Ofs.vy = 0;
+            Ofs.vz = 0;
+            Ofs.pad = 800;
+            pP = EM34_W(pEm)->pPartner->pSin_parts_ptr;
+            Hit = 0;
+            Hit |= func_80044420(&pP[1].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[2].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[3].Workm, &Ofs, pPl);
+            Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
+            if (Hit) {
+                pEm->Cdir_y += 0x400;
+                Hit = Cdir_ck_l(pEm, pPl);
+                pEm->Cdir_y -= 0x400;
+                pPl->Damage_cnt |= 0x80;
+                EM_RTN(pPl) = Hit << 8 | 2;
+                Dir = Direction_ck(pPl->Pos_x, pPl->Pos_z, pEm->Pos_x, pEm->Pos_z);
+                Dir += 0x400;
+                if (Hit)
+                    Dir -= 0x800;
+                Goto01(pPl, Dir, 0x200);
+                Snd_se_stad(0x1020D, (VECTOR *)&pEm->Pos_x, 0, 0);
+                Pl_life_down(20, 1);
+                Pad_vib_set0(8, 0);
+                Pad_vib_set1(8, 200, 0);
+                pEm->UnkE3 = 1;
+            }
+        }
+        if (pEm->Move_cnt == 30 && pEm->UnkE3 && Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x200)
+            && (LONG)pEm->Unk154 > 5000)
+            pEm->UnkE3 = 0;
+        if (pEm->Move_cnt == 30 && pEm->UnkE3) {
+            EM_RTN(pEm) = 0x11201;
+            EM_MOVE(pEm) = 0xF1422;
+            if (EM34_W(pEm)->pPartner) {
+                EM34_W(pEm)->pPartner->Routine_0 = 1;
+                EM34_W(pEm)->pPartner->Routine_1 = 8;
+                EM34_W(pEm)->pPartner->Routine_2 = 1;
+                EM34_W(pEm)->pPartner->Move_no++;
+                EM34_W(pEm)->pPartner->Move_cnt = 20;
+                EM34_W(pEm)->pPartner->UnkCA = 15;
+                EM34_W(pEm)->pPartner->Spd_x = 0x100;
+                EM34_W(pEm)->pPartner->Spd_y = 0x1000;
+            }
+        }
+        if (pEm->Move_cnt == 24)
+            Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Add_speedXZ(pEm, 0);
+        break;
+    }
+    if (*pEm->pNow_seq & 0x400) {
+        Em34_hit_area.pPos = pPos = &pEm->Pos_x;
+        Em34_hit_area.pBox = Em34_at_box4;
+        Em34_hit_area.Dir = pEm->Cdir_y;
+        Em34_hit_area.Id = Id_tbl[(Rnd() >> (Rnd() & 3)) & 7];
+        func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
+        Em34_hit_area.pBox = Em34_at_box5;
+        func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
+    }
+}
 
 void func_80106F94(void) {
 }

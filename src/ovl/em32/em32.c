@@ -1337,7 +1337,97 @@ void func_8010388C(ENEMY_WORK *pPl, ULONG Kan, ULONG Seq)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em32/em32", func_80103930);
+/* pldm[0]: the player shakes off the em32 on the back (or it bites).
+   The motion is picked per side (Routine_3) with the same values for both sides; the
+   cross-jumped if/else is what keeps those stores ahead of the following code. */
+void func_80103930(ENEMY_WORK *pPl, ULONG Kan, ULONG Seq)
+{
+    ENEMY_WORK *pEm = pPl->pEnemy_ptr;
+    SHORT Dir = (pPl->Routine_3 == 0) << 11;
+    SHORT Old_x;
+    SHORT Old_z;
+
+    switch (pPl->Routine_2) {
+    case 0:
+        if (pPl->Routine_3)
+            EM_MOVE(pPl) = 0x30000;
+        else
+            EM_MOVE(pPl) = 0x30000;
+        func_8002646C(pPl, 300, 60, pPl->Col_unk39);
+        pPl->Routine_2++;
+    case 1:
+        Old_x = pPl->Pos_x;
+        Old_z = pPl->Pos_z;
+        Goto01(pPl, pEm->Cdir_y + Dir, 300);
+        pPl->Cdir_y += Dir;
+        Null_pos_set(pPl, Kan, Seq, 0);
+        pPl->Cdir_y -= Dir;
+        if (Joint_move2_l(pPl, Kan, Seq, 0x400))
+            pPl->Routine_2++;
+        pPl->Pos_x -= ((pPl->Pos_x - Old_x) * pPl->UnkCA) >> 2;
+        pPl->Pos_z -= ((pPl->Pos_z - Old_z) * pPl->UnkCA) >> 2;
+        break;
+    case 2:
+        if (pPl->Routine_3)
+            EM_MOVE(pPl) = 0x70001;
+        else
+            EM_MOVE(pPl) = 0x70001;
+        Pad_vib_set0(3, 10);
+        Pad_vib_set1(3, 200, 14);
+        Pad_vib_set0(7, 15);
+        Pad_vib_set1(3, 250, 19);
+        Pad_vib_set0(3, 20);
+        Pad_vib_set1(3, 210, 24);
+        Pad_vib_set0(3, 25);
+        Pad_vib_set1(3, 150, 29);
+        pPl->Routine_2++;
+    case 3:
+        Old_x = pPl->Pos_x;
+        Old_z = pPl->Pos_z;
+        pPl->Cdir_y += Dir;
+        Null_pos_set(pPl, Kan, Seq, 0);
+        pPl->Cdir_y -= Dir;
+        if (Joint_move2_l(pPl, Kan, Seq, 0x200)) {
+            pPl->Routine_2++;
+            Pad_vib_set0(3, 10);
+            Pad_vib_set1(3, 200, 14);
+            Pad_vib_set0(7, 15);
+            Pad_vib_set1(3, 150, 19);
+            Pad_vib_set0(3, 20);
+        }
+        if (Gacha_ch() && Joint_move2_l(pPl, Kan, Seq, 0x200)) {
+            pPl->Routine_2++;
+            Pad_vib_set0(3, 10);
+            Pad_vib_set1(3, 200, 14);
+            Pad_vib_set0(7, 15);
+            Pad_vib_set1(3, 150, 19);
+            Pad_vib_set0(3, 20);
+        }
+        pPl->Pos_x -= ((pPl->Pos_x - Old_x) * pPl->UnkCA) >> 3;
+        pPl->Pos_z -= ((pPl->Pos_z - Old_z) * pPl->UnkCA) >> 3;
+        break;
+    case 4:
+        if (pPl->Routine_3) {
+            EM_MOVE(pPl) = 0x70002;
+            pPl->Be_flg |= 0x80000;
+        } else {
+            EM_MOVE(pPl) = 0x70002;
+            pPl->Be_flg |= 0x80000;
+        }
+        pPl->Routine_2++;
+    case 5:
+        pPl->Cdir_y += Dir;
+        Null_pos_set(pPl, Kan, Seq, 0);
+        pPl->Cdir_y -= Dir;
+        if (Joint_move2_l(pPl, Kan, Seq, 0x200)) {
+            EM_RTN(pPl) = 1;
+            pPl->Unk120 &= 0xED;
+            pPl->Be_flg &= 0xFFFF77FF;
+            pEm->Be_flg &= 0xFFFF77FF;
+            pPl->Damage_cnt &= 0x7F;
+        }
+    }
+}
 
 /* pldm[1]: the player knocks the em32 off */
 void func_80103D60(ENEMY_WORK *pPl, ULONG Kan, ULONG Seq)
