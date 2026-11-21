@@ -91,6 +91,6 @@ ULONG Open_movie(ULONG Movie_id);
 ULONG Play_movie(void);
 void func_80074658(LONG Arg);          /* RE2 Close_movie: SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SOFF) */
 
-void Init_movie_work(ULONG Id);        /* start Movie_tbl[Id]; G.System_flg 0x10000 while it plays */
+LONG Init_movie_work(ULONG Id);        /* start Movie_tbl[Id]; G.System_flg 0x10000 while it plays */
 
 #endif /* MOVIE_H */

@@ -238,8 +238,17 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
 - Overlay .rodata can end with unreferenced junk bytes: emit them with a top-level `__asm__(".byte ...")`.
 - gcc 2.8 hoists a loop invariant only if threshold*savings >= loop insn count; read `-dL`. A goto into a
   `for(;;)` disables loop optimisation. Count-down loops came from `for (i = 6; i != 0; i--) arr[i + 6]`.
-- Some hh:mm:ss `/10` mismatches change with dead code before the division (pseudo numbering); one matched
-  only with a dead `Min = Time / 60;` (result.c func_801C3344, commented in source).
+- **mfhi register after `x / CONST`** (the mult-high pseudo prefers HI). Reload spills HI when a basic
+  block needs it for a real `mult` (mulsi3's HI scratch); pseudos living only in blocks without that
+  need stay in HI and get the first free spill reg at the mfhi (often a3); the others are kicked out and
+  re-placed by retry_global_alloc, which skips hard regs the function uses explicitly (args, a v0 return).
+  So: (1) mfhi in t0/t2/a3 where we get v0: the function returned a value — make it LONG and
+  `return callee_l(...)` (int-returning `__asm__` alias) on the path ending in that call (em30
+  func_80104F20, em33 func_80101454, movie Init_movie_work, result func_801C229C/C3344/C53D4; this
+  also replaced an earlier dead `Min = Time / 60;` hack). (2) mfhi in a3 where the target reuses the
+  quotient's reg (v1): the later `mult` must sit in the same block as the division — repeat it in both
+  branches and let cross-jumping merge the tails (snd func_800759D8: `v *= r;` in each branch).
+  Read `.greg` (`-dg`): "Spilling reg 64" followed by " Register N now in R" shows the kick.
 - Handwritten asm left as INCLUDE_ASM: BIOS jump stubs (`li t2,0xA0; jr t2; li t1,n`), libcard
   `_card_clear` (older-compiler epilogue), md_sub func_8002E318/D5D8/D4B0 (t-reg saves around jal, s-regs
   in a leaf, `jr ra; nop`).

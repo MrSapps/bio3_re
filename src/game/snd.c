@@ -1043,7 +1043,29 @@ UCHAR *Snd_bank_get_tone(LONG no, SHORT idx)
     return Snd_work.Bank_id[no].pData + *pTbl * 8;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_800759D8);
+/* 2^(x/12) scale: 0x1000 shifted by whole octaves times the 12-step table entry, >> 16.
+   `v *= r` is repeated in both branches (cross-jumped into one tail): a mult in the same block
+   as the /12 is what lets reload move the high-part pseudo out of HI into v1 (see NOTES.md). */
+LONG func_800759D8(LONG x)
+{
+    LONG v = 0x1000;
+    LONG *pTbl;
+    LONG r;
+
+    if (x >= 0) {
+        pTbl = D_800A1140;
+        r = pTbl[x % 12];
+        v <<= x / 12;
+        v *= r;
+    } else {
+        x = -x;
+        pTbl = D_800A1170;
+        r = pTbl[x % 12];
+        v >>= x / 12;
+        v *= r;
+    }
+    return v >> 16;
+}
 
 /* interpolates func_800759D8 between x and x + 1, frac in 1/128 */
 LONG func_80075A80(LONG x, LONG frac)

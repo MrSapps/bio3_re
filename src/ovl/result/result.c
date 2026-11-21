@@ -36,14 +36,15 @@ extern char D_801C2060[];               /* "@%6d" */
 extern char D_801C2068[];               /* "BUY" */
 extern char D_801C206C[];               /* "EXIT" */
 
-void func_801C229C(RESULT_WORK *pWk);
+LONG Print14_l(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* int-returning alias */
+LONG func_801C229C(RESULT_WORK *pWk);
 void func_801C3294(void);
-void func_801C3344(RESULT_WORK *pWk);
+LONG func_801C3344(RESULT_WORK *pWk);
 void func_801C4128(void);
 void func_801C4188(RESULT_WORK *pWk);
 void func_801C473C(RESULT_WORK *pWk);
 void func_801C5324(void);
-void func_801C53D4(RESULT_WORK *pWk);
+LONG func_801C53D4(RESULT_WORK *pWk);
 void func_801C5854(void);
 void func_801C591C(RESULT_WORK *pWk);
 void func_801C5AF4(void);
@@ -93,7 +94,114 @@ INCLUDE_RODATA("asm/nonmatchings/ovl/result/result", D_801C202C);
 
 INCLUDE_RODATA("asm/nonmatchings/ovl/result/result", D_801C2038);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/result/result", func_801C229C);
+/* draws the Mercenaries result screen. Returns the last Print14's value (only one path returns):
+   that explicit v0 use is what keeps the /3600 and /60 mfhi out of v0 (see NOTES.md). */
+LONG func_801C229C(RESULT_WORK *pWk)
+{
+    LONG Time;
+    LONG Hour;
+    LONG Min;
+    LONG Sec;
+
+    Print_color(0xFF, 0, 0x107);
+    func_801C62B0(&D_801C6D60[0], 7);
+    func_801C62B0(&D_801C6D60[1], 7);
+    if (!(pWk->Flg & 0x20)) {
+        func_801C62B0(&D_801C6D60[2], 7);
+        func_801C62B0(&D_801C6D60[3], 7);
+        func_801C62B0(&D_801C6D60[4], 7);
+        func_801C62B0(&D_801C6D60[6], 7);
+        func_801C62B0(&D_801C6D60[13], 7);
+        func_801C62B0(&D_801C6D60[14], 7);
+        func_801C62B0(&D_801C6D60[15], 7);
+        func_801C62B0(&D_801C6D60[16], 7);
+        func_801C62B0(&D_801C6D60[17], 7);
+        func_801C62B0(&D_801C6D60[18], 7);
+        func_801C62B0(&D_801C6D60[19], 7);
+        Print14_s(D_801C69E0[0].X, D_801C69E0[0].Y, D_801C2010);
+        Print14_s(D_801C69E0[1].X, D_801C69E0[1].Y, D_801C2018);
+        Print14_s(D_801C69E0[2].X, D_801C69E0[2].Y, D_801C2024);
+        if (Gr.Merc_time[0] == -1) {
+            Print14_s(D_801C69E0[3].X, D_801C69E0[3].Y, D_801C202C);
+        } else {
+            Time = Gr.Merc_time[0];
+            Hour = Time / 3600;
+            Time -= Hour * 3600;
+            Min = Time / 60;
+            Sec = Time - Min * 60;
+            Print14_s(D_801C69E0[3].X, D_801C69E0[3].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+        }
+        if (Gr.Merc_time[2] == -1) {
+            Print14_s(D_801C69E0[4].X, D_801C69E0[4].Y, D_801C202C);
+        } else {
+            Time = Gr.Merc_time[2];
+            Hour = Time / 3600;
+            Time -= Hour * 3600;
+            Min = Time / 60;
+            Sec = Time - Min * 60;
+            Print14_s(D_801C69E0[4].X, D_801C69E0[4].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+        }
+        if (Gr.Merc_time[1] == -1) {
+            Print14_s(D_801C69E0[5].X, D_801C69E0[5].Y, D_801C202C);
+        } else {
+            Time = Gr.Merc_time[1];
+            Hour = Time / 3600;
+            Time -= Hour * 3600;
+            Min = Time / 60;
+            Sec = Time - Min * 60;
+            Print14_s(D_801C69E0[5].X, D_801C69E0[5].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+        }
+        if (Gr.Merc_grade[0] == 0xFF) {
+            Print14_s(D_801C69E0[6].X, D_801C69E0[6].Y, "_");
+        } else {
+            Print14_s(D_801C69E0[6].X, D_801C69E0[6].Y, D_801C2054, D_801C69B4[Gr.Merc_grade[0]]);
+        }
+        if (Gr.Merc_grade[2] == 0xFF) {
+            Print14_s(D_801C69E0[7].X, D_801C69E0[7].Y, "_");
+        } else {
+            Print14_s(D_801C69E0[7].X, D_801C69E0[7].Y, D_801C2054, D_801C69B4[Gr.Merc_grade[2]]);
+        }
+        if (Gr.Merc_grade[1] == 0xFF) {
+            Print14_s(D_801C69E0[8].X, D_801C69E0[8].Y, "_");
+        } else {
+            Print14_s(D_801C69E0[8].X, D_801C69E0[8].Y, D_801C2054, D_801C69B4[Gr.Merc_grade[1]]);
+        }
+        Print_color(0xFF, 0, 0x4107);
+        if (Gr.Merc_money[0] == 0) {
+            Print14_s(D_801C69E0[9].X, D_801C69E0[9].Y, D_801C2058);
+        } else {
+            Print14_s(D_801C69E0[9].X, D_801C69E0[9].Y, D_801C2060, Gr.Merc_money[0]);
+        }
+        if (Gr.Merc_money[2] == 0) {
+            Print14_s(D_801C69E0[10].X, D_801C69E0[10].Y, D_801C2058);
+        } else {
+            Print14_s(D_801C69E0[10].X, D_801C69E0[10].Y, D_801C2060, Gr.Merc_money[2]);
+        }
+        if (Gr.Merc_money[1] == 0) {
+            Print14_s(D_801C69E0[11].X, D_801C69E0[11].Y, D_801C2058);
+        } else {
+            Print14_s(D_801C69E0[11].X, D_801C69E0[11].Y, D_801C2060, Gr.Merc_money[1]);
+        }
+        Print14_s(D_801C69E0[13].X + 7, D_801C69E0[13].Y, D_801C2068);
+        Print14_s(D_801C69E0[14].X, D_801C69E0[14].Y, D_801C206C);
+    }
+    func_801C62B0(&D_801C6D60[20], 5);
+    func_801C62B0(&D_801C6D60[5], 5);
+    func_801C62B0(&D_801C6D60[7], 5);
+    func_801C62B0(&D_801C6D60[8], 5);
+    func_801C62B0(&D_801C6D60[9], 5);
+    func_801C62B0(&D_801C6D60[10], 5);
+    func_801C62B0(&D_801C6D60[11], 5);
+    func_801C62B0(&D_801C6D60[12], 2);
+    if (pWk->Flg & 8) {
+        func_801C62B0(&D_801C6D60[21], 2);
+        func_801C62B0(&D_801C6D60[22], 2);
+        func_801C62B0(&D_801C6D60[23], 2);
+        func_801C62B0(&D_801C6D60[24], 2);
+        Print_color(0xFF, 0, 0x4105);
+        return Print14_l(D_801C69E0[12].X, D_801C69E0[12].Y, D_801C2060, Gr.Money);
+    }
+}
 
 INCLUDE_RODATA("asm/nonmatchings/ovl/result/result", D_801C2054);
 
@@ -261,8 +369,9 @@ void func_801C32F4(void)
     func_801C3344(pWk);
 }
 
-/* draws the Mercenaries shop */
-void func_801C3344(RESULT_WORK *pWk)
+/* draws the Mercenaries shop. Returns the last Print14's value: the explicit v0 use places the
+   /3600 and /60 mfhi (see NOTES.md). */
+LONG func_801C3344(RESULT_WORK *pWk)
 {
     tagGLOBAL *pG = &G;
     LONG Time = pG->Unk7860;
@@ -303,7 +412,6 @@ void func_801C3344(RESULT_WORK *pWk)
         break;
     }
     if (pWk->Flg & 2) {
-        Min = Time / 60; /* dead store, needed for the original register allocation */
         Hour = Time / 3600;
         Time -= Hour * 3600;
         Min = Time / 60;
@@ -318,7 +426,7 @@ void func_801C3344(RESULT_WORK *pWk)
         Print14_s(D_801C6BC0[3].X, D_801C6BC0[3].Y, D_801C2060, Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus);
     }
     Print_color(0xFF, 0, 0x4102);
-    Print14_s(D_801C6BC0[4].X, D_801C6BC0[4].Y, D_801C2060, Gr.Money);
+    return Print14_l(D_801C6BC0[4].X, D_801C6BC0[4].Y, D_801C2060, Gr.Money);
 }
 
 /* Mercenaries shop: init */
@@ -878,7 +986,42 @@ void func_801C5384(void)
     func_801C53D4(pWk);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/result/result", func_801C53D4);
+/* draws the main game result: time, saves and grade. Returns the last Print14's value (only one path
+   returns): that explicit v0 use is what puts the /10 mfhi in t2 (see NOTES.md). */
+LONG func_801C53D4(RESULT_WORK *pWk)
+{
+    LONG Time;
+    LONG Hour;
+    LONG Min;
+    LONG Sec;
+
+    Time = G.Game_time;
+    if (Time <= 0x14996FF) {
+        Hour = Time / 216000;
+        Time -= Hour * 216000;
+        Min = Time / 3600;
+        Time -= Min * 3600;
+        Sec = Time / 60;
+    } else {
+        Hour = 99;
+        Min = 59;
+        Sec = 59;
+    }
+    Print_color(0xFF, 0, 0x102);
+    Print14_s(D_801C6D2C[1].X, D_801C6D2C[1].Y, "Time");
+    Print14_s(D_801C6D2C[2].X, D_801C6D2C[2].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+    if (pWk->Saves == 1) {
+        Print14_s(D_801C6D2C[3].X, D_801C6D2C[3].Y, "Number of Save");
+        Print14_s(D_801C6D2C[4].X, D_801C6D2C[4].Y, "%1d%1d", (UCHAR)(pWk->Saves / 10), (UCHAR)(pWk->Saves % 10));
+    } else {
+        Print14_s(D_801C6D2C[3].X, D_801C6D2C[3].Y, "Number of Saves");
+        Print14_s(D_801C6D2C[4].X, D_801C6D2C[4].Y, "%1d%1d", (UCHAR)(pWk->Saves / 10), (UCHAR)(pWk->Saves % 10));
+    }
+    if (!(G.System_flg & 0x100)) {
+        Print14_s(D_801C6D2C[5].X, D_801C6D2C[5].Y, "Grade");
+        return Print14_l(D_801C6D2C[6].X, D_801C6D2C[6].Y, D_801C2054, D_801C69B4[pWk->Grade]);
+    }
+}
 
 /* routine 3: init */
 void func_801C567C(RESULT_WORK *pWk)

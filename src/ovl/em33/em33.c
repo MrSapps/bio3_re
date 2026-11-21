@@ -20,7 +20,8 @@ void func_80107204(void);
 void func_80105A48(ENEMY_WORK *pEm, LONG No);
 ENEMY_WORK *func_8010138C(ENEMY_WORK *pEm);
 void func_801009DC(ENEMY_WORK *pEm, LONG No, ENEMY_WORK *pOya, LONG Parts);
-void func_80101454(ENEMY_WORK *pEm);
+LONG func_80101454(ENEMY_WORK *pEm);
+LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54"); /* int-returning alias */
 void func_80102D30(ENEMY_WORK *pEm);
 void func_80106668(ENEMY_WORK *pEm);
 void func_8010722C(void);
@@ -31,6 +32,7 @@ void func_801061C4(ENEMY_WORK *pEm);
 void func_80106C48(ENEMY_WORK *pEm);
 void func_80106084(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_8010342C(ENEMY_WORK *pEm, LONG Flg);
+void func_801053FC(ENEMY_WORK *pEm);
 
 /* EM_MAIN */
 void func_801000D4(ENEMY_WORK *pEm)
@@ -501,7 +503,83 @@ ENEMY_WORK *func_8010138C(ENEMY_WORK *pEm)
     return pG->pEm_tbl[n];
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80101454);
+/* cycle the morph keys 0..2 of parts 1-3 (Unk01 = phase). Returns the last sabun call's value:
+   that explicit v0 use is what makes reload put the /50 mfhi in a3 (see NOTES.md). */
+LONG func_80101454(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP;
+    LONG Step;
+
+    Step = EM33_W(pEm)->Unk14 * pEm->Spd_x / 50;
+    pP = &pEm->pSin_parts_ptr[1];
+    if (Step < 0)
+        Step = 0;
+    switch (EM33_W(pEm)->Unk01) {
+    case 0:
+        EM33_SABUN_P(&pP[0])->Key[0].Rate += Step;
+        EM33_SABUN_P(&pP[1])->Key[0].Rate += Step;
+        EM33_SABUN_P(&pP[2])->Key[0].Rate += Step;
+        if (EM33_SABUN_P(&pP[0])->Key[0].Rate > 0xC00) {
+            EM33_SABUN_P(&pP[0])->Key[0].Rate = 0xC00;
+            EM33_SABUN_P(&pP[1])->Key[0].Rate = 0xC00;
+            EM33_SABUN_P(&pP[2])->Key[0].Rate = 0xC00;
+            EM33_W(pEm)->Unk01 = 1;
+        }
+        break;
+    case 1:
+        EM33_SABUN_P(&pP[0])->Key[0].Rate -= Step;
+        EM33_SABUN_P(&pP[1])->Key[0].Rate -= Step;
+        EM33_SABUN_P(&pP[2])->Key[0].Rate -= Step;
+        if (EM33_SABUN_P(&pP[0])->Key[0].Rate < 0) {
+            EM33_SABUN_P(&pP[0])->Key[0].Rate = 0;
+            EM33_SABUN_P(&pP[1])->Key[0].Rate = 0;
+            EM33_SABUN_P(&pP[2])->Key[0].Rate = 0;
+        }
+        EM33_SABUN_P(&pP[0])->Key[1].Rate += Step;
+        EM33_SABUN_P(&pP[1])->Key[1].Rate += Step;
+        EM33_SABUN_P(&pP[2])->Key[1].Rate += Step;
+        if (EM33_SABUN_P(&pP[0])->Key[1].Rate > 0xC00) {
+            EM33_SABUN_P(&pP[0])->Key[1].Rate = 0xC00;
+            EM33_SABUN_P(&pP[1])->Key[1].Rate = 0xC00;
+            EM33_SABUN_P(&pP[2])->Key[1].Rate = 0xC00;
+            EM33_W(pEm)->Unk01 = 2;
+        }
+        break;
+    case 2:
+        EM33_SABUN_P(&pP[0])->Key[1].Rate -= Step;
+        EM33_SABUN_P(&pP[1])->Key[1].Rate -= Step;
+        EM33_SABUN_P(&pP[2])->Key[1].Rate -= Step;
+        if (EM33_SABUN_P(&pP[0])->Key[1].Rate < 0) {
+            EM33_SABUN_P(&pP[0])->Key[1].Rate = 0;
+            EM33_SABUN_P(&pP[1])->Key[1].Rate = 0;
+            EM33_SABUN_P(&pP[2])->Key[1].Rate = 0;
+        }
+        EM33_SABUN_P(&pP[0])->Key[2].Rate += Step;
+        EM33_SABUN_P(&pP[1])->Key[2].Rate += Step;
+        EM33_SABUN_P(&pP[2])->Key[2].Rate += Step;
+        if (EM33_SABUN_P(&pP[0])->Key[2].Rate > 0xC00) {
+            EM33_SABUN_P(&pP[0])->Key[2].Rate = 0xC00;
+            EM33_SABUN_P(&pP[1])->Key[2].Rate = 0xC00;
+            EM33_SABUN_P(&pP[2])->Key[2].Rate = 0xC00;
+            EM33_W(pEm)->Unk01 = 3;
+        }
+        break;
+    case 3:
+        EM33_SABUN_P(&pP[0])->Key[2].Rate -= Step;
+        EM33_SABUN_P(&pP[1])->Key[2].Rate -= Step;
+        EM33_SABUN_P(&pP[2])->Key[2].Rate -= Step;
+        if (EM33_SABUN_P(&pP[0])->Key[2].Rate < 0) {
+            EM33_SABUN_P(&pP[0])->Key[2].Rate = 0;
+            EM33_SABUN_P(&pP[1])->Key[2].Rate = 0;
+            EM33_SABUN_P(&pP[2])->Key[2].Rate = 0;
+            EM33_W(pEm)->Unk01 = 0;
+        }
+        break;
+    }
+    func_8004AC54(pEm, &pP[0]);
+    func_8004AC54(pEm, &pP[1]);
+    return func_8004AC54_l(pEm, &pP[2]);
+}
 
 /* morph key 0 of part 8 one step towards 0 (Dir != 0) or 0x1000 */
 void func_8010183C(ENEMY_WORK *pEm, LONG Step, LONG Dir)
@@ -1633,7 +1711,74 @@ void func_801061C4(ENEMY_WORK *pEm)
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_801063CC);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80106668);
+/* trail of 8 splashes behind the work, one call per frame while Unk16A is 2 */
+void func_80106668(ENEMY_WORK *pEm)
+{
+    SVECTOR Sv;
+    SVECTOR Ofs;
+    SVECTOR Step;
+    MATRIX M;
+    PARTS_W *pP;
+
+    switch (pEm->Unk16A) {
+    case 0:
+        break;
+    case 1:
+        pEm->Unk16A = 2;
+        pEm->Unk16B = 0;
+    case 2:
+        Sv.vx = 0;
+        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, ((EM33_G *)&G)->Pl_pos_x, ((EM33_G *)&G)->Pl_pos_z);
+        Sv.vz = 0;
+        RotMatrix(&Sv, &M);
+        Sv.vx = -(pEm->Unk16B * 120);
+        Sv.vy = -600;
+        ApplyMatrixSV(&M, &Sv, &Ofs);
+        Sv.vx = -120;
+        Sv.vy = -600;
+        Sv.vz = 0;
+        ApplyMatrixSV(&M, &Sv, &Step);
+        if (!(pEm->Type & 1))
+            pP = pEm->pSin_parts_ptr;
+        else
+            pP = &((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya]->pSin_parts_ptr[EM33_B(pEm)->Parts];
+        Sv.vx = pP->Workm.t[0] + Ofs.vx;
+        Sv.vy = pP->Workm.t[1] + Ofs.vy;
+        Sv.vz = pP->Workm.t[2] + Ofs.vz;
+        func_8001B484(0x7001900, (0x1280 - pEm->Unk16B * 70 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = Step.vx + (pP->Workm.t[0] + Ofs.vx) - (SHORT)(Rnd() - 0x80);
+        Sv.vz = Step.vz + (pP->Workm.t[2] + Ofs.vz) - (SHORT)(Rnd() - 0x80);
+        func_8001B484(0x7001900, (0x1300 - pEm->Unk16B * 70 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = pP->Workm.t[0] + Ofs.vx + (Step.vx << 1);
+        Sv.vz = pP->Workm.t[2] + Ofs.vz + (Step.vz << 1);
+        func_8001B484(0x7001900, (0x1380 - pEm->Unk16B * 128 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = pP->Workm.t[0] + Ofs.vx + Step.vx * 3 - (SHORT)(Rnd() - 0x80);
+        Sv.vz = pP->Workm.t[2] + Ofs.vz + Step.vz * 3 - (SHORT)(Rnd() - 0x80);
+        func_8001B484(0x7001900, (0x1400 - pEm->Unk16B * 128 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = pP->Workm.t[0] + Ofs.vx + (Step.vx << 2);
+        Sv.vz = pP->Workm.t[2] + Ofs.vz + (Step.vz << 2);
+        func_8001B484(0x7001900, (0x1480 - pEm->Unk16B * 128 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = pP->Workm.t[0] + Ofs.vx + Step.vx * 5 - (SHORT)(Rnd() - 0x80);
+        Sv.vz = pP->Workm.t[2] + Ofs.vz + Step.vz * 5 - (SHORT)(Rnd() - 0x80);
+        func_8001B484(0x7001900, (0x1500 - pEm->Unk16B * 128 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = pP->Workm.t[0] + Ofs.vx + Step.vx * 6;
+        Sv.vz = pP->Workm.t[2] + Ofs.vz + Step.vz * 6;
+        func_8001B484(0x7001900, (0x1580 - pEm->Unk16B * 128 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        pEm->Unk16B++;
+        Sv.vx = pP->Workm.t[0] + Ofs.vx + Step.vx * 7 - (SHORT)(Rnd() - 0x80);
+        Sv.vz = pP->Workm.t[2] + Ofs.vz + Step.vz * 7 - (SHORT)(Rnd() - 0x80);
+        func_8001B484(0x7001900, (0x1600 - pEm->Unk16B * 128 - Rnd()) << 16, &GsIDMATRIX, &Sv, 0);
+        if (pEm->Unk16B++ > 16)
+            pEm->Unk16A = 0;
+        break;
+    }
+}
 
 /* set the sub routine of the head and of every segment: 10 at the hit part, +3 per part away from it
    (for a segment, pEm is replaced by its head) */
@@ -1670,7 +1815,54 @@ void func_80106C48(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80106D64);
+/* blood spray while the sub routine counts down (sound at 8) */
+void func_80106D64(ENEMY_WORK *pEm)
+{
+    SVECTOR Sv;
+    VECTOR Pos;
+    ENEMY_WORK *pH;
+    LONG n = 1;
+
+    if (EM33_W(pEm)->Rtn) {
+        EM33_W(pEm)->Rtn--;
+        if (EM33_W(pEm)->Rtn == 1 || EM33_W(pEm)->Rtn == 3 || EM33_W(pEm)->Rtn == 8) {
+            if (EM33_W(pEm)->Rtn == 8) {
+                if (pEm->Type & 1) {
+                    pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+                    Pos.vx = pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[0];
+                    Pos.vy = pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[1];
+                    Pos.vz = pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[2];
+                } else {
+                    Pos.vx = pEm->pSin_parts_ptr[8].Workm.t[0];
+                    Pos.vy = pEm->pSin_parts_ptr[8].Workm.t[1];
+                    Pos.vz = pEm->pSin_parts_ptr[8].Workm.t[2];
+                }
+                if (Rnd() & 3)
+                    Snd_se_stad(0x1020C, &Pos, 0, 0);
+                else
+                    Snd_se_stad(0x1020D, &Pos, 0, 0);
+            }
+            while (n--) {
+                Sv.vx = (Rnd() & 0xFF) - 0x7F;
+                Sv.vy = (Rnd() & 0xFF) - 0x7F;
+                Sv.vz = (Rnd() & 0xFF) - 0x7F;
+                Sv.vx <<= 2;
+                Sv.vy <<= 2;
+                Sv.vz <<= 2;
+                if (pEm->Type & 1) {
+                    pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+                    func_8001B484(0x2B, (USHORT)pH->Cdir_y | 0x40000000, &pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm, &Sv, 0);
+                } else {
+                    func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x40000000, &pEm->pSin_parts_ptr[8].Workm, &Sv, 0);
+                    func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x20000000, &pEm->pSin_parts_ptr[10].Workm, &Sv, 0);
+                    func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x20000000, &pEm->pSin_parts_ptr[12].Workm, &Sv, 0);
+                    func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x20000000, &pEm->pSin_parts_ptr[14].Workm, &Sv, 0);
+                    func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x20000000, &pEm->pSin_parts_ptr[16].Workm, &Sv, 0);
+                }
+            }
+        }
+    }
+}
 
 /* water splash under part No */
 void func_80107074(ENEMY_WORK *pEm, LONG No, LONG Type)

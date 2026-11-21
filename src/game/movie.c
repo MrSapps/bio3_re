@@ -7,7 +7,73 @@
 
 /* MOVIE.C: STR movie playback (DS streaming + MDEC), RE2 MOVIE.C reworked for RE3 */
 
-INCLUDE_ASM("asm/nonmatchings/game/movie", Init_movie_work);
+LONG Pad_vib_init_l(void) __asm__("Pad_vib_init"); /* int-returning alias */
+
+/* Returns Pad_vib_init's v0 (the sce*.c callers declare it LONG): that explicit v0 use is what makes
+   reload put the /127 mfhi in t0 (see NOTES.md). */
+LONG Init_movie_work(ULONG Id)
+{
+    MOVIE_TBL *pTbl;
+    SND_WORK *pSnd = &Snd_work;
+    VM_WORK *pWork = &Vm_work;
+    VM_DISP *pDisp = &Vm_disp;
+
+    pTbl = &Movie_tbl[Id];
+    if (pTbl->Attribute & 0x200)
+        pWork->pFree_work = (UCHAR *)0x80100000;
+    else
+        pWork->pFree_work = (UCHAR *)0x80194000;
+    if (pTbl->Attribute & 8) {
+        pSnd->UnkB1C = 0x80;
+        pSnd->UnkB24 = pSnd->UnkB20 = 0x3FFF;
+        pWork->Save_flg = G.Unk2468;
+        G.Unk2468 |= 0xFF000000;
+    }
+    pMovie_result = Ret_Value;
+    pVm_frm = (VM_FRAME *)pWork->pFree_work;
+    pWork->Movie_Isrgb24 = 1;
+    pWork->pFree_work += sizeof(VM_FRAME);
+    pFile = (DslFILE *)pWork->pFree_work;
+    pWork->pFree_work += sizeof(DslFILE);
+    pAtv = (DslATV *)pWork->pFree_work;
+    pWork->pFree_work += sizeof(DslATV);
+    pWork->Movie_id = Id;
+    pWork->Rl_buff[0] = (ULONG *)pWork->pFree_work;
+    pWork->pFree_work += Movie_tbl[pWork->Movie_id].Rl_size;
+    if (pDisp->Attribute & 0x100) {
+        pWork->Rl_buff[1] = (ULONG *)((UCHAR *)pWork->Rl_buff[0] + Movie_tbl[pWork->Movie_id].Rl_size);
+        pWork->pFree_work += Movie_tbl[pWork->Movie_id].Rl_size;
+    } else {
+        pWork->Rl_buff[1] = pWork->Rl_buff[0];
+    }
+    pWork->pImage_buff = (ULONG *)((UCHAR *)pWork->Rl_buff[1] + Movie_tbl[pWork->Movie_id].Rl_size);
+    pWork->pFree_work += 0x1E00;
+    pWork->Movie_w = pTbl->Disp_w;
+    pWork->Rno = 0;
+    pWork->Movie_sync = 0;
+    pDisp->Rect.w = pDisp->Width = 24;
+    pDisp->Pos_x = pTbl->Pos_x;
+    pDisp->Pos_y = pTbl->Pos_y;
+    pDisp->Attribute = pTbl->Attribute;
+    if (pDisp->Attribute & 2) {
+        if (pWork->Eom == 2) {
+            pWork->Eom = 1;
+            pWork->Padoff_stop = 2;
+            pDisp->Attribute = (pDisp->Attribute & ~0x80) | 0x40;
+        } else {
+            pWork->Eom = 0;
+            pWork->Padoff_stop = 0;
+        }
+    } else {
+        pWork->Eom = 0;
+    }
+    pWork->Movie_volume = pTbl->Volume * Snd_work.Unk7CA / 127;
+    pWork->Frame = 0;
+    pWork->Free0 = 0;
+    pWork->Movie_cancel = pTbl->Cancel;
+    G.System_flg |= 0x18000;
+    return Pad_vib_init_l();
+}
 
 extern void (*D_8009CBB4[])(void);          /* RE2 pMovie_proc_tbl: Movie_init, Movie_main, Movie_exit */
 
