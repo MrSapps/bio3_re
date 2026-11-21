@@ -71,7 +71,58 @@ void func_801C2228(void)
     Task_exit();
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/staff_r/staff_r", func_801C22AC);
+/* staff roll init. The first colour set sits two do/while(0) levels deep (a macro inside a
+ * macro in the original, judging by the register allocation: the loop depth raises the 0x80
+ * constant's global-alloc priority above the counter's) */
+#define STAFF_GREY(p, c) do { setRGB0(p, c, c, c); } while (0)
+#define STAFF_GREY2(p, c) do { STAFF_GREY(p, c); } while (0)
+void func_801C22AC(void)
+{
+    ULONG i;
+    SPRT *p;
+    STAFF_WORK *pW;
+
+    pW = &Staff_wk;
+
+    Fade_set(0, 1, 2, 2, 0xFFFFFF, 0, 0x3C);
+    CD.Vol = 100;
+    Xa_play(3, 0x14);
+    G.Status_flg |= STAT_XA_VOICE;
+    for (i = 0; i < 2; i++) {
+        p = &pW->Page[0].L[i];
+        STAFF_GREY2(p, 0x80);
+        p = &pW->Page[0].R[i];
+        setRGB0(p, 0x80, 0x80, 0x80);
+        SetDrawTPage(&pW->Page[0].Tl[i], 0, 0,
+                     getTPage(1, 1, (Staff_tex[0].Tp & 0xF) << 6, (Staff_tex[0].Tp >> 4) << 8));
+        SetDrawTPage(&pW->Page[0].Tr[i], 0, 0,
+                     getTPage(1, 1, ((Staff_tex[0].Tp & 0xF) + 2) << 6, ((Staff_tex[0].Tp >> 4) + 2) << 8));
+    }
+    for (i = 0; i < 2; i++) {
+        p = &pW->Page[1].L[i];
+        setRGB0(p, 0, 0, 0);
+        p = &pW->Page[1].L[i];
+        setRGB0(p, 0, 0, 0);
+        p = &pW->Page[1].R[i];
+        setRGB0(p, 0, 0, 0);
+        p = &pW->Page[1].R[i];
+        setRGB0(p, 0, 0, 0);
+        SetDrawTPage(&pW->Page[1].Tl[i], 0, 0,
+                     getTPage(1, 1, (Staff_tex[1].Tp & 0xF) << 6, (Staff_tex[1].Tp >> 4) << 8));
+        SetDrawTPage(&pW->Page[1].Tr[i], 0, 0,
+                     getTPage(1, 1, ((Staff_tex[1].Tp & 0xF) + 2) << 6, ((Staff_tex[1].Tp >> 4) + 2) << 8));
+    }
+    pW->Ot0 = 6;
+    pW->Ot1 = 7;
+    pW->Ot2 = 5;
+    pW->Timer = 0;
+    pW->Timer2 = 0;
+    pW->Rtn2 = 0;
+    pW->Rtn3 = 0;
+    pW->Mess_no = 0;
+    Main.Vloop = 2;
+    pW->Rtn1++;
+}
 
 void func_801C256C(void)
 {

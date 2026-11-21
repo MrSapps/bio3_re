@@ -79,7 +79,42 @@ void func_801C2244(void)
     Task_exit();
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/gearbox/gearbox", func_801C22CC);
+/* gearbox: move the selected gear along its link table to the first free slot */
+void func_801C22CC(void)
+{
+    VECTOR Pos;
+    ULONG i;
+
+    Pos.vx = Gear_pos_tbl[2][0];
+    Pos.vy = Gear_pos_tbl[2][1];
+    Pos.vz = Gear_pos_tbl[2][2];
+    func_801C2464();
+    if (G.Key_trg & 0x1000) {
+        if (Gear_wk.Cursor == GEAR_LEVER) {
+            Snd_se_stad(0x10208, &Pos, 0, 0);
+            Gear_wk.Exit = 1;
+            return;
+        }
+        if (Gear_wk.Slot[Gear_wk.Cursor] == 0)
+            return;
+        for (i = 0;; i++) {
+            if (Gear_link_tbl[Gear_wk.Cursor][i] == -1)
+                goto Move_end;
+            if (Gear_wk.Slot[Gear_link_tbl[Gear_wk.Cursor][i]] == 0) {
+                Snd_se_stad(0x10207, &Pos, 0, 0);
+                Gear_wk.Slot[Gear_link_tbl[Gear_wk.Cursor][i]] = Gear_wk.Slot[Gear_wk.Cursor];
+                Gear_wk.Slot[Gear_wk.Cursor] = 0;
+                Gear_wk.Move_cnt--;
+                break;
+            }
+        }
+    Move_end:
+        if (Gear_wk.Move_cnt == 0)
+            Gear_wk.Cursor = GEAR_LEVER;
+    }
+    if (G.Key_trg & 0x2000)
+        Gear_wk.Cursor = GEAR_LEVER;
+}
 
 void func_801C2464(void)
 {
