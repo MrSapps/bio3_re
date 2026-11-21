@@ -62,7 +62,7 @@ typedef struct tagCD {
     UCHAR Unk8D1;                      /* 0x8D1 copy of G.Unk2485 */
     UCHAR Fade_flg;                    /* 0x8D2 volume fade-out active */
     UCHAR Fade_step;                   /* 0x8D3 volume fade-out step */
-    UCHAR pad8D4;
+    UCHAR Unk8D4;                      /* 0x8D4 enemy slot / texture step of the entry being loaded (func_800130A0) */
     UCHAR Unk8D5;                      /* 0x8D5 enemy slot being loaded (3 flag bits each in Unk8C8) */
     UCHAR pad8D6[0x8D8 - 0x8D6];
     struct tagCD_LINK *pLink;          /* 0x8D8 room link list being scanned (func_800139D8) */

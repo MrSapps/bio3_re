@@ -27,14 +27,36 @@ typedef struct {
 
 /* G viewed with the work pointer table as one array (RE2 pEnemy[]: [0] player, [1] sub player, [2..] enemies) */
 typedef struct {
-    UCHAR pad0[0x213C];
+    UCHAR pad0[0x2134];
+    struct tagROOM_WORK *pRoom;        /* 0x2134 */
+    UCHAR pad2138[0x213C - 0x2138];
     ENEMY_WORK *pEm_mem;               /* 0x213C */
     UCHAR pad2140[0x2487 - 0x2140];
     UCHAR Em_num;                      /* 0x2487 */
     UCHAR pad2488[0x265C - 0x2488];
     ENEMY_WORK *pEm_tbl[42];           /* 0x265C */
     ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
+    UCHAR pad2708[0x3DE0 - 0x2708];
+    void (*Em_routine[64])(ENEMY_WORK *); /* 0x3DE0 */
+    UCHAR pad3EE0[0x3FA0 - 0x3EE0];
+    void (*Em_ov_mtbl[2][112])(ENEMY_WORK *); /* 0x3FA0 */
+    struct {
+        USHORT Id;                     /* enemy kind of the loaded bank */
+        USHORT Flg;                    /* set once loaded */
+    } Em_bank[2];                      /* 0x4320 G.Unk4320..Unk4326 */
 } G_EMTBL;
+/* ENEMY_WORK fields not in em_sub.h yet */
+typedef struct {
+    UCHAR pad0[0x11C];
+    ULONG *pUnk11C;                    /* 0x11C */
+    UCHAR pad120[0x174 - 0x120];
+    ULONG Unk174;                      /* 0x174 */
+    UCHAR pad178[0x1B4 - 0x178];
+    ULONG Unk1B4;                      /* 0x1B4 */
+} EM_CD;
+#define EM_CD(p) ((EM_CD *)(p))
+void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData);
+void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pData);
 extern UCHAR D_800E017F;               /* room sound pack id */
 extern UCHAR D_800E06AC;
 void func_800139D8(void);
@@ -597,7 +619,170 @@ void func_80012ECC(tagCD *pCd)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/cd", func_800130A0);
+/* enemy model data records (8 bytes, D_800E0170 used) */
+typedef struct {
+    ENEMY_WORK *pEm;                   /* 0x0 */
+    UCHAR Id;                          /* 0x4 */
+    UCHAR Kind;                        /* 0x5 */
+    UCHAR pad6[2];
+} EM_DAT;
+extern EM_DAT Em_dat_tbl[] __asm__("D_800DECC0");
+extern UCHAR D_800E0170;               /* used Em_dat_tbl records */
+/* SCENARIO fields not in sce0.h yet */
+typedef struct {
+    UCHAR pad0[0x145C];
+    UCHAR *pCScd;                      /* 0x145C */
+    ENEMY_WORK *pUnk1460;              /* 0x1460 */
+    UCHAR pad1464[0x1488 - 0x1464];
+    UCHAR Unk1488;                     /* 0x1488 */
+    UCHAR pad1489[0x148C - 0x1489];
+    UCHAR Type;                        /* 0x148C */
+    UCHAR pad148D;
+    UCHAR Unk148E;                     /* 0x148E */
+    UCHAR Unk148F;                     /* 0x148F */
+    ULONG *pUnk1490;                   /* 0x1490 */
+} SCE_CD;
+extern SCE_CD Sce_cd __asm__("Sce");
+ULONG Em_kind_search(ULONG Id);
+UCHAR func_800520D8(ULONG Id);
+void *func_8005211C(ULONG Id);
+ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Work, void *pData);
+
+/* copies one ring sector of the room pack entry being streamed to its load address; finished enemy
+ * texture (TIM) and model entries are uploaded / linked to the enemy works of that kind */
+void func_800130A0(tagCD *pCd)
+{
+    ULONG Adr[7] = { 0, 0x80100000, 0x8010D000, 0x801FB600, 0, 0x801F7E00, 0x801F2600 };
+    TIM_IMAGE Tim;
+    TIM_IMAGE *pTim;
+    G_EMTBL *pG;
+    EM_DAT *pDat;
+    ENEMY_WORK *pEm;
+    void *pData;
+    ULONG Work;
+    ULONG Size;
+    ULONG Type;
+    ULONG No;
+    ULONG Kind;
+    ULONG k;
+
+    No = pCd->Ring_status[pCd->Write_ctr] & 0x7F;
+    pG = (G_EMTBL *)&G;
+    pDat = &Em_dat_tbl[D_800E0170];
+    Type = pCd->pEntry[No].Type & 0x7F;
+    if (Type == 5 && pCd->pEntry[No].Id != pCd->Unk8C2) {
+        return;
+    }
+    if (Type == 6 && pCd->pEntry[No].Id != pCd->Unk8C3) {
+        return;
+    }
+    pCd->Unk8D4 = 0;
+    if (pCd->First_flg == 0) {
+        if ((pCd->Unk8A8 = Adr[pCd->pEntry[No].Type & 0x7F]) == 0) {
+            pCd->Unk8A8 = pCd->Unk8CC;
+        }
+        pCd->Unk8AC = (pCd->pEntry[No].Size + 3) & ~3;
+        pCd->First_flg = 1;
+        if (pCd->pEntry[No].Unk5 == 1) {
+            pCd->First_flg = 2;
+        }
+    }
+    if (pCd->Unk8AC > 0x800) {
+        Size = 0x800;
+        pCd->Unk8AC -= 0x800;
+    } else {
+        if (pCd->Type == 4) {
+            if (pCd->Unk8BC != 0) {
+                pCd->Unk8CC += (pCd->Unk8BC + 3) & ~3;
+                pCd->Unk8BC = 0;
+            }
+            if (pCd->pEntry[No].Unk5 == 1) {
+                pCd->Unk8D4 = 1;
+            }
+            if (pCd->pEntry[No - 1].Unk5 == 1) {
+                pCd->Unk8D4 = 2;
+            }
+        } else if ((pCd->pEntry[No].Type & 0x7F) == 0) {
+            pCd->Unk8CC += (pCd->pEntry[8].Size + 3) & ~3;
+        }
+        Size = pCd->Unk8AC;
+        pCd->Unk8AC = 0;
+        pCd->First_flg = 0;
+    }
+    func_800100A4((void *)pCd->Unk8A8, (UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), Size);
+    pCd->Unk8A8 += 0x800;
+    if (pCd->Unk8D4 == 1) {
+        for (; pG->ppEnemy_end != &pG->pEm_tbl[pCd->Unk8D4]; pCd->Unk8D4++) {
+            if (pCd->pEntry[No].Id == pG->pEm_tbl[pCd->Unk8D4]->Id) {
+                pG->pEm_tbl[pCd->Unk8D4]->Clut = pCd->Unk8D1;
+                pG->pEm_tbl[pCd->Unk8D4]->Tpage = pCd->Unk8D0;
+                if (pCd->Unk8D4 == 1) {
+                    break;
+                }
+            }
+        }
+        OpenTIM((u_long *)pCd->Unk8CC);
+        pTim = ReadTIM(&Tim);
+        /* texture pages 16.. are the second row: x wraps at 1024, y = 256 */
+        pTim->prect->x = (pCd->Unk8D0 << 6) - (pCd->Unk8D0 >= 0x10 ? 0x400 : 0);
+        pTim->prect->y = (pCd->Unk8D0 >= 0x10) << 8;
+        LoadImage(pTim->prect, pTim->paddr);
+        pCd->Unk8D0 += (pTim->prect->w + 0x3F) / 64;
+        if (pTim->caddr != NULL) {
+            pTim->crect->y = pCd->Unk8D1 + 0x1E0;
+            LoadImage(pTim->crect, pTim->caddr);
+            pCd->Unk8D1 += pTim->crect->h;
+        }
+        DrawSync(0);
+    }
+    if (pCd->pEntry[No - 1].Unk5 == 1 && pCd->Unk8D4 == 2) {
+        pCd->Unk8D4 = 1;
+        for (k = 1; pG->ppEnemy_end != &pG->pEm_tbl[k]; pCd->Unk8D4 = k + 1, k = pCd->Unk8D4) {
+            if (pCd->pEntry[No].Id == pG->pEm_tbl[k]->Id) {
+                pEm = pG->pEm_tbl[k];
+                break;
+            }
+        }
+        Work = pCd->Unk8CC;
+        Sce_cd.Unk148E = pEm->Id;
+        pEm->Unk4B &= 0xF;
+        Sce_cd.Unk148F = pEm->Unk4B;
+        Sce_cd.pUnk1460 = pEm;
+        Kind = Em_kind_search(pEm->Id);
+        pData = func_8005211C(Kind);
+        if (pData == NULL) {
+            pDat->pEm = pEm;
+            pDat->Id = pEm->Id;
+            pDat->Kind = Kind;
+            Sce_cd.Unk1488++;
+        } else {
+            pEm->Unk4B |= func_800520D8(pEm->Id);
+        }
+        Work = func_8001760C(pCd->pEntry[No].Id, pEm, Work, pData);
+        Sce_cd.pUnk1490 = EM_CD(pEm)->pUnk11C;
+        Sce_cd.Type = 0;
+        Sce_cd.pCScd = pG->pRoom->pScd;
+        Work = PartsWork_set(pEm, Work);
+        Work = func_800261AC(pEm, Work, pEm->pUnk10C);
+        Sa_dat_set(pEm, pEm->pUnk118);
+        pCd->Unk8CC = Work;
+        if (pEm->Id < 0x50) {
+            if (pEm->Id == pCd->Em_id[0]) {
+                pCd->Unk8D4 = 0;
+            } else {
+                pCd->Unk8D4 = 1;
+            }
+            pG->Em_bank[pCd->Unk8D4].Flg = 1;
+            pG->Em_bank[pCd->Unk8D4].Id = pCd->pEntry[No].Id;
+            pG->Em_routine[pCd->pEntry[No].Id - 0x10] = pG->Em_ov_mtbl[pCd->Unk8D4][pCd->pEntry[No].Id - 0x10];
+            return;
+        }
+        if (*Sce_cd.pUnk1490 != 0) {
+            func_8007A2D4(pEm, Sce_cd.pUnk1490);
+        }
+    }
+}
+
 
 void func_80013754(void)
 {
@@ -1167,18 +1352,6 @@ void func_80014968(tagCD *pCd)
     }
 }
 
-/* ENEMY_WORK fields not in em_sub.h yet */
-typedef struct {
-    UCHAR pad0[0x11C];
-    ULONG *pUnk11C;                    /* 0x11C */
-    UCHAR pad120[0x174 - 0x120];
-    ULONG Unk174;                      /* 0x174 */
-    UCHAR pad178[0x1B4 - 0x178];
-    ULONG Unk1B4;                      /* 0x1B4 */
-} EM_CD;
-#define EM_CD(p) ((EM_CD *)(p))
-void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData);
-void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pData);
 
 /* enemies of the same kind share the model data of the first one (CD.Em_id[0], then Em_id[1]) */
 void func_80014D10(void)
