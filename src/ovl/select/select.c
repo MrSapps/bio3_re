@@ -65,7 +65,106 @@ void func_801C20FC(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/select/select", func_801C235C);
+/* RE2 Select_init */
+void func_801C235C(void)
+{
+    tagGLOBAL *pG = &G;
+    SELECT_WORK *pSel = &Select_wk;
+    SELECT_VIEW *pView = &Select_view;
+    ENEMY_WORK *pEm;
+    ENEMY_WORK *pEmTop;
+    UCHAR *pWork;
+    ULONG i;
+    ULONG n;
+    ULONG Size;
+
+    Task_suspend(0);
+    pSel->Vloop_bak = Main.Vloop;
+    Main.Vloop = 2;
+    Main.Unk191 = 1;
+    func_801C4774();
+    func_8007809C(0, 0xC, 0x801FBC00, 0x80180000);
+    Bg_set_mode(2, 0);
+    func_801C2DE0();
+    Set_view(pView->Eye, pView->Ref);
+    SetGeomOffset(0xA0, 0x78);
+    SetGeomScreen(300);
+    pSel->pHeap = (UCHAR *)0x80100000;
+    pSel->Cursor_no = 1;
+    func_801C47D4(&Select_obj[0], &Select_sprt_def[0], 0x1EF0015, 0x808080);
+    func_801C47D4(&Select_obj[1], &Select_sprt_def[1], 0x1EF0015, 0x808080);
+    Select_obj[1].pOya = &Select_obj[0];
+    func_801C47D4(&Select_obj[2], &Select_sprt_def[2], 0x1EF0015, 0x808080);
+    Select_obj[2].pOya = &Select_obj[1];
+    func_801C47D4(&Select_obj[3], &Select_sprt_def[3], 0x1EF0015, 0x808080);
+    func_801C47D4(&Select_obj[4], &Select_sprt_def[4], 0x1EF0016, 0x808080);
+    Select_obj[4].pOya = &Select_obj[3];
+    func_801C47D4(&Select_obj[5], &Select_sprt_def[5], 0x1EF0016, 0x808080);
+    Select_obj[5].pOya = &Select_obj[4];
+    func_801C47D4(&Select_obj[6], &Select_sprt_def[6], 0x1EF0015, 0x808080);
+    Select_obj[6].Flg |= 0xC;
+    func_801C47D4(&Select_obj[7], &Select_sprt_def[7], 0x1EF0015, 0x808080);
+    Select_obj[7].Flg |= 0xC;
+    func_801C47D4(&Select_obj[8], &Select_sprt_def[8], 0x1F10017, 0x808080);
+    func_801C47D4(&Select_obj[9], &Select_sprt_def[9], 0x1F10017, 0x808080);
+    func_801C47D4(&Select_obj[10], &Select_sprt_def[10], 0x1F10017, 0x808080);
+    func_801C47D4(&Select_obj[11], &Select_sprt_def[11], 0x1F10017, 0x808080);
+    func_801C47D4(&Select_obj[12], &Select_sprt_def[12], 0x1F10017, 0x808080);
+    func_801C47D4(&Select_obj[13], &Select_sprt_def[13], 0x1F10017, 0x808080);
+    func_801C47D4(&Select_obj[21], &Select_sprt_def[21], 0x1EF0015, 0x808080);
+    func_801C47D4(&Select_obj[22], &Select_sprt_def[22], 0x1EF0015, 0x808080);
+    func_801C47D4(&Select_obj[23], &Select_sprt_def[23], 0x1EF0015, 0x808080);
+
+    /* message window work, then the three player works */
+    pWork = pSel->pHeap + sizeof(SELECT_MOJI);
+    Select_pMoji = (SELECT_MOJI *)pSel->pHeap;
+    pSel->pHeap = pSel->pHeap + sizeof(SELECT_MOJI) + sizeof(ENEMY_WORK) * 3;
+    Size = sizeof(ENEMY_WORK);
+    for (n = 3, i = 0; n != 0; i++, n--) {
+        (&pG->pUnk265C)[i] = (ENEMY_WORK *)pWork;
+        ((ENEMY_WORK *)pWork)->Be_flg = 1;
+        pWork += Size;
+        (&pG->pUnk265C)[i]->Id = 0;
+    }
+
+    for (n = 3, i = 0; n != 0; i++, n--) {
+        pEm = ((SEL_G_WORKS *)pG)->pWork[i];
+        pG->pEm = pEm;
+        pEm->Id = Select_pl_init[i].Id;
+        pEm->Type = Select_pl_init[i].Type;
+        pEm->Pos_y = Select_pl_init[i].Pos_y;
+        pEm->Cdir_x = Select_pl_init[i].Cdir_x;
+        pEm->Cdir_z = Select_pl_init[i].Cdir_z;
+        pEm->Unk12A = Select_pl_init[i].Unk18;
+        *(ULONG *)&pEm->Move_no = 0x70000;
+        pWork = func_801C3830(pEm, (5 + i * 2) | ((i * 2) << 16), (ULONG *)pWork);
+        pWork = func_801C3AE4(pEm, (ULONG *)pWork, i);
+        pEm->Routine_0 = i;
+        pEm->Routine_1 = 0;
+        pEm->Routine_2 = 0;
+        pEm->Unk154 = Select_dir_L[pSel->Cursor_no][i];
+        pEm->Unk158 = Select_dir_L[pSel->Cursor_no][i];
+        pEm->Cdir_y = Select_dir_fpos[pSel->Cursor_no][i];
+        pEm->Pos_x = (rsin(pEm->Unk154) * 2000) >> 12;
+        pEm->Pos_z = (rcos(pEm->Unk154) * 2000) >> 12;
+        pEm->Spd_y = 0;
+        pEm->Unk1BC[0] = Select_dir_fpos[1][i];
+        func_801C2B34(pEm);
+    }
+    pSel->pHeap = pWork;
+    pSel->Blink_cnt = 0;
+    pSel->Blink_dir = 0;
+    pSel->Flg = 0;
+    pSel->Main_no = 2;
+    pSel->Pad001 = 0;
+    pSel->Moji_no = 0;
+    Snd_se_stad(0x500, NULL, 0, 0);
+    Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 15);
+    while (Fade_status(0) != 0) {
+        func_801C20FC();
+        Task_sleep(1);
+    }
+}
 
 /* RE2 Select_light_ctrl */
 void func_801C28D0(ENEMY_WORK *pEm)
@@ -672,7 +771,43 @@ void func_801C44A4(void)
     pM->Col = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/select/select", func_801C44E8);
+/* RE2 Select_moji_update: glyph of each character, then the cursor */
+void func_801C44E8(LONG Disp)
+{
+    SELECT_MOJI *pM;
+    UCHAR *pText;
+    SELECT_MOJI_REC *pR;
+    SELECT_MOJI_REC *pEnd;
+    ULONG uVal;
+    ULONG c;
+
+    pM = Select_pMoji;
+    pText = pM->Text[0];
+    pR = &pM->Rec[1];
+    pEnd = &pM->Rec[141];
+    do {
+        if (*pText != 0x20) {
+            uVal = *pText - 0x20;
+            pR->Word1 = 8 | (10 << 16);
+            c = (USHORT)uVal;
+            uVal = (((c >> 4) * 10 + 0xB0) << 8) | ((c & 0xF) << 3);
+            pR->Word2 = (uVal & 0xFFFF) + (GetClut(0, 0x1F0) << 16);
+            pR->Vis = Disp;
+        }
+        pR++;
+        pText++;
+    } while (pR < pEnd);
+    pM->Rec[0].Word1 = 8 | (10 << 16);
+    *(SHORT *)&pM->Rec[0].Word0 = pM->Col * 8 + 0xC;
+    *((SHORT *)&pM->Rec[0].Word0 + 1) = pM->Row * 10 + 0x9B;
+    pM->Blink = (pM->Blink + 1) & 0x1F;
+    pM->Rec[0].Word2 = (GetClut(0, 0x1F0) << 16) | 0xCE78;
+    if (Disp != 0) {
+        pM->Rec[0].Vis = pM->Blink & 0x10;
+    } else {
+        pM->Rec[0].Vis = 0;
+    }
+}
 
 /* RE2 Select_moji_trans: one SPRT packet per visible glyph */
 void func_801C4644(LONG Num)

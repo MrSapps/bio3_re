@@ -20,6 +20,12 @@
 /* the three select models are G.pUnk265C, G.pUnk2660, G.pEnemy[0] (consecutive pointers) */
 #define SEL_PL(i) ((&G.pUnk265C)[i])
 
+/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array (as in oba.c) */
+typedef struct tagSEL_G_WORKS {
+    UCHAR pad0[0x265C];
+    struct tagENEMY_WORK *pWork[42];   /* 0x265C */
+} SEL_G_WORKS;
+
 /* G+0x2484 holds the current texture page / clut row as bytes (RE2 G.Ctpage, G.Cclut);
  * bio3.h has it as one USHORT (G.Unk2484), so this is a byte view of G */
 typedef struct tagG_CTP {

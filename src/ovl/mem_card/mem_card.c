@@ -1301,7 +1301,34 @@ void func_801C56E0(void)
     pG->Save_unk780D = Main.Unk196;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/mem_card/mem_card", func_801C57E0);
+/* Load_pop: restore the game state from the loaded save area */
+void func_801C57E0(void)
+{
+    tagGLOBAL *pG = &G;
+
+    pG->Next_cut_no = pG->Cut_no;
+    pG->Pl_id = pG->Save_pl_id;
+    pG->Pl_pos_x = pG->Save_pos_x;
+    pG->Pl_pos_y = pG->Save_pos_y;
+    pG->Pl_pos_z = pG->Save_pos_z;
+    pG->Pl_cdir_y = pG->Save_cdir_y;
+    pG->Pl_life = pG->Save_life;
+    pG->Pl_nFloor = pG->Save_pos_y / -1800;
+    if (pG->Save_poison & 0x80) {
+        pG->Pl_poison_timer = pG->Save_poison & 0x7F;
+        pG->Pl_status_flg |= 0x200;
+    } else {
+        pG->Pl_poison_timer = 0;
+        pG->Pl_status_flg &= ~0x200;
+    }
+    Snd_work.Unk7C8 = pG->Save_vol;
+    Snd_work.Unk7CA = pG->Save_vol2;
+    Snd_work.UnkB75 = pG->Save_mono;
+    Main.Unk195 = pG->Save_unk780C;
+    Main.Unk196 = pG->Save_unk780D;
+    G.pUnk7C7C = G.Item_work[G.Item_work_no];
+    Set_volume(CD.Vol);
+}
 
 /* Card_mess_make: build the Shift-JIS title of the card file: "RE3  NN.[area]/save count[clear count]E|H" */
 void func_801C58FC(char *pTitle, void *pHead, UCHAR Slot)

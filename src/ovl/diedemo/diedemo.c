@@ -133,7 +133,109 @@ void func_801944F0(void)
     Diedemo.Rno++;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", func_80194574);
+/* routine 3: slow motion, then set up the camera */
+void func_80194574(void)
+{
+    SND_WORK *pSnd = &Snd_work;
+    tagGLOBAL *pG;
+    tagGLOBAL *pGw;
+    ULONG i, j, n;
+
+    if (Fade_status(1)) {
+        Main.Vloop = 2;
+    }
+    if (Diedemo.Free < 0x7FFF) {
+        Diedemo.Ctr += Diedemo.Addpos;
+        Diedemo.Addpos += 2;
+        if (++Diedemo.Phase < 3) {
+            if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+                G.Unk2468 |= 0xFF000000;
+            }
+        } else {
+            if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+                G.Unk2468 ^= 0xFC000000;
+            }
+            Diedemo.Phase = 0;
+            pSnd->Seq[0].Unk38 = 2;
+            pSnd->Seq[0].Unk3C = 0x3F00;
+            pSnd->Seq[0].Unk40 = 0x100;
+            pSnd->Seq[1].Unk38 = 2;
+            pSnd->Seq[1].Unk3C = 0x3F00;
+            pSnd->Seq[1].Unk40 = 0x100;
+            pSnd->Seq[2].Unk38 = 2;
+            pSnd->Seq[2].Unk3C = 0x3F00;
+            pSnd->Seq[2].Unk40 = 0x100;
+            pSnd->UnkB1C = 0x80;
+            pSnd->UnkB20 = 0x3FFF;
+            pSnd->UnkB24 = 0x100;
+        }
+        Diedemo.Free += Diedemo.Ctr;
+        if (Diedemo.Free >= 0x7FFF) {
+            Diedemo.Free = 0x7FFF;
+            if (G.System_flg & 0x200) {
+                if (G.Status_flg & STAT_XA_VOICE) {
+                    Pad_vib_set1(1, 0xFA, 0);
+                    Diedemo.Ctr = 1;
+                    Diedemo.Addpos = 0;
+                    Diedemo.Free = 0x7FFE;
+                } else {
+                    Pad_vib_fade_set(0x3C, 0xFA, 0x78, 0);
+                }
+            }
+        }
+    } else {
+        G.Pl_be_flg &= ~0x20;
+        D_80198204 = 1;
+        Diedemo.Ctr = D_801981CC[Diedemo.Id_ctr].Wait;
+        while (Diedemo.Ctr-- != 0) {
+            Task_sleep(1);
+        }
+        G.pUnk265C->Be_flg |= 0x80000;
+        G.pUnk265C->Unk1BC[0] = 0;
+        G.pUnk265C->Unk1BC[1] = 0;
+        G.pUnk2660->Be_flg |= 0x80000;
+        G.pUnk2660->Unk1BC[0] = 0;
+        G.pUnk2660->Unk1BC[1] = 0;
+        if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+            G.Unk2468 |= 0x20000000;
+        }
+        Diedemo.Phase = 0;
+        func_80197EF8();
+        if (!(Diedemo.Em_flg & 1)) {
+            G.Unk2468 |= 0x40000000;
+        } else {
+            G.Unk2468 |= 0x80000000;
+        }
+        G.pUnk75A8 = G.Ob_model[0];
+        G.System_flg |= 0x80000000;
+        pG = &G;
+        for (i = 0; i < 32; i++) {
+            *(ULONG *)pG->Ob_model[i] = 0;
+        }
+        Bg_set_mode(1, 0);
+        func_8001B894(0x2000000, NULL);
+        pGw = &G;
+        pGw->Pl_be_flg |= 0x2000;
+        n = pGw->pRoom->nOmodel;
+        for (j = 0; j < n; j++) {
+            *(ULONG *)pGw->Ob_model[j] |= 0x10;
+        }
+        if (G.System_flg & 0x800) {
+            func_80194A3C();
+        } else {
+            func_80194C98();
+        }
+        Task_sleep(1);
+        Diedemo.Ctr = 0;
+        Diedemo.Rno += (G.System_flg & 0x800) ? 1 : 2;
+        if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+            G.Unk2468 &= 0x3FFFFFF;
+        }
+        G.Unk2468 &= ~0x1000000;
+        Fade_set(1, 1, 0, 1, 0xFFFFFF, 0, 0x1E);
+        func_80196334();
+    }
+}
 
 /* camera set up from the cut info of the killer */
 void func_80194A3C(void)
@@ -838,7 +940,71 @@ void func_80196F00(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", func_80197248);
+/* RE2 Die_spr_move_erase: wave the grid and darken it */
+void func_80197248(void)
+{
+    SVECTOR V[4];
+    SHORT Row;
+    SHORT Col;
+    LONG Dist;
+    LONG Rgb;
+    LONG Wave;
+    UCHAR Val;
+    POLY_GT4 *p;
+
+    for (Row = 0; Row < 17; Row++) {
+        for (Col = 0; Col < 17; Col++) {
+            pDiespr->Pos[Col][Row].vy = 0;
+            Dist = pDiespr->Dist[Col][Row];
+            Wave = rsin(Dist * 0x40 - pDiespr->Free2 * 0x80) >> 6;
+            Wave *= pDiespr->Free2;
+            Wave = Wave / (Dist * 20 / 255 + 80) + 0x29F;
+            pDiespr->Pos[Col][Row].vy += Wave;
+        }
+    }
+    p = pDiespr->Pgt4[G.Cbuf_id];
+    for (Row = 0; Row < 16; Row++) {
+        for (Col = 0; Col < 16; Col++) {
+            /* [17] is the next column */
+            V[0] = (&pDiespr->Pos[Col][Row])[0];
+            V[1] = (&pDiespr->Pos[Col][Row])[17];
+            V[2] = (&pDiespr->Pos[Col][Row + 1])[0];
+            V[3] = (&pDiespr->Pos[Col][Row + 1])[17];
+            RotTransPers3(&V[0], &V[1], &V[2], (long *)&p->x0, (long *)&p->x1, (long *)&p->x2, NULL, NULL);
+            RotTransPers(&V[3], (long *)&p->x3, NULL, NULL);
+            Rgb = (255 - pDiespr->Dist[Col][Row]) >> 5;
+            Rgb = p->r0 - Rgb;
+            Val = Rgb;
+            if (Rgb < 0)
+                Val = 0;
+            p->r0 = Val;
+            Rgb = (255 - pDiespr->Dist[Col + 1][Row]) >> 5;
+            Rgb = p->r1 - Rgb;
+            Val = Rgb;
+            if (Rgb < 0)
+                Val = 0;
+            p->r1 = Val;
+            Rgb = (255 - pDiespr->Dist[Col][Row + 1]) >> 5;
+            Rgb = p->r2 - Rgb;
+            Val = Rgb;
+            if (Rgb < 0)
+                Val = 0;
+            p->r2 = Val;
+            Rgb = (255 - pDiespr->Dist[Col + 1][Row + 1]) >> 5;
+            Rgb = p->r3 - Rgb;
+            Val = Rgb;
+            if (Rgb < 0)
+                Val = 0;
+            p->r3 = Val;
+            AddPrim(G.pOt0 + 5, p);
+            p++;
+        }
+    }
+    if (++pDiespr->Free2 > 200) {
+        pDiespr->Free2 = 0;
+        pDiespr->Rno++;
+    }
+}
 
 /* RE2 Die_spr_move_end */
 void func_8019768C(void)

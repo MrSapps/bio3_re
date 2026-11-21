@@ -526,7 +526,144 @@ void func_801C3BDC(void)
     func_801C31C8();
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/option/option", func_801C3C90);
+/* sound page: stereo/mono and the BGM / SE volumes (0..100, Snd_work 0..127) */
+void func_801C3C90(void)
+{
+    OPT_WORK *pW;
+
+    pW = &Opt;
+    if (pW->Step == 0) {
+        pW->Sub_cur = 0;
+        pW->Sub_cur_old = 0;
+        pW->Timer = 0;
+        pW->Step++;
+        pW->Stereo = Snd_work.UnkB75;
+        pW->Vol_bak[0] = Snd_work.Unk7CA;
+        pW->Vol_bak[1] = Snd_work.Unk7C8;
+        pW->Vol[0] = Snd_work.Unk7CA * 100 / 127;
+        pW->Vol[1] = Snd_work.Unk7C8 * 100 / 127;
+        pW->Vol_old[0] = pW->Vol[0];
+        pW->Vol_old[1] = pW->Vol[1];
+    }
+    if ((G.Unk20FC & 0x1000) && pW->Sub_cur == 0) {
+        pW->Sub_cur = 3;
+    } else if ((G.Unk20FC & 0x4000) && Opt.Sub_cur == 3) {
+        Opt.Sub_cur = 0;
+    } else {
+        if (G.Unk2100 & 0x1000) {
+            Opt.Sub_cur--;
+        }
+        if (G.Unk2100 & 0x4000) {
+            Opt.Sub_cur++;
+        }
+        Opt.Sub_cur = Opt.Sub_cur < 0 ? 0 : Opt.Sub_cur > 3 ? 3 : Opt.Sub_cur;
+    }
+    if (G.Unk2100 & 0x5000) {
+        Opt.Hold = 0;
+        Opt.Arrow = 0;
+        D_801C5598 = 0;
+        D_801C5594 = 0;
+        D_801C5590 = 0;
+        D_801C558C = 0;
+    }
+    if (Opt.Sub_cur_old != Opt.Sub_cur) {
+        Opt.Timer = 0;
+        Snd_se_stad(4, 0, 0, 0);
+    }
+    Opt.Sub_cur_old = Opt.Sub_cur;
+    switch (Opt.Sub_cur) {
+    case 0:
+        if (Opt.Stereo == 0 && (G.Unk20FC & 0x2000)) {
+            Snd_se_stad(4, 0, 0, 0);
+            Opt.Timer = 0;
+            Opt.Stereo = 1;
+        }
+        if (Opt.Stereo == 1 && (G.Unk20FC & 0x8000)) {
+            Snd_se_stad(4, 0, 0, 0);
+            Opt.Timer = 0;
+            Opt.Stereo = 0;
+        }
+        break;
+    case 1:
+        if (G.Unk2100 & 0xA000) {
+            Opt.Hold++;
+            if (G.Unk2100 & 0x2000) {
+                Opt.Vol[0] += Opt.Hold / 6 + 1;
+            }
+            if (G.Unk2100 & 0x8000) {
+                Opt.Vol[0] -= Opt.Hold / 6 + 1;
+            }
+            Opt.Vol[0] = Opt.Vol[0] < 0 ? 0 : Opt.Vol[0] > 100 ? 100 : Opt.Vol[0];
+            Snd_work.Unk7CA = (Opt.Vol[0] * 127 + 99) / 100;
+            if (Opt.Vol_old[0] != Opt.Vol[0]) {
+                Snd_se_stad(4, 0, 0, 0);
+                if (Opt.Vol_old[0] > Opt.Vol[0]) {
+                    D_801C5598 = 1;
+                } else {
+                    D_801C5594 = 1;
+                }
+                Opt.Arrow = 2;
+            }
+            Opt.Vol_old[0] = Opt.Vol[0];
+        }
+        if (!((USHORT)G.Unk20F8 & 0xA000)) {
+            Opt.Hold = 0;
+            Opt.Arrow = 0;
+            D_801C5598 = 0;
+            D_801C5594 = 0;
+            D_801C5590 = 0;
+            D_801C558C = 0;
+        }
+        break;
+    case 2:
+        if (G.Unk2100 & 0xA000) {
+            Opt.Hold++;
+            if (G.Unk2100 & 0x2000) {
+                Opt.Vol[1] += Opt.Hold / 6 + 1;
+            }
+            if (G.Unk2100 & 0x8000) {
+                Opt.Vol[1] -= Opt.Hold / 6 + 1;
+            }
+            Opt.Vol[1] = Opt.Vol[1] < 0 ? 0 : Opt.Vol[1] > 100 ? 100 : Opt.Vol[1];
+            Snd_work.Unk7C8 = (Opt.Vol[1] * 127 + 99) / 100;
+            if (Opt.Vol_old[1] != Opt.Vol[1]) {
+                Snd_se_stad(4, 0, 0, 0);
+                if (Opt.Vol_old[1] > Opt.Vol[1]) {
+                    D_801C5590 = 1;
+                } else {
+                    D_801C558C = 1;
+                }
+                Opt.Arrow = 2;
+            }
+            Opt.Vol_old[1] = Opt.Vol[1];
+        }
+        if (!((USHORT)G.Unk20F8 & 0xA000)) {
+            Opt.Hold = 0;
+            Opt.Arrow = 0;
+            D_801C5598 = 0;
+            D_801C5594 = 0;
+            D_801C5590 = 0;
+            D_801C558C = 0;
+        }
+        break;
+    case 3:
+        if (Opt.Fade_mode != 0) {
+            return;
+        }
+        if (G.Key_trg & 0x1000) {
+            Snd_se_stad(6, 0, 0, 0);
+            Stereo_flg = Opt.Stereo;
+            func_801C4E9C();
+        }
+        break;
+    }
+    if (Opt.Fade_mode == 0 && (G.Key_trg & 0x2000)) {
+        Snd_se_stad(5, 0, 0, 0);
+        Snd_work.Unk7CA = Opt.Vol_bak[0];
+        Snd_work.Unk7C8 = Opt.Vol_bak[1];
+        func_801C4E9C();
+    }
+}
 
 /* sound page: draw */
 void func_801C435C(void)

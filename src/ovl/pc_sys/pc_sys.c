@@ -72,8 +72,37 @@ ULONG func_801C24E0(ULONG X, ULONG Y, ULONG W, ULONG H)
     return 0;
 }
 
-/* window zoom frame (4 LINE_F2); draft in scratchpad/drafts: only the prologue schedule differs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", func_801C2608);
+/* window zoom frame: four white LINE_F2 */
+void func_801C2608(LONG X0, LONG Y0, LONG X1, LONG Y1)
+{
+    PC_WORK *pPc = Pc_wk;
+    PC_LINE *pLine = pPc->Line[G.Cbuf_id];
+    LONG i;
+    ULONG Rgb = 0xFFFFFF;
+
+    for (i = 3; i >= 0; i--)
+        pLine[i].Rgbc = Rgb;
+    pLine[0].X0 = X0;
+    pLine[0].X1 = X1;
+    pLine[1].X0 = X0;
+    pLine[1].X1 = X1;
+    pLine[2].X0 = X0;
+    pLine[2].X1 = X0;
+    pLine[3].X0 = X1;
+    pLine[3].X1 = X1;
+    pLine[0].Y0 = Y0;
+    pLine[0].Y1 = Y0;
+    pLine[1].Y0 = Y1;
+    pLine[1].Y1 = Y1;
+    pLine[2].Y0 = Y0;
+    pLine[2].Y1 = Y1;
+    pLine[3].Y0 = Y0;
+    pLine[3].Y1 = Y1;
+    for (i = 3; i >= 0; i--) {
+        SetLineF2((LINE_F2 *)&pPc->Line[G.Cbuf_id][i]);
+        AddPrim(G.Ot0[G.Cbuf_id], &pPc->Line[G.Cbuf_id][i]);
+    }
+}
 
 /* keyboard key number -> character */
 ULONG func_801C270C(UCHAR Key)
@@ -260,8 +289,26 @@ void func_801C2D34(PC_SPR *pDst, PC_SPR *pSrc)
     pDst->w.Attr = pSrc->s.Ot + (pSrc->s.Code << 8) + (pSrc->s.Col << 16) + (pSrc->s.On << 24);
 }
 
-/* sprites -> SPRT packets; draft in scratchpad/drafts: packet pointer giv offset differs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", func_801C2D94);
+/* sprites 0..Num-1 -> SPRT packets (semi-transparent code + grey level) */
+void func_801C2D94(ULONG Num)
+{
+    PC_SPRT *pPkt = Pc_wk->Sprt[G.Cbuf_id];
+    PC_SPR *pSpr = Pc_wk->Spr;
+    PC_SPR *pEnd = &pSpr[Num];
+
+    do {
+        if (pSpr->s.On) {
+            pPkt->Tag = 0x4000000;
+            pPkt->Rgbc = (pSpr->s.Code << 24) + 0x64000000 + pSpr->s.Col + (pSpr->s.Col << 8) + (pSpr->s.Col << 16);
+            pPkt->Xy = pSpr->w.Xy;
+            pPkt->Wh = pSpr->w.Wh;
+            pPkt->Uv_clut = pSpr->w.Uv_clut;
+            AddPrim(&G.Ot0[G.Cbuf_id][pSpr->s.Ot], pPkt);
+            pPkt++;
+        }
+    } while (++pSpr < pEnd);
+    func_801C2EBC();
+}
 
 /* one DR_MODE per OT slot */
 void func_801C2EBC(void)
