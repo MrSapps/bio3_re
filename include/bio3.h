@@ -172,7 +172,8 @@ typedef struct tagGLOBAL {
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
     void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
     void (*Unk3EE0[24])();             /* 0x3EE0 all set to Spl by Spl_set */
-    UCHAR pad3F40[0x4320 - 0x3F40];
+    UCHAR pad3F40[0x3FA0 - 0x3F40];
+    void (*Em_ov_mtbl[2][112])(struct tagENEMY_WORK *); /* 0x3FA0 RE2 Em_ov_mtbl: move routine by Id - 0x10 inside each enemy overlay bank (Em_move_tbl_set) */
     USHORT Unk4320;                    /* 0x4320 0xFF on room load (Set_room) */
     USHORT Unk4322;                    /* 0x4322 set when the first enemy sound bank is loaded (func_80014968) */
     USHORT Unk4324;                    /* 0x4324 0xFF on room load (Set_room) */

@@ -3100,7 +3100,62 @@ void func_80046E00(PL_WEP_POLY *pWp, SVECTOR *pV)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80046EC4);
+ULONG func_80037D50(VECTOR *pPos);
+extern MATRIX GsWSMATRIX;
+
+void func_80046EC4(void)
+{
+    tagGLOBAL *pG = &G;
+    PL_WEP_POLY *pWp;
+    POLY_FT4 *pPoly;
+    ULONG *pOt;
+    LONG Scale;
+    LONG i;
+    SHORT Z;
+    SHORT R;
+    SHORT X;
+    SHORT Y;
+    SVECTOR Sv;
+    DVECTOR Sxy[2];
+
+    if (pG->Unk2468 & 0x1000000) {
+        return;
+    }
+    pWp = Pl_wep_poly;
+    SetRotMatrix(&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
+    i = 6;
+    Scale = pG->pRoom->Cut[pG->Cut_no].ViewR >> 7;
+    do {
+        if (!(pWp->Be_flg & 1)) {
+            pWp++;
+            continue;
+        }
+        if (!func_8001020C((LONG *)pWp->Unk4, G.Cccut)) {
+            pWp++;
+            continue;
+        }
+        pOt = (ULONG *)func_80037D50((VECTOR *)pWp->Unk4);
+        Sv.vx = ((VECTOR *)pWp->Unk4)->vx;
+        Sv.vy = ((VECTOR *)pWp->Unk4)->vy;
+        Sv.vz = ((VECTOR *)pWp->Unk4)->vz;
+        Z = RotTransPers(&Sv, (LONG *)&Sxy[0], (LONG *)&Sxy[1], (LONG *)&Sxy[1]);
+        if (Z < 8) {
+            pWp++;
+            continue;
+        }
+        R = Scale * pWp->Unk2 / (Z * 4);
+        pPoly = &pWp->Poly[pG->Cbuf_id];
+        X = Sxy[0].vx;
+        Y = Sxy[0].vy;
+        setXY4(pPoly, X - R, Y - R, X + R, Y - R, X - R, R + Y, X + R, R + Y);
+        if (Z >= 0x2000) {
+            Z = 0x1FFF;
+        }
+        pWp++;
+        addPrim(&pOt[Z >> 3], pPoly);
+    } while (--i != 0);
+}
 
 ULONG func_800470F4(VECTOR *pPos, LONG Ll0, LONG Ll1)
 {
@@ -3153,11 +3208,221 @@ ULONG func_800470F4(VECTOR *pPos, LONG Ll0, LONG Ll1)
 
 INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_800472EC);
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80047860);
+LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
+{
+    tagGLOBAL *pG = &G;
+    OM_TARGET **ppT;
+    OM_TARGET *pT;
+    EM_HIT_AREA *pH;
+    MATRIX *pTm;
+    VECTOR *pPos;
+    LONG i;
+    LONG Dist;
+    ULONG Min;
+    LONG dz;
+    VECTOR V;
+    VECTOR V2;
+    MATRIX Unused;
+    MATRIX Mt;
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80047BD0);
+    Min = 0x7FFFFFFF;
+    if (pG->Om_target_num == 0) {
+        return 0;
+    }
+    pW += Type - 1;
+    pPos = (VECTOR *)pM->t;
+    TransposeMatrix(pM, &Mt);
+    SetRotMatrix(&Mt);
+    i = pG->Om_target_num;
+    ppT = (OM_TARGET **)pG->pUnk75AC;
+    do {
+        pT = *ppT;
+        if (pT->Flg == 0xFF) {
+            goto next;
+        }
+        if (Type == 1 && !(pT->pOm->Type & 0x80)) {
+            goto next;
+        }
+        pH = &pT->Area;
+        pTm = pH->pM;
+        if (pT->pOm->Type == 0) {
+            pTm->t[1] -= 0x708;
+        }
+        if (Sca_ck_line(pPos, (VECTOR *)pTm->t, 0x40, 1)) {
+            do {
+                do {
+                    ppT++;
+                } while (0);
+            } while (0);
+            if (pT->pOm->Type == 0) {
+                pTm->t[1] += 0x708;
+            }
+            goto end;
+        }
+        if (pT->pOm->Type == 0) {
+            pTm->t[1] += 0x708;
+        }
+        Dist = (pPos->vx - pTm->t[0]) >> 1;
+        dz = (pPos->vz - pTm->t[2]) >> 1;
+        Dist = SquareRoot0(Dist * Dist + dz * dz) * 2;
+        if (pW->Range < Dist) {
+            goto next;
+        }
+        V.vx = pTm->t[0] - pM->t[0];
+        V.vy = 0;
+        V.vz = pTm->t[2] - pM->t[2];
+        ApplyRotMatrixLV(&V, &V);
+        if (!func_8004470C(0x1900000 | pW->UnkC, 0x1000, &V, pH->R)) {
+            goto next;
+        }
+        V.vx = pTm->t[0] - pM->t[0];
+        V.vy = pTm->t[1] + pT->Area.Top - pM->t[1];
+        V.vz = pTm->t[2] - pM->t[2];
+        ApplyRotMatrixLV(&V, &V);
+        V2.vx = pTm->t[0] - pM->t[0];
+        V2.vy = pTm->t[1] + pH->Bottom - pM->t[1];
+        V2.vz = pTm->t[2] - pM->t[2];
+        ApplyRotMatrixLV(&V2, &V2);
+        if (V2.vx < 0 || V.vx > 0) {
+            if (!func_8004479C(0x3E80000 | pW->UnkC, 0x1001000, &V) && !func_8004479C(0x3E80000 | pW->UnkC, 0x1001000, &V2)) {
+                goto next;
+            }
+        }
+        goto hit;
+next:
+        ppT++;
+        goto end;
+hit:
+        do {
+            do {
+                ppT++;
+            } while (0);
+        } while (0);
+        pT->Flg = 0xFF;
+        Min = Dist;
+        pT->Unk2 = Type;
+end:
+        ;
+    } while (--i != 0);
+    return Min != 0x7FFFFFFF;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80047DD0);
+LONG func_80047BD0(HIT_REQ *pReq, HIT_ATTR *pAttr)
+{
+    tagGLOBAL *pG = &G;
+    OM_TARGET **ppT;
+    OM_TARGET *pT;
+    EM_HIT_AREA *pH;
+    VECTOR *pPos;
+    LONG i;
+    LONG Ret;
+    SHORT Top;
+    SHORT Bottom;
+    LONG w;
+    LONG d;
+    MATRIX *pM;
+    SVECTOR Rot;
+    MATRIX M;
+    MATRIX Mt;
+    VECTOR V;
+
+    if (pG->Om_target_num == 0) {
+        return 0;
+    }
+    Rot.vx = 0;
+    Rot.vy = pReq->R;
+    Rot.vz = 0;
+    RotMatrix_gte(&Rot, &M);
+    ppT = (OM_TARGET **)pG->pUnk75AC;
+    *(VECTOR *)M.t = *pReq->pPos;
+    pPos = pReq->pPos;
+    Bottom = pAttr->Bottom;
+    Top = pAttr->Top;
+    TransposeMatrix(&M, &Mt);
+    SetRotMatrix(&Mt);
+    Ret = 0;
+    i = pG->Om_target_num;
+    do {
+        pT = *ppT;
+        pH = &pT->Area;
+        if (pT->Flg != 0xFF) {
+            pM = pH->pM;
+            V.vx = pM->t[0] - pPos->vx;
+            V.vy = pM->t[1] - pPos->vy;
+            V.vz = pM->t[2] - pPos->vz;
+            ApplyRotMatrixLV(&V, &V);
+            if (pH->Top + V.vy >= Bottom && Top >= pH->Bottom + V.vy) {
+                w = pAttr->W + pT->Area.R;
+                d = pAttr->D + pT->Area.R;
+                if ((ULONG)(V.vx + w) < (ULONG)(w * 2) && (ULONG)(V.vz + d) < (ULONG)(d * 2)) {
+                    pT->Flg = 0xFF;
+                    pT->Unk2 = pAttr->Unk1;
+                    Ret = 1;
+                }
+            }
+        }
+        i--;
+        do {
+            ppT++;
+        } while (0);
+    } while (i != 0);
+    return Ret;
+}
+
+VECTOR *func_80047DD0(PLAYER_WORK *pEm, ULONG LL)
+{
+    tagGLOBAL *pG = &G;
+    OM_TARGET **ppT;
+    OM_TARGET *pT;
+    OM_TARGET *pNear;
+    MATRIX *pM;
+    ULONG Min;
+    ULONG Dist;
+    LONG i;
+    LONG dx;
+    LONG dz;
+    VECTOR Unused; /* never referenced; keeps the 0x48 frame */
+
+    Min = 0x7FFFFFFF;
+    i = pG->Om_target_num;
+    if (i == 0) {
+        return 0;
+    }
+    ppT = (OM_TARGET **)pG->pUnk75AC;
+    if (LL != 0) {
+        Min = LL;
+    }
+    pNear = 0;
+    do {
+        do {
+            pT = *ppT;
+        } while (0);
+        if (pT->Flg != 0xFF) {
+            pM = pT->Area.pM;
+            dx = (pEm->Pos_x - pM->t[0]) >> 1;
+            dz = (pEm->Pos_z - pM->t[2]) >> 1;
+            Dist = SquareRoot0(dx * dx + dz * dz);
+            if (pT->pOm->Type == 0) {
+                pM->t[1] -= 0x708;
+            }
+            if (Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t, (VECTOR *)pM->t, 0x40, 1) == 0 && Dist < Min) {
+                Min = Dist;
+                pNear = pT;
+            }
+            if (pT->pOm->Type == 0) {
+                pM->t[1] += 0x708;
+            }
+        }
+        i--;
+        do {
+            ppT++;
+        } while (0);
+    } while (i != 0);
+    if (pNear != 0) {
+        return (VECTOR *)pNear->Area.pM->t;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80047F70);
 

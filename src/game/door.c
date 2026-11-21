@@ -200,6 +200,37 @@ extern LONG D_800A0FEC[];
 void func_800783BC(ULONG no, ULONG size, ULONG a2);
 void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
 
+/* RE3 door model work (pDwork[] slot, 0xC8 bytes); 0x10.. is laid out like MODEL_WORK */
+typedef struct {
+    ULONG Be_flg;                      /* 0x00 */
+    UCHAR pad04[0x10 - 0x4];
+    LONG Attribute;                    /* 0x10 */
+    ULONG *pTmd;                       /* 0x14 */
+    POLY_GT3 *pPacket;                 /* 0x18 two buffers per door, index G.Cbuf_id */
+    UCHAR pad1C[0x20 - 0x1C];
+    SHORT M[3][3];                     /* 0x20 rotation part of a MATRIX whose t[] is Pos_x..Pos_z */
+    UCHAR pad32[0x34 - 0x32];
+    LONG Pos_x;                        /* 0x34 */
+    LONG Pos_y;                        /* 0x38 */
+    LONG Pos_z;                        /* 0x3C */
+    UCHAR pad40[0x4A - 0x40];
+    UCHAR Id;                          /* 0x4A */
+    UCHAR pad4B;
+    MATRIX Workm;                      /* 0x4C */
+    SHORT Cdir_x;                      /* 0x6C */
+    SHORT Cdir_y;                      /* 0x6E */
+    SHORT Cdir_z;                      /* 0x70 */
+    UCHAR pad72[0x74 - 0x72];
+    ULONG Poly_rgb;                    /* 0x74 */
+    MATRIX *pSuper;                    /* 0x78 */
+    UCHAR pad7C[0xC0 - 0x7C];
+    USHORT Attribute2;                 /* 0xC0 */
+    UCHAR Model_no;                    /* 0xC2 */
+    UCHAR Type;                        /* 0xC3 */
+    USHORT Free;                       /* 0xC4 brightness ramp counter (Attribute2 & 0x1000) */
+    USHORT Free2;                      /* 0xC6 current brightness */
+} DOOR_WORK;
+
 void Door_main(void)
 {
     UCHAR i;
@@ -325,29 +356,6 @@ void Door_model_init(UCHAR *pDw)
     *D_800BA6F8 = PresetObjectGT3_neo(pDw + 0x10, pDoor_cur[0]);
 }
 
-/* RE3 door model work (pDwork[] slot), only the fields used here */
-typedef struct {
-    ULONG Be_flg;                      /* 0x00 */
-    UCHAR pad04[0x10 - 0x4];
-    LONG Attribute;                    /* 0x10 */
-    UCHAR pad14[0x34 - 0x14];
-    LONG Pos_x;                        /* 0x34 */
-    LONG Pos_y;                        /* 0x38 */
-    LONG Pos_z;                        /* 0x3C */
-    UCHAR pad40[0x4A - 0x40];
-    UCHAR Id;                          /* 0x4A */
-    UCHAR pad4B;
-    MATRIX Workm;                      /* 0x4C */
-    SHORT Cdir_x;                      /* 0x6C */
-    SHORT Cdir_y;                      /* 0x6E */
-    SHORT Cdir_z;                      /* 0x70 */
-    UCHAR pad72[0x78 - 0x72];
-    MATRIX *pSuper;                    /* 0x78 */
-    UCHAR pad7C[0xC0 - 0x7C];
-    USHORT Attribute2;                 /* 0xC0 */
-    UCHAR Model_no;                    /* 0xC2 */
-    UCHAR Type;                        /* 0xC3 */
-} DOOR_WORK;
 /* Door_model_set script record (22 bytes) */
 typedef struct {
     UCHAR Unk_00;
@@ -882,7 +890,141 @@ void Enemy_work_set(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/door", func_8001760C);
 
-INCLUDE_ASM("asm/nonmatchings/game/door", Em_move_tbl_set);
+/* move routines of the enemy overlays as linked into bank 0 (0x80100000) and bank 1 (0x8010D000) */
+void Em40(ENEMY_WORK *pEm);
+void Em39(ENEMY_WORK *pEm);
+void Em27(ENEMY_WORK *pEm);
+void Em26(ENEMY_WORK *pEm);
+void Em2c(ENEMY_WORK *pEm);
+void Em2d(ENEMY_WORK *pEm);
+void Em3e(ENEMY_WORK *pEm);
+void Em20(ENEMY_WORK *pEm);
+void Em37(ENEMY_WORK *pEm);
+void Em30(ENEMY_WORK *pEm);
+void Em22(ENEMY_WORK *pEm);
+void Em32(ENEMY_WORK *pEm);
+void Em25(ENEMY_WORK *pEm);
+void Em33(ENEMY_WORK *pEm);
+void Em36(ENEMY_WORK *pEm);
+void Em23(ENEMY_WORK *pEm);
+void Em21(ENEMY_WORK *pEm);
+void Em38(ENEMY_WORK *pEm);
+void Em34(ENEMY_WORK *pEm);
+void Em16(ENEMY_WORK *pEm);
+void Em10(ENEMY_WORK *pEm);
+void Em40_b1(ENEMY_WORK *pEm);
+void Em39_b1(ENEMY_WORK *pEm);
+void Em2c_b1(ENEMY_WORK *pEm);
+void Em26_b1(ENEMY_WORK *pEm);
+void Em27_b1(ENEMY_WORK *pEm);
+void Em3e_b1(ENEMY_WORK *pEm);
+void Em2d_b1(ENEMY_WORK *pEm);
+void Em20_b1(ENEMY_WORK *pEm);
+void Em37_b1(ENEMY_WORK *pEm);
+void Em30_b1(ENEMY_WORK *pEm);
+void Em22_b1(ENEMY_WORK *pEm);
+void Em32_b1(ENEMY_WORK *pEm);
+void Em25_b1(ENEMY_WORK *pEm);
+void Em33_b1(ENEMY_WORK *pEm);
+void Em36_b1(ENEMY_WORK *pEm);
+void Em23_b1(ENEMY_WORK *pEm);
+void Em21_b1(ENEMY_WORK *pEm);
+void Em38_b1(ENEMY_WORK *pEm);
+void Em34_b1(ENEMY_WORK *pEm);
+void Em16_b1(ENEMY_WORK *pEm);
+void Em10_b1(ENEMY_WORK *pEm);
+
+void Em_move_tbl_set(void)
+{
+    G.Unk4320 = 0xFF;
+    G.Unk4324 = 0xFF;
+    G.Em_ov_mtbl[0][0x00] = Em10;
+    G.Em_ov_mtbl[0][0x01] = Em10;
+    G.Em_ov_mtbl[0][0x02] = Em10;
+    G.Em_ov_mtbl[0][0x03] = Em10;
+    G.Em_ov_mtbl[0][0x04] = Em10;
+    G.Em_ov_mtbl[0][0x05] = Em10;
+    G.Em_ov_mtbl[0][0x06] = Em16;
+    G.Em_ov_mtbl[0][0x07] = Em10;
+    G.Em_ov_mtbl[0][0x08] = Em16;
+    G.Em_ov_mtbl[0][0x09] = Em16;
+    G.Em_ov_mtbl[0][0x0A] = Em16;
+    G.Em_ov_mtbl[0][0x0B] = Em16;
+    G.Em_ov_mtbl[0][0x0C] = Em16;
+    G.Em_ov_mtbl[0][0x0D] = Em16;
+    G.Em_ov_mtbl[0][0x0E] = Em16;
+    G.Em_ov_mtbl[0][0x0F] = Em16;
+    G.Em_ov_mtbl[0][0x10] = Em20;
+    G.Em_ov_mtbl[0][0x11] = Em21;
+    G.Em_ov_mtbl[0][0x12] = Em22;
+    G.Em_ov_mtbl[0][0x13] = Em23;
+    G.Em_ov_mtbl[0][0x14] = Em22;
+    G.Em_ov_mtbl[0][0x15] = Em25;
+    G.Em_ov_mtbl[0][0x16] = Em26;
+    G.Em_ov_mtbl[0][0x17] = Em27;
+    G.Em_ov_mtbl[0][0x18] = Em23;
+    G.Em_ov_mtbl[0][0x1C] = Em2c;
+    G.Em_ov_mtbl[0][0x1D] = Em2d;
+    G.Em_ov_mtbl[0][0x1E] = Em10;
+    G.Em_ov_mtbl[0][0x1F] = Em10;
+    G.Em_ov_mtbl[0][0x20] = Em30;
+    G.Em_ov_mtbl[0][0x22] = Em32;
+    G.Em_ov_mtbl[0][0x23] = Em33;
+    G.Em_ov_mtbl[0][0x24] = Em34;
+    G.Em_ov_mtbl[0][0x25] = Em34;
+    G.Em_ov_mtbl[0][0x26] = Em36;
+    G.Em_ov_mtbl[0][0x27] = Em37;
+    G.Em_ov_mtbl[0][0x28] = Em38;
+    G.Em_ov_mtbl[0][0x29] = Em39;
+    G.Em_ov_mtbl[0][0x2A] = Em36;
+    G.Em_ov_mtbl[0][0x2B] = Em37;
+    G.Em_ov_mtbl[0][0x2E] = Em3e;
+    G.Em_ov_mtbl[0][0x2F] = Em3e;
+    G.Em_ov_mtbl[0][0x30] = Em40;
+    G.Em_ov_mtbl[1][0x00] = Em10_b1;
+    G.Em_ov_mtbl[1][0x01] = Em10_b1;
+    G.Em_ov_mtbl[1][0x02] = Em10_b1;
+    G.Em_ov_mtbl[1][0x03] = Em10_b1;
+    G.Em_ov_mtbl[1][0x04] = Em10_b1;
+    G.Em_ov_mtbl[1][0x05] = Em10_b1;
+    G.Em_ov_mtbl[1][0x06] = Em16_b1;
+    G.Em_ov_mtbl[1][0x07] = Em10_b1;
+    G.Em_ov_mtbl[1][0x08] = Em16_b1;
+    G.Em_ov_mtbl[1][0x09] = Em16_b1;
+    G.Em_ov_mtbl[1][0x0A] = Em16_b1;
+    G.Em_ov_mtbl[1][0x0B] = Em16_b1;
+    G.Em_ov_mtbl[1][0x0C] = Em16_b1;
+    G.Em_ov_mtbl[1][0x0D] = Em16_b1;
+    G.Em_ov_mtbl[1][0x0E] = Em16_b1;
+    G.Em_ov_mtbl[1][0x0F] = Em16_b1;
+    G.Em_ov_mtbl[1][0x10] = Em20_b1;
+    G.Em_ov_mtbl[1][0x11] = Em21_b1;
+    G.Em_ov_mtbl[1][0x12] = Em22_b1;
+    G.Em_ov_mtbl[1][0x13] = Em23_b1;
+    G.Em_ov_mtbl[1][0x14] = Em22_b1;
+    G.Em_ov_mtbl[1][0x15] = Em25_b1;
+    G.Em_ov_mtbl[1][0x16] = Em26_b1;
+    G.Em_ov_mtbl[1][0x17] = Em27_b1;
+    G.Em_ov_mtbl[1][0x18] = Em23_b1;
+    G.Em_ov_mtbl[1][0x1C] = Em2c_b1;
+    G.Em_ov_mtbl[1][0x1D] = Em2d_b1;
+    G.Em_ov_mtbl[1][0x1E] = Em10_b1;
+    G.Em_ov_mtbl[1][0x1F] = Em10_b1;
+    G.Em_ov_mtbl[1][0x20] = Em30_b1;
+    G.Em_ov_mtbl[1][0x22] = Em32_b1;
+    G.Em_ov_mtbl[1][0x23] = Em33_b1;
+    G.Em_ov_mtbl[1][0x24] = Em34_b1;
+    G.Em_ov_mtbl[1][0x25] = Em34_b1;
+    G.Em_ov_mtbl[1][0x26] = Em36_b1;
+    G.Em_ov_mtbl[1][0x27] = Em37_b1;
+    G.Em_ov_mtbl[1][0x28] = Em38_b1;
+    G.Em_ov_mtbl[1][0x29] = Em39_b1;
+    G.Em_ov_mtbl[1][0x2A] = Em36_b1;
+    G.Em_ov_mtbl[1][0x2B] = Em37_b1;
+    G.Em_ov_mtbl[1][0x2E] = Em3e_b1;
+    G.Em_ov_mtbl[1][0x2F] = Em3e_b1;
+    G.Em_ov_mtbl[1][0x30] = Em40_b1;
+}
 
 void func_80017D9C(void) {
 }
