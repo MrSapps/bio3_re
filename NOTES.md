@@ -33,6 +33,16 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   fdiff.py picks the overlay's own asm/syms from the C path. The overlay link uses only the generated
   undefined_*_auto files, so new names in ovl/<name>.syms.txt take effect after a re-split; until then
   name data in C with `__asm__("D_xxx")`.
+- WARNING.BIN is three objects (ovl/warning.yaml edited by hand, do not regenerate it with mkovl.py):
+  warning.c 0xF8 (mod-chip check), frame.c 0x1288, task.c 0x1418 (Capcom task, normal toolchain). The
+  first two are not Capcom code: built with gcc 2.7.2 + plain GNU as (Makefile WARNING_GAS_OBJS, fdiff.py
+  OLD_AS_OBJS): macro `lbu $v0,sym($a2)` uses the destination as temp (`$at` only when dest == base),
+  delay slots of `j` take the tail of a macro store, `move` = addu, and sections are padded to 16
+  bytes (B's 2 nops / 8 zero rodata bytes). Leaf returns are `j end` (2.7.x; 2.8 turns them into
+  `jr $ra`). But every top-tested loop with a non-constant bound gets a stray 8-byte frame from the
+  PsyQ/SN 2.7.2 cc1s (dead copied exit-test pseudo gets a stack slot; also 2.6.3 and PsyQ 4.3
+  cc1psx.exe), and the original has none (and `beqz` instead of `blez` for the first test), so the
+  remaining warning.c functions need another 2.7.2-based gcc, probably decompals old-gcc gcc-2.7.2-cdk.
 - Overlays see G with fields past tagGLOBAL's end; an overlay-local view `extern T Gr __asm__("G")` works,
   but fields used together must come from the same symbol for gcc to share the &G base.
 

@@ -82,7 +82,7 @@ def build(cfile, cc, flags, aspsx="2.77"):
     cc1 = f"{ROOT}/tools/compilers/{cc}/cc1 -quiet {flags} -o -"
     masp = f"{sys.executable} {ROOT}/tools/maspsx/maspsx.py --aspsx-version={aspsx} -G0"
     if aspsx == "none":  # plain GNU as in reorder mode (no ASPSX emulation)
-        masp = "cat"
+        masp = "sed -E 's/^(\\s*)move\\t([^,]+),(.*)$/\\1addu\\t\\2,\\3,$0/'"  # old as: move = addu
     asm = f"{BIN}as -EL -march=r3000 -mtune=r3000 -msoft-float -no-pad-sections -G0 -I{ROOT}/include -I{ROOT} -o {obj} -"
     # pipefail: a cc1 error must fail the build, not yield a partial object
     r = subprocess.run(["bash", "-o", "pipefail", "-c", f"cd {ROOT} && {cpp} | {cc1} | {masp} | {asm}"],
@@ -157,17 +157,21 @@ def resolve_target(r, syms):
         return ("hi", ((a + 0x8000) >> 16) & 0xFFFF)
     return (kind, a)
 
+# objects built with gcc 2.7.2 + plain GNU as instead of ASPSX (Makefile OLD_AS_OBJS)
+OLD_AS_OBJS = r"src/ovl/warning/(warning|frame)\.c$"
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cfile"); ap.add_argument("func")
-    ap.add_argument("--cc", default="gcc-2.8.1-psx")
+    ap.add_argument("--cc", default=None, help="default gcc-2.8.1-psx (see OLD_AS_OBJS)")
     ap.add_argument("--flags", default="-O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char")
     ap.add_argument("-v", action="store_true")
-    ap.add_argument("--aspsx", default="2.77", help="maspsx --aspsx-version, or 'none' for plain GNU as")
+    ap.add_argument("--aspsx", default=None, help="maspsx --aspsx-version (default 2.77), or 'none' for plain GNU as")
     ap.add_argument("--syms", action="append", default=[], help="extra 'name = 0xADDR;' file")
     a = ap.parse_args()
-    if "src/ovl/warning/" in os.path.abspath(a.cfile):  # per-object flag, see Makefile
-        a.flags += " -mno-split-addresses"
+    old = re.search(OLD_AS_OBJS, os.path.abspath(a.cfile))  # per-object toolchain, see Makefile
+    a.cc = a.cc or ("gcc-2.7.2-psx" if old else "gcc-2.8.1-psx")
+    a.aspsx = a.aspsx or ("none" if old else "2.77")
     m = re.search(r"src/ovl/(\w+)/", os.path.abspath(a.cfile))
     if m:  # overlay: its own symbols first, then its view of the exe
         o = os.path.join(ROOT, "ovl", m.group(1))

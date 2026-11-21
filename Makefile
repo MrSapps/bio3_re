@@ -48,8 +48,15 @@ $(BUILD)/%.s.o: %.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-# WARNING.BIN was compiled without address splitting (lw $x,sym / lui+addu+lbu %lo(sym) forms)
-$(BUILD)/src/ovl/warning/warning.c.o: CFLAGS += -mno-split-addresses
+# WARNING.BIN: the mod-chip check (warning.c, frame.c; not Capcom code) was built with gcc 2.7.2 and plain GNU as, not
+# ASPSX: macro lw/sw/lbu sym($x) via $at or the destination reg, delay slots filled by gas, sections padded
+# to 16 bytes, move = addu. Capcom's task (task.c) uses the normal pipeline. Keep in sync with tools/fdiff.py.
+WARNING_GAS_OBJS := $(BUILD)/src/ovl/warning/warning.c.o $(BUILD)/src/ovl/warning/frame.c.o
+$(WARNING_GAS_OBJS): $(BUILD)/%.c.o: %.c
+	@mkdir -p $(dir $@)
+	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | tools/compilers/gcc-2.7.2-psx/cc1 $(CFLAGS) -o - \
+		| sed -E 's/^(\s*)move\t([^,]+),(.*)$$/\1addu\t\2,\3,$$0/' \
+		| $(AS) $(filter-out -no-pad-sections,$(ASFLAGS)) -o $@ -
 
 $(BUILD)/%.c.o: %.c
 	@mkdir -p $(dir $@)

@@ -1,7 +1,28 @@
+/* built with plain GNU as (see Makefile): include asm at top level, without maspsx's markers */
+#define INCLUDE_ASM(FOLDER, NAME) \
+    __asm__(".text\n.set noat\n.set noreorder\n.include \"" FOLDER "/" #NAME ".s\"\n.set reorder\n.set at\n")
 #include "common.h"
 #include "ovl/warning.h"
 
-INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_801840F8);
+/* pick the check and the message language from the BIOS region */
+void func_801840F8(void)
+{
+    switch (Bios_region) {
+    case 'A':
+        Warn_state = 1;
+        Warn_lang_no = 1;
+        break;
+    case 'E':
+        Warn_state = 0;
+        Warn_lang_no = 2;
+        break;
+    case 'I':
+    default:
+        Warn_state = 1;
+        Warn_lang_no = 0;
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_80184164);
 
@@ -46,7 +67,3 @@ ULONG func_801851F4(UCHAR *pFont)
 }
 
 INCLUDE_RODATA("asm/nonmatchings/ovl/warning/warning", D_80184050);
-
-INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_80185288);
-
-INCLUDE_ASM("asm/nonmatchings/ovl/warning/warning", func_80185418);

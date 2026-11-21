@@ -5,7 +5,8 @@
  * mod-chip check. It talks to the CD controller registers directly
  * (GetTN, GetTD, Setloc, SeekP, ... and the test commands), and when the disc
  * does not behave like a pressed one it draws "SOFTWARE TERMINATED" with the
- * BIOS font and stops. Built with -mno-split-addresses (see the Makefile).
+ * BIOS font and stops. warning.c and frame.c (not Capcom code) were built with
+ * gcc 2.7.2 + GNU as, task.c with the game's toolchain (see the Makefile).
  */
 #include "bio3.h"
 #include "main.h"
