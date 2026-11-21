@@ -39,10 +39,19 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   OLD_AS_OBJS): macro `lbu $v0,sym($a2)` uses the destination as temp (`$at` only when dest == base),
   delay slots of `j` take the tail of a macro store, `move` = addu, and sections are padded to 16
   bytes (B's 2 nops / 8 zero rodata bytes). Leaf returns are `j end` (2.7.x; 2.8 turns them into
-  `jr $ra`). But every top-tested loop with a non-constant bound gets a stray 8-byte frame from the
-  PsyQ/SN 2.7.2 cc1s (dead copied exit-test pseudo gets a stack slot; also 2.6.3 and PsyQ 4.3
-  cc1psx.exe), and the original has none (and `beqz` instead of `blez` for the first test), so the
-  remaining warning.c functions need another 2.7.2-based gcc, probably decompals old-gcc gcc-2.7.2-cdk.
+  `jr $ra`). No cc1 we have reproduces it as is. The PsyQ/SN 2.7.2 cc1s (also 2.6.3, PsyQ 4.3
+  cc1psx.exe) give every top-tested loop with a memory bound a stray 8-byte frame and a `blez` first test.
+  decompals' gcc-2.7.2-cdk (cygnus-2.7.2-970404) gets the loops right but has two later cygnus changes
+  that the original lacks. reload_cse_simplify_set turns a second constant into a register copy
+  (`move $a2,$a1` for `f(p, 0, 0)`), and assign_parms puts REG_EQUIV notes on register parameters,
+  which doubles their live length and changes global-alloc priorities. The build therefore patches
+  both out of a copy (Makefile WARNING_CC1 = tools/compilers/gcc-2.7.2-cdk-warning/cc1, made from
+  the sha1-checked gcc-2.7.2-cdk; fdiff builds it on demand) and adds `-fpic`, because the cdk cc1
+  otherwise splits `lw $3,sym` into lui/lw. With that, all of warning.c and frame.c match. Source
+  quirks: the loop in func_80184164 is `goto`-based (a `do`/`while` lets loop.c hoist the case
+  constants into s-regs), and D_80185618/D_80185619 are separate UCHARs (as an array their accesses
+  share a base register). The second symbol is in ovl/warning.syms.txt and was added by hand to the
+  ignored asm/data/ovl/warning/data.data.s, so a re-split gives the same file.
 - Overlays see G with fields past tagGLOBAL's end; an overlay-local view `extern T Gr __asm__("G")` works,
   but fields used together must come from the same symbol for gcc to share the &G base.
 

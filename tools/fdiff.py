@@ -157,20 +157,25 @@ def resolve_target(r, syms):
         return ("hi", ((a + 0x8000) >> 16) & 0xFFFF)
     return (kind, a)
 
-# objects built with gcc 2.7.2 + plain GNU as instead of ASPSX (Makefile OLD_AS_OBJS)
+# objects built with gcc 2.7.2 + plain GNU as instead of ASPSX (Makefile WARNING_GAS_OBJS / WARNING_CC1)
 OLD_AS_OBJS = r"src/ovl/warning/(warning|frame)\.c$"
+OLD_AS_CC = "gcc-2.7.2-cdk-warning"  # patched gcc-2.7.2-cdk, made by `make tools/compilers/gcc-2.7.2-cdk-warning/cc1`
+OLD_AS_FLAGS = " -fpic"  # unsplit `lw $3,sym` macros
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cfile"); ap.add_argument("func")
     ap.add_argument("--cc", default=None, help="default gcc-2.8.1-psx (see OLD_AS_OBJS)")
-    ap.add_argument("--flags", default="-O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char")
+    ap.add_argument("--flags", default=None, help="default -O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char")
     ap.add_argument("-v", action="store_true")
     ap.add_argument("--aspsx", default=None, help="maspsx --aspsx-version (default 2.77), or 'none' for plain GNU as")
     ap.add_argument("--syms", action="append", default=[], help="extra 'name = 0xADDR;' file")
     a = ap.parse_args()
     old = re.search(OLD_AS_OBJS, os.path.abspath(a.cfile))  # per-object toolchain, see Makefile
-    a.cc = a.cc or ("gcc-2.7.2-psx" if old else "gcc-2.8.1-psx")
+    a.cc = a.cc or (OLD_AS_CC if old else "gcc-2.8.1-psx")
+    a.flags = a.flags or ("-O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char" + (OLD_AS_FLAGS if old else ""))
+    if old and a.cc == OLD_AS_CC and not os.path.exists(os.path.join(ROOT, "tools/compilers", a.cc, "cc1")):
+        subprocess.run(["make", "-s", f"tools/compilers/{a.cc}/cc1"], cwd=ROOT, check=True)
     a.aspsx = a.aspsx or ("none" if old else "2.77")
     m = re.search(r"src/ovl/(\w+)/", os.path.abspath(a.cfile))
     if m:  # overlay: its own symbols first, then its view of the exe

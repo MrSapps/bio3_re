@@ -51,10 +51,23 @@ $(BUILD)/%.s.o: %.s
 # WARNING.BIN: the mod-chip check (warning.c, frame.c; not Capcom code) was built with gcc 2.7.2 and plain GNU as, not
 # ASPSX: macro lw/sw/lbu sym($x) via $at or the destination reg, delay slots filled by gas, sections padded
 # to 16 bytes, move = addu. Capcom's task (task.c) uses the normal pipeline. Keep in sync with tools/fdiff.py.
-WARNING_GAS_OBJS := $(BUILD)/src/ovl/warning/warning.c.o $(BUILD)/src/ovl/warning/frame.c.o
-$(WARNING_GAS_OBJS): $(BUILD)/%.c.o: %.c
+# The cc1 is decompals' gcc-2.7.2-cdk (cygnus-2.7.2-970404) with two later cygnus changes switched off (NOTES.md):
+# reload_cse_simplify_set returns 0 (no `move $a2,$a1` for a second 0), assign_parms adds no REG_EQUIV for
+# register parameters (their live length is not doubled). -fpic keeps `lw $3,sym` unsplit (no -msplit-addresses).
+WARNING_CC1 := tools/compilers/gcc-2.7.2-cdk-warning/cc1
+$(WARNING_CC1): tools/compilers/gcc-2.7.2-cdk/cc1
+	echo "4986a1686556aff4081ad082205b1df930e0b0f6  $<" | sha1sum -c --quiet
 	@mkdir -p $(dir $@)
-	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | tools/compilers/gcc-2.7.2-psx/cc1 $(CFLAGS) -o - \
+	cp $< $@.tmp
+	printf '\061\300\303' | dd of=$@.tmp bs=1 seek=$$((0x1389d2)) conv=notrunc status=none
+	printf '\220\351' | dd of=$@.tmp bs=1 seek=$$((0x4e77b)) conv=notrunc status=none
+	echo "215c4f4cb79647896307ddcb087d6e42cbe33bb3  $@.tmp" | sha1sum -c --quiet
+	mv $@.tmp $@
+
+WARNING_GAS_OBJS := $(BUILD)/src/ovl/warning/warning.c.o $(BUILD)/src/ovl/warning/frame.c.o
+$(WARNING_GAS_OBJS): $(BUILD)/%.c.o: %.c $(WARNING_CC1)
+	@mkdir -p $(dir $@)
+	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | $(WARNING_CC1) $(CFLAGS) -fpic -o - \
 		| sed -E 's/^(\s*)move\t([^,]+),(.*)$$/\1addu\t\2,\3,$$0/' \
 		| $(AS) $(filter-out -no-pad-sections,$(ASFLAGS)) -o $@ -
 

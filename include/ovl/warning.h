@@ -39,6 +39,15 @@ typedef struct tagWARN_POS {
     SHORT H;                           /* 0x6 */
 } WARN_POS;
 
+/* CPU to VRAM copy of one glyph row (GP0 0xA0) drawn with DrawPrim */
+typedef struct tagWARN_IMG {
+    ULONG Tag;                         /* 0x00 */
+    ULONG Code;                        /* 0x04 0xA0000000 */
+    ULONG Xy;                          /* 0x08 (y << 16) | x */
+    ULONG Wh;                          /* 0x0C (h << 16) | w */
+    USHORT Pix[16];                    /* 0x10 */
+} WARN_IMG;
+
 /* flat-shaded quad drawn with DrawPrim (a POLY_F4 written as words) */
 typedef struct tagWARN_POLY {
     ULONG Tag;                         /* 0x00 */
@@ -60,7 +69,8 @@ extern WARN_LANG Warn_lang[2] __asm__("D_801855C8");
 extern UCHAR Warn_circle[17][2] __asm__("D_801855E0");  /* quarter circle of the frame corners */
 extern LONG Warn_vsync __asm__("D_80185610");
 extern LONG Warn_last_track __asm__("D_80185614");
-extern UCHAR Warn_pos[2] __asm__("D_80185618");         /* BCD minute, second of the seek target */
+extern UCHAR Warn_min __asm__("D_80185618");            /* seek target (half of the last track's start): BCD minute */
+extern UCHAR Warn_sec __asm__("D_80185619");            /* BCD second (see func_80184164) */
 extern LONG Warn_lang_no __asm__("D_8018561C");
 extern UCHAR Bios_region __asm__("D_BFC7FF52");         /* BIOS version string: 'I', 'A' or 'E' */
 
