@@ -121,7 +121,18 @@ void func_8010027C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em3e_fly_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em3e/em3e", func_80100360);
+/* move 0: pick a destination at the other end of the zone */
+void func_80100360(ENEMY_WORK *pEm)
+{
+    if (pEm->Pos_x > 20000) {
+        pEm->Dest_x = 10000;
+        pEm->Dest_z = Rnd() * -25;
+    } else {
+        pEm->Dest_x = 27000;
+        pEm->Dest_z = Rnd() * -25;
+    }
+    func_80101580(pEm, 1);
+}
 
 void func_801003C4(void) {
 }

@@ -1635,11 +1635,57 @@ INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_801063CC);
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80106668);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80106C48);
+/* set the sub routine of the head and of every segment: 10 at the hit part, +3 per part away from it
+   (for a segment, pEm is replaced by its head) */
+void func_80106C48(ENEMY_WORK *pEm)
+{
+    LONG Up;
+    LONG Dn;
+    LONG Rtn = 10;
+    PARTS_W *pP;
+
+    if (pEm->Type & 1) {
+        Up = Dn = EM33_B(pEm)->Parts;
+        pEm = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        if (Dn >= 7)
+            Dn = 6;
+    } else
+        Up = Dn = 0;
+    while (Up < 7 || Dn >= 0) {
+        if (Up < 7 && Up) {
+            pP = &pEm->pSin_parts_ptr[Up];
+            EM33_W(((EM33_G *)&G)->pEm_tbl[pP->Unk82])->Rtn = Rtn;
+        }
+        if (Up == 0)
+            EM33_W(pEm)->Rtn = Rtn;
+        if (Dn > 0) {
+            pP = &pEm->pSin_parts_ptr[Dn];
+            EM33_W(((EM33_G *)&G)->pEm_tbl[pP->Unk82])->Rtn = Rtn;
+        }
+        if (Dn == 0)
+            EM33_W(pEm)->Rtn = Rtn;
+        Up++;
+        Dn--;
+        Rtn += 3;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80106D64);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_80107074);
+/* water splash under part No */
+void func_80107074(ENEMY_WORK *pEm, LONG No, LONG Type)
+{
+    SVECTOR Sv;
+    LONG Kind;
+
+    Sv.vx = (Rnd() & 0xFF) - 0x7F;
+    Sv.vz = (Rnd() & 0xFF) - 0x7F;
+    Sv.vy = -50;
+    Sv.vx += pEm->pSin_parts_ptr[No].Workm.t[0];
+    Sv.vz += pEm->pSin_parts_ptr[No].Workm.t[2];
+    Kind = (Rnd() & 3) << 9;
+    func_8001B484((Type << 8) | 0x1000003, ((Kind | 0x2000) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Sv, 0);
+}
 
 /* Routine_0 3 */
 void func_80107160(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
