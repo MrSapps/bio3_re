@@ -235,4 +235,55 @@ void func_801C2370(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/ltsout/ltsout", func_801C28BC);
+/* draw: dark background, switch labels, lamps through the cut flags */
+void func_801C28BC(void)
+{
+    LTS_WORK *pLw = &Lts_wk;
+    DR_MODE *pDm;
+    TILE *pT;
+    ULONG i;
+    ULONG Bit;
+    ULONG Mess;
+    ULONG Attr;
+    UCHAR *pStr;
+
+    pDm = &pLw->Dr_mode[0];
+    if (G.Cbuf_id)
+        pDm = &pLw->Dr_mode[1];
+    AddPrim(G.pOt0 + 6, pDm);
+    pT = &pLw->Tile[0];
+    if (G.Cbuf_id)
+        pT = &pLw->Tile[1];
+    AddPrim(pDm, pT);
+    Mess = pLw->Mess;
+    Bit = 0;
+    for (i = 1; i < LTS_SW_NUM + 1; i++) {
+        pStr = &Lts_mess[Lts_mess_ofs[Mess]];
+        Attr = pLw->Cursor == i;
+        Mess_print(i * 0x1C + 0x37, 0xAD, pStr, (Attr << 4) | 0x100);
+        if (i < LTS_SW_NUM) {
+            switch (pLw->Blink) {
+            case 0:
+                Flg_off(&G.Cut_flg[G.Cut_no], Bit);
+                Flg_off(&G.Cut_flg[G.Cut_no], Bit + 4);
+                break;
+            case 1:
+                if (pLw->Lamp[i])
+                    Flg_on(&G.Cut_flg[G.Cut_no], Bit);
+                else
+                    Flg_off(&G.Cut_flg[G.Cut_no], Bit);
+                if (i == pLw->Answer)
+                    Flg_on(&G.Cut_flg[G.Cut_no], Bit + 4);
+                else
+                    Flg_off(&G.Cut_flg[G.Cut_no], Bit + 4);
+                break;
+            case 2:
+                Flg_on(&G.Cut_flg[G.Cut_no], Bit);
+                Flg_on(&G.Cut_flg[G.Cut_no], Bit + 4);
+                break;
+            }
+        }
+        Mess++;
+        Bit++;
+    }
+}

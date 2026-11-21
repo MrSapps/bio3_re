@@ -4,9 +4,146 @@
 SHORT func_801012A4(ENEMY_WORK *pEm, PARTS_W *pP);
 void func_8010133C(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em39/em39", func_80100004);
+/* RE2 EM_MAIN: follow the parent part, then grow/shrink with the ground under parts 3..5 */
+void func_80100004(ENEMY_WORK *pEm)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    PARTS_W *pP;
+    USHORT n;
+    LONG Under;
+    SVECTOR Sv;
+    MATRIX Unused_m;
+    VECTOR Unused_v;
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em39/em39", func_801003B0);
+    if (pEm->Routine_0) {
+        pP = EM39_W(pEm)->pParent->pSin_parts_ptr;
+        if (pEm->Type & 1) {
+            Sv.vx = -0x1B8;
+            Sv.vy = -0x96;
+            Sv.vz = 0x96;
+            pEm->Cdir_y = func_801012A4(EM39_W(pEm)->pParent, &pP[12]) + (SHORT)(EM39_W(pEm)->Dir + 0x200);
+        } else {
+            Sv.vx = -0x1B8;
+            Sv.vy = -0x96;
+            Sv.vz = -0x96;
+            pEm->Cdir_y = func_801012A4(EM39_W(pEm)->pParent, &pP[12]) + (SHORT)(EM39_W(pEm)->Dir - 0x100);
+        }
+        EM39_W(pEm)->Dir += Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 8);
+        if (EM39_W(pEm)->Dir > 0x100)
+            EM39_W(pEm)->Dir = 0x100;
+        if (EM39_W(pEm)->Dir < -0x100)
+            EM39_W(pEm)->Dir = -0x100;
+        ApplyMatrixSV(&pP->Workm, &Sv, &Sv);
+        pEm->Pos_x = pP->Workm.t[0] + Sv.vx;
+        pEm->Pos_y = pP->Workm.t[1] + Sv.vy;
+        pEm->Pos_z = pP->Workm.t[2] + Sv.vz;
+    }
+    Em39_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
+    if (EM39_W(pEm)->Wait)
+        EM39_W(pEm)->Wait--;
+    if (pEm->Spd_z)
+        pEm->Spd_z--;
+    if (!(EM39_W(pEm)->Flg & 1)) {
+        pP = pEm->pSin_parts_ptr;
+        if (pEm->Spd_x != pP->Size_y) {
+            if (pEm->Spd_x < pP->Size_y) {
+                pP->Size_y -= pEm->Spd_y + 0x40;
+                if (pEm->Spd_x >= pP->Size_y)
+                    pP->Size_y = pEm->Spd_x;
+            } else {
+                pP->Size_y += pEm->Spd_y + 0x40;
+                if (pP->Size_y >= pEm->Spd_x)
+                    pP->Size_y = pEm->Spd_x;
+            }
+        }
+        Under = (SHORT)func_8004D720((VECTOR *)pP[3].Workm.t, 500, 0x2000, 0) < pP[3].Workm.t[1];
+        n = Under;
+        if ((SHORT)func_8004D720((VECTOR *)pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
+            n = Under + 1;
+        if ((SHORT)func_8004D720((VECTOR *)pP[5].Workm.t, 500, 0x2000, 0) < pP[5].Workm.t[1])
+            n++;
+        pP->Size_y -= (SHORT)n * 0x80;
+        if (pP->Size_y > 0x1000)
+            pP->Size_y = 0x1000;
+        if (pP->Size_y < 0x200)
+            pP->Size_y = 0x200;
+        n = pP->Size_y;
+        pP[1].Size_y = n;
+        pP[1].Pos_y = (SHORT)n * 626 / 4096;
+        pP[2].Size_y = n;
+        pP[2].Pos_y = (SHORT)n * 1235 / 4096;
+        pP[3].Size_y = n;
+        pP[3].Pos_y = (SHORT)n * 1460 / 4096;
+    }
+    if (pEm->Routine_0 != 3)
+        Em_seq_sound(pEm);
+}
+
+/* RE2 Em39_init */
+void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    tagGLOBAL *pG;
+    ENEMY_WORK **ppEm;
+    PARTS_W *pP;
+    LONG n;
+
+    EM_RTN(pEm) = 1;
+    pEm->Damage_cnt = 0x80;
+    pEm->Spd_x = 0x800;
+    pEm->Life = -1;
+    pEm->Max_life = -1;
+    pG = &G;
+    EM39_W(pEm)->Wait = 0;
+    EM39_W(pEm)->Flg = 0;
+    pEm->Spd_y = 0;
+    pEm->Spd_z = 0;
+    pEm->Unk134 = 0;
+    pEm->Unk136 = 0;
+    pEm->Unk138 = 0;
+    pEm->Unk139 = 0;
+    pEm->Unk13A = 0;
+    pEm->Unk140 = 0;
+    pEm->Spd_x = 0;
+    pEm->Spd_y = 0;
+    pEm->Unk120 = 0;
+    pEm->Neck_no = 0;
+    EM_MOVE(pEm) = 0;
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    Joint_move(pEm, Kan, Seq, 0x400);
+    EM39_W(pEm)->pParent = NULL;
+    ppEm = pG->pEnemy;
+    do {
+        if ((*ppEm)->Id == 0x38)
+            EM39_W(pEm)->pParent = *ppEm;
+    } while (++ppEm != pG->ppEnemy_end);
+    pP = pEm->pSin_parts_ptr;
+    pP[0].Be_flg |= 0x20;
+    pP[3].Be_flg |= 0x20;
+    pEm->Be_flg |= 0x200000;
+    pP = pEm->pSin_parts_ptr;
+    pP[0].Size_z = pP[0].Size_x = 0x1000;
+    pP[0].Size_y = 0x800;
+    pP[0].Be_flg |= 4;
+    pP[1].Size_z = pP[1].Size_x = 0x1000;
+    pP[1].Size_y = 0x800;
+    pP[1].Be_flg |= 4;
+    pP[2].Size_z = pP[2].Size_x = 0x1000;
+    pP[2].Size_y = 0x800;
+    pP[2].Be_flg |= 4;
+    pP[3].Size_z = pP[3].Size_x = 0x1000;
+    pP[3].Size_y = 0x800;
+    pP[3].Be_flg |= 4;
+    pP = pEm->pSin_parts_ptr;
+    EM_RTN(pEm) = 0x201;
+    for (n = 6; n; n--) {
+        pP->Be_flg |= 4;
+        pP->Size_x = 0x1000;
+        pP->Size_y = 0;
+        pP->Size_z = 0x1000;
+        func_8010133C(pEm, pP, 0);
+        pP++;
+    }
+}
 
 /* RE2 Em39_move */
 void func_80100588(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
@@ -14,9 +151,19 @@ void func_80100588(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Em39_move_type[(UCHAR)pEm->Type](pEm, Kan, Seq);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em39/em39", func_801005C4);
+/* move type 0: pick the next move (mv_br), then run it (mv) */
+void func_801005C4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    Em39_mv_br[pEm->Routine_1](pEm);
+    Em39_mv[pEm->Routine_1](pEm, Kan, Seq);
+}
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em39/em39", func_80100648);
+/* unused: same as func_801005C4 with a table that does not exist */
+void func_80100648(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    Em39_mv_br_unk[pEm->Routine_1](pEm);
+    Em39_mv[pEm->Routine_1](pEm, Kan, Seq);
+}
 
 /* wait for the player in reach: start the attack (Routine_1 = 1) */
 void func_801006CC(ENEMY_WORK *pEm)

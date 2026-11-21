@@ -11,7 +11,96 @@ void func_8010001C(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em26/em26", func_8010008C);
+/* RE2 Em26_Init; Type 0 spawns a swarm of 16 copies */
+void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    ULONG i;
+    ENEMY_WORK *pCp;
+    COL_OBJ *pCol;
+
+    pEm->Life = 1;
+    pEm->Be_flg |= 0x400000;
+    pEm->Unk144 = 0;
+    for (i = 0; i < 12; i++)
+        pEm->Unk1CC[i] = 0;
+    EM_MOVE(pEm) = 0xF0000;
+    Joint_move(pEm, Kan, Seq, 0x400);
+    pEm->Unk120 = 0;
+    pEm->Neck_no = 0;
+    EM26_W(pEm)->Kasakasarot = 0x78;
+    EM26_W(pEm)->No_catch_cnt = Rnd() & 0x1F;
+    pCol = EM_COL(pEm);
+    EM26_W(pEm)->pTarget_pl = &Pl_work;
+    pEm->Unk134 = 300;
+    pEm->Unk136 = -300;
+    pEm->Unk13A = 300;
+    pEm->Unk138 = 0x50;
+    pEm->Unk139 = 0xA0;
+    pEm->Damage_cnt = 6;
+    EM26_W(pEm)->Unk0C = 0;
+    pEm->Unk140 = 0;
+    pEm->Spd_x = 0;
+    pEm->Spd_y = 0;
+    pEm->Spd_z = 0;
+    pEm->Cdir_x = 0;
+    pEm->Cdir_z = 0;
+    pEm->Timer0 = 0;
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pCol->pEm = pEm;
+    pCol->W0 = pEm->Col_d0 = 30;
+    pCol->H = 100;
+    pCol->Type = 2;
+    pCol->Unk24 = 0;
+    pCol->Unk28 = 0;
+    pCol->Unk26 = 0;
+    pCol->Flg = 0;
+    EM_RTN(pEm) = (Em26_routine_tbl[(UCHAR)pEm->Type] << 8) + 1;
+    if (Water_ck(pEm->Pos_x, pEm->Pos_z))
+        pEm->Be_flg |= 0x20;
+    switch ((UCHAR)pEm->Type) {
+    case 0:
+        pEm->Life = -1;
+        pEm->Be_flg |= 0x7030;
+        pEm->Type |= 0x4000;
+        for (i = 0; i < 16; i++) {
+            pCp = Em_work_add(pEm);
+            EM_MOVE(pEm) = 0xF0000;
+            Joint_move(pCp, Kan, Seq, 0x400);
+            pCol = EM_COL(pCp);
+            pCp->Unk136 = -300;
+            pCp->Unk138 = 0x50;
+            pCp->Unk139 = 0xA0;
+            pCp->Unk134 = 300;
+            pCp->Unk13A = 300;
+            pCp->Unk140 = 0;
+            pCp->pUnk13C = (UCHAR *)&pCp->pSin_parts_ptr->Workm;
+            pCol->pEm = pCp;
+            pCol->W0 = pCp->Col_d0 = 30;
+            pCol->H = 100;
+            pCol->Unk24 = 0;
+            pCol->Unk28 = 0;
+            pCol->Unk26 = 0;
+            pCol->Flg = 0;
+            pCol->Type = 2;
+            func_80033580(pCol, 0);
+            Kage_work_set((ULONG *)&pCp->pKage_work, 0, 0xC800C8, 0, (VECTOR *)&pCp->Pos_x);
+        }
+        break;
+    case 1:
+        break;
+    case 2:
+    case 3:
+        pEm->Be_flg |= 0x404000;
+        break;
+    case 4:
+    case 5:
+        pEm->Spd_x = 200;
+        pEm->Be_flg |= 0x404000;
+        break;
+    }
+    func_80033580(EM_COL(pEm), 0);
+    Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
+}
 
 /* RE2 Em26_Move */
 void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
@@ -236,7 +325,18 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 void func_80100C94(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em26/em26", func_80100C9C);
+/* RE2 Em26_dm00 */
+void func_80100C9C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    switch (pEm->Routine_2) {
+    case 0:
+        pEm->Routine_2 = 1;
+    case 1:
+        break;
+    case 2:
+        return;
+    }
+}
 
 void func_80100CC8(void) {
 }
