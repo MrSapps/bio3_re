@@ -366,8 +366,76 @@ void func_801C3074(void)
 /* character sprites + text cursor; draft in scratchpad/drafts: 7 scheduling diffs */
 INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", func_801C30B8);
 
-/* typewriter print (]: newline, [nnn: wait, ^nn: column back, |n: colour); draft in scratchpad/drafts: text address form differs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", func_801C31A4);
+/*
+ * type out pStr, one character per Wait frames (all at once when Wait is 0).
+ * Codes: ']' new line, '[nnn' pause nnn frames, '^nn' column back nn, '|n' colour n.
+ * Sets *pDone and returns 1 when the string is finished.
+ */
+ULONG func_801C31A4(LONG Wait, UCHAR *pStr, LONG *pDone)
+{
+    PC_WORK *pPc = Pc_wk;
+    UCHAR Put;
+    UCHAR Ofs;
+    UCHAR *pChr;
+
+    if (*pDone)
+        return 0;
+    if (pPc->pStr != pStr) {
+        pPc->pStr = pStr;
+        pPc->pCur = pStr;
+        pPc->Wait = 1;
+    }
+    if (--pPc->Wait)
+        return 0;
+    pPc->Wait = Wait;
+    Put = 0;
+    while (*pPc->pCur) {
+        switch (*pPc->pCur) {
+        case ']':
+            pPc->Col = 0;
+            pPc->Row++;
+            break;
+        case '[':
+            pPc->Wait = (*++pPc->pCur - '0') * 100;
+            pPc->Wait += (*++pPc->pCur - '0') * 10;
+            pPc->Wait += *++pPc->pCur - '0';
+            pPc->pCur++;
+            return 0;
+        case '^':
+            Ofs = (*++pPc->pCur - '0') * 10;
+            Ofs += *++pPc->pCur - '0';
+            pPc->Col -= Ofs;
+            break;
+        case '|':
+            pPc->pCur++;
+            pPc->Color = *pPc->pCur - '0';
+            break;
+        default:
+            Put = 1;
+            pChr = &pPc->Text[pPc->Row][pPc->Col];
+            *pChr = *pPc->pCur;
+            pChr = &pPc->Attr[pPc->Row][pPc->Col];
+            *pChr = pPc->Color;
+            pPc->Blink = 0x10;
+            pPc->Col++;
+            break;
+        }
+        if (pPc->Col >= PC_COL_NUM) {
+            pPc->Col = 0;
+            pPc->Row++;
+        }
+        if (pPc->Row >= PC_ROW_NUM) {
+            pPc->Row--;
+            func_801C2FB4();
+        }
+        Snd_se_stad(0x210, NULL, 0, 0);
+        pPc->pCur++;
+        if (Wait && Put)
+            return 0;
+    }
+    pPc->pStr = NULL;
+    return *pDone = 1;
+}
 
 /* terminal 0: R.P.D. notice with today's safe password */
 void func_801C347C(void)

@@ -846,7 +846,73 @@ void func_80196380(void)
     D_8019824C[pDiespr->Rno]();
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", func_8019642C);
+/* RE2 Die_spr_move_init: the 2 x 16x16 POLY_GT4 grid, its vertices and distances */
+void func_8019642C(void)
+{
+    SHORT Row;
+    SHORT Grp;
+    SHORT Col;
+    ULONG Wx;
+    UCHAR Wy;
+    LONG Tx;
+    UCHAR Ty;
+    LONG Dx;
+    LONG Dz;
+    LONG Vz;
+    POLY_GT4 *p;
+
+    for (Grp = 0; Grp < 2; Grp++) {
+        Wy = 0;
+        p = pDiespr->Pgt4[Grp];
+        for (Row = 0; Row < 17; Row++) {
+            for (Col = Wx = 0; Col < 17; Col++) {
+                if (Grp != 0) {
+                    pDiespr->Pos[Col][Row].vx = Col * 30;
+                    pDiespr->Pos[Col][Row].vz = Row * 11;
+                    Vz = rcos(Col << 12);
+                    Dx = (SHORT)(0xF0 - Col * 30);
+                    pDiespr->Pos[Col][Row].vz += Vz >> 9;
+                    Dz = (SHORT)(0x58 - pDiespr->Pos[Col][Row].vz);
+                    pDiespr->Pos[Col][Row].vy = 0x212;
+                    pDiespr->Dist[Col][Row] = SquareRoot0(Dx * Dx + Dz * Dz);
+                }
+                if (Row != 16 && Col != 16) {
+                    SetPolyGT4(p);
+                    p->tpage = 0xB5;
+                    p->clut = 0x7FC0;
+                    *(ULONG *)&p->r0 = 0x3E202020;
+                    *(ULONG *)&p->r1 = 0x3E202020;
+                    *(ULONG *)&p->r2 = 0x3E202020;
+                    *(ULONG *)&p->r3 = 0x3E202020;
+                    Tx = 0x10;
+                    if (Col == 15) {
+                        Tx = 15;
+                    }
+                    Ty = 4;
+                    if (Row == 15) {
+                        Ty = 3;
+                    }
+                    p->u0 = Wx;
+                    p->v0 = Wy;
+                    p->u1 = Wx + Tx;
+                    p->v1 = Wy;
+                    p->u2 = Wx;
+                    p->v2 = Wy + Ty;
+                    p->u3 = Wx + Tx;
+                    p->v3 = Wy + Ty;
+                    p++;
+                    Wx += 0x10;
+                }
+            }
+            Wy += 4;
+        }
+    }
+    pDiespr->Free2 = 0;
+    pDiespr->Blood_flg = 0;
+    pDiespr->Free4 = 0xF;
+    pDiespr->Free5 = 1;
+    pDiespr->Move_start = (G.System_flg & 0x800) ? 0x34 : 0x16;
+}
 
 /* RE2 Die_blood_move_init (not called in RE3) */
 void func_80196720(void)

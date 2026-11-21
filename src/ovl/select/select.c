@@ -674,7 +674,67 @@ void func_801C3F00(void)
     pM->Blink = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/select/select", func_801C3F74);
+/* RE2 Select_moji_print: types pStr into the window, Wait frames per character;
+ * ']' new line, '[ddd' pause, '|d' colour. Returns 1 and sets *pEnd at the end of the string. */
+ULONG func_801C3F74(LONG Wait, UCHAR *pStr, ULONG *pEnd)
+{
+    SELECT_MOJI *pM;
+    UCHAR Printed;
+    UCHAR *pChr;
+
+    pM = Select_pMoji;
+    if (*pEnd != 0) {
+        return 0;
+    }
+    if (pM->pStr != pStr) {
+        pM->pStr = pStr;
+        pM->pCur = pStr;
+        pM->Wait = 1;
+    }
+    if (--pM->Wait != 0) {
+        return 0;
+    }
+    pM->Wait = Wait;
+    Printed = 0;
+    while (*pM->pCur != 0) {
+        switch (*pM->pCur) {
+        case ']':
+            pM->Col = 0;
+            pM->Row++;
+            break;
+        case '[':
+            pM->Wait = (*++pM->pCur - '0') * 100;
+            pM->Wait += (*++pM->pCur - '0') * 10;
+            pM->Wait += *++pM->pCur - '0';
+            pM->pCur++;
+            return 0;
+        case '|':
+            pM->Color = *++pM->pCur - '0';
+            break;
+        default:
+            Printed = 1;
+            pChr = &pM->Text[pM->Row][pM->Col];
+            *pChr = *pM->pCur;
+            pChr = &pM->Attr[pM->Row][pM->Col];
+            *pChr = pM->Color;
+            pM->Blink = 0x10;
+            pM->Col++;
+            break;
+        }
+        if (pM->Col >= 20) {
+            pM->Col = 0;
+            pM->Row++;
+        }
+        Snd_se_stad(3, NULL, 0, 0);
+        pM->pCur++;
+        if (Wait != 0 && Printed) {
+            return 0;
+        }
+    }
+    pM->pStr = NULL;
+    *pEnd = 1;
+    return 1;
+}
 
 /* RE2 Select_moji_ctrl: the message script of the selected player */
 void func_801C41E0(void)
