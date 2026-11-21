@@ -63,7 +63,7 @@ void func_8010B024(ENEMY_WORK *pEm);
 void func_8010B154(ENEMY_WORK *pEm);
 void func_8010A728(ENEMY_WORK *pEm);
 void func_8010C694(ENEMY_WORK *pEm);
-void func_80108E04(ENEMY_WORK *pEm, SHORT Dir, LONG Unused);
+void func_80108E04(ENEMY_WORK *pEm, SHORT Dir);
 
 /* RE2 EM_MAIN */
 void func_80100144(ENEMY_WORK *pEm)
@@ -100,7 +100,174 @@ void func_80100144(ENEMY_WORK *pEm)
         func_80109234(pEm);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_80100350);
+/* RE2 Em23_Init */
+void func_80100350(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    PARTS_W *pP;
+    LONG Dir;
+    UCHAR i;
+    EM23_FREE *pF;
+
+    EM_RTN(pEm) = 1;
+    pEm->Damage_cnt = 0;
+    EF(pEm)->Unk2C = 0;
+    EF(pEm)->Side = 0;
+    EF(pEm)->Unk01 = 0;
+    EF(pEm)->Mode = 0;
+    EF(pEm)->Unk03 = 0;
+    pEm->Unk1A4[1] = 0;
+    pEm->Unk1AC[1] = 0;
+    EF(pEm)->Floor_y = SCA_FLOOR_Y(G.pRoom->pSca);
+    EF(pEm)->Timer = 0;
+    EF(pEm)->Unk21 = 0;
+    EF(pEm)->Flg = 8;
+    pF = EF(pEm);
+    pF->Unk24 = 0;
+    EF(pEm)->Unk22 = 0;
+    pF->Unk28 = 0;
+    EF(pEm)->Unk26 = 0;
+    pEm->Cdir_x = 0;
+    pEm->Cdir_z = 0;
+    pEm->pSca_hit_data = 0;
+    EF(pEm)->Unk11 = 0;
+    EF(pEm)->Unk2E = 0;
+    EF(pEm)->Unk04 = 0;
+    EF(pEm)->Unk1A = 0;
+    Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0x4B004B0, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    pEm->pCol_em = pEm;
+    pEm->Col_d0 = pEm->Col_w0 = 800;
+    pEm->Col_h = 1800;
+    pEm->Col_type = 2;
+    pEm->Col_unk24 = 0;
+    pEm->Col_unk28 = 0;
+    pEm->Col_unk26 = 0;
+    pEm->Col_flg = 0;
+    pEm->Be_flg |= 0x400000;
+    func_80033580((COL_OBJ *)&pEm->Col_id, 0);
+    pEm->Unk136 = -1000;
+    pEm->Unk134 = 600;
+    pEm->Unk138 = 0x50;
+    pEm->Unk139 = 0xA0;
+    pEm->Unk13A = 800;
+    pEm->Unk140 = 0;
+    pEm->Unk120 = 0;
+    pEm->Neck_no = 14;
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pP = &pEm->pSin_parts_ptr[14];
+    PW_FREE(pP)[2] = 0x60;
+    PW_FREE(pP)[3] = 0x60;
+    PW_FREE(pP)[4] = 0x200;
+    PW_FREE(pP)[0] = 0;
+    PW_FREE(pP)[1] = 0;
+    PW_FREE(pP)[5] = 0x138;
+    EF(pEm)->Ground = func_8004D720(&pEm->Pos_x, 0, -1, 8);
+    if (G.System_flg & 0x100)
+        pEm->Max_life = pEm->Life = Em23_life_easy[(Rnd() >> (Rnd() & 3)) & 0xF];
+    else
+        pEm->Max_life = pEm->Life = Em23_life[(Rnd() >> (Rnd() & 3)) & 0xF];
+    EM_MOVE(pEm) = 3;
+    pEm->Max_life += 10;
+    pEm->Life += 10;
+    Joint_move(pEm, Kan, Seq, 0x100);
+    if (pEm->Type == 0x4001) {
+        pEm->Pos_x = -2622;
+        pEm->Unk122 = -6500;
+        pEm->Pos_y = -6500;
+        pEm->Pos_z = 6000;
+        pEm->Cdir_y = 0x400;
+        pEm->Unk144 = 4;
+        EF(pEm)->Unk01 = 1;
+        pEm->Be_flg |= 0x2420;
+        pEm->Type |= 0x8100;
+        func_80034124((COL_OBJ *)&pEm->Col_id);
+        EM_MOVE(pEm) = 0x70000;
+        Joint_move(pEm, Kan, Seq, 0x100);
+        EM_RTN(pEm) = 0x1404;
+        EF(pEm)->Flg = 1;
+    }
+    if (pEm->Type == 0x8002) {
+        pEm->Unk122 = 0;
+        EF(pEm)->Ground = 0;
+        pEm->Cdir_y = 0x400;
+        EM_MOVE(pEm) = 0x10005;
+        Joint_move(pEm, Kan, Seq, 0x10000);
+        pEm->Col_d0 = 400;
+        pEm->Col_w0 = 400;
+        EF(pEm)->Side = 1;
+        EF(pEm)->Unk2A = -8000;
+        EF(pEm)->Mode = 4;
+        func_80103518(pEm);
+        func_801035A8(pEm);
+        pEm->Pos_x = 3454;
+        pEm->Pos_y = -7500;
+        pEm->Pos_z = -6255;
+        func_80034124((COL_OBJ *)&pEm->Col_id);
+        EM_MOVE(pEm) = 0x70001;
+        Spd_get(pEm, Kan, Seq, 0);
+        Joint_move(pEm, Kan, Seq, 0x100);
+        EM_RTN(pEm) = 0x30301;
+        EF(pEm)->Flg = 2;
+    }
+    if (pEm->Type == 0x4003) {
+        EM_MOVE(pEm) = 0x70006;
+        pEm->Pos_x = 13100;
+        pEm->Pos_y = -4000;
+        pEm->Pos_z = 2500;
+        pEm->Cdir_y = 0x800;
+        pEm->Cdir_z = 0x800;
+        EM_RTN(pEm) = 0x104;
+        EF(pEm)->Flg = 1;
+        pEm->Cdir_x = 0;
+        pEm->Be_flg |= 0x2000;
+        pEm->Type |= 0x8000;
+        for (i = 0; i < 21; i++) {
+            pP = &pEm->pSin_parts_ptr[i];
+            pP->Poly_rgb = 0;
+            pP->UnkA2 &= ~1;
+        }
+    }
+    if (pEm->Type == 0xB) {
+        EF(pEm)->Side = 0;
+        func_80104D88(pEm);
+        pEm->Col_unk26 = -2000;
+        EM_RTN(pEm) = 0x401;
+        EM_MOVE(pEm) = 2;
+        pEm->Pos_y = EF(pEm)->Floor_y;
+    }
+    if ((pEm->Type & 0xF) >= 12) {
+        Dir = pEm->Cdir_y;
+        pEm->Cdir_y = 0;
+        func_80102C08(pEm, 3000, (pEm->Type << 10) - 0x2800);
+        EF(pEm)->Mode = 0;
+        pEm->Timer0 = 0;
+        func_80102180(pEm, pEm->pSca_hit_data);
+        pEm->Col_d0 = 400;
+        pEm->Col_w0 = 400;
+        func_801037E4(pEm);
+        pEm->Dest_x = EF(pEm)->Unk12;
+        pEm->Dest_z = EF(pEm)->Unk14;
+        func_80103518(pEm);
+        func_801036E8(pEm, Dir & 0xFF0);
+        EM_MOVE(pEm) = 2;
+        Spd_get(pEm, Kan, Seq, 0);
+        Joint_move(pEm, Kan, Seq, 0x200);
+        pEm->Move_cnt = 0;
+        EM_RTN(pEm) = 0x30301;
+    }
+    if (pEm->Unk4B & 1)
+        pEm->pSin_parts_ptr[14].pTmd = (ULONG *)pEm->pUnk174;
+    G.pPldamage_Em[pEm->Id - 0x10] = func_8010BE00;
+    G.pPldie_Em[pEm->Id - 0x10] = func_8010C478;
+    pEm->pSin_parts_ptr[1].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[2].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[5].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[8].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[11].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[14].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[15].Be_flg |= 0x20;
+    pEm->pSin_parts_ptr[18].Be_flg |= 0x20;
+    pEm->Unk16A = 0;
+}
 
 /* RE2 Em23_Move */
 void func_801009E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
@@ -1085,7 +1252,33 @@ void func_8010387C(ENEMY_WORK *pEm, LONG Add)
         pEm->Pos_z += Sv.vz;
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_80103920);
+/* turn the wall direction towards (X, Z) by Add (negative: away) */
+void func_80103920(ENEMY_WORK *pEm, LONG X, LONG Z, LONG Add)
+{
+    SHORT A;
+    SHORT Dir;
+    LONG D;
+    LONG R;
+
+    A = Add;
+    R = Direction_ck(pEm->Pos_x, pEm->Pos_z, X, Z);
+    Dir = R;
+    Add <<= 16;
+    Add >>= 16;
+    if (Add & 0x8000) {
+        A = -Add;
+        Dir = (R + 0x800) & 0xFFF;
+    }
+    D = (USHORT)(A + (Dir - EF(pEm)->Unk04)) & 0xFFF;
+    if (D < A * 2) {
+        EF(pEm)->Unk04 = Dir;
+        return;
+    }
+    EF(pEm)->Unk04 -= A;
+    if ((ULONG)D <= 0x800)
+        EF(pEm)->Unk04 += A << 1;
+    EM23_WALL_DIR(pEm);
+}
 
 void func_80103A3C(ENEMY_WORK *pEm)
 {
@@ -1937,7 +2130,38 @@ void func_801071F8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_801072F8);
+/* pick the jump target next to the player */
+void func_801072F8(ENEMY_WORK *pEm)
+{
+    SVECTOR Sv;
+    ENEMY_WORK *pPl = &Pl_work;
+    LONG Near;
+    LONG Dir;
+
+    Near = pEm->Unk154;
+    Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z);
+    Near = Near < 4001;
+    Sv.vx = 2000;
+    Sv.vz = Sv.vy;
+    Rot_vector_l(Dir, &Sv, &Sv);
+    if (!Near) {
+        if (!(Rnd() & 3)) {
+            EF(pEm)->Unk22 = pPl->Pos_x - Sv.vx;
+            EF(pEm)->Unk24 = pPl->Pos_z - Sv.vz;
+        } else {
+            EF(pEm)->Unk22 = pPl->Pos_x + Sv.vx;
+            EF(pEm)->Unk24 = pPl->Pos_z + Sv.vz;
+        }
+    } else if (EF(pEm)->Flg & 1) {
+        EF(pEm)->Unk22 = pPl->Pos_x;
+        EF(pEm)->Unk24 = pPl->Pos_z;
+    } else {
+        EF(pEm)->Unk22 = pPl->Pos_x + Sv.vx;
+        EF(pEm)->Unk24 = pPl->Pos_z + Sv.vz;
+    }
+    EF(pEm)->Unk26 = (EF(pEm)->Unk22 - pEm->Pos_x) / 12;
+    EF(pEm)->Unk28 = (EF(pEm)->Unk24 - pEm->Pos_z) / 12;
+}
 
 void func_80107454(ENEMY_WORK *pEm)
 {
@@ -2455,7 +2679,40 @@ void func_80108904(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 void func_80108BBC(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_80108BC4);
+/* mv1F: bite */
+void func_80108BC4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    SVECTOR Unused;
+    EM23_HIT_AREA Area;
+    SVECTOR Sv;
+    ENEMY_WORK *pPl = &Pl_work;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x70020;
+        pEm->Routine_2 = 1;
+        func_80108E04(pEm, pEm->Cdir_y);
+        Snd_se_enem(7, pEm);
+    case 1:
+        Sv.vx = 3500;
+        Sv.vz = 1800;
+        Sv.vy = 0;
+        Sv.pad = 1200;
+        Area.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+        Area.pBox = (SHORT *)&Sv;
+        Area.Dir = pEm->Cdir_y;
+        Area.Id = (Rnd() & 1) - 0x7F;
+        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+        Spd_get(pEm, Kan, Seq, 0);
+        pEm->Routine_2 += Joint_move(pEm, Kan, Seq, 0x200);
+        Add_speedXZ(pEm, 0);
+        break;
+    case 2:
+        EM_RTN(pEm) = 0x201;
+        EF(pEm)->Unk2E = 0;
+        break;
+    }
+}
 
 void func_80108D18(void) {
 }
@@ -2482,7 +2739,7 @@ void func_80108D20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* effect 0x1A in front of the body */
-void func_80108E04(ENEMY_WORK *pEm, SHORT Dir, LONG Unused)
+void func_80108E04(ENEMY_WORK *pEm, SHORT Dir)
 {
     SVECTOR Pos;
     SVECTOR Ofs;
@@ -2777,7 +3034,141 @@ void func_80109734(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_80109AB4);
+/* dm01: blown away (falls off the wall / ceiling first) */
+void func_80109AB4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+{
+    SVECTOR Sv;
+    LONG Free;
+    LONG Spd;
+    LONG SpdZ;
+    LONG N;
+
+    Free = func_80108EDC(pEm, 0x901, 0x801);
+    Free |= func_80108EDC(pEm, 0xB01, 0xC01);
+    switch (pEm->Routine_2) {
+    case 0:
+        if (!(EF_W0(pEm) & 0xFFFF00)) {
+            pEm->Routine_2 = 2;
+            if (EF(pEm)->Unk03 == 1) {
+                EM_MOVE(pEm) = 0x70017;
+                pEm->Col_h = 1500;
+            } else {
+                if (pEm->Unk132 & 0x10) {
+                    EM_MOVE(pEm) = 0x1B;
+                    Sv.vx = 200;
+                } else {
+                    EM_MOVE(pEm) = 0x1A;
+                    Sv.vx = -200;
+                }
+                Sv.vz = 0;
+                EF(pEm)->Unk26 = Sv.vx;
+                EF(pEm)->Unk28 = Sv.vz;
+            }
+            goto next;
+        }
+        if (!pEm->Unk1AC[1]) {
+            EF(pEm)->Unk16 = 2;
+            pEm->Col_unk28 = 0;
+            pEm->Col_unk26 = 0;
+            pEm->Col_unk24 = 0;
+            pEm->Be_flg &= ~0x400;
+            pEm->Pos_x = pEm->pSin_parts_ptr->Workm.t[0];
+            pEm->Pos_z = pEm->pSin_parts_ptr->Workm.t[2];
+            pEm->Cdir_z = 0;
+            pEm->Cdir_x = 0;
+            if (EF(pEm)->Mode == 4)
+                pEm->Cdir_y -= 0x800;
+            else
+                pEm->Cdir_y = EF(pEm)->Side * 0x400;
+            EM_MOVE(pEm) = 0x70018;
+            pEm->Unk1AC[0] = 0;
+            pEm->Unk1AC[2] = 0;
+            pEm->Unk1AC[1] = 1;
+        }
+        pEm->Routine_2 = 1;
+    case 1:
+        pEm->Pos_y += EF(pEm)->Unk16;
+        EF(pEm)->Unk16 += EF(pEm)->Unk16;
+        if (pEm->Col_w0 < 800) {
+            pEm->Col_w0++;
+            pEm->Col_d0 = pEm->Col_w0;
+        }
+        if (!pEm->Unk1AC[0])
+            pEm->Unk1AC[0] = Joint_move(pEm, Kan, Seq, 0x200);
+        if (!pEm->Unk1AC[2] && pEm->Pos_y >= pEm->Unk122) {
+            EF(pEm)->Unk16 = 0;
+            pEm->Cdir_z = 0;
+            pEm->Cdir_x = 0;
+            pEm->Pos_y = pEm->Unk122;
+            pEm->Cdir_y = (EF(pEm)->Mode == 4) ? pEm->Cdir_y - 0x800 : EF(pEm)->Side * 0x400;
+            pEm->Col_d0 = 800;
+            pEm->Col_w0 = 800;
+            pEm->Unk1AC[2] = 1;
+        }
+        if (pEm->Unk1AC[0] && pEm->Unk1AC[2]) {
+            EM_MOVE(pEm) = 0x70015;
+            EF(pEm)->Mode = 0;
+            EF(pEm)->Unk01 = 0;
+            pEm->Unk1AC[1] = 0;
+            pEm->Routine_2 = 4;
+            pEm->Damage_cnt |= 0x80;
+        }
+        break;
+    case 2:
+    next:
+        pEm->Routine_2++;
+    case 3:
+        if (Joint_move(pEm, Kan, Seq, 0x200)) {
+            EM_MOVE(pEm) = 0x70015;
+            EF(pEm)->Mode = 0;
+            EF(pEm)->Unk01 = 0;
+            pEm->Damage_cnt |= 0x80;
+            pEm->Routine_2++;
+        }
+        pEm->Spd_x = EF(pEm)->Unk26;
+        pEm->Spd_z = EF(pEm)->Unk28;
+        Spd = EF(pEm)->Unk26;
+        if (Spd) {
+            if (__builtin_abs(Spd) > 10) {
+                if (Spd <= 0)
+                    N = Spd + 10;
+                else
+                    N = Spd - 10;
+                EF(pEm)->Unk26 = N;
+            } else {
+                EF(pEm)->Unk26 = 0;
+            }
+        }
+        SpdZ = EF(pEm)->Unk28;
+        if (SpdZ) {
+            if (__builtin_abs(SpdZ) > 10) {
+                if (SpdZ <= 0)
+                    N = SpdZ + 10;
+                else
+                    N = SpdZ - 10;
+                EF(pEm)->Unk28 = N;
+            } else {
+                EF(pEm)->Unk28 = 0;
+            }
+        }
+        Add_speedXZ(pEm, 0);
+        break;
+    case 4:
+        Spd_get(pEm, Kan, Seq, 0);
+        pEm->Routine_2 += Joint_move(pEm, Kan, Seq, 0x100);
+        Add_speedXZ(pEm, 0);
+        break;
+    case 5:
+        pEm->Damage_cnt &= 0x7F;
+        pEm->UnkDA = (Rnd() & 0x1F) + 30;
+        EM_RTN(pEm) = 0x101;
+        if (!(Rnd() & 3) && Free) {
+            pEm->UnkE2 = 0;
+            EM_RTN(pEm) = 0xB01;
+        }
+        break;
+    }
+}
 
 void func_80109F0C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
@@ -2893,9 +3284,109 @@ void func_8010A27C(ENEMY_WORK *pEm)
     func_8001B484(0x1503, ((pEm->Cdir_y + Rnd()) & 0xFFFF) | 0x14000000, &pP->Workm, &Sv, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_8010A3AC);
+/* tear off a whole leg (parts 2-4 / 5-7) once */
+void func_8010A3AC(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP;
+    LONG i;
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_8010A5F4);
+    EF(pEm)->Unk2C = 0;
+    if (!(pEm->Unk132 & 0xC)) {
+        if (Rnd() & 1) {
+            if (!(EF(pEm)->Unk2C & 1)) {
+                i = 2;
+                pP = &pEm->pSin_parts_ptr[2];
+                pP->UnkA2 |= 0x20;
+                pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
+                PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
+                PW_FREE(pP)[4] = 0;
+                PW_FREE(pP)[1] = -240;
+                PW_FREE(pP)[2] = 0;
+                PW_FREE(pP)[3] = 15;
+                PW_FREE(pP)[6] = 0;
+                for (; i < 5; i++) {
+                    pP = &pEm->pSin_parts_ptr[i];
+                    pP->Poly_rgb = 0x2F2F2F;
+                    pP->Be_flg |= 0xA;
+                    pP->Old_x = pEm->Cdir_y + 0x800;
+                    pP->Unk96 = 0;
+                    pP->Old_z = 100;
+                    pP->Old_y = 0;
+                    pP->Unk85 = 30;
+                    pP->Unk90 = 0;
+                    pP->Unk92 = pEm->Cdir_y;
+                    pP->Unk8E = 0x400;
+                }
+                EF(pEm)->Unk2C |= 1;
+            }
+        } else if (!(EF(pEm)->Unk2C & 2)) {
+            i = 5;
+            pP = &pEm->pSin_parts_ptr[5];
+            pP->UnkA2 |= 0x20;
+            pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
+            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
+            PW_FREE(pP)[4] = 0;
+            PW_FREE(pP)[1] = -240;
+            PW_FREE(pP)[2] = 0;
+            PW_FREE(pP)[3] = 15;
+            PW_FREE(pP)[6] = 0;
+            for (; i < 8; i++) {
+                pP = &pEm->pSin_parts_ptr[i];
+                pP->Poly_rgb = 0x2F2F2F;
+                pP->Be_flg |= 0xA;
+                pP->Old_x = pEm->Cdir_y + 0x800;
+                pP->Unk96 = 0;
+                pP->Old_z = 100;
+                pP->Old_y = 0;
+                pP->Unk85 = 30;
+                pP->Unk90 = 0;
+                pP->Unk92 = pEm->Cdir_y;
+                pP->Unk8E = 0x400;
+            }
+            EF(pEm)->Unk2C |= 2;
+        }
+    }
+    for (i = 0; i < 21; i++) {
+        pP = &pEm->pSin_parts_ptr[i];
+        pP->UnkA2 &= ~0x40;
+    }
+}
+
+/* knock off a claw (parts 2 / 5) once */
+void func_8010A5F4(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP;
+
+    if (!(pEm->Unk132 & 0xC)) {
+        if (Rnd() & 1) {
+            if (!(EF(pEm)->Unk2C & 1)) {
+                pP = &pEm->pSin_parts_ptr[2];
+                pEm->pSin_parts_ptr[2].Be_flg |= 0xA;
+                pP->Old_x = pEm->Cdir_y + 0x800;
+                pP->Unk96 = 0;
+                pP->Old_z = 100;
+                pP->Old_y = -300;
+                pP->Unk85 = 30;
+                pP->Unk90 = 0;
+                pP->Unk92 = pEm->Cdir_y;
+                pP->Unk8E = 0x400;
+                EF(pEm)->Unk2C |= 1;
+            }
+        } else if (!(EF(pEm)->Unk2C & 2)) {
+            pP = &pEm->pSin_parts_ptr[5];
+            pEm->pSin_parts_ptr[5].Be_flg |= 0xA;
+            pP->Old_x = pEm->Cdir_y + 0x800;
+            pP->Unk96 = 0;
+            pP->Old_z = 100;
+            pP->Old_y = -300;
+            pP->Unk85 = 30;
+            pP->Unk90 = 0;
+            pP->Unk92 = pEm->Cdir_y;
+            pP->Unk8E = 0x400;
+            EF(pEm)->Unk2C |= 2;
+        }
+    }
+}
 
 /* blood while dying (Unk16A splashes) */
 void func_8010A728(ENEMY_WORK *pEm)
@@ -3162,7 +3653,100 @@ void func_8010B024(ENEMY_WORK *pEm)
     func_8001B484(0x1503, ((pEm->Cdir_y + Rnd()) & 0xFFFF) | 0x14000000, &pP->Workm, &Sv, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em23/em23", func_8010B154);
+/* tear off the legs when killed (die damage) */
+void func_8010B154(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP;
+    LONG i;
+
+    switch ((pEm->Unk132 & 0xC) >> 2) {
+    case 0:
+        if (!(EF(pEm)->Unk2C & 1)) {
+            i = 2;
+            pP = &pEm->pSin_parts_ptr[2];
+            pP->UnkA2 |= 0x20;
+            pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
+            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
+            PW_FREE(pP)[4] = 0;
+            PW_FREE(pP)[1] = -240;
+            PW_FREE(pP)[2] = 0;
+            PW_FREE(pP)[3] = 15;
+            PW_FREE(pP)[6] = 0;
+            for (; i < 5; i++) {
+                pP = &pEm->pSin_parts_ptr[i];
+                pP->Poly_rgb = 0x2F2F2F;
+                pP->Be_flg |= 0xA;
+                pP->Old_x = pEm->Cdir_y + 0x800;
+                pP->Unk96 = 0;
+                pP->Old_z = 100;
+                pP->Old_y = 0;
+                pP->Unk85 = 30;
+                pP->Unk90 = 0;
+                pP->Unk92 = pEm->Cdir_y;
+                pP->Unk8E = 0x400;
+            }
+            EF(pEm)->Unk2C |= 1;
+        }
+    case 1:
+        if (!(EF(pEm)->Unk2C & 4)) {
+            i = 11;
+            pP = &pEm->pSin_parts_ptr[11];
+            pP->UnkA2 |= 0x20;
+            pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
+            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
+            PW_FREE(pP)[4] = 0;
+            PW_FREE(pP)[1] = -240;
+            PW_FREE(pP)[2] = 0;
+            PW_FREE(pP)[3] = 15;
+            PW_FREE(pP)[6] = 0;
+            for (; i < 14; i++) {
+                pP = &pEm->pSin_parts_ptr[i];
+                pP->Poly_rgb = 0x2F2F2F;
+                pP->Be_flg |= 0xA;
+                pP->Old_x = pEm->Cdir_y + 0x800;
+                pP->Unk96 = 0;
+                pP->Old_z = 100;
+                pP->Old_y = 0;
+                pP->Unk85 = 30;
+                pP->Unk90 = 0;
+                pP->Unk92 = pEm->Cdir_y;
+                pP->Unk8E = 0x400;
+            }
+            EF(pEm)->Unk2C |= 4;
+        }
+    case 2:
+        if (!(EF(pEm)->Unk2C & 8)) {
+            pP = &pEm->pSin_parts_ptr[15];
+            pP->UnkA2 |= 0x20;
+            pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
+            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
+            PW_FREE(pP)[4] = 0;
+            PW_FREE(pP)[1] = -240;
+            PW_FREE(pP)[2] = 0;
+            PW_FREE(pP)[3] = 15;
+            PW_FREE(pP)[6] = 0;
+            for (i = 15; i < 17; i++) {
+                pP = &pEm->pSin_parts_ptr[i];
+                pP->Poly_rgb = 0x2F2F2F;
+                pP->Be_flg |= 0xA;
+                pP->Old_x = pEm->Cdir_y + 0x800;
+                pP->Unk96 = 0;
+                pP->Old_z = 100;
+                pP->Old_y = 0;
+                pP->Unk85 = 30;
+                pP->Unk90 = 0;
+                pP->Unk92 = pEm->Cdir_y;
+                pP->Unk8E = 0x400;
+            }
+            EF(pEm)->Unk2C |= 8;
+        }
+    }
+    for (i = 0; i < 21; i++) {
+        pP = &pEm->pSin_parts_ptr[i];
+        pP->UnkA2 &= ~0x40;
+        pP->Poly_rgb = 0x202F2F;
+    }
+}
 
 /* die00: dies on the floor, or falls off the wall / ceiling first */
 void func_8010B494(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
