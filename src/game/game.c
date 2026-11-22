@@ -48,7 +48,7 @@ void Gun_light_set(void)
     SVECTOR v;
 
     pLight = Get_light_cut(&G.Player.Pos_x);
-    func_800100A4(Game.Plight_bak, pLight, 0x28);
+    Memcpy(Game.Plight_bak, pLight, 0x28);
     pLight->Mode[2] = 0;
     pLight->L[2] = 1;
     v.vx = 0x4B0;
@@ -102,7 +102,7 @@ void Gun_light_set(void)
 
 void Gun_light_reset(void)
 {
-    func_800100A4(Get_light_cut(&G.Player.Pos_x), Game.Plight_bak, 0x28);
+    Memcpy(Get_light_cut(&G.Player.Pos_x), Game.Plight_bak, 0x28);
     if (Game.Plight_cnt >= 2) {
         Game.Plight_flg = 0;
         Game.Plight_cnt = 0;
@@ -118,7 +118,7 @@ void func_800245A0(void)
     ULONG Be;
 
     Bg_set_mode(1, 0);
-    func_80038634(0, 0);
+    Pad_rep_set(0, 0);
     pG->pEnemy[0] = G_PLAYER;
     pPl = G_PLAYER;
     if (pG->System_flg & 0x1000) {
@@ -280,7 +280,7 @@ void func_80024B34(void)
     pGame = &Game;
     pPl = PLAYER_EM(pG);
     pSave = pGame->pSave;
-    func_800100A4(&pG->Game_time, pSave, 0x708);
+    Memcpy(&pG->Game_time, pSave, 0x708);
     pPl->Pos_x = pPl->Old_x = pSave->Pos_x;
     pPl->Pos_y = pPl->Old_y = pSave->Pos_y;
     pPl->Pos_z = pPl->Old_z = pPl->Unk122 = pSave->Pos_z;

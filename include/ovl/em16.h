@@ -81,24 +81,24 @@ typedef struct tagEM16_ESP {
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 
-extern USHORT Em16_life[16] __asm__("D_8010C350");
-extern USHORT Em16_life_easy[16] __asm__("D_8010C370");
-extern void (*Em16_routine_0[])() __asm__("D_8010C390");
-extern void (*Em16_Move_type[])() __asm__("D_8010C3B4");
-extern void (*Em16_mv_br_type00[])() __asm__("D_8010C3F4");
-extern void (*Em16_mv_type00[])() __asm__("D_8010C434");
-extern void (*Em16_mv_br_type01[])() __asm__("D_8010C474");
-extern void (*Em16_mv_type01[])() __asm__("D_8010C484");
-extern void (*Em16_dm[][3])() __asm__("D_8010C494");
-extern void (*Em16_haidm[])() __asm__("D_8010C608");
-extern void (*Em16_die[][3])() __asm__("D_8010C684");
-extern void (*Em16_sce[])() __asm__("D_8010C7F8");
-extern void (*Pldamage_Em16_tbl[])() __asm__("D_8010C80C");
-extern void (*Pldie_Em16_tbl[])() __asm__("D_8010C81C");
-extern USHORT Em16_walk_rnd[32] __asm__("D_8010C824"); /* walk time, 0x8000: turn slower */
-extern USHORT Em16_mv0d_rnd[16] __asm__("D_8010C878"); /* time, 0x8000: turn the other way */
-extern EM16_ESP Em16_mv11_esp[] __asm__("D_8010C898");
-extern UCHAR Em16_dm00_usonum[] __asm__("D_8010CA08"); /* Unk0B decrement per damage type */
+extern USHORT Em16_life[16];
+extern USHORT Em16_life_easy[16];
+extern void (*Em16_routine_0[])();
+extern void (*Em16_Move_type[])();
+extern void (*Em16_mv_br_type00[])();
+extern void (*Em16_mv_type00[])();
+extern void (*Em16_mv_br_type01[])();
+extern void (*Em16_mv_type01[])();
+extern void (*Em16_dm[][3])();
+extern void (*Em16_haidm[])();
+extern void (*Em16_die[][3])();
+extern void (*Em16_sce[])();
+extern void (*Pldamage_Em16_tbl[])();
+extern void (*Pldie_Em16_tbl[])();
+extern USHORT Em16_walk_rnd[32]; /* walk time, 0x8000: turn slower */
+extern USHORT Em16_mv0d_rnd[16]; /* time, 0x8000: turn the other way */
+extern EM16_ESP Em16_mv11_esp[];
+extern UCHAR Em16_dm00_usonum[]; /* Unk0B decrement per damage type */
 
 void func_801001EC(ENEMY_WORK *pEm);
 void func_8010043C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

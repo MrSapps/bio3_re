@@ -784,15 +784,15 @@ void func_80061BC4(ENEMY_WORK *pEm)
         sv.vx = 100;
         sv.vy = 150;
         sv.vz = 0;
-        func_8001B484(2, ((USHORT)(pEm->Cdir_y + 0x400)) | 0x8000000, &pP[4].Workm, &sv, 0);
+        Esp_call(2, ((USHORT)(pEm->Cdir_y + 0x400)) | 0x8000000, &pP[4].Workm, &sv, 0);
         sv.vx = 100;
         sv.vy = 450;
         sv.vz = 0;
-        func_8001B484(1, (USHORT)pEm->Cdir_y | 0x10000000, &pP[4].Workm, &sv, 0);
+        Esp_call(1, (USHORT)pEm->Cdir_y | 0x10000000, &pP[4].Workm, &sv, 0);
         sv.vx = 100;
         sv.vy = 350;
         sv.vz = 0;
-        func_8001B484(3, (USHORT)pEm->Cdir_y | 0x10000000, &pP[4].Workm, &sv, 0);
+        Esp_call(3, (USHORT)pEm->Cdir_y | 0x10000000, &pP[4].Workm, &sv, 0);
         SPL_W(pEm)->Unk1D0 &= ~0x4000;
         r = (LONG)func_80044804(&pEm->pSin_parts_ptr[4].Workm, D_8009DBB4[8], 3); /* 0xFF: no target */
         if (r != 0 && r != 0xFF) {
@@ -809,7 +809,7 @@ void func_80061BC4(ENEMY_WORK *pEm)
     }
 }
 
-signed char func_800102E8_(void) __asm__("func_800102E8"); /* returns signed char here (canonical unsigned long) */
+signed char Rnd_sc(void) __asm__("Rnd"); /* returns signed char here (canonical unsigned long) */
 
 void func_80061DF4(ENEMY_WORK *pEm)
 {
@@ -829,49 +829,49 @@ void func_80061DF4(ENEMY_WORK *pEm)
             sv.vx = 0xBE;
             sv.vy = 0x514;
             sv.vz = 0x14;
-            func_8001B484(1, 0x12000000, &pP[4].Workm, &sv, 0);
+            Esp_call(1, 0x12000000, &pP[4].Workm, &sv, 0);
             sv.vx = 0xBE;
             sv.vy = 0x640;
             sv.vz = 0x14;
             sv2.vx = 0;
             sv2.vy = 0;
             sv2.vz = -0x400;
-            func_8001B484(0x801, 0x12000000, &pP[4].Workm, &sv, &sv2);
+            Esp_call(0x801, 0x12000000, &pP[4].Workm, &sv, &sv2);
             sv.vx = 0x186;
             sv.vy = 0x58C;
             sv.vz = 0x14;
             sv2.vx = -0x400;
             sv2.vy = 0x600;
             sv2.vz = 0;
-            func_8001B484(0x801, 0x0A000000, &pP[4].Workm, &sv, &sv2);
+            Esp_call(0x801, 0x0A000000, &pP[4].Workm, &sv, &sv2);
             sv.vx = 0x64;
             sv.vy = 0x58C;
             sv.vz = -0x64;
             sv2.vx = -0x200;
             sv2.vy = 0x200;
             sv2.vz = -0x300;
-            func_8001B484(0x801, 0x0A000000, &pP[4].Workm, &sv, &sv2);
+            Esp_call(0x801, 0x0A000000, &pP[4].Workm, &sv, &sv2);
             sv.vx = 0x64;
             sv.vy = 0x58C;
             sv.vz = 0x8C;
             sv2.vx = 0x200;
             sv2.vy = -0x200;
             sv2.vz = -0x300;
-            func_8001B484(0x801, 0x0A000000, &pP[4].Workm, &sv, &sv2);
+            Esp_call(0x801, 0x0A000000, &pP[4].Workm, &sv, &sv2);
             sv.vx = 0xDA;
             sv.vy = 0x185;
             sv.vz = -0x26;
-            func_8001B484(0x102, ((USHORT)(pEm->Cdir_y + 0x400)) | 0x8000000, &pP[4].Workm, &sv, 0);
+            Esp_call(0x102, ((USHORT)(pEm->Cdir_y + 0x400)) | 0x8000000, &pP[4].Workm, &sv, 0);
         }
         if ((UCHAR)(pEm->Move_cnt % 6) == 0) {
             sv.vx = 0xBE;
             sv.vy = 0x514;
             sv.vz = 0x14;
-            func_8001B484(0x603, (USHORT)func_800102E8_() | 0x10000000, &pP[4].Workm, &sv, 0);
+            Esp_call(0x603, (USHORT)Rnd_sc() | 0x10000000, &pP[4].Workm, &sv, 0);
             sv.vx = 0xDA;
             sv.vy = 0x185;
             sv.vz = -0x26;
-            pR = func_8001B484(0x603, (USHORT)func_800102E8_() | 0x10000000, &pP[4].Workm, &sv, 0);
+            pR = Esp_call(0x603, (USHORT)Rnd_sc() | 0x10000000, &pP[4].Workm, &sv, 0);
             if (pR != ESP_NONE) {
                 pR->Spd_x = 0x14;
                 pR->Spd_y = -0x28;
@@ -947,7 +947,7 @@ void func_8006236C(ENEMY_WORK *pEm)
 }
 
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* returns long here (canonical UC) */
-LONG func_800102E8_l(void) __asm__("func_800102E8"); /* returns long here (canonical unsigned long) */
+LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 
 void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
@@ -1002,7 +1002,7 @@ void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             sv.vx = Ofs[pEm->Add_dir & 1][0];
             sv.vy = Ofs[pEm->Add_dir & 1][1];
             sv.vz = Ofs[pEm->Add_dir & 1][2];
-            func_8001B484(0, (USHORT)(pEm->Cdir_y + func_800102E8_l() * 2 - 0x100 + ((pEm->Add_dir & 1) << 11)) | 0x17D00000, &pP[1].Workm, &sv, 0);
+            Esp_call(0, (USHORT)(pEm->Cdir_y + Rnd_l() * 2 - 0x100 + ((pEm->Add_dir & 1) << 11)) | 0x17D00000, &pP[1].Workm, &sv, 0);
             pEm->UnkE2 = 0;
         }
         pEm->Cdir_y += pEm->Timer0;
@@ -1023,7 +1023,7 @@ void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             sv.vx = Ofs[pEm->Add_dir & 1][0];
             sv.vy = Ofs[pEm->Add_dir & 1][1];
             sv.vz = Ofs[pEm->Add_dir & 1][2];
-            func_8001B484(0, (USHORT)(pEm->Cdir_y + func_800102E8_l() * 2 - 0x100 + ((pEm->Add_dir & 1) << 11)) | 0x17D00000, &pP[1].Workm, &sv, 0);
+            Esp_call(0, (USHORT)(pEm->Cdir_y + Rnd_l() * 2 - 0x100 + ((pEm->Add_dir & 1) << 11)) | 0x17D00000, &pP[1].Workm, &sv, 0);
         }
     case 5:
         x = pEm->Pos_x;

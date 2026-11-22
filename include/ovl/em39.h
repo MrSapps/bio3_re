@@ -26,15 +26,15 @@ typedef struct tagEM39_FREE {
 #define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 
 /* module .data */
-extern SHORT Em39_box0[4] __asm__("D_801013A4"); /* hit boxes of the lash */
-extern SHORT Em39_box1[4] __asm__("D_801013AC");
-extern SHORT Em39_box2[4] __asm__("D_801013B4");
-extern void (*Em39_routine_0[])() __asm__("D_801013BC");
-extern void (*Em39_move_type[])() __asm__("D_801013E8");
-extern void (*Em39_mv_br[])() __asm__("D_801013F0");
-extern void (*Em39_mv[])() __asm__("D_8010141C");
-extern void (*Em39_mv_br_unk[])() __asm__("D_80101448"); /* unused routine; points at Em39_move_rnd */
-extern UCHAR Em39_move_rnd[8] __asm__("D_80101448"); /* random idle motions */
+extern SHORT Em39_box0[4]; /* hit boxes of the lash */
+extern SHORT Em39_box1[4];
+extern SHORT Em39_box2[4];
+extern void (*Em39_routine_0[])();
+extern void (*Em39_move_type[])();
+extern void (*Em39_mv_br[])();
+extern void (*Em39_mv[])();
+extern void (*Em39_mv_br_unk[])() __asm__("Em39_move_rnd"); /* unused routine; points at Em39_move_rnd */
+extern UCHAR Em39_move_rnd[8]; /* random idle motions */
 
 void func_80100004(ENEMY_WORK *pEm);
 void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

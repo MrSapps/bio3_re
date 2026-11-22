@@ -40,7 +40,7 @@ typedef struct tagPARTS_RGB_FREE_WORK {
 } PARTS_RGB_FREE_WORK;
 #define PW_RGB(p) ((PARTS_RGB_FREE_WORK *)&(p)->Unk74)
 
-ULONG func_80028308(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg); /* RE2 Joint_move_p */
+ULONG Joint_move_p(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg);
 ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top); /* PartsWork_set */
 void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan); /* part positions from kan data */
 

@@ -53,35 +53,35 @@ extern ULONG *D_801C2F0C[];            /* pictures in OPENING1_DAT (script op 6)
 extern ULONG *D_801C2F14[];            /* TIMs in OPENING0_DAT */
 extern UCHAR D_801C2F3C[];             /* messages */
 extern USHORT D_801C2F68[];            /* message offsets into D_801C2F3C */
-extern OPN_OP D_801C2F70[];            /* script ops */
+extern OPN_OP Opening_op_tbl[];            /* script ops */
 extern OPN_SPR D_801C2FA4[];           /* picture pieces */
 extern USHORT D_801C301C[][2];         /* piece positions */
-extern OPN_WORK Opn_work __asm__("D_801C3048");
+extern OPN_WORK Opn_work __asm__("Opening_work");
 
-void func_801C2160(void);
-void func_801C21E4(void);
-void func_801C22A0(void);
-void func_801C23F4(void);
-void func_801C2488(OPN_WORK *pWk);
-void func_801C2538(OPN_WORK *pWk);
-void func_801C2618(OPN_WORK *pWk);
-void func_801C2788(OPN_WORK *pWk);
+void Opening_init(void);
+void Opening_load(void);
+void Opening_sprt_init(void);
+void Opening_exit(void);
+void Opening_scene0_move(OPN_WORK *pWk);
+void Opening_scene0_draw(OPN_WORK *pWk);
+void Opening_scene1_move(OPN_WORK *pWk);
+void Opening_scene1_draw(OPN_WORK *pWk);
 
 /* exe prototypes not in a shared header yet (game .c files disagree on some of them) */
 
-void func_801C2024(void);
-LONG func_801C2B38(OPN_WORK *pWk);
-LONG func_801C2B50(OPN_WORK *pWk);
-LONG func_801C2B68(OPN_WORK *pWk);
-LONG func_801C2B80(OPN_WORK *pWk);
-LONG func_801C2BD4(OPN_WORK *pWk);
-LONG func_801C2C04(OPN_WORK *pWk);
-LONG func_801C2C4C(OPN_WORK *pWk);
-LONG func_801C2CBC(OPN_WORK *pWk);
-LONG func_801C2D0C(OPN_WORK *pWk);
-LONG func_801C2D8C(OPN_WORK *pWk);
-LONG func_801C2E0C(OPN_WORK *pWk);
-LONG func_801C2E70(OPN_WORK *pWk);
-LONG func_801C2EE0(OPN_WORK *pWk);
+void Opening_main(void);
+LONG Opening_op_next(OPN_WORK *pWk);
+LONG Opening_op_frame(OPN_WORK *pWk);
+LONG Opening_op_end(OPN_WORK *pWk);
+LONG Opening_op_wait_set(OPN_WORK *pWk);
+LONG Opening_op_wait(OPN_WORK *pWk);
+LONG Opening_op_xa_wait(OPN_WORK *pWk);
+LONG Opening_op_pic(OPN_WORK *pWk);
+LONG Opening_op_scene(OPN_WORK *pWk);
+LONG Opening_op_fade_in(OPN_WORK *pWk);
+LONG Opening_op_fade_out(OPN_WORK *pWk);
+LONG Opening_op_xa(OPN_WORK *pWk);
+LONG Opening_op_mess(OPN_WORK *pWk);
+LONG Opening_op_vloop(OPN_WORK *pWk);
 
 #endif /* OVL_OPENING_H */

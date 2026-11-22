@@ -2,28 +2,28 @@
 #include "status.h"
 
 /* task entry */
-void func_80194004(void)
+void Ending_main(void)
 {
     Print_color(1, 0, 1);
-    func_80194080();
+    Ending_status_clr();
     if (G.System_flg & 0x80) {
-        func_801943A4();
+        Ending_load();
     } else {
-        func_8019409C();
+        Ending_game();
     }
     G.System_flg |= 0x200000;
     Task_exit();
 }
 
-void func_80194080(void)
+void Ending_status_clr(void)
 {
     G.Status_flg &= 0xFFFF0000;
 }
 
-void func_8019409C(void)
+void Ending_game(void)
 {
     G.Game_time = G.Game_time + VSync(-1) - G.Game_time_offset;
-    func_801942DC();
+    Ending_movie();
     Task_lexecute(1, 0xB);
     Task_sleep(1);
     D_800DBB58 = 0;
@@ -48,7 +48,7 @@ void func_8019409C(void)
         Task_sleep(1);
     }
     Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
-    func_801943E4();
+    Ending_next_game();
     Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
     func_800792FC();
     G.System_flg |= 0x4000;
@@ -58,7 +58,7 @@ void func_8019409C(void)
     G.System_flg &= ~0x40000;
 }
 
-void func_801942DC(void)
+void Ending_movie(void)
 {
     if (!Flg_ck(G.Unk7868, 0x58)) {
         Init_movie_work(10);
@@ -73,7 +73,7 @@ void func_801942DC(void)
     }
 }
 
-void func_801943A4(void)
+void Ending_load(void)
 {
     G.Unk2115 = 1;
     Task_lexecute(1, 8);
@@ -81,7 +81,7 @@ void func_801943A4(void)
     func_800791F0();
 }
 
-void func_801943E4(void)
+void Ending_next_game(void)
 {
     G.Save_cnt = 0xFF;
     G.Save_area = 0x1C;

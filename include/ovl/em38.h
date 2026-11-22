@@ -68,14 +68,14 @@ typedef struct tagEM38_SABUN {
 /* the same free work as halfwords */
 #define PW_FREES(p) ((SHORT *)&(p)->Unk74)
 
-/* parts swelling with the body in the transformation (module .data D_8010CDEC) */
+/* parts swelling with the body in the transformation (module .data Em38_swell) */
 typedef struct tagEM38_SWELL {
     UCHAR Num0;                        /* 0x00 parts given the size with func_8010C9A4 */
     UCHAR Num1;                        /* 0x01 parts given the size directly */
     UCHAR Parts[14];                   /* 0x02 part numbers */
 } EM38_SWELL;
 
-/* walk targets (module .data D_8010CA10, 0x20 bytes each) */
+/* walk targets (module .data Em38_root, 0x20 bytes each) */
 typedef struct tagEM38_ROOT {
     LONG Pos_x;                        /* 0x00 */
     LONG Pos_y;                        /* 0x04 */
@@ -88,35 +88,35 @@ typedef struct tagEM38_ROOT {
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 
-extern USHORT Em38_cnt __asm__("D_8010CA0C"); /* counter bumped by the head sway */
-extern EM38_ROOT Em38_root[] __asm__("D_8010CA10");
-extern SHORT Em38_box0[4] __asm__("D_8010CC10"); /* hit boxes of the attacks */
-extern SHORT Em38_box1[4] __asm__("D_8010CC18");
-extern SHORT Em38_box2[4] __asm__("D_8010CC20");
-extern SHORT Em38_box3[4] __asm__("D_8010CC28");
-extern SHORT Em38_box4[4] __asm__("D_8010CC30");
-extern SHORT Em38_box5[4] __asm__("D_8010CC38");
-extern SHORT Em38_box6[4] __asm__("D_8010CC40");
-extern SHORT Em38_box7[4] __asm__("D_8010CC48");
-extern SHORT Em38_box8[4] __asm__("D_8010CC50");
-extern SHORT Em38_box9[4] __asm__("D_8010CC58");
-extern VECTOR Em38_goal_pos __asm__("D_8010CC60");
-extern VECTOR Em38_goal_pos2 __asm__("D_8010CC70");
-extern VCUT Em38_cut __asm__("D_8010CC88"); /* zone that sets flag 0x1B */
-extern void (*Em38_routine_0[])() __asm__("D_8010CCA0");
-extern void (*Em38_Move_type[])() __asm__("D_8010CCC4");
-extern void (*Em38_mv_br_type00[])() __asm__("D_8010CCD4");
-extern void (*Em38_mv_type00[])() __asm__("D_8010CD14");
-extern void (*Em38_dm[])() __asm__("D_8010CD54");
-extern void (*Em38_sce[])() __asm__("D_8010CDD4");
-extern EM38_SWELL Em38_swell __asm__("D_8010CDEC");
-extern signed char Em38_pulse[64] __asm__("D_8010CDFC"); /* size pulse of the dying body */
-extern void (*Pldamage_Em38_tbl[])() __asm__("D_8010CE3C");
-extern void (*Pldie_Em38_tbl[])() __asm__("D_8010CE54");
-extern KAGE_WORK *Em38_kage[] __asm__("D_8010CE68"); /* shadow works of the parts */
-extern COL_OBJ Em38_col[5] __asm__("D_8010CE98"); /* extra collision objects */
-extern MATRIX Em38_spit_m __asm__("D_8010CFD8"); /* effect matrix of sce04 */
-extern UCHAR Em38_pulse_no __asm__("D_8010CFF8"); /* index into Em38_pulse (module BSS) */
+extern USHORT Em38_cnt; /* counter bumped by the head sway */
+extern EM38_ROOT Em38_root[];
+extern SHORT Em38_box0[4]; /* hit boxes of the attacks */
+extern SHORT Em38_box1[4];
+extern SHORT Em38_box2[4];
+extern SHORT Em38_box3[4];
+extern SHORT Em38_box4[4];
+extern SHORT Em38_box5[4];
+extern SHORT Em38_box6[4];
+extern SHORT Em38_box7[4];
+extern SHORT Em38_box8[4];
+extern SHORT Em38_box9[4];
+extern VECTOR Em38_goal_pos;
+extern VECTOR Em38_goal_pos2;
+extern VCUT Em38_cut; /* zone that sets flag 0x1B */
+extern void (*Em38_routine_0[])();
+extern void (*Em38_Move_type[])();
+extern void (*Em38_mv_br_type00[])();
+extern void (*Em38_mv_type00[])();
+extern void (*Em38_dm[])();
+extern void (*Em38_sce[])();
+extern EM38_SWELL Em38_swell;
+extern signed char Em38_pulse[64]; /* size pulse of the dying body */
+extern void (*Pldamage_Em38_tbl[])();
+extern void (*Pldie_Em38_tbl[])();
+extern KAGE_WORK *Em38_kage[]; /* shadow works of the parts */
+extern COL_OBJ Em38_col[5]; /* extra collision objects */
+extern MATRIX Em38_spit_m; /* effect matrix of sce04 */
+extern UCHAR Em38_pulse_no; /* index into Em38_pulse (module BSS) */
 
 void func_80100154(ENEMY_WORK *pEm);
 void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

@@ -1,1 +1,7 @@
 // em3e.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em3e_routine_0 = 0x80101754;
+Em3e_move_tbl = 0x80101774;
+Em3e_fly_tbl = 0x8010177C;
+Em3e_damage_tbl = 0x80101784;
+Em3e_sce_tbl = 0x80101800;

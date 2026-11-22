@@ -1,1 +1,15 @@
 // em32.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em32_red = 0x8010015C; // type:func
+Em32_fall_ck = 0x80100A50; // type:func
+Em32_on_back = 0x801025BC; // type:func
+Em32_alone_ck = 0x8010380C; // type:func
+Em32_Pldm = 0x8010388C; // type:func
+Em32_routine_0 = 0x801041A4;
+Em32_mv_br = 0x801041C4;
+Em32_mv = 0x801041E4;
+Em32_leap_dir = 0x80104204;
+Em32_leap_spd = 0x8010424C;
+Em32_leap2_spd = 0x8010430C;
+Em32_dm_tbl = 0x80104384;
+Em32_pldm_tbl = 0x80104390;

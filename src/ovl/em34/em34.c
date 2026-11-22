@@ -7,7 +7,7 @@
 #include "spl_auto.h"
 
 extern LONG D_800D1F2C_ __asm__("D_800D1F2C"); /* type differs from the canonical extern */
-LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
+LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
 
@@ -132,7 +132,7 @@ void Em134(ENEMY_WORK *pEm)
         Spd.vx = 0x400;
         Spd.vy = 0;
         Spd.vz = 0;
-        func_8001B484(0xE, (USHORT)pEm->Cdir_y | 0x20000000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(0xE, (USHORT)pEm->Cdir_y | 0x20000000, &GsIDMATRIX, &Pos, &Spd);
     }
     func_8001AECC(pEm, 0xFE700002, 0x190000C);
     pEm->pEnemy_ptr = pPl;
@@ -140,7 +140,7 @@ void Em134(ENEMY_WORK *pEm)
     Em_seq_sound(pEm);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", func_80100638);
+INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", Em34_Init);
 
 /* RE2 Em2a_Move: the motion routines are chosen by the low byte of Type */
 void Em34_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
@@ -189,20 +189,20 @@ void Em34_Move_type03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.vx = 0;
             Ofs.vy = 0;
             Ofs.vz = 0;
-            func_8001B484(0x205, 0x10000000, pM, &Ofs, NULL);
-            func_8001B484(0x1001B03, 0x10000000, pM, &Ofs, NULL);
+            Esp_call(0x205, 0x10000000, pM, &Ofs, NULL);
+            Esp_call(0x1001B03, 0x10000000, pM, &Ofs, NULL);
             Ofs.vy = 300;
-            func_8001B484(0x205, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x205, 0xA000000, pM, &Ofs, NULL);
             pM2 = &pEm->pSin_parts_ptr[1].Workm;
             func_8001B894(5, pM2);
             Ofs.vx = 100;
             Ofs.vy = -400;
             Ofs.vz = 300;
-            func_8001B484(0x205, 0x12000000, pM2, &Ofs, NULL);
+            Esp_call(0x205, 0x12000000, pM2, &Ofs, NULL);
             Ofs.vx = -100;
             Ofs.vy = -300;
             Ofs.vz = 300;
-            func_8001B484(0x205, 0x12000000, pM2, &Ofs, NULL);
+            Esp_call(0x205, 0x12000000, pM2, &Ofs, NULL);
         }
     }
     Em34_mv_br_type03[pEm->Routine_1](pEm);
@@ -268,7 +268,7 @@ void Em34_walk_br0(ENEMY_WORK *pEm)
 
     if (Dist > 8000 && !Dir2 && (pEm->Status_flg & 0x2000) && !EM34_W(pEm)->Unk22) {
         EM_RTN(pEm) = 0x201;
-        if ((Rnd() & 1) && !EM34_W(pEm)->Unk10) {
+        if ((Rnd_l() & 1) && !EM34_W(pEm)->Unk10) {
             EM_RTN(pEm) = 0xA01;
             return;
         }
@@ -288,7 +288,7 @@ void Em34_walk_br0(ENEMY_WORK *pEm)
         EM34_W(pEm)->Flg &= ~0x800;
         if (EM34_W(pEm)->Unk13 < 0) {
             EM_RTN(pEm) = 0xA01;
-            EM34_W(pEm)->Unk13 = (Rnd() & 1) + 2;
+            EM34_W(pEm)->Unk13 = (Rnd_l() & 1) + 2;
         }
     }
     if (EM34_W(pEm)->Flg & 0x40)
@@ -299,7 +299,7 @@ void Em34_walk_br0(ENEMY_WORK *pEm)
     }
     if (pEm->nFloor + 1 == pPl->nFloor && EM34_W(pEm)->Unk00 < 5 && !Dir4) {
         EM_RTN(pEm) = 0xA01;
-        EM34_W(pEm)->Unk13 = (Rnd() & 1) + 2;
+        EM34_W(pEm)->Unk13 = (Rnd_l() & 1) + 2;
     }
 }
 
@@ -408,7 +408,7 @@ void Em34_walk_br0h(ENEMY_WORK *pEm)
     Dir6 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x600);
     if (Dist > 8000 && !Dir2 && (pEm->Status_flg & 0x2000) && !EM34_W(pEm)->Unk22) {
         EM_RTN(pEm) = 0x201;
-        if ((Rnd() & 1) && !EM34_W(pEm)->Unk10) {
+        if ((Rnd_l() & 1) && !EM34_W(pEm)->Unk10) {
             EM_RTN(pEm) = 0xA01;
             return;
         }
@@ -506,7 +506,7 @@ void Em34_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Col.Hit_flg & 0x30) {
             if (++pEm->UnkDA > 100) {
                 pEm->UnkE2 = 30;
-                Side = Rnd() & 1;
+                Side = Rnd_l() & 1;
                 pEm->Timer0 = 150;
                 pEm->UnkDA = 0;
                 pEm->Cdir_y += 0x40 - Side * 120;
@@ -646,9 +646,9 @@ void Em34_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_MOVE(pEm) = 0x70006;
         pEm->Routine_2 = 1;
         pEm->Timer0 = 150;
-        pEm->UnkE3 = Cnt_tbl0[Rnd() & 7];
+        pEm->UnkE3 = Cnt_tbl0[Rnd_l() & 7];
         if (pEm->Type & 1)
-            pEm->UnkE3 = Cnt_tbl1[Rnd() & 7];
+            pEm->UnkE3 = Cnt_tbl1[Rnd_l() & 7];
         EM34_W(pEm)->Unk00 = 15;
         EM34_W(pEm)->Unk06 = 15;
         pEm->UnkDA = 0;
@@ -666,7 +666,7 @@ void Em34_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Col.Hit_flg & 0x30) {
             if (++pEm->UnkDA > 100) {
                 pEm->UnkE2 = 20;
-                Side = Rnd() & 1;
+                Side = Rnd_l() & 1;
                 pEm->UnkDA = 0;
                 pEm->Cdir_y += 0x60 - Side * 192;
             }
@@ -692,7 +692,7 @@ void Em34_back_br0(ENEMY_WORK *pEm)
     Dir4 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     if (Dist > 3000 && !Dir4) {
         EM_RTN(pEm) = 0x101;
-        if (Rnd() & 1) {
+        if (Rnd_l() & 1) {
             EM_RTN(pEm) = 0xA01;
             return;
         }
@@ -706,7 +706,7 @@ void Em34_back_br0(ENEMY_WORK *pEm)
         EM34_W(pEm)->Flg &= ~0x800;
         if (EM34_W(pEm)->Unk13 < 0) {
             EM_RTN(pEm) = 0xA01;
-            EM34_W(pEm)->Unk13 = (Rnd() & 1) + 2;
+            EM34_W(pEm)->Unk13 = (Rnd_l() & 1) + 2;
         }
     }
 }
@@ -751,7 +751,7 @@ void Em34_back_br0h(ENEMY_WORK *pEm)
     Dir4 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
     if (Dist > 3000 && !Dir4) {
         EM_RTN(pEm) = 0x101;
-        if (Rnd() & 1) {
+        if (Rnd_l() & 1) {
             EM_RTN(pEm) = 0xA01;
             return;
         }
@@ -817,7 +817,7 @@ void Em34_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         if (--pEm->Timer0 == -1) {
             EM_RTN(pEm) = 0x101;
-            if ((Rnd() & 3) == 1)
+            if ((Rnd_l() & 3) == 1)
                 EM_RTN(pEm) = 0x201;
         }
         break;
@@ -890,7 +890,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_MOVE(pEm) = 0x70007;
         (pP = &pEm->pSin_parts_ptr[5])->pTmd = Em34_tmd_old5;
         pEm->UnkE3 = 0;
-        if (pPl->Pos_y > pEm->Pos_y || (Rnd() & 1) || (pPl->Be_flg & 0x20000000)) {
+        if (pPl->Pos_y > pEm->Pos_y || (Rnd_l() & 1) || (pPl->Be_flg & 0x20000000)) {
             EM_MOVE(pEm) = 0x70008;
             pEm->UnkE3 = 3;
             (pP = &pEm->pSin_parts_ptr[5])->pTmd = Em34_tmd_new5;
@@ -933,7 +933,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (pEm->Type & 1)
                 pEm->pSin_parts_ptr[8].pTmd = Em34_tmd_new8;
             if (!(pEm->Type & 1)) {
-                if ((LONG)pEm->Unk154 > 3000 && !(Rnd() & 1))
+                if ((LONG)pEm->Unk154 > 3000 && !(Rnd_l() & 1))
                     EM_RTN(pEm) = 0xA01;
                 if (!(pEm->Type & 1) && pPl->Life < 50)
                     EM_RTN(pEm) = 0xA01;
@@ -949,11 +949,11 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM_RTN(pEm) = 0x101;
                 EM34_W(pEm)->Unk00 = 30;
                 EM34_W(pEm)->Unk06 = 15;
-                if ((Rnd() & 3) == 1)
+                if ((Rnd_l() & 3) == 1)
                     EM_RTN(pEm) = 0x201;
                 if (pPl->Pos_y != pEm->Pos_y) {
                     EM34_W(pEm)->Unk00 = 15;
-                    if (Rnd() & 1)
+                    if (Rnd_l() & 1)
                         EM_RTN(pEm) = 0x201;
                 }
                 pEm->Unk120 &= ~3;
@@ -1034,9 +1034,9 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
             Em34_hit_area.pBox = Em34_at_box;
             Em34_hit_area.Dir = pEm->Cdir_y;
-            Em34_hit_area.Id = Id_tbl0[(Rnd() >> (Rnd() & 3)) & 7];
+            Em34_hit_area.Id = Id_tbl0[(Rnd_l() >> (Rnd_l() & 3)) & 7];
             if (pPl->Pos_y < pEm->Pos_y)
-                Em34_hit_area.Id = Id_tbl1[(Rnd() >> (Rnd() & 3)) & 7];
+                Em34_hit_area.Id = Id_tbl1[(Rnd_l() >> (Rnd_l() & 3)) & 7];
             func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G_PLAYER);
             if ((LONG)G.Status_flg < 0) {
                 Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
@@ -1073,7 +1073,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP->pTmd = Em34_tmd_old8;
         pEm->Unk120 |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
-        if (Rnd() & 1)
+        if (Rnd_l() & 1)
             Snd_se_enem(14, pEm);
         if (EM34_W(pEm)->Flg & 0x80) {
             pEm->Move_cnt = 8;
@@ -1091,7 +1091,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_RTN(pEm) = 0x101;
             pP = &pEm->pSin_parts_ptr[8];
             pP->pTmd = Em34_tmd_new8;
-            if (!(pEm->Type & 1) && (LONG)pEm->Unk154 > 3000 && !(Rnd() & 1))
+            if (!(pEm->Type & 1) && (LONG)pEm->Unk154 > 3000 && !(Rnd_l() & 1))
                 EM_RTN(pEm) = 0xA01;
             EM34_W(pEm)->Unk00 = 20;
             pEm->Unk120 &= ~3;
@@ -1195,7 +1195,7 @@ void Em34_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EM_RTN(pEm) = 0x101;
-            if ((Rnd() & 3) == 1)
+            if ((Rnd_l() & 3) == 1)
                 EM_RTN(pEm) = 0x201;
             EM34_W(pEm)->Unk06 = 45;
             pEm->Unk120 &= ~3;
@@ -1205,7 +1205,7 @@ void Em34_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!pEm->UnkE3 && pEm->Move_cnt >= 11
             && (Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 800) || (LONG)Dist > 2500 || (pPl->Col.Hit_flg & 0x40) || (pEm->Col.Hit_flg & 0x40))) {
             EM_RTN(pEm) = 0x101;
-            if ((Rnd() & 3) == 1)
+            if ((Rnd_l() & 3) == 1)
                 EM_RTN(pEm) = 0x201;
             EM34_W(pEm)->Unk06 = 15;
             EM34_W(pEm)->Unk00 = 10;
@@ -1235,10 +1235,10 @@ void Em34_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
             Em34_hit_area.pBox = Em34_at_box;
             Em34_hit_area.Dir = pEm->Cdir_y;
-            Em34_hit_area.Id = Id_tbl0[(Rnd() >> (Rnd() & 3)) & 7] + 0x40;
+            Em34_hit_area.Id = Id_tbl0[(Rnd_l() >> (Rnd_l() & 3)) & 7] + 0x40;
             if (pPl->Pos_y < pEm->Pos_y)
-                Em34_hit_area.Id = Id_tbl1[(Rnd() >> (Rnd() & 3)) & 7] + 0x40;
-            if ((Rnd() & 3) == 1)
+                Em34_hit_area.Id = Id_tbl1[(Rnd_l() >> (Rnd_l() & 3)) & 7] + 0x40;
+            if ((Rnd_l() & 3) == 1)
                 Em34_hit_area.Id = 0x62;
             func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
         }
@@ -1286,7 +1286,7 @@ void Em34_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y = pEm->UnkDA;
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             pEm->Routine_2 = 2;
-            pPl->UnkE3 = Rnd() & 1;
+            pPl->UnkE3 = Rnd_l() & 1;
             Ofs.vx = 2000 - pPl->UnkE3 * 4000;
             Ofs.vy = 0;
             Ofs.vz = 0;
@@ -1310,7 +1310,7 @@ void Em34_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_MOVE(pEm) = Move_tbl.Move[pPl->UnkE3] + 0x70000;
             if (pEm->UnkE3 == 2)
                 EM_RTN(pEm) = 0xD01;
-            Snd_se_enem((Rnd() & 1) ? 14 : 15, pEm);
+            Snd_se_enem((Rnd_l() & 1) ? 14 : 15, pEm);
         }
         break;
     case 2:
@@ -1321,7 +1321,7 @@ void Em34_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Null_pos_set(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EM_RTN(pEm) = 0x101;
-            if ((Rnd() & 7) == 2)
+            if ((Rnd_l() & 7) == 2)
                 EM_RTN(pEm) = 0xB01;
             EM34_W(pEm)->Unk00 = 5;
             EM34_W(pEm)->Unk06 = 45;
@@ -1384,13 +1384,13 @@ void Em34_catch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80104A4C(void) {
 }
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", D_8010003C);
+INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", Em34_catch_move);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", D_80100040);
+INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", Em34_pl_stop);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", D_80100044);
+INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", Em34_shot_ofs);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", func_80104A54);
+INCLUDE_ASM("asm/nonmatchings/ovl/em34/em34", Em34_shoot);
 
 void func_80105590(void) {
 }
@@ -1409,7 +1409,7 @@ void Em34_roar(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         if (pEm->Type & 1)
             EM_MOVE(pEm) = 0xF001F;
-        Snd_se_enem((Rnd() & 1) ? 15 : 14, pEm);
+        Snd_se_enem((Rnd_l() & 1) ? 15 : 14, pEm);
         pP = &pEm->pSin_parts_ptr[16];
         pEm->pSin_parts_ptr[16].Be_flg |= 1;
         pP->Size_z = 0;
@@ -1421,24 +1421,24 @@ void Em34_roar(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(pEm->Type & 1)) {
             if (!(pEm->Move_cnt & 3) && pEm->Move_cnt < 53) {
                 Ofs.vx = 11;
-                Ofs.vy = (Rnd() & 0xF) + 0x10C;
+                Ofs.vy = (Rnd_l() & 0xF) + 0x10C;
                 Ofs.vz = 50;
                 pM = (MATRIX *)pEm->pSin_parts_ptr;
                 pM = &((PARTS_W *)pM)[5].Workm;
-                func_8001B484(0x4001700, ((Rnd() * 4 + 0xC00) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-                func_8001B484(0x4000500, 0xA000000, pM, &Ofs, NULL);
-                Ofs.vx = (0xF - Rnd()) & 0x1F;
-                Ofs.vy = (Rnd() & 0xF) + 0x10C;
-                Ofs.vz = (0xF - Rnd()) & 0x1F;
-                func_8001B484(0x2001700, ((Rnd() * 4 + 0xA00) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
+                Esp_call(0x4001700, ((Rnd_l() * 4 + 0xC00) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+                Esp_call(0x4000500, 0xA000000, pM, &Ofs, NULL);
+                Ofs.vx = (0xF - Rnd_l()) & 0x1F;
+                Ofs.vy = (Rnd_l() & 0xF) + 0x10C;
+                Ofs.vz = (0xF - Rnd_l()) & 0x1F;
+                Esp_call(0x2001700, ((Rnd_l() * 4 + 0xA00) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
                 pP = pEm->pSin_parts_ptr;
                 Ofs.vx = 0;
                 Ofs.vy = 0;
                 Ofs.vz = 100;
                 pM2 = &pP[16].Workm;
-                func_8001B484(0x4001700, ((Rnd() * 2 + 0xF00) << 16) | (USHORT)pEm->Cdir_y, pM2, &Ofs, NULL);
+                Esp_call(0x4001700, ((Rnd_l() * 2 + 0xF00) << 16) | (USHORT)pEm->Cdir_y, pM2, &Ofs, NULL);
                 Ofs.vz = 200;
-                func_8001B484(0x4001700, ((Rnd() * 2 + 0xA00) << 16) | (USHORT)pEm->Cdir_y, pM2, &Ofs, NULL);
+                Esp_call(0x4001700, ((Rnd_l() * 2 + 0xA00) << 16) | (USHORT)pEm->Cdir_y, pM2, &Ofs, NULL);
             }
             pP = &pEm->pSin_parts_ptr[16];
             if ((ULONG)(pEm->Move_cnt - 11) < 39) {
@@ -1490,11 +1490,11 @@ void Em34_arm_grow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Ofs.vx = 300;
         Ofs.vy = 500;
         Ofs.vz = 0;
-        func_8001B484(0x1001203, 0xA000000, pM, &Ofs, NULL);
+        Esp_call(0x1001203, 0xA000000, pM, &Ofs, NULL);
         Ofs.vx = 300;
         Ofs.vy = -1500;
         Ofs.vz = 0;
-        func_8001B484(0x1001203, 0xA000000, pM, &Ofs, NULL);
+        Esp_call(0x1001203, 0xA000000, pM, &Ofs, NULL);
         pEm->Type = (pEm->Type & ~3) | 1;
     case 1:
         if (pEm->Move_cnt < 20) {
@@ -1561,12 +1561,12 @@ void Em34_bite(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Pad_vib_set1(10, 200, 0);
             }
             if (!(pEm->Move_cnt & 3))
-                Pad_vib_set0((Rnd() & 1) + 1, 0);
+                Pad_vib_set0((Rnd_l() & 1) + 1, 0);
         }
         Cnt = pEm->Move_cnt;
         if ((ULONG)(Cnt - 61) < 29) {
             if (!(Cnt & 3)) {
-                Pad_vib_set0((Rnd() & 1) + 1, 0);
+                Pad_vib_set0((Rnd_l() & 1) + 1, 0);
                 Pad_vib_set1(3, 200, 0);
             }
             if (pEm->Move_cnt == 89) {
@@ -1593,13 +1593,13 @@ void Em34_bite(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.vx = 0;
             Ofs.vy = 0;
             Ofs.vz = 100;
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0x1800) << 16) | (USHORT)(Rnd() * 16), &pP->Workm, &Ofs, NULL);
-            func_8001B484(0x4000500, (USHORT)pEm->Cdir_y | 0x10000000, &pP->Workm, &Ofs, NULL);
-            func_8001B484(0x2000000, ((Rnd() * 8 + 0x1000) << 16) | (USHORT)(Rnd() * 16), &pP->Workm, &Ofs, NULL);
-            func_8001B484(0x2000500, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0x1800) << 16) | (USHORT)(Rnd_l() * 16), &pP->Workm, &Ofs, NULL);
+            Esp_call(0x4000500, (USHORT)pEm->Cdir_y | 0x10000000, &pP->Workm, &Ofs, NULL);
+            Esp_call(0x2000000, ((Rnd_l() * 8 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), &pP->Workm, &Ofs, NULL);
+            Esp_call(0x2000500, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
             if (pP->Size_z > 0x800) {
                 Ofs.vz = 150;
-                func_8001B484(0x4001700, ((Rnd() * 8 + 0x1400) << 16) | (USHORT)(Rnd() * 16), &pP->Workm, &Ofs, NULL);
+                Esp_call(0x4001700, ((Rnd_l() * 8 + 0x1400) << 16) | (USHORT)(Rnd_l() * 16), &pP->Workm, &Ofs, NULL);
             }
         }
         pEm->Base_pos_x = pPl->Base_pos_x;
@@ -1619,11 +1619,11 @@ void Em34_bite(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Ofs.vx = 0;
         Ofs.vy = 0;
         Ofs.vz = 50;
-        func_8001B484(0x4001700, ((Rnd() * 2 + 0xF00) << 16) | (USHORT)pEm->Cdir_y, &pParts[16].Workm, &Ofs, NULL);
+        Esp_call(0x4001700, ((Rnd_l() * 2 + 0xF00) << 16) | (USHORT)pEm->Cdir_y, &pParts[16].Workm, &Ofs, NULL);
         Ofs.vz = 100;
-        func_8001B484(0x4001700, ((Rnd() * 2 + 0xA00) << 16) | (USHORT)pEm->Cdir_y, &pParts[16].Workm, &Ofs, NULL);
+        Esp_call(0x4001700, ((Rnd_l() * 2 + 0xA00) << 16) | (USHORT)pEm->Cdir_y, &pParts[16].Workm, &Ofs, NULL);
         Ofs.vz = 150;
-        func_8001B484(0x4001700, (USHORT)pEm->Cdir_y | 0x8000000, &pParts[16].Workm, &Ofs, NULL);
+        Esp_call(0x4001700, (USHORT)pEm->Cdir_y | 0x8000000, &pParts[16].Workm, &Ofs, NULL);
         pEm->Col.W0 = 200;
         pEm->Col.D0 = 200;
         pEm->Be_flg &= ~0x800;
@@ -1662,7 +1662,7 @@ void func_8010625C(ENEMY_WORK *pEm)
 
     if (pEm->Routine_2 < 2 && pPl->Routine_0 != 5) {
         EM_RTN(pEm) = 0x101;
-        EM34_W(pEm)->Unk06 = (Rnd() & 0xF) + 10;
+        EM34_W(pEm)->Unk06 = (Rnd_l() & 0xF) + 10;
         EM34_W(pEm)->Unk00 = 15;
     }
 }
@@ -1763,7 +1763,7 @@ void Em34_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         EM_MOVE(pEm) = 0x1F0016;
         pEm->Routine_2 = 2;
-        if (Rnd() & 1)
+        if (Rnd_l() & 1)
             Snd_se_enem(11, pEm);
     case 2:
         if (pEm->Move_cnt == 30)
@@ -1794,18 +1794,18 @@ void Em34_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Add_speedXZ(pEm, 0);
         if (pEm->Move_cnt & 3) {
-            Ofs.vx = 0x80 - Rnd();
-            Ofs.vy = 0x80 - Rnd();
-            Ofs.vz = 0x80 - Rnd();
+            Ofs.vx = 0x80 - Rnd_l();
+            Ofs.vy = 0x80 - Rnd_l();
+            Ofs.vz = 0x80 - Rnd_l();
             pParts = pEm->pSin_parts_ptr;
             pP = &pParts[3];
-            func_8001B484(0x4001700, ((Rnd() * 4 + 0xA00) << 16) | (USHORT)pEm->Cdir_y, &pParts[3].Workm, &Ofs, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 4 + 0xA00) << 16) | (USHORT)pEm->Cdir_y, &pParts[3].Workm, &Ofs, NULL);
         }
         if ((pEm->Move_cnt & 7) == 3) {
-            Ofs.vx = 0x80 - Rnd();
-            Ofs.vy = 0x80 - Rnd();
-            Ofs.vz = 0x80 - Rnd();
-            func_8001B484(0x2000000, ((Rnd() + 0x800) << 16) | (USHORT)pEm->Cdir_y, &pP->Workm, &Ofs, NULL);
+            Ofs.vx = 0x80 - Rnd_l();
+            Ofs.vy = 0x80 - Rnd_l();
+            Ofs.vz = 0x80 - Rnd_l();
+            Esp_call(0x2000000, ((Rnd_l() + 0x800) << 16) | (USHORT)pEm->Cdir_y, &pP->Workm, &Ofs, NULL);
         }
         break;
     }
@@ -1873,7 +1873,7 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk120 |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
         pEm->UnkE3 = 0;
-        if (Rnd() & 1) {
+        if (Rnd_l() & 1) {
             Snd_se_enem(14, pEm);
         } else {
             Snd_se_enem(11, pEm);
@@ -1945,7 +1945,7 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em34_hit_area.pPos = (VECTOR *)(pPos = &pEm->Pos_x);
         Em34_hit_area.pBox = Em34_at_box4;
         Em34_hit_area.Dir = pEm->Cdir_y;
-        Em34_hit_area.Id = Id_tbl[(Rnd() >> (Rnd() & 3)) & 7];
+        Em34_hit_area.Id = Id_tbl[(Rnd_l() >> (Rnd_l() & 3)) & 7];
         func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
         Em34_hit_area.pBox = Em34_at_box5;
         func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
@@ -1979,7 +1979,7 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk120 |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
         pEm->UnkE2 = 0;
-        if (Rnd() & 1)
+        if (Rnd_l() & 1)
             Snd_se_enem(15, pEm);
     case 1:
         if (pEm->Move_cnt < 33)
@@ -1992,11 +1992,11 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             EM_RTN(pEm) = 0x101;
-            if (!(Rnd() & 1))
+            if (!(Rnd_l() & 1))
                 EM_RTN(pEm) = 0x201;
             if (pEm->UnkE2 & 0x80) {
                 EM_RTN(pEm) = 0x201;
-                if (!(Rnd() & 3))
+                if (!(Rnd_l() & 3))
                     EM_RTN(pEm) = 0xB01;
             }
             EM34_W(pEm)->Unk00 = 15;
@@ -2034,7 +2034,7 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.vx = pP->Workm.t[0];
             Ofs.vy = pP->Workm.t[1];
             Ofs.vz = pP->Workm.t[2];
-            func_8001B484(0x1700, ((Rnd() * 2 + 0x1800) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Ofs, NULL);
+            Esp_call(0x1700, ((Rnd_l() * 2 + 0x1800) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Ofs, NULL);
         }
         if (pEm->Move_cnt == 39)
             Snd_se_stad(0x1020E, (VECTOR *)&pEm->Pos_x, 0, 0);
@@ -2051,14 +2051,14 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Em34_hit_area.pPos = (VECTOR *)pPos;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = 1;
-            if (!(Rnd() & 3))
+            if (!(Rnd_l() & 3))
                 Em34_hit_area.Id = 3;
             func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
             Em34_hit_area.pPos = (VECTOR *)pPos;
             Em34_hit_area.pBox = Em34_at_box7;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = 2;
-            if (!(Rnd() & 3))
+            if (!(Rnd_l() & 3))
                 Em34_hit_area.Id = 3;
             func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
         }
@@ -2112,7 +2112,7 @@ void Em34_rocket(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 3:
         EM_MOVE(pEm) = 0x19;
         pEm->Routine_2 = 4;
-        func_8001B484(0x1000602, (USHORT)(pEm->Cdir_y + EM34_W(pEm)->Unk08) | 0x10000000,
+        Esp_call(0x1000602, (USHORT)(pEm->Cdir_y + EM34_W(pEm)->Unk08) | 0x10000000,
                       &pEm->pSin_parts_ptr[17].Workm, &Ofs, NULL);
         Snd_se_enem(7, pEm);
         G.Unk75EA |= 2;
@@ -2151,24 +2151,24 @@ void Em34_rocket(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.vz = 0;
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[17].Workm;
-            func_8001B484(0x1001303, 0xA000000, pM, &Ofs, NULL);
-            func_8001B484(0x1001303, 0x8000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0x8000000, pM, &Ofs, NULL);
             Ofs.vy = -1500;
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[17].Workm;
-            func_8001B484(0x1001303, 0xA000000, pM, &Ofs, NULL);
-            func_8001B484(0x1001303, 0x8000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0x8000000, pM, &Ofs, NULL);
             if (!EM34_W(pEm)->Unk03) {
                 pM = (MATRIX *)pEm->pSin_parts_ptr;
                 Ofs.vx = 300;
                 Ofs.vy = 0;
                 Ofs.vz = 0;
                 pM = &((PARTS_W *)pM)[17].Workm;
-                func_8001B484(0x1001203, 0xA000000, pM, &Ofs, NULL);
+                Esp_call(0x1001203, 0xA000000, pM, &Ofs, NULL);
                 Ofs.vx = 300;
                 Ofs.vy = -700;
                 Ofs.vz = 0;
-                func_8001B484(0x1001203, 0xA000000, pM, &Ofs, NULL);
+                Esp_call(0x1001203, 0xA000000, pM, &Ofs, NULL);
             }
         }
         if (Joint_move(pEm, pKan, pSeq, 0x10200)) {
@@ -2240,7 +2240,7 @@ void Em34_dm_flinch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = (Rnd() & 1) + 0x70013;
+        EM_MOVE(pEm) = (Rnd_l() & 1) + 0x70013;
         pEm->Routine_2 = 1;
         Em34_blood_set(pEm);
         Snd_se_enem(13, pEm);
@@ -2257,9 +2257,9 @@ void Em34_dm_flinch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd_get(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EM_RTN(pEm) = 0x101;
-            if (Rnd() & 1)
+            if (Rnd_l() & 1)
                 EM_RTN(pEm) = 0x201;
-            if (!(pEm->Type & 1) && (Rnd() & 3) == 1)
+            if (!(pEm->Type & 1) && (Rnd_l() & 3) == 1)
                 EM_RTN(pEm) = 0xA01;
         }
         Add_speedXZ(pEm, 0);
@@ -2293,7 +2293,7 @@ void Em34_dm_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_80018EC8(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             EM_RTN(pEm) = 0xF01;
-            pEm->Timer0 = (Rnd() & 0x7F) + 60;
+            pEm->Timer0 = (Rnd_l() & 0x7F) + 60;
             pEm->Damage_cnt &= 0x7F;
             EM34_W(pEm)->Flg |= 3;
             pEm->Status_flg |= 0x800;
@@ -2307,7 +2307,7 @@ void Em34_dm_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Em34_dm_no(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM34_W(pEm)->Flinch = 1;
-    if (Rnd() & 1)
+    if (Rnd_l() & 1)
         Snd_se_enem(12, pEm);
     EM_RTN(pEm) = pEm->Unk1C4;
     Em34_blood_set(pEm);
@@ -2367,19 +2367,19 @@ void Em34_die_burn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (pEm->Move_cnt < 104 && pEm->Move_cnt % 7 == 1) {
             pM = (MATRIX *)pEm->pSin_parts_ptr;
-            Ofs.vx = 100 - (Rnd() & 1) * 200;
+            Ofs.vx = 100 - (Rnd_l() & 1) * 200;
             Ofs.vy = 0;
-            Ofs.vz = 100 - (Rnd() & 1) * 200;
+            Ofs.vz = 100 - (Rnd_l() & 1) * 200;
             pM = &((PARTS_W *)pM)[3].Workm;
-            func_8001B484(0x4000000, ((Rnd() * 8 + 0x1000) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0x1000) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x4000500, 0x10000000, pM, &Ofs, NULL);
+            Esp_call(0x4000000, ((Rnd_l() * 8 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x4000500, 0x10000000, pM, &Ofs, NULL);
             pM = (MATRIX *)pEm->pSin_parts_ptr;
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0xF00) << 16) | (USHORT)(Rnd() * 16), &((PARTS_W *)pM)[2].Workm, NULL, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0xF00) << 16) | (USHORT)(Rnd_l() * 16), &((PARTS_W *)pM)[2].Workm, NULL, NULL);
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[5].Workm;
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0x800) << 16) | (USHORT)(Rnd() * 16), pM, NULL, NULL);
-            func_8001B484(0x4000500, 0x10000000, pM, NULL, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0x800) << 16) | (USHORT)(Rnd_l() * 16), pM, NULL, NULL);
+            Esp_call(0x4000500, 0x10000000, pM, NULL, NULL);
         }
         func_80018EC8(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x80))
@@ -2656,7 +2656,7 @@ void Em34_sce07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Pos.vx = pP->Workm.t[0];
             Pos.vy = pP->Workm.t[1];
             Pos.vz = pP->Workm.t[2];
-            func_8001B484(0x1700, ((Rnd() * 2 + 0x1800) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Pos, NULL);
+            Esp_call(0x1700, ((Rnd_l() * 2 + 0x1800) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Pos, NULL);
         }
         break;
     case 2:
@@ -2710,7 +2710,7 @@ void Em34_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Max_life = 600;
         }
         if (!(pEm->Unk14A & 8)) {
-            func_8001B484(0x1000203, 0x10000000, &pParts[17].Workm, NULL, NULL);
+            Esp_call(0x1000203, 0x10000000, &pParts[17].Workm, NULL, NULL);
             EM34_W(pEm)->Flg |= 0x200;
             pP->pSuper = &GsIDMATRIX;
             pP->UnkA2 |= 0x20;
@@ -2733,20 +2733,20 @@ void Em34_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Ofs.vx = 0;
         Ofs.vy = 0;
         Ofs.vz = 0;
-        func_8001B484(5, 0x10000000, pM, &Ofs, NULL);
-        func_8001B484(0x1001203, 0x10000000, pM, &Ofs, NULL);
+        Esp_call(5, 0x10000000, pM, &Ofs, NULL);
+        Esp_call(0x1001203, 0x10000000, pM, &Ofs, NULL);
         Ofs.vy = 300;
-        func_8001B484(5, 0xA000000, pM, &Ofs, NULL);
+        Esp_call(5, 0xA000000, pM, &Ofs, NULL);
         pM2 = (MATRIX *)pEm->pSin_parts_ptr;
         pM2 = &((PARTS_W *)pM2)[1].Workm;
         Ofs.vx = 100;
         Ofs.vy = -400;
         Ofs.vz = 300;
-        func_8001B484(5, 0x12000000, pM2, &Ofs, NULL);
+        Esp_call(5, 0x12000000, pM2, &Ofs, NULL);
         Ofs.vx = -100;
         Ofs.vy = -300;
         Ofs.vz = 300;
-        func_8001B484(5, 0x12000000, pM2, &Ofs, NULL);
+        Esp_call(5, 0x12000000, pM2, &Ofs, NULL);
         EM34_W(pEm)->Unk14 = 300;
         pEm->pSin_parts_ptr[5].pTmd = Em34_tmd_new5;
         pEm->pSin_parts_ptr[8].pTmd = Em34_tmd_new8;
@@ -2807,7 +2807,7 @@ void Em34_sce10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Id = 6;
         if ((UCHAR)pEm->Type == 2)
             Id = 11;
-        func_8001B484((Id << 8) | 0x1000002, (USHORT)(pEm->Cdir_y + EM34_W(pEm)->Unk08) | 0x10000000,
+        Esp_call((Id << 8) | 0x1000002, (USHORT)(pEm->Cdir_y + EM34_W(pEm)->Unk08) | 0x10000000,
                       &pEm->pSin_parts_ptr[17].Workm, &Ofs, NULL);
         Snd_se_enem(7, pEm);
     case 4:
@@ -2836,13 +2836,13 @@ void Em34_sce10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.vz = 0;
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[17].Workm;
-            func_8001B484(0x1001303, 0xA000000, pM, &Ofs, NULL);
-            func_8001B484(0x1001303, 0x8000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0x8000000, pM, &Ofs, NULL);
             Ofs.vy = -1500;
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[17].Workm;
-            func_8001B484(0x1001303, 0xA000000, pM, &Ofs, NULL);
-            func_8001B484(0x1001303, 0x8000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x1001303, 0x8000000, pM, &Ofs, NULL);
         }
         if (Joint_move(pEm, pKan, pSeq, 0x10200)) {
             pEm->Routine_2 = 2;
@@ -2897,19 +2897,19 @@ void Em34_sce12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (pEm->Move_cnt < 104 && pEm->Move_cnt % 7 == 1) {
             pM = (MATRIX *)pEm->pSin_parts_ptr;
-            Ofs.vx = 100 - (Rnd() & 1) * 200;
+            Ofs.vx = 100 - (Rnd_l() & 1) * 200;
             Ofs.vy = 0;
-            Ofs.vz = 100 - (Rnd() & 1) * 200;
+            Ofs.vz = 100 - (Rnd_l() & 1) * 200;
             pM = &((PARTS_W *)pM)[3].Workm;
-            func_8001B484(0x4000000, ((Rnd() * 8 + 0x1000) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0x1000) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x4000500, 0x10000000, pM, &Ofs, NULL);
+            Esp_call(0x4000000, ((Rnd_l() * 8 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x4000500, 0x10000000, pM, &Ofs, NULL);
             pM = (MATRIX *)pEm->pSin_parts_ptr;
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0xF00) << 16) | (USHORT)(Rnd() * 16), &((PARTS_W *)pM)[2].Workm, NULL, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0xF00) << 16) | (USHORT)(Rnd_l() * 16), &((PARTS_W *)pM)[2].Workm, NULL, NULL);
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[5].Workm;
-            func_8001B484(0x4001700, ((Rnd() * 8 + 0x800) << 16) | (USHORT)(Rnd() * 16), pM, NULL, NULL);
-            func_8001B484(0x4000500, 0x10000000, pM, NULL, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 8 + 0x800) << 16) | (USHORT)(Rnd_l() * 16), pM, NULL, NULL);
+            Esp_call(0x4000500, 0x10000000, pM, NULL, NULL);
         }
         func_80018EC8(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x80);
@@ -2921,19 +2921,19 @@ void Em34_sce12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt == 52) {
             Snd_se_enem(15, pEm);
             pP = pEm->pSin_parts_ptr;
-            func_8001B484(0, (Rnd() * 2 + 0x1000) << 16, &pP->Workm, NULL, NULL);
+            Esp_call(0, (Rnd_l() * 2 + 0x1000) << 16, &pP->Workm, NULL, NULL);
             pP = pEm->pSin_parts_ptr;
-            func_8001B484(0, (Rnd() * 2 + 0x1000) << 16, &pP[2].Workm, NULL, NULL);
+            Esp_call(0, (Rnd_l() * 2 + 0x1000) << 16, &pP[2].Workm, NULL, NULL);
         }
         if (pEm->Move_cnt == 60) {
             pP = pEm->pSin_parts_ptr;
-            func_8001B484(0, (Rnd() * 2 + 0x1800) << 16, &pP->Workm, NULL, NULL);
+            Esp_call(0, (Rnd_l() * 2 + 0x1800) << 16, &pP->Workm, NULL, NULL);
             pP = pEm->pSin_parts_ptr;
-            func_8001B484(0, (Rnd() * 2 + 0x1800) << 16, &pP[2].Workm, NULL, NULL);
+            Esp_call(0, (Rnd_l() * 2 + 0x1800) << 16, &pP[2].Workm, NULL, NULL);
             pP = pEm->pSin_parts_ptr;
-            func_8001B484(0, (Rnd() * 2 + 0x1800) << 16, &pP[3].Workm, NULL, NULL);
+            Esp_call(0, (Rnd_l() * 2 + 0x1800) << 16, &pP[3].Workm, NULL, NULL);
             pP = pEm->pSin_parts_ptr;
-            func_8001B484(0, (Rnd() * 2 + 0x1800) << 16, &pP[6].Workm, NULL, NULL);
+            Esp_call(0, (Rnd_l() * 2 + 0x1800) << 16, &pP[6].Workm, NULL, NULL);
             pP = &pEm->pSin_parts_ptr[1];
             PW_RGB(pP)->Rgb0 = 0x40;
             PW_RGB(pP)->Rgb1 = 0x202030;
@@ -2958,8 +2958,8 @@ void Em34_sce12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 2:
         pEm->Routine_2 = 3;
         EM_MOVE(pEm) = pEm->Add_dir + 0x1F0000;
-        pEm->UnkDA = (Rnd() & 0x1F) + 30;
-        pEm->Timer0 = (Rnd() & 0xF) + 15;
+        pEm->UnkDA = (Rnd_l() & 0x1F) + 30;
+        pEm->Timer0 = (Rnd_l() & 0xF) + 15;
     case 3:
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x10);
         func_80018EC8(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
@@ -2970,24 +2970,24 @@ void Em34_sce12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (SquareRoot0(Dx * Dx + Dz * Dz) * 2 < 300)
             pEm->Unk14A |= 2;
         if (--pEm->UnkDA == -1) {
-            pEm->UnkDA = (Rnd() & 0x1F) + 60;
-            Snd_se_enem(Rnd() % 3 + 13, pEm);
+            pEm->UnkDA = (Rnd_l() & 0x1F) + 60;
+            Snd_se_enem(Rnd_l() % 3 + 13, pEm);
         }
         if (pEm->Move_cnt % 7 == 1) {
             pM = (MATRIX *)pEm->pSin_parts_ptr;
-            Ofs.vx = 100 - (Rnd() & 1) * 200;
+            Ofs.vx = 100 - (Rnd_l() & 1) * 200;
             Ofs.vy = 0;
-            Ofs.vz = 100 - (Rnd() & 1) * 200;
+            Ofs.vz = 100 - (Rnd_l() & 1) * 200;
             pM = &((PARTS_W *)pM)[3].Workm;
-            func_8001B484(0, ((Rnd() * 2 + 0xA00) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x1700, ((Rnd() * 2 + 0xA00) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x500, 0x10000000, pM, &Ofs, NULL);
+            Esp_call(0, ((Rnd_l() * 2 + 0xA00) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x1700, ((Rnd_l() * 2 + 0xA00) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x500, 0x10000000, pM, &Ofs, NULL);
             pM = (MATRIX *)pEm->pSin_parts_ptr;
-            func_8001B484(0x1700, ((Rnd() * 2 + 0xA00) << 16) | (USHORT)(Rnd() * 16), &((PARTS_W *)pM)[2].Workm, NULL, NULL);
+            Esp_call(0x1700, ((Rnd_l() * 2 + 0xA00) << 16) | (USHORT)(Rnd_l() * 16), &((PARTS_W *)pM)[2].Workm, NULL, NULL);
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[5].Workm;
-            func_8001B484(0x1700, ((Rnd() * 2 + 0x800) << 16) | (USHORT)(Rnd() * 16), pM, NULL, NULL);
-            func_8001B484(0x500, 0x10000000, pM, NULL, NULL);
+            Esp_call(0x1700, ((Rnd_l() * 2 + 0x800) << 16) | (USHORT)(Rnd_l() * 16), pM, NULL, NULL);
+            Esp_call(0x500, 0x10000000, pM, NULL, NULL);
         }
         break;
     case 4:
@@ -3071,7 +3071,7 @@ void Em134_Pldamage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em34_pldamage[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", D_80100140);
+INCLUDE_RODATA("asm/nonmatchings/ovl/em34/em34", Em34_pl_move);
 
 /* player routine while held, 0: thrown to the floor, struggles free with the pad (Gacha_ch) */
 void Em134_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
@@ -3123,7 +3123,7 @@ void Em134_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Null_pos_set(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= 0x800;
         if (pEm->Move_cnt == (UCHAR)Stop_tbl.Move[pEm->UnkE3])
-            Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(((Rnd_l() & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
         if (*pEm->pNow_seq & 0x800) {
             Snd_se_stad(0x10229, (VECTOR *)&pEm->Pos_x, 0, 0);
             Pad_vib_set0(3, 0);
@@ -3159,7 +3159,7 @@ void Em134_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Move_cnt = 0;
         if (Gacha) {
             pEm->Routine_2 = 4;
-            pEm->UnkE3 = (Rnd() & 3) + 1;
+            pEm->UnkE3 = (Rnd_l() & 3) + 1;
         }
         break;
     case 4:
@@ -3349,12 +3349,12 @@ void Em34_foot_set(ENEMY_WORK *pEm, LONG Unused, LONG Leg)
 
     pP = pEm->pSin_parts_ptr;
     RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    func_8002D4B0((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
-    func_8002D4B0(&M, (MATRIX *)pP[9].M, &M);
+    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
+    CompM(&M, (MATRIX *)pP[9].M, &M);
     pP += Leg * 3 + 12;
-    func_8002D4B0(&M, (MATRIX *)pP[-2].M, &M);
-    func_8002D4B0(&M, (MATRIX *)pP[-1].M, &M);
-    func_8002D4B0(&M, (MATRIX *)pP->M, &M);
+    CompM(&M, (MATRIX *)pP[-2].M, &M);
+    CompM(&M, (MATRIX *)pP[-1].M, &M);
+    CompM(&M, (MATRIX *)pP->M, &M);
     pEm->Pos_x -= M.t[0] - pP->Workm.t[0];
     pEm->Pos_z -= M.t[2] - pP->Workm.t[2];
 }
@@ -3372,27 +3372,27 @@ void Em34_blood_set(ENEMY_WORK *pEm)
         return;
     if ((pEm->Unk132 & 3) == 1) {
         pP = pEm->pSin_parts_ptr;
-        Ofs.vx = 0x40 - (Rnd() & 0x7F);
+        Ofs.vx = 0x40 - (Rnd_l() & 0x7F);
         Ofs.vy = 1500;
-        Ofs.vz = 0x40 - (Rnd() & 0x7F);
-        func_8001B484(0x700, (Dir & 0xFFFF) | 0x10000000, &pP->Workm, &Ofs, NULL);
+        Ofs.vz = 0x40 - (Rnd_l() & 0x7F);
+        Esp_call(0x700, (Dir & 0xFFFF) | 0x10000000, &pP->Workm, &Ofs, NULL);
     } else if ((pEm->Unk132 & 3) == 3) {
         pP = &pEm->pSin_parts_ptr[2];
-        Ofs.vx = 0x40 - (Rnd() & 0x7F);
+        Ofs.vx = 0x40 - (Rnd_l() & 0x7F);
         Ofs.vy = 0;
-        Ofs.vz = 0x40 - (Rnd() & 0x7F);
-        func_8001B484(0x700, (Dir & 0xFFFF) | 0x10000000, &pP->Workm, &Ofs, NULL);
+        Ofs.vz = 0x40 - (Rnd_l() & 0x7F);
+        Esp_call(0x700, (Dir & 0xFFFF) | 0x10000000, &pP->Workm, &Ofs, NULL);
     } else {
         pP = pEm->pSin_parts_ptr;
-        Ofs.vx = 0x40 - (Rnd() & 0x7F);
+        Ofs.vx = 0x40 - (Rnd_l() & 0x7F);
         Ofs.vy = 200;
-        Ofs.vz = 0x40 - (Rnd() & 0x7F);
-        func_8001B484(0x700, ((Rnd() * 2 + 0x1000) << 16) | (Dir & 0xFFFF), &pP->Workm, &Ofs, NULL);
+        Ofs.vz = 0x40 - (Rnd_l() & 0x7F);
+        Esp_call(0x700, ((Rnd_l() * 2 + 0x1000) << 16) | (Dir & 0xFFFF), &pP->Workm, &Ofs, NULL);
     }
     if (pEm->Unk12C == 5) {
         Dir2 = Dir + 0x80;
-        func_8001B484(0x100, ((Rnd() * 2 + 0x1800) << 16) | ((Dir2 - Rnd()) & 0xFFFF), &pP->Workm, &Ofs, NULL);
-        func_8001B484(0x100, ((Rnd() * 2 + 0x1800) << 16) | ((Dir2 - Rnd()) & 0xFFFF), &pP->Workm, &Ofs, NULL);
+        Esp_call(0x100, ((Rnd_l() * 2 + 0x1800) << 16) | ((Dir2 - Rnd_l()) & 0xFFFF), &pP->Workm, &Ofs, NULL);
+        Esp_call(0x100, ((Rnd_l() * 2 + 0x1800) << 16) | ((Dir2 - Rnd_l()) & 0xFFFF), &pP->Workm, &Ofs, NULL);
     }
 }
 
@@ -3412,7 +3412,7 @@ void Em34_after0(ENEMY_WORK *pEm)
         EM34_W(pEm)->Unk10--;
     switch (EM34_W(pEm)->Flinch) {
     case 1:
-        Spd = Spd_tbl[Rnd() & 7];
+        Spd = Spd_tbl[Rnd_l() & 7];
         EM34_W(pEm)->Flinch = 2;
         EM34_W(pEm)->Flinch_cnt = 0;
         EM34_W(pEm)->Flinch_dir = 1;
@@ -3475,11 +3475,11 @@ void Em34_after1(ENEMY_WORK *pEm)
             Sv.vx = 300;
             Sv.vy = 500;
             Sv.vz = 0;
-            func_8001B484(0x1001203, 0xA000000, pM, &Sv, NULL);
+            Esp_call(0x1001203, 0xA000000, pM, &Sv, NULL);
             Sv.vx = 300;
             Sv.vy = -1500;
             Sv.vz = 0;
-            func_8001B484(0x1001203, 0xA000000, pM, &Sv, NULL);
+            Esp_call(0x1001203, 0xA000000, pM, &Sv, NULL);
         case 2:
             Floor = func_8004D720(pP->Workm.t, 400, 0x2000, 0);
             Sv.vx = 0;
@@ -3541,7 +3541,7 @@ void Em34_after1(ENEMY_WORK *pEm)
             break;
         case 4:
             pM2 = &pP->Workm;
-            func_8001B484(0x1000203, 0x10000000, pM2, NULL, NULL);
+            Esp_call(0x1000203, 0x10000000, pM2, NULL, NULL);
             EM34_W(pEm)->Flg |= 0x200;
             PW_FREE(pP)->Free[1] = -10;
             pP->Poly_rgb = 0x202020;
@@ -3586,17 +3586,17 @@ void Em34_knock_back(ENEMY_WORK *pEm)
     pEm->Unk17E = 0x230;
     if ((pEm->Unk132 & 3) == 1) {
         pP = pEm->pSin_parts_ptr;
-        func_8001B484(0x1803, (Rnd() * 8 + 0x800) << 16, &pP[10].Workm, NULL, NULL);
+        Esp_call(0x1803, (Rnd_l() * 8 + 0x800) << 16, &pP[10].Workm, NULL, NULL);
         pP = pEm->pSin_parts_ptr;
-        func_8001B484(0x1803, (Rnd() * 8 + 0x800) << 16, &pP[14].Workm, NULL, NULL);
+        Esp_call(0x1803, (Rnd_l() * 8 + 0x800) << 16, &pP[14].Workm, NULL, NULL);
     } else {
         pP2 = pEm->pSin_parts_ptr;
-        Sv.vx = 0x80 - Rnd();
-        Sv.vy = -0xAC - Rnd();
-        Sv.vz = 0x80 - Rnd();
-        func_8001B484(0x1803, (Rnd() * 8 + 0x800) << 16, &pP2[9].Workm, &Sv, NULL);
+        Sv.vx = 0x80 - Rnd_l();
+        Sv.vy = -0xAC - Rnd_l();
+        Sv.vz = 0x80 - Rnd_l();
+        Esp_call(0x1803, (Rnd_l() * 8 + 0x800) << 16, &pP2[9].Workm, &Sv, NULL);
         pP = pEm->pSin_parts_ptr;
-        func_8001B484(0x1803, (Rnd() * 8 + 0x800) << 16, &pP[2].Workm, NULL, NULL);
+        Esp_call(0x1803, (Rnd_l() * 8 + 0x800) << 16, &pP[2].Workm, NULL, NULL);
     }
     pP3 = &pEm->pSin_parts_ptr[1];
     pP3->UnkA2 |= 0x40;
@@ -3614,29 +3614,29 @@ void Em34_blood_spray(ENEMY_WORK *pEm)
 
     pP = pEm->pSin_parts_ptr;
     pEm->Status_flg |= 1;
-    func_8001B484(0x205, (Rnd() * 16 + 0x1000) << 16, &pP[13].Workm, NULL, NULL);
-    func_8001B484(0x1001B03, (Rnd() * 16 + 0xA00) << 16, &pP[13].Workm, NULL, NULL);
+    Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, &pP[13].Workm, NULL, NULL);
+    Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, &pP[13].Workm, NULL, NULL);
     if ((pEm->Unk132 & 3) == 1) {
         pM = (MATRIX *)pEm->pSin_parts_ptr;
         pM = &((PARTS_W *)pM)[11].Workm;
-        func_8001B484(0x205, (Rnd() * 16 + 0x1000) << 16, pM, NULL, NULL);
-        func_8001B484(0x1001B03, (Rnd() * 16 + 0xA00) << 16, pM, NULL, NULL);
+        Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, pM, NULL, NULL);
+        Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, pM, NULL, NULL);
         pM = (MATRIX *)pEm->pSin_parts_ptr;
         pM = &((PARTS_W *)pM)[14].Workm;
-        func_8001B484(0x205, (Rnd() * 16 + 0x1000) << 16, pM, NULL, NULL);
-        func_8001B484(0x1001B03, (Rnd() * 16 + 0xA00) << 16, pM, NULL, NULL);
+        Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, pM, NULL, NULL);
+        Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, pM, NULL, NULL);
     } else {
         pM2 = (MATRIX *)pEm->pSin_parts_ptr;
         pM2 = &((PARTS_W *)pM2)[9].Workm;
-        Ofs.vx = 0x80 - Rnd();
+        Ofs.vx = 0x80 - Rnd_l();
         Ofs.vy = -300;
-        Ofs.vz = 0x80 - Rnd();
-        func_8001B484(0x205, (Rnd() * 16 + 0x1F00) << 16, pM2, &Ofs, NULL);
-        func_8001B484(0x1001B03, (Rnd() * 16 + 0x1000) << 16, pM2, &Ofs, NULL);
+        Ofs.vz = 0x80 - Rnd_l();
+        Esp_call(0x205, (Rnd_l() * 16 + 0x1F00) << 16, pM2, &Ofs, NULL);
+        Esp_call(0x1001B03, (Rnd_l() * 16 + 0x1000) << 16, pM2, &Ofs, NULL);
         pM = (MATRIX *)pEm->pSin_parts_ptr;
         pM = &((PARTS_W *)pM)[3].Workm;
-        func_8001B484(0x205, (Rnd() * 16 + 0x1000) << 16, pM, NULL, NULL);
-        func_8001B484(0x1001B03, (Rnd() * 16 + 0xA00) << 16, pM, NULL, NULL);
+        Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, pM, NULL, NULL);
+        Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, pM, NULL, NULL);
     }
 }
 
@@ -3664,17 +3664,17 @@ void Em34_knock_back2(ENEMY_WORK *pEm)
     pEm->Unk17E = 0x40;
     if ((pEm->Unk132 & 3) == 1) {
         pP = pEm->pSin_parts_ptr;
-        func_8001B484(0x1C03, (Rnd() * 8 + 0x800) << 16, &pP[10].Workm, NULL, NULL);
+        Esp_call(0x1C03, (Rnd_l() * 8 + 0x800) << 16, &pP[10].Workm, NULL, NULL);
         pP = pEm->pSin_parts_ptr;
-        func_8001B484(0x1C03, (Rnd() * 8 + 0x800) << 16, &pP[14].Workm, NULL, NULL);
+        Esp_call(0x1C03, (Rnd_l() * 8 + 0x800) << 16, &pP[14].Workm, NULL, NULL);
     } else {
         pP2 = pEm->pSin_parts_ptr;
-        Sv.vx = 0x80 - Rnd();
-        Sv.vy = -0xAC - Rnd();
-        Sv.vz = 0x80 - Rnd();
-        func_8001B484(0x1C03, (Rnd() * 8 + 0x800) << 16, &pP2[9].Workm, &Sv, NULL);
+        Sv.vx = 0x80 - Rnd_l();
+        Sv.vy = -0xAC - Rnd_l();
+        Sv.vz = 0x80 - Rnd_l();
+        Esp_call(0x1C03, (Rnd_l() * 8 + 0x800) << 16, &pP2[9].Workm, &Sv, NULL);
         pP = pEm->pSin_parts_ptr;
-        func_8001B484(0x1C03, (Rnd() * 8 + 0x800) << 16, &pP[2].Workm, NULL, NULL);
+        Esp_call(0x1C03, (Rnd_l() * 8 + 0x800) << 16, &pP[2].Workm, NULL, NULL);
     }
     pP3 = &pEm->pSin_parts_ptr[1];
     pP3->UnkA2 |= 0x40;
@@ -3691,21 +3691,21 @@ void Em34_after2(ENEMY_WORK *pEm)
     if (EM34_W(pEm)->Flg & 0x80) {
         if ((pEm->Move_cnt & 7) == 1) {
             Ofs.vx = 11;
-            Ofs.vy = (Rnd() & 0xF) + 0x10C;
+            Ofs.vy = (Rnd_l() & 0xF) + 0x10C;
             Ofs.vz = 50;
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[5].Workm;
-            func_8001B484(0x4001700, ((Rnd() * 4 + 0x1000) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x4000500, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x4001700, ((Rnd_l() * 4 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x4000500, 0xA000000, pM, &Ofs, NULL);
         }
-        if ((pEm->Move_cnt & 7) == 4 && Rnd() & 1) {
+        if ((pEm->Move_cnt & 7) == 4 && Rnd_l() & 1) {
             Ofs.vx = 11;
             Ofs.vy = 300;
             Ofs.vz = 50;
             pM = (MATRIX *)pEm->pSin_parts_ptr;
             pM = &((PARTS_W *)pM)[5].Workm;
-            func_8001B484(0x2001700, ((Rnd() * 4 + 0x1000) << 16) | (USHORT)(Rnd() * 16), pM, &Ofs, NULL);
-            func_8001B484(0x2000500, 0xA000000, pM, &Ofs, NULL);
+            Esp_call(0x2001700, ((Rnd_l() * 4 + 0x1000) << 16) | (USHORT)(Rnd_l() * 16), pM, &Ofs, NULL);
+            Esp_call(0x2000500, 0xA000000, pM, &Ofs, NULL);
         }
     }
 }
@@ -3717,16 +3717,16 @@ void Em34_after3(ENEMY_WORK *pEm)
 
     if ((UCHAR)pEm->Type == 3) {
         if ((pEm->Move_cnt & 0xF) == 1) {
-            Spd.vx = 0x40 - (Rnd() & 0x7F);
+            Spd.vx = 0x40 - (Rnd_l() & 0x7F);
             Spd.vy = 0;
-            Spd.vz = 0x40 - (Rnd() & 0x7F);
-            func_8001B484(0x1800, 0xC000000, &pEm->pSin_parts_ptr[6].Workm, &Spd, NULL);
+            Spd.vz = 0x40 - (Rnd_l() & 0x7F);
+            Esp_call(0x1800, 0xC000000, &pEm->pSin_parts_ptr[6].Workm, &Spd, NULL);
         }
-        if ((pEm->Move_cnt & 0xF) == 4 && (Rnd() & 1)) {
-            Spd.vx = 0x40 - (Rnd() & 0x7F);
+        if ((pEm->Move_cnt & 0xF) == 4 && (Rnd_l() & 1)) {
+            Spd.vx = 0x40 - (Rnd_l() & 0x7F);
             Spd.vy = 0;
-            Spd.vz = 0x40 - (Rnd() & 0x7F);
-            func_8001B484(0x1800, 0xC000000, &pEm->pSin_parts_ptr[6].Workm, &Spd, NULL);
+            Spd.vz = 0x40 - (Rnd_l() & 0x7F);
+            Esp_call(0x1800, 0xC000000, &pEm->pSin_parts_ptr[6].Workm, &Spd, NULL);
         }
     }
 }
@@ -3750,12 +3750,12 @@ void Em34_before(ENEMY_WORK *pEm)
         Div = 0;
         if ((UCHAR)pPl->Type == 10) {
             Div = 7000;
-            if (!(Rnd() & 1))
+            if (!(Rnd_l() & 1))
                 Div = 760;
         }
         if ((ULONG)((UCHAR)pPl->Type - 6) < 4) {
             Div = 7000;
-            if (!(Rnd() & 1))
+            if (!(Rnd_l() & 1))
                 Div = 640;
         }
         if (Div) {

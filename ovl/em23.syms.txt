@@ -1,1 +1,14 @@
 // em23.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em23_life = 0x8010C7C8;
+Em23_life_easy = 0x8010C7E8;
+Em23_routine_0 = 0x8010C808;
+Em23_mv_br = 0x8010C82C;
+Em23_mv = 0x8010C884;
+Em23_root_mv = 0x8010C8DC;
+Em23_tbl_C8E4 = 0x8010C8E4;
+Em23_dm = 0x8010C8FC;
+Em23_die = 0x8010CA70;
+Em23_sce = 0x8010CBE4;
+Pldamage_Em23_tbl = 0x8010CBEC;
+Pldie_Em23_tbl = 0x8010CBFC;

@@ -33,7 +33,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk120 = 0;
     pEm->Neck_no = 0;
     EM26_W(pEm)->Kasakasarot = 0x78;
-    EM26_W(pEm)->No_catch_cnt = func_800102E8() & 0x1F;
+    EM26_W(pEm)->No_catch_cnt = Rnd() & 0x1F;
     pCol = &pEm->Col;
     EM26_W(pEm)->pTarget_pl = &Pl_work;
     pEm->Unk134 = 300;
@@ -162,9 +162,9 @@ void func_80100614(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
-        pEm->Timer0 = (func_800102E8() + 0x1E) & (EM26_W(pEm)->Atck_flg * 30 + 0x3F);
+        pEm->Timer0 = (Rnd() + 0x1E) & (EM26_W(pEm)->Atck_flg * 30 + 0x3F);
         EM26_W(pEm)->Atck_flg = 0;
-        EM26_W(pEm)->Chase_rot = ((0x1111 >> (func_800102E8() & 0xF)) & 1) ? -0x40 : 0x40;
+        EM26_W(pEm)->Chase_rot = ((0x1111 >> (Rnd() & 0xF)) & 1) ? -0x40 : 0x40;
         if ((LONG)G.Status_flg < 0) {
             if ((LONG)pEm->Unk154 < (pEm->Unk158 & 0x3FFFFFFF))
                 EM26_W(pEm)->pTarget_pl = G_PLAYER;
@@ -190,9 +190,9 @@ void func_80100724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
-        pEm->Spd_x = (func_800102E8() & 0x3F) + 0x5A;
+        pEm->Spd_x = (Rnd() & 0x3F) + 0x5A;
         pEm->Spd_z = 0;
-        pEm->Timer0 = func_800102E8() & 0x2E;
+        pEm->Timer0 = Rnd() & 0x2E;
     case 1:
         Goto00(pEm, pTg->Pos_x, pTg->Pos_z, EM26_W(pEm)->Chase_rot);
         pEm->Cdir_y += EM26_W(pEm)->Kasakasarot;
@@ -259,7 +259,7 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pFp = EM26_W(pEm);
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
-        pEm->Spd_x = (func_800102E8() & 0x3F) + 0x5A;
+        pEm->Spd_x = (Rnd() & 0x3F) + 0x5A;
         pEm->Spd_y = -300;
         pFp->Atck_flg = 0;
         pFp->Jump_flg = 1;
@@ -272,7 +272,7 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Hit = func_80101100(pEm);
     if (Hit) {
         pFp->Jump_flg = 0;
-        EM26_W(pEm)->Unk0C = (func_800102E8() & 0x3F) + 0x5A;
+        EM26_W(pEm)->Unk0C = (Rnd() & 0x3F) + 0x5A;
         if (Hit < 0) {
             func_8010100C(pEm, 0, 0x82);
             pEm->Life = -1;
@@ -282,7 +282,7 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else {
             pEm->Routine_1 = 1;
             EM_RTN23(pEm) = 0;
-            pFp->No_catch_cnt = (func_800102E8() & 0x1F) + 0x1E;
+            pFp->No_catch_cnt = (Rnd() & 0x1F) + 0x1E;
             pEm->Be_flg &= ~0x20;
             pEm->Pos_y = pEm->Unk122;
         }
@@ -300,8 +300,8 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
         pEm->Timer0 = 450;
-        pEm->UnkDA = (func_800102E8() & 1) ? 0x20 : -0x20;
-        pEm->UnkE2 = func_800102E8() & 0x1F;
+        pEm->UnkDA = (Rnd() & 1) ? 0x20 : -0x20;
+        pEm->UnkE2 = Rnd() & 0x1F;
     }
     Dir0 = Goto00_ck(pEm, pTg->Pos_x, pTg->Pos_z, 0x100);
     pEm->Cdir_y += EM26_W(pEm)->Kasakasarot + pEm->UnkDA;
@@ -309,7 +309,7 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x400);
     if (!(++pEm->UnkE2 & 0xF)) {
         func_8010100C(pEm, 0, 0x82);
-        pEm->UnkE2 += func_800102E8() & 7;
+        pEm->UnkE2 += Rnd() & 7;
     }
     Dist = (EM26_W(pEm)->pTarget_pl == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
     if (Dist < 2000 && !Dir0)
@@ -453,7 +453,7 @@ void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type)
     if ((Type & 0x80) && pTg->Water < pTg->Unk122)
         Sv.vy = pTg->Water + 10;
     Sv.vz = pP->Workm.t[2];
-    func_8001B484(((pTbl->Flg & 0xF) << 24) | (pTbl->Type << 8) | pTbl->Id, (pTbl->Zoom << 16) | (USHORT)Dir, &GsIDMATRIX, &Sv, NULL);
+    Esp_call(((pTbl->Flg & 0xF) << 24) | (pTbl->Type << 8) | pTbl->Id, (pTbl->Zoom << 16) | (USHORT)Dir, &GsIDMATRIX, &Sv, NULL);
 }
 
 /* RE2 Em26_Pl_to_dmg (without the Damage_cnt flag) */

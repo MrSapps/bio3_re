@@ -79,7 +79,7 @@ void Movie(void)
 
     pWork = &Vm_work;
     do {
-        D_8009CBB4[pWork->Rno]();
+        pMovie_proc_tbl[pWork->Rno]();
         if (G.System_flg & 0x8000) {
             Main.Db[G.Cbuf_id ^ 1].Disp.isrgb24 = pWork->Movie_Isrgb24;
             Main.Db[G.Cbuf_id ^ 1].Disp.disp.w = pWork->Movie_w;

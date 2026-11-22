@@ -310,7 +310,7 @@ INCLUDE_ASM("asm/nonmatchings/game/sub", func_800790F0);
 void func_800791F0(void)
 {
     func_80078FE8();
-    func_800100A4(G.Card_head, D_800C7048.Save, 0x908);
+    Memcpy(G.Card_head, D_800C7048.Save, 0x908);
     G.Player.Id = D_800C7048.Pl_id;
     G.Player.Pos_x = D_800C7048.Pos_x;
     G.Player.Pos_y = D_800C7048.Pos_y;
@@ -386,7 +386,7 @@ void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
     m1.m[1][2] = 0;
     ((LONG *)m1.m)[3] = 0;
     ((LONG *)m1.m)[4] = 0x1000;
-    func_8002D4B0(&m1, &m0, &m1);
+    CompM(&m1, &m0, &m1);
     l1 = pJ->a.pad;
     l2 = pJ->b.pad;
     sum = l1 + l2;
@@ -542,8 +542,8 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     cnt = pEm->Unk1A2;
     pM = D_800E1200;
     RotMatrix((SVECTOR *)&pEm->Cdir_x, pW);
-    func_8002D4B0(pW, (MATRIX *)pP0->M, &m4);
-    func_8002D4B0(&m4, (MATRIX *)pP0[8].M, &pP0[8].Workm);
+    CompM(pW, (MATRIX *)pP0->M, &m4);
+    CompM(&m4, (MATRIX *)pP0[8].M, &pP0[8].Workm);
     pP0 = &pEm->pSin_parts_ptr[8];
     Copy_rot_matrix(&pP0->Workm, &m0);
     m0.t[0] = (pP0->Workm.t[0] - pEm->Pos_x) << 3;
@@ -564,8 +564,8 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     m5.t[0] = j.b.vx;
     m5.t[1] = j.b.vy;
     m5.t[2] = j.b.vz;
-    func_8002D4B0(&m0, &m5, &m2);
-    func_8002D4B0(&m0, &m4, &m1);
+    CompM(&m0, &m5, &m2);
+    CompM(&m0, &m4, &m1);
     if (pEm->Col.Hit_flg & 0x40) {
         func_80079CC0(pEm, pEm->pSin_parts_ptr->Pos_y);
     }

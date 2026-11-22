@@ -46,7 +46,7 @@ void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
 {
     ULONG n;
 
-    if ((pOm->Be_flg & 0x40) || func_8001020C(pPos, G.Cccut)) {
+    if ((pOm->Be_flg & 0x40) || Hit_ck_point4(pPos, G.Cccut)) {
         n = pOm->Parts_num;
     loop:
         if (pParts->Be_flg & 1) {
@@ -624,7 +624,7 @@ void Om_trans(void)
         if (pOm->Be_flg & 0x10)
             continue;
         RotMatrix(&pOm->Cdir, &pOm->M);
-        func_8002D4B0(pOm->pSuper, &pOm->M, &pOm->Workm);
+        CompM(pOm->pSuper, &pOm->M, &pOm->Workm);
         Set_light_pos((VECTOR *)pOm->Workm.t);
         SetColorMatrix(&COLORMATRIX);
         if (pOm->Unk4A == 2)
@@ -632,7 +632,7 @@ void Om_trans(void)
         if (pOm->Unk4A == 1) {
             MulMatrix0(&LIGHTMATRIX, &pOm->Workm, &M);
             SetLightMatrix(&M);
-            func_8002D4B0(&GsWSMATRIX, &pOm->Workm, &M);
+            CompM(&GsWSMATRIX, &pOm->Workm, &M);
             SetRotMatrix(&M);
             SetTransMatrix(&M);
             func_8002E74C((ENEMY_WORK *)pOm, 1); /* the model work shares the ENEMY_WORK head */
@@ -740,7 +740,7 @@ start:
             }
             p += 12;
         } else {
-            if (!(p[0] & 2) && func_8001020C(&pPos->vx, (VCUT *)p)) {
+            if (!(p[0] & 2) && Hit_ck_point4(&pPos->vx, (VCUT *)p)) {
                 goto found;
             }
             p += 20;

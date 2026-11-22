@@ -116,7 +116,7 @@ void Door_texture_load(void)
 
     pCd = &CD;
     Door_no = ((UCHAR *)G.pSce_aot_on)[0xC];
-    pDoor_info = &D_800971E4[Door_no];
+    pDoor_info = &Dinfo[Door_no];
     File_no = D_800979D4[G.Unk783E][Door_no];
     Sector = floc[File_no].sector + floc[File_no].sec_high * 0x10000 + pDoor_info->Sector_offset;
     pCd->Fsum = pDoor_info->Data_sum;
@@ -204,7 +204,7 @@ void Door_snd_trans(void)
     Door_no = ((UCHAR *)G.pSce_aot_on)[0xC];
     G.Status_flg |= 0x800;
     pCd = &CD;
-    pDoor_info = &D_800971E4[((UCHAR *)G.pSce_aot_on)[0xC]];
+    pDoor_info = &Dinfo[((UCHAR *)G.pSce_aot_on)[0xC]];
     while (D_800BA6F0 != 0) {
         Task_sleep(1);
     }
@@ -216,7 +216,7 @@ void Door_snd_trans(void)
     pCd->Fsum = Sum;
     pCd->Fsize = Sound_size;
     Cd_read(File_no, Address, 3, "DOOR SOUND");
-    func_800100A4((void *)0x801FC100, Address, Address[5] + 0x10);
+    Memcpy((void *)0x801FC100, Address, Address[5] + 0x10);
     SpuSetTransferMode(0);
     func_8007836C(4, (ULONG *)0x801FC100);
     Snd_work.Bank_id[4].Id = 4;
@@ -703,7 +703,7 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
     }
     Tmd_size = Size - pChg[14];
     if (pEm->Unk4B & 0x80) {
-        func_800100A4((void *)(Mem_top + pChg[4]), (void *)(Mem_top + pChg[14]), Tmd_size);
+        Memcpy((void *)(Mem_top + pChg[4]), (void *)(Mem_top + pChg[14]), Tmd_size);
         pEm->pTmd = (ULONG *)(Mem_top + pChg[4]);
         pEm->pSub0_kan_t_ptr = pData->pSub0_kan_t_ptr;
         pEm->pSub0_seq_t_ptr = pData->pSub0_seq_t_ptr;
@@ -711,7 +711,7 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
         pEm->pSub1_seq_t_ptr = pData->pSub1_seq_t_ptr;
     }
     if (pEm->Unk4B & 0x40) {
-        func_800100A4((void *)(Mem_top + pChg[2]), (void *)(Mem_top + pChg[4]), Size - pChg[4]);
+        Memcpy((void *)(Mem_top + pChg[2]), (void *)(Mem_top + pChg[4]), Size - pChg[4]);
         Work = pChg[4] - pChg[2];
         Work >>= 2;
         pEm->pTmd -= Work;
@@ -725,7 +725,7 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
     if (pEm->Unk4B & 0x20) {
         Work = Mem_top + pChg[3];
         Ofs = ((SHORT *)Work)[1];
-        func_800100A4((void *)(Work + Ofs), (void *)(Mem_top + pChg[14]), Tmd_size);
+        Memcpy((void *)(Work + Ofs), (void *)(Mem_top + pChg[14]), Tmd_size);
         pEm->pTmd = (ULONG *)(Mem_top + pChg[3] + Ofs);
         pEm->pKan_t_ptr = pData->pKan_t_ptr;
         pEm->pSeq_t_ptr = pData->pSeq_t_ptr;
@@ -742,10 +742,10 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
     if (pEm->Id >= 0x50 && (pG->Status_flg & 0x20000000)) {
         pG->Status_flg &= ~0x20000000;
         Work = pChg[4] - pChg[2];
-        func_800100A4((void *)0x8010D000, (void *)(Mem_top + pChg[2]), Work);
+        Memcpy((void *)0x8010D000, (void *)(Mem_top + pChg[2]), Work);
         pEm->pSeq_t_ptr = (ULONG *)0x8010D000;
         pEm->pUnk10C = pEm->pKan_t_ptr = (ULONG *)(pChg[3] - pChg[2] + 0x8010D000);
-        func_800100A4((void *)(Mem_top + pChg[2]), (void *)(Mem_top + pChg[4]), Size - pChg[4]);
+        Memcpy((void *)(Mem_top + pChg[2]), (void *)(Mem_top + pChg[4]), Size - pChg[4]);
         Work >>= 2;
         pEm->pTmd -= Work;
         pEm->pSub0_seq_t_ptr -= Work;

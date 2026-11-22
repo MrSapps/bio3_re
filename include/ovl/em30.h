@@ -86,19 +86,19 @@ typedef struct tagEM30_SABUN {
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 
-extern USHORT Em30_vib_tbl[] __asm__("D_80108A3C"); /* pad vibration scripts */
-extern void (*Em30_routine_0[])() __asm__("D_80108C74");
-extern USHORT Em30_col_w[] __asm__("D_80108C98");
-extern void (*Em30_mv_br[])() __asm__("D_80108CC0");
-extern void (*Em30_mv[])() __asm__("D_80108D00");
-extern void (*Em30_dm[][2])() __asm__("D_80108D40");
-extern void (*Em30_die[])() __asm__("D_80108E40");
+extern USHORT Em30_vib_tbl[]; /* pad vibration scripts */
+extern void (*Em30_routine_0[])();
+extern USHORT Em30_col_w[];
+extern void (*Em30_mv_br[])();
+extern void (*Em30_mv[])();
+extern void (*Em30_dm[][2])();
+extern void (*Em30_die[])();
 
 void func_801000AC(ENEMY_WORK *pEm);
 void func_80100544(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100B34(ENEMY_WORK *pSub, LONG No, ENEMY_WORK *pEm, LONG Parts_no);
 void func_80100CBC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Em30_Move_type(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("func_80100CF4");
+void Em30_Move_type(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100D78(ENEMY_WORK *pEm);
 void func_80100DB4(void);
 void func_80100DBC(ENEMY_WORK *pEm);
@@ -144,6 +144,6 @@ void func_80106C28(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80106C8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801089B0(ULONG No, ENEMY_WORK *pEm, LONG *pPos);
-void Em30_Pldie(ENEMY_WORK *pPl) __asm__("func_80108A28");
+void Em30_Pldie(ENEMY_WORK *pPl);
 
 #endif /* OVL_EM30_H */

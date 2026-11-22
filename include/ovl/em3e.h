@@ -46,11 +46,11 @@ typedef struct tagEM3E_FREE {
 
 extern signed char Rsin_tbl[256] __asm__("D_80098828"); /* 0x80098828 sine, 256 steps, +-127 */
 
-extern void (*Em3e_routine_0[8])() __asm__("D_80101754");
-extern void (*Em3e_move_tbl[2])() __asm__("D_80101774");
-extern void (*Em3e_fly_tbl[2])() __asm__("D_8010177C");
-extern void (*Em3e_damage_tbl[31])() __asm__("D_80101784"); /* index weapon Unk12C - 1 */
-extern void (*Em3e_sce_tbl[2])() __asm__("D_80101800");
+extern void (*Em3e_routine_0[8])();
+extern void (*Em3e_move_tbl[2])();
+extern void (*Em3e_fly_tbl[2])();
+extern void (*Em3e_damage_tbl[31])(); /* index weapon Unk12C - 1 */
+extern void (*Em3e_sce_tbl[2])();
 
 void func_80100020(ENEMY_WORK *pEm);
 void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

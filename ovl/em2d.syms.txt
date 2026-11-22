@@ -1,1 +1,20 @@
 // em2d.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em2d_Init = 0x801000DC; // type:func
+Em2d_mv02_br = 0x80100A00; // type:func
+Em2d_mv02 = 0x80100A08; // type:func
+Em2d_dm00 = 0x801010DC; // type:func
+Em2d_die00 = 0x8010114C; // type:func
+Hand_display = 0x80101238; // type:func
+Em2d_hand_rgb = 0x801012F4; // type:func
+PLDAMEGE_EM = 0x80101350; // type:func
+Em2d_spd_rot = 0x801014AC; // type:func
+P_hand = 0x80101514;
+Em2d_routine_0 = 0x80101524;
+Em2d_Move_type = 0x80101544;
+Em2d_mv_br_type00 = 0x8010154C;
+Em2d_mv_type00 = 0x8010156C;
+Em2d_mv_br_type01 = 0x8010158C;
+Em2d_mv_type01 = 0x801015AC;
+Pldamage_Em2d_tbl = 0x80101614;
+Se_call = 0x80101624;

@@ -64,7 +64,7 @@ void Eff_sprt_trans(void)
 
     Trans_pointer_set();
     pWs = &GsWSMATRIX;
-    pEff = &D_800BA8A8[96];
+    pEff = &Esp[96];
     pP = Trans.pPoly_ft4_keep;
     D2 = G.Cbuf_id;
     pP_limit = Trans.Prim_poly_ft4[D2] + 384;
@@ -83,7 +83,7 @@ loop:
     Be_flg = pEff->Be_flg;
     pAseq = pEff->pSeq + pEff->Seq_no;
     nSpr = pAseq->nSpr;
-    if ((Be_flg & 0xA000) == 0xA000 && func_8001020C(workm.t, pCcut) != 0 && nSpr != 0) {
+    if ((Be_flg & 0xA000) == 0xA000 && Hit_ck_point4(workm.t, pCcut) != 0 && nSpr != 0) {
         pOt = func_80037D50((VECTOR *)workm.t);
         D2 = 0x2C;
         if (Be_flg & 0x1000) {
@@ -96,8 +96,8 @@ loop:
             workm.t[1] = pEff->Unk38[1] + pEff->Unk32;
             workm.t[2] = pEff->Unk38[2] + pEff->Unk34;
             RotMatrix((SVECTOR *)pEff->Rot, &workm);
-            func_8002D4B0(&pEff->Workm, &workm, &workm2);
-            func_8002D4B0(&GsWSMATRIX, &workm2, &m);
+            CompM(&pEff->Workm, &workm, &workm2);
+            CompM(&GsWSMATRIX, &workm2, &m);
             gte_SetRotMatrix(&m);
             gte_SetTransMatrix(&m);
             if (pP + nSpr < pP_limit) {
@@ -122,7 +122,7 @@ loop:
             }
         }
     }
-    if (pEff != D_800BA8A8) {
+    if (pEff != Esp) {
         goto loop;
     }
     Trans.pPoly_ft4_keep = pP;

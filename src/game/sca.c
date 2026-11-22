@@ -598,7 +598,7 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
     for (pEnt = (COL_ENT *)pT; ((COL_ENT *)pT)->C.All != -1 && Ret == 0; pEnt = (COL_ENT *)pT) {
         if (pT->Id & Att) {
             if (!(pEnt->pObj->Flg & 7)) {
-                pT = &D_800DEB48;
+                pT = &Tmp_Sca;
                 func_80034E78(pEnt->pObj, pT);
             }
             Ret = D_8009E088[pT->Id & 0xF](P0, P1, pT);

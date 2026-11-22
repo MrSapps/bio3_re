@@ -5,7 +5,7 @@
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* result used without the UCHAR mask */
 
 /* task entry */
-void func_80194010(void)
+void Die_demo(void)
 {
     Diedemo.Rno = 0;
     Diedemo.Ctr = 0;
@@ -22,18 +22,18 @@ void func_80194010(void)
         } else if (Fade_status(0) & FADE_END) {
             Diedemo.Rno = 7;
         }
-        func_80194100();
+        Die_demo_move();
         Task_sleep(1);
     }
 }
 
-void func_80194100(void)
+void Die_demo_move(void)
 {
-    D_80198208[Diedemo.Rno]();
+    Die_move_tbl[Diedemo.Rno]();
 }
 
 /* routine 0: set up the demo */
-void func_80194140(void)
+void Die_move_set(void)
 {
     UCHAR Id;
 
@@ -107,7 +107,7 @@ void func_80194140(void)
     if (Flg_ck(G.Unk7868, 0xC2)) {
         Diedemo.Unk3B = 1;
         Diedemo.Id_ctr = 9;
-        D_8019807C[9] = D_801981B0;
+        Cutinfo[9] = D_801981B0;
         Diedemo.Wait_ctr = 0x14;
         Diedemo.Em_flg = 1;
         G.Player.pEnemy_ptr = G.pEnemy[2];
@@ -118,7 +118,7 @@ void func_80194140(void)
 }
 
 /* routine 1 */
-void func_801944B4(void)
+void Die_move_delay(void)
 {
     Diedemo.Wait_ctr--;
     if (Diedemo.Wait_ctr < 0) {
@@ -127,7 +127,7 @@ void func_801944B4(void)
 }
 
 /* routine 2 */
-void func_801944F0(void)
+void Die_move_fade(void)
 {
     if (Flg_ck(G.Unk7868, 0xC2)) {
         Snd_se_stad(0x20A, NULL, 0, 0);
@@ -137,7 +137,7 @@ void func_801944F0(void)
 }
 
 /* routine 3: slow motion, then set up the camera */
-void func_80194574(void)
+void Die_move_slow(void)
 {
     SND_WORK *pSnd = &Snd_work;
     tagGLOBAL *pG;
@@ -203,7 +203,7 @@ void func_80194574(void)
             G.Unk2468 |= 0x20000000;
         }
         Diedemo.Phase = 0;
-        func_80197EF8();
+        Die_spr_load();
         if (!(Diedemo.Em_flg & 1)) {
             G.Unk2468 |= 0x40000000;
         } else {
@@ -224,9 +224,9 @@ void func_80194574(void)
             pGw->Ob_model[j].Be_flg |= 0x10;
         }
         if (G.System_flg & 0x800) {
-            func_80194A3C();
+            Die_move_set_cut();
         } else {
-            func_80194C98();
+            Die_move_set_cut_usual();
         }
         Task_sleep(1);
         Diedemo.Ctr = 0;
@@ -236,18 +236,18 @@ void func_80194574(void)
         }
         G.Unk2468 &= ~0x1000000;
         Fade_set(1, 1, 0, 1, 0xFFFFFF, 0, 0x1E);
-        func_80196334();
+        Die_spr_init();
     }
 }
 
 /* camera set up from the cut info of the killer */
-void func_80194A3C(void)
+void Die_move_set_cut(void)
 {
     CUTINFO *pCut;
     MATRIX *pM;
     RCUT *pRcut;
 
-    Diedemo.pCutinfo = pCut = &D_8019807C[Diedemo.Id_ctr];
+    Diedemo.pCutinfo = pCut = &Cutinfo[Diedemo.Id_ctr];
     Diedemo.Radius = pCut->Radius;
     Diedemo.P_radius = pCut->P_radius;
     if (!(Diedemo.Em_flg & 1)) {
@@ -290,14 +290,14 @@ void func_80194A3C(void)
     pRcut->View_r[0] = pM->t[0];
     pRcut->View_r[2] = pM->t[2];
     pRcut->View_r[1] = pM->t[1] - 300;
-    func_80194DB4();
-    func_801960CC();
-    func_80195C04();
-    func_80195E68();
+    Die_enemy_set();
+    Die_light_set();
+    Spiral_move();
+    Spiral_move2();
 }
 
 /* default camera (no killer) */
-void func_80194C98(void)
+void Die_move_set_cut_usual(void)
 {
     MATRIX *pM;
     RCUT *pRcut;
@@ -313,7 +313,7 @@ void func_80194C98(void)
     } else {
         Diedemo.Theta = G.pEnemy[1]->Cdir_y;
     }
-    Diedemo.pCutinfo = D_8019807C;
+    Diedemo.pCutinfo = Cutinfo;
     if (!(Diedemo.Em_flg & 1)) {
         pM = &G.Player.pSin_parts_ptr->Workm;
     } else {
@@ -324,14 +324,14 @@ void func_80194C98(void)
     pRcut->View_r[0] = pM->t[0];
     pRcut->View_r[2] = pM->t[2];
     pRcut->View_r[1] = pM->t[1] - 300;
-    func_80194DB4();
-    func_801960CC();
-    func_80195C04();
-    func_80195E68();
+    Die_enemy_set();
+    Die_light_set();
+    Spiral_move();
+    Spiral_move2();
 }
 
 /* hide the models that are not part of the demo */
-void func_80194DB4(void)
+void Die_enemy_set(void)
 {
     tagGLOBAL *pG = &G;
     ENEMY_WORK **ppEm;
@@ -365,9 +365,9 @@ void func_80194DB4(void)
     }
     if (G.System_flg & 0x800) {
         if (!(Diedemo.Unk3B & 1)) {
-            func_80194FE4();
+            Die_enemy_set_em();
         } else {
-            func_80195124();
+            Die_enemy_set_sub();
         }
     }
     if (G.System_flg & 0x200) {
@@ -398,7 +398,7 @@ void func_80194DB4(void)
     }
 }
 
-void func_80194FE4(void)
+void Die_enemy_set_em(void)
 {
     tagGLOBAL *pG = &G;
     ENEMY_WORK *pKill = pG->Player.pEnemy_ptr;
@@ -431,7 +431,7 @@ void func_80194FE4(void)
     }
 }
 
-void func_80195124(void)
+void Die_enemy_set_sub(void)
 {
     tagGLOBAL *pG = &G;
 
@@ -467,7 +467,7 @@ void func_80195124(void)
     D_80198228[Diedemo.Unk44]();
 }
 
-void func_80195330(void)
+void Die_se_set(void)
 {
     Snd_se_stad(0x20B, NULL, 0, 0);
     Task_sleep(0x32);
@@ -475,7 +475,7 @@ void func_80195330(void)
 }
 
 /* routine 4: camera move */
-void func_80195378(void)
+void Die_move_main(void)
 {
     tagGLOBAL *pG = &G;
     ENEMY_WORK **ppEm;
@@ -485,12 +485,12 @@ void func_80195378(void)
         Diedemo.S_trans_flg = 1;
     }
     if (Diedemo.Unk3B & 1) {
-        func_80195640();
+        Die_cut_em36_sub();
     } else {
-        func_801954D4();
+        Die_cut_em36();
     }
-    func_80195C04();
-    func_80195E68();
+    Spiral_move();
+    Spiral_move2();
     if (++Diedemo.Ctr > Diedemo.pCutinfo->Wait_ctr) {
         Diedemo.P_radius = 0;
         Diedemo.Addpos = 1;
@@ -510,7 +510,7 @@ void func_80195378(void)
     }
 }
 
-void func_801954D4(void)
+void Die_cut_em36(void)
 {
     MATRIX *pM;
     RCUT *pRcut;
@@ -527,8 +527,8 @@ void func_801954D4(void)
             } else {
                 Diedemo.Theta = G.pEnemy[1]->Cdir_y;
             }
-            Diedemo.pCutinfo = D_8019807C;
-            D_8019807C[0].Wait_ctr = D_8019807C[Diedemo.Id_ctr].Wait_ctr;
+            Diedemo.pCutinfo = Cutinfo;
+            Cutinfo[0].Wait_ctr = Cutinfo[Diedemo.Id_ctr].Wait_ctr;
             if (!(Diedemo.Em_flg & 1)) {
                 pM = &G.Player.pSin_parts_ptr->Workm;
             } else {
@@ -539,7 +539,7 @@ void func_801954D4(void)
             pRcut->View_r[0] = pM->t[0];
             pRcut->View_r[2] = pM->t[2];
             pRcut->View_r[1] = pM->t[1] - 300;
-            func_801960CC();
+            Die_light_set();
             Main.Vloop = 3;
         }
         if (Diedemo.Ctr == 0x78) {
@@ -548,7 +548,7 @@ void func_801954D4(void)
     }
 }
 
-void func_80195640(void)
+void Die_cut_em36_sub(void)
 {
     MATRIX *pM;
     RCUT *pRcut;
@@ -565,8 +565,8 @@ void func_80195640(void)
             } else {
                 Diedemo.Theta = G.pEnemy[1]->Cdir_y;
             }
-            Diedemo.pCutinfo = D_8019807C;
-            D_8019807C[0].Wait_ctr = D_8019807C[Diedemo.Id_ctr].Wait_ctr + 0x14;
+            Diedemo.pCutinfo = Cutinfo;
+            Cutinfo[0].Wait_ctr = Cutinfo[Diedemo.Id_ctr].Wait_ctr + 0x14;
             if (!(Diedemo.Em_flg & 1)) {
                 pM = &G.Player.pSin_parts_ptr->Workm;
             } else {
@@ -577,7 +577,7 @@ void func_80195640(void)
             pRcut->View_r[0] = pM->t[0];
             pRcut->View_r[2] = pM->t[2];
             pRcut->View_r[1] = pM->t[1] - 300;
-            func_801960CC();
+            Die_light_set();
             Main.Vloop = 3;
         }
         if (Diedemo.Ctr == 0xA5) {
@@ -587,7 +587,7 @@ void func_80195640(void)
 }
 
 /* routine 5 */
-void func_801957AC(void)
+void Die_move_out(void)
 {
     if (Diedemo.Ctr == 0) {
         while (CD.Cd_rtn_no != 0) {
@@ -598,15 +598,15 @@ void func_801957AC(void)
         }
     }
     if (Main.Fade[1].Cnt >= 0x10 || Fade_status(1)) {
-        func_80196380();
+        Die_spr_move();
     }
     if (Diedemo.Ctr < 0x20) {
-        func_80195B38();
+        Die_em_fade();
     }
     if (Diedemo.Ctr < 0x50) {
-        func_80195C04();
+        Spiral_move();
     } else {
-        func_80195E68();
+        Spiral_move2();
     }
     if (++Diedemo.Ctr == 0xAA) {
         Diedemo.Addpos = 10;
@@ -618,15 +618,15 @@ void func_801957AC(void)
 }
 
 /* routine 6: darken the light and fade out */
-void func_801958FC(void)
+void Die_move_dark(void)
 {
     LIGHT_CUT_DATA *pLc;
     ULONG L;
 
     pLc = Get_light_cut(&G.Player.Pos_x);
-    func_80196380();
-    func_80195C04();
-    func_80195E68();
+    Die_spr_move();
+    Spiral_move();
+    Spiral_move2();
     if (Diedemo.Ctr == 0) {
         Snd_se_stad(0xE, NULL, 0, 0);
     }
@@ -659,7 +659,7 @@ void func_801958FC(void)
 }
 
 /* routine 7: end of the demo */
-void func_80195AC8(void)
+void Die_move_end(void)
 {
     Bg_set_mode(1, 0);
     Diedemo.Rno = 0;
@@ -672,7 +672,7 @@ void func_80195AC8(void)
 }
 
 /* fade out the killer */
-void func_80195B38(void)
+void Die_em_fade(void)
 {
     PARTS_W *pP;
     ULONG i;
@@ -693,7 +693,7 @@ void func_80195B38(void)
 }
 
 /* camera: spiral around the look-at part */
-void func_80195C04(void)
+void Spiral_move(void)
 {
     DIEDEMO *pDie = &Diedemo;
     MATRIX *pM;
@@ -727,8 +727,8 @@ void func_80195C04(void)
     gte_SetTransMatrix(&GsWSMATRIX);
 }
 
-/* same as func_80195C04 */
-void func_80195E68(void)
+/* same as Spiral_move */
+void Spiral_move2(void)
 {
     DIEDEMO *pDie = &Diedemo;
     MATRIX *pM;
@@ -763,7 +763,7 @@ void func_80195E68(void)
 }
 
 /* light the look-at object */
-void func_801960CC(void)
+void Die_light_set(void)
 {
     LIGHT_CUT_DATA *pLc;
     MATRIX *pM;
@@ -829,28 +829,28 @@ void func_801960CC(void)
 }
 
 /* RE2 Die_spr_init */
-void func_80196334(void)
+void Die_spr_init(void)
 {
     G.Ctp.Tpage_clut = 0x1F15;
     Mapping_tim((ULONG *)0x8019C000);
     pDiespr = (DIESPR *)0x801B1000;
     pDiespr->Rno = 0;
     pDiespr->Ctr = 0;
-    func_8019642C();
+    Die_spr_move_init();
 }
 
 /* RE2 Die_spr_move */
-void func_80196380(void)
+void Die_spr_move(void)
 {
     Set_view(D_80198230[0], D_80198230[1]);
     SetGeomScreen(0xD0);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
-    D_8019824C[pDiespr->Rno]();
+    Die_spr_tbl[pDiespr->Rno]();
 }
 
 /* RE2 Die_spr_move_init: the 2 x 16x16 POLY_GT4 grid, its vertices and distances */
-void func_8019642C(void)
+void Die_spr_move_init(void)
 {
     SHORT Row;
     SHORT Grp;
@@ -918,7 +918,7 @@ void func_8019642C(void)
 }
 
 /* RE2 Die_blood_move_init (not called in RE3) */
-void func_80196720(void)
+void Die_blood_move_init(void)
 {
     SHORT Grp;
     SHORT Half;
@@ -966,10 +966,10 @@ void func_80196720(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", func_801968D4);
+INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", Die_spr_move_main);
 
 /* RE2 Die_spr_move_hold: shake the lower rows, draw the grid */
-void func_80196F00(void)
+void Die_spr_move_hold(void)
 {
     SVECTOR V[4];
     SHORT Row;
@@ -981,11 +981,11 @@ void func_80196F00(void)
     for (Row = 0; Row < 17; Row++) {
         for (Col = 0; Col < 17; Col++) {
             if (Row == 15 && (Col & 1)) {
-                pDiespr->Pos[Col][Row].vz += func_800102E8() & 1;
+                pDiespr->Pos[Col][Row].vz += Rnd() & 1;
             }
             if (Row == 12 && !(Col & 1) && (pDiespr->Free2 & 1)) {
                 for (Row2 = Row; Row2 < 17; Row2++) {
-                    pDiespr->Pos[Col][Row2].vz += func_800102E8() & 1;
+                    pDiespr->Pos[Col][Row2].vz += Rnd() & 1;
                 }
             }
         }
@@ -1010,7 +1010,7 @@ void func_80196F00(void)
 }
 
 /* RE2 Die_spr_move_erase: wave the grid and darken it */
-void func_80197248(void)
+void Die_spr_move_erase(void)
 {
     SVECTOR V[4];
     SHORT Row;
@@ -1076,7 +1076,7 @@ void func_80197248(void)
 }
 
 /* RE2 Die_spr_move_end */
-void func_8019768C(void)
+void Die_spr_move_end(void)
 {
     pDiespr->Free2++;
     if (pDiespr->Free2 >= 0xB5) {
@@ -1085,10 +1085,10 @@ void func_8019768C(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", func_801976CC);
+INCLUDE_ASM("asm/nonmatchings/ovl/diedemo/diedemo", Die_blood_move_main);
 
 /* RE2 Die_spr_load: RE3 has one picture for every player */
-void func_80197EF8(void)
+void Die_spr_load(void)
 {
     UCHAR Die_type;
 

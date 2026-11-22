@@ -69,19 +69,19 @@ typedef struct tagEM22_FREE {
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 #define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 
-extern USHORT Em22_life[16] __asm__("D_80109360");
-extern USHORT Em22_life_easy[16] __asm__("D_80109380");
-extern void (*Em22_routine_0[8])() __asm__("D_801093A0");
-extern void (*Em22_think_tbl[16])() __asm__("D_801093C0");
-extern void (*Em22_move_tbl[16])() __asm__("D_80109400");
-extern UCHAR Em22_jump_tbl[12] __asm__("D_80109440");
-extern void (*Em22_sce_tbl[4])() __asm__("D_8010944C");
-extern void (*Em22_dm_tbl[3])() __asm__("D_8010945C");
-extern UCHAR Em22_dm_mask[32] __asm__("D_80109468");
+extern USHORT Em22_life[16];
+extern USHORT Em22_life_easy[16];
+extern void (*Em22_routine_0[8])();
+extern void (*Em22_think_tbl[16])();
+extern void (*Em22_move_tbl[16])();
+extern UCHAR Em22_jump_tbl[12];
+extern void (*Em22_sce_tbl[4])();
+extern void (*Em22_dm_tbl[3])();
+extern UCHAR Em22_dm_mask[32];
 extern UCHAR D_80109488[32];
-extern UCHAR Em22_blood_parts[4] __asm__("D_801094A8");
-extern signed char Em22_drop_frame[8] __asm__("D_801094AC");
-extern signed char Em22_drop_parts[8] __asm__("D_801094B4");
+extern UCHAR Em22_blood_parts[4];
+extern signed char Em22_drop_frame[8];
+extern signed char Em22_drop_parts[8];
 
 void func_801000BC(ENEMY_WORK *pEm);
 void func_8010023C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

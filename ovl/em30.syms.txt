@@ -1,1 +1,11 @@
 // em30.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em30_Move_type = 0x80100CF4; // type:func
+Em30_Pldie = 0x80108A28; // type:func
+Em30_vib_tbl = 0x80108A3C;
+Em30_routine_0 = 0x80108C74;
+Em30_col_w = 0x80108C98;
+Em30_mv_br = 0x80108CC0;
+Em30_mv = 0x80108D00;
+Em30_dm = 0x80108D40;
+Em30_die = 0x80108E40;

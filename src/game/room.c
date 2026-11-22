@@ -10,7 +10,7 @@
 #include "snd.h"
 #include "status.h"
 
-#define RND() ((signed char)func_800102E8())
+#define RND() ((signed char)Rnd())
 
 
 void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
@@ -41,7 +41,7 @@ void Set_room(void)
     pRoom = pG->pRoom;
     Kage_work_init();
     Kage_work9_init();
-    func_80010150(&pG->Sub_work, sizeof(ENEMY_WORK));
+    Memclr(&pG->Sub_work, sizeof(ENEMY_WORK));
     ppEm = &pG->pEnemy[1];
     pG->ppEnemy_end = &pG->pEnemy[2];
     pG->Em_num = 0;

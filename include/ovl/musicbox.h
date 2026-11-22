@@ -34,12 +34,12 @@ typedef struct tagMBOX_WORK {
 #define OM(n) (pG->Ob_model[n])
 
 /* overlay .data (still in asm) */
-extern UCHAR Mbox_mess[] __asm__("D_801C2A44"); /* message texts */
-extern USHORT Mbox_mess_ofs[] __asm__("D_801C2B50"); /* offset of each text in Mbox_mess */
-extern LONG Mbox_pos[MBOX_NOTE_NUM * 4] __asm__("D_801C2B60"); /* per cylinder: x, z when its flag is set, x, z when clear */
-extern MBOX_WORK Mbox_wk __asm__("D_801C2BC0");
+extern UCHAR Mbox_mess[]; /* message texts */
+extern USHORT Mbox_mess_ofs[]; /* offset of each text in Mbox_mess */
+extern LONG Mbox_pos[MBOX_NOTE_NUM * 4]; /* per cylinder: x, z when its flag is set, x, z when clear */
+extern MBOX_WORK Mbox_wk;
 
-void func_801C2030(void); /* main task */
-void func_801C2228(void); /* puzzle state machine */
+void Mbox_main(void); /* main task */
+void Mbox_ctr(void); /* puzzle state machine */
 
 #endif /* OVL_MUSICBOX_H */

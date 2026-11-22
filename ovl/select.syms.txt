@@ -1,1 +1,21 @@
 // SELECT.BIN symbols (loaded at 0x801c2000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Select_pl_cd = 0x801C4C0C;
+Select_wep_cd = 0x801C4C14;
+Select_pl_init = 0x801C4C4C;
+Select_moji_tbl = 0x801C4CD8;
+Select_str = 0x801C56E8;
+Select_dir_L = 0x801C5A30;
+Select_dir_fpos = 0x801C5A54;
+Select_light_mtx = 0x801C5A68;
+Select_light_col = 0x801C5AE8;
+Select_sprt_def = 0x801C5B68;
+Select_name_def = 0x801C5BD8;
+Select_name_idx = 0x801C5CB8;
+Select_main_proc_tbl = 0x801C5CCC;
+Select_light_proc_tbl = 0x801C5CE4;
+Select_moji_end = 0x801C5CF4;
+Select_view = 0x801C5CF8;
+Select_obj = 0x801C5D20;
+Select_wk = 0x801C6680;
+Select_pMoji = 0x801C6E10;

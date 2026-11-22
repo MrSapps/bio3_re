@@ -13,7 +13,7 @@
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
-extern void (*Em40_routine_0[])() __asm__("D_801000D4");
+extern void (*Em40_routine_0[])();
 
 void func_80100004(ENEMY_WORK *pEm);
 void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

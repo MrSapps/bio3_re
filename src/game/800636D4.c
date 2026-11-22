@@ -3295,7 +3295,7 @@ void func_8006D948(ST_WORK *pSt)
 
     Task_suspend(0);
     Bg_set_mode(1, 0x80808);
-    func_80038634(0xF00C, 0x60A);
+    Pad_rep_set(0xF00C, 0x60A);
     D_800D442C = 1;
     pPl = PLAYER_EM(pG);
     if (pSt->Unk2E) {

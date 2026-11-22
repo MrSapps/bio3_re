@@ -41,17 +41,17 @@ typedef struct tagR214_EVT {
 } R214_EVT;
 
 /* overlay .data (still in asm) */
-extern UCHAR R214_mess[] __asm__("D_801C2B5C"); /* step messages */
-extern USHORT R214_mess_ofs[] __asm__("D_801C2C08"); /* offset of each message in R214_mess */
-extern SVECTOR R214_pos_ok0[2] __asm__("D_801C2C10"); /* effect position, result 0 */
-extern SVECTOR R214_pos_ok1[2] __asm__("D_801C2C20"); /* effect position, result 1 */
-extern SVECTOR R214_pos[4][2] __asm__("D_801C2C30"); /* effect position of each step: added, removed */
-extern USHORT R214_digit_x[] __asm__("D_801C2C70"); /* x of each value */
-extern R214_WORK R214_wk __asm__("D_801C2C80");
+extern UCHAR R214_mess[]; /* step messages */
+extern USHORT R214_mess_ofs[]; /* offset of each message in R214_mess */
+extern SVECTOR R214_pos_ok0[2]; /* effect position, result 0 */
+extern SVECTOR R214_pos_ok1[2]; /* effect position, result 1 */
+extern SVECTOR R214_pos[4][2]; /* effect position of each step: added, removed */
+extern USHORT R214_digit_x[]; /* x of each value */
+extern R214_WORK R214_wk;
 
-void func_801C2020(void); /* main task */
-void func_801C2210(void); /* puzzle state machine */
-void func_801C275C(void); /* draw the values */
-void func_801C2A38(ULONG *pOt, SPRT **ppSp, USHORT x, SHORT n); /* one digit sprite */
+void R214_main(void); /* main task */
+void R214_ctr(void); /* puzzle state machine */
+void R214_draw(void); /* draw the values */
+void R214_digit_set(ULONG *pOt, SPRT **ppSp, USHORT x, SHORT n); /* one digit sprite */
 
 #endif /* OVL_R214_OL_H */

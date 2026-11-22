@@ -91,7 +91,7 @@ ULONG Play_movie(void);
 
 LONG Init_movie_work(ULONG Id); /* start Movie_tbl[Id]; G.System_flg 0x10000 while it plays */
 
-extern void (*D_8009CBB4[])(void); /* RE2 pMovie_proc_tbl: Movie_init, Movie_main, Movie_exit */
+extern void (*pMovie_proc_tbl[])(void); /* RE2 pMovie_proc_tbl: Movie_init, Movie_main, Movie_exit */
 
 void Movie(void);
 void Movie_init(void);

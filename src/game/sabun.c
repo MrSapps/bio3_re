@@ -1,6 +1,6 @@
 #include "sabun.h"
 
-#define RND() ((signed char)func_800102E8())
+#define RND() ((signed char)Rnd())
 
 void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
 {

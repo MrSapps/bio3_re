@@ -1,1 +1,10 @@
 // em33.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em33_spd_z_tbl = 0x80100090;
+Em33_vib_tbl = 0x80107254;
+Em33_routine_0 = 0x8010743C;
+Em33_col_size = 0x80107474;
+Em33_move_tbl0 = 0x80107488;
+Em33_move_tbl1 = 0x801074B4;
+Em33_sub_tbl = 0x801074E0;
+Em33_damage_tbl = 0x801074F4;

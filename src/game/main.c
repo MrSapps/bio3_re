@@ -121,7 +121,7 @@ int main(void)
         Cd_system_control();
         System_trans_all();
         Swap_Cbuff();
-        func_800102E8();
+        Rnd();
     }
 }
 
@@ -221,7 +221,7 @@ void Init_global(void)
     if (pG->System_flg & 0x80) {
         func_80078FE8();
     }
-    func_80010150(&pG->Unk2468, 0x5A90);
+    Memclr(&pG->Unk2468, 0x5A90);
     if (pG->System_flg & 0x80) {
         func_8007906C();
     }
@@ -542,7 +542,7 @@ ULONG Cut_check(ULONG Flg)
 
     for (cp = pG->Cccut_next + 1; cp->Fcut == pG->Next_cut_no; cp++) {
         if (cp->Be_flg != 0 && (cp->nFloor == -0x80 || cp->nFloor == pG->Player.nFloor) &&
-            func_8001020C(&pG->Player.Pos_x, cp) != 0) {
+            Hit_ck_point4(&pG->Player.Pos_x, cp) != 0) {
             next_cut = cp->Tcut;
             goto apply_cut;
         }

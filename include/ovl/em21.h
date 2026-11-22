@@ -46,18 +46,18 @@ typedef struct tagEM21_FREE {
 /* keep a coordinate inside +-l (scenario flight paths) */
 #define EM21_LIMIT(v, l) ((v) < -(l) ? -(l) : ((v) > (l) ? (l) : (v)))
 
-extern SHORT Em21_peck_box0[4] __asm__("D_80105110");
-extern SHORT Em21_peck_box1[4] __asm__("D_80105118");
-extern void (*Em21_routine_0[])() __asm__("D_80105120");
-extern void (*Em21_indoor_br[])() __asm__("D_80105140");
-extern void (*Em21_indoor_mv[])() __asm__("D_8010517C");
-extern void (*Em21_outdoor_br[])() __asm__("D_801051B8");
-extern void (*Em21_outdoor_mv[])() __asm__("D_801051F4");
-extern void (*Em21_dm[])() __asm__("D_80105230");
-extern void (*Em21_sce_mv[])() __asm__("D_801052AC");
-extern void (*Em21_dead_mv[])() __asm__("D_801052C4");
-extern void (*Pldamage_Em21_tbl[])() __asm__("D_801052D0");
-extern HIT_AREA Em21_hit_area __asm__("D_801052E4");
+extern SHORT Em21_peck_box0[4];
+extern SHORT Em21_peck_box1[4];
+extern void (*Em21_routine_0[])();
+extern void (*Em21_indoor_br[])();
+extern void (*Em21_indoor_mv[])();
+extern void (*Em21_outdoor_br[])();
+extern void (*Em21_outdoor_mv[])();
+extern void (*Em21_dm[])();
+extern void (*Em21_sce_mv[])();
+extern void (*Em21_dead_mv[])();
+extern void (*Pldamage_Em21_tbl[])();
+extern HIT_AREA Em21_hit_area;
 
 void func_8010014C(ENEMY_WORK *pEm);
 void func_801002F8(ENEMY_WORK *pEm);

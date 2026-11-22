@@ -22,7 +22,7 @@ typedef struct tagEPI_FILE {
 
 /* gallery work (0x1AC bytes, in .data) */
 typedef struct tagEPI_WORK {
-    UCHAR Rno0;                        /* 0x000 routine (D_801C2BCC) */
+    UCHAR Rno0;                        /* 0x000 routine (Epilog_routine) */
     UCHAR Rno1;                        /* 0x001 */
     UCHAR Rno2;                        /* 0x002 */
     UCHAR Rno3;                        /* 0x003 */
@@ -45,16 +45,16 @@ typedef struct tagEPI_WORK {
 extern EPI_FILE D_801C2B4C[];          /* epilogue pictures in OMBG.TIM */
 extern UCHAR D_801C2B9C[];             /* their check sums */
 extern USHORT D_801C2BA8[][2];         /* page positions on the 3x3 menu */
-extern void (*D_801C2BCC[])(void); /* routines, index Rno0 */
-extern EPI_WORK Epi_work __asm__("D_801C2BE0");
+extern void (*Epilog_routine[])(void); /* routines, index Rno0 */
+extern EPI_WORK Epi_work __asm__("Epilog_work");
 
-void func_801C2380(void);
-void func_801C2644(void);
-void func_801C280C(void);
-void func_801C2888(void);
-void func_801C2958(void);
-void func_801C2AB4(ULONG *pAdr, UCHAR No);
+void Epilog_menu(void);
+void Epilog_show(void);
+void Epilog_start(void);
+void Epilog_exit(void);
+void Epilog_draw(void);
+void Epilog_pic_read(ULONG *pAdr, UCHAR No);
 
-void func_801C204C(void);
+void Epilog_main(void);
 
 #endif /* OVL_EPILOG_H */

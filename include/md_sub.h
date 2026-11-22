@@ -69,7 +69,7 @@ void Md_adr_cnv(MD_HEAD *pMd); /* relocate MD_OBJ offsets */
 ULONG func_8002AB34(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
 void Md_set_abr(MD_OBJ *pObj, ULONG Abr); /* set semi-trans rate of all prims */
 
-extern SHORT D_80098A88[2][30]; /* RE2 Bomb_tbl: push-out distance per frame */
+extern SHORT Bomb_tbl[2][30]; /* RE2 Bomb_tbl: push-out distance per frame */
 extern SVECTOR D_80098B00; /* spin of the exploding parts, +0x80 per call */
 extern ULONG D_80098B28[][4]; /* uv words per primitive code */
 extern UCHAR D_80098B58[][2]; /* panel columns, rows */
@@ -88,8 +88,8 @@ void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
 POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
-POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
+POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
+POLY_GT4 *Bomb_Parts_SortGT4(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
 void func_8002C680(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add);
 POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
@@ -97,7 +97,7 @@ POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
 POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 void func_8002D184(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
 void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D4B0(MATRIX *m0, MATRIX *m1, MATRIX *m2); /* RE2 CompM */
+void CompM(MATRIX *m0, MATRIX *m1, MATRIX *m2);
 void func_8002D5D8(ULONG *pSxy, USHORT *pSz, MD_OBJ *pObj);
 POLY_GT4 *func_8002D6D8(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002D898(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);

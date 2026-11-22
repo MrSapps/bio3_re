@@ -1,1 +1,35 @@
 // em36.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em36_punch_box0 = 0x8010C7FC;
+Em36_punch_box1 = 0x8010C804;
+Em36_lunge_box0 = 0x8010C80C;
+Em36_lunge_box1 = 0x8010C814;
+Em36_grab_box0 = 0x8010C81C;
+Em36_grab_box1 = 0x8010C824;
+Em36_sweep_box0 = 0x8010C82C;
+Em36_sweep_box1 = 0x8010C834;
+Em36_sweep_box2 = 0x8010C83C;
+Em36_sweep_box3 = 0x8010C844;
+Em36_swing_box0 = 0x8010C84C;
+Em36_swing_box1 = 0x8010C854;
+Em36_route_pos = 0x8010C85C;
+Em36_route = 0x8010C87C;
+Em36_routine_0 = 0x8010C96C;
+Em36_lost_pos = 0x8010C990;
+Em36_Move_type = 0x8010C9A0;
+Em36_mv_br00 = 0x8010C9D8;
+Em36_mv00 = 0x8010CA2C;
+Em36_mv_br01 = 0x8010CA7C;
+Em36_mv01 = 0x8010CAD0;
+Em36_mv_br02 = 0x8010CB24;
+Em36_mv_br03 = 0x8010CB78;
+Em36_mv03 = 0x8010CBCC;
+Em36_mv_br04 = 0x8010CC20;
+Em36_mv_br05 = 0x8010CC74;
+Em36_combo_tbl = 0x8010CCC8;
+Em36_dm = 0x8010CD08;
+Em36_dm2 = 0x8010CE88;
+Em36_sce = 0x8010CF0C;
+Em36_die = 0x8010CF3C;
+Em36_die2 = 0x8010CF4C;
+Em36_hit_area = 0x8010CF5C;

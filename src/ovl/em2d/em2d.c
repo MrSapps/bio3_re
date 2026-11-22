@@ -34,7 +34,7 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Type & 0x20)
         pEm->Cdir_z = -0x400;
     pG->pPldamage_Em[0x1D] = PLDAMEGE_EM;
-    pEm->Timer0 = func_800102E8() & 0xF;
+    pEm->Timer0 = Rnd() & 0xF;
     EF(pEm)->Dir_y = pEm->Cdir_y;
     EF(pEm)->Pos_x = pEm->Pos_x;
     EF(pEm)->Pos_z = pEm->Pos_z;
@@ -155,7 +155,7 @@ void func_80100554(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_y -= pEm->Spd_y;
             pEm->Pos_z -= pEm->Spd_z;
         }
-        pEm->Timer0 = func_800102E8() & 0xF;
+        pEm->Timer0 = Rnd() & 0xF;
         EF(pEm)->Rgb = 0;
         Em2d_hand_rgb(pEm, pEm->Type & 1, 0);
     case 1:
@@ -207,17 +207,17 @@ void func_80100800(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Move_tbl[func_800102E8() & 3] + 0xF0000;
+        EM_MOVE(pEm) = Move_tbl[Rnd() & 3] + 0xF0000;
         pEm->Routine_2 = 1;
-        pEm->Timer0 = (func_800102E8() & 0x1F) + 60;
-        if (func_800102E8() & 1) {
-            if (func_800102E8() & 1) {
+        pEm->Timer0 = (Rnd() & 0x1F) + 60;
+        if (Rnd() & 1) {
+            if (Rnd() & 1) {
                 Snd_se_enem(0, pEm);
             } else {
                 Snd_se_enem(1, pEm);
             }
         }
-        pEm->UnkDA = (func_800102E8() & 0x1F) + 10;
+        pEm->UnkDA = (Rnd() & 0x1F) + 10;
     case 1:
         pEm->Cdir_y += Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x60);
         if (pEm->Cdir_y > EF(pEm)->Dir_y + 0x180)
@@ -229,8 +229,8 @@ void func_80100800(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (--pEm->Timer0 == -1)
             EM_RTN(pEm) = 0x501;
         if (--pEm->UnkDA == -1) {
-            EM_MOVE(pEm) = Move_tbl[func_800102E8() & 3] + 0xF0000;
-            pEm->UnkDA = (func_800102E8() & 0x1F) + 10;
+            EM_MOVE(pEm) = Move_tbl[Rnd() & 3] + 0xF0000;
+            pEm->UnkDA = (Rnd() & 0x1F) + 10;
         }
     }
 }
@@ -318,7 +318,7 @@ void func_80100BBC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Pad_vib_set0(2, 0);
             Pad_vib_set1(1, 0xB4, 0);
             Pad_vib_set1(2, 0xFA, 1);
-            if (func_800102E8() & 1) {
+            if (Rnd() & 1) {
                 Snd_se_enem(5, pEm);
             } else {
                 Snd_se_enem(7, pEm);
@@ -362,7 +362,7 @@ void func_80100E78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_enem(6, pEm);
     case 1:
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
-            pEm->Timer0 = (func_800102E8() & 0x1F) + 30;
+            pEm->Timer0 = (Rnd() & 0x1F) + 30;
             Hand_display(pEm, pEm->Type & 1, 0);
             EM_RTN(pEm) = 1;
             if (pEm->Type & 0x40) {
@@ -437,7 +437,7 @@ void Em2d_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     EM_RTN(pEm) = 0x501;
     pEm->Damage_cnt |= 0x80;
-    if (func_800102E8() & 1) {
+    if (Rnd() & 1) {
         Snd_se_enem(2, pEm);
     } else {
         Snd_se_enem(3, pEm);
@@ -461,7 +461,7 @@ void Em2d_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Life = 250;
     EM_RTN(pEm) = 0x501;
     pEm->Damage_cnt |= 0x80;
-    if (func_800102E8() & 1) {
+    if (Rnd() & 1) {
         Snd_se_enem(2, pEm);
     } else {
         Snd_se_enem(3, pEm);
@@ -539,7 +539,7 @@ void func_8010138C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_MOVE(pEm) = 0xF0000;
         pEm->Routine_2 = 1;
-        Snd_se_stad(((func_800102E8() & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
         pEm->Unk12C = 0;
     case 1:
         Joint_move(pEm, pKan, pSeq, 0x100);

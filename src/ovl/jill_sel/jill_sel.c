@@ -5,28 +5,28 @@
 #include "status.h"
 
 /* main task */
-void func_801C2050(void)
+void Jill_main(void)
 {
     JILL_WORK *pW = &Jill_wk;
 
     for (;;) {
         Jill_proc_tbl[pW->Routine](pW);
-        func_801C20A8(pW);
+        Jill_sprt_draw(pW);
         Task_sleep(1);
     }
 }
 
-void func_801C20A8(JILL_WORK *pW)
+void Jill_sprt_draw(JILL_WORK *pW)
 {
     Print_color(0xFF, 0, 0x103);
-    func_801C2FC4(&Jill_obj[0], 3);
-    func_801C2FC4(&Jill_obj[3], 3);
-    func_801C2FC4(&Jill_obj[4], 3);
-    func_801C2FC4(&Jill_obj[1], 3);
-    func_801C2FC4(&Jill_obj[2], 3);
+    Jill_obj_draw(&Jill_obj[0], 3);
+    Jill_obj_draw(&Jill_obj[3], 3);
+    Jill_obj_draw(&Jill_obj[4], 3);
+    Jill_obj_draw(&Jill_obj[1], 3);
+    Jill_obj_draw(&Jill_obj[2], 3);
 }
 
-void func_801C2118(void)
+void Jill_pl_move(void)
 {
     tagGLOBAL *pG = &G;
     ENEMY_WORK *pEm;
@@ -36,11 +36,11 @@ void func_801C2118(void)
     for (n = 5, i = 0; n != 0; i++, n--) {
         pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
-        func_801C2170(pEm);
+        Jill_pl_idle(pEm);
     }
 }
 
-void func_801C2170(ENEMY_WORK *pEm)
+void Jill_pl_idle(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_0) {
     case 0:
@@ -52,7 +52,7 @@ void func_801C2170(ENEMY_WORK *pEm)
     }
 }
 
-void func_801C21C8(JILL_WORK *pW)
+void Jill_init(JILL_WORK *pW)
 {
     tagGLOBAL *pG = &G;
     ULONG *pFlg;
@@ -65,7 +65,7 @@ void func_801C21C8(JILL_WORK *pW)
     pW->Vloop_bak = Main.Vloop;
     Main.Vloop = 2;
     Main.Unk191 = 1;
-    func_801C2DF4();
+    Jill_bg_load();
     Bg_set_mode(2, 0);
     Snd_se_stad(0x700, NULL, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 15);
@@ -73,7 +73,7 @@ void func_801C21C8(JILL_WORK *pW)
     SetGeomOffset(0xA0, 0x78);
     SetGeomScreen(300);
     pW->pHeap = (UCHAR *)0x80100000;
-    func_801C2E54(&Jill_obj[0], &Jill_sprt_def[0], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Jill_obj[0], &Jill_sprt_def[0], 0x1EF0015, 0x808080);
     Jill_obj[0].Flg &= ~1;
     pW->UnkC = 0;
     pW->Open_num = 0;
@@ -109,60 +109,60 @@ void func_801C21C8(JILL_WORK *pW)
     if (!Flg_ck(G.Unk77F8, 10)) {
         pW->Flg |= 1;
         Jill_obj[0].Flg |= 1;
-        func_801C2E54(&Jill_obj[1], &Jill_sprt_def[9], 0x1F00016, 0x808080);
-        func_801C2E54(&Jill_obj[2], &Jill_sprt_def[10], 0x1F00016, 0x808080);
+        Jill_obj_init(&Jill_obj[1], &Jill_sprt_def[9], 0x1F00016, 0x808080);
+        Jill_obj_init(&Jill_obj[2], &Jill_sprt_def[10], 0x1F00016, 0x808080);
         switch (pW->Open_num) {
         case 1:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[11], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[11], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[11], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[11], 0x1F00016, 0x808080);
             Jill_obj[4].Flg &= ~1;
             break;
         case 2:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[12], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[12], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[12], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[12], 0x1F00016, 0x808080);
             Jill_obj[4].Flg &= ~1;
             break;
         case 3:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[13], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[14], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[13], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[14], 0x1F00016, 0x808080);
             break;
         case 4:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[15], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[16], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[15], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[16], 0x1F00016, 0x808080);
             break;
         case 5:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[17], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[17], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[17], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[17], 0x1F00016, 0x808080);
             Jill_obj[4].Flg &= ~1;
             break;
         }
         Mess_set(0xB90000, 0x3403, (ULONG)&Jill_mess[Jill_mess_ofs[pW->Open_num - 1]], 0);
     } else {
-        func_801C2E54(&Jill_obj[1], &Jill_sprt_def[1], 0x1F00016, 0x808080);
-        func_801C2E54(&Jill_obj[2], &Jill_sprt_def[1], 0x1F00016, 0x808080);
+        Jill_obj_init(&Jill_obj[1], &Jill_sprt_def[1], 0x1F00016, 0x808080);
+        Jill_obj_init(&Jill_obj[2], &Jill_sprt_def[1], 0x1F00016, 0x808080);
         Jill_obj[2].Flg &= ~1;
         switch (pW->Open_num) {
         case 1:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[2], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[2], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[2], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[2], 0x1F00016, 0x808080);
             Jill_obj[4].Flg &= ~1;
             break;
         case 2:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[3], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[3], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[3], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[3], 0x1F00016, 0x808080);
             Jill_obj[4].Flg &= ~1;
             break;
         case 3:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[4], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[5], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[4], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[5], 0x1F00016, 0x808080);
             break;
         case 4:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[6], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[7], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[6], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[7], 0x1F00016, 0x808080);
             break;
         case 5:
-            func_801C2E54(&Jill_obj[3], &Jill_sprt_def[8], 0x1F00016, 0x808080);
-            func_801C2E54(&Jill_obj[4], &Jill_sprt_def[8], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[3], &Jill_sprt_def[8], 0x1F00016, 0x808080);
+            Jill_obj_init(&Jill_obj[4], &Jill_sprt_def[8], 0x1F00016, 0x808080);
             Jill_obj[4].Flg &= ~1;
             break;
         }
@@ -182,7 +182,7 @@ void func_801C21C8(JILL_WORK *pW)
 }
 
 /* wait for a button */
-void func_801C2780(JILL_WORK *pW)
+void Jill_wait(JILL_WORK *pW)
 {
     if (G.Key_trg & 0x3000)
         pW->Routine = 2;
@@ -191,11 +191,11 @@ void func_801C2780(JILL_WORK *pW)
 }
 
 /* fade out and exit */
-void func_801C27C0(JILL_WORK *pW)
+void Jill_exit(JILL_WORK *pW)
 {
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 30);
     while (!(Fade_status(0) & 4)) {
-        func_801C20A8(pW);
+        Jill_sprt_draw(pW);
         Task_sleep(1);
     }
     D_800DBB58 = 0;
@@ -205,7 +205,7 @@ void func_801C27C0(JILL_WORK *pW)
 }
 
 /* RE2 Select_pl_load: model file, texture, parts work; returns the end of the parts work */
-UCHAR *func_801C2858(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
+UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
 {
     UCHAR *p;
     LONG *pHdr;
@@ -241,7 +241,7 @@ UCHAR *func_801C2858(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
 }
 
 /* RE2 Select_pl_trans */
-void func_801C29E0(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos)
+void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos)
 {
     ULONG n;
 
@@ -259,10 +259,10 @@ void func_801C29E0(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/jill_sel/jill_sel", func_801C2A68);
+INCLUDE_ASM("asm/nonmatchings/ovl/jill_sel/jill_sel", Jill_wep_load);
 
 /* light No of LIGHTMATRIX/COLORMATRIX from a direction and a 0xBBGGRR colour (unused) */
-void func_801C2D3C(ULONG No, VECTOR *pVec, ULONG Rgb)
+void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb)
 {
     SHORT *pL;
     SHORT *pC;
@@ -280,7 +280,7 @@ void func_801C2D3C(ULONG No, VECTOR *pVec, ULONG Rgb)
 }
 
 /* background load */
-void func_801C2DF4(void)
+void Jill_bg_load(void)
 {
     Cd_read(0x36, (ULONG *)0x8019C000, 0, "Jill BG");
     Cd_read(0x38, (ULONG *)0x80100000, 0, (char *)Jill_str);
@@ -292,7 +292,7 @@ void func_801C2DF4(void)
 const char Jill_str[8] = { 'J', 'I', 'l', 'l', 0, 0x0E, 0x03, 0xD3 };
 
 /* sprite init from a definition; TpClut = texture page | clut row << 16 */
-void func_801C2E54(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
+void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
 {
     SEL_SPRT *pSp;
     DR_MODE *pDr;
@@ -330,7 +330,7 @@ void func_801C2E54(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
 }
 
 /* sprite update and draw: Mode 0/1 pulse up/down, 2 shown, 3 hidden (blink) */
-void func_801C2FC4(SEL_OBJ *pObj, LONG Ot)
+void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot)
 {
     SEL_SPRT *pSp;
     DR_MODE *pDr;
@@ -392,7 +392,7 @@ void func_801C2FC4(SEL_OBJ *pObj, LONG Ot)
     AddPrim(&G.Ot0[G.Cbuf_id][Ot], pDr);
 }
 
-void func_801C31F8(SEL_OBJ *pObj, ULONG Rgb)
+void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb)
 {
     pObj->Sp[0].Rgb = (pObj->Sp[0].Rgb & 0xFF000000) | Rgb;
     pObj->Sp[1].Rgb = (pObj->Sp[1].Rgb & 0xFF000000) | Rgb;

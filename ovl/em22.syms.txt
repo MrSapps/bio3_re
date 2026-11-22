@@ -1,1 +1,14 @@
 // em22.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em22_life = 0x80109360;
+Em22_life_easy = 0x80109380;
+Em22_routine_0 = 0x801093A0;
+Em22_think_tbl = 0x801093C0;
+Em22_move_tbl = 0x80109400;
+Em22_jump_tbl = 0x80109440;
+Em22_sce_tbl = 0x8010944C;
+Em22_dm_tbl = 0x8010945C;
+Em22_dm_mask = 0x80109468;
+Em22_blood_parts = 0x801094A8;
+Em22_drop_frame = 0x801094AC;
+Em22_drop_parts = 0x801094B4;

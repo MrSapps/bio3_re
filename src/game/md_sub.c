@@ -402,14 +402,14 @@ void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
    copies a1 to t0 twice, and every one copies params into t-regs (`addu t0,a1,zero`) to free the
    a-regs as temporaries. gcc 2.8.1 keeps pPacket in a1 (its copy preference outranks pZ0's two
    refs), and no PsyQ inline_c.h macro (4.3-4.5) uses fixed registers, so the copy has no clean
-   C source. Note: a parameter copy alone is not proof (func_8002AF9C and func_8002C068 are C and
+   C source. Note: a parameter copy alone is not proof (func_8002AF9C and Bomb_Parts_SortGT4 are C and
    copy a0 to v1/a3: a local-alloc'd temp took the incoming a-reg during the parameter's life). */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B6FC);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B86C);
 
 /* RE2 Bomb_Parts_SortGT3: every polygon is pushed out along its normal */
-POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
+POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
 {
     MATRIX bbm1;
     MATRIX bbm0;
@@ -456,7 +456,7 @@ POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     Tb_hi = Tb_no >> 15;
     gte_ReadRotMatrix(&bbm0);
     v = (VECTOR *)bbm1.t;
-    bomb = D_80098A88[Tb_hi][Tb_lo];
+    bomb = Bomb_tbl[Tb_hi][Tb_lo];
     v->vx = (s0->vx >> 10) * bomb;
     v->vy = (s0->vy >> 10) * bomb;
     v->vz = (s0->vz >> 10) * bomb;
@@ -485,7 +485,7 @@ POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
         D_800D4570.t[0] += (s0->vx >> 10) * bomb;
         D_800D4570.t[1] += (s0->vy >> 10) * bomb;
         D_800D4570.t[2] += (s0->vz >> 10) * bomb;
-        func_8002D4B0(&bbm0, &D_800D4570, &bbm1);
+        CompM(&bbm0, &D_800D4570, &bbm1);
         gte_SetRotMatrix(&bbm1);
         gte_SetTransMatrix(&bbm1);
         gte_ldv3(s1, s2, s3);
@@ -507,7 +507,7 @@ POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
         gte_stotz(&D2);
         gte_SetTransMatrix(&bbm0);
         gte_SetRotMatrix(&bbm0);
-        bomb = D_80098A88[Tb_hi][Tb_lo];
+        bomb = Bomb_tbl[Tb_hi][Tb_lo];
         v->vx = (s0->vx >> 10) * bomb;
         v->vy = (s0->vy >> 10) * bomb;
         v->vz = (s0->vz >> 10) * bomb;
@@ -529,7 +529,7 @@ POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
 }
 
 /* RE2 Bomb_Parts_SortGT4 */
-POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
+POLY_GT4 *Bomb_Parts_SortGT4(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
 {
     MATRIX bbm0;
     MATRIX bbm1;
@@ -574,7 +574,7 @@ POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     i3 = p_prim[3] >> 24;
     s0 = &np[i0];
     v = (VECTOR *)bbm1.t;
-    bomb = D_80098A88[Tb_hi][Tb_lo];
+    bomb = Bomb_tbl[Tb_hi][Tb_lo];
     v->vx = (s0->vx >> 10) * bomb;
     v->vy = (s0->vy >> 10) * bomb;
     v->vz = (s0->vz >> 10) * bomb;
@@ -603,7 +603,7 @@ POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
         D_800D4570.t[0] += (s0->vx >> 10) * bomb;
         D_800D4570.t[1] += (s0->vy >> 10) * bomb;
         D_800D4570.t[2] += (s0->vz >> 10) * bomb;
-        func_8002D4B0(&bbm0, &D_800D4570, &bbm1);
+        CompM(&bbm0, &D_800D4570, &bbm1);
         gte_SetRotMatrix(&bbm1);
         gte_SetTransMatrix(&bbm1);
         gte_ldv3(s1, s2, s3);
@@ -631,7 +631,7 @@ POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
         s0 = &np[i0];
         gte_SetTransMatrix(&bbm0);
         gte_SetRotMatrix(&bbm0);
-        bomb = D_80098A88[Tb_hi][Tb_lo];
+        bomb = Bomb_tbl[Tb_hi][Tb_lo];
         v->vx = (s0->vx >> 10) * bomb;
         v->vy = (s0->vy >> 10) * bomb;
         v->vz = (s0->vz >> 10) * bomb;
@@ -1222,7 +1222,7 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
         for (j = 0; j < H; j++) {
             for (i = 0; i < W; i++) {
                 if (*pBits & (0x8000 >> i)) {
-                    if (func_8001020C(&Pos.vx, G.Cccut) != 0) {
+                    if (Hit_ck_point4(&Pos.vx, G.Cccut) != 0) {
                         pPrim->tag |= 0x0C000000;
                     } else {
                         pPrim->tag &= 0xFFFFFF;
@@ -1241,7 +1241,7 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
         for (j = 0; j < H; j++) {
             for (i = 0; i < W; i++) {
                 if (*pBits & (0x8000 >> i)) {
-                    if (func_8001020C(&Pos.vx, G.Cccut) != 0) {
+                    if (Hit_ck_point4(&Pos.vx, G.Cccut) != 0) {
                         pPrim->tag |= 0x0C000000;
                     } else {
                         pPrim->tag &= 0xFFFFFF;
@@ -1362,7 +1362,7 @@ found:
     Lm.t[0] = EM_MD(pFloor)->Workm.t[0];
     Lm.t[1] = EM_MD(pFloor)->Workm.t[1];
     Lm.t[2] = EM_MD(pFloor)->Workm.t[2];
-    func_8002D4B0(&GsWSMATRIX, &Lm, &M);
+    CompM(&GsWSMATRIX, &Lm, &M);
     SetRotMatrix(&M);
     SetTransMatrix(&M);
     pOt = G.Ot1[G.Cbuf_id];

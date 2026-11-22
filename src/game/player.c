@@ -48,7 +48,7 @@ void Player_move(ENEMY_WORK *pEm)
         sv2.vy = 0;
         sv2.vz = 0;
         if ((pEm->Move_cnt & 3) == 2 && (USHORT)(pEm->Spd_x + 20) > 40) {
-            func_8001B484(0x20E, ((func_800102E8() * 8 + 0x2000) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &sv, &sv2);
+            Esp_call(0x20E, ((Rnd() * 8 + 0x2000) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &sv, &sv2);
         }
     }
     Pl_neck(pEm, 7000, 1500);
@@ -220,8 +220,8 @@ void pl_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 2:
         *(ULONG *)&pEm->Move_no = 0x7000B;
         pEm->Routine_2 = 3;
-        pEm->Timer0 = ((func_800102E8() & 7) + 8) * 30;
-        if ((func_800102E8() & 0x1F) == 2 && D_800CCBBF == 0) {
+        pEm->Timer0 = ((Rnd() & 7) + 8) * 30;
+        if ((Rnd() & 0x1F) == 2 && D_800CCBBF == 0) {
             pEm->Timer0 |= 0x8000;
         }
     case 3:
@@ -1715,11 +1715,11 @@ void pl_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             PARTS_W *pParts1;
             PARTS_W *pParts2;
             pParts = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x800) << 16, &pParts[2].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x800) << 16, &pParts[2].Workm, 0, 0);
             pParts1 = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x1000) << 16, &pParts1[0].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts1[0].Workm, 0, 0);
             pParts2 = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
         }
     case 1:
         if (pEm->UnkCA == 0) {
@@ -1783,11 +1783,11 @@ void pl_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             PARTS_W *pParts1;
             PARTS_W *pParts2;
             pParts = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x800) << 16, &pParts[2].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x800) << 16, &pParts[2].Workm, 0, 0);
             pParts1 = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x1000) << 16, &pParts1[0].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts1[0].Workm, 0, 0);
             pParts2 = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
         }
     case 1:
         Add_speedXZ(pEm, 0);
@@ -1846,11 +1846,11 @@ void pl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             PARTS_W *pParts1;
             PARTS_W *pParts2;
             pParts = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x800) << 16, &pParts[2].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x800) << 16, &pParts[2].Workm, 0, 0);
             pParts1 = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x1000) << 16, &pParts1[0].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts1[0].Workm, 0, 0);
             pParts2 = pEm->pSin_parts_ptr;
-            func_8001B484(0x1001B03, (func_800102E8() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
+            Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
         }
     case 1:
         pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x200);

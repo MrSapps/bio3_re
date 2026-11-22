@@ -1,5 +1,4 @@
 // LTSOUT.BIN symbols (loaded at 0x801c2000)
-// proposed names (not used by the link yet; C keeps func_/D_ names)
 Lts_main = 0x801C2018; // type:func
 Lts_ctr = 0x801C2370; // type:func
 Lts_draw = 0x801C28BC; // type:func

@@ -3,18 +3,18 @@
 #include "status.h"
 #include "sub.h"
 
-void *Memcpy_r(void *pDst, void *pSrc, ULONG Size) __asm__("func_800100A4"); /* returns void* here (canonical void) */
+void *Memcpy_r(void *pDst, void *pSrc, ULONG Size) __asm__("Memcpy"); /* returns void* here (canonical void) */
 
 /* task entry: run the script until it ends or start/select is pressed */
-void func_801C2024(void)
+void Opening_main(void)
 {
     OPN_WORK *pWk = &Opn_work;
     LONG Ret;
 
-    func_801C2160();
+    Opening_init();
     Fade_set(0, 1, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
     while (1) {
-        Ret = D_801C2F70[*pWk->pScript](pWk);
+        Ret = Opening_op_tbl[*pWk->pScript](pWk);
         if (Ret == 1) {
             continue;
         }
@@ -24,12 +24,12 @@ void func_801C2024(void)
         if (*(UCHAR *)&Main.Bg_mode != 2) {
             switch (pWk->Scene) {
             case 0:
-                func_801C2488(pWk);
-                func_801C2538(pWk);
+                Opening_scene0_move(pWk);
+                Opening_scene0_draw(pWk);
                 break;
             case 1:
-                func_801C2618(pWk);
-                func_801C2788(pWk);
+                Opening_scene1_move(pWk);
+                Opening_scene1_draw(pWk);
                 break;
             }
         }
@@ -38,10 +38,10 @@ void func_801C2024(void)
         }
         Task_sleep(1);
     }
-    func_801C23F4();
+    Opening_exit();
 }
 
-void func_801C2160(void)
+void Opening_init(void)
 {
     G.Next_cut_no = G.Cut_no;
     Task_suspend(0);
@@ -51,12 +51,12 @@ void func_801C2160(void)
     Opn_work.pScript = (UCHAR *)0x8014B02A;
     Opn_work.Rno3 = 3;
     Opn_work.Rno2 = 0;
-    func_801C21E4();
-    func_801C22A0();
+    Opening_load();
+    Opening_sprt_init();
 }
 
 /* load the opening pictures */
-void func_801C21E4(void)
+void Opening_load(void)
 {
     ULONG i;
 
@@ -75,7 +75,7 @@ void func_801C21E4(void)
     Cd_read(0x3E, (ULONG *)0x80100000, 0, "OPENING1_DAT");
 }
 
-void func_801C22A0(void)
+void Opening_sprt_init(void)
 {
     SPRT *pSp;
     DR_TPAGE *pTp;
@@ -103,7 +103,7 @@ void func_801C22A0(void)
     }
 }
 
-void func_801C23F4(void)
+void Opening_exit(void)
 {
     Main.Vloop = 1;
     Fade_set(0, 1, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
@@ -118,7 +118,7 @@ void func_801C23F4(void)
 }
 
 /* scene 0: scroll up */
-void func_801C2488(OPN_WORK *pWk)
+void Opening_scene0_move(OPN_WORK *pWk)
 {
     switch (pWk->Rno0) {
     case 0:
@@ -138,7 +138,7 @@ void func_801C2488(OPN_WORK *pWk)
     }
 }
 
-void func_801C2538(OPN_WORK *pWk)
+void Opening_scene0_draw(OPN_WORK *pWk)
 {
     SPRT *pSp;
     DR_TPAGE *pTp;
@@ -156,7 +156,7 @@ void func_801C2538(OPN_WORK *pWk)
 }
 
 /* scene 1: two layers scroll sideways and cross fade */
-void func_801C2618(OPN_WORK *pWk)
+void Opening_scene1_move(OPN_WORK *pWk)
 {
     switch (pWk->Rno0) {
     case 0:
@@ -199,7 +199,7 @@ void func_801C2618(OPN_WORK *pWk)
     }
 }
 
-void func_801C2788(OPN_WORK *pWk)
+void Opening_scene1_draw(OPN_WORK *pWk)
 {
     SPRT *pSp;
     DR_TPAGE *pTp;
@@ -264,26 +264,26 @@ void func_801C2788(OPN_WORK *pWk)
 }
 
 /* script ops */
-LONG func_801C2B38(OPN_WORK *pWk)
+LONG Opening_op_next(OPN_WORK *pWk)
 {
     pWk->pScript++;
     return 1;
 }
 
-LONG func_801C2B50(OPN_WORK *pWk)
+LONG Opening_op_frame(OPN_WORK *pWk)
 {
     pWk->pScript++;
     return 0;
 }
 
-LONG func_801C2B68(OPN_WORK *pWk)
+LONG Opening_op_end(OPN_WORK *pWk)
 {
     pWk->pScript++;
     return 2;
 }
 
 /* set the wait counter (halfword at +2), then fall into op 4 */
-LONG func_801C2B80(OPN_WORK *pWk)
+LONG Opening_op_wait_set(OPN_WORK *pWk)
 {
     if (Main.Vloop == 1) {
         pWk->Wait = *(SHORT *)(pWk->pScript + 2) * 2;
@@ -295,7 +295,7 @@ LONG func_801C2B80(OPN_WORK *pWk)
 }
 
 /* wait */
-LONG func_801C2BD4(OPN_WORK *pWk)
+LONG Opening_op_wait(OPN_WORK *pWk)
 {
     if (pWk->Wait != 0) {
         pWk->Wait--;
@@ -306,7 +306,7 @@ LONG func_801C2BD4(OPN_WORK *pWk)
 }
 
 /* wait for the XA voice */
-LONG func_801C2C04(OPN_WORK *pWk)
+LONG Opening_op_xa_wait(OPN_WORK *pWk)
 {
     if ((G.Status_flg & STAT_XA_VOICE) || (D_800DBB58 & 0x80)) {
         return 0;
@@ -316,7 +316,7 @@ LONG func_801C2C04(OPN_WORK *pWk)
 }
 
 /* show picture */
-LONG func_801C2C4C(OPN_WORK *pWk)
+LONG Opening_op_pic(OPN_WORK *pWk)
 {
     Memcpy_r((void *)0x8019C000, D_801C2F0C[pWk->pScript[1]], 0x25814);
     Bg_set_mode(2, 0);
@@ -325,7 +325,7 @@ LONG func_801C2C4C(OPN_WORK *pWk)
 }
 
 /* start scene */
-LONG func_801C2CBC(OPN_WORK *pWk)
+LONG Opening_op_scene(OPN_WORK *pWk)
 {
     UCHAR Scene;
 
@@ -339,7 +339,7 @@ LONG func_801C2CBC(OPN_WORK *pWk)
 }
 
 /* fade in */
-LONG func_801C2D0C(OPN_WORK *pWk)
+LONG Opening_op_fade_in(OPN_WORK *pWk)
 {
     ULONG Cnt = pWk->pScript[1];
 
@@ -352,7 +352,7 @@ LONG func_801C2D0C(OPN_WORK *pWk)
 }
 
 /* fade out */
-LONG func_801C2D8C(OPN_WORK *pWk)
+LONG Opening_op_fade_out(OPN_WORK *pWk)
 {
     ULONG Cnt = pWk->pScript[1];
 
@@ -365,7 +365,7 @@ LONG func_801C2D8C(OPN_WORK *pWk)
 }
 
 /* XA voice */
-LONG func_801C2E0C(OPN_WORK *pWk)
+LONG Opening_op_xa(OPN_WORK *pWk)
 {
     Xa_play(3, pWk->pScript[1] + 0x13);
     G.Status_flg |= STAT_XA_VOICE;
@@ -374,7 +374,7 @@ LONG func_801C2E0C(OPN_WORK *pWk)
 }
 
 /* message */
-LONG func_801C2E70(OPN_WORK *pWk)
+LONG Opening_op_mess(OPN_WORK *pWk)
 {
     Mess_set(0xB90022, 0x3000, (ULONG)&D_801C2F3C[D_801C2F68[pWk->pScript[1]]], 0);
     pWk->pScript += 2;
@@ -382,7 +382,7 @@ LONG func_801C2E70(OPN_WORK *pWk)
 }
 
 /* frame rate */
-LONG func_801C2EE0(OPN_WORK *pWk)
+LONG Opening_op_vloop(OPN_WORK *pWk)
 {
     Main.Vloop = pWk->pScript[1];
     pWk->pScript += 2;

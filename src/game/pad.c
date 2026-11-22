@@ -184,7 +184,7 @@ accepted:
     }
 }
 
-void func_80038634(ULONG Flg, SHORT Val)
+void Pad_rep_set(ULONG Flg, SHORT Val)
 {
     PAD_WORK *pW;
     UCHAR *p;

@@ -7,11 +7,11 @@
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ULONG *D_8009E414; /* Flg_addr[7] */
 extern ULONG *D_8009E418; /* Flg_addr[8] */
-extern UCHAR D_8009E52C[][2]; /* RE2 Subpl_walk */
-extern UCHAR D_8009E554[][2]; /* RE2 Subpl_back */
-extern UCHAR D_8009E57C[][2]; /* RE2 Subpl_dir */
-extern UCHAR D_8009E5A4[][2]; /* RE2 Subpl_ato */
-extern UCHAR D_8009E5CC[][2]; /* RE2 Subpl_run */
+extern UCHAR Subpl_walk[][2]; /* RE2 SPL_TBL.H: sub player motion tables */
+extern UCHAR Subpl_back[][2];
+extern UCHAR Subpl_dir[][2];
+extern UCHAR Subpl_ato[][2];
+extern UCHAR Subpl_run[][2];
 extern UCHAR D_800C703E[];
 extern UCHAR D_800C7961;
 extern SHORT D_800D1F8E[];

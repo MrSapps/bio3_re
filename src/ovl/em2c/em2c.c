@@ -64,11 +64,11 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y -= 0x200;
         RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP = &pEm->pSin_parts_ptr[5];
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP = &pEm->pSin_parts_ptr[6];
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP->Be_flg |= 2;
         pEm->Cdir_y += 0x200;
     }
@@ -76,13 +76,13 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y += 0x200;
         RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP = &pEm->pSin_parts_ptr[8];
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP = &pEm->pSin_parts_ptr[12];
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP = &pEm->pSin_parts_ptr[13];
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pP->Be_flg |= 2;
         pEm->Cdir_y -= 0x200;
     }
@@ -90,7 +90,7 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y -= 0x200;
         RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        func_8002D4B0(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
         pEm->pSin_parts_ptr[8].Be_flg |= 2;
         pEm->Cdir_y += 0x200;
     }

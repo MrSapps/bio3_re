@@ -4,7 +4,7 @@
 #include "sub.h"
 
 /* main task */
-void func_801C206C(void)
+void Staff_main(void)
 {
     STAFF_WORK *pW;
 
@@ -24,7 +24,7 @@ void func_801C206C(void)
 }
 
 /* init: load the data, narrow the curtains */
-void func_801C2104(void)
+void Staff_init(void)
 {
     STAFF_WORK *pW = &Staff_wk;
     ULONG i;
@@ -35,7 +35,7 @@ void func_801C2104(void)
     Main.Vloop = 1;
     Bg_set_mode(1, 0);
     Cd_read(0x61, (ULONG *)0x801064E0, 0, "STR_BG_DAT");
-    func_801C3704();
+    Staff_tim_set();
     Cd_read(0x56, (ULONG *)0x80100000, 0, "STAFF_U_DAT");
     for (j = 0; j < 2; j++) {
         for (i = 0, Y = 0; i < 2; i++) {
@@ -47,7 +47,7 @@ void func_801C2104(void)
     pW->Rtn0++;
 }
 
-void func_801C21E8(void)
+void Staff_roll(void)
 {
     STAFF_WORK *pW = &Staff_wk;
 
@@ -55,7 +55,7 @@ void func_801C21E8(void)
 }
 
 /* exit: restore the curtains */
-void func_801C2228(void)
+void Staff_exit(void)
 {
     ULONG i;
     ULONG j;
@@ -78,7 +78,7 @@ void func_801C2228(void)
  * constant's global-alloc priority above the counter's) */
 #define STAFF_GREY(p, c) do { setRGB0(p, c, c, c); } while (0)
 #define STAFF_GREY2(p, c) do { STAFF_GREY(p, c); } while (0)
-void func_801C22AC(void)
+void Staff_page_init(void)
 {
     ULONG i;
     SPRT *p;
@@ -126,7 +126,7 @@ void func_801C22AC(void)
     pW->Rtn1++;
 }
 
-void func_801C256C(void)
+void Staff_page_main(void)
 {
     STAFF_WORK *pW = &Staff_wk;
 
@@ -141,11 +141,11 @@ void func_801C256C(void)
     }
 }
 
-void func_801C25FC(void)
+void Staff_nop(void)
 {
 }
 
-void func_801C2604(void)
+void Staff_page_move(void)
 {
     STAFF_WORK *pW = &Staff_wk;
 
@@ -177,7 +177,7 @@ void func_801C2604(void)
         break;
     case 2:
         if (Staff_fade.End == 0)
-            func_801C3A98();
+            Staff_cross_fade();
         if (++pW->Timer == 200) {
             Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x3C);
             pW->Rtn3 = 3;
@@ -203,12 +203,12 @@ void func_801C2604(void)
     AddPrim(G.pOt0 + pW->Ot1, &pW->Page[1].Tr[G.Cbuf_id]);
 }
 
-void func_801C2974(void)
+void Staff_page_end(void)
 {
     Staff_wk.End_flg = 1;
 }
 
-void func_801C2984(void)
+void Staff_bg_init(void)
 {
     STAFF_WORK *pW = &Staff_wk;
     ULONG i;
@@ -253,7 +253,7 @@ void func_801C2984(void)
     pW->Rtn1++;
 }
 
-void func_801C2B30(void)
+void Staff_bg_main(void)
 {
     STAFF_WORK *pW = &Staff_wk;
 
@@ -262,7 +262,7 @@ void func_801C2B30(void)
         Staff_wk.Rtn0++;
 }
 
-void func_801C2BB8(void)
+void Staff_bg_start(void)
 {
     if (++Staff_wk.Timer >= 2) {
         G.Status_flg |= STAT_CINESCO;
@@ -279,13 +279,13 @@ void func_801C2BB8(void)
     }
 }
 
-void func_801C2CBC(void)
+void Staff_bg_move(void)
 {
-    func_801C2F8C();
-    func_801C2CE4();
+    Staff_bg_scroll();
+    Staff_credit_move();
 }
 
-void func_801C2CE4(void)
+void Staff_credit_move(void)
 {
     STAFF_SEQ *pS = &Staff_seq;
     STAFF_WORK *pW = &Staff_wk;
@@ -338,7 +338,7 @@ void func_801C2CE4(void)
     }
 }
 
-void func_801C2F8C(void)
+void Staff_bg_scroll(void)
 {
     STAFF_WORK *pW = &Staff_wk;
     switch (pW->Rtn3) {
@@ -401,7 +401,7 @@ void func_801C2F8C(void)
     }
 }
 
-void func_801C32DC(void)
+void Staff_logo(void)
 {
     STAFF_WORK *pW = &Staff_wk;
     ULONG i;
@@ -478,12 +478,12 @@ void func_801C32DC(void)
     }
 }
 
-void func_801C36F4(void)
+void Staff_bg_end(void)
 {
     Staff_wk.End_flg = 1;
 }
 
-void func_801C3704(void)
+void Staff_tim_set(void)
 {
     STAFF_WORK *pW = &Staff_wk;
     ULONG i;
@@ -516,7 +516,7 @@ void func_801C3704(void)
         }
     }
     pW->pBuf = (ULONG *)0x8019C000;
-    func_800100A4((void *)0x8019C000, pW->pStr_bg, 0x12E20);
+    Memcpy((void *)0x8019C000, pW->pStr_bg, 0x12E20);
     pW->pStr_bg += 0x12E20 / 4;
     for (i = 0; i < 7; i++) {
         for (j = 0; j < 2; j++) {
@@ -548,7 +548,7 @@ void func_801C3704(void)
     }
 }
 
-void func_801C3A98(void)
+void Staff_cross_fade(void)
 {
     STAFF_WORK *pW = &Staff_wk;
     STAFF_FADE *pF = &Staff_fade;

@@ -1,5 +1,4 @@
 // JILL_SEL.BIN symbols (loaded at 0x801c2000)
-// proposed names (not used by the link yet; C keeps func_/D_ names)
 Jill_main = 0x801C2050; // type:func
 Jill_sprt_draw = 0x801C20A8; // type:func
 Jill_pl_move = 0x801C2118; // type:func

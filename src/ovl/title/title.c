@@ -11,7 +11,7 @@ void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /*
 /* main loop */
 void func_801940E8(void)
 {
-    func_80038634(0x5000, 0x20A);
+    Pad_rep_set(0x5000, 0x20A);
     Title_wk.Timer = 300;
     TITLE_RTN_SET(&Title_wk, 0);
     Main.Vloop = 1;
@@ -787,10 +787,10 @@ void func_80195988(TITLE_WORK *pTi)
 }
 
 /* file names of the save image and extra game sound banks (also used by func_80196800) */
-const char Title_str_init_sub[] __asm__("D_80194098") = "INIT_SUB";
-const char Title_str_omake_bgm[] __asm__("D_801940A4") = "OMAKE BGM";
-const char Title_str_omake_vb[] __asm__("D_801940B0") = "OMAKE VB";
-const char Title_str_init_tbl[] __asm__("D_801940BC") = "INIT_TBL";
+const char Title_str_init_sub[] = "INIT_SUB";
+const char Title_str_omake_bgm[] = "OMAKE BGM";
+const char Title_str_omake_vb[] = "OMAKE VB";
+const char Title_str_init_tbl[] = "INIT_TBL";
 
 /* game mode (after "new game" with the extra game unlocked), then start */
 void func_80195C68(TITLE_WORK *pTi)
@@ -1066,7 +1066,7 @@ void func_80196800(TITLE_WORK *pTi)
         func_80194C4C(pTi);
         Task_sleep(1);
     }
-    func_800100A4((void *)0x8019C000, (void *)0x80155814, 0x25814);
+    Memcpy((void *)0x8019C000, (void *)0x80155814, 0x25814);
     G.Ctp.Tpage_clut = 0x1E06;
     Mapping_tim((ULONG *)0x80183068);
     for (i = 0; i < 2; i++) {
@@ -1342,9 +1342,9 @@ void func_80197448(void)
     SVECTOR Unused;
 
     if (G.System_flg & 0x80) {
-        func_800100A4((void *)0x8019C000, (void *)0x80155814, 0x25814);
+        Memcpy((void *)0x8019C000, (void *)0x80155814, 0x25814);
     } else {
-        func_800100A4((void *)0x8019C000, (void *)0x80130000, 0x25814);
+        Memcpy((void *)0x8019C000, (void *)0x80130000, 0x25814);
     }
     G.Ctp.Tpage_clut = 0x1F05;
     Mapping_tim((ULONG *)0x8017B028);

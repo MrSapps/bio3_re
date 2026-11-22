@@ -2,14 +2,14 @@
 #include "snd.h"
 
 /* main task: move gears until the lever is pulled, then check and turn them */
-void func_801C2008(void)
+void Gear_main(void)
 {
     tagGLOBAL *pG = &G;
 
-    func_801C20B8();
+    Gear_init();
     for (;;) {
-        func_801C22CC();
-        func_801C2540();
+        Gear_ctrl();
+        Gear_om_set();
         if (Gear_wk.Exit)
             break;
         func_80037C38();
@@ -17,12 +17,12 @@ void func_801C2008(void)
         Om_trans();
         Task_sleep(1);
     }
-    func_801C27E4();
-    func_801C2888();
-    func_801C2244();
+    Gear_check();
+    Gear_turn();
+    Gear_exit();
 }
 
-void func_801C20B8(void)
+void Gear_init(void)
 {
     Task_suspend(0);
     Gear_wk.Exit = 0;
@@ -51,7 +51,7 @@ void func_801C20B8(void)
     G.Status_flg |= 0x400000;
 }
 
-void func_801C21A4(void)
+void Gear_line_init(void)
 {
     ULONG i;
     LINE_F3 *pLine;
@@ -66,7 +66,7 @@ void func_801C21A4(void)
     } while (++i < 2);
 }
 
-void func_801C2244(void)
+void Gear_exit(void)
 {
     G.Cut_no = 2;
     Main.Unk18E = 1;
@@ -80,7 +80,7 @@ void func_801C2244(void)
 }
 
 /* gearbox: move the selected gear along its link table to the first free slot */
-void func_801C22CC(void)
+void Gear_ctrl(void)
 {
     VECTOR Pos;
     ULONG i;
@@ -88,7 +88,7 @@ void func_801C22CC(void)
     Pos.vx = Gear_pos_tbl[2][0];
     Pos.vy = Gear_pos_tbl[2][1];
     Pos.vz = Gear_pos_tbl[2][2];
-    func_801C2464();
+    Gear_cursor_move();
     if (G.Key_trg & 0x1000) {
         if (Gear_wk.Cursor == GEAR_LEVER) {
             Snd_se_stad(0x10208, &Pos, 0, 0);
@@ -116,7 +116,7 @@ void func_801C22CC(void)
         Gear_wk.Cursor = GEAR_LEVER;
 }
 
-void func_801C2464(void)
+void Gear_cursor_move(void)
 {
     GEAR_WORK *pGw = &Gear_wk;
     ULONG Dir;
@@ -137,7 +137,7 @@ void func_801C2464(void)
     }
 }
 
-void func_801C2540(void)
+void Gear_om_set(void)
 {
     ULONG i;
     ULONG Ns = 0;
@@ -164,11 +164,11 @@ void func_801C2540(void)
             break;
         }
     }
-    func_801C2660();
-    func_801C27A0();
+    Gear_cursor_draw();
+    Gear_count_print();
 }
 
-void func_801C2660(void)
+void Gear_cursor_draw(void)
 {
     LINE_F3 *p0;
     LINE_F3 *p1;
@@ -204,7 +204,7 @@ void func_801C2660(void)
     }
 }
 
-void func_801C27A0(void)
+void Gear_count_print(void)
 {
     Print_color(0xFF, 6, 0);
     Print14(0x4F, 0x6A, "%d", Gear_wk.Move_cnt);
@@ -212,7 +212,7 @@ void func_801C27A0(void)
 /* the original .rodata ends with a junk byte after "%d" */
 __asm__(".section .rodata\n\t.byte 0x2F\n\t.section .text");
 
-void func_801C27E4(void)
+void Gear_check(void)
 {
     ULONG i;
 
@@ -227,7 +227,7 @@ void func_801C27E4(void)
     G.Sce_work[4] = 0;
 }
 
-void func_801C2888(void)
+void Gear_turn(void)
 {
     VECTOR Pos;
     ULONG i;

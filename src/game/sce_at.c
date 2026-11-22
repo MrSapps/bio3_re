@@ -636,7 +636,7 @@ LONG Water_ck(LONG Pos_x, LONG Pos_z)
                     Work[7] = ((SHORT *)pAot)[7];
                     Work[8] = ((SHORT *)pAot)[8];
                     Work[9] = ((SHORT *)pAot)[9];
-                    if (func_8001020C((LONG *)&Vec, (VCUT *)Work)) {
+                    if (Hit_ck_point4((LONG *)&Vec, (VCUT *)Work)) {
                         return ((SHORT *)pAot)[10];
                     }
                 } else if (func_800101C8((LONG *)&Vec, (SHORT *)(pAot + 4))) {

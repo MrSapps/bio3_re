@@ -107,10 +107,10 @@ void func_80100360(ENEMY_WORK *pEm)
 {
     if (pEm->Pos_x > 20000) {
         pEm->Dest_x = 10000;
-        pEm->Dest_z = func_800102E8() * -25;
+        pEm->Dest_z = Rnd() * -25;
     } else {
         pEm->Dest_x = 27000;
-        pEm->Dest_z = func_800102E8() * -25;
+        pEm->Dest_z = Rnd() * -25;
     }
     func_80101580(pEm, 1);
 }
@@ -163,9 +163,9 @@ void func_80100674(ENEMY_WORK *pEm)
     EM3E_W(pEm)->Time += 60;
     pEm->Life = EM3E_W(pEm)->Old_life;
     Ofs.vx = 0x141E;
-    Ofs.vy = (signed char)func_800102E8() << 2;
-    Ofs.vz = (signed char)func_800102E8() << 2;
-    func_8001B484(1, 0x14000000, &pP->Workm, &Ofs, NULL);
+    Ofs.vy = (signed char)Rnd() << 2;
+    Ofs.vz = (signed char)Rnd() << 2;
+    Esp_call(1, 0x14000000, &pP->Workm, &Ofs, NULL);
     EM_RTN(pEm) = pEm->Unk1C4;
 }
 
@@ -177,9 +177,9 @@ void func_80100704(ENEMY_WORK *pEm)
 
     EM3E_W(pEm)->Time += 60;
     Ofs.vx = 0x141E;
-    Ofs.vy = (signed char)func_800102E8() << 2;
-    Ofs.vz = (signed char)func_800102E8() << 2;
-    func_8001B484(1, 0x1C000000, &pP->Workm, &Ofs, NULL);
+    Ofs.vy = (signed char)Rnd() << 2;
+    Ofs.vz = (signed char)Rnd() << 2;
+    Esp_call(1, 0x1C000000, &pP->Workm, &Ofs, NULL);
     EM_RTN(pEm) = pEm->Unk1C4;
 }
 
@@ -433,7 +433,7 @@ void func_80100EAC(ENEMY_WORK *pEm, LONG Mode)
             if (Mode == 2) {
                 func_80101008(pEm);
                 func_80100F94(pEm);
-            } else if (func_800102E8() & 0x80)
+            } else if (Rnd() & 0x80)
                 func_80101008(pEm);
             else
                 func_80100F94(pEm);
@@ -451,7 +451,7 @@ void func_80100F94(ENEMY_WORK *pEm)
     Ofs.vy = 200;
     Ofs.vz = 0x80C;
     pP = &pEm->pSin_parts_ptr[1];
-    func_8001B484(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
+    Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
     Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
 }
 
@@ -465,7 +465,7 @@ void func_80101008(ENEMY_WORK *pEm)
     Ofs.vy = 200;
     Ofs.vz = -0x80C;
     pP = &pEm->pSin_parts_ptr[1];
-    func_8001B484(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
+    Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
     Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
 }
 
@@ -484,35 +484,35 @@ void func_8010107C(ENEMY_WORK *pEm)
     Ofs.vx = -700;
     Ofs.vy = 2523;
     Ofs.vz = 0;
-    func_8001B484(1, 0x16000000, &pP[5].Workm, &Ofs, NULL);
+    Esp_call(1, 0x16000000, &pP[5].Workm, &Ofs, NULL);
     Ofs.vx = -700;
     Ofs.vy = 2884;
     Ofs.vz = 0;
     Spd.vx = 0;
     Spd.vy = 0;
     Spd.vz = -0x400;
-    func_8001B484(0x801, 0x16000000, &pP[5].Workm, &Ofs, &Spd);
+    Esp_call(0x801, 0x16000000, &pP[5].Workm, &Ofs, &Spd);
     Ofs.vx = -450;
     Ofs.vy = 2523;
     Ofs.vz = 20;
     Spd.vx = -0x400;
     Spd.vy = 0x600;
     Spd.vz = 0;
-    func_8001B484(0x801, 0x10000000, &pP[5].Workm, &Ofs, &Spd);
+    Esp_call(0x801, 0x10000000, &pP[5].Workm, &Ofs, &Spd);
     Ofs.vx = -850;
     Ofs.vy = 2523;
     Ofs.vz = -100;
     Spd.vx = -0x200;
     Spd.vy = 0x200;
     Spd.vz = -0x300;
-    func_8001B484(0x801, 0x10000000, &pP[5].Workm, &Ofs, &Spd);
+    Esp_call(0x801, 0x10000000, &pP[5].Workm, &Ofs, &Spd);
     Ofs.vx = -850;
     Ofs.vy = 2523;
     Ofs.vz = 140;
     Spd.vx = 0x200;
     Spd.vy = -0x200;
     Spd.vz = -0x300;
-    func_8001B484(0x801, 0x10000000, &pP[5].Workm, &Ofs, &Spd);
+    Esp_call(0x801, 0x10000000, &pP[5].Workm, &Ofs, &Spd);
 }
 
 /* pitch sway, height bob, speed easing and body tilt */
@@ -524,7 +524,7 @@ void func_80101210(ENEMY_WORK *pEm)
 
     switch (EM3E_W(pEm)->Sway_rtn) {
     case 0:
-        EM3E_W(pEm)->Sway_cnt = EM3E_W(pEm)->Sway_time = (func_800102E8() & 0x1F) + 15;
+        EM3E_W(pEm)->Sway_cnt = EM3E_W(pEm)->Sway_time = (Rnd() & 0x1F) + 15;
         EM3E_W(pEm)->Sway_rtn++;
     case 1:
         pP->Cdir_x += 2;
@@ -548,7 +548,7 @@ void func_80101210(ENEMY_WORK *pEm)
     }
     switch (EM3E_W(pEm)->Bob_rtn) {
     case 0:
-        EM3E_W(pEm)->Bob_cnt = EM3E_W(pEm)->Bob_time = (func_800102E8() & 0x1F) + 25;
+        EM3E_W(pEm)->Bob_cnt = EM3E_W(pEm)->Bob_time = (Rnd() & 0x1F) + 25;
         EM3E_W(pEm)->Bob_rtn++;
     case 1:
         pEm->Pos_y += 4;
@@ -636,10 +636,10 @@ void func_801015C0(ENEMY_WORK *pEm)
             pEm->Timer0 = 30;
             if (pEm->Pos_x > 20000) {
                 pEm->Dest_x = 10000;
-                pEm->Dest_z = func_800102E8() * -25;
+                pEm->Dest_z = Rnd() * -25;
             } else {
                 pEm->Dest_x = 27000;
-                pEm->Dest_z = func_800102E8() * -25;
+                pEm->Dest_z = Rnd() * -25;
             }
             EM3E_W(pEm)->Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, pEm->Dest_x, pEm->Dest_z);
             pEm->Spd_x = Rsin_tbl[(EM3E_W(pEm)->Dir / 16 + 0x40) & 0xFF] * 240 / 256;

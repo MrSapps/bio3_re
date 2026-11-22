@@ -61,10 +61,10 @@ typedef struct tagTITLE_WORK {
 #define TITLE_RTN_SET(pTi, Rtn) (*(ULONG *)&(pTi)->Main_rtn = (Rtn))
 
 /* overlay .data (still in asm) */
-extern ULONG Title_pdemo_cd[3] __asm__("D_801974B4"); /* 0x801974B4 demo file per demo */
-extern void (*Title_main_tbl[6])(TITLE_WORK *pTi) __asm__("D_801974C0"); /* 0x801974C0 */
-extern void (*Title_sub_tbl[12])(TITLE_WORK *pTi) __asm__("D_801974D8"); /* 0x801974D8 */
-extern TITLE_WORK Title_wk __asm__("D_80197508"); /* 0x80197508 */
+extern ULONG Title_pdemo_cd[3]; /* 0x801974B4 demo file per demo */
+extern void (*Title_main_tbl[6])(TITLE_WORK *pTi); /* 0x801974C0 */
+extern void (*Title_sub_tbl[12])(TITLE_WORK *pTi); /* 0x801974D8 */
+extern TITLE_WORK Title_wk; /* 0x80197508 */
 
 extern signed char Title_sin_tbl[256] __asm__("D_80098828"); /* 0x80098828 0..255 sine wave */
 
@@ -101,9 +101,9 @@ void func_80197448(void);
 
 /* exe prototypes not in a shared header yet (game .c files disagree on some of them) */
 
-extern const char Title_str_init_sub[] __asm__("D_80194098");
-extern const char Title_str_omake_bgm[] __asm__("D_801940A4");
-extern const char Title_str_omake_vb[] __asm__("D_801940B0");
-extern const char Title_str_init_tbl[] __asm__("D_801940BC");
+extern const char Title_str_init_sub[];
+extern const char Title_str_omake_bgm[];
+extern const char Title_str_omake_vb[];
+extern const char Title_str_init_tbl[];
 
 #endif /* OVL_TITLE_H */

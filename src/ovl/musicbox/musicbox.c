@@ -5,7 +5,7 @@
 #include "status.h"
 
 /* main task */
-void func_801C2030(void)
+void Mbox_main(void)
 {
     tagGLOBAL *pG = &G;
     MBOX_WORK *pMw;
@@ -22,7 +22,7 @@ void func_801C2030(void)
     pMw->Tune = 1;
     pMw->Run = 1;
     pG->Status_flg |= 0x80;
-    func_80038634(0xF00C, 0x60A);
+    Pad_rep_set(0xF00C, 0x60A);
     OM(10).Cdir.vy = 0x3F0;
     for (i = 0; i < MBOX_NOTE_NUM; i++) {
         if (Flg_ck(&pG->Unk7888, i + 6)) {
@@ -34,7 +34,7 @@ void func_801C2030(void)
         }
     }
     while (pMw->Run) {
-        func_801C2228();
+        Mbox_ctr();
         func_80037C38();
         pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
@@ -50,7 +50,7 @@ void func_801C2030(void)
 }
 
 /* puzzle state machine */
-void func_801C2228(void)
+void Mbox_ctr(void)
 {
     tagGLOBAL *pG = &G;
     MBOX_WORK *pMw = &Mbox_wk;

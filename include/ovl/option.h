@@ -71,7 +71,7 @@ typedef struct tagOPT_WORK {
 } OPT_WORK;
 
 /* the overlay .data is still asm, so data names are bound to its labels */
-extern OPT_WORK Opt __asm__("D_801C55A0");
+extern OPT_WORK Opt;
 
 extern OPT_FILE D_801C53FC[4]; /* Option.dat pieces */
 extern UCHAR D_801C541C[4]; /* their check sums */

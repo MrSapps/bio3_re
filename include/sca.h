@@ -50,7 +50,7 @@ typedef struct tagSCA_WORK {
 extern SCA_WORK D_800DEB58;
 
 extern LONG (*D_8009E088[])(ULONG P0, ULONG P1, SCA_DATA *pT); /* line test per shape (Id & 0xF) */
-extern SCA_DATA D_800DEB48; /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
+extern SCA_DATA Tmp_Sca; /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
 
 void func_8004B7E8(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y);
 ULONG func_8004B874(COL_OBJ *pObj, LONG R, ULONG Arg2);

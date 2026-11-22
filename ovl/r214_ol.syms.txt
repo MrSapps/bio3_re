@@ -1,7 +1,13 @@
 // R214_OL.BIN symbols (loaded at 0x801c2000)
-// proposed names (not used by the link yet; C keeps func_/D_ names)
 R214_main = 0x801C2020; // type:func
 R214_ctr = 0x801C2210; // type:func
 R214_draw = 0x801C275C; // type:func
 R214_digit_set = 0x801C2A38; // type:func
 R214_wk = 0x801C2C80;
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+R214_mess = 0x801C2B5C;
+R214_mess_ofs = 0x801C2C08;
+R214_pos_ok0 = 0x801C2C10;
+R214_pos_ok1 = 0x801C2C20;
+R214_pos = 0x801C2C30;
+R214_digit_x = 0x801C2C70;

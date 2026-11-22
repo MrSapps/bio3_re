@@ -1,1 +1,3 @@
 // OPTION.BIN symbols (loaded at 0x801c2000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Opt = 0x801C55A0;

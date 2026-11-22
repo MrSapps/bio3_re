@@ -19,7 +19,7 @@ typedef struct {
     UCHAR Data_sum;                    /* 0x9 */
     UCHAR padA[2];
 } DOOR_INFO;
-extern DOOR_INFO D_800971E4[];         /* RE2 Dinfo[], index Dtex_type */
+extern DOOR_INFO Dinfo[];         /* index Dtex_type */
 extern USHORT *D_800979D4[];           /* door file no per stage, index Dtex_type */
 
 /* door data file header, loaded at 0x8019D000 (RE2 Door_data->hdr; offsets relative to the file) */

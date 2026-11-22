@@ -225,7 +225,7 @@ void func_801C2AC4(void)
     Main.Unk191 = 1;
     Bg_set_mode(2, 0);
     Main.Vloop = 1;
-    func_80038634(0xF000, 0x314);
+    Pad_rep_set(0xF000, 0x314);
     Snd_work.UnkB1C = 0x80;
     Snd_work.UnkB20 = 0x3FFF;
     Snd_work.UnkB24 = 0xB00;
@@ -961,30 +961,30 @@ void func_801C4EB8(void)
                 p->pAnim = D_801C5548[p->Type];
             }
             p->Anim_no = p->pAnim[0];
-            p->Timer = p->pAnim[1] + (func_800102E8() & 3);
+            p->Timer = p->pAnim[1] + (Rnd() & 3);
         }
-        switch (func_800102E8() & 3) {
+        switch (Rnd() & 3) {
         case 3:
-            p->Pos_x += func_800102E8() & 3;
+            p->Pos_x += Rnd() & 3;
             break;
         case 0:
-            p->Pos_x -= func_800102E8() & 3;
+            p->Pos_x -= Rnd() & 3;
             break;
         }
-        switch (func_800102E8() & 3) {
+        switch (Rnd() & 3) {
         case 2:
-            p->Pos_y += func_800102E8() & 3;
+            p->Pos_y += Rnd() & 3;
             break;
         case 3:
-            p->Pos_y -= func_800102E8() & 3;
+            p->Pos_y -= Rnd() & 3;
             break;
         }
-        switch (func_800102E8() & 3) {
+        switch (Rnd() & 3) {
         case 0:
-            p->Rot_y += func_800102E8() & 3;
+            p->Rot_y += Rnd() & 3;
             break;
         case 3:
-            p->Rot_y -= func_800102E8() & 3;
+            p->Rot_y -= Rnd() & 3;
             break;
         }
     }
@@ -1078,7 +1078,7 @@ void func_801C5348(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y)
             p->Rot_y = Rot_y;
             p->pAnim = pAnim;
             p->Anim_no = pAnim[0];
-            p->Timer = pAnim[1] + (func_800102E8() & 3);
+            p->Timer = pAnim[1] + (Rnd() & 3);
             return;
         }
     }

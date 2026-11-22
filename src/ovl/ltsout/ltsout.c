@@ -3,10 +3,10 @@
 #include "snd.h"
 #include "trans.h"
 
-LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
+LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 
 /* main task */
-void func_801C2018(void)
+void Lts_main(void)
 {
     tagGLOBAL *pG = &G;
     LTS_EVT *pEvt = pG->pUnk21DC;
@@ -46,14 +46,14 @@ void func_801C2018(void)
     switch (pLw->Stage) {
     case 1:
         Pos.vx = -0x65D6;
-        func_8001B484(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
         pLw->Esp_on = 1;
         break;
     case 2:
         Pos.vx = -0x65D6;
-        func_8001B484(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
         Pos.vx = -0x65AB;
-        func_8001B484(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
         pLw->Esp_on = 1;
         break;
     }
@@ -73,11 +73,11 @@ void func_801C2018(void)
     setWH(pT, 0xA8, 0x1C);
     setXY0(pT, 0x4C, 0xA6);
     setSemiTrans(pT, 1);
-    func_80038634(0xF00C, 0x60A);
+    Pad_rep_set(0xF00C, 0x60A);
     while (pLw->Run) {
-        func_801C2370();
+        Lts_ctr();
         Esp_task_main();
-        func_801C28BC();
+        Lts_draw();
         Eff_sprt_trans();
         if (!(G.System_flg & 0x80000000))
             Psp_trans();
@@ -94,7 +94,7 @@ void func_801C2018(void)
 }
 
 /* puzzle state machine */
-void func_801C2370(void)
+void Lts_ctr(void)
 {
     LTS_WORK *pLw = &Lts_wk;
     ULONG i;
@@ -112,7 +112,7 @@ void func_801C2370(void)
         break;
     case 1:
         for (i = 0; i < 8; i++) {
-            r = Rnd() % 10;
+            r = Rnd_l() % 10;
             if (r != pLw->Pattern[pLw->Stage])
                 break;
         }
@@ -135,11 +135,11 @@ void func_801C2370(void)
             switch (pLw->Stage) {
             case 1:
                 Pos.vx = -0x65D6;
-                func_8001B484(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
+                Esp_call(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
                 break;
             case 2:
                 Pos.vx = -0x65AB;
-                func_8001B484(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
+                Esp_call(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
                 break;
             }
         }
@@ -227,7 +227,7 @@ void func_801C2370(void)
                     Pos.vx = -0x6582;
                     Spd.vy = 0;
                     Spd.vz = 0;
-                    func_8001B484(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
+                    Esp_call(0x215, 0x1C00000, &GsIDMATRIX, &Pos, &Spd);
                 }
             }
         }
@@ -240,7 +240,7 @@ void func_801C2370(void)
 }
 
 /* draw: dark background, switch labels, lamps through the cut flags */
-void func_801C28BC(void)
+void Lts_draw(void)
 {
     LTS_WORK *pLw = &Lts_wk;
     DR_MODE *pDm;

@@ -1,1 +1,8 @@
 // em26.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em26_routine_0 = 0x80101160;
+Em26_routine_tbl = 0x80101180;
+Em26_move_tbl = 0x80101188;
+Em26_mv_walk_tbl = 0x8010119C;
+Em26_dieblood_type_tbl = 0x801011A4;
+Em26_blood_id_tbl = 0x801011C4;

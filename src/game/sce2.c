@@ -193,7 +193,7 @@ ULONG Sce_espr_on(SCE_TASK *pSce)
     Svec.vx = ((SHORT *)pData)[4];
     Svec.vy = ((SHORT *)pData)[5];
     Svec.vz = ((SHORT *)pData)[6];
-    func_8001B484((((D0 >> 8) & 0xF) << 24) | ((D0 & 0xFF) << 8) | pData[1],
+    Esp_call((((D0 >> 8) & 0xF) << 24) | ((D0 & 0xFF) << 8) | pData[1],
                   (Dir << 16) | ((USHORT *)pData)[7], Mat, &Svec, 0);
     pSce->Data = pData + 0x10;
     return 1;
@@ -216,7 +216,7 @@ ULONG Sce_espr_on2(SCE_TASK *pSce)
     Svec.vx = ((SHORT *)pData)[5];
     Svec.vy = ((SHORT *)pData)[6];
     Svec.vz = ((SHORT *)pData)[7];
-    func_8001B484((((D0 >> 8) & 0xF) << 24) | (pData[2] << 16) | ((D0 & 0xFF) << 8) | pData[3],
+    Esp_call((((D0 >> 8) & 0xF) << 24) | (pData[2] << 16) | ((D0 & 0xFF) << 8) | pData[3],
                   (Dir << 16) | ((USHORT *)pData)[8], Mat, &Svec, 0);
     pSce->Data = pData + 0x12;
     return 1;
@@ -243,7 +243,7 @@ ULONG Sce_espr3d_on(SCE_TASK *pSce)
     Svec2.vx = ((SHORT *)pData)[7];
     Svec2.vy = ((SHORT *)pData)[8];
     Svec2.vz = ((SHORT *)pData)[9];
-    func_8001B484((((D0 >> 8) & 0xF) << 24) | ((D0 & 0xFF) << 8) | pData[1],
+    Esp_call((((D0 >> 8) & 0xF) << 24) | ((D0 & 0xFF) << 8) | pData[1],
                   (Dir << 16) | ((USHORT *)pData)[10], Mat, &Svec, &Svec2);
     pSce->Data = pData + 0x16;
     return 1;
@@ -270,7 +270,7 @@ ULONG Sce_espr3d_on2(SCE_TASK *pSce)
     Svec2.vx = ((SHORT *)pData)[8];
     Svec2.vy = ((SHORT *)pData)[9];
     Svec2.vz = ((SHORT *)pData)[10];
-    func_8001B484((((D0 >> 8) & 0xF) << 24) | (pData[2] << 16) | ((D0 & 0xFF) << 8) | pData[3],
+    Esp_call((((D0 >> 8) & 0xF) << 24) | (pData[2] << 16) | ((D0 & 0xFF) << 8) | pData[3],
                   (Dir << 16) | ((USHORT *)pData)[11], Mat, &Svec, &Svec2);
     pSce->Data = pData + 0x18;
     return 1;
@@ -304,10 +304,10 @@ ULONG Sce_espr_task(SCE_TASK *pSce)
     if (pSce->Data[1] != 6) {
         v = Get_matrix((s8)pSce->Data[1], (s8)pSce->Data[2]);
         for (i = 0; i < 0x60; i++) {
-            if (D_800BA8A8[i].pMat == v) {
-                D_800BA8A8[i].Routine_1 = 0;
-                D_800BA8A8[i].Routine_0 = 0;
-                D_800BA8A8[i].Be_flg = 0;
+            if (Esp[i].pMat == v) {
+                Esp[i].Routine_1 = 0;
+                Esp[i].Routine_0 = 0;
+                Esp[i].Be_flg = 0;
             }
         }
     } else {
@@ -428,19 +428,19 @@ ULONG Plc_dest(SCE_TASK *pSce)
         switch (Mode) {
         case 4:
         case 0x12:
-            pEm->Add_dir = D_8009E52C[Id][1];
+            pEm->Add_dir = Subpl_walk[Id][1];
             break;
         case 5:
-            pEm->Add_dir = D_8009E5CC[Id][1];
+            pEm->Add_dir = Subpl_run[Id][1];
             break;
         case 7:
-            pEm->Add_dir = D_8009E554[Id][1];
+            pEm->Add_dir = Subpl_back[Id][1];
             break;
         case 8:
-            pEm->Add_dir = D_8009E5A4[Id][1];
+            pEm->Add_dir = Subpl_ato[Id][1];
             break;
         case 9:
-            pEm->Add_dir = D_8009E57C[Id][1];
+            pEm->Add_dir = Subpl_dir[Id][1];
             break;
         }
     } else {

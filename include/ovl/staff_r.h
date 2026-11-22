@@ -95,36 +95,36 @@ typedef struct tagSTAFF_MESS {
 extern USHORT G_tpage_clut __asm__("D_800CCBBC");
 
 /* overlay .data (still in asm) */
-extern UCHAR Staff_mess_data[] __asm__("D_801C3E24");
-extern USHORT Staff_mess_ofs[] __asm__("D_801C404C");
-extern void (*Staff_main_tbl[])(void) __asm__("D_801C4050");
-extern STAFF_TEX Staff_tex[7] __asm__("D_801C405C");
-extern STAFF_MESS Staff_mess[] __asm__("D_801C4094");
-extern void (*Staff_roll_tbl[])(void) __asm__("D_801C40A0");
-extern void (*Staff_page_tbl[])(void) __asm__("D_801C40B0");
-extern void (*Staff_bg_tbl[])(void) __asm__("D_801C40BC");
-extern STAFF_SEQ Staff_seq __asm__("D_801C40D0");
-extern STAFF_WORK Staff_wk __asm__("D_801C40E8");
-extern STAFF_FADE Staff_fade __asm__("D_801C48F8");
+extern UCHAR Staff_mess_data[];
+extern USHORT Staff_mess_ofs[];
+extern void (*Staff_main_tbl[])(void);
+extern STAFF_TEX Staff_tex[7];
+extern STAFF_MESS Staff_mess[];
+extern void (*Staff_roll_tbl[])(void);
+extern void (*Staff_page_tbl[])(void);
+extern void (*Staff_bg_tbl[])(void);
+extern STAFF_SEQ Staff_seq;
+extern STAFF_WORK Staff_wk;
+extern STAFF_FADE Staff_fade;
 
-void func_801C206C(void); /* main task */
-void func_801C2104(void); /* init */
-void func_801C21E8(void); /* roll */
-void func_801C2228(void); /* exit */
-void func_801C22AC(void); /* roll 0: first pages init */
-void func_801C256C(void); /* roll 1: first pages */
-void func_801C25FC(void);
-void func_801C2604(void);
-void func_801C2974(void);
-void func_801C2984(void); /* roll 2: backgrounds init */
-void func_801C2B30(void); /* roll 3: backgrounds and credit pages */
-void func_801C2BB8(void);
-void func_801C2CBC(void);
-void func_801C2CE4(void); /* credit page sequencer */
-void func_801C2F8C(void); /* background scroll */
-void func_801C32DC(void); /* logo */
-void func_801C36F4(void);
-void func_801C3704(void); /* load and set up the credit pages */
-void func_801C3A98(void); /* cross-fade of the first two pages */
+void Staff_main(void); /* main task */
+void Staff_init(void); /* init */
+void Staff_roll(void); /* roll */
+void Staff_exit(void); /* exit */
+void Staff_page_init(void); /* roll 0: first pages init */
+void Staff_page_main(void); /* roll 1: first pages */
+void Staff_nop(void);
+void Staff_page_move(void);
+void Staff_page_end(void);
+void Staff_bg_init(void); /* roll 2: backgrounds init */
+void Staff_bg_main(void); /* roll 3: backgrounds and credit pages */
+void Staff_bg_start(void);
+void Staff_bg_move(void);
+void Staff_credit_move(void); /* credit page sequencer */
+void Staff_bg_scroll(void); /* background scroll */
+void Staff_logo(void); /* logo */
+void Staff_bg_end(void);
+void Staff_tim_set(void); /* load and set up the credit pages */
+void Staff_cross_fade(void); /* cross-fade of the first two pages */
 
 #endif /* OVL_STAFF_R_H */

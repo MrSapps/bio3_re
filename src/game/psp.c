@@ -2,8 +2,8 @@
 #include "psp.h"
 #include "sld.h"
 
-#define RND() ((signed char)func_800102E8())
-LONG Rnd_l(void) __asm__("func_800102E8"); /* returns long here (canonical unsigned long) */
+#define RND() ((signed char)Rnd())
+LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 
 typedef struct {
     USHORT Uv;
@@ -160,7 +160,7 @@ void func_80048974(SHORT Arg)
     p += 0x4B0;
     pW->pPrim = (PRIM_1C *)p;
     p += 0x1900;
-    func_80010150(D_800DEB18.p0, p - D_800DEB18.p0);
+    Memclr(D_800DEB18.p0, p - D_800DEB18.p0);
     i = 200;
     G.pEm_mem = (struct tagENEMY_WORK *)p;
     pPr = pW->pPrim;
@@ -220,7 +220,7 @@ void func_80048FF4(void)
     D_800DEB18.R = R;
     y = G.Player.Pos_y;
     cz = D_800DEB18.Cz;
-    func_80010150(pFlg, 100);
+    Memclr(pFlg, 100);
     pV = D_800DEB18.pPos;
     if (D_800DEB18.Num != 0) {
         do {

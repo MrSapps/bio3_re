@@ -5,7 +5,7 @@
 void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 /* task entry */
-void func_801C204C(void)
+void Epilog_main(void)
 {
     EPI_WORK *pWk = &Epi_work;
     ULONG i, j;
@@ -14,7 +14,7 @@ void func_801C204C(void)
     USHORT *pPos;
 
     Task_suspend(0);
-    func_80038634(0xF000, 0x60A);
+    Pad_rep_set(0xF000, 0x60A);
     Main.Vloop = 1;
     Cd_read(0x11F, (ULONG *)0x801F7E00, 0, "EPILOG BGM");
     func_800782F4(0, 0x33, (ULONG *)0x801F7E00);
@@ -22,7 +22,7 @@ void func_801C204C(void)
     Snd_se_stad(0x500, NULL, 0, 0);
     Cd_read(0x1A, (ULONG *)0x80100000, 0, "EPIS.TIM");
     DrawSync(0);
-    func_800100A4((void *)0x8019C000, (void *)0x80100000, 0x26000);
+    Memcpy((void *)0x8019C000, (void *)0x80100000, 0x26000);
     G.Ctp.Tpage_clut = 0xD05;
     Mapping_tim((ULONG *)0x80126000);
     Bg_set_mode(2, 0);
@@ -67,8 +67,8 @@ void func_801C204C(void)
     Flg_on(pWk->u.Flg, 0);
     Flg_on(pWk->u.Flg, 1);
     while (Flg_ck(pWk->u.Flg, 0)) {
-        D_801C2BCC[pWk->Rno0]();
-        func_801C2958();
+        Epilog_routine[pWk->Rno0]();
+        Epilog_draw();
         Task_sleep(1);
     }
     Main.Vloop = 2;
@@ -77,7 +77,7 @@ void func_801C204C(void)
 }
 
 /* routine 1: menu */
-void func_801C2380(void)
+void Epilog_menu(void)
 {
     EPI_WORK *pWk = &Epi_work;
     USHORT Max;
@@ -147,7 +147,7 @@ void func_801C2380(void)
 }
 
 /* routine 2: show the selected epilogue */
-void func_801C2644(void)
+void Epilog_show(void)
 {
     EPI_WORK *pWk = &Epi_work;
 
@@ -155,7 +155,7 @@ void func_801C2644(void)
     case 1:
         if (Fade_status(0) & FADE_END) {
             DrawSync(0);
-            func_801C2AB4((ULONG *)0x8019C000, pWk->u.s.Cursor);
+            Epilog_pic_read((ULONG *)0x8019C000, pWk->u.s.Cursor);
             Flg_off(pWk->u.Flg, 1);
             Flg_off(pWk->u.Flg, 2);
             Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 0xF);
@@ -179,7 +179,7 @@ void func_801C2644(void)
     case 4:
         if (Fade_status(0) & FADE_END) {
             DrawSync(0);
-            func_800100A4((void *)0x8019C000, (void *)0x80100000, 0x26000);
+            Memcpy((void *)0x8019C000, (void *)0x80100000, 0x26000);
             Flg_on(pWk->u.Flg, 1);
             Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 0xF);
             pWk->Rno0 = 0;
@@ -192,7 +192,7 @@ void func_801C2644(void)
 }
 
 /* routine 0: wait for the fade in, then start the menu */
-void func_801C280C(void)
+void Epilog_start(void)
 {
     EPI_WORK *pWk = &Epi_work;
 
@@ -214,7 +214,7 @@ void func_801C280C(void)
 }
 
 /* routine 3: fade out the BGM and the screen, then end the task */
-void func_801C2888(void)
+void Epilog_exit(void)
 {
     EPI_WORK *pWk = &Epi_work;
 
@@ -234,10 +234,10 @@ void func_801C2888(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/epilog/epilog", func_801C2958);
+INCLUDE_ASM("asm/nonmatchings/ovl/epilog/epilog", Epilog_draw);
 
 /* load epilogue picture No of OMBG.TIM */
-void func_801C2AB4(ULONG *pAdr, UCHAR No)
+void Epilog_pic_read(ULONG *pAdr, UCHAR No)
 {
     CD.Fno = 0x3C;
     CD.Fsize = D_801C2B4C[No].Size;

@@ -23,7 +23,7 @@ typedef struct tagSPR_GP {
     signed char Ofsy;                  /* 0x3 */
 } SPR_GP;
 
-/* effect work (RE2 ESP_WORK role, RE3 layout, 0xD4 bytes; pool D_800BA8A8[96]) */
+/* effect work (RE2 ESP_WORK role, RE3 layout, 0xD4 bytes; pool Esp[96]) */
 typedef struct tagESP_WORK {
     UCHAR Routine_0;                   /* 0x00 0: free */
     UCHAR Routine_1;                   /* 0x01 */
@@ -40,7 +40,7 @@ typedef struct tagESP_WORK {
     SHORT Spd_x;                       /* 0x10 */
     SHORT Spd_y;                       /* 0x12 */
     SHORT Spd_z;                       /* 0x14 */
-    USHORT Unk16;                      /* 0x16 or'ed into Tpage (func_8001B484) */
+    USHORT Unk16;                      /* 0x16 or'ed into Tpage (Esp_call) */
     UCHAR Unk18;                       /* 0x18 */
     UCHAR Snd_no;                      /* 0x19 */
     UCHAR Unk1A;                       /* 0x1A */
@@ -64,7 +64,7 @@ typedef struct tagESP_WORK {
     SHORT Unk34;                       /* 0x34 */
     UCHAR pad36[0x38 - 0x36];
     LONG Unk38[3];                     /* 0x38 base position */
-    USHORT Clut;                       /* 0x44 (func_8001B484) */
+    USHORT Clut;                       /* 0x44 (Esp_call) */
     USHORT Tpage;                      /* 0x46 */
     VECTOR Pos;                        /* 0x48 Pos.pad: ground height (func_8001BFCC) */
     VECTOR Old;                        /* 0x58 previous position (Sca_ck_line, func_80021EAC) */
@@ -73,7 +73,7 @@ typedef struct tagESP_WORK {
     UCHAR Seq_no;                      /* 0x6F index into pSeq */
     MATRIX Workm;                      /* 0x70 local matrix */
     MATRIX Workm2;                     /* 0x90 copy of Workm (func_8001BCFC) */
-    UCHAR Col[3];                      /* 0xB0 prim colour (func_8001B484); UnkB3 is the prim code byte */
+    UCHAR Col[3];                      /* 0xB0 prim colour (Esp_call); UnkB3 is the prim code byte */
     UCHAR UnkB3;                       /* 0xB3 */
     SHORT UnkB4;                       /* 0xB4 */
     SHORT UnkB6;                       /* 0xB6 */
@@ -86,7 +86,7 @@ typedef struct tagESP_WORK {
     ULONG *pUnkCC;                     /* 0xCC current move record */
     struct tagESP_WORK *pLink;         /* 0xD0 killed when the linked work dies */
 } ESP_WORK;
-extern ESP_WORK D_800BA8A8[96];        /* RE2 Esp[96] */
+extern ESP_WORK Esp[96];        /* RE2 ESP.H Esp[96] */
 
 void func_8001B894(ULONG Id, MATRIX *pM); /* kill the effects of Id attached to pM */
 
@@ -94,10 +94,10 @@ void Esp_init_C(void);
 LONG Esp_init_R(void);
 ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
 void Esp_data_set1(ULONG *pTim);
-/* what func_8001B35C / func_8001B484 and the other effect starters return when no effect was started */
+/* what func_8001B35C / Esp_call and the other effect starters return when no effect was started */
 #define ESP_NONE ((ESP_WORK *)-1)
 ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
-ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd); /* RE2 Esp_call */
+ESP_WORK *Esp_call(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd);
 void func_8001BA48();
 void Esp_task_main(void);
 void func_8001BC80(ESP_WORK *pEw);

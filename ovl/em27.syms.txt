@@ -1,1 +1,5 @@
 // em27.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em27_routine_0 = 0x80101A34;
+Em27_mv_br = 0x80101A54;
+Em27_mv = 0x80101A6C;

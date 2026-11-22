@@ -1,5 +1,4 @@
 // GEARBOX.BIN symbols (loaded at 0x801c2000)
-// proposed names (not used by the link yet; C keeps func_/D_ names)
 Gear_main = 0x801C2008; // type:func
 Gear_init = 0x801C20B8; // type:func
 Gear_line_init = 0x801C21A4; // type:func

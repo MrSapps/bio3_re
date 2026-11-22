@@ -26,14 +26,14 @@ typedef struct tagEM37_MOTION {
 } EM37_MOTION;
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
-extern void (*Em37_routine_0[])() __asm__("D_801019BC");
-extern void (*Em37_move_type[])() __asm__("D_801019E4");
-extern void (*Em37_mv[])() __asm__("D_80101A20");
-extern void (*Em37_sce[])() __asm__("D_80101A50");
+extern void (*Em37_routine_0[])();
+extern void (*Em37_move_type[])();
+extern void (*Em37_mv[])();
+extern void (*Em37_sce[])();
 
 LONG func_80101854(ENEMY_WORK *pEm); /* splash effects */
 
-extern const EM37_MOTION Em37_motion __asm__("D_80100004");
+extern const EM37_MOTION Em37_motion;
 
 void func_8010003C(ENEMY_WORK *pEm);
 void func_80100370(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

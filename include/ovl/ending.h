@@ -12,11 +12,11 @@
 #include "movie.h"
 #include "sub.h"
 
-void func_80194004(void);
-void func_80194080(void);
-void func_8019409C(void);
-void func_801942DC(void);
-void func_801943A4(void);
-void func_801943E4(void);
+void Ending_main(void);
+void Ending_status_clr(void);
+void Ending_game(void);
+void Ending_movie(void);
+void Ending_load(void);
+void Ending_next_game(void);
 
 #endif /* OVL_ENDING_H */

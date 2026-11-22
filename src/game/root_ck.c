@@ -2,7 +2,7 @@
 #include "root_ck.h"
 #include "sld.h"
 
-#define RND() ((signed char)func_800102E8())
+#define RND() ((signed char)Rnd())
 
 /* floor block (pRoom->pBlock: count, then 0x30 byte records from +8) */
 typedef struct {
@@ -95,7 +95,7 @@ LONG Rnd_area(void)
     if (n == 0) {
         return 0xFF;
     }
-    return (UCHAR)(func_800102E8() % n);
+    return (UCHAR)(Rnd() % n);
 }
 
 /* area (floor block) containing (X, Z) on floor Floor, or 0xFF */

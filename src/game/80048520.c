@@ -5,7 +5,7 @@
 
 int Print14_col_() __asm__("Print14_col"); /* returns int here (canonical void); unprototyped call */
 
-#define RND() ((signed char)func_800102E8())
+#define RND() ((signed char)Rnd())
 
 void func_80048520(void)
 {

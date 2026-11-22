@@ -44,7 +44,7 @@ void Spl(ENEMY_WORK *pEm)
         Sv1.vy = 0;
         Sv1.vz = 0;
         if ((pEm->Move_cnt & 3) == 2 && (USHORT)(pEm->Spd_x + 0x14) >= 0x29) {
-            func_8001B484(0x20E, (((((LONG (*)(void))func_800102E8)() << 3) + 0x2000) << 16) | (USHORT)pEm->Cdir_y,
+            Esp_call(0x20E, (((((LONG (*)(void))Rnd)() << 3) + 0x2000) << 16) | (USHORT)pEm->Cdir_y,
                           &GsIDMATRIX, &Sv0, &Sv1);
         }
     }

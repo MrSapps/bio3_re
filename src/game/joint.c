@@ -114,7 +114,7 @@ void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm)
         return;
     }
     if (!(Be_flg & 2)) {
-        func_8002D4B0(pSuper, pM, wm);
+        CompM(pSuper, pM, wm);
     }
     if (Be_flg & 8) {
         func_80027568(pP_ptr, wm);
@@ -132,7 +132,7 @@ void func_800254AC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos)
     if (Be_flg & 0x10) {
         return;
     }
-    if (!(Be_flg & 0x40) && func_8001020C((LONG *)pPos, G.Cccut) == 0) {
+    if (!(Be_flg & 0x40) && Hit_ck_point4((LONG *)pPos, G.Cccut) == 0) {
         i = pEm->Parts_num;
 loop0:
         if ((pP->Be_flg & 0x21) == 0x21 && (pP->UnkA2 & 1)) {
@@ -173,7 +173,7 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     pG = &G;
     Be = pP->Be_flg;
     if (Be & 0x20) {
-        if (func_8001020C(pM->t, pG->Cccut) == 0) {
+        if (Hit_ck_point4(pM->t, pG->Cccut) == 0) {
             return;
         }
     }
@@ -190,7 +190,7 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
         }
     }
     if (!(Flg & 0x10)) {
-        func_8002D4B0(&GsWSMATRIX, pM, &M);
+        CompM(&GsWSMATRIX, pM, &M);
         if (Be & 4) {
             Scale.vx = pP->Size_x;
             Scale.vy = pP->Size_y;
@@ -201,8 +201,8 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
         gte_SetTransMatrix(&M);
     }
     if (Flg & 0x20) {
-        pG->pUnk208C = func_8002BA3C(pP->pTmd, pG->pUnk208C, pP);
-        pG->pUnk208C = func_8002C068(pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = Bomb_Parts_SortGT3(pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = Bomb_Parts_SortGT4(pP->pTmd, pG->pUnk208C, pP);
         func_8002783C(pP);
     } else if (Flg & 0x10) {
         D_800C79F0 = &M;
@@ -222,7 +222,7 @@ void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     D_800C79F4 = &M2;
     gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
     gte_SetLightMatrix(&M);
-    func_8002D4B0(&GsWSMATRIX, pM, &M);
+    CompM(&GsWSMATRIX, pM, &M);
     gte_SetRotMatrix(&M);
     gte_SetTransMatrix(&M);
     if (Flg & 1) {
@@ -799,7 +799,7 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
             pP_ptr->Old_y = (SHORT)(pP_ptr->Old_y * -1) >> 2;
             pP_ptr->Old_x >>= 2;
             pP_ptr->Old_z >>= 2;
-            func_8001B484(0x1900, 0x7D00000 | (USHORT)(func_800102E8() << 4), &pP_ptr->Workm, NULL, 0);
+            Esp_call(0x1900, 0x7D00000 | (USHORT)(Rnd() << 4), &pP_ptr->Workm, NULL, 0);
             if (pP_ptr->Unk96 == 1) {
                 pP_ptr->Be_flg &= ~1;
                 func_8001B894(0xFF05, &pP_ptr->Workm);
@@ -1045,7 +1045,7 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     } while (--n != 0);
 }
 
-ULONG func_80028308(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
+ULONG Joint_move_p(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     ULONG *pRot;
     USHORT *pSeq;
@@ -1206,7 +1206,7 @@ void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
         gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
         gte_SetLightMatrix(&M);
     }
-    func_8002D4B0(&GsWSMATRIX, pM, &M);
+    CompM(&GsWSMATRIX, pM, &M);
     if (Be & 4) {
         Scale.vx = pP->Size_x;
         Scale.vy = pP->Size_y;
@@ -1216,8 +1216,8 @@ void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     gte_SetRotMatrix(&M);
     gte_SetTransMatrix(&M);
     if (Flg & 0x20) {
-        pG->pUnk208C = func_8002BA3C(pP->pTmd, pG->pUnk208C, pP);
-        pG->pUnk208C = func_8002C068(pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = Bomb_Parts_SortGT3(pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = Bomb_Parts_SortGT4(pP->pTmd, pG->pUnk208C, pP);
         func_8002783C(pP);
     } else if (Flg & 2) {
         func_8002606C_(&pP->Attribute, Flg, pP);

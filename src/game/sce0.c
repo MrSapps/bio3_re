@@ -6,7 +6,7 @@
 #include "sld.h"
 
 extern s8 D_80098728_[] __asm__("D_80098728"); /* type differs from the canonical extern */
-UCHAR Rnd(void) __asm__("func_800102E8"); /* RE2 Rnd (sld.s) */
+UCHAR Rnd_uc(void) __asm__("Rnd"); /* returns unsigned char here (canonical unsigned long) */
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
 struct tagSCE_AOT {
@@ -219,13 +219,13 @@ void Sce_work_clr_set(void)
     }
 }
 
-/* RE2 Sce_rnd_set (RE3: two Rnd() bytes plus a table step) */
+/* RE2 Sce_rnd_set (RE3: two Rnd_uc() bytes plus a table step) */
 void Sce_rnd_set(void)
 {
     LONG D0;
 
-    D0 = (s8)Rnd() << 8;
-    D0 += Rnd() + D_80098728_[Sce.Unk149E++];
+    D0 = (s8)Rnd_uc() << 8;
+    D0 += Rnd_uc() + D_80098728_[Sce.Unk149E++];
     D_800D1F82 = D0;
 }
 
@@ -319,7 +319,7 @@ void Sce_kirakira_set(void)
         Svec.vx = 0;
         Svec.vy = -90;
         Svec.vz = 0;
-        func_8001B484(((D0 & 0x60) << 19) | 0x705, 0x28000000, &pOm->M, &Svec, 0);
+        Esp_call(((D0 & 0x60) << 19) | 0x705, 0x28000000, &pOm->M, &Svec, 0);
     }
 }
 
@@ -452,7 +452,7 @@ void func_80052968(void)
 
 void Sce_scheduler_set(void)
 {
-    func_800100A4(ScratchPad, Sce_jmp_tbl, 0x400);
+    Memcpy(ScratchPad, Sce_jmp_tbl, 0x400);
     Sce_rnd_set();
     Sce_work_clr();
     Sce_work_clr_set();
@@ -467,7 +467,7 @@ void Sce_scheduler_set(void)
 void Sce_scheduler(void)
 {
     if ((G.Unk2468 & 0x2000000) == 0) {
-        func_800100A4(ScratchPad, Sce_jmp_tbl, 0x400);
+        Memcpy(ScratchPad, Sce_jmp_tbl, 0x400);
         Sce_rnd_set();
         Sce.Type = 0;
         Sce.pCScd = G.pRoom->pScd;

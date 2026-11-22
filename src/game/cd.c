@@ -261,7 +261,7 @@ retry:
     while (DsCommand(DslSetmode, &Cd_read_s_cdmode, NULL, -1) == 0);
     while (DsCommand(DslSeekL, &CD.Fpos.minute, NULL, -1) == 0);
 
-    DsReadyCallback(func_80013C1C);
+    DsReadyCallback(Cd_ready_cb);
 
     while (DsCommand(DslReadN, &CD.Fpos.minute, NULL, -1) == 0);
 
@@ -409,7 +409,7 @@ retry2:
         DsReadyCallback(func_80014300);
         break;
     default:
-        DsReadyCallback(func_80013C1C);
+        DsReadyCallback(Cd_ready_cb);
         break;
     }
 
@@ -614,7 +614,7 @@ void func_800130A0(tagCD *pCd)
         pCd->Unk8AC = 0;
         pCd->First_flg = 0;
     }
-    func_800100A4((void *)pCd->Unk8A8, (UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), Size);
+    Memcpy((void *)pCd->Unk8A8, (UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), Size);
     pCd->Unk8A8 += 0x800;
     if (pCd->Unk8D4 == 1) {
         for (; pG->ppEnemy_end != &pG->pEnemy[pCd->Unk8D4]; pCd->Unk8D4++) {
@@ -763,7 +763,7 @@ void func_800138B0(void)
 INCLUDE_ASM("asm/nonmatchings/game/cd", func_800139D8);
 
 /* RE2 Cd_ready_cb: DsReadyCallback during Cd_read / Cd_read_s */
-void func_80013C1C(UCHAR intr, UCHAR *result)
+void Cd_ready_cb(UCHAR intr, UCHAR *result)
 {
     tagCD *pCd = &CD;
     ULONG read_num;
@@ -797,7 +797,7 @@ void func_80013C1C(UCHAR intr, UCHAR *result)
                 pCd->Read_adr += 0x200;
             } else {
                 DsGetSector(pCd->Work_buf, 0x200);
-                func_800100A4(pCd->Read_adr, pCd->Work_buf, pCd->Fsize_now);
+                Memcpy(pCd->Read_adr, pCd->Work_buf, pCd->Fsize_now);
                 sum_ck = pCd->Work_buf;
                 pCd->Fsize_read += pCd->Fsize_now;
                 pCd->Fsize_now = 0;

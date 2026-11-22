@@ -83,18 +83,18 @@ typedef struct tagEM23_FREE {
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
-extern USHORT Em23_life[16] __asm__("D_8010C7C8");
-extern USHORT Em23_life_easy[16] __asm__("D_8010C7E8");
-extern void (*Em23_routine_0[])() __asm__("D_8010C808");
-extern void (*Em23_mv_br[])() __asm__("D_8010C82C");
-extern void (*Em23_mv[])() __asm__("D_8010C884");
-extern void (*Em23_root_mv[])() __asm__("D_8010C8DC");
-extern void (*Em23_tbl_C8E4[])() __asm__("D_8010C8E4");
-extern void (*Em23_dm[][3])() __asm__("D_8010C8FC");
-extern void (*Em23_die[][3])() __asm__("D_8010CA70");
-extern void (*Em23_sce[])() __asm__("D_8010CBE4");
-extern void (*Pldamage_Em23_tbl[])() __asm__("D_8010CBEC");
-extern void (*Pldie_Em23_tbl[])() __asm__("D_8010CBFC");
+extern USHORT Em23_life[16];
+extern USHORT Em23_life_easy[16];
+extern void (*Em23_routine_0[])();
+extern void (*Em23_mv_br[])();
+extern void (*Em23_mv[])();
+extern void (*Em23_root_mv[])();
+extern void (*Em23_tbl_C8E4[])();
+extern void (*Em23_dm[][3])();
+extern void (*Em23_die[][3])();
+extern void (*Em23_sce[])();
+extern void (*Pldamage_Em23_tbl[])();
+extern void (*Pldie_Em23_tbl[])();
 
 void func_80100144(ENEMY_WORK *pEm);
 void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

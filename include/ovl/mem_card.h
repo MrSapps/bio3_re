@@ -46,7 +46,7 @@ typedef struct tagSAVE_INFO {
     UCHAR Rest[0x80 - 0x1C];
 } SAVE_INFO;
 
-/* Memory card work (D_801C69F8, 0x12C0 bytes; RE2 struct tagMWORK, reworked).
+/* Memory card work (Mwork, 0x12C0 bytes; RE2 struct tagMWORK, reworked).
  * Rno: 0 slot check, 1 retry/quit, 2 slot select, 3 error, 4 checking, 5 read directory,
  * 6 file select, 7 file chosen, 8 save wait, 9 save, 10 saved animation, 11 load,
  * 12 format?, 13 format, 14 file error, 15 overwrite?, 16 continue?, 17 after save menu,
@@ -90,86 +90,86 @@ typedef struct tagMWORK {
 } MWORK;
 
 /* overlay functions (RE2 names where the code matches) */
-void func_801C20AC(void); /* Mem_card */
-void func_801C20F8(void); /* Card_access */
-LONG func_801C227C(MWORK *pMw); /* Card_cursor */
-void func_801C2504(MWORK *pMw); /* Cardaccess_init */
-void func_801C25FC(MWORK *pMw); /* Cardaccess_exit */
-void func_801C4E3C(ULONG X, ULONG Y); /* Cursor_disp */
-void func_801C4EA4(LONG Port); /* Slot_disp */
-LONG func_801C4F1C(LONG Port); /* Card_check */
-void func_801C4FC0(void); /* Clear_event_wait */
-void func_801C5018(void); /* Clear_event_wait2 */
-LONG func_801C5060(void); /* Get_card_event */
-LONG func_801C50F4(void); /* Get_card_event2 */
-LONG func_801C5184(LONG Port); /* Card_clear */
-LONG func_801C51F0(LONG Port); /* Card_format_check */
-LONG func_801C5260(UCHAR *F_num); /* Check_card */
-void func_801C5384(LONG Port, CFILE_INFO *pInfo, char *pPattern); /* Card_search */
-void func_801C5478(UCHAR *F_num); /* Search_f_num */
-LONG func_801C55B0(void *pBuf, char *pName, LONG Size, LONG Offset); /* Card_read */
-LONG func_801C5698(LONG Port); /* Card_poll */
-void func_801C56E0(void); /* Save_push */
-void func_801C57E0(void); /* Load_pop */
-void func_801C58FC(char *pTitle, void *pHead, UCHAR Slot); /* Card_mess_make */
-LONG func_801C5B20(void *pHead, LONG Port, char *pName, char *pTitle, ULONG Size); /* Card_write */
-LONG func_801C5C90(LONG Port); /* Card_format */
-SHORT func_801C5CC0(LONG Msg, LONG Mode); /* Mess_center_x */
-SHORT func_801C5D98(LONG Msg); /* Mess_width */
+void Mem_card(void); /* Mem_card */
+void Card_access(void); /* Card_access */
+LONG Card_cursor(MWORK *pMw); /* Card_cursor */
+void Cardaccess_init(MWORK *pMw); /* Cardaccess_init */
+void Cardaccess_exit(MWORK *pMw); /* Cardaccess_exit */
+void Cursor_disp(ULONG X, ULONG Y); /* Cursor_disp */
+void Slot_disp(LONG Port); /* Slot_disp */
+LONG Card_check(LONG Port); /* Card_check */
+void Clear_event_wait(void); /* Clear_event_wait */
+void Clear_event_wait2(void); /* Clear_event_wait2 */
+LONG Get_card_event(void); /* Get_card_event */
+LONG Get_card_event2(void); /* Get_card_event2 */
+LONG Card_clear(LONG Port); /* Card_clear */
+LONG Card_format_check(LONG Port); /* Card_format_check */
+LONG Check_card(UCHAR *F_num); /* Check_card */
+void Card_search(LONG Port, CFILE_INFO *pInfo, char *pPattern); /* Card_search */
+void Search_f_num(UCHAR *F_num); /* Search_f_num */
+LONG Card_read(void *pBuf, char *pName, LONG Size, LONG Offset); /* Card_read */
+LONG Card_poll(LONG Port); /* Card_poll */
+void Save_push(void); /* Save_push */
+void Load_pop(void); /* Load_pop */
+void Card_mess_make(char *pTitle, void *pHead, UCHAR Slot); /* Card_mess_make */
+LONG Card_write(void *pHead, LONG Port, char *pName, char *pTitle, ULONG Size); /* Card_write */
+LONG Card_format(LONG Port); /* Card_format */
+SHORT Mess_center_x(LONG Msg, LONG Mode); /* Mess_center_x */
+SHORT Mess_width(LONG Msg); /* Mess_width */
 
 /* 800636D4.c (no module header yet). It defines them with char types; the overlay calls
  * them as taking and returning int (no andi / sign extension at the call). */
 
-extern char D_801C5EDC[][29]; /* Mc_area_name: save area names (Shift-JIS) */
-extern UCHAR D_801C6244[]; /* Mess_text: message pool */
-extern USHORT D_801C6760[]; /* Mess_offs: message offsets into Mess_text */
-extern MWORK *D_801C6834; /* pMwork (-> D_801C69F8) */
-extern char D_801C6838[]; /* Mc_fname_tmpl: "bu?0:" + file name */
-extern UCHAR D_801C6858[]; /* Mc_wait_tbl: frames per step of the "saved" animation */
-extern UCHAR D_801C6870[6]; /* Mess_ctrl: control codes; [0] ends a message, the others take one operand */
-extern void (*D_801C6878[])(MWORK *); /* Card_rno_tbl: state routines */
-extern void (*D_801C68C8[])(MWORK *); /* Card_disp_tbl: state displays */
-extern LONG D_801C6918; /* sound already played for the revealed character */
-extern UCHAR D_801C6920[0x28]; /* item work backup while saving */
-extern char D_801C6948[]; /* name of the file being overwritten */
-extern char D_801C6960[0x48]; /* card file title (Shift-JIS) */
-extern UCHAR D_801C69A8[0x50]; /* slot line: area name */
-extern MWORK D_801C69F8; /* the card work itself */
-extern UCHAR D_801C7CB8[16]; /* slot line: save count / clear count */
-extern CFILE_INFO D_801C7CC8; /* directory of the RE3 files on the card */
+extern char Mc_area_name[][29]; /* Mc_area_name: save area names (Shift-JIS) */
+extern UCHAR Mess_text[]; /* Mess_text: message pool */
+extern USHORT Mess_offs[]; /* Mess_offs: message offsets into Mess_text */
+extern MWORK *pMwork; /* pMwork (-> Mwork) */
+extern char Mc_fname_tmpl[]; /* Mc_fname_tmpl: "bu?0:" + file name */
+extern UCHAR Mc_wait_tbl[]; /* Mc_wait_tbl: frames per step of the "saved" animation */
+extern UCHAR Mess_ctrl[6]; /* Mess_ctrl: control codes; [0] ends a message, the others take one operand */
+extern void (*Card_rno_tbl[])(MWORK *); /* Card_rno_tbl: state routines */
+extern void (*Card_disp_tbl[])(MWORK *); /* Card_disp_tbl: state displays */
+extern LONG Mc_moji_se; /* sound already played for the revealed character */
+extern UCHAR Mc_item_bak[0x28]; /* item work backup while saving */
+extern char Mc_old_name[]; /* name of the file being overwritten */
+extern char Mc_title[0x48]; /* card file title (Shift-JIS) */
+extern UCHAR Mc_slot_line[0x50]; /* slot line: area name */
+extern MWORK Mwork; /* the card work itself */
+extern UCHAR Mc_slot_line2[16]; /* slot line: save count / clear count */
+extern CFILE_INFO Mc_file_info; /* directory of the RE3 files on the card */
 
-void func_801C26A0(MWORK *pMw);
-void func_801C2788(MWORK *pMw);
-void func_801C2820(MWORK *pMw);
-void func_801C28D4(MWORK *pMw);
-void func_801C294C(MWORK *pMw);
-void func_801C29EC(MWORK *pMw);
-void func_801C2BE0(MWORK *pMw);
-void func_801C2D54(MWORK *pMw);
-void func_801C2FA8(MWORK *pMw);
-void func_801C3340(MWORK *pMw);
-void func_801C3414(MWORK *pMw);
-void func_801C34E8(MWORK *pMw);
-void func_801C3754(MWORK *pMw);
-void func_801C389C(MWORK *pMw);
-void func_801C39AC(MWORK *pMw);
-void func_801C3A9C(MWORK *pMw);
-void func_801C3B50(MWORK *pMw);
-void func_801C3C64(MWORK *pMw);
-void func_801C3D88(MWORK *pMw);
-void func_801C3E48(MWORK *pMw);
-void func_801C3E90(MWORK *pMw);
-void func_801C3E98(MWORK *pMw);
-void func_801C3EE4(MWORK *pMw);
-void func_801C4580(MWORK *pMw);
-void func_801C47AC(MWORK *pMw);
-void func_801C4884(MWORK *pMw);
-void func_801C4944(MWORK *pMw);
-void func_801C49CC(MWORK *pMw);
-void func_801C4ADC(MWORK *pMw);
-void func_801C4D84(MWORK *pMw);
-long func_801C5E64(long chan); /* _card_info */
-long func_801C5E74(long chan); /* _card_load */
-long func_801C5E84(long chan); /* _card_clear */
+void Card_rno00_slot_check(MWORK *pMw);
+void Card_rno01(MWORK *pMw);
+void Card_rno02_slot_sel(MWORK *pMw);
+void Card_rno03_err(MWORK *pMw);
+void Card_rno04_checking(MWORK *pMw);
+void Card_rno05_read_dir(MWORK *pMw);
+void Card_rno06_file_sel(MWORK *pMw);
+void Card_rno11_after_save(MWORK *pMw);
+void Card_rno07_file_ok(MWORK *pMw);
+void Card_rno08_save_wait(MWORK *pMw);
+void Card_rno13_load_wait(MWORK *pMw);
+void Card_rno09_save(MWORK *pMw);
+void Card_rno0A_saved(MWORK *pMw);
+void Card_rno0B_load(MWORK *pMw);
+void Card_rno0C_format_ask(MWORK *pMw);
+void Card_rno0D_format(MWORK *pMw);
+void Card_rno0E_file_err(MWORK *pMw);
+void Card_rno0F_overwrite(MWORK *pMw);
+void Card_rno10_continue(MWORK *pMw);
+void Card_rno12_end(MWORK *pMw);
+void Card_disp_none(MWORK *pMw);
+void Card_disp_checking(MWORK *pMw);
+void Card_disp_file_list(MWORK *pMw);
+void Card_disp_slot_sel(MWORK *pMw);
+void Card_disp_format_ask(MWORK *pMw);
+void Card_disp_retry(MWORK *pMw);
+void Card_disp_err(MWORK *pMw);
+void Card_disp_continue(MWORK *pMw);
+void Card_disp_after_save(MWORK *pMw);
+void Card_disp_end(MWORK *pMw);
+long _card_info(long chan); /* _card_info */
+long _card_load(long chan); /* _card_load */
+long _card_clear(long chan); /* _card_clear */
 
 #endif /* OVL_MEM_CARD_H */

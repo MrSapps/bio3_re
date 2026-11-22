@@ -147,7 +147,7 @@ void func_800130A0(tagCD *pCd);
 void func_80013754(void);
 void func_800138B0(void);
 void func_800139D8(void);
-void func_80013C1C(UCHAR intr, UCHAR *result);
+void Cd_ready_cb(UCHAR intr, UCHAR *result);
 void func_80013EF8(UCHAR intr, UCHAR *result);
 void func_80014300(UCHAR intr, UCHAR *result);
 void func_8001480C(tagCD *pCd);

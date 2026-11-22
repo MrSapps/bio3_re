@@ -33,7 +33,7 @@ typedef struct tagEM33_FREE {
     signed char Side;                  /* 0x10 (0x1DC) */
     signed char Unk11;                 /* 0x11 (0x1DD) */
     UCHAR Unk12;                       /* 0x12 (0x1DE) */
-    UCHAR Rtn;                         /* 0x13 (0x1DF) sub routine (D_801074E0) */
+    UCHAR Rtn;                         /* 0x13 (0x1DF) sub routine (Em33_sub_tbl) */
     SHORT Unk14;                       /* 0x14 (0x1E0) */
     SHORT Unk16;                       /* 0x16 (0x1E2) */
     signed char Unk18;                 /* 0x18 (0x1E4) side of the last dive */
@@ -97,14 +97,14 @@ typedef struct tagEM33_SPD_TBL {
     SHORT Spd[8];
 } EM33_SPD_TBL;
 
-extern const EM33_SPD_TBL Em33_spd_z_tbl __asm__("D_80100090"); /* { -10, 14, -20, 28, -24, 20, -16, 8 } */
-extern USHORT Em33_vib_tbl[] __asm__("D_80107254"); /* pad vibration scripts */
-extern void (*Em33_routine_0[8])() __asm__("D_8010743C");
-extern USHORT Em33_col_size[10] __asm__("D_80107474"); /* body collision W0/D0 by segment */
-extern void (*Em33_move_tbl0[11])() __asm__("D_80107488");
-extern void (*Em33_move_tbl1[11])() __asm__("D_801074B4");
-extern void (*Em33_sub_tbl[5])() __asm__("D_801074E0");
-extern void (*Em33_damage_tbl[][2])() __asm__("D_801074F4"); /* index weapon Unk12C - 1 */
+extern const EM33_SPD_TBL Em33_spd_z_tbl; /* { -10, 14, -20, 28, -24, 20, -16, 8 } */
+extern USHORT Em33_vib_tbl[]; /* pad vibration scripts */
+extern void (*Em33_routine_0[8])();
+extern USHORT Em33_col_size[10]; /* body collision W0/D0 by segment */
+extern void (*Em33_move_tbl0[11])();
+extern void (*Em33_move_tbl1[11])();
+extern void (*Em33_sub_tbl[5])();
+extern void (*Em33_damage_tbl[][2])(); /* index weapon Unk12C - 1 */
 
 void func_801000D4(ENEMY_WORK *pEm);
 void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

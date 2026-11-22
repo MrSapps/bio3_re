@@ -23,32 +23,32 @@ typedef struct tagJILL_WORK {
 } JILL_WORK;
 
 /* overlay .data (still in asm) */
-extern UCHAR Jill_mess[] __asm__("D_801C3220"); /* message data */
-extern USHORT Jill_mess_ofs[10] __asm__("D_801C3284"); /* offset of each message in Jill_mess */
-extern USHORT Jill_pl_cd[] __asm__("D_801C3298"); /* model file, index Id - 2 */
-extern USHORT Jill_wep_cd[] __asm__("D_801C32A4"); /* weapon file base, + Type */
-extern LONG Jill_view_eye[4] __asm__("D_801C32B0");
-extern LONG Jill_view_ref[] __asm__("D_801C32C0");
-extern SEL_SPRT_DEF Jill_sprt_def[18] __asm__("D_801C336C");
-extern void (*Jill_proc_tbl[3])(JILL_WORK *pW) __asm__("D_801C3468");
-extern JILL_WORK Jill_wk __asm__("D_801C3480");
-extern SEL_OBJ Jill_obj[] __asm__("D_801C3490");
+extern UCHAR Jill_mess[]; /* message data */
+extern USHORT Jill_mess_ofs[10]; /* offset of each message in Jill_mess */
+extern USHORT Jill_pl_cd[]; /* model file, index Id - 2 */
+extern USHORT Jill_wep_cd[]; /* weapon file base, + Type */
+extern LONG Jill_view_eye[4];
+extern LONG Jill_view_ref[];
+extern SEL_SPRT_DEF Jill_sprt_def[18];
+extern void (*Jill_proc_tbl[3])(JILL_WORK *pW);
+extern JILL_WORK Jill_wk;
+extern SEL_OBJ Jill_obj[];
 extern const char Jill_str[8];                                  /* 0x801C2048 (.rodata, defined in jill_sel.c) */
 
-void func_801C2050(void); /* main task */
-void func_801C20A8(JILL_WORK *pW); /* draw the sprites */
-void func_801C2118(void); /* move the models (unused) */
-void func_801C2170(ENEMY_WORK *pEm); /* model idle animation */
-void func_801C21C8(JILL_WORK *pW); /* init */
-void func_801C2780(JILL_WORK *pW); /* wait for a button */
-void func_801C27C0(JILL_WORK *pW); /* fade out and exit */
-UCHAR *func_801C2858(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork); /* = Select_pl_load */
-void func_801C29E0(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
-UCHAR *func_801C2A68(ENEMY_WORK *pEm, ULONG *pWork, LONG No);
-void func_801C2D3C(ULONG No, VECTOR *pVec, ULONG Rgb);
-void func_801C2DF4(void); /* background load */
-void func_801C2E54(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
-void func_801C2FC4(SEL_OBJ *pObj, LONG Ot);
-void func_801C31F8(SEL_OBJ *pObj, ULONG Rgb);
+void Jill_main(void); /* main task */
+void Jill_sprt_draw(JILL_WORK *pW); /* draw the sprites */
+void Jill_pl_move(void); /* move the models (unused) */
+void Jill_pl_idle(ENEMY_WORK *pEm); /* model idle animation */
+void Jill_init(JILL_WORK *pW); /* init */
+void Jill_wait(JILL_WORK *pW); /* wait for a button */
+void Jill_exit(JILL_WORK *pW); /* fade out and exit */
+UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork); /* = Select_pl_load */
+void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
+UCHAR *Jill_wep_load(ENEMY_WORK *pEm, ULONG *pWork, LONG No);
+void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb);
+void Jill_bg_load(void); /* background load */
+void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
+void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot);
+void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb);
 
 #endif /* OVL_JILL_SEL_H */

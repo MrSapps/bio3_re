@@ -1,1 +1,20 @@
 // em16.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em16_life = 0x8010C350;
+Em16_life_easy = 0x8010C370;
+Em16_routine_0 = 0x8010C390;
+Em16_Move_type = 0x8010C3B4;
+Em16_mv_br_type00 = 0x8010C3F4;
+Em16_mv_type00 = 0x8010C434;
+Em16_mv_br_type01 = 0x8010C474;
+Em16_mv_type01 = 0x8010C484;
+Em16_dm = 0x8010C494;
+Em16_haidm = 0x8010C608;
+Em16_die = 0x8010C684;
+Em16_sce = 0x8010C7F8;
+Pldamage_Em16_tbl = 0x8010C80C;
+Pldie_Em16_tbl = 0x8010C81C;
+Em16_walk_rnd = 0x8010C824;
+Em16_mv0d_rnd = 0x8010C878;
+Em16_mv11_esp = 0x8010C898;
+Em16_dm00_usonum = 0x8010CA08;

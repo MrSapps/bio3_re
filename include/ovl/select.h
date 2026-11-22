@@ -147,26 +147,26 @@ typedef struct tagSELECT_VIEW {
 } SELECT_VIEW;
 
 /* overlay .data (still in asm) */
-extern USHORT Select_pl_cd[] __asm__("D_801C4C0C"); /* 0x801C4C0C model file, index Id - 8 */
-extern USHORT Select_wep_cd[] __asm__("D_801C4C14"); /* 0x801C4C14 weapon file base per player, + Type */
-extern SELECT_PL_INIT Select_pl_init[] __asm__("D_801C4C4C"); /* 0x801C4C4C */
-extern SELECT_MOJI_REC Select_moji_tbl[141] __asm__("D_801C4CD8"); /* 0x801C4CD8 glyph template per character */
-extern UCHAR Select_str[3][7][30] __asm__("D_801C56E8"); /* 0x801C56E8 7 message lines per player */
-extern LONG Select_dir_L[3][3] __asm__("D_801C5A30"); /* 0x801C5A30 [cursor][pl] target angle */
-extern SHORT Select_dir_fpos[3][3] __asm__("D_801C5A54"); /* 0x801C5A54 [cursor][pl] target Cdir_y */
-extern MATRIX Select_light_mtx[4] __asm__("D_801C5A68"); /* 0x801C5A68 */
-extern MATRIX Select_light_col[4] __asm__("D_801C5AE8"); /* 0x801C5AE8 */
-extern SEL_SPRT_DEF Select_sprt_def[] __asm__("D_801C5B68"); /* 0x801C5B68 */
-extern SEL_SPRT_DEF Select_name_def[] __asm__("D_801C5BD8"); /* 0x801C5BD8 name glyphs */
-extern UCHAR Select_name_idx[3][6] __asm__("D_801C5CB8"); /* 0x801C5CB8 name glyph per player */
-extern void (*Select_main_proc_tbl[6])(void) __asm__("D_801C5CCC"); /* 0x801C5CCC */
-extern void (*Select_light_proc_tbl[4])(ENEMY_WORK *pEm, SELECT_LIGHT *pLt) __asm__("D_801C5CE4"); /* 0x801C5CE4 */
-extern ULONG Select_moji_end __asm__("D_801C5CF4"); /* 0x801C5CF4 */
-extern SELECT_VIEW Select_view __asm__("D_801C5CF8"); /* 0x801C5CF8 */
-extern SEL_OBJ Select_obj[30] __asm__("D_801C5D20"); /* 0x801C5D20 */
-extern SELECT_WORK Select_wk __asm__("D_801C6680"); /* 0x801C6680 */
+extern USHORT Select_pl_cd[]; /* 0x801C4C0C model file, index Id - 8 */
+extern USHORT Select_wep_cd[]; /* 0x801C4C14 weapon file base per player, + Type */
+extern SELECT_PL_INIT Select_pl_init[]; /* 0x801C4C4C */
+extern SELECT_MOJI_REC Select_moji_tbl[141]; /* 0x801C4CD8 glyph template per character */
+extern UCHAR Select_str[3][7][30]; /* 0x801C56E8 7 message lines per player */
+extern LONG Select_dir_L[3][3]; /* 0x801C5A30 [cursor][pl] target angle */
+extern SHORT Select_dir_fpos[3][3]; /* 0x801C5A54 [cursor][pl] target Cdir_y */
+extern MATRIX Select_light_mtx[4]; /* 0x801C5A68 */
+extern MATRIX Select_light_col[4]; /* 0x801C5AE8 */
+extern SEL_SPRT_DEF Select_sprt_def[]; /* 0x801C5B68 */
+extern SEL_SPRT_DEF Select_name_def[]; /* 0x801C5BD8 name glyphs */
+extern UCHAR Select_name_idx[3][6]; /* 0x801C5CB8 name glyph per player */
+extern void (*Select_main_proc_tbl[6])(void); /* 0x801C5CCC */
+extern void (*Select_light_proc_tbl[4])(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* 0x801C5CE4 */
+extern ULONG Select_moji_end; /* 0x801C5CF4 */
+extern SELECT_VIEW Select_view; /* 0x801C5CF8 */
+extern SEL_OBJ Select_obj[30]; /* 0x801C5D20 */
+extern SELECT_WORK Select_wk; /* 0x801C6680 */
 extern const char Select_str_sel[8];                                       /* 0x801C208C (.rodata, defined in select.c) */
-extern SELECT_MOJI *Select_pMoji __asm__("D_801C6E10"); /* 0x801C6E10 message window work */
+extern SELECT_MOJI *Select_pMoji; /* 0x801C6E10 message window work */
 
 /* overlay functions (RE2 names where the RE2 routine is recognisable) */
 void func_801C2094(void); /* Select_main */

@@ -97,42 +97,42 @@ typedef struct tagPC_WORK {
 #define PC_SPR_TEXT 4
 
 /* overlay .data (still in asm) */
-extern PC_SPR Pc_spr_def[PC_SPR_NUM] __asm__("D_801C46E4");
-extern UCHAR Pc_voice_data[] __asm__("D_801C5DA4"); /* byte streams per message, purpose unknown (only stored in Pc0/Pc1_voice) */
-extern USHORT Pc_voice_ofs[20] __asm__("D_801C5F78"); /* offsets into Pc_voice_data */
-extern LONG Pc0_skip __asm__("D_801C5FA0"); /* terminal 0: page key pressed */
-extern LONG Pc0_done __asm__("D_801C5FA4"); /* terminal 0: current string printed */
-extern UCHAR Pc0_mode __asm__("D_801C5FA8"); /* 0: page with button 0x1000, 1: any button */
-extern LONG Pc1_skip __asm__("D_801C5FAC");
-extern LONG Pc1_done __asm__("D_801C5FB0");
-extern UCHAR Pc1_mode __asm__("D_801C5FB4");
-extern PC_WORK *Pc_wk __asm__("D_801C5FB8");
-extern ULONG Pc0_pass_no __asm__("D_801C5FC0"); /* which safe password is shown (0..3) */
-extern UCHAR *Pc0_voice2 __asm__("D_801C5FC4");
-extern UCHAR *Pc0_voice __asm__("D_801C5FC8");
-extern ULONG Pc1_pass_no __asm__("D_801C5FD0"); /* which password is accepted (0..2) */
-extern UCHAR *Pc1_voice2 __asm__("D_801C5FD4");
-extern UCHAR *Pc1_voice __asm__("D_801C5FD8");
+extern PC_SPR Pc_spr_def[PC_SPR_NUM];
+extern UCHAR Pc_voice_data[]; /* byte streams per message, purpose unknown (only stored in Pc0/Pc1_voice) */
+extern USHORT Pc_voice_ofs[20]; /* offsets into Pc_voice_data */
+extern LONG Pc0_skip; /* terminal 0: page key pressed */
+extern LONG Pc0_done; /* terminal 0: current string printed */
+extern UCHAR Pc0_mode; /* 0: page with button 0x1000, 1: any button */
+extern LONG Pc1_skip;
+extern LONG Pc1_done;
+extern UCHAR Pc1_mode;
+extern PC_WORK *Pc_wk;
+extern ULONG Pc0_pass_no; /* which safe password is shown (0..3) */
+extern UCHAR *Pc0_voice2;
+extern UCHAR *Pc0_voice;
+extern ULONG Pc1_pass_no; /* which password is accepted (0..2) */
+extern UCHAR *Pc1_voice2;
+extern UCHAR *Pc1_voice;
 
-void func_801C2354(void);
-ULONG func_801C23D0(void);
-ULONG func_801C24E0(ULONG X, ULONG Y, ULONG W, ULONG H);
-void func_801C2608(LONG X0, LONG Y0, LONG X1, LONG Y1);
-ULONG func_801C270C(UCHAR Key);
-ULONG func_801C2718(ULONG Max, ULONG Mode);
-void func_801C2998(UCHAR On, SHORT W, SHORT H, UCHAR Col);
-ULONG func_801C29F0(void);
-void func_801C2D34(PC_SPR *pDst, PC_SPR *pSrc);
-void func_801C2D94(ULONG Num);
-void func_801C2EBC(void);
-void func_801C2F80(UCHAR Code);
-void func_801C2FB4(void);
-void func_801C3074(void);
-void func_801C30B8(LONG On);
-ULONG func_801C31A4(LONG Wait, UCHAR *pStr, LONG *pDone);
-void func_801C347C(void);
-void func_801C3A0C(void);
-void func_801C44F4(ULONG Cut, LONG Zoom);
-void func_801C4624(LONG Zoom);
+void Pc_main(void);
+ULONG Pc_window_ctrl(void);
+ULONG Pc_zoom(ULONG X, ULONG Y, ULONG W, ULONG H);
+void Pc_zoom_frame(LONG X0, LONG Y0, LONG X1, LONG Y1);
+ULONG Pc_key_char(UCHAR Key);
+ULONG Pc_input(ULONG Max, ULONG Mode);
+void Pc_box_set(UCHAR On, SHORT W, SHORT H, UCHAR Col);
+ULONG Pc_key_move(void);
+void Pc_spr_init(PC_SPR *pDst, PC_SPR *pSrc);
+void Pc_spr_trans(ULONG Num);
+void Pc_dr_mode_trans(void);
+void Pc_put_char(UCHAR Code);
+void Pc_scroll(void);
+void Pc_clear(void);
+void Pc_text_set(LONG On);
+ULONG Pc_print(LONG Wait, UCHAR *pStr, LONG *pDone);
+void Pc_notice(void);
+void Pc_security(void);
+void Pc_open(ULONG Cut, LONG Zoom);
+void Pc_close(LONG Zoom);
 
 #endif /* OVL_PC_SYS_H */

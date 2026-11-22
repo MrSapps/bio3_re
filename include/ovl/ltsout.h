@@ -47,13 +47,13 @@ typedef struct tagLTS_EVT {
 } LTS_EVT;
 
 /* overlay .data (still in asm) */
-extern UCHAR Lts_mess[] __asm__("D_801C2AD8"); /* switch labels */
-extern USHORT Lts_mess_ofs[] __asm__("D_801C2AEC"); /* offset of each label in Lts_mess */
-extern UCHAR Lts_tbl[10][8] __asm__("D_801C2AF8"); /* random patterns: lamps 1..4, answer lamp */
-extern LTS_WORK Lts_wk __asm__("D_801C2B48");
+extern UCHAR Lts_mess[]; /* switch labels */
+extern USHORT Lts_mess_ofs[]; /* offset of each label in Lts_mess */
+extern UCHAR Lts_tbl[10][8]; /* random patterns: lamps 1..4, answer lamp */
+extern LTS_WORK Lts_wk;
 
-void func_801C2018(void); /* main task */
-void func_801C2370(void); /* puzzle state machine */
-void func_801C28BC(void); /* draw */
+void Lts_main(void); /* main task */
+void Lts_ctr(void); /* puzzle state machine */
+void Lts_draw(void); /* draw */
 
 #endif /* OVL_LTSOUT_H */

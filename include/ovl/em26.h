@@ -45,12 +45,12 @@ typedef struct tagEM26_BLOOD_TBL {
 #define KILL_ENEMY_WORK(p) ((p)->Be_flg = 0, *(ULONG *)&(p)->Routine_0 = 0, G.Em_num--)
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
-extern void (*Em26_routine_0[])() __asm__("D_80101160");
-extern void (*Em26_move_tbl[])() __asm__("D_80101188");
-extern void (*Em26_mv_walk_tbl[])() __asm__("D_8010119C");
-extern UCHAR Em26_routine_tbl[] __asm__("D_80101180"); /* Routine_1 by Type */
-extern UCHAR Em26_dieblood_type_tbl[] __asm__("D_801011A4");
-extern EM26_BLOOD_TBL Em26_blood_id_tbl[] __asm__("D_801011C4");
+extern void (*Em26_routine_0[])();
+extern void (*Em26_move_tbl[])();
+extern void (*Em26_mv_walk_tbl[])();
+extern UCHAR Em26_routine_tbl[]; /* Routine_1 by Type */
+extern UCHAR Em26_dieblood_type_tbl[];
+extern EM26_BLOOD_TBL Em26_blood_id_tbl[];
 
 void func_80100D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* RE2 Em26_Die00 */
 void func_80100E38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* RE2 Em26_Die10 */

@@ -1,5 +1,4 @@
 // PC_SYS.BIN symbols (loaded at 0x801c2000)
-// proposed names (not used by the link yet; C keeps func_/D_ names)
 Pc_main = 0x801C2354; // type:func
 Pc_window_ctrl = 0x801C23D0; // type:func
 Pc_zoom = 0x801C24E0; // type:func

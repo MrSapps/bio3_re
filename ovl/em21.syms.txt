@@ -1,1 +1,14 @@
 // em21.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em21_peck_box0 = 0x80105110;
+Em21_peck_box1 = 0x80105118;
+Em21_routine_0 = 0x80105120;
+Em21_indoor_br = 0x80105140;
+Em21_indoor_mv = 0x8010517C;
+Em21_outdoor_br = 0x801051B8;
+Em21_outdoor_mv = 0x801051F4;
+Em21_dm = 0x80105230;
+Em21_sce_mv = 0x801052AC;
+Em21_dead_mv = 0x801052C4;
+Pldamage_Em21_tbl = 0x801052D0;
+Em21_hit_area = 0x801052E4;

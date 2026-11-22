@@ -77,7 +77,8 @@ $(BUILD)/%.c.o: %.c
 
 -include $(shell find $(BUILD) -name '*.d' 2>/dev/null)
 
-# names introduced while matching (syms/*.txt); PROVIDE so C definitions win
+# names introduced while matching (syms/*.txt); PROVIDE so C definitions win. The overlay links use it too,
+# so exe names that are only in syms/*.txt (not yet in symbol_addrs.txt / the splits) resolve in overlay C.
 SYMS_LD  := $(BUILD)/syms.ld
 $(SYMS_LD): $(wildcard syms/*.txt)
 	@mkdir -p $(dir $@)
@@ -101,10 +102,10 @@ $(BUILD)/assets/%.bin.o: assets/%.bin
 define OVL_RULES
 $(BUILD)/ovl/$(1).elf: $$(patsubst %.s,$(BUILD)/%.s.o,$$(wildcard asm/data/ovl/$(1)/*.s)) \
 		$$(patsubst %.bin,$(BUILD)/%.bin.o,$$(wildcard assets/ovl/$(1)/*.bin)) \
-		$$(patsubst %.c,$(BUILD)/%.c.o,$$(wildcard src/ovl/$(1)/*.c)) ovl/$(1).ld
+		$$(patsubst %.c,$(BUILD)/%.c.o,$$(wildcard src/ovl/$(1)/*.c)) ovl/$(1).ld $(SYMS_LD)
 	@mkdir -p $(BUILD)/ovl
 	$$(LD) $$(LDFLAGS) -T ovl/$(1).ld -T ovl/$(1).undefined_funcs_auto.txt -T ovl/$(1).undefined_syms_auto.txt \
-		$$(addprefix -T ,$$(wildcard ovl/$(1).bss.ld)) \
+		$$(addprefix -T ,$$(wildcard ovl/$(1).bss.ld)) -T $(SYMS_LD) \
 		-Map $(BUILD)/ovl/$(1).map -o $$@
 endef
 $(foreach o,$(OVLS),$(eval $(call OVL_RULES,$(o))))
@@ -121,9 +122,9 @@ $(BUILD)/ovl/$(1)_2.header.s.o: ovl/$(1)_2.header.s
 $(BUILD)/ovl/$(1)_2.bin: $(BUILD)/ovl/$(1)_2.elf $$(wildcard ovl/$(1)_2.fixup)
 	$$(OBJCOPY) -O binary $$< $$@
 	$$(if $$(wildcard ovl/$(1)_2.fixup),$$(PYTHON) tools/fixup.py $$@ ovl/$(1)_2.fixup)
-$(BUILD)/ovl/$(1)_2.elf: $(BUILD)/ovl/$(1).elf $(BUILD)/ovl/$(1)_2.ld $(BUILD)/ovl/$(1)_2.header.s.o
+$(BUILD)/ovl/$(1)_2.elf: $(BUILD)/ovl/$(1).elf $(BUILD)/ovl/$(1)_2.ld $(BUILD)/ovl/$(1)_2.header.s.o $(SYMS_LD)
 	$$(LD) $$(LDFLAGS) -T $(BUILD)/ovl/$(1)_2.ld -T ovl/$(1).undefined_funcs_auto.txt \
-		-T ovl/$(1).undefined_syms_auto.txt -T ovl/$(1).bss.ld -Map $(BUILD)/ovl/$(1)_2.map -o $$@
+		-T ovl/$(1).undefined_syms_auto.txt -T ovl/$(1).bss.ld -T $(SYMS_LD) -Map $(BUILD)/ovl/$(1)_2.map -o $$@
 endef
 $(foreach o,$(EMS),$(eval $(call EM_SLOT2,$(o))))
 

@@ -26,9 +26,9 @@ typedef struct tagEM27_FREE {
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
-extern void (*Em27_routine_0[])() __asm__("D_80101A34");
-extern void (*Em27_mv_br[])() __asm__("D_80101A54");
-extern void (*Em27_mv[])() __asm__("D_80101A6C");
+extern void (*Em27_routine_0[])();
+extern void (*Em27_mv_br[])();
+extern void (*Em27_mv[])();
 
 void func_80100378(ENEMY_WORK *pEm); /* parts reset (live) */
 void func_80100518(ENEMY_WORK *pEm); /* hide (parts reset) */

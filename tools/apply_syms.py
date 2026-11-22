@@ -20,6 +20,8 @@ for line in open(os.path.join(ROOT, "symbol_addrs.txt")):
 
 new, problems = [], []
 for f in sorted(glob.glob(os.path.join(ROOT, "syms", "*.txt"))):
+    if os.path.basename(f) == "em_entry.txt":   # overlay entry points: PROVIDE only, never given to splat
+        continue
     for line in open(f):
         m = LINE.match(line)
         if not m:

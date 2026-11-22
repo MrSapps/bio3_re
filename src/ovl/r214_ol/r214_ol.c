@@ -6,7 +6,7 @@
 #include "trans.h"
 
 /* main task */
-void func_801C2020(void)
+void R214_main(void)
 {
     tagGLOBAL *pG = &G;
     R214_EVT *pEvt = pG->pUnk21DC;
@@ -33,13 +33,13 @@ void func_801C2020(void)
     for (i = 0; i < 4; i++)
         pRw->Sel[i] = 0;
     pRw->Run = 1;
-    func_80038634(0xF00C, 0x60A);
+    Pad_rep_set(0xF00C, 0x60A);
     SetDrawTPage(&pRw->Tpage[0], 0, 0, 0x85);
     SetDrawTPage(&pRw->Tpage[1], 0, 0, 0x85);
     while (pRw->Run) {
-        func_801C2210();
+        R214_ctr();
         Esp_task_main();
-        func_801C275C();
+        R214_draw();
         Eff_sprt_trans();
         if (!(G.System_flg & 0x80000000))
             Psp_trans();
@@ -56,7 +56,7 @@ void func_801C2020(void)
 }
 
 /* puzzle state machine */
-void func_801C2210(void)
+void R214_ctr(void)
 {
     R214_WORK *pRw = &R214_wk;
     tagGLOBAL *pG;
@@ -150,7 +150,7 @@ void func_801C2210(void)
         Pos.vx = pPos->vx;
         Pos.vy = pPos->vy;
         Pos.vz = pPos->vz;
-        func_8001B484(Id, 0x3000000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(Id, 0x3000000, &GsIDMATRIX, &Pos, &Spd);
         break;
     case 2:
         Snd_se_stad(0x204, NULL, 0, 0);
@@ -164,7 +164,7 @@ void func_801C2210(void)
         Pos.vx = pPos->vx;
         Pos.vy = pPos->vy;
         Pos.vz = pPos->vz;
-        func_8001B484(0x2010215, 0x2400000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(0x2010215, 0x2400000, &GsIDMATRIX, &Pos, &Spd);
         break;
     case 3:
         Snd_se_stad(0x204, NULL, 0, 0);
@@ -178,7 +178,7 @@ void func_801C2210(void)
         Pos.vx = pPos->vx;
         Pos.vy = pPos->vy;
         Pos.vz = pPos->vz;
-        func_8001B484(0x2020215, 0x2400000, &GsIDMATRIX, &Pos, &Spd);
+        Esp_call(0x2020215, 0x2400000, &GsIDMATRIX, &Pos, &Spd);
         break;
     case 4:
         Snd_se_stad(0x205, NULL, 0, 0);
@@ -200,7 +200,7 @@ void func_801C2210(void)
 }
 
 /* draw the values: steps 0..2 as two digits, the rest as signed three digits */
-void func_801C275C(void)
+void R214_draw(void)
 {
     R214_WORK *pRw = &R214_wk;
     DR_TPAGE *pTp;
@@ -224,30 +224,30 @@ void func_801C275C(void)
         Val = pRw->Val[i];
         Dig = Val / 10;
         if (Dig)
-            func_801C2A38((ULONG *)pTp, &pSp, R214_digit_x[i], Dig);
-        func_801C2A38((ULONG *)pTp, &pSp, R214_digit_x[i] + 14, Val % 10);
+            R214_digit_set((ULONG *)pTp, &pSp, R214_digit_x[i], Dig);
+        R214_digit_set((ULONG *)pTp, &pSp, R214_digit_x[i] + 14, Val % 10);
     }
     for (i = 3; i < pRw->Num; i++) {
         Val = pRw->Val[i];
         if (Val < 0) {
             Val = -Val;
-            func_801C2A38((ULONG *)pTp, &pSp, R214_digit_x[i], 10);
+            R214_digit_set((ULONG *)pTp, &pSp, R214_digit_x[i], 10);
         }
         Dig = Val / 100;
         if (Dig) {
-            func_801C2A38((ULONG *)pTp, &pSp, R214_digit_x[i], Dig);
+            R214_digit_set((ULONG *)pTp, &pSp, R214_digit_x[i], Dig);
             Lead = 1;
         }
         Val %= 100;
         Dig = Val / 10;
         if (Dig || Lead)
-            func_801C2A38((ULONG *)pTp, &pSp, R214_digit_x[i] + 14, Dig);
-        func_801C2A38((ULONG *)pTp, &pSp, R214_digit_x[i] + 28, Val % 10);
+            R214_digit_set((ULONG *)pTp, &pSp, R214_digit_x[i] + 14, Dig);
+        R214_digit_set((ULONG *)pTp, &pSp, R214_digit_x[i] + 28, Val % 10);
     }
 }
 
 /* one digit sprite (n: 0..9, 10 minus) linked into pOt; *ppSp moves to the next row */
-void func_801C2A38(ULONG *pOt, SPRT **ppSp, USHORT x, SHORT n)
+void R214_digit_set(ULONG *pOt, SPRT **ppSp, USHORT x, SHORT n)
 {
     setSprt(*ppSp);
     setRGB0(*ppSp, 0x80, 0x80, 0x80);

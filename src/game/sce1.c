@@ -1099,7 +1099,7 @@ SHORT *Load_member_addr_branch(ENEMY_WORK *pW, ULONG Member)
     }
 }
 
-/* RE2 Fade_set (SCE) */
+/* RE2 SCE2.C Sce_fade_set (named in syms/re2_names.txt, keeps the address name until the main split) */
 ULONG func_80054384(SCE_TASK *pSce)
 {
     UCHAR *pData;

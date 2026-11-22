@@ -1,2 +1,11 @@
 // TITLE.BIN symbols (loaded at 0x80194000)
 func_80194160 = 0x80194160; // type:func
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Title_str_init_sub = 0x80194098;
+Title_str_omake_bgm = 0x801940A4;
+Title_str_omake_vb = 0x801940B0;
+Title_str_init_tbl = 0x801940BC;
+Title_pdemo_cd = 0x801974B4;
+Title_main_tbl = 0x801974C0;
+Title_sub_tbl = 0x801974D8;
+Title_wk = 0x80197508;

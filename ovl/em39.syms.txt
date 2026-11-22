@@ -1,1 +1,10 @@
 // em39.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em39_box0 = 0x801013A4;
+Em39_box1 = 0x801013AC;
+Em39_box2 = 0x801013B4;
+Em39_routine_0 = 0x801013BC;
+Em39_move_type = 0x801013E8;
+Em39_mv_br = 0x801013F0;
+Em39_mv = 0x8010141C;
+Em39_move_rnd = 0x80101448;

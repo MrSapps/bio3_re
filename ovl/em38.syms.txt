@@ -1,1 +1,31 @@
 // em38.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em38_cnt = 0x8010CA0C;
+Em38_root = 0x8010CA10;
+Em38_box0 = 0x8010CC10;
+Em38_box1 = 0x8010CC18;
+Em38_box2 = 0x8010CC20;
+Em38_box3 = 0x8010CC28;
+Em38_box4 = 0x8010CC30;
+Em38_box5 = 0x8010CC38;
+Em38_box6 = 0x8010CC40;
+Em38_box7 = 0x8010CC48;
+Em38_box8 = 0x8010CC50;
+Em38_box9 = 0x8010CC58;
+Em38_goal_pos = 0x8010CC60;
+Em38_goal_pos2 = 0x8010CC70;
+Em38_cut = 0x8010CC88;
+Em38_routine_0 = 0x8010CCA0;
+Em38_Move_type = 0x8010CCC4;
+Em38_mv_br_type00 = 0x8010CCD4;
+Em38_mv_type00 = 0x8010CD14;
+Em38_dm = 0x8010CD54;
+Em38_sce = 0x8010CDD4;
+Em38_swell = 0x8010CDEC;
+Em38_pulse = 0x8010CDFC;
+Pldamage_Em38_tbl = 0x8010CE3C;
+Pldie_Em38_tbl = 0x8010CE54;
+Em38_kage = 0x8010CE68;
+Em38_col = 0x8010CE98;
+Em38_spit_m = 0x8010CFD8;
+Em38_pulse_no = 0x8010CFF8;

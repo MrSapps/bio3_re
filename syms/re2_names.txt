@@ -292,3 +292,32 @@ Snd_se_stad = 0x800746C0; // type:func snd: positional SE request (code, VECTOR*
 Snd_se_enem = 0x800775A0; // type:func snd: (no,pEm) enemy SE, no+=0x10 on flag; Spl_dm00 calls (0,pEm) like RE2
 Snd_se_walk = 0x800776B0; // type:func snd: footstep SE (kind, foot part, pEm); callers pass seq&0x2000-derived part as RE2
 Mapping_tim = 0x800784E0; // type:func sub: OpenTIM/ReadTIM, x from tpage*64 (-0x400 if >=16), clut y+0x1E0, DrawSync
+
+// Phase 4 (naming pass). Not merged into symbol_addrs.txt yet: the main asm still carries func_/D_ labels, so these are
+// linked as PROVIDE() (main and overlay links) until the next main split (tools/apply_syms.py, then make split).
+Memcpy = 0x800100A4; // type:func sld.s: RE2 Memcpy role (CD.C Read_adr/Work_buf/Fsize_now, GAME.C Plight_bak 0x28 copies use it), RE3 copies 32-byte blocks then bytes
+Memclr = 0x80010150; // type:func sld.s: Init_global clears G with it like RE2 MAIN.C Memclr(&G.Status_flg, ...), RE3 takes a byte count
+setexmask = 0x800101A0; // type:func sld.s: `break 0x406` + return, identical to RE2 SLD.S setexmask
+Hit_ck_point4 = 0x8001020C; // type:func sld.s: (VECTOR *p, VCUT *cp) four cross-product edge tests of the cut quad, RE2 MAIN.C Hit_ck_point4 moved to asm, callers Kage_work9_sort/Water_ck as in RE2
+Rnd = 0x800102E8; // type:func sld.s: G.Random LFSR (Random>>7 & 0xFF added to the low byte, <<8), 8-bit result, identical to RE2 EM_SUB.C Rnd
+Cd_ready_cb = 0x80013C1C; // type:func cd: (intr, result) DsReadyCallback handler installed during Cd_read/Cd_read_s, RE2 CD.C Cd_ready_cb
+Esp_call = 0x8001B484; // type:func esp: (Id, Dir, MATRIX *, SVECTOR *pos, SVECTOR *spd) starts an effect from Esp[], called as RE2 Esp_call by Pl_water and the enemy modules
+Joint_move_p = 0x80028308; // type:func joint: (JOINT_P *, Kan, Seq, Late_flg) same signature and frame lookup as RE2 JOINT.C Joint_move_p
+Bomb_Parts_SortGT3 = 0x8002BA3C; // type:func md_sub: pushes every GT3 polygon out along its normal by Bomb_tbl, RE2 MD_SUB.C Bomb_Parts_SortGT3
+Bomb_Parts_SortGT4 = 0x8002C068; // type:func md_sub: GT4 version of Bomb_Parts_SortGT3, RE2 Bomb_Parts_SortGT4
+CompM = 0x8002D4B0; // type:func md_sub: (m0, m1, m2) used exactly as RE2 CompM in Kage_work_sort (pSuper, &M, &Tm) and the parts chain (&Mat, pP[8].M, &Mat)
+Sca_get_dir = 0x800502B8; // type:func sca: (VECTOR *, SCA_DATA *) 2 floor/corner else wall side, RE2 SCA.C Sca_get_dir. C keeps func_800502B8 until the main split (sabun asm calls it)
+Dinfo = 0x800971E4; // DOOR_INFO[], indexed by pSce_aot_on->Dtex_type in Door_init as RE2 DOOR.C Dinfo
+Bomb_tbl = 0x80098A88; // SHORT[2][30] push-out distance per frame read by Bomb_Parts_SortGT3/GT4, RE2 Bomb_tbl
+pMovie_proc_tbl = 0x8009CBB4; // Movie_init, Movie_main, Movie_exit, indexed by Vm_work.Rno as RE2 MOVIE.C pMovie_proc_tbl
+Subpl_walk = 0x8009E52C; // UCHAR[][2] sub player motion table (sce2), RE2 SPL_TBL.H Subpl_walk (+0x00 of the 5-table block)
+Subpl_back = 0x8009E554; // RE2 Subpl_back, next table of the block
+Subpl_dir = 0x8009E57C; // RE2 Subpl_dir
+Subpl_ato = 0x8009E5A4; // RE2 Subpl_ato
+Subpl_run = 0x8009E5CC; // RE2 Subpl_run
+Esp = 0x800BA8A8; // ESP_WORK[96] effect pool scanned by Esp_call, RE2 ESP.H Esp[96] (RE3 entry layout)
+Tmp_Sca = 0x800DEB48; // SCA_DATA temporary shape passed to the hit routines, RE2 SCA.C Tmp_Sca
+Em_dir = 0x800E01A0; // SHORT[3] direction to the three nearest enemies (Spl_enemy_ck), RE2 SPL.H Em_dir
+Em_l = 0x800E01B4; // USHORT[3] distance to the three nearest enemies (Spl_enemy_ck), RE2 SPL.H Em_l
+Pad_rep_set = 0x80038634; // type:func pad: (Mask, Val) right after Pad_set, stores the wait/repeat byte pair as one halfword like RE2 PAD.C Pad_rep_set(Mask, Data), RE3 expands Mask into a key table
+Sce_fade_set = 0x80054384; // type:func sce1: SCE opcode handler, pData[1] fade index and colours passed to Fade_set, RE2 SCE2.C Sce_fade_set. C keeps func_80054384 until the main split (Sce_jmp_tbl in asm data)

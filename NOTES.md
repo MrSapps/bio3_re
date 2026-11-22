@@ -30,9 +30,11 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   .rdata padding byte (linker filler): ovl/em2c_2.fixup, applied by tools/fixup.py.
 - Workflow: `tools/mkovl.py NAME TEXT DATA` writes ovl/<name>.yaml; `make split-ovl`; C in
   src/ovl/<name>/<name>.c; check with `tools/ovlcheck.sh <name>` (parallel-safe) or `make check-ovl`.
-  fdiff.py picks the overlay's own asm/syms from the C path. The overlay link uses only the generated
-  undefined_*_auto files, so new names in ovl/<name>.syms.txt take effect after a re-split; until then
-  name data in C with `__asm__("D_xxx")`.
+  fdiff.py picks the overlay's own asm/syms from the C path. The overlay link uses the generated
+  undefined_*_auto files plus build/syms.ld (exe names from syms/*.txt), so new names in
+  ovl/<name>.syms.txt take effect after a re-split (`.venv/bin/splat split ovl/<name>.yaml`, for em* then
+  `tools/mkovl.py --bss <name>`; run it again after renaming the C, splat sorts INCLUDE_ASM files into
+  matchings/nonmatchings by the names it finds in the C).
 - WARNING.BIN is three objects (ovl/warning.yaml edited by hand, do not regenerate it with mkovl.py):
   warning.c 0xF8 (mod-chip check), frame.c 0x1288, task.c 0x1418 (Capcom task, normal toolchain). The
   first two are not Capcom code: built with gcc 2.7.2 + plain GNU as (Makefile WARNING_GAS_OBJS, fdiff.py
@@ -142,7 +144,7 @@ Prototypes: every function defined in src/game/<m>.c is declared once, in includ
 esp_r.h, psp.h, room.h, root_ck.h, sabun.h, sce1.h, sce2.h, sce_at.h, spl.h, spl_auto.h, spl_sce.h;
 800636D4.c -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
 0x8001B08C) -> esp.h, pl_wep2.h folded into pl_wep.h). SLD.S functions are in sld.h. Overlay functions and
-data are in include/ovl/<n>.h (naming aliases `T Name(..) __asm__("func_X")` live there too). Data externs
+data are in include/ovl/<n>.h (their names come from ovl/<n>.syms.txt via the split, no naming aliases). Data externs
 are in the owning module's header. PsyQ functions come from the SDK (psyq.h also pulls libpad.h and
 libpress.h); InitGeom/PadStartCom/InitCARD/StartCARD/DecDCToutSync were identified and added to syms/game.txt.
 A .c keeps a local `T f_(..) __asm__("f")` alias only where its codegen needs a different prototype
@@ -254,6 +256,29 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   pl_mv06_pad/pl_mv07_pad/pl_mv08_pad are probably wrong. RE3's Sce_at_jump_tbl and Sce_jmp_tbl orders
   differ from RE2's, so those handlers were named by body. Dir_ck at 80018594 (em_sub) may be misnamed:
   80055AF0 in sce2.c is an exact match for RE2's SCE1 Dir_ck.
+- Names given after the last main split (end of syms/re2_names.txt, "Phase 4") are NOT in symbol_addrs.txt
+  yet: the main asm still has func_/D_ labels and INCLUDE_ASM names, so a fresh `make split` must keep
+  producing them. They work through build/syms.ld (PROVIDE of every syms/*.txt), which the main link and,
+  since phase 4, the overlay links use, so main and overlay C call them by name. C keeps the address name
+  where main asm still references a C-defined symbol (Sca_get_dir = func_800502B8 from sabun asm,
+  Sce_fade_set = func_80054384 from Sce_jmp_tbl data). For the next main split: tools/apply_syms.py
+  (merges syms/*.txt into symbol_addrs.txt and renames func_/D_ uses incl. INCLUDE_ASM), then
+  `rm -rf asm && make split && make`.
+- syms/em_entry.txt: the enemy module entry points used by Em_move_tbl_set. Several modules share an
+  address, so the file is PROVIDE-only; it is not listed in any yaml (splat refuses duplicate addresses and
+  would label overlay code with them) and apply_syms.py skips it.
+- PsyQ library: symbol_addrs.txt has a second block for the functions libsyms.py could not name: exported
+  names from the 4.5 LIBs (libcd SYS/BIOS/S_002 and libpress are 4.5 code) and static functions named by
+  order and size against psyz's PsyQ 4.0 symbols (../psyz/decomp/symbols.400.txt) where the module's
+  sequence lines up. Fixed 800812CC (was GsSetProjection, a 32-byte false match; it is CdFlush). Left
+  unnamed: the three libetc `memclr` statics (same name in three modules), libgpu SYS 8008C044..8008C420
+  and 8008DB8C (4.4 layout differs from 4.0), libds DSREADY statics, 80086E38, libpad statics.
+- Overlays: every name in ovl/<n>.syms.txt is now in effect (re-split), including the names the C used
+  through `T Name __asm__("func_/D_...")` aliases (appended to the syms files); those naming aliases are
+  gone. Aliases left are codegen aliases (other prototype) or aliases to unnamed exe symbols; WARNING.BIN
+  was not re-split and keeps its aliases. em10: the syms entries Em10_haidm/Em10_haidie were functions,
+  but RE2 uses those names for the tables (em10.h); the functions are the tables' only slots, RE2
+  Em10_dm06/Em10_die01.
 
 ### Fifth pass: jump-table functions unblocked by the split (909/1208, 46.97%)
 spl_auto.c is now complete; player 10 of 12 new, mojidisp 5 of 9, plus Se_on, func_800623C4, pl_mv05_w2_t1.

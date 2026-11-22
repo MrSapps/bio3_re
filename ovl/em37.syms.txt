@@ -1,1 +1,7 @@
 // em37.BIN symbols (loaded at 0x80100000)
+// names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
+Em37_motion = 0x80100004;
+Em37_routine_0 = 0x801019BC;
+Em37_move_type = 0x801019E4;
+Em37_mv = 0x80101A20;
+Em37_sce = 0x80101A50;

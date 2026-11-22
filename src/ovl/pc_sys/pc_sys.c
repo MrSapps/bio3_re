@@ -8,17 +8,17 @@
 
 
 /* main task: run the terminal picked by the AOT */
-void func_801C2354(void)
+void Pc_main(void)
 {
     Task_suspend(0);
     DrawSync(0);
     for (;;) {
         switch (((USHORT *)G.pUnk21DC)[1]) {
         case 0:
-            func_801C347C();
+            Pc_notice();
             break;
         case 1:
-            func_801C3A0C();
+            Pc_security();
             break;
         }
         Task_sleep(1);
@@ -26,7 +26,7 @@ void func_801C2354(void)
 }
 
 /* window open/close requests; returns 1 while the window zooms */
-ULONG func_801C23D0(void)
+ULONG Pc_window_ctrl(void)
 {
     switch (G.Unk75EE) {
     case 0:
@@ -36,17 +36,17 @@ ULONG func_801C23D0(void)
     case 2:
         G.Unk75EF = 0;
         G.Unk75EE = 2;
-        if (func_801C24E0(0x30, 0x8E, 0xF7, 0x57))
+        if (Pc_zoom(0x30, 0x8E, 0xF7, 0x57))
             return 1;
-        func_801C2998(1, 0xF7, 0x57, 0x80);
+        Pc_box_set(1, 0xF7, 0x57, 0x80);
         break;
     case 3:
         Snd_se_stad(0x207, NULL, 0, 0);
     case 4:
-        func_801C2998(0, 0, 0, 0x80);
+        Pc_box_set(0, 0, 0, 0x80);
         G.Unk75EF = 1;
         G.Unk75EE = 4;
-        if (func_801C24E0(0x30, 0x8E, 0xF7, 0x57))
+        if (Pc_zoom(0x30, 0x8E, 0xF7, 0x57))
             return 1;
         break;
     }
@@ -55,20 +55,20 @@ ULONG func_801C23D0(void)
 }
 
 /* window zoom frame step: grows (G.Unk75EF == 0) or shrinks in 12 steps */
-ULONG func_801C24E0(ULONG X, ULONG Y, ULONG W, ULONG H)
+ULONG Pc_zoom(ULONG X, ULONG Y, ULONG W, ULONG H)
 {
     PC_WORK *pPc = Pc_wk;
     tagGLOBAL *pG = &G;
 
     if (pG->Unk75EF) {
         if (pPc->Zoom < 13) {
-            func_801C2608(X, Y, X + W - pPc->Zoom * W / 12, Y + H - pPc->Zoom * H / 12);
+            Pc_zoom_frame(X, Y, X + W - pPc->Zoom * W / 12, Y + H - pPc->Zoom * H / 12);
             pPc->Zoom++;
             return 1;
         }
     } else {
         if (pPc->Zoom < 13) {
-            func_801C2608(X, Y, X + pPc->Zoom * (W / 12), Y + pPc->Zoom * (H / 12));
+            Pc_zoom_frame(X, Y, X + pPc->Zoom * (W / 12), Y + pPc->Zoom * (H / 12));
             pPc->Zoom++;
             return 1;
         }
@@ -79,7 +79,7 @@ ULONG func_801C24E0(ULONG X, ULONG Y, ULONG W, ULONG H)
 }
 
 /* window zoom frame: four white LINE_F2 */
-void func_801C2608(LONG X0, LONG Y0, LONG X1, LONG Y1)
+void Pc_zoom_frame(LONG X0, LONG Y0, LONG X1, LONG Y1)
 {
     PC_WORK *pPc = Pc_wk;
     PC_LINE *pLine = pPc->Line[G.Cbuf_id];
@@ -111,7 +111,7 @@ void func_801C2608(LONG X0, LONG Y0, LONG X1, LONG Y1)
 }
 
 /* keyboard key number -> character */
-ULONG func_801C270C(UCHAR Key)
+ULONG Pc_key_char(UCHAR Key)
 {
     return Key + 0x3F;
 }
@@ -121,14 +121,14 @@ ULONG func_801C270C(UCHAR Key)
  * password of up to Max keys, echoed as '*' when Mode is set. Returns 1 on RETURN
  * (Input holds the typed text, 0 terminated) or cancel.
  */
-ULONG func_801C2718(ULONG Max, ULONG Mode)
+ULONG Pc_input(ULONG Max, ULONG Mode)
 {
     PC_WORK *pPc = Pc_wk;
     LONG Done = 0;
     ULONG i;
     ULONG Ch;
 
-    if (func_801C29F0()) {
+    if (Pc_key_move()) {
         pPc->Push = 1;
         if (pPc->Key == 1) {
             pPc->Input_num = 0;
@@ -140,12 +140,12 @@ ULONG func_801C2718(ULONG Max, ULONG Mode)
                 pPc->Input[pPc->Input_num] = pPc->Key;
                 if (pPc->Key == 0x1A) {
                     pPc->Input_num = 1;
-                    func_801C2F80('Y');
+                    Pc_put_char('Y');
                     goto Enter;
                 }
                 if (pPc->Key == 0xF) {
                     pPc->Input_num = 1;
-                    func_801C2F80('N');
+                    Pc_put_char('N');
                     goto Enter;
                 }
                 return 0;
@@ -153,22 +153,22 @@ ULONG func_801C2718(ULONG Max, ULONG Mode)
                 pPc->Input[pPc->Input_num] = pPc->Key;
                 if (pPc->Key == 2) {
                     pPc->Input_num = 1;
-                    func_801C2F80('A');
+                    Pc_put_char('A');
                     goto Enter;
                 }
                 if (pPc->Key == 3) {
                     pPc->Input_num = 1;
-                    func_801C2F80('B');
+                    Pc_put_char('B');
                     goto Enter;
                 }
                 if (pPc->Key == 4) {
                     pPc->Input_num = 1;
-                    func_801C2F80('C');
+                    Pc_put_char('C');
                     goto Enter;
                 }
                 if (pPc->Key == 5) {
                     pPc->Input_num = 1;
-                    func_801C2F80('D');
+                    Pc_put_char('D');
                     goto Enter;
                 }
                 return 0;
@@ -181,9 +181,9 @@ ULONG func_801C2718(ULONG Max, ULONG Mode)
             switch (pPc->Key) {
             case 0x1C:
             Enter:
-                func_801C31A4(0, "]", &Done);
+                Pc_print(0, "]", &Done);
                 for (i = 0; i < pPc->Input_num; i++)
-                    pPc->Input[i] = func_801C270C(pPc->Input[i]);
+                    pPc->Input[i] = Pc_key_char(pPc->Input[i]);
                 pPc->Input[i] = 0;
                 pPc->Input_num = 0;
                 return 1;
@@ -191,7 +191,7 @@ ULONG func_801C2718(ULONG Max, ULONG Mode)
                 if (pPc->Input_num) {
                     pPc->Col--;
                     pPc->Input_num--;
-                    func_801C2F80(' ');
+                    Pc_put_char(' ');
                     return 0;
                 }
                 break;
@@ -200,8 +200,8 @@ ULONG func_801C2718(ULONG Max, ULONG Mode)
                     return 0;
                 Ch = '*';
                 if (Mode == 0)
-                    Ch = (UCHAR)func_801C270C(pPc->Key);
-                func_801C2F80(Ch);
+                    Ch = (UCHAR)Pc_key_char(pPc->Key);
+                Pc_put_char(Ch);
                 pPc->Input[pPc->Input_num] = pPc->Key;
                 pPc->Col++;
                 pPc->Input_num++;
@@ -215,16 +215,16 @@ ULONG func_801C2718(ULONG Max, ULONG Mode)
 __asm__(".section .rodata\n\t.byte 0x20, 0\n\t.section .text");
 
 /* window box sprite; draft in scratchpad/drafts: register allocation differs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", func_801C2998);
+INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", Pc_box_set);
 
 /* on-screen keyboard: cursor moves, returns the key pressed (0 none, 1 cancel) */
-ULONG func_801C29F0(void)
+ULONG Pc_key_move(void)
 {
     PC_WORK *pPc = Pc_wk;
     LONG Move;
 
     Move = 0;
-    func_80038634(0xF000, 0x20A);
+    Pad_rep_set(0xF000, 0x20A);
     if (G.Unk2100 & 0x1000) {
         pPc->Key_y--;
         Move = 1;
@@ -287,7 +287,7 @@ ULONG func_801C29F0(void)
     return pPc->Key;
 }
 
-void func_801C2D34(PC_SPR *pDst, PC_SPR *pSrc)
+void Pc_spr_init(PC_SPR *pDst, PC_SPR *pSrc)
 {
     pDst->w.Xy = pSrc->w.Xy;
     pDst->w.Wh = pSrc->w.Wh;
@@ -296,7 +296,7 @@ void func_801C2D34(PC_SPR *pDst, PC_SPR *pSrc)
 }
 
 /* sprites 0..Num-1 -> SPRT packets (semi-transparent code + grey level) */
-void func_801C2D94(ULONG Num)
+void Pc_spr_trans(ULONG Num)
 {
     PC_SPRT *pPkt = Pc_wk->Sprt[G.Cbuf_id];
     PC_SPR *pSpr = Pc_wk->Spr;
@@ -313,11 +313,11 @@ void func_801C2D94(ULONG Num)
             pPkt++;
         }
     } while (++pSpr < pEnd);
-    func_801C2EBC();
+    Pc_dr_mode_trans();
 }
 
 /* one DR_MODE per OT slot */
-void func_801C2EBC(void)
+void Pc_dr_mode_trans(void)
 {
     PC_WORK *pPc = Pc_wk;
     LONG i;
@@ -331,13 +331,13 @@ void func_801C2EBC(void)
 }
 
 /* put a character at the text cursor */
-void func_801C2F80(UCHAR Code)
+void Pc_put_char(UCHAR Code)
 {
     Pc_wk->Text[Pc_wk->Row][Pc_wk->Col] = Code;
 }
 
 /* scroll the text screen up one row */
-void func_801C2FB4(void)
+void Pc_scroll(void)
 {
     PC_WORK *pPc = Pc_wk;
     ULONG i;
@@ -353,7 +353,7 @@ void func_801C2FB4(void)
 }
 
 /* clear the text screen */
-void func_801C3074(void)
+void Pc_clear(void)
 {
     PC_WORK *pPc = Pc_wk;
     UCHAR *pText = pPc->Text[0];
@@ -370,14 +370,14 @@ void func_801C3074(void)
 }
 
 /* character sprites + text cursor; draft in scratchpad/drafts: 7 scheduling diffs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", func_801C30B8);
+INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys/pc_sys", Pc_text_set);
 
 /*
  * type out pStr, one character per Wait frames (all at once when Wait is 0).
  * Codes: ']' new line, '[nnn' pause nnn frames, '^nn' column back nn, '|n' colour n.
  * Sets *pDone and returns 1 when the string is finished.
  */
-ULONG func_801C31A4(LONG Wait, UCHAR *pStr, LONG *pDone)
+ULONG Pc_print(LONG Wait, UCHAR *pStr, LONG *pDone)
 {
     PC_WORK *pPc = Pc_wk;
     UCHAR Put;
@@ -432,7 +432,7 @@ ULONG func_801C31A4(LONG Wait, UCHAR *pStr, LONG *pDone)
         }
         if (pPc->Row >= PC_ROW_NUM) {
             pPc->Row--;
-            func_801C2FB4();
+            Pc_scroll();
         }
         Snd_se_stad(0x210, NULL, 0, 0);
         pPc->pCur++;
@@ -444,12 +444,12 @@ ULONG func_801C31A4(LONG Wait, UCHAR *pStr, LONG *pDone)
 }
 
 /* terminal 0: R.P.D. notice with today's safe password */
-void func_801C347C(void)
+void Pc_notice(void)
 {
     tagGLOBAL *pG;
     ULONG Rno;
 
-    if (func_801C23D0() == 0) {
+    if (Pc_window_ctrl() == 0) {
         switch (Pc0_mode) {
         case 0:
             if (Pc0_done && (G.Key & 0x1000))
@@ -473,7 +473,7 @@ void func_801C347C(void)
             pG = &G;
             Pc_wk = (PC_WORK *)pG->pEm_mem;
             pG->pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)pG->pEm_mem + 1);
-            func_801C44F4(((USHORT *)pG->pUnk21DC)[2], 1);
+            Pc_open(((USHORT *)pG->pUnk21DC)[2], 1);
             Pc0_pass_no = 0;
             if (Flg_ck(pG->Unk7868, 8)) {
                 if (Flg_ck(pG->Unk7868, 0x3B)) {
@@ -509,33 +509,33 @@ void func_801C347C(void)
             break;
         case 1:
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[0]];
-            func_801C31A4(1, "NOTICE TO STARS PERSONNEL]", &Pc0_done);
+            Pc_print(1, "NOTICE TO STARS PERSONNEL]", &Pc0_done);
             if (Pc0_done & Pc0_skip)
                 G.Unk75ED = 2;
             break;
         case 2:
-            func_801C31A4(1, ".[025.[025.]", &Pc0_done);
+            Pc_print(1, ".[025.[025.]", &Pc0_done);
             if (Pc0_done)
                 G.Unk75ED = 3;
             break;
         case 3:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[1]];
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[2]];
-            func_801C31A4(1, "Due to the emergency, the]", &Pc0_done);
+            Pc_print(1, "Due to the emergency, the]", &Pc0_done);
             if (Pc0_done)
                 G.Unk75ED = 4;
             break;
         case 4:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[1]];
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[2]];
-            func_801C31A4(1, "key to the STARS Office has]been moved to the evidence]room.]]", &Pc0_done);
+            Pc_print(1, "key to the STARS Office has]been moved to the evidence]room.]]", &Pc0_done);
             if (Pc0_done & Pc0_skip)
                 G.Unk75ED = 5;
             break;
         case 5:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[3]];
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[Pc0_pass_no + 4]];
-            func_801C31A4(1, "Today's password for the]safe is ", &Pc0_done);
+            Pc_print(1, "Today's password for the]safe is ", &Pc0_done);
             if (Pc0_done)
                 G.Unk75ED = 6;
             break;
@@ -544,26 +544,26 @@ void func_801C347C(void)
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[Pc0_pass_no + 4]];
             switch (Pc0_pass_no) {
             case 0:
-                func_801C31A4(1, "|20513|0.]", &Pc0_done);
+                Pc_print(1, "|20513|0.]", &Pc0_done);
                 break;
             case 1:
-                func_801C31A4(1, "|20131|0.]", &Pc0_done);
+                Pc_print(1, "|20131|0.]", &Pc0_done);
                 break;
             case 2:
-                func_801C31A4(1, "|24011|0.]", &Pc0_done);
+                Pc_print(1, "|24011|0.]", &Pc0_done);
                 break;
             case 3:
-                func_801C31A4(1, "|24312|0.]", &Pc0_done);
+                Pc_print(1, "|24312|0.]", &Pc0_done);
                 break;
             default:
-                func_801C31A4(1, "****.]", &Pc0_done);
+                Pc_print(1, "****.]", &Pc0_done);
                 break;
             }
             if (Pc0_done & Pc0_skip)
-                func_801C4624(1);
+                Pc_close(1);
         case 7:
             if (G.Unk20FC & 0x20)
-                func_801C4624(1);
+                Pc_close(1);
             break;
         }
     }
@@ -573,12 +573,12 @@ void func_801C347C(void)
         Pc0_skip = 0;
         Pc0_voice2 = NULL;
     }
-    func_801C30B8(1);
-    func_801C2D94(PC_SPR_NUM);
+    Pc_text_set(1);
+    Pc_spr_trans(PC_SPR_NUM);
 }
 
 /* terminal 1: hospital security system, password for the medical storage room */
-void func_801C3A0C(void)
+void Pc_security(void)
 {
     PC_WORK *pPc = Pc_wk;
     SVECTOR Pos = { -0x4D44, -0x9A2, -0x34BC };
@@ -589,7 +589,7 @@ void func_801C3A0C(void)
 
     memset(&Rot, 0, sizeof(Rot));
     Rot.vy = -0x280;
-    if (func_801C23D0() == 0) {
+    if (Pc_window_ctrl() == 0) {
         switch (Pc1_mode) {
         case 0:
             if (Pc1_done && (G.Key & 0x1000))
@@ -613,7 +613,7 @@ void func_801C3A0C(void)
             pG = &G;
             pPc = Pc_wk = (PC_WORK *)pG->pEm_mem;
             pG->pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)pG->pEm_mem + 1);
-            func_801C44F4(((USHORT *)pG->pUnk21DC)[2], 1);
+            Pc_open(((USHORT *)pG->pUnk21DC)[2], 1);
             Pc1_done = 0;
             Pc1_skip = 0;
             pG->Unk75ED = 1;
@@ -652,13 +652,13 @@ void func_801C3A0C(void)
             break;
         case 2:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[8]];
-            func_801C31A4(1, "Umbrella Security System]", &Pc1_done);
+            Pc_print(1, "Umbrella Security System]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 3;
             break;
         case 3:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[9]];
-            func_801C31A4(1, "First Class ]Medical Storage Room:] Security Authorization]", &Pc1_done);
+            Pc_print(1, "First Class ]Medical Storage Room:] Security Authorization]", &Pc1_done);
             if (Pc1_done & Pc1_skip) {
                 if (Flg_ck(G.Unk7994, 0x1B))
                     G.Unk75ED = 15;
@@ -668,30 +668,30 @@ void func_801C3A0C(void)
             break;
         case 4:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[10]];
-            func_801C31A4(1, "Current Status: |1Locked|0]", &Pc1_done);
+            Pc_print(1, "Current Status: |1Locked|0]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 5;
             break;
         case 5:
-            func_801C31A4(1, "Please enter password and ]then press the RETURN key.]", &Pc1_done);
+            Pc_print(1, "Please enter password and ]then press the RETURN key.]", &Pc1_done);
             if (Pc1_done)
                 G.Unk75ED = 6;
             break;
         case 6:
-            func_801C31A4(1, "Enter Password:", &Pc1_done);
+            Pc_print(1, "Enter Password:", &Pc1_done);
             if (Pc1_done & Pc1_skip) {
                 G.Unk75ED = 7;
                 G.Unk75EE = 1;
             }
             break;
         case 7:
-            if (func_801C2718(8, 0)) {
+            if (Pc_input(8, 0)) {
                 G.Unk75EE = 3;
                 switch (Pc1_pass_no) {
                 case 0:
                     if (strcmp(pPc->Input, "ADRAVIL") == 0) {
                         G.Unk75ED = 10;
-                        func_801C3074();
+                        Pc_clear();
                     } else {
                         G.Unk75ED = 8;
                     }
@@ -699,7 +699,7 @@ void func_801C3A0C(void)
                 case 1:
                     if (strcmp(pPc->Input, "SAFSPRIN") == 0) {
                         G.Unk75ED = 10;
-                        func_801C3074();
+                        Pc_clear();
                     } else {
                         G.Unk75ED = 8;
                     }
@@ -707,7 +707,7 @@ void func_801C3A0C(void)
                 case 2:
                     if (strcmp(pPc->Input, "AQUACURE") == 0) {
                         G.Unk75ED = 10;
-                        func_801C3074();
+                        Pc_clear();
                     } else {
                         G.Unk75ED = 8;
                     }
@@ -716,38 +716,38 @@ void func_801C3A0C(void)
             }
             break;
         case 8:
-            func_801C31A4(1, "|1ERROR...[020]ERROR...[020]", &Pc1_done);
+            Pc_print(1, "|1ERROR...[020]ERROR...[020]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[15]];
             if (Pc1_done)
                 G.Unk75ED = 9;
             break;
         case 9:
-            func_801C31A4(1, "|1Invalid password.]Please re-enter password and ]then press the RETURN key.|0]", &Pc1_done);
+            Pc_print(1, "|1Invalid password.]Please re-enter password and ]then press the RETURN key.|0]", &Pc1_done);
             Pc1_voice2 = &Pc_voice_data[Pc_voice_ofs[16]];
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[17]];
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 6;
             break;
         case 10:
-            func_801C31A4(1, "Password: Confirmed]", &Pc1_done);
+            Pc_print(1, "Password: Confirmed]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[11]];
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 11;
             break;
         case 11:
-            func_801C31A4(1, "Room Access: Confirmed]", &Pc1_done);
+            Pc_print(1, "Room Access: Confirmed]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[12]];
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 12;
             break;
         case 12:
-            func_801C31A4(1, "Deactivating lock. ]Please wait[010.[010.[010.]", &Pc1_done);
+            Pc_print(1, "Deactivating lock. ]Please wait[010.[010.[010.]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[13]];
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 13;
             break;
         case 13:
-            func_801C31A4(1, "Current Status: Unlocked]", &Pc1_done);
+            Pc_print(1, "Current Status: Unlocked]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[14]];
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 14;
@@ -768,7 +768,7 @@ void func_801C3A0C(void)
                 Task_sleep(1);
             }
             func_8001B894(0x1010000, NULL);
-            func_8001B484(0x1010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
+            Esp_call(0x1010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x204, NULL, 0, 0);
             for (i = 0; i < 40; i++) {
                 G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
@@ -780,7 +780,7 @@ void func_801C3A0C(void)
                 Task_sleep(1);
             }
             func_8001B894(0x1010000, NULL);
-            func_8001B484(0x2010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
+            Esp_call(0x2010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x225, NULL, 0, 0);
             for (i = 0; i < 60; i++) {
                 G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
@@ -798,18 +798,18 @@ void func_801C3A0C(void)
             break;
         case 15:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[14]];
-            func_801C31A4(1, "Current Status: Unlocked]", &Pc1_done);
+            Pc_print(1, "Current Status: Unlocked]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 16;
             break;
         case 16:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[18]];
-            func_801C31A4(1, "System Status: Normal]", &Pc1_done);
+            Pc_print(1, "System Status: Normal]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
                 G.Unk75ED = 17;
             break;
         case 17:
-            func_801C4624(0);
+            Pc_close(0);
             return;
         }
         if (pPc->Key == 1) {
@@ -823,12 +823,12 @@ void func_801C3A0C(void)
         Pc1_skip = 0;
         Pc1_voice2 = NULL;
     }
-    func_801C30B8(1);
-    func_801C2D94(PC_SPR_NUM);
+    Pc_text_set(1);
+    Pc_spr_trans(PC_SPR_NUM);
 }
 
 /* open a terminal: work init, sprites, zoom the window open */
-void func_801C44F4(ULONG Cut, LONG Zoom)
+void Pc_open(ULONG Cut, LONG Zoom)
 {
     tagGLOBAL *pG;
     PC_WORK *pPc;
@@ -836,9 +836,9 @@ void func_801C44F4(ULONG Cut, LONG Zoom)
 
     Main.Vloop = 1;
     pPc = Pc_wk;
-    func_801C3074();
+    Pc_clear();
     for (i = 0; i < PC_SPR_NUM; i++)
-        func_801C2D34(&pPc->Spr[i], &Pc_spr_def[i]);
+        Pc_spr_init(&pPc->Spr[i], &Pc_spr_def[i]);
     pPc->Kido = 0x40;
     pPc->Kido_add = 4;
     pG = &G;
@@ -854,22 +854,22 @@ void func_801C44F4(ULONG Cut, LONG Zoom)
     if (Zoom) {
         Snd_se_stad(0x206, NULL, 0, 0);
         pG->Unk75EF = 0;
-        while (func_801C24E0(0xC, 0xA, 0xFC, 0x8B)) {
-            func_801C2D94(PC_SPR_NUM);
+        while (Pc_zoom(0xC, 0xA, 0xFC, 0x8B)) {
+            Pc_spr_trans(PC_SPR_NUM);
             Task_sleep(1);
         }
     }
 }
 
 /* close the terminal: zoom the window shut, free the work, end the task */
-void func_801C4624(LONG Zoom)
+void Pc_close(LONG Zoom)
 {
     PC_WORK *pPc = Pc_wk;
 
     if (Zoom) {
         Snd_se_stad(0x207, NULL, 0, 0);
         G.Unk75EF = 1;
-        while (func_801C24E0(0xC, 0xA, 0xFC, 0x8B))
+        while (Pc_zoom(0xC, 0xA, 0xFC, 0x8B))
             Task_sleep(1);
     }
     G.Unk75EC = 0;

@@ -56,7 +56,7 @@ typedef struct tagDIEDEMO {
     UCHAR Unk3B;                       /* 0x3B */
     USHORT Id_ctr;                     /* 0x3C cut info index */
     UCHAR pad3E[0x40 - 0x3E];
-    LONG Rno;                          /* 0x40 index of D_80198208 */
+    LONG Rno;                          /* 0x40 index of Die_move_tbl */
     LONG Unk44;                        /* 0x44 */
     CUTINFO *pCutinfo;                 /* 0x48 */
     ENEMY_WORK *pEm;                   /* 0x4C killer (when it gets an extra effect) */
@@ -67,7 +67,7 @@ typedef struct tagDIEDEMO {
 
 /* screen break-up work at 0x801B1000 (RE2 struct tagDIESPR, same layout) */
 typedef struct tagDIESPR {
-    USHORT Rno;                        /* 0x0000 index of D_8019824C */
+    USHORT Rno;                        /* 0x0000 index of Die_spr_tbl */
     SHORT Free2;                       /* 0x0002 frame counter */
     UCHAR Free4;                       /* 0x0004 fall speed */
     UCHAR Free5;                       /* 0x0005 frames to the next fall speed step */
@@ -85,55 +85,55 @@ typedef struct tagDIESPR {
 extern USHORT D_80197F8C[];            /* wait count by cut info index */
 extern USHORT D_80197FA0[];
 extern USHORT D_80197FA4[];            /* vibration scripts (func_8003884C) */
-extern CUTINFO D_8019807C[];           /* cut infos */
+extern CUTINFO Cutinfo[];           /* cut infos */
 extern CUTINFO D_801981B0;             /* cut info 9 for flag 0xC2 */
 extern DIE_WAIT D_801981CC[];
 extern UCHAR D_801981F8[];             /* enemy id of each cut info, searched from the end */
 extern LONG D_80198204;                /* set when the demo can be skipped */
-extern void (*D_80198208[])(void); /* routines, index Diedemo.Rno */
+extern void (*Die_move_tbl[])(void); /* routines, index Diedemo.Rno */
 extern void (*D_80198228[])(void); /* index Diedemo.Unk44 */
-extern DIEDEMO Diedemo __asm__("D_80198268");
-extern VCUT Dievcut __asm__("D_801982C0");
+extern DIEDEMO Diedemo;
+extern VCUT Dievcut;
 extern LONG D_80198230[2][3];          /* screen break-up camera: view point, view reference */
-extern void (*D_8019824C[])(void); /* screen break-up routines, index pDiespr->Rno */
-extern DIESPR *pDiespr __asm__("D_801982D8"); /* RE2 Dievcut: camera cut zone set as G.Cccut */
+extern void (*Die_spr_tbl[])(void); /* screen break-up routines, index pDiespr->Rno */
+extern DIESPR *pDiespr; /* RE2 Dievcut: camera cut zone set as G.Cccut */
 
-void func_80194100(void);
-void func_80194A3C(void);
-void func_80194C98(void);
-void func_80194DB4(void);
-void func_80194FE4(void);
-void func_80195124(void);
-void func_801954D4(void);
-void func_80195640(void);
-void func_80195B38(void);
-void func_80195C04(void);
-void func_80195E68(void);
-void func_801960CC(void);
-void func_80196334(void);
-void func_80196380(void);
-void func_8019642C(void);
-void func_80197EF8(void);
+void Die_demo_move(void);
+void Die_move_set_cut(void);
+void Die_move_set_cut_usual(void);
+void Die_enemy_set(void);
+void Die_enemy_set_em(void);
+void Die_enemy_set_sub(void);
+void Die_cut_em36(void);
+void Die_cut_em36_sub(void);
+void Die_em_fade(void);
+void Spiral_move(void);
+void Spiral_move2(void);
+void Die_light_set(void);
+void Die_spr_init(void);
+void Die_spr_move(void);
+void Die_spr_move_init(void);
+void Die_spr_load(void);
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_SetRotMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $0; ctc2 $13, $1; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $2; ctc2 $13, $3; ctc2 $14, $4" : : "r"(r0) : "$12", "$13", "$14")
 #define gte_SetTransMatrix(r0) __asm__ volatile("lw $12, 20(%0); lw $13, 24(%0); ctc2 $12, $5; lw $14, 28(%0); ctc2 $13, $6; ctc2 $14, $7" : : "r"(r0) : "$12", "$13", "$14")
 
-void func_80194010(void);
-void func_80194140(void);
-void func_801944B4(void);
-void func_801944F0(void);
-void func_80194574(void);
-void func_80195330(void);
-void func_80195378(void);
-void func_801957AC(void);
-void func_801958FC(void);
-void func_80195AC8(void);
-void func_80196720(void);
-void func_801968D4(void);
-void func_80196F00(void);
-void func_80197248(void);
-void func_8019768C(void);
-void func_801976CC(void);
+void Die_demo(void);
+void Die_move_set(void);
+void Die_move_delay(void);
+void Die_move_fade(void);
+void Die_move_slow(void);
+void Die_se_set(void);
+void Die_move_main(void);
+void Die_move_out(void);
+void Die_move_dark(void);
+void Die_move_end(void);
+void Die_blood_move_init(void);
+void Die_spr_move_main(void);
+void Die_spr_move_hold(void);
+void Die_spr_move_erase(void);
+void Die_spr_move_end(void);
+void Die_blood_move_main(void);
 
 #endif /* OVL_DIEDEMO_H */

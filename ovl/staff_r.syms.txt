@@ -1,5 +1,4 @@
 // STAFF_R.BIN symbols (loaded at 0x801c2000)
-// proposed names (not used by the link yet; C keeps func_/D_ names)
 Staff_main = 0x801C206C; // type:func
 Staff_init = 0x801C2104; // type:func
 Staff_roll = 0x801C21E8; // type:func
