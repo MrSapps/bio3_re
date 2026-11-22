@@ -14,6 +14,7 @@
 #include "player.h"
 #include "sca.h"
 #include "pad.h"
+#include "pl_wep.h"
 
 /* the module's private work in ENEMY_WORK.Unk1CC[] (RE2 Free[]) */
 typedef struct tagEM32_FREE {
@@ -67,14 +68,6 @@ typedef struct tagEM32_SABUN {
 } EM32_SABUN;
 #define EM32_SABUN_P(pP) ((EM32_SABUN *)(pP)->pUnk98)
 
-/* hit box test around a point (pl_wep.c func_800445C8) */
-typedef struct tagEM32_HIT_AREA {
-    LONG *pPos;                        /* 0x00 */
-    SVECTOR *pBox;                     /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM32_HIT_AREA;
-
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
 void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);            /* root_ck.c */
@@ -89,7 +82,7 @@ void func_80034124(COL_OBJ *pObj);                                      /* oba.c
 void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
 ULONG Gacha_ch(void);                                                   /* em_sub.c */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");     /* em_sub.c Cdir_ck, int result */
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM32_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP);                       /* sabun.c: apply the morph keys */
 LONG SquareRoot0(LONG a);                                               /* libgte */
 void Player_move(ENEMY_WORK *pEm);                                      /* player.c */

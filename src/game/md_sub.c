@@ -12,6 +12,7 @@
 #include "sca.h"
 #include "cd.h"
 #include "sce0.h"
+#include "md_sub.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -63,49 +64,6 @@
 #define gte_rtv2tr() __asm__ volatile("nop; nop; .word 0x4A490012")
 #define gte_llv0() __asm__ volatile("nop; nop; .word 0x4A4A6412") /* mvmva 1,1,0,3,1: light matrix * v0, lm */
 
-/* 0x68 byte prim work (func_8002D41C) */
-typedef struct tagRGB_BLEND_WORK {
-    UCHAR pad0[0x10];
-    ULONG Rgb0;                        /* 0x10 */
-    UCHAR pad14[0x1C - 0x14];
-    ULONG Unk1C;                       /* 0x1C */
-    UCHAR pad20[0x28 - 0x20];
-    ULONG Rgb1;                        /* 0x28 */
-    UCHAR pad2C[0x68 - 0x2C];
-} RGB_BLEND_WORK;
-
-/* model work (pW[1] = MD_OBJ, then the double-buffered prims built by PresetObjectGT3_neo / PresetObjectGT4_neo) */
-typedef struct tagMD_WORK {
-    ULONG Attr;                        /* 0x00 bits 2-3: semi-trans rate */
-    MD_OBJ *pObj;                      /* 0x04 */
-    POLY_GT3 *pPrim3;                  /* 0x08 */
-    POLY_GT4 *pPrim4;                  /* 0x0C */
-} MD_WORK;
-
-/* second model work layout (func_8002E61C) */
-typedef struct tagMD_WORK2 {
-    UCHAR pad0[0x10];
-    ULONG Attr;                        /* 0x010 bits 2-3: semi-trans rate */
-    MD_OBJ *pObj;                      /* 0x014 */
-    UCHAR pad18[0x188 - 0x18];
-    POLY_GT4 *pPrim4;                  /* 0x188 */
-} MD_WORK2;
-
-/* primitive sort parameters (func_80025FB0 -> func_8002DC98 / func_8002DE0C) */
-typedef struct tagSORT_PARAM {
-    MD_OBJ *pObj;                      /* 0x0 */
-    union {
-        ULONG Rgb;                     /* 0x4 colour, code in the top byte */
-        struct {
-            UCHAR pad4[3];
-            UCHAR Code;                /* 0x7 primitive code (0x34 GT3, 0x3C GT4) */
-        } c;
-    } u;
-    ULONG *pOt;                        /* 0x8 */
-    ULONG UnkC;                        /* 0xC */
-    ULONG Unk10;                       /* 0x10 */
-    ULONG Unk14;                       /* 0x14 */
-} SORT_PARAM;
 void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
 void func_8002D184(ULONG *pXy, SHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
 POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
@@ -1352,11 +1310,11 @@ void Draw_list_all(ULONG Arg0, ULONG Arg1, ULONG Arg2)
 {
     ENEMY_WORK **ppEm;
 
-    func_8002EB9C(Arg0, Arg1, Arg2, G.pUnk265C);
-    if (G.pUnk2660->Be_flg & 1) {
-        func_8002EB9C(Arg0, Arg1, Arg2, G.pUnk2660);
+    func_8002EB9C(Arg0, Arg1, Arg2, G.pEnemy[0]);
+    if (G.pEnemy[1]->Be_flg & 1) {
+        func_8002EB9C(Arg0, Arg1, Arg2, G.pEnemy[1]);
     }
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         if ((*ppEm)->Be_flg & 1) {
             func_8002EB9C(Arg0, Arg1, Arg2, *ppEm);
         }

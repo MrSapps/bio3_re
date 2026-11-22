@@ -7,6 +7,7 @@
 #include "bio3.h"
 #include "em_sub.h"
 #include "om.h"
+#include "esp.h"
 
 /* the player is an ENEMY_WORK too (G.Player at G+0x248C), as in RE2 PL_WEP.C */
 typedef ENEMY_WORK PLAYER_WORK;
@@ -34,6 +35,25 @@ typedef void (*PL_MV05_FN)(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
 extern PL_MV05_FN pl_mv05_t2_spr[];     /* 0x8009CED8 index Type - 1: pl_wXX_t2_move */
 extern PL_MV05_FN pl_mv05_w_tbl[];      /* 0x8009CE88 index Type - 1 */
 extern PL_MV05_FN pl_mv05_w0b_tbl[];    /* 0x8009D088 index Routine_2 */
+
+/* hit-check request (func_800472EC, func_80047BD0): a box W x H x D turned by R around *pPos */
+typedef struct tagHIT_REQ {
+    VECTOR *pPos;                      /* 0x0 */
+    SHORT W;                           /* 0x4 */
+    SHORT H;                           /* 0x6 */
+    SHORT D;                           /* 0x8 */
+    SHORT padA;
+    SHORT R;                           /* 0xC rotation y */
+    SHORT padE;
+} HIT_REQ;
+
+/* hit area handed to func_800445C8 (is a work inside the box) */
+typedef struct tagHIT_AREA {
+    VECTOR *pPos;                      /* 0x00 centre */
+    SHORT *pBox;                       /* 0x04 x, z, w, d */
+    USHORT Dir;                        /* 0x08 */
+    UCHAR Id;                          /* 0x0A */
+} HIT_AREA;
 
 /* hit area: a box Top..Bottom high, radius R, around pM->t (ENEMY_WORK + 0x134, OM_TARGET + 0x8) */
 typedef struct tagEM_HIT_AREA {
@@ -90,7 +110,6 @@ typedef struct tagPL_WEP_DATA {
 
 LONG Pl_wep_eff_parts_init(PLAYER_WORK *pEm);
 void func_80046C90(void);
-void func_8001B894(ULONG Id, MATRIX *pM);
 void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
 
 #endif /* PL_WEP_H */

@@ -15,6 +15,7 @@
 #include "main.h"
 #include "sub.h"
 #include "pl_wep.h"
+#include "joint.h"
 
 /* em36's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM36_FREE {
@@ -50,24 +51,6 @@ typedef struct tagEM36_FREE {
     UCHAR Unk2A;                       /* 0x2A (0x1F6) timer */
 } EM36_FREE;
 
-/* hit area handed to func_800445C8 (pl_wep.c HIT_AREA) */
-typedef struct tagEM36_HIT_AREA {
-    LONG *pPos;                        /* 0x00 centre (VECTOR) */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM36_HIT_AREA;
-
-/* RE2 PARTS_NECK_FREE_WORK (MAIN.H): PARTS_W free work of the neck part */
-typedef struct tagPARTS_NECK_FREE_WORK {
-    SHORT N_rot_y;                     /* 0x74 */
-    SHORT N_rot_z;                     /* 0x76 */
-    SHORT Add_dir_y;                   /* 0x78 */
-    SHORT Add_dir_z;                   /* 0x7A */
-    SHORT L_rot_y;                     /* 0x7C */
-    SHORT L_rot_z;                     /* 0x7E */
-} PARTS_NECK_FREE_WORK;
-
 /* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c func_8004AC54) */
 typedef struct tagEM36_SABUN {
     ULONG Ofs;                         /* 0x00 */
@@ -81,13 +64,6 @@ typedef struct tagEM36_SABUN {
 } EM36_SABUN;
 #define EM36_SABUN_P(pP) ((EM36_SABUN *)(pP)->pUnk98)
 
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array (as in oba.c) */
-typedef struct tagEM36_G_WORKS {
-    UCHAR pad0[0x265C];
-    struct tagENEMY_WORK *pWork[42];   /* 0x265C */
-} EM36_G_WORKS;
-
-#define PW_NECK(p) ((PARTS_NECK_FREE_WORK *)&(p)->Unk74)
 /* PARTS_W free work of the morphing body parts (func_8004A934 blends keys Key_no - 1 and Key_no) */
 typedef struct tagEM36_PARTS_FREE {
     UCHAR Key_no;                      /* 0x74 */
@@ -123,7 +99,7 @@ LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3);           /* groun
 LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);         /* pl_wep.c */
 void func_80037A90_em(ENEMY_WORK *pEm, ULONG Arg1) __asm__("func_80037A90"); /* om.c, takes an OBJ_MODEL_WORK */
 LONG SquareRoot0(LONG a);                                               /* libgte */
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM36_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg);      /* sca.c */
 void func_8004A934(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2);              /* sabun.c */
 void func_8004A934_2(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004A934"); /* called without a2 */

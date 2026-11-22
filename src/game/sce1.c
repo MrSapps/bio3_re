@@ -7,8 +7,9 @@
 #include "player.h"
 #include "om.h"
 #include "snd.h"
-
-
+#include "esp.h"
+#include "cd.h"
+#include "status.h"
 
 extern UCHAR D_800D442C[];
 extern UCHAR D_800E017F[];
@@ -38,45 +39,11 @@ LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
 LONG Pad_vib_fade_set();
-LONG func_8001B894();
 void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
 extern UCHAR D_8009E340[];
-extern UCHAR D_800E0170;
-typedef struct {
-    void *pData;                       /* 0x0 */
-    UCHAR pad4;
-    UCHAR Id;                          /* 0x5 */
-    UCHAR pad6[2];
-} SCE_UNK_DECC0;
-extern SCE_UNK_DECC0 D_800DECC0[];
 LONG Xa_play();
 typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
 typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern EM_FUNC D_8009ECDC[];
-extern EM_FUNC D_8009ECF8[];
-extern EM_FUNC3 D_8009ED24[];
-extern EM_FUNC3 D_8009ED84[];
-extern EM_FUNC3 D_8009E7DC[];
-extern EM_FUNC3 D_8009E82C[];
-extern EM_FUNC3 D_8009E87C[];
-extern EM_FUNC3 D_8009E8CC[];
-extern EM_FUNC3 D_8009E91C[];
-extern EM_FUNC3 D_8009E96C[];
-extern EM_FUNC3 D_8009E9BC[];
-extern EM_FUNC3 D_8009EA0C[];
-extern EM_FUNC3 D_8009EA5C[];
-extern EM_FUNC3 D_8009EAAC[];
-extern EM_FUNC3 D_8009EAFC[];
-extern EM_FUNC3 D_8009EB4C[];
-extern EM_FUNC3 D_8009EB9C[];
-extern EM_FUNC3 D_8009EBEC[];
-typedef struct {
-    UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5[0xB8 - 0x5];
-    SHORT UnkB8;                       /* 0xB8 */
-} ST_WORK;
-extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern UCHAR D_800A0FDC[];
 extern SHORT D_800D1F8E[];
 extern SHORT D_800D1F82;
@@ -105,44 +72,17 @@ typedef struct {
 } SCE_CAMERA;
 extern SCE_CAMERA D_800E0150;
 LONG Set_view(LONG *pPos, LONG *pTgt);
-typedef struct {
-    UCHAR Unk0;                        /* 0x00 */
-    UCHAR Unk1;                        /* 0x01 */
-    UCHAR pad2[0x24 - 0x2];
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0xC0 - 0x26];
-    LONG UnkC0;                        /* 0xC0 */
-    UCHAR padC4[0xD4 - 0xC4];
-} SCE_UNK_D4;
-extern SCE_UNK_D4 D_800BA8A8[];
 extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
 void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
-typedef struct {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR pad4[0x20 - 0x4];
-    LONG Pos[3];                       /* 0x020 */
-    UCHAR pad2C[0x4A - 0x2C];
-    UCHAR Attr;                        /* 0x04A */
-    UCHAR pad4B[0xC1 - 0x4B];
-    UCHAR UnkC1;                       /* 0x0C1 */
-    UCHAR padC2;
-    UCHAR UnkC3;                       /* 0x0C3 */
-    UCHAR padC4[0x194 - 0xC4];
-} SCE_OM_WORK;
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
 ENEMY_WORK *Spl_em_cdir_ck();
 ENEMY_WORK *Spl_pllock_get();
 extern UCHAR D_800A0514[];
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
 extern UCHAR D_8009CDE0[];
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
 ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
@@ -1296,12 +1236,6 @@ ULONG func_80054384(SCE_TASK *pSce)
 }
 
 extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] */
-/* G+0x265C viewed as one work list (RE2 G.pEnemy: [0] player, [1] sub player, [2..] enemies) */
-typedef struct {
-    UCHAR pad[0x265C];
-    ENEMY_WORK *pWork[42];
-} G_WORK_LIST;
-#define G_pWork (((G_WORK_LIST *)&G)->pWork)
 /* RE2 Work_set */
 ULONG Work_set(SCE_TASK *pSce)
 {
@@ -1323,16 +1257,16 @@ ULONG Work_set(SCE_TASK *pSce)
     pSce->Data = pData + 3;
     switch (Kind) {
     case 1:
-        pSce->pWork = G_pWork[0];
+        pSce->pWork = G.pEnemy[0];
         break;
     case 2:
-        pSce->pWork = G_pWork[1];
+        pSce->pWork = G.pEnemy[1];
         break;
     case 3:
-        pSce->pWork = G_pWork[Idx + 2];
+        pSce->pWork = G.pEnemy[Idx + 2];
         break;
     case 4:
-        pSce->pWork = (ENEMY_WORK *)G.Ob_model[Idx];
+        pSce->pWork = (ENEMY_WORK *)&G.Ob_model[Idx];
         break;
     case 5:
         pSce->pWork = (ENEMY_WORK *)D_800BA700[Idx];
@@ -1744,12 +1678,6 @@ ULONG Sce_line_end(SCE_TASK *pSce)
 
 void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
 
-/* RE2 view of G.pEnemy: its list starts with the player and sub player at 0x265C */
-typedef struct {
-    UCHAR pad[0x265C];
-    ENEMY_WORK *pEnemy[42];
-} G_ENEMY_LIST;
-
 /* RE2 Se_on (SCE2.C); RE3 sound code is D0 low/D0 high/Type packed differently */
 ULONG Se_on(SCE_TASK *pSce)
 {
@@ -1775,16 +1703,16 @@ ULONG Se_on(SCE_TASK *pSce)
         oz = 0;
         goto offset_done;
     case 1:
-        pW = G.pUnk265C;
+        pW = G.pEnemy[0];
         break;
     case 2:
-        pW = G.pUnk2660;
+        pW = G.pEnemy[1];
         break;
     case 3:
-        pW = ((G_ENEMY_LIST *)&G)->pEnemy[(D1 >> 8) + 2];
+        pW = G.pEnemy[(D1 >> 8) + 2];
         break;
     case 4:
-        pW = (ENEMY_WORK *)G.Ob_model[D1 >> 8];
+        pW = (ENEMY_WORK *)&G.Ob_model[D1 >> 8];
         break;
     }
     ox = pW->Pos_x;
@@ -2012,11 +1940,11 @@ ULONG Sca_id_set(SCE_TASK *pSce)
 ULONG func_80055728(SCE_TASK *pSce)
 {
     UCHAR *pData;
-    SCE_OM_WORK *pOm;
+    OBJ_MODEL_WORK *pOm;
 
     pData = pSce->Data;
-    pOm = (SCE_OM_WORK *)G.Ob_model[pData[1]];
-    if (pOm->Attr & 4) {
+    pOm = &G.Ob_model[pData[1]];
+    if (pOm->Unk4A & 4) {
         *G.pUnk75AC[pOm->UnkC1] = 0xFF;
     }
     pSce->Data = pData + 2;
@@ -2026,19 +1954,19 @@ ULONG func_80055728(SCE_TASK *pSce)
 ULONG func_800557A0(SCE_TASK *pSce)
 {
     UCHAR *pData;
-    SCE_OM_WORK *pOm;
+    OBJ_MODEL_WORK *pOm;
     USHORT *pFlg;
 
     pData = pSce->Data;
-    pOm = (SCE_OM_WORK *)G.Ob_model[pData[1]];
-    if ((pOm->Attr & 4) && (((USHORT *)pOm)[0x23] & 0x80)) {
+    pOm = &G.Ob_model[pData[1]];
+    if ((pOm->Unk4A & 4) && (pOm->Type & 0x80)) {
         pFlg = G.pUnk75AC[pOm->UnkC1];
         if (*pFlg == 0xFF) {
             *pFlg = 0;
-            Flg_off(G.Unk799C, ((UCHAR *)pOm)[0xC2]);
+            Flg_off(G.Unk799C, pOm->UnkC2);
         } else {
             *pFlg = 0xFF;
-            Flg_on(G.Unk799C, ((UCHAR *)pOm)[0xC2]);
+            Flg_on(G.Unk799C, pOm->UnkC2);
         }
     }
     pSce->Data = pData + 2;

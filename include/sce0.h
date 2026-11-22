@@ -49,7 +49,7 @@ typedef struct tagSCENARIO {
     SCE_TASK Sce_task[SCE_TASK_MAX];   /* 0x0000 */
     UCHAR pad1458[0x145C - 0x1458];    /* RE2 Random_base? */
     UCHAR *pCScd;                      /* 0x145C */
-    struct tagENEMY_WORK *pUnk1460;    /* 0x1460 = G.pEnemy[0] on room init (Sce_work_clr_set) */
+    struct tagENEMY_WORK *pUnk1460;    /* 0x1460 = G.pEnemy[2] on room init (Sce_work_clr_set) */
     UCHAR *pMizu_div;                  /* 0x1464 RE2 pMizu_div */
     RCUT Cut;                          /* 0x1468 copy of the current camera cut (Bg_draw) */
     UCHAR Unk1488;                     /* 0x1488 */
@@ -59,7 +59,7 @@ typedef struct tagSCENARIO {
     UCHAR pad148D;
     UCHAR Unk148E;                     /* 0x148E RE2 C_id? */
     UCHAR Unk148F;                     /* 0x148F */
-    UCHAR pad1490[0x1494 - 0x1490];
+    ULONG *pUnk1490;                   /* 0x1490 first EMD section of the enemy whose script runs (cd.c func_800130A0) */
     UCHAR Unk1494;                     /* 0x1494 */
     UCHAR Mizu_div_max;                /* 0x1495 RE2 Mizu_div_max */
     UCHAR Unk1496;                     /* 0x1496 RE2 Mizu_div_ctr? */

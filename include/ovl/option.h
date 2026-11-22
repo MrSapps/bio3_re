@@ -54,7 +54,7 @@ typedef struct tagOPT_WORK {
     UCHAR Shade_on;                    /* 0x15 draw the dark panel and its lines */
     USHORT Hold;                       /* 0x16 frames a volume key is held */
     SHORT Vol[2];                      /* 0x18 BGM, SE volume 0..100 */
-    SHORT Vol_bak[2];                  /* 0x1C Snd_work.Unk7CA/Unk7C8 on entry */
+    SHORT Vol_bak[2];                  /* 0x1C Snd_work.Vol.Bgm/Unk7C8 on entry */
     SHORT Vol_old[2];                  /* 0x20 */
     SPRT Bg[2][3];                     /* 0x24 */
     DR_TPAGE Bg_tpage[2][2];           /* 0x9C */

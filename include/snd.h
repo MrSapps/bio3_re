@@ -31,7 +31,7 @@ typedef struct tagSND_SEQ {
     LONG Unk18;                        /* 0x018 non-zero: restart at pTop on end of track */
     LONG Running;                      /* 0x01C running status byte */
     LONG Bank;                         /* 0x020 */
-    UCHAR pad24[0x26 - 0x24];
+    SHORT Unk24;                       /* 0x024 bank (func_800772A0) */
     SHORT No;                          /* 0x026 sequence slot */
     UCHAR pad28[0x2B - 0x28];
     UCHAR Status;                      /* 0x02B running status >> 4 (0xF: meta event) */
@@ -91,19 +91,19 @@ typedef struct tagSND_REQ {
     UCHAR Bank;                        /* 0x1F */
 } SND_REQ;
 
-/* view of SND_WORK 0x7C0-0x7D3 (reverb and volumes) as func_800741A0 addresses it, through a
-   pointer to 0x7C0; the *_old copies let it rescale the voices when a volume changes */
+/* SND_WORK 0x7C0-0x7D3: reverb and volumes (func_800741A0 addresses it through a pointer);
+   the *_old copies let it rescale the voices when a volume changes */
 typedef struct tagSND_VOL {
     UCHAR Rv_mode;                     /* 0x00 requested reverb mode */
     UCHAR Rv_cur;                      /* 0x01 current reverb mode */
     UCHAR Rv_step;                     /* 0x02 */
     signed char Rv_cnt;                /* 0x03 */
     SHORT Master;                      /* 0x04 master volume (0..127), SE and BGM */
-    SHORT pad6;
+    SHORT Unk6;                        /* 0x06 */
     SHORT Se;                          /* 0x08 SE volume (0..127) */
     SHORT Bgm;                         /* 0x0A BGM volume (0..127) */
     SHORT Master_old;                  /* 0x0C */
-    SHORT padE;
+    SHORT UnkE;                        /* 0x0E */
     SHORT Se_old;                      /* 0x10 */
     SHORT Bgm_old;                     /* 0x12 */
 } SND_VOL;
@@ -142,21 +142,14 @@ typedef struct tagSND_WORK {
     SND_SEQ_DATA Seq_data[3];          /* 0x094 */
     SND_SEQ Seq[3];                    /* 0x0AC */
     SND_VOICE Voice[24];               /* 0x4C0 */
-    UCHAR Rv_mode;                     /* 0x7C0 requested reverb mode */
-    UCHAR Rv_cur;                      /* 0x7C1 current reverb mode */
-    UCHAR Rv_step;                     /* 0x7C2 */
-    signed char Rv_cnt;                /* 0x7C3 */
-    SHORT Unk7C4;                      /* 0x7C4 master volume (0..127), SE and BGM */
-    UCHAR pad7C6[0x7C8 - 0x7C6];
-    SHORT Unk7C8;                      /* 0x7C8 SE volume (0..127) */
-    SHORT Unk7CA;                      /* 0x7CA BGM volume (0..127) */
-    SHORT Unk7CC;                      /* 0x7CC last Unk7C4 (func_800741A0) */
-    UCHAR pad7CE[0x7D0 - 0x7CE];
-    SHORT Unk7D0;                      /* 0x7D0 last Unk7C8 */
-    SHORT Unk7D2;                      /* 0x7D2 last Unk7CA */
+    SND_VOL Vol;                       /* 0x7C0 reverb and volumes */
     SND_REQ Req[24];                   /* 0x7D4 request queue */
     struct tagSND_REQ *pReq;          /* 0xAD4 request queue write pointer; the queue ends here */
-    UCHAR padAD8[0xB10 - 0xAD8];
+    LONG Cam_x;                        /* 0xAD8 listener (camera) position (func_80074F44) */
+    LONG Cam_y;                        /* 0xADC */
+    LONG Cam_z;                        /* 0xAE0 */
+    UCHAR padAE4[0xAE8 - 0xAE4];
+    SpuCommonAttr Cattr;               /* 0xAE8 */
     ULONG UnkB10;                      /* 0xB10 voice mask (set on key on, func_800749A0) */
     ULONG UnkB14;                      /* 0xB14 voice mask (set on key on, func_800749A0) */
     ULONG UnkB18;                      /* 0xB18 voice bit of the last reverb on/off (func_80074CD0) */

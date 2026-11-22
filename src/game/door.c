@@ -7,6 +7,8 @@
 #include "sub.h"
 #include "joint.h"
 #include "snd.h"
+#include "esp.h"
+#include "pl_wep.h"
 
 /* local declarations (80011CF8.c) */
 void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
@@ -18,100 +20,13 @@ ULONG func_800102E8(void);
 void func_80010150(void *p, ULONG size);
 extern UCHAR D_80098728[];
 extern UCHAR D_800BF754[];
-/* 8-byte animation/sequence record (byte 2 = frame) */
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Unk1;
-    UCHAR Unk2;
-    UCHAR Unk3;
-    ULONG Unk4;
-} SEQ8;
-/* effect/object pool entry (0xD4 bytes, pool D_800BA8A8[0x60], searched downwards from D_800BF754) */
-typedef struct tagEFF_WORK {
-    UCHAR Routine_0;                   /* 0x00 */
-    UCHAR Routine_1;                   /* 0x01 */
-    UCHAR Routine_2;                   /* 0x02 */
-    UCHAR Unk03;                       /* 0x03 */
-    USHORT Attr;                       /* 0x04 */
-    UCHAR pad06[0x8 - 0x6];
-    SHORT Unk08;                       /* 0x08 */
-    SHORT Unk0A;                       /* 0x0A */
-    signed char Acc_x;                 /* 0x0C */
-    signed char Acc_y;                 /* 0x0D */
-    signed char Acc_z;                 /* 0x0E */
-    UCHAR Unk0F;                       /* 0x0F */
-    SHORT Spd_x;                       /* 0x10 */
-    SHORT Spd_y;                       /* 0x12 */
-    SHORT Spd_z;                       /* 0x14 */
-    UCHAR pad16[0x18 - 0x16];
-    UCHAR Unk18;                       /* 0x18 */
-    UCHAR Snd_no;                      /* 0x19 */
-    UCHAR Unk1A;                       /* 0x1A */
-    UCHAR Unk1B;                       /* 0x1B */
-    USHORT Unk1C;                      /* 0x1C */
-    USHORT Unk1E;                      /* 0x1E */
-    USHORT Unk20;                      /* 0x20 */
-    USHORT Unk22;                      /* 0x22 */
-    USHORT Be_flg;                     /* 0x24 */
-    USHORT Flg2;                       /* 0x26 */
-    USHORT Id;                         /* 0x28 */
-    UCHAR Unk2A;                       /* 0x2A */
-    UCHAR Timer;                       /* 0x2B */
-    USHORT Unk2C;                      /* 0x2C */
-    USHORT Unk2E;                      /* 0x2E */
-    SHORT Rot_x;                       /* 0x30 */
-    SHORT Rot_y;                       /* 0x32 */
-    SHORT Rot_z;                       /* 0x34 */
-    UCHAR pad36[0x38 - 0x36];
-    LONG Unk38;                        /* 0x38 */
-    LONG Unk3C;                        /* 0x3C */
-    LONG Unk40;                        /* 0x40 */
-    UCHAR pad44[0x48 - 0x44];
-    LONG Pos_x;                        /* 0x48 */
-    LONG Pos_y;                        /* 0x4C */
-    LONG Pos_z;                        /* 0x50 */
-    LONG Unk54;                        /* 0x54 */
-    LONG Old_x;                        /* 0x58 */
-    LONG Old_y;                        /* 0x5C */
-    LONG Old_z;                        /* 0x60 */
-    UCHAR pad64[0x68 - 0x64];
-    SHORT Unk68;                       /* 0x68 */
-    SHORT Unk6A;                       /* 0x6A */
-    SHORT Unk6C;                       /* 0x6C */
-    UCHAR pad6E;
-    UCHAR Seq_no;                      /* 0x6F */
-    MATRIX Workm;                      /* 0x70 */
-    MATRIX Workm2;                     /* 0x90 copy of Workm (func_8001BCFC) */
-    UCHAR padB0[0xB3 - 0xB0];
-    UCHAR UnkB3;                       /* 0xB3 */
-    SHORT UnkB4;                       /* 0xB4 */
-    SHORT UnkB6;                       /* 0xB6 */
-    SHORT UnkB8;                       /* 0xB8 */
-    SHORT UnkBA;                       /* 0xBA */
-    ULONG *pUnkBC;                     /* 0xBC */
-    ULONG Key;                         /* 0xC0 */
-    SEQ8 *pSeq;                        /* 0xC4 */
-    UCHAR padC8[0xD0 - 0xC8];
-    struct tagEFF_WORK *pLink;         /* 0xD0 killed when the linked work dies */
-} EFF_WORK;
 void Flg_on(ULONG *pFlg, ULONG Id);
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);
 void func_8004834C(ULONG Id, ULONG a1);
 extern ULONG D_800D1FC8[];
-#define G_FLG(ofs) ((ULONG *)((UCHAR *)&G + (ofs)))
 void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
 ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
 void Esp_data_set1(ULONG *pTim);
-/* 0xC-byte table entry, 16 entries at D_800BA728 / D_800BA7E8 (filled by Esp_data_set0) */
-typedef struct {
-    ULONG *pData;                      /* 0x0 */
-    ULONG *pData2;                     /* 0x4 */
-    UCHAR Id;                          /* 0x8 */
-    UCHAR pad9[3];
-} TBL12;
-extern TBL12 D_800BA728[16];
-extern TBL12 D_800BA7E8[16];
-extern EFF_WORK D_800BA8A8[0x60];
 LONG func_80017148(ENEMY_WORK *pEm, LONG a1, LONG a2);
 LONG func_800172AC(ENEMY_WORK *pEm, LONG a1, LONG a2);
 extern UCHAR D_80097A00[];
@@ -121,29 +36,19 @@ LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
 void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
 extern UCHAR D_80097A78[];
 extern UCHAR D_80097A50[];
-EFF_WORK *func_8001B35C(EFF_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5);
-void func_8001CF24(EFF_WORK *pEw, ULONG a1, ULONG a2);
+ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5);
+void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2);
 extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] (door work slots) */
 void Door_scheduler_main(void);
 void Door_Trans(void);              /* RE2 Door_Trans */
 void Door_model_init(UCHAR *pDw);
-void func_8001CE24(EFF_WORK *pEw, ULONG a1, ULONG a2);
+void func_8001CE24(ESP_WORK *pEw, ULONG a1, ULONG a2);
 ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG a2);
-EFF_WORK *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4);
-void func_8001BCFC(EFF_WORK *pEw);
-void func_8001BFCC(EFF_WORK *pEw);
+ESP_WORK *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4);
+void func_8001BCFC(ESP_WORK *pEw);
+void func_8001BFCC(ESP_WORK *pEw);
 extern UCHAR D_800E017F;
 void func_800139D8(void);
-/* hit-check request passed to func_800472EC */
-typedef struct {
-    LONG *pPos;                        /* 0x0 */
-    SHORT W;                           /* 0x4 */
-    SHORT H;                           /* 0x6 */
-    SHORT D;                           /* 0x8 */
-    SHORT padA;
-    SHORT R;                           /* 0xC */
-    SHORT padE;
-} HIT_REQ;
 LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
 extern ULONG D_80097FCC[];
 LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
@@ -156,22 +61,11 @@ void func_80060464(ENEMY_WORK *pEm, LONG a1, LONG a2);
 void func_8006037C(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
 void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
-/* G viewed with the work pointer table as one array (RE2 pEnemy[]: [0] player, [1] sub player, [2..] enemies) */
-typedef struct {
-    UCHAR pad0[0x213C];
-    ENEMY_WORK *pEm_mem;               /* 0x213C */
-    UCHAR pad2140[0x2487 - 0x2140];
-    UCHAR Em_num;                      /* 0x2487 */
-    UCHAR pad2488[0x265C - 0x2488];
-    ENEMY_WORK *pEm_tbl[42];           /* 0x265C */
-    ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
-} G_EMTBL;
-extern EFF_WORK *D_80098084;           /* pool start */
-extern EFF_WORK *D_80098088;           /* pool end */
-typedef void (*EFF_PROC)(EFF_WORK *pEw);
-extern EFF_PROC D_80097BD4[];
-void func_8001BC80(EFF_WORK *pEw);
-void func_8001C168(EFF_WORK *pEw);
+extern ESP_WORK *D_80098084;           /* pool start */
+extern ESP_WORK *D_80098088;           /* pool end */
+typedef void (*EFF_PROC)(ESP_WORK *pEw);
+void func_8001BC80(ESP_WORK *pEw);
+void func_8001C168(ESP_WORK *pEw);
 void func_8002B2BC(ULONG Kan, ULONG Seq, USHORT *pSeq, ULONG R_flg);
 extern UCHAR D_800E06AC;
 /* Add_speedXZ is called with a third (unused) argument in RE3 */
@@ -181,15 +75,12 @@ extern ULONG D_800BA6F4;               /* door work slot size */
 void Door_texture_load(void);              /* RE2 Door_texture_load */
 void Mapping_tim(ULONG *pTim);       /* RE2 Mapping_tim */
 void Set_view(VECTOR *pView_p, VECTOR *pView_r);
-extern EFF_WORK *D_8009808C;           /* pool 2 start */
-extern EFF_WORK *D_80098090;           /* pool 2 end */
+extern ESP_WORK *D_8009808C;           /* pool 2 start */
+extern ESP_WORK *D_80098090;           /* pool 2 end */
 LONG Joint_move(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
 ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
-void func_8001B894(ULONG Id, ULONG Key);
-void func_8001CFF4(EFF_WORK *pEw, ULONG n);
+void func_8001CFF4(ESP_WORK *pEw, ULONG n);
 void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
-/* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
-#define PW_FREE(p) ((SHORT *)((UCHAR *)(p) + 0x74))
 
 /* declarations from earlier parts of the original address-split file */
 extern USHORT D_800970DC[];
@@ -855,14 +746,14 @@ void func_80017540(ENEMY_WORK *pEm)
 
 void Enemy_work_set(void)
 {
-    G_EMTBL *pG = (G_EMTBL *)&G;
+    tagGLOBAL *pG = &G;
     ENEMY_WORK **ppEm;
     ULONG Mem_top;
     ULONG Em_num;
     ULONG Em_size;
     LONG i;
 
-    ppEm = &pG->pEm_tbl[1];
+    ppEm = &pG->pEnemy[1];
     i = 41;
     do {
         *ppEm = (ENEMY_WORK *)((UCHAR *)pG + 0x2708);
@@ -870,21 +761,21 @@ void Enemy_work_set(void)
         ppEm++;
     } while (i != 0);
     Em_num = pG->Em_num;
-    pG->pEm_tbl[0] = (ENEMY_WORK *)((UCHAR *)pG + 0x248C);
-    pG->pEm_tbl[0]->Be_flg = 1;
-    pG->ppEnemy_end = &pG->pEm_tbl[2];
+    pG->pEnemy[0] = (ENEMY_WORK *)((UCHAR *)pG + 0x248C);
+    pG->pEnemy[0]->Be_flg = 1;
+    pG->ppEnemy_end = &pG->pEnemy[2];
     if (Em_num != 0) {
         Em_size = 0x1FC;
         Mem_top = (ULONG)pG->pEm_mem;
         pG->pEm_mem = (ENEMY_WORK *)((ULONG)pG->pEm_mem + Em_num * Em_size);
         i = 0;
         do {
-            pG->pEm_tbl[i + 2] = (ENEMY_WORK *)Mem_top;
+            pG->pEnemy[i + 2] = (ENEMY_WORK *)Mem_top;
             ((ENEMY_WORK *)Mem_top)->Be_flg = 0;
             Mem_top += Em_size;
             i++;
         } while (--Em_num != 0);
-        pG->ppEnemy_end = &pG->pEm_tbl[i + 2];
+        pG->ppEnemy_end = &pG->pEnemy[i + 2];
     }
 }
 
@@ -1030,8 +921,8 @@ void Em10_b1(ENEMY_WORK *pEm);
 
 void Em_move_tbl_set(void)
 {
-    G.Unk4320 = 0xFF;
-    G.Unk4324 = 0xFF;
+    G.Em_bin_info[0].Id = 0xFF;
+    G.Em_bin_info[1].Id = 0xFF;
     G.Em_ov_mtbl[0][0x00] = Em10;
     G.Em_ov_mtbl[0][0x01] = Em10;
     G.Em_ov_mtbl[0][0x02] = Em10;

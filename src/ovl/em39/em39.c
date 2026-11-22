@@ -111,7 +111,7 @@ void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     Joint_move(pEm, Kan, Seq, 0x400);
     EM39_W(pEm)->pParent = NULL;
-    ppEm = pG->pEnemy;
+    ppEm = &pG->pEnemy[2];
     do {
         if ((*ppEm)->Id == 0x38)
             EM39_W(pEm)->pParent = *ppEm;

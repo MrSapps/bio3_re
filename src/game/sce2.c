@@ -6,8 +6,9 @@
 #include "sub.h"
 #include "player.h"
 #include "om.h"
-
-
+#include "esp.h"
+#include "cd.h"
+#include "status.h"
 
 extern UCHAR D_800D442C[];
 extern UCHAR D_800E017F[];
@@ -37,45 +38,11 @@ LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
 LONG Pad_vib_fade_set();
-LONG func_8001B894();
 void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
 extern UCHAR D_8009E340[];
-extern UCHAR D_800E0170;
-typedef struct {
-    void *pData;                       /* 0x0 */
-    UCHAR pad4;
-    UCHAR Id;                          /* 0x5 */
-    UCHAR pad6[2];
-} SCE_UNK_DECC0;
-extern SCE_UNK_DECC0 D_800DECC0[];
 LONG Xa_play();
 typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
 typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern EM_FUNC D_8009ECDC[];
-extern EM_FUNC D_8009ECF8[];
-extern EM_FUNC3 D_8009ED24[];
-extern EM_FUNC3 D_8009ED84[];
-extern EM_FUNC3 D_8009E7DC[];
-extern EM_FUNC3 D_8009E82C[];
-extern EM_FUNC3 D_8009E87C[];
-extern EM_FUNC3 D_8009E8CC[];
-extern EM_FUNC3 D_8009E91C[];
-extern EM_FUNC3 D_8009E96C[];
-extern EM_FUNC3 D_8009E9BC[];
-extern EM_FUNC3 D_8009EA0C[];
-extern EM_FUNC3 D_8009EA5C[];
-extern EM_FUNC3 D_8009EAAC[];
-extern EM_FUNC3 D_8009EAFC[];
-extern EM_FUNC3 D_8009EB4C[];
-extern EM_FUNC3 D_8009EB9C[];
-extern EM_FUNC3 D_8009EBEC[];
-typedef struct {
-    UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5[0xB8 - 0x5];
-    SHORT UnkB8;                       /* 0xB8 */
-} ST_WORK;
-extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern UCHAR D_800A0FDC[];
 extern SHORT D_800D1F8E[];
 extern SHORT D_800D1F82;
@@ -97,40 +64,12 @@ void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079868(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_800E01C6[];
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-typedef struct {
-    LONG Unk0;                         /* 0x00 */
-    LONG Pos[3];                       /* 0x04 */
-    LONG Tgt[3];                       /* 0x10 */
-} SCE_CAMERA;
-extern SCE_CAMERA D_800E0150;
 LONG Set_view(LONG *pPos, LONG *pTgt);
-typedef struct {
-    UCHAR Unk0;                        /* 0x00 */
-    UCHAR Unk1;                        /* 0x01 */
-    UCHAR pad2[0x24 - 0x2];
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0xC0 - 0x26];
-    LONG UnkC0;                        /* 0xC0 */
-    UCHAR padC4[0xD4 - 0xC4];
-} SCE_UNK_D4;
-extern SCE_UNK_D4 D_800BA8A8[];
 extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
 void func_8001B484(ULONG A0, ULONG A1, MATRIX *pM, SVECTOR *pSv, ULONG A4);
-typedef struct {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR pad4[0x20 - 0x4];
-    LONG Pos[3];                       /* 0x020 */
-    UCHAR pad2C[0x4A - 0x2C];
-    UCHAR Attr;                        /* 0x04A */
-    UCHAR pad4B[0xC1 - 0x4B];
-    UCHAR UnkC1;                       /* 0x0C1 */
-    UCHAR padC2;
-    UCHAR UnkC3;                       /* 0x0C3 */
-    UCHAR padC4[0x194 - 0xC4];
-} SCE_OM_WORK;
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
@@ -184,12 +123,6 @@ extern ULONG *D_8009E418;              /* Flg_addr[8] */
 void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Cut_chg_main(ULONG Cut);
 
-/* G seen with its object model array typed (bio3.h keeps G.Ob_model as raw bytes) */
-typedef struct {
-    UCHAR pad[0x4328];
-    OBJ_MODEL_WORK Om[32];             /* 0x4328 G.Ob_model */
-} G_OM;
-
 /* declarations from earlier parts of the original address-split file */
 extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
 extern SHORT D_800DEC9E;               /* RE2 Item_box_entrance static Spd_add */
@@ -199,70 +132,7 @@ extern UCHAR D_800B9E21;
 void Xa_fade_set(ULONG frames);
 void Pad_vib_init(void);
 
-/* Loop-header record of For: SHORT break offset at +2, SHORT loop count at +4 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT Brk_ofs;
-    SHORT Lcnt;
-} SCE_FOR_REC;
-
-/* Loop-header record of While / Do: SHORT break offset at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT Brk_ofs;
-} SCE_BRK_REC;
-
-/* Switch head record: USHORT break offset at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Brk_ofs;
-} SCE_SWITCH_REC;
-
-/* Case record: USHORT offset to the next case at +2, case value at +4 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Ofs;
-    USHORT Val;
-} SCE_CASE_REC;
-
-/* Goto record: SHORT jump offset at +4 */
-typedef struct {
-    UCHAR Dummy[4];
-    SHORT Jmp_ofs;
-} SCE_GOTO_REC;
-
-/* Save record: SHORT value at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT Set_val;
-} SCE_SAVE_REC;
-
-/* Calc record: USHORT command word at +2 (low byte operator, high byte variable), SHORT immediate at +4 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Cmd_word;
-    SHORT Imm;
-} SCE_CALC_REC;
-
-/* Member_set record: SHORT value at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT D0;
-} SCE_MEMBER_SET_REC;
-
 extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] */
-/* G+0x265C viewed as one work list (RE2 G.pEnemy: [0] player, [1] sub player, [2..] enemies) */
-typedef struct {
-    UCHAR pad[0x265C];
-    ENEMY_WORK *pWork[42];
-} G_WORK_LIST;
-#define G_pWork (((G_WORK_LIST *)&G)->pWork)
-
-/* Speed record: USHORT value at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Spd_val;
-} SCE_SPEED_REC;
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
@@ -276,7 +146,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
     ULONG Id;
     ULONG Num;
     LONG i;
-    UCHAR *p;
+    ITEM_WORK *p;
 
     pData = pSce->Data;
     i = 0;
@@ -288,8 +158,8 @@ ULONG func_80055A18(SCE_TASK *pSce)
         if (i == -1) {
             break;
         }
-        p = G.pUnk7C7C + i * 4;
-        if (((ITEM_TBL4 *)D_800A0514)[p[0]].Max >= p[1] + Num) {
+        p = &G.pUnk7C7C->Item[i];
+        if (((ITEM_TBL4 *)D_800A0514)[p->Id].Max >= p->Num + Num) {
             return 1;
         }
         i++;
@@ -531,25 +401,28 @@ ULONG Sce_espr_kill(SCE_TASK *pSce)
     return 1;
 }
 
+/* int-returning view of the void func_8001B894: the caller's register allocation needs v0 clobbered */
+LONG func_8001B894_l(ULONG Id, MATRIX *pM) __asm__("func_8001B894");
+
 ULONG Sce_espr_kill2(SCE_TASK *pSce)
 {
-    func_8001B894((pSce->Data[1] << 16) | 0x1000000, 0);
+    func_8001B894_l((pSce->Data[1] << 16) | 0x1000000, 0);
     pSce->Data += 2;
     return 1;
 }
 
 ULONG Sce_espr_task(SCE_TASK *pSce)
 {
-    LONG v;
+    MATRIX *v;
     ULONG i;
 
     if (pSce->Data[1] != 6) {
         v = Get_matrix((s8)pSce->Data[1], (s8)pSce->Data[2]);
         for (i = 0; i < 0x60; i++) {
-            if (D_800BA8A8[i].UnkC0 == v) {
-                D_800BA8A8[i].Unk1 = 0;
-                D_800BA8A8[i].Unk0 = 0;
-                D_800BA8A8[i].Unk24 = 0;
+            if (D_800BA8A8[i].pMat == v) {
+                D_800BA8A8[i].Routine_1 = 0;
+                D_800BA8A8[i].Routine_0 = 0;
+                D_800BA8A8[i].Be_flg = 0;
             }
         }
     } else {
@@ -990,14 +863,14 @@ ULONG Item_aot_set(SCE_TASK *pSce)
     if (Flg_ck(pFlg, Flg_bit)) {
         *(UCHAR *)pG->Sce_aot[Aot] = 0;
         if (Om_no < 0x20) {
-            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
-            ((G_OM *)pG)->Om[Om_no].UnkC3 = 0;
+            pG->Ob_model[Om_no].Be_flg = 0x80000000;
+            pG->Ob_model[Om_no].UnkC3 = 0;
         }
     } else if (Om_no < 0x20) {
         Aot = pData->Action;
-        ((G_OM *)pG)->Om[Om_no].UnkC3 = Aot;
+        pG->Ob_model[Om_no].UnkC3 = Aot;
         if (Aot & 2) {
-            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
+            pG->Ob_model[Om_no].Be_flg = 0x80000000;
         }
     }
     return 1;
@@ -1067,14 +940,14 @@ ULONG Item_aot_set_4p(SCE_TASK *pSce)
         *(UCHAR *)pG->Sce_aot[Aot] = 0;
         } while (0);
         if (Om_no < 0x20) {
-            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
-            ((G_OM *)pG)->Om[Om_no].UnkC3 = 0;
+            pG->Ob_model[Om_no].Be_flg = 0x80000000;
+            pG->Ob_model[Om_no].UnkC3 = 0;
         }
     } else if (Om_no < 0x20) {
         Aot = pData->Action;
-        ((G_OM *)pG)->Om[Om_no].UnkC3 = Aot;
+        pG->Ob_model[Om_no].UnkC3 = Aot;
         if (Aot & 2) {
-            ((G_OM *)pG)->Om[Om_no].Be_flg = 0x80000000;
+            pG->Ob_model[Om_no].Be_flg = 0x80000000;
         }
     }
     return 1;
@@ -1090,13 +963,13 @@ ULONG Kage_set(SCE_TASK *pSce)
     pData = pSce->Data;
     switch (pData[1]) {
     case 1:
-        pK = G.pUnk265C->pKage_work;
+        pK = G.pEnemy[0]->pKage_work;
         break;
     case 2:
-        pK = G.pUnk2660->pKage_work;
+        pK = G.pEnemy[1]->pKage_work;
         break;
     case 3:
-        pK = ((struct { UCHAR pad[0x265C]; ENEMY_WORK *pWork[42]; } *)&G)->pWork[(s8)pData[2] + 2]->pKage_work;
+        pK = G.pEnemy[(s8)pData[2] + 2]->pKage_work;
         break;
     }
     r = pSce->Data[3];
@@ -1123,7 +996,7 @@ ULONG Super_set(SCE_TASK *pSce)
     ULONG Sup_val;
     ULONG Sup_no;
     ENEMY_WORK *pT;
-    UCHAR *pOm;
+    OBJ_MODEL_WORK *pOm;
     LONG x, y, z;
     tagGLOBAL *pG = &G;
 
@@ -1144,17 +1017,17 @@ ULONG Super_set(SCE_TASK *pSce)
         break;
     case 0x80:
         if (Sup_no & 0x80) {
-            pEm->pSuper = &((struct { UCHAR pad[0x265C]; ENEMY_WORK *pWork[42]; } *)pG)->pWork[Sup_val - 0x80]->pSin_parts_ptr[Sup_no & 0x7F].Workm;
+            pEm->pSuper = &pG->pEnemy[Sup_val - 0x80]->pSin_parts_ptr[Sup_no & 0x7F].Workm;
         } else {
-            pEm->pSuper = (MATRIX *)((UCHAR *)((struct { UCHAR pad[0x265C]; ENEMY_WORK *pWork[42]; } *)pG)->pWork[Sup_val - 0x80] + 0x20);
+            pEm->pSuper = (MATRIX *)((UCHAR *)pG->pEnemy[Sup_val - 0x80] + 0x20);
         }
         break;
     case 0xC0:
         if (Sup_no & 0x80) {
-            pOm = pG->Ob_model[Sup_val - 0xC0];
-            pEm->pSuper = &((struct { UCHAR pad[0xC4]; PARTS_W *pParts; } *)pOm)->pParts[Sup_no & 0x7F].Workm;
+            pOm = &pG->Ob_model[Sup_val - 0xC0];
+            pEm->pSuper = &pOm->pParts[Sup_no & 0x7F].Workm;
         } else {
-            pEm->pSuper = (MATRIX *)(pG->Ob_model[Sup_val - 0xC0] + 0x20);
+            pEm->pSuper = &pG->Ob_model[Sup_val - 0xC0].M;
         }
         break;
     }
@@ -1184,22 +1057,22 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     pPl = (ENEMY_WORK *)((UCHAR *)&G + 0x248C);
     Flg = Wep & 0x80;
     if (Wep == 0xFF) {
-        G.pUnk7C7C[0x128] = 0xFF;
-        G.pUnk7C7C[0x129] = 0;
+        G.pUnk7C7C->Unk128 = 0xFF;
+        G.pUnk7C7C->Unk129 = 0;
         pSce->Data += 2;
         return 1;
     } else {
         Wep &= 0x7F;
         pPl->Type = (pPl->Type & 0xFF00) | Wep;
         if (Wep != 0) {
-            G.pUnk7C7C[0x128] = Search_item_id(Wep, 0);
-            G.pUnk7C7C[0x129] = Wep;
+            G.pUnk7C7C->Unk128 = Search_item_id(Wep, 0);
+            G.pUnk7C7C->Unk129 = Wep;
             Weapon_cls(pPl);
             Pl_weapon_ch(pPl);
             D_800E0171[0] = 1;
         } else {
-            G.pUnk7C7C[0x128] = 0xFF;
-            G.pUnk7C7C[0x129] = 0;
+            G.pUnk7C7C->Unk128 = 0xFF;
+            G.pUnk7C7C->Unk129 = 0;
             if (Flg) {
                 Weapon_cls(pPl);
                 Pl_weapon_ch(pPl);
@@ -1224,11 +1097,11 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     Wep = D_800E01E8;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
-        G.pUnk7C7C[0x128] = Search_item_id(Wep, 0);
-        G.pUnk7C7C[0x129] = Wep;
+        G.pUnk7C7C->Unk128 = Search_item_id(Wep, 0);
+        G.pUnk7C7C->Unk129 = Wep;
     } else {
-        G.pUnk7C7C[0x128] = 0xFF;
-        G.pUnk7C7C[0x129] = 0;
+        G.pUnk7C7C->Unk128 = 0xFF;
+        G.pUnk7C7C->Unk129 = 0;
     }
     if (Sce.Unk1489 != 0) {
         Weapon_cls(pPl);
@@ -1458,7 +1331,7 @@ ULONG func_800589FC(SCE_TASK *pSce)
     LONG nFloor;
 
     i = pSce->Data[1] + 2;
-    pW = ((struct { UCHAR pad[0x265C]; ENEMY_WORK *pWork[42]; } *)&G)->pWork[i];
+    pW = G.pEnemy[i];
     nFloor = pW->nFloor;
     pW->Be_flg = 1;
     *(ULONG *)&pW->Routine_0 = 0;

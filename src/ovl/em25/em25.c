@@ -311,7 +311,7 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     ENEMY_WORK *pTg;
     SHORT Dir;
 
-    pTg = EF(pEm)->Target_pl ? G.pUnk2660 : &Pl_work;
+    pTg = EF(pEm)->Target_pl ? G.pEnemy[1] : &Pl_work;
     switch (pEm->Routine_2) {
     case 0:
         EM_MOVE(pEm) = 0x70004;
@@ -467,7 +467,7 @@ void func_80101254(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     SVECTOR Tsv;
     ENEMY_WORK *pTg;
 
-    pTg = EF(pEm)->Target_pl ? G.pUnk2660 : &Pl_work;
+    pTg = EF(pEm)->Target_pl ? G.pEnemy[1] : &Pl_work;
     switch (pEm->Routine_2) {
     case 0:
         EM_MOVE(pEm) = 0x30008;
@@ -768,7 +768,7 @@ void func_80101E8C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     ENEMY_WORK *pTg;
 
     Em25_wall_init(pEm, Kan, Seq);
-    pTg = EF(pEm)->Target_pl ? G.pUnk2660 : &Pl_work;
+    pTg = EF(pEm)->Target_pl ? G.pEnemy[1] : &Pl_work;
     dist = pTg->Pos_y - pEm->Pos_y;
     if (dist > 3500) {
         water = Water_ck(pEm->Pos_x, pEm->Pos_z);
@@ -2121,7 +2121,7 @@ SHORT func_801055CC(ENEMY_WORK *pEm, SHORT rr)
     ENEMY_WORK *pTg;
     LONG x, z;
 
-    pTg = EF(pEm)->Target_pl ? G.pUnk2660 : &Pl_work;
+    pTg = EF(pEm)->Target_pl ? G.pEnemy[1] : &Pl_work;
     if (!EF(pEm)->Place || (EF(pEm)->Place == 1 && pTg->nFloor != pEm->nFloor)) {
         return Goto00_ck(pEm, pTg->Pos_x, pTg->Pos_z, rr);
     } else {
@@ -2219,7 +2219,7 @@ LONG func_8010590C(ENEMY_WORK *pEm, SCA_DATA *pSc, SHORT dir)
     LONG edge;
     ENEMY_WORK *pTg;
 
-    pTg = EF(pEm)->Target_pl ? G.pUnk2660 : &Pl_work;
+    pTg = EF(pEm)->Target_pl ? G.pEnemy[1] : &Pl_work;
     edge = Sca_get_pos(dir, pSc);
     if (dir & 1) {
         if (__builtin_abs(pTg->Pos_z - edge) < 3000)
@@ -2257,7 +2257,7 @@ SHORT func_80105A60(ENEMY_WORK *pEm, SHORT rot)
     ENEMY_WORK *pTg;
     SHORT d;
 
-    pTg = EF(pEm)->Target_pl ? G.pUnk2660 : &Pl_work;
+    pTg = EF(pEm)->Target_pl ? G.pEnemy[1] : &Pl_work;
     xx = pEm->Cdir_x;
     yy = pEm->Cdir_y;
     zz = pEm->Cdir_z;
@@ -2359,7 +2359,7 @@ ULONG func_80105E3C(ENEMY_WORK *pEm, ULONG pl, LONG R)
     LONG dist;
 
     if (pl) {
-        pTg = G.pUnk2660;
+        pTg = G.pEnemy[1];
     } else {
         pTg = &Pl_work;
         dist = pEm->Unk154;
@@ -2388,7 +2388,7 @@ ULONG func_80105EF4(ENEMY_WORK *pEm, LONG R, LONG H)
         }
     }
     if ((LONG)G.Status_flg < 0) {
-        if (__builtin_abs(pEm->Pos_y - G.pUnk2660->Pos_y) < H) {
+        if (__builtin_abs(pEm->Pos_y - G.pEnemy[1]->Pos_y) < H) {
             if (atck_ck_main(pEm, 1, R)) {
                 Snd_se_enem(1, pEm);
                 return 1;
@@ -2438,7 +2438,7 @@ void func_8010614C(ENEMY_WORK *pEm, USHORT type, UCHAR cnt)
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pWk;
 
-    ppEm = &G.pUnk265C;
+    ppEm = &G.pEnemy[0];
     while (cnt--) {
         if (!(ppEm = Get_child_work(ppEm)))
             return;
@@ -2487,7 +2487,7 @@ void func_801063A0(ULONG pl, UCHAR dir)
 {
     ENEMY_WORK *pPl;
 
-    pPl = pl ? G.pUnk2660 : &Pl_work;
+    pPl = pl ? G.pEnemy[1] : &Pl_work;
     pPl->Routine_0 = 2;
     pPl->Routine_1 = dir + 2;
     pPl->Routine_2 = 0;
@@ -2499,7 +2499,7 @@ void func_801063D8(ULONG pl)
 {
     ENEMY_WORK *pPl;
 
-    pPl = pl ? G.pUnk2660 : &Pl_work;
+    pPl = pl ? G.pEnemy[1] : &Pl_work;
     pPl->Routine_0 = 3;
     pPl->Routine_1 = 0;
     pPl->Routine_2 = 0;
@@ -2514,7 +2514,7 @@ ENEMY_WORK *func_8010640C(ENEMY_WORK *pEm)
     pTg = G_PLAYER;
     EF(pEm)->Target_pl = 0;
     if ((LONG)G.Status_flg < 0) {
-        pTg = G.pUnk2660;
+        pTg = G.pEnemy[1];
         EF(pEm)->Target_pl = 1;
     }
     return pTg;
@@ -2607,7 +2607,7 @@ LONG func_8010664C(ENEMY_WORK *pEm, ENEMY_WORK **ppList, LONG Id, LONG Num)
     ENEMY_WORK *pT;
     LONG Cnt = 0;
 
-    for (ppEm = &G.pUnk265C; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[0]; ppEm != G.ppEnemy_end; ppEm++) {
         pT = *ppEm;
         if ((pT->Be_flg & 1) && pT->Id == Id && pT != pEm) {
             Cnt++;

@@ -573,7 +573,7 @@ LONG func_801019BC(ENEMY_WORK *pEm)
     ENEMY_WORK **ppEm;
     LONG n = 0;
 
-    for (ppEm = &G.pUnk265C; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[0]; ppEm != G.ppEnemy_end; ppEm++) {
         if (((*ppEm)->Be_flg & 1) && ((*ppEm)->Id == 0x23 || (*ppEm)->Id == 0x28) && *ppEm != pEm)
             n++;
     }

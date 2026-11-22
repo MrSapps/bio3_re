@@ -8,59 +8,8 @@
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
+#include "oba.h"
 
-/* RE3-only collision object list (80033508..80035790). Nodes are linked through pNext;
- * the player's node lives at Pl_work + 0x80. */
-typedef struct tagCOL_OBJ {
-    UCHAR Id;                          /* 0x00 */
-    UCHAR Flg;                         /* 0x01 */
-    UCHAR Type;                        /* 0x02 0 = player, < 3 = character */
-    UCHAR Unk3;                        /* 0x03 */
-    ENEMY_WORK *pEm;                   /* 0x04 */
-    LONG Pos_x;                        /* 0x08 */
-    LONG Pos_y;                        /* 0x0C */
-    LONG Pos_z;                        /* 0x10 */
-    SHORT Old_x;                       /* 0x14 */
-    SHORT Old_y;                       /* 0x16 */
-    SHORT Old_z;                       /* 0x18 */
-    USHORT W0;                         /* 0x1A */
-    USHORT D0;                         /* 0x1C */
-    USHORT H;                          /* 0x1E */
-    USHORT W1;                         /* 0x20 */
-    USHORT D1;                         /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
-    SHORT Unk26;                       /* 0x26 */
-    SHORT Unk28;                       /* 0x28 */
-    SHORT Unk2A;                       /* 0x2A */
-    SHORT Unk2C;                       /* 0x2C */
-    USHORT Hit_flg;                    /* 0x2E */
-    MATRIX *pM;                        /* 0x30 */
-    struct tagCOL_OBJ *pNext;          /* 0x34 */
-    UCHAR Em_idx;                      /* 0x38 */
-    UCHAR Unk39;                       /* 0x39 */
-    SHORT Unk3A;                       /* 0x3A */
-    LONG Unk3C;                        /* 0x3C */
-} COL_OBJ;
-
-typedef struct tagCOL_ENT {            /* 0x18 bytes */
-    SHORT X0;                          /* 0x00 */
-    SHORT Z0;                          /* 0x02 */
-    SHORT X1;                          /* 0x04 */
-    SHORT Z1;                          /* 0x06 */
-    USHORT Unk8;                       /* 0x08 */
-    USHORT UnkA;                       /* 0x0A */
-    LONG UnkC;                         /* 0x0C -1 terminates */
-    UCHAR Type;                        /* 0x10 */
-    UCHAR Em_idx;                      /* 0x11 */
-    UCHAR pad12[2];
-    COL_OBJ *pObj;                     /* 0x14 */
-} COL_ENT;
-
-typedef struct tagCOL_WORK {
-    COL_OBJ *pTop;                     /* 0x00 */
-    COL_OBJ *pTail;                    /* 0x04 */
-    COL_ENT Ent[1];                    /* 0x08 */
-} COL_WORK;
 extern COL_WORK D_800DCED0;
 extern COL_OBJ *D_800DCDD0[];
 
@@ -76,24 +25,12 @@ void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
 
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);
 
-/* array inside G at an offset not yet in tagGLOBAL (keeps the &G + index*size + ofs addressing) */
-#define G_ARR(type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)&G)->a)
-#define P_ARR(p, type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)(p))->a)
-
-typedef ULONG OT8[8];
-
 extern ULONG D_800CC87C;
 extern ULONG D_800D1F2C;
 extern UCHAR D_8009CD3C;
 ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
 LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
 void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
-typedef struct {
-    UCHAR pad0[0x265C];
-    ENEMY_WORK *pWork[42];             /* 0x265C */
-} G_WORKS;
 
 UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
 LONG func_800336B4(ENEMY_WORK *pEm);

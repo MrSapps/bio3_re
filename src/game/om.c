@@ -8,59 +8,9 @@
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
+#include "pl_wep.h"
+#include "oba.h"
 
-/* RE3-only collision object list (80033508..80035790). Nodes are linked through pNext;
- * the player's node lives at Pl_work + 0x80. */
-typedef struct tagCOL_OBJ {
-    UCHAR Id;                          /* 0x00 */
-    UCHAR Flg;                         /* 0x01 */
-    UCHAR Type;                        /* 0x02 0 = player, < 3 = character */
-    UCHAR Unk3;                        /* 0x03 */
-    ENEMY_WORK *pEm;                   /* 0x04 */
-    LONG Pos_x;                        /* 0x08 */
-    LONG Pos_y;                        /* 0x0C */
-    LONG Pos_z;                        /* 0x10 */
-    SHORT Old_x;                       /* 0x14 */
-    SHORT Old_y;                       /* 0x16 */
-    SHORT Old_z;                       /* 0x18 */
-    USHORT W0;                         /* 0x1A */
-    USHORT D0;                         /* 0x1C */
-    USHORT H;                          /* 0x1E */
-    USHORT W1;                         /* 0x20 */
-    USHORT D1;                         /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
-    SHORT Unk26;                       /* 0x26 */
-    SHORT Unk28;                       /* 0x28 */
-    SHORT Unk2A;                       /* 0x2A */
-    SHORT Unk2C;                       /* 0x2C */
-    USHORT Hit_flg;                    /* 0x2E */
-    MATRIX *pM;                        /* 0x30 */
-    struct tagCOL_OBJ *pNext;          /* 0x34 */
-    UCHAR Em_idx;                      /* 0x38 */
-    UCHAR Unk39;                       /* 0x39 */
-    SHORT Unk3A;                       /* 0x3A */
-    LONG Unk3C;                        /* 0x3C */
-} COL_OBJ;
-
-typedef struct tagCOL_ENT {            /* 0x18 bytes */
-    SHORT X0;                          /* 0x00 */
-    SHORT Z0;                          /* 0x02 */
-    SHORT X1;                          /* 0x04 */
-    SHORT Z1;                          /* 0x06 */
-    USHORT Unk8;                       /* 0x08 */
-    USHORT UnkA;                       /* 0x0A */
-    LONG UnkC;                         /* 0x0C -1 terminates */
-    UCHAR Type;                        /* 0x10 */
-    UCHAR Em_idx;                      /* 0x11 */
-    UCHAR pad12[2];
-    COL_OBJ *pObj;                     /* 0x14 */
-} COL_ENT;
-
-typedef struct tagCOL_WORK {
-    COL_OBJ *pTop;                     /* 0x00 */
-    COL_OBJ *pTail;                    /* 0x04 */
-    COL_ENT Ent[1];                    /* 0x08 */
-} COL_WORK;
 extern COL_WORK D_800DCED0;
 extern COL_OBJ *D_800DCDD0[];
 
@@ -76,24 +26,12 @@ void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
 
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);
 
-/* array inside G at an offset not yet in tagGLOBAL (keeps the &G + index*size + ofs addressing) */
-#define G_ARR(type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)&G)->a)
-#define P_ARR(p, type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)(p))->a)
-
-typedef ULONG OT8[8];
-
 extern ULONG D_800CC87C;
 extern ULONG D_800D1F2C;
 extern UCHAR D_8009CD3C;
 ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
 LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
 void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
-typedef struct {
-    UCHAR pad0[0x265C];
-    ENEMY_WORK *pWork[42];             /* 0x265C */
-} G_WORKS;
 
 UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
 LONG func_800336B4(ENEMY_WORK *pEm);
@@ -131,18 +69,14 @@ void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
 
 extern void (*D_8009CBB4[])(void);
 
-#define EM_COL(p) ((COL_OBJ *)((UCHAR *)(p) + 0x80))
-
 LONG func_800346AC(COL_OBJ *pObj, ENEMY_WORK *pEm, ENEMY_WORK *pT);
 
 LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
 
-void func_8002AB34(ULONG *pTmd, ULONG Tpage, ULONG Clut);
 PARTS_W *func_8002E61C(ENEMY_WORK *pEm, PARTS_W *pParts);
 PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
 void func_8003589C(OBJ_MODEL_WORK *pOm, ULONG *pKan);
-void Md_set_abr(ULONG *pTmd, ULONG Abr);             /* md_sub.c */
 #define PW_FREE(p) ((USHORT *)&(p)->Unk74)  /* PARTS_W 0x74..0x7F */
 /* per object-model type (ENEMY_WORK.Type & 0x1F) */
 typedef struct {
@@ -159,17 +93,17 @@ void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
         *(ULONG **)((UCHAR *)pEm + 0x184) = pData + 1;
         pData = (ULONG *)((UCHAR *)pData + *pData);
     }
-    if (G_ARR(ULONG *, 0x2150)[0] != pData) {
-        G_ARR(ULONG *, 0x2150)[0] = pData;
+    if (G.pOld_tmd != pData) {
+        G.pOld_tmd = pData;
         func_8002AB34(pData, EM_UCHAR(pEm, 0x48), EM_UCHAR(pEm, 0x49));
     }
     *(ULONG *)&pEm->Routine_0 = 0;
     pEm->pTmd = pData + 2;
     pEm->Poly_rgb = 0x808080;
     if (pEm->Id == 1) {
-        G_ARR(PARTS_W *, 0x213C)[0] = func_8002E61C(pEm, G_ARR(PARTS_W *, 0x213C)[0]);
+        G.pEm_mem = (ENEMY_WORK *)func_8002E61C(pEm, (PARTS_W *)G.pEm_mem);
     } else {
-        G_ARR(PARTS_W *, 0x213C)[0] = func_80035868(pEm, G_ARR(PARTS_W *, 0x213C)[0]);
+        G.pEm_mem = (ENEMY_WORK *)func_80035868(pEm, (PARTS_W *)G.pEm_mem);
         func_8003589C((OBJ_MODEL_WORK *)pEm, *(ULONG **)((UCHAR *)pEm + 0x184));
     }
 }
@@ -215,16 +149,16 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     pMw = pCcp->pOm;
     Clut = GetClut(0x120, D_800CC84B + 0x1E0 + Col_wk_no) & 0xFFFF;
     if (pMw->Unk4A != 1) {
-        Poly_num = pMw->pTmd_head->N_poly;
-        p = pMw->pTmd_head->pPacket;
+        Poly_num = pMw->pTmd->n_prim3;
+        p = pMw->pTmd->pPrim3;
         if (Poly_num != 0)
             D0 = *p >> 22;
         for (i = 0; i < Poly_num; i++) {
             *p = (*p & 0xffff) | (Clut << 16);
             p += 3;
         }
-        Poly_num = pMw->pTmd_head->N_poly2;
-        p = pMw->pTmd_head->pPacket2;
+        Poly_num = pMw->pTmd->n_prim4;
+        p = pMw->pTmd->pPrim4;
         if (Poly_num != 0)
             D0 = *p >> 22;
         for (i = 0; i < Poly_num; i++) {
@@ -232,7 +166,7 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
             p += 4;
         }
     } else {
-        Poly_num = pMw->pTmd_head->N_poly2;
+        Poly_num = pMw->pTmd->n_prim4;
         p = pMw->pPacket188;
         if (Poly_num != 0)
             D0 = p[3] >> 22;
@@ -384,7 +318,7 @@ void Col_chg_ctr_80036248(CC_PARTS_WORK *pCcp)
     }
     pPrim0 = (POLY_GT4 *)pOm->pPacket188;
     pPrim1 = pPrim0 + 1;
-    n = pOm->pTmd_head->N_poly2;
+    n = pOm->pTmd->n_prim4;
     do {
         if (pPrim0->v0 < pCcp->Cc_num) {
             d = pCcp->Cc_num - pPrim0->v0;
@@ -425,7 +359,7 @@ void Tex_ctr(void)
     }
     D0 = G.Cbuf_id;
     pCcp = Cc_work.Cc_parts;
-    pOt = G_ARR(OT8, 0x2048)[D0];
+    pOt = G.Ot2[D0];
     i = 0;
     do {
         if (pCcp->Cc_flg & 0x40) {
@@ -443,19 +377,14 @@ void Tex_ctr(void)
     } while (i < D1);
 }
 
-typedef struct tagOM_WORK {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR Routine_0;                   /* 0x004 */
-    UCHAR pad5[0x194 - 0x5];
-} OM_WORK;
-extern void (*D_8009CC64[])(OM_WORK *pOm);
+extern void (*D_8009CC64[])(OBJ_MODEL_WORK *pOm);
 extern LONG D_800DD4AC;                /* number of pushable object models touched this frame */
 extern OBJ_MODEL_WORK *D_800DD4B0;     /* the one on the player's floor */
 void func_80036570(void);
 
 void Om_move(void)
 {
-    OM_WORK *pOm;
+    OBJ_MODEL_WORK *pOm;
 
     if (EM_UCHAR(G.pRoom, 2) == 0) {
         return;
@@ -467,7 +396,7 @@ void Om_move(void)
     D_800DD4B0 = NULL;
     G.Status_flg &= ~0x10;
     Tex_ctr();
-    for (pOm = G_ARR(OM_WORK, 0x4328); pOm != G_ARR(OM_WORK *, 0x75A8)[0]; pOm++) {
+    for (pOm = G.Ob_model; pOm != G.pObj_work_end; pOm++) {
         D_8009CC64[pOm->Routine_0](pOm);
     }
     func_80036570();
@@ -678,15 +607,6 @@ void func_8003749C(OBJ_MODEL_WORK *pOm)
     Rot_add_matrix(pOm->M.t, &pOm->Cdir.vx, &pOm->M, &D_800DD4A0);
 }
 
-typedef struct {
-    LONG *pPos;
-    SHORT W;
-    SHORT H;
-    SHORT D;
-    SHORT padA;
-    SHORT R;
-    SHORT padE;
-} HIT_REQ;
 LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
 LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
 
@@ -755,7 +675,7 @@ void func_80037680(OBJ_MODEL_WORK *pOm)
         break;
     case 1:
         if (--pOm->Routine_3 != 0) {
-            Req.pPos = &pOm->M.t[0];
+            Req.pPos = (VECTOR *)pOm->M.t;
             Req.W = 0;
             Req.H = 0;
             Req.D = 0;
@@ -775,13 +695,13 @@ void func_8003783C(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_1) {
     case 0:
-        *G_ARR(SHORT *, 0x75AC)[EM_UCHAR(pEm, 0xC1)] = 0xFF;
+        *G.pUnk75AC[EM_UCHAR(pEm, 0xC1)] = 0xFF;
         pEm->Routine_1 = 1;
         break;
     case 1:
         break;
     case 2:
-        *G_ARR(SHORT *, 0x75AC)[EM_UCHAR(pEm, 0xC1)] = 0;
+        *G.pUnk75AC[EM_UCHAR(pEm, 0xC1)] = 0;
         pEm->Routine_0 = 0;
         pEm->Routine_1 = 0;
         break;
@@ -796,7 +716,6 @@ extern MATRIX GsWSMATRIX;              /* 0x80098990 */
 extern MATRIX LIGHTMATRIX;             /* 0x80098950 */
 extern MATRIX COLORMATRIX;             /* 0x80098930 */
 
-
 void Om_trans(void)
 {
     MATRIX M;
@@ -810,7 +729,7 @@ void Om_trans(void)
         return;
     for (Cnt = 0; Cnt < nOmodel;) {
         pG = &G;
-        pOm = (OBJ_MODEL_WORK *)G.Ob_model + Cnt;
+        pOm = G.Ob_model + Cnt;
         pG->pEm = (struct tagENEMY_WORK *)pOm;
         Cnt++;
         if (!(pOm->Be_flg & 1))
@@ -841,12 +760,6 @@ void Om_trans(void)
     }
 }
 
-typedef struct {
-    OBJ_MODEL_WORK Om[32];
-    OBJ_MODEL_WORK *pEnd;              /* G + 0x75A8 */
-} OB_MODEL_TBL;
-extern OB_MODEL_TBL D_800CEA60;        /* G.Ob_model */
-
 void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
 {
     ENEMY_WORK **pp;
@@ -856,13 +769,13 @@ void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
     tagGLOBAL *pG = &G;
 
     pG->Status_flg &= ~0x2000;
-    pAot = G_ARR(UCHAR *, 0x21D4)[0];
-    for (pp = pG->pEnemy; pp != pG->ppEnemy_end; pp++) {
+    pAot = (UCHAR *)G.Sce_aot[31];
+    for (pp = &pG->pEnemy[2]; pp != pG->ppEnemy_end; pp++) {
         if ((*pp)->Id == pOm->Unk4A)
             break;
     }
     i = 0;
-    for (p = D_800CEA60.Om; p != D_800CEA60.pEnd; p++, i++) {
+    for (p = G.Ob_model; p != G.pObj_work_end; p++, i++) {
         if ((p->Be_flg & 1) && p->Unk4A == 8)
             break;
     }
@@ -879,7 +792,6 @@ void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
     G.Unk7E20++;
 }
 
-typedef ULONG ULONG4[4];
 ULONG func_80037D50(VECTOR *pPos);
 
 void func_80037C38(void)
@@ -888,24 +800,24 @@ void func_80037C38(void)
     ENEMY_WORK **pp;
     ENEMY_WORK **ppEnd;
     ENEMY_WORK *pEm;
-    OM_WORK *pOm;
+    OBJ_MODEL_WORK *pOm;
 
     pG = &G;
     ppEnd = pG->ppEnemy_end;
-    for (pp = &pG->pUnk265C; pp != ppEnd; pp++) {
+    for (pp = &pG->pEnemy[0]; pp != ppEnd; pp++) {
         pEm = *pp;
         if (pEm->Be_flg & 1) {
             if (pEm->Be_flg & 0x80) {
-                *(ULONG *)((UCHAR *)pEm + 0x7C) = P_ARR(pG, ULONG4, 0x2090)[pG->Cbuf_id][EM_UCHAR(pEm, 0xD)];
+                *(ULONG *)((UCHAR *)pEm + 0x7C) = (ULONG)pG->pOt_sub[pG->Cbuf_id][EM_UCHAR(pEm, 0xD)];
             } else {
                 *(ULONG *)((UCHAR *)pEm + 0x7C) = func_80037D50((VECTOR *)&pEm->Pos_x);
             }
         }
     }
-    for (pOm = P_ARR(pG, OM_WORK, 0x4328); pOm != P_ARR(pG, OM_WORK *, 0x75A8)[0]; pOm++) {
+    for (pOm = pG->Ob_model; pOm != pG->pObj_work_end; pOm++) {
         if (pOm->Be_flg & 1) {
             if (pOm->Be_flg & 0x80) {
-                *(ULONG *)((UCHAR *)pOm + 0x7C) = P_ARR(pG, ULONG4, 0x2090)[pG->Cbuf_id][EM_UCHAR(pOm, 0xD)];
+                *(ULONG *)((UCHAR *)pOm + 0x7C) = (ULONG)pG->pOt_sub[pG->Cbuf_id][EM_UCHAR(pOm, 0xD)];
             } else {
                 *(ULONG *)((UCHAR *)pOm + 0x7C) = func_80037D50((VECTOR *)((UCHAR *)pOm + 0x34));
             }
@@ -924,7 +836,7 @@ ULONG func_80037D50(VECTOR *pPos)
     USHORT *pBlk;
 
     pG = &G;
-    if (P_ARR(pG, LONG, 0x2470)[0] == 0) {
+    if (pG->Unk2470 == 0) {
         goto end;
     }
     pHead = *(USHORT **)((UCHAR *)pG->pRoom + 0x40);
@@ -933,7 +845,7 @@ ULONG func_80037D50(VECTOR *pPos)
     }
     goto end;
 found:
-    return P_ARR(pG, ULONG4, 0x2090)[pG->Cbuf_id][((USHORT *)p)[1]];
+    return (ULONG)pG->pOt_sub[pG->Cbuf_id][((USHORT *)p)[1]];
 start:
     pBlk = (USHORT *)((UCHAR *)pHead + ((ULONG *)pHead)[pG->Cut_no + 1]);
     n = *pBlk;

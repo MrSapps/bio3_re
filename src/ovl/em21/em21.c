@@ -15,7 +15,7 @@ extern void (*Pldamage_Em21_tbl[])() __asm__("D_801052D0");
 /* peck hit boxes (x, z, w, d) and the hit area record passed to func_800445C8 */
 extern SHORT Em21_peck_box0[4] __asm__("D_80105110");
 extern SHORT Em21_peck_box1[4] __asm__("D_80105118");
-extern EM21_HIT_AREA Em21_hit_area __asm__("D_801052E4");
+extern HIT_AREA Em21_hit_area __asm__("D_801052E4");
 
 void func_801002F8(ENEMY_WORK *pEm);
 void func_80103258(PARTS_W *pP, LONG B_y);
@@ -66,7 +66,7 @@ void func_8010014C(ENEMY_WORK *pEm)
     EF(pEm)->Old_x = pEm->Pos_x;
     EF(pEm)->Old_y = pEm->Pos_y;
     EF(pEm)->Old_z = pEm->Pos_z;
-    if (G.pEnemy[1] == pEm) {
+    if (G.pEnemy[3] == pEm) {
         Print_color(3, 1, 0);
         Print8(50, 50, "%04x, %d", pEm->UnkAE, EF(pEm)->Sca_cnt);
     }
@@ -1902,7 +1902,7 @@ void func_80104B90(ULONG Mask)
     ENEMY_WORK *pEm;
     ENEMY_WORK **ppEm;
 
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm = *ppEm;
         if (pEm->Id == 0x21 && !(EF(pEm)->Flg & 4)) {
             EF(pEm)->Flg |= Mask;
@@ -1952,7 +1952,7 @@ void func_80104D5C(void)
 
     if (!G.Pl_damage_cnt)
         return;
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm = *ppEm;
         D0 = pEm->Routine_1;
         if (pEm->Id == 0x21 && (pEm->Be_flg & 1) && (D0 < 4 || D0 > 6)) {

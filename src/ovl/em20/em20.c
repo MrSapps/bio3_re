@@ -1058,7 +1058,7 @@ void Em20_Move_died(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     ENEMY_WORK *pTg;
 
-    pTg = G.pUnk2660;
+    pTg = G.pEnemy[1];
     if ((LONG)G.Status_flg >= 0 || pTg->Life)
         pTg = (ENEMY_WORK *)&G.Pl_be_flg;
     switch (pEm->Routine_2) {
@@ -1385,7 +1385,7 @@ LONG Ck_em_id(ENEMY_WORK *pEm, ENEMY_WORK **ppList, LONG Id, LONG Num)
     ENEMY_WORK *pT;
     LONG Cnt = 0;
 
-    for (ppEm = &G.pUnk265C; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[0]; ppEm != G.ppEnemy_end; ppEm++) {
         pT = *ppEm;
         if ((pT->Be_flg & 1) && pT->Id == Id && pT != pEm) {
             Cnt++;
@@ -2213,7 +2213,7 @@ LONG Atck_range_ck(ENEMY_WORK *pEm)
     LONG dist;
 
     pFp = EM20_W(pEm);
-    pTg = (pFp->Target_pl) ? G.pUnk2660 : &Pl_work;
+    pTg = (pFp->Target_pl) ? G.pEnemy[1] : &Pl_work;
     if (pTg->Life < 0)
         return -2;
     dist = (pFp->Target_pl) ? (pEm->Unk158 & 0x3FFFFFFF) : pEm->Unk154;
@@ -2242,7 +2242,7 @@ ULONG hit_ck_main(ENEMY_WORK *pEm, LONG pl)
     pFp = EM20_W(pEm);
     pPt = pEm->pSin_parts_ptr;
     pPt += 4;
-    pPl = (pl) ? G.pUnk2660 : &Pl_work;
+    pPl = (pl) ? G.pEnemy[1] : &Pl_work;
     d0 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100);
     range = (pPl->Life >= 13) ? 1000 : 700;
     pP = pPl->pSin_parts_ptr;
@@ -2349,7 +2349,7 @@ void Em20_Pl_to_dmg(ULONG pl, UCHAR dir)
 {
     ENEMY_WORK *pPl;
 
-    pPl = (pl) ? G.pUnk2660 : &Pl_work;
+    pPl = (pl) ? G.pEnemy[1] : &Pl_work;
     pPl->Routine_0 = 2;
     pPl->Routine_1 = dir + 2;
     pPl->Routine_2 = 0;
@@ -2362,7 +2362,7 @@ void Em20_Pl_to_die(ULONG pl)
 {
     ENEMY_WORK *pPl;
 
-    pPl = (pl) ? G.pUnk2660 : &Pl_work;
+    pPl = (pl) ? G.pEnemy[1] : &Pl_work;
     pPl->Routine_0 = 3;
     pPl->Routine_1 = 0;
     pPl->Routine_2 = 0;
@@ -2396,10 +2396,10 @@ ENEMY_WORK *Get_target_pl(ENEMY_WORK *pEm)
     pTg = (ENEMY_WORK *)&G.Pl_be_flg;
     EM20_W(pEm)->Target_pl = 0;
     if ((LONG)G.Status_flg < 0) {
-        pTg = G.pUnk2660;
+        pTg = G.pEnemy[1];
         EM20_W(pEm)->Target_pl = 1;
-        if (G.pUnk2660->Life >= 21) {
-            pTg = G.pUnk2660;
+        if (G.pEnemy[1]->Life >= 21) {
+            pTg = G.pEnemy[1];
             EM20_W(pEm)->Target_pl = 1;
         }
     }

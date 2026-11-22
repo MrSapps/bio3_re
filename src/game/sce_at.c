@@ -6,8 +6,9 @@
 #include "sub.h"
 #include "player.h"
 #include "om.h"
-
-
+#include "esp.h"
+#include "cd.h"
+#include "status.h"
 
 extern UCHAR D_800D442C[];
 extern UCHAR D_800E017F[];
@@ -37,47 +38,11 @@ LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
 LONG Pad_vib_fade_set();
-LONG func_8001B894();
 void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
 extern UCHAR D_8009E340[];
-extern UCHAR D_800E0170;
-typedef struct {
-    void *pData;                       /* 0x0 */
-    UCHAR pad4;
-    UCHAR Id;                          /* 0x5 */
-    UCHAR pad6[2];
-} SCE_UNK_DECC0;
-extern SCE_UNK_DECC0 D_800DECC0[];
 LONG Xa_play();
 typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
 typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern EM_FUNC D_8009ECDC[];
-extern EM_FUNC D_8009ECF8[];
-extern EM_FUNC3 D_8009ED24[];
-extern EM_FUNC3 D_8009ED84[];
-extern EM_FUNC3 D_8009E7DC[];
-extern EM_FUNC3 D_8009E82C[];
-extern EM_FUNC3 D_8009E87C[];
-extern EM_FUNC3 D_8009E8CC[];
-extern EM_FUNC3 D_8009E91C[];
-extern EM_FUNC3 D_8009E96C[];
-extern EM_FUNC3 D_8009E9BC[];
-extern EM_FUNC3 D_8009EA0C[];
-extern EM_FUNC3 D_8009EA5C[];
-extern EM_FUNC3 D_8009EAAC[];
-extern EM_FUNC3 D_8009EAFC[];
-extern EM_FUNC3 D_8009EB4C[];
-extern EM_FUNC3 D_8009EB9C[];
-extern EM_FUNC3 D_8009EBEC[];
-typedef struct {
-    UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5;
-    UCHAR Unk6;                        /* 0x06 set when the drawer item is shown (Hikidashi_entrance) */
-    UCHAR pad7[0xB8 - 0x7];
-    SHORT UnkB8;                       /* 0xB8 */
-} ST_WORK;
-extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern UCHAR D_800A0FDC[];
 extern SHORT D_800D1F8E[];
 extern SHORT D_800D1F82;
@@ -99,51 +64,18 @@ void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079868(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_800E01C6[];
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-typedef struct {
-    LONG Unk0;                         /* 0x00 */
-    LONG Pos[3];                       /* 0x04 */
-    LONG Tgt[3];                       /* 0x10 */
-} SCE_CAMERA;
-extern SCE_CAMERA D_800E0150;
 LONG Set_view(LONG *pPos, LONG *pTgt);
-typedef struct {
-    UCHAR Unk0;                        /* 0x00 */
-    UCHAR Unk1;                        /* 0x01 */
-    UCHAR pad2[0x24 - 0x2];
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0xC0 - 0x26];
-    LONG UnkC0;                        /* 0xC0 */
-    UCHAR padC4[0xD4 - 0xC4];
-} SCE_UNK_D4;
-extern SCE_UNK_D4 D_800BA8A8[];
 extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
 void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
-typedef struct {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR pad4[0x20 - 0x4];
-    LONG Pos[3];                       /* 0x020 */
-    UCHAR pad2C[0x4A - 0x2C];
-    UCHAR Attr;                        /* 0x04A */
-    UCHAR pad4B[0xC1 - 0x4B];
-    UCHAR UnkC1;                       /* 0x0C1 */
-    UCHAR padC2;
-    UCHAR UnkC3;                       /* 0x0C3 */
-    UCHAR padC4[0x194 - 0xC4];
-} SCE_OM_WORK;
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
 ENEMY_WORK *Spl_em_cdir_ck();
 ENEMY_WORK *Spl_pllock_get();
 extern UCHAR D_800A0514[];
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
 extern UCHAR D_8009CDE0[];
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
 ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
@@ -221,13 +153,6 @@ typedef struct tagSCE_ITEM_DATA {
 
 void Hikidashi_entrance(void);
 
-/* G with Ob_model typed as in RE2 (OBJ_MODEL_WORK Ob_model[32]); bio3.h keeps it as raw rows. The typed
- * array is needed for the pG + index*0x194 operand order. */
-typedef struct {
-    UCHAR pad0[0x4328];
-    OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 */
-} G_OM_VIEW;
-
 /* door AOT (RE2 IN_DOOR_WORK; RE3 layout) */
 typedef struct tagSCE_AOT_DOOR {
     UCHAR pad0[0xD];
@@ -262,7 +187,7 @@ void Sce_at(void)
         Sce_at_check(&G.Pl_be_flg, 1, 0x10);
     }
     Sce_at_check(&G.Pl_be_flg, 1, 0);
-    for (ppEw = G.pEnemy; ppEw != G.ppEnemy_end; ppEw++) {
+    for (ppEw = &G.pEnemy[2]; ppEw != G.ppEnemy_end; ppEw++) {
         pEw = *ppEw;
         if (pEw->Be_flg & 1) {
             pEw->Water = 0;
@@ -270,16 +195,16 @@ void Sce_at(void)
         }
     }
     pEw = (ENEMY_WORK *)G.Ob_model;
-    pOm_end = (OBJ_MODEL_WORK *)G.Ob_model + G.pRoom->nOmodel;
+    pOm_end = G.Ob_model + G.pRoom->nOmodel;
     for (; pEw < (ENEMY_WORK *)pOm_end; pEw = (ENEMY_WORK *)((OBJ_MODEL_WORK *)pEw + 1)) {
         if (pEw->Be_flg & 1) {
             pEw->Water = 0;
             Sce_at_check(pEw, 4, 0);
         }
     }
-    if (G.pUnk2660->Be_flg & 1) {
-        G.pUnk2660->Water = 0;
-        Sce_at_check(G.pUnk2660, 8, 0);
+    if (G.pEnemy[1]->Be_flg & 1) {
+        G.pEnemy[1]->Water = 0;
+        Sce_at_check(G.pEnemy[1], 8, 0);
     }
 }
 
@@ -301,7 +226,7 @@ ULONG Sce_Door(void *pAot)
     pG = &G;
     pDoor = (SCE_AOT_DOOR *)pAot;
     pG->pAot_data = pCAot;
-    pG->Unk21DC = (LONG)pAot;
+    pG->pUnk21DC = pAot;
     if (!(pG->Status_flg & 0x400000)) {
         if (pDoor->Key_id & 0x80) {
             if (pG->System_flg & 0x80) {
@@ -402,7 +327,7 @@ void func_800510B0(void)
     if (G.Front_func_rtn == 0 && (Moji.Mess_flg & 0x80) == 0) {
         if (G.Unk7848 == 0) {
             Game.Doordemo_flg = 1;
-            G.pSce_aot_on = (void *)G.Unk21DC;
+            G.pSce_aot_on = G.pUnk21DC;
             G.Unk2468 |= 0xff000000;
         }
         G.Front_func = NULL;
@@ -413,7 +338,7 @@ void func_800510B0(void)
 /* RE2 Sce_Item */
 ULONG Sce_Item(void *pAot)
 {
-    G.Unk21DC = (LONG)pAot;
+    G.pUnk21DC = pAot;
     G.pAot_data = pCAot;
     if ((((UCHAR *)pAot)[7] & 1) != 0) {
         G.Pl_routine_1 = 8;
@@ -437,7 +362,7 @@ void func_800511B0(void)
     tagGLOBAL *pG = &G;
     UCHAR *pDat;
 
-    pDat = (UCHAR *)pG->Unk21DC;
+    pDat = pG->pUnk21DC;
     switch (pG->Front_func_rtn) {
     case 0:
         Moji.Mess_item = pDat[0];
@@ -574,7 +499,7 @@ void Item_box_entrance(void)
         Game.Stop_bak = pG->Unk2468;
         pG->Unk2468 |= 0x7F000000;
         Snd_se_stad(0x214, 0, 0, 0);
-        D_800DECA0 = (OBJ_MODEL_WORK *)pG->Ob_model[0];
+        D_800DECA0 = &pG->Ob_model[0];
         pG->Back_func_rtn = 1;
     case 1:
         D_800DECA0->Cdir.vz -= D_800DEC9C;
@@ -608,7 +533,7 @@ void Item_box_entrance(void)
 
 ULONG func_80051684(void *pAot)
 {
-    G.Unk21DC = (LONG)pAot;
+    G.pUnk21DC = pAot;
     G.System_flg |= 0x2000;
     return 0;
 }
@@ -632,17 +557,17 @@ ULONG Sce_Hikidashi(void *pAot)
             if (!Flg_ck(pG->Unk7994, pDat[0])) {
                 if (Search_item_id(0x72, 0) >= 0) {
                     pG->Front_func_rtn = 1;
-                    pG->Unk21DC = (LONG)pAot;
+                    pG->pUnk21DC = pAot;
                     pG->pAot_data = pCAot;
                     pG->Front_func = Hikidashi_entrance;
                 } else {
                     Mess_set(0, 0x2000, pDat[2] >> 8, 0xFF000000);
                 }
             } else {
-                pG->Unk21DC = (LONG)pAot;
+                pG->pUnk21DC = pAot;
                 pG->pAot_data = pCAot;
                 Snd_se_stad(0x228, 0, 0, 0);
-                ((G_OM_VIEW *)pG)->Ob_model[((SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data)->Om_no].Be_flg |= 0x41;
+                pG->Ob_model[((SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data)->Om_no].Be_flg |= 0x41;
                 Cut_change(((UCHAR *)pDat)[4]);
                 Game.Stop_bak = pG->Unk2468;
                 G.Unk2468 |= 0xFF000000;
@@ -671,7 +596,7 @@ void Hikidashi_entrance(void)
     USHORT *pDat;
 
     pG = &G;
-    pDat = (USHORT *)pG->Unk21DC;
+    pDat = pG->pUnk21DC;
     switch (pG->Front_func_rtn) {
     case 0:
         break;
@@ -697,7 +622,7 @@ void Hikidashi_entrance(void)
             break;
         }
         G.Status_flg &= ~0x80;
-        ((G_OM_VIEW *)pG)->Ob_model[Hiki_pItem_dat->Om_no].Be_flg &= ~0x41;
+        pG->Ob_model[Hiki_pItem_dat->Om_no].Be_flg &= ~0x41;
         pG->Front_func = NULL;
         pG->Front_func_rtn = 0;
         break;
@@ -705,7 +630,7 @@ void Hikidashi_entrance(void)
         Hiki_pAot = pG->pAot_data;
         Hiki_pItem_dat = (SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data;
         pG->pAot_data = pG->Sce_aot[pDat[1]];
-        pG->Unk21DC = (LONG)&pG->Sce_aot[pDat[1]]->Data;
+        pG->pUnk21DC = &pG->Sce_aot[pDat[1]]->Data;
         St.St_type = 1;
         G.Status_flg = (G.Status_flg & ~0x100) | 0x200;
         Game.Unk1 = 1;

@@ -100,6 +100,32 @@ prologue/epilogue register save order should separate GCC 2.7.2 from 2.8.1/2.95.
   https://github.com/MeganGrass/bio2-ds (cloned at ../ref/bio2-ds). Same engine lineage, so struct and
   function names should carry over a lot. Its Makefile: PsyQ 4.0, GNU C 2.7.2.SN32.3.7, `-O2 -G 16 -mgpopt -membedded-data`.
 
+## Header layout
+One definition per type: a struct used by more than one file lives in the header of the module that
+owns the data (RE2's header split); a .c keeps a private type only when no other file uses that layout.
+- bio3.h: tagGLOBAL (G) and the structs G embeds: KAGE_WORK/KAGE_WORK9, RCUT, OBJ_MODEL_WORK
+  (G.Ob_model[32]), ITEM_WORK/ITEM_SET (G.Item_work[2]), EM_BIN_INFO (G.Em_bin_info[2]), PARTS_W.
+  G.pEnemy[42] is RE2's pEnemy ([0] player, [1] sub player, [2..] enemies); G.Ctp is the Ctpage/Cclut
+  byte pair, also written as one halfword (Tpage_clut).
+- main.h: VCUT, ROOM_WORK, FADE, DBUF, tagMAIN, tagGAME, SAVE_POS (Game.pSave). game.h: FLASH_WORK.
+- em_sub.h: ENEMY_WORK, KAN_HEAD. joint.h: JOINT_P and the PARTS_W free-work layouts at +0x74
+  (PARTS_NECK_FREE_WORK / PW_NECK, PARTS_RGB_FREE_WORK / PW_RGB).
+- esp.h: the effect pool (ESP_WORK D_800BA8A8[96], RE2 Esp[]; RE3 layout), SSEQUENCE, SPR_GP.
+- md_sub.h: MD_OBJ/MD_HEAD (RE3 model files) and the sorter works MD_WORK, MD_WORK2, RGB_BLEND_WORK,
+  SORT_PARAM. om.h: CC_PARTS_WORK, CC_WORK (OBJ_MODEL_WORK itself is in bio3.h).
+- pl_wep.h: HIT_REQ (func_800472EC/func_80047BD0), HIT_AREA (func_800445C8, every overlay uses it),
+  EM_HIT_AREA, OM_TARGET, PL_WEP_*.
+- cd.h: tagCD, CD_LINK, CD_ENTRY, FLOC, EM_DAT (D_800DECC0, filled by the room streamer).
+- sce0.h: SCE_TASK, MODEL_LINK_INFO, SCENARIO (Sce). The SCE opcode records stay private in sce1.c.
+- status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in 800636D4.c.
+- snd.h: SND_* incl. SND_VOL embedded at SND_WORK.Vol (0x7C0) and the listener Cam_x/y/z, Cattr.
+- sub.h: LIGHT_CUT_DATA, LIGHT_ZONE, PL_SAVE (D_800C7048). sca.h: SCA_HEAD, SCA_DATA, SCA_WORK.
+  oba.h: COL_OBJ, COL_ENT, COL_WORK. Overlay-only types live in include/ovl/<name>.h.
+Views of G that remain on purpose (codegen needs a second declaration of the symbol, so gcc does
+not share the &G base): result.h GLOBAL_RESULT `Gr`, em23.h G_PL_VIEW and em33.h EM33_GPL `G_pl`.
+The player is still split into G.Pl_* fields (RE2 has `PLAYER_WORK Player` at 0x248C); folding it
+into an ENEMY_WORK member would also let those two overlay views go.
+
 ## Module map (src/game, one file per original object)
 Files are split where the original objects begin, so each file's .rodata starts where the original
 object's .rdata did; that is what jump-table alignment needs (see "Fourth pass"). Names are RE2 module

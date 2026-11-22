@@ -8,6 +8,7 @@
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
+#include "esp.h"
 
 extern PL_WEP_DATA *D_8009DBB4[];      /* per-weapon hit data, index player Id */
 ENEMY_WORK *func_80044804(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
@@ -15,32 +16,8 @@ LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
 LONG Dir_limit(LONG Dir, LONG Base, LONG Lim, SHORT *pDir);
 LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
 
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
-typedef struct {
-    UCHAR pad0[0x265C];
-    ENEMY_WORK *pWork[42];             /* 0x265C */
-} G_WORKS;
-
 ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 
-void func_8002AB34(ULONG *pTmd, ULONG Tpage, ULONG Clut);
-
-typedef struct tagOM_WORK {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR Routine_0;                   /* 0x004 */
-    UCHAR pad5[0x194 - 0x5];
-} OM_WORK;
-
-/* hit-check request (func_800472EC, func_80047BD0) */
-typedef struct tagHIT_REQ {
-    VECTOR *pPos;                      /* 0x0 */
-    SHORT W;                           /* 0x4 */
-    SHORT H;                           /* 0x6 */
-    SHORT D;                           /* 0x8 */
-    SHORT padA;
-    SHORT R;                           /* 0xC rotation y */
-    SHORT padE;
-} HIT_REQ;
 /* attack data, D_80097FCC[] entries */
 typedef struct tagHIT_ATTR {
     UCHAR Unk0;                        /* 0x00 */
@@ -116,7 +93,7 @@ void Pl_neck(ENEMY_WORK *pEm, ULONG LL, SHORT Dir)
         Pl_neck_timer = 0x2D;
         if (pG->Em_num != 0) {
             Lim = LL;
-            ppEm = &pG->pUnk2660;
+            ppEm = &pG->pEnemy[1];
             do {
                 pCand = *ppEm;
                 if ((pCand->Be_flg & 1) && !(pCand->Type & 0xC000)) {
@@ -661,8 +638,6 @@ void pl_mv05_w1_t5(ENEMY_WORK *pEm)
     }
 }
 
-#define G_WORK(i) (((G_WORKS *)&G)->pWork[i])
-
 void func_8003F79C(ENEMY_WORK *pEm)
 {
     tagGLOBAL *pG = &G;
@@ -685,7 +660,7 @@ void func_8003F79C(ENEMY_WORK *pEm)
         return;
     }
     Found = 0;
-    ppT = pG->pEnemy;
+    ppT = &pG->pEnemy[2];
     Cnt = 0;
     pCur = pEm->pEnemy_ptr;
     do {
@@ -711,7 +686,7 @@ void func_8003F79C(ENEMY_WORK *pEm)
         Idx = 2;
     }
     do {
-        pT = G_WORK(Idx);
+        pT = G.pEnemy[Idx];
         if (pT->Be_flg & 1) {
             Tgt.vx = pT->pSin_parts_ptr[pT->Neck_no].Workm.t[0];
             Tgt.vy = pT->pSin_parts_ptr[pT->Neck_no].Workm.t[1];
@@ -724,7 +699,7 @@ void func_8003F79C(ENEMY_WORK *pEm)
                 Sel = Idx;
             }
         }
-        if ((ENEMY_WORK **)G_WORK(Idx) == G.ppEnemy_end) {
+        if ((ENEMY_WORK **)G.pEnemy[Idx] == G.ppEnemy_end) {
             Idx = 2;
         } else {
             Idx++;
@@ -737,7 +712,7 @@ void func_8003F79C(ENEMY_WORK *pEm)
     if (Start == Sel && Prev != 0) {
         Sel = Prev;
     }
-    pEm->pEnemy_ptr = G_WORK(Sel);
+    pEm->pEnemy_ptr = G.pEnemy[Sel];
 }
 
 void func_8003FA38(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
@@ -963,13 +938,6 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
 #include "pl_wep2.h"
 #include "pad.h"
 
-/* RE2 Esp_call-like effect spawn; returns the effect work or -1 */
-typedef struct {
-    UCHAR pad0[0x10];
-    SHORT Unk10;                       /* 0x10 */
-    SHORT Unk12;                       /* 0x12 */
-    SHORT Unk14;                       /* 0x14 */
-} ESP_WORK;
 ESP_WORK *func_8001B484_800402F4(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv) __asm__("func_8001B484");
 SHORT func_8006D030(ULONG Arg0);
 ULONG func_800102E8_800402F4(void) __asm__("func_800102E8");                 /* rand */
@@ -1417,8 +1385,8 @@ void func_800410F8(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
 }
@@ -1532,8 +1500,8 @@ void func_800418CC(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
 }
@@ -1578,8 +1546,8 @@ void func_80041A80(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
 }
@@ -1624,8 +1592,8 @@ void func_80041C34(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
 }
@@ -1670,8 +1638,8 @@ void func_80041DE8(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
 }
@@ -1726,16 +1694,16 @@ void func_80041F9C(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x30000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 5;
-            pEsp->Unk12 = -0x50;
+            pEsp->Spd_x = 5;
+            pEsp->Spd_y = -0x50;
         }
         Sv.vx = 0xDC;
         Sv.vy = -0x3E8;
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x30000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 5;
-            pEsp->Unk12 = -0x50;
+            pEsp->Spd_x = 5;
+            pEsp->Spd_y = -0x50;
         }
         Game.Plight_flg = 1;
     }
@@ -1824,27 +1792,27 @@ void func_80042474(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x8000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x14;
-            pEsp->Unk12 = -0x14;
-            pEsp->Unk14 = -0x14;
+            pEsp->Spd_x = -0x14;
+            pEsp->Spd_y = -0x14;
+            pEsp->Spd_z = -0x14;
         }
         pEsp = func_8001B484_800402F4(3, 0x8000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x14;
-            pEsp->Unk12 = -0x14;
-            pEsp->Unk14 = 0x14;
+            pEsp->Spd_x = -0x14;
+            pEsp->Spd_y = -0x14;
+            pEsp->Spd_z = 0x14;
         }
         pEsp = func_8001B484_800402F4(3, 0x10000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x1E;
-            pEsp->Unk12 = -0x1E;
-            pEsp->Unk14 = -0x1E;
+            pEsp->Spd_x = -0x1E;
+            pEsp->Spd_y = -0x1E;
+            pEsp->Spd_z = -0x1E;
         }
         pEsp = func_8001B484_800402F4(3, 0x10000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x1E;
-            pEsp->Unk12 = -0x1E;
-            pEsp->Unk14 = 0x1E;
+            pEsp->Spd_x = -0x1E;
+            pEsp->Spd_y = -0x1E;
+            pEsp->Spd_z = 0x1E;
         }
         Game.Plight_flg = 1;
     }
@@ -1939,8 +1907,8 @@ void func_800427D8(PLAYER_WORK *pEm)
         Sv.vz = -0x26;
         pEsp = func_8001B484_800402F4(0x603, (USHORT)(signed char)func_800102E8_800402F4() | 0x10000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
@@ -2019,8 +1987,8 @@ void func_80042AE4(PLAYER_WORK *pEm)
         Sv.vz = -0x26;
         pEsp = func_8001B484_800402F4(0x603, (USHORT)(signed char)func_800102E8_800402F4() | 0x10000000, &pO->Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
 }
@@ -2117,8 +2085,8 @@ void func_80042E34(PLAYER_WORK *pEm)
         Sv.vz = 0xD;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
     if (pEm->Move_cnt == 9) {
@@ -2271,8 +2239,8 @@ void func_800434F8(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x10000000, &pP[4].Workm, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = 0x14;
-            pEsp->Unk12 = -0x28;
+            pEsp->Spd_x = 0x14;
+            pEsp->Spd_y = -0x28;
         }
     }
     G.Status_flg &= ~0x40;
@@ -2311,27 +2279,27 @@ void func_800439F8(PLAYER_WORK *pEm)
         Sv.vz = 0;
         pEsp = func_8001B484_800402F4(3, 0x6000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x14;
-            pEsp->Unk12 = -0x14;
-            pEsp->Unk14 = -0x14;
+            pEsp->Spd_x = -0x14;
+            pEsp->Spd_y = -0x14;
+            pEsp->Spd_z = -0x14;
         }
         pEsp = func_8001B484_800402F4(3, 0x6000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x14;
-            pEsp->Unk12 = -0x14;
-            pEsp->Unk14 = 0x14;
+            pEsp->Spd_x = -0x14;
+            pEsp->Spd_y = -0x14;
+            pEsp->Spd_z = 0x14;
         }
         pEsp = func_8001B484_800402F4(3, 0xD000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x1E;
-            pEsp->Unk12 = -0x1E;
-            pEsp->Unk14 = -0x1E;
+            pEsp->Spd_x = -0x1E;
+            pEsp->Spd_y = -0x1E;
+            pEsp->Spd_z = -0x1E;
         }
         pEsp = func_8001B484_800402F4(3, 0xD000000, pM, &Sv, 0);
         if (pEsp != (ESP_WORK *)-1) {
-            pEsp->Unk10 = -0x1E;
-            pEsp->Unk12 = -0x1E;
-            pEsp->Unk14 = 0x1E;
+            pEsp->Spd_x = -0x1E;
+            pEsp->Spd_y = -0x1E;
+            pEsp->Spd_z = 0x1E;
         }
         Game.Plight_flg = 1;
     }
@@ -2599,7 +2567,7 @@ ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL)
         pEm->pEnemy_ptr = pEm;
         return 0;
     }
-    ppTgt = pG->pEnemy;
+    ppTgt = &pG->pEnemy[2];
     if (LL != 0) {
         Min_dist = LL;
     }
@@ -2682,13 +2650,6 @@ LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm)
     }
     return ((pEm->Unk132 & 0x8000) == 0) << 2;
 }
-
-typedef struct {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
 
 LONG func_800445C8(ULONG A0, ULONG A1, HIT_AREA *pA, ENEMY_WORK *pEm)
 {
@@ -2950,7 +2911,7 @@ ENEMY_WORK *func_800457A4(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim)
         return pG->pEm;
     }
     Min = LL;
-    ppT = pG->pEnemy;
+    ppT = &pG->pEnemy[2];
     do {
         pT = *ppT;
         if ((pT->Be_flg & 1) && pT->Damage_cnt == 0 && !(pT->Type & 0xC000)) {
@@ -3209,7 +3170,7 @@ ULONG func_800470F4(VECTOR *pPos, LONG Ll0, LONG Ll1)
     LONG d;
 
     Ret = 0;
-    ppT = &pG->pUnk265C;
+    ppT = &pG->pEnemy[0];
     i = 0;
     ppEnd = pG->ppEnemy_end;
     do {
@@ -3498,7 +3459,7 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
     Top = pAttr->Top;
     TransposeMatrix(&M, &Mt);
     SetRotMatrix(&Mt);
-    ppT = G.pEnemy;
+    ppT = &G.pEnemy[2];
     Kind = pAttr->Unk0;
     ppEnd = G.ppEnemy_end;
     if (ppEnd == ppT) {
@@ -3570,9 +3531,9 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
 
 void Quake_add(LONG X, LONG Y)
 {
-    G.Unk7860 += Y;
+    G.Time += Y;
     G.Unk2118 += Y;
-    G.Unk211A += X;
+    G.Score += X;
     if (G.Unk2116 == 0) {
         G.Unk2116 += 0x5A;
     }

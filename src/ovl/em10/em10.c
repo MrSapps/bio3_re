@@ -57,9 +57,9 @@ void func_80100254(ENEMY_WORK *pEm)
     pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
     if ((LONG)pG->Status_flg < 0) {
         if ((pEm->Unk158 & 0xC0000000) == 0x40000000)
-            pTv = (VECTOR *)&pG->pUnk2660->Pos_x;
+            pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
         if (pEm->Type & 0x200)
-            pTv = (VECTOR *)&pG->pUnk2660->Pos_x;
+            pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
     }
     pFlg = &EM10_W(pEm)->Flg;
     Root_ck(pEm, pTv, EM10_W(pEm)->Root_no, EM10_W(pEm)->Flg & 0x400);
@@ -519,7 +519,7 @@ void func_801017F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     UCHAR Type_mot[4][2] = { { 12, 12 }, { 15, 15 }, { 12, 12 }, { 15, 15 } }; /* as Em10_mv03 */
     SVECTOR Sv;
     MATRIX M;                          /* unused (frame size) */
-    ENEMY_WORK *pAt = G_pWork[pEm->Unk14A];
+    ENEMY_WORK *pAt = G.pEnemy[pEm->Unk14A];
     UCHAR Atck[4][2] = { { 16, 20 }, { 1, 5 }, { 16, 30 }, { 1, 10 } };
     VECTOR V;                          /* unused (frame size) */
     PARTS_W *pP;
@@ -900,7 +900,7 @@ void func_801023D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             i = 2;
             while (Ck_flg) {
                 if ((Ck_flg & 0x8000) && !((pEm->UnkDA >> i) & 1)) {
-                    pT = G_pWork[i];
+                    pT = G.pEnemy[i];
                     if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
                         && !(EM10_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
                         EM_RTN(pT) = 0x901;
@@ -1841,7 +1841,7 @@ void func_80104FC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             break;
         }
         if (pEm->Move_cnt >= 5 && pEm->Move_cnt < 25 && pEm->Col_unk3 != 0xFF) {
-            pT = G_pWork[pEm->Col_unk3];
+            pT = G.pEnemy[pEm->Col_unk3];
             if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
                 && !(EM10_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
                 EM_RTN(pT) = 0x901;
@@ -1989,7 +1989,6 @@ void func_80105C18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
 void func_80105E64(void) {
 }
-
 
 /* RE2 Em10_mv06: falling down and getting up again */
 void func_80105E6C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)

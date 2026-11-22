@@ -53,9 +53,9 @@ void func_801001EC(ENEMY_WORK *pEm)
     pTv = (VECTOR *)&pG->Pl_pos_x;
     if ((LONG)pG->Status_flg < 0) {
         if ((pEm->Unk158 & 0xC0000000) == 0x40000000)
-            pTv = (VECTOR *)&pG->pUnk2660->Pos_x;
+            pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
         if (pEm->Type & 0x200)
-            pTv = (VECTOR *)&pG->pUnk2660->Pos_x;
+            pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
     }
     pFlg = &EM16_W(pEm)->Flg;
     Root_ck(pEm, pTv, EM16_W(pEm)->Root_no, EM16_W(pEm)->Flg & 0x400);
@@ -1005,7 +1005,7 @@ void func_801027D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             i = 2;
             while (Ck_flg) {
                 if ((Ck_flg & 0x8000) && !((pEm->UnkDA >> i) & 1)) {
-                    pT = G_pWork[i];
+                    pT = G.pEnemy[i];
                     if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
                         && !(EM16_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
                         EM_RTN(pT) = 0x901;
@@ -1555,8 +1555,6 @@ void func_80104764(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80104A68(void) {
 }
 
-
-
 /* RE2 Em10_mv03: grabbing and biting the player */
 void func_80104A70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
@@ -1736,7 +1734,7 @@ void func_80104A70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             break;
         }
         if (pEm->Move_cnt >= 5 && pEm->Move_cnt < 25 && pEm->Col_unk3 != 0xFF) {
-            pT = G_pWork[pEm->Col_unk3];
+            pT = G.pEnemy[pEm->Col_unk3];
             if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
                 && !(EM16_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
                 EM_RTN(pT) = 0x901;
@@ -1884,7 +1882,6 @@ void func_801056C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
 void func_8010590C(void) {
 }
-
 
 /* RE2 Em10_mv06: falling down and getting up again */
 void func_80105914(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)

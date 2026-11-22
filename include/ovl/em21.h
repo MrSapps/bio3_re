@@ -11,6 +11,7 @@
 #include "mojidisp.h"
 #include "pad.h"
 #include "player.h"
+#include "pl_wep.h"
 
 /* em21's view of ENEMY_WORK.Unk1CC[] (RE2 struct tagEM21F at ENEMY_FREE(pEm), EF->) */
 typedef struct tagEM21_FREE {
@@ -45,14 +46,6 @@ typedef struct tagEM21_FREE {
 /* keep a coordinate inside +-l (scenario flight paths) */
 #define EM21_LIMIT(v, l) ((v) < -(l) ? -(l) : ((v) > (l) ? (l) : (v)))
 
-/* hit area handed to func_800445C8 (pl_wep.c) */
-typedef struct tagEM21_HIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM21_HIT_AREA;
-
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
 LONG Rnd_area(void);                                                    /* root_ck.c */
@@ -61,7 +54,7 @@ void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);            /* root_
 LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);      /* joint.c, frame-end flag */
 void Spd_get(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);         /* em_sub.c */
 LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3);           /* RE2 Sca_get_ground (sca.c) */
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM21_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");     /* em_sub.c Cdir_ck, int result as in RE2 EM21.H */
 void Add_speedXZ_n(ENEMY_WORK *pEm, LONG muki, LONG Dummy) __asm__("Add_speedXZ"); /* RE2 EM21 passes a 3rd arg */
 LONG func_800502B8(SVECTOR *pSv, struct tagSCA_DATA *pT);              /* RE2 Sca_get_dir (sca.c): 2 floor/corner, else wall side */

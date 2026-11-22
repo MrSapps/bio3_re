@@ -31,7 +31,7 @@ void func_80194160(TITLE_WORK *pTi)
         while (1) {
             switch (Step) {
             case 0:
-                Snd_work_t.Unk7C0 = 2;
+                Snd_work.Vol.Rv_mode = 2;
                 func_80197414();
                 Bg_set_mode(1, 0);
                 Fade_set(0, 0, FADE_HOLD, 1, 0, 0xFFFFFF, 30);
@@ -877,9 +877,9 @@ void func_80195C68(TITLE_WORK *pTi)
             G.Save_cnt = 0;
         } else {
             for (i = 0; i < 3; i++) {
-                GT->Merc_time[i] = -1;
-                GT->Merc_grade[i] = 0xFF;
-                GT->Merc_money[i] = 0;
+                G.Merc_time[i] = -1;
+                G.Merc_grade[i] = 0xFF;
+                G.Merc_money[i] = 0;
             }
         }
         G.Next_cut_no = G.Cut_no;
@@ -1029,14 +1029,14 @@ void func_801966CC(TITLE_WORK *pTi)
         func_80194C4C(pTi);
         Task_sleep(1);
     }
-    Cd_read(Title_pdemo_cd[Game_t.Demo_no], (ULONG *)0x80192000, 0, "Pdemo");
-    Game_t.pDemo = (UCHAR *)0x80192000;
-    G.Pl_id = Game_t.pDemo[0x712];
-    if (++Game_t.Demo_no >= 3) {
-        Game_t.Demo_no = 0;
+    Cd_read(Title_pdemo_cd[Game.Unk4F], (ULONG *)0x80192000, 0, "Pdemo");
+    Game.pSave = (SAVE_POS *)0x80192000;
+    G.Pl_id = Game.pSave->Id;
+    if (++Game.Unk4F >= 3) {
+        Game.Unk4F = 0;
     }
-    Game_t.Demo_cnt = 0;
-    Game_t.Demo_time = 0;
+    Game.Unk4E = 0;
+    Game.Pdemo_cnt = 0;
     G.Unk2115 = 3;
     Task_execute(1, D_80031BDC);
     G.System_flg = (G.System_flg | 0x10000000) & ~0x1000;
@@ -1060,7 +1060,7 @@ void func_80196800(TITLE_WORK *pTi)
         Task_sleep(1);
     }
     func_800100A4((void *)0x8019C000, (void *)0x80155814, 0x25814);
-    G.Unk2484 = 0x1E06;
+    G.Ctp.Tpage_clut = 0x1E06;
     Mapping_tim((ULONG *)0x80183068);
     for (i = 0; i < 2; i++) {
         pSp = &pTi->Buf[i].Ex.Pic;
@@ -1167,16 +1167,16 @@ start:
         G.System_flg |= 0x80;
     } else {
         Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);
-        pG->Unk7860 = 0x10E;
+        pG->Time = 0x10E;
         G.Status_flg |= 0x4000000;
     }
     D_800C79C0 = 0;
     /* i is still 2 from the sprite loop */
-    GT->Merc_time[i] = -1;
-    GT->Merc_grade[i] = 0xFF;
-    GT->Merc_money[i] = 0;
+    G.Merc_time[i] = -1;
+    G.Merc_grade[i] = 0xFF;
+    G.Merc_money[i] = 0;
     G.Pl_poison_timer = 0;
-    G.pUnk265C = (ENEMY_WORK *)&G.Pl_be_flg;
+    G.pEnemy[0] = (ENEMY_WORK *)&G.Pl_be_flg;
     G.Pl_status_flg &= ~0x200;
     G.Next_cut_no = G.Cut_no;
     pPl = (ENEMY_WORK *)&G.Pl_be_flg;
@@ -1282,7 +1282,7 @@ start:
     }
     D_800C79CC = pTi->Cur;
     G.Unk2118 = 0;
-    G.Unk211A = 0;
+    G.Score = 0;
     G.Unk2116 = 0;
     G.Next_cut_no = G.Cut_no;
     func_8006D0D8();
@@ -1339,6 +1339,6 @@ void func_80197448(void)
     } else {
         func_800100A4((void *)0x8019C000, (void *)0x80130000, 0x25814);
     }
-    G.Unk2484 = 0x1F05;
+    G.Ctp.Tpage_clut = 0x1F05;
     Mapping_tim((ULONG *)0x8017B028);
 }

@@ -51,7 +51,7 @@ void func_801C2228(void)
 {
     tagGLOBAL *pG = &G;
     MBOX_WORK *pMw = &Mbox_wk;
-    USHORT *pCut = (USHORT *)pG->Unk21DC;
+    USHORT *pCut = pG->pUnk21DC;
     ULONG Se_no;
 
     switch (pMw->Routine) {

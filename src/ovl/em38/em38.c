@@ -1,5 +1,6 @@
 #include "common.h"
 #include "ovl/em38.h"
+#include "md_sub.h"
 
 /* module .data; routine tables are unprototyped like RE2's, the routines take (pEm, pKan, pSeq) */
 extern void (*Em38_routine_0[])() __asm__("D_8010CCA0");
@@ -415,7 +416,7 @@ void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pG->pPldie_Em[pEm->Id - 0x10] = func_80109F14;
     EM38_W(pEm)->pUnk00 = NULL;
     pEm->Timer0 = 0;
-    ppE = pG->pEnemy;
+    ppE = &pG->pEnemy[2];
     do {
         pE = *ppE;
         if (pEm->Timer0 == 1 && pE->Id == 0x39) {

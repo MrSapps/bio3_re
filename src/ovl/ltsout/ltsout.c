@@ -5,7 +5,7 @@
 void func_801C2018(void)
 {
     tagGLOBAL *pG = &G;
-    LTS_EVT *pEvt = (LTS_EVT *)pG->Unk21DC;
+    LTS_EVT *pEvt = pG->pUnk21DC;
     LTS_WORK *pLw;
     ULONG i;
     TILE *pT;

@@ -16,6 +16,7 @@
 #include "pad.h"
 #include "player.h"
 #include "sca.h"
+#include "pl_wep.h"
 
 /* RE2 EM25_FREE (EM_SUB.H), the enemy's Free[] at 0x1CC (RE2 retail Free[1]) */
 typedef struct tagEM25_FREE {
@@ -61,14 +62,6 @@ typedef struct tagEM25_FREE {
 #define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
-
-/* hit box test around a point (pl_wep.c func_800445C8) */
-typedef struct tagHIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
 
 /* RE2 SCA_DATA.Floor: RE3 splits the word into Floor_lo/Floor_hi/High, em25 still reads it whole */
 #define SCA_FLOOR(p) (*(ULONG *)&(p)->Floor_lo)

@@ -58,7 +58,7 @@ typedef struct tagCD {
     UCHAR Em_id[4];                    /* 0x8C4 sorted enemy kinds in the room (func_800150E4) */
     ULONG Unk8C8;                      /* 0x8C8 flags */
     ULONG Unk8CC;                      /* 0x8CC */
-    UCHAR Unk8D0;                      /* 0x8D0 copy of G.Unk2484 (Cd_read) */
+    UCHAR Unk8D0;                      /* 0x8D0 copy of G.Ctp.Tpage_clut (Cd_read) */
     UCHAR Unk8D1;                      /* 0x8D1 copy of G.Unk2485 */
     UCHAR Fade_flg;                    /* 0x8D2 volume fade-out active */
     UCHAR Fade_step;                   /* 0x8D3 volume fade-out step */
@@ -85,6 +85,16 @@ typedef struct tagCD_ENTRY {
 #define CD_ENTRY_KIND(p) (*(USHORT *)&(p)->Type)
 
 extern tagCD CD;                       /* 0x800B9E10 */
+
+/* enemy model data record, one per enemy kind streamed in by func_800130A0 (8 bytes) */
+typedef struct tagEM_DAT {
+    struct tagENEMY_WORK *pEm;         /* 0x0 */
+    UCHAR Id;                          /* 0x4 */
+    UCHAR Kind;                        /* 0x5 */
+    UCHAR pad6[2];
+} EM_DAT;
+extern EM_DAT D_800DECC0[];            /* enemy model data records, D_800E0170 used */
+extern UCHAR D_800E0170;
 
 extern UCHAR Cd_mode;                  /* 0x800971CB, RE2: static cdmode in Cd_init */
 

@@ -693,8 +693,8 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     ENEMY_WORK *pPl;
     VECTOR Pos;
-    EM32_HIT_AREA Ha0;
-    EM32_HIT_AREA Ha1;
+    HIT_AREA Ha0;
+    HIT_AREA Ha1;
     SVECTOR Box[2];
     ULONG Ret;
     SHORT Ground;
@@ -703,16 +703,16 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Box[0].vy = 400;
     Box[0].vz = 800;
     Box[0].pad = 400;
-    Ha0.pPos = pEm->pSin_parts_ptr[3].Workm.t;
-    Ha0.pBox = &Box[0];
+    Ha0.pPos = (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t;
+    Ha0.pBox = &Box[0].vx;
     Ha0.Dir = pEm->Cdir_y;
     Ha0.Id = 0x81;
     Box[1].vx = 1200;
     Box[1].vy = -400;
     Box[1].vz = 800;
     Box[1].pad = 400;
-    Ha1.pPos = pEm->pSin_parts_ptr[3].Workm.t;
-    Ha1.pBox = &Box[1];
+    Ha1.pPos = (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t;
+    Ha1.pBox = &Box[1].vx;
     Ha1.Dir = pEm->Cdir_y;
     Ha1.Id = 0x82;
     pPl = &Pl_work;
@@ -1312,7 +1312,7 @@ LONG func_8010380C(ENEMY_WORK *pEm, USHORT Rtn)
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pEm2;
 
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm2 = *ppEm;
         if (pEm2 != pEm && pEm2->Id == 0x32 && (pEm2->Be_flg & 1) && EM_RTN01(pEm2) == Rtn)
             return 0;
@@ -1509,7 +1509,7 @@ void func_801040B0(void)
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pEm;
 
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm = *ppEm;
         if (pEm->Id == 0x32 && (pEm->Be_flg & 1) && EM32_W(pEm)->Unk1B == 1) {
             pEm->Routine_1 = 6;
@@ -1526,7 +1526,7 @@ void func_8010413C(SHORT Num)
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pEm;
 
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm = *ppEm;
         if (pEm->Id == 0x32 && (pEm->Be_flg & 1))
             EM32_W(pEm)->Unk1C = Num;

@@ -490,17 +490,17 @@ void func_801011C8(ENEMY_WORK *pEm)
 /* allocate a new work (copy of pEm) at the end of the work list (RE2 Enemy_work_set style) */
 ENEMY_WORK *func_8010138C(ENEMY_WORK *pEm)
 {
-    EM33_G *pG = (EM33_G *)&G;
+    tagGLOBAL *pG = &G;
     ULONG n = 0;
 
-    while (&pG->pEm_tbl[n] != pG->ppEnemy_end)
+    while (&pG->pEnemy[n] != pG->ppEnemy_end)
         n++;
     pG->Em_num++;
-    pG->pEm_tbl[n] = pG->pEm_mem;
-    pG->ppEnemy_end = &pG->pEm_tbl[n + 1];
+    pG->pEnemy[n] = pG->pEm_mem;
+    pG->ppEnemy_end = &pG->pEnemy[n + 1];
     pG->pEm_mem++;
-    *pG->pEm_tbl[n] = *pEm;
-    return pG->pEm_tbl[n];
+    *pG->pEnemy[n] = *pEm;
+    return pG->pEnemy[n];
 }
 
 /* cycle the morph keys 0..2 of parts 1-3 (Unk01 = phase). Returns the last sabun call's value:
@@ -1234,7 +1234,7 @@ extern const EM33_SPD_TBL Em33_spd_z_tbl __asm__("D_80100090"); /* { -10, 14, -2
 void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv;
-    EM33_HIT_AREA Area;
+    HIT_AREA Area;
     EM33_SPD_TBL Spd_z = Em33_spd_z_tbl;
     ENEMY_WORK *pPl = &Pl_work;
     LONG n = 3;
@@ -1282,7 +1282,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Col_d0 = 2000;
         pEm->Col_w0 = 2000;
         {
-            ENEMY_WORK *pW = ((EM33_G *)&G)->pEm_tbl[pEm->pSin_parts_ptr[8].Unk82];
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
         pW->Col_d0 = 2000;
         pW->Col_w0 = 2000;
         }
@@ -1334,7 +1334,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 1200;
             Sv.pad = 1200;
-            Area.pPos = pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x85;
@@ -1386,7 +1386,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Col_d0 = 1200;
         pEm->Col_w0 = 1200;
         {
-            ENEMY_WORK *pW = ((EM33_G *)&G)->pEm_tbl[pEm->pSin_parts_ptr[8].Unk82];
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
         pW->Col_d0 = 1400;
         pW->Col_w0 = 1400;
         }
@@ -1411,7 +1411,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Col_d0 = 1200;
         pEm->Col_w0 = 1200;
         {
-            ENEMY_WORK *pW = ((EM33_G *)&G)->pEm_tbl[pEm->pSin_parts_ptr[8].Unk82];
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
         pW->Col_d0 = 1400;
         pW->Col_w0 = 1400;
         }
@@ -1702,7 +1702,7 @@ void func_80105A48(ENEMY_WORK *pEm, LONG No)
 
     pP += No;
     if (No)
-        pW = ((EM33_G *)&G)->pEm_tbl[pP->Unk82];
+        pW = G.pEnemy[pP->Unk82];
     else
         pW = pEm;
     if (pP->UnkA2 & 1) {
@@ -1747,7 +1747,7 @@ void func_80105BB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_80100B5C(pEm, pKan, pSeq);
         Snd_se_enem(2, pEm);
     } else {
-        pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        pH = G.pEnemy[EM33_B(pEm)->Oya];
         if (EM33_B(pEm)->Parts == 8) {
             if (EM33_W(pH)->Morph_dir) {
                 EM33_W(pH)->Unk0C += 5;
@@ -1787,7 +1787,7 @@ void func_80105D74(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pH;
 
     if (pEm->Type & 1) {
-        pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        pH = G.pEnemy[EM33_B(pEm)->Oya];
         pH->Unk12C = pEm->Unk12C;
         if (pH->Routine_0 == 1)
             pH->Unk1C4 = EM_RTN(pH);
@@ -1822,7 +1822,7 @@ void func_80105F10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pH;
 
     if (pEm->Type & 1) {
-        pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        pH = G.pEnemy[EM33_B(pEm)->Oya];
         if (!Flg_ck(&G.Unk7888, 0) && EM33_W(pH)->Unk0B != 1) {
             pH->Unk12C = pEm->Unk12C;
             pH->Unk132 = pEm->Unk132;
@@ -1857,7 +1857,7 @@ void func_80106084(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pH;
 
     if (pEm->Type & 1) {
-        pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        pH = G.pEnemy[EM33_B(pEm)->Oya];
         if (!Flg_ck(&G.Unk7888, 0) && EM33_W(pH)->Unk0B != 1) {
             pH->Unk12C = pEm->Unk12C;
             pH->Unk132 = pEm->Unk132;
@@ -1902,7 +1902,7 @@ void func_801061C4(ENEMY_WORK *pEm)
     if (Dmg > 100)
         n += 2;
     if (pEm->Type & 1) {
-        pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        pH = G.pEnemy[EM33_B(pEm)->Oya];
         while (n--) {
             Sv.vx = (Rnd() & 0xFF) - 0x7F;
             Sv.vy = (Rnd() & 0xFF) - 0x7F;
@@ -1948,7 +1948,7 @@ void func_80106668(ENEMY_WORK *pEm)
         pEm->Unk16B = 0;
     case 2:
         Sv.vx = 0;
-        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, ((EM33_G *)&G)->Pl_pos_x, ((EM33_G *)&G)->Pl_pos_z);
+        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Pl_pos_x, G.Pl_pos_z);
         Sv.vz = 0;
         RotMatrix(&Sv, &M);
         Sv.vx = -(pEm->Unk16B * 120);
@@ -1961,7 +1961,7 @@ void func_80106668(ENEMY_WORK *pEm)
         if (!(pEm->Type & 1))
             pP = pEm->pSin_parts_ptr;
         else
-            pP = &((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya]->pSin_parts_ptr[EM33_B(pEm)->Parts];
+            pP = &G.pEnemy[EM33_B(pEm)->Oya]->pSin_parts_ptr[EM33_B(pEm)->Parts];
         Sv.vx = pP->Workm.t[0] + Ofs.vx;
         Sv.vy = pP->Workm.t[1] + Ofs.vy;
         Sv.vz = pP->Workm.t[2] + Ofs.vz;
@@ -2011,7 +2011,7 @@ void func_80106C48(ENEMY_WORK *pEm)
 
     if (pEm->Type & 1) {
         Up = Dn = EM33_B(pEm)->Parts;
-        pEm = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+        pEm = G.pEnemy[EM33_B(pEm)->Oya];
         if (Dn >= 7)
             Dn = 6;
     } else
@@ -2019,13 +2019,13 @@ void func_80106C48(ENEMY_WORK *pEm)
     while (Up < 7 || Dn >= 0) {
         if (Up < 7 && Up) {
             pP = &pEm->pSin_parts_ptr[Up];
-            EM33_W(((EM33_G *)&G)->pEm_tbl[pP->Unk82])->Rtn = Rtn;
+            EM33_W(G.pEnemy[pP->Unk82])->Rtn = Rtn;
         }
         if (Up == 0)
             EM33_W(pEm)->Rtn = Rtn;
         if (Dn > 0) {
             pP = &pEm->pSin_parts_ptr[Dn];
-            EM33_W(((EM33_G *)&G)->pEm_tbl[pP->Unk82])->Rtn = Rtn;
+            EM33_W(G.pEnemy[pP->Unk82])->Rtn = Rtn;
         }
         if (Dn == 0)
             EM33_W(pEm)->Rtn = Rtn;
@@ -2048,7 +2048,7 @@ void func_80106D64(ENEMY_WORK *pEm)
         if (EM33_W(pEm)->Rtn == 1 || EM33_W(pEm)->Rtn == 3 || EM33_W(pEm)->Rtn == 8) {
             if (EM33_W(pEm)->Rtn == 8) {
                 if (pEm->Type & 1) {
-                    pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+                    pH = G.pEnemy[EM33_B(pEm)->Oya];
                     Pos.vx = pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[0];
                     Pos.vy = pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[1];
                     Pos.vz = pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[2];
@@ -2070,7 +2070,7 @@ void func_80106D64(ENEMY_WORK *pEm)
                 Sv.vy <<= 2;
                 Sv.vz <<= 2;
                 if (pEm->Type & 1) {
-                    pH = ((EM33_G *)&G)->pEm_tbl[EM33_B(pEm)->Oya];
+                    pH = G.pEnemy[EM33_B(pEm)->Oya];
                     func_8001B484(0x2B, (USHORT)pH->Cdir_y | 0x40000000, &pH->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm, &Sv, 0);
                 } else {
                     func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x40000000, &pEm->pSin_parts_ptr[8].Workm, &Sv, 0);

@@ -387,7 +387,7 @@ void func_801C30E8(void)
         Main.Unk18E = 2;
     }
     Cd_read(0x15, (ULONG *)0x8019C000, 0, "CORE00_TIM");
-    pG->Unk2484 = 0x1E;
+    pG->Ctp.Tpage_clut = 0x1E;
     Mapping_tim((ULONG *)0x8019C000);
     Main.Bg_mode = Opt.Bg_mode_bak;
     Main.Unk191 = Opt.Unk191_bak;
@@ -652,10 +652,10 @@ void func_801C3C90(void)
         pW->Timer = 0;
         pW->Step++;
         pW->Stereo = Snd_work.UnkB75;
-        pW->Vol_bak[0] = Snd_work.Unk7CA;
-        pW->Vol_bak[1] = Snd_work.Unk7C8;
-        pW->Vol[0] = Snd_work.Unk7CA * 100 / 127;
-        pW->Vol[1] = Snd_work.Unk7C8 * 100 / 127;
+        pW->Vol_bak[0] = Snd_work.Vol.Bgm;
+        pW->Vol_bak[1] = Snd_work.Vol.Se;
+        pW->Vol[0] = Snd_work.Vol.Bgm * 100 / 127;
+        pW->Vol[1] = Snd_work.Vol.Se * 100 / 127;
         pW->Vol_old[0] = pW->Vol[0];
         pW->Vol_old[1] = pW->Vol[1];
     }
@@ -708,7 +708,7 @@ void func_801C3C90(void)
                 Opt.Vol[0] -= Opt.Hold / 6 + 1;
             }
             Opt.Vol[0] = Opt.Vol[0] < 0 ? 0 : Opt.Vol[0] > 100 ? 100 : Opt.Vol[0];
-            Snd_work.Unk7CA = (Opt.Vol[0] * 127 + 99) / 100;
+            Snd_work.Vol.Bgm = (Opt.Vol[0] * 127 + 99) / 100;
             if (Opt.Vol_old[0] != Opt.Vol[0]) {
                 Snd_se_stad(4, 0, 0, 0);
                 if (Opt.Vol_old[0] > Opt.Vol[0]) {
@@ -739,7 +739,7 @@ void func_801C3C90(void)
                 Opt.Vol[1] -= Opt.Hold / 6 + 1;
             }
             Opt.Vol[1] = Opt.Vol[1] < 0 ? 0 : Opt.Vol[1] > 100 ? 100 : Opt.Vol[1];
-            Snd_work.Unk7C8 = (Opt.Vol[1] * 127 + 99) / 100;
+            Snd_work.Vol.Se = (Opt.Vol[1] * 127 + 99) / 100;
             if (Opt.Vol_old[1] != Opt.Vol[1]) {
                 Snd_se_stad(4, 0, 0, 0);
                 if (Opt.Vol_old[1] > Opt.Vol[1]) {
@@ -773,8 +773,8 @@ void func_801C3C90(void)
     }
     if (Opt.Fade_mode == 0 && (G.Key_trg & 0x2000)) {
         Snd_se_stad(5, 0, 0, 0);
-        Snd_work.Unk7CA = Opt.Vol_bak[0];
-        Snd_work.Unk7C8 = Opt.Vol_bak[1];
+        Snd_work.Vol.Bgm = Opt.Vol_bak[0];
+        Snd_work.Vol.Se = Opt.Vol_bak[1];
         func_801C4E9C();
     }
 }
@@ -925,7 +925,6 @@ INCLUDE_ASM("asm/nonmatchings/ovl/option/option", func_801C4A70);
 
 __asm__(".section .rodata\n.align 2\n.section .text"); /* literals are word aligned */
 INCLUDE_RODATA("asm/nonmatchings/ovl/option/option", D_801C21A4);
-
 
 INCLUDE_ASM("asm/nonmatchings/ovl/option/option", func_801C4C94);
 

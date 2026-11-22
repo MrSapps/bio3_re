@@ -4,18 +4,7 @@
 #include "em_sub.h"
 #include "cd.h"
 #include "monitor.h"
-
-typedef struct tagST_POS {
-    SHORT X;                           /* 0x0 */
-    SHORT Y;                           /* 0x2 */
-} ST_POS;
-
-/* item list entry (G.pUnk7C7C: [0..9] inventory, [10..] item box) */
-typedef struct tagST_ITEM {
-    UCHAR Id;                          /* 0x0 */
-    UCHAR Num;                         /* 0x1 */
-    USHORT Flg;                        /* 0x2 */
-} ST_ITEM;
+#include "status.h"
 
 /* item AOT record at G+0x21DC */
 typedef struct tagST_AOT_ITEM {
@@ -38,133 +27,6 @@ typedef struct tagST_MAP_ROOM {
     SHORT X1;                          /* 0x4 */
     SHORT Z1;                          /* 0x6 */
 } ST_MAP_ROOM;
-
-/* status screen work (RE3, 0x800E01C0) */
-typedef struct tagST_WORK {
-    UCHAR pad0[4];
-    UCHAR Unk4;                        /* 0x04 screen mode (0/1 status, 2 item box, 3 file, 4/5 map) */
-    UCHAR pad5;
-    UCHAR Unk6;                        /* 0x06 */
-    UCHAR pad7;
-    ULONG *pBuf;                       /* 0x08 load buffer (D_800E01C8) */
-    UCHAR padC[0x10 - 0xC];
-    UCHAR Rtn0;                        /* 0x10 */
-    UCHAR Rtn1;                        /* 0x11 */
-    UCHAR Rtn2;                        /* 0x12 */
-    UCHAR Unk13;                       /* 0x13 frame counter of the current step */
-    ULONG Flg14;                       /* 0x14 */
-    ULONG Flg;                         /* 0x18 */
-    signed char Unk1C;                 /* 0x1C inventory cursor */
-    UCHAR Unk1D;                       /* 0x1D */
-    UCHAR Unk1E;                       /* 0x1E */
-    signed char Unk1F;                 /* 0x1F item box cursor (0..63) */
-    signed char Unk20;                 /* 0x20 */
-    UCHAR pad21;
-    SHORT Unk22;                       /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26;
-    UCHAR Unk27;                       /* 0x27 task running */
-    UCHAR Unk28;                       /* 0x28 */
-    UCHAR Unk29;                       /* 0x29 */
-    USHORT Unk2A;                      /* 0x2A */
-    UCHAR pad2C[0x2E - 0x2C];
-    UCHAR Unk2E;                       /* 0x2E */
-    UCHAR Unk2F;                       /* 0x2F */
-    UCHAR Unk30;                       /* 0x30 */
-    UCHAR pad31;
-    SHORT Unk32;                       /* 0x32 */
-    UCHAR Unk34;                       /* 0x34 condition (func_8006E598) */
-    UCHAR Unk35;                       /* 0x35 life to restore */
-    UCHAR Unk36;                       /* 0x36 cures poison */
-    UCHAR pad37[0x3A - 0x37];
-    UCHAR Unk3A;                       /* 0x3A */
-    UCHAR Unk3B;                       /* 0x3B */
-    UCHAR Unk3C;                       /* 0x3C */
-    UCHAR Unk3D;                       /* 0x3D */
-    UCHAR Unk3E;                       /* 0x3E */
-    UCHAR pad3F[0x42 - 0x3F];
-    ST_ITEM Unk42;                     /* 0x42 copy of the selected item entry */
-    UCHAR pad46[0x48 - 0x46];
-    ST_ITEM *Unk48;                    /* 0x48 combine: item A */
-    ST_ITEM *Unk4C;                    /* 0x4C combine: item B */
-    UCHAR *Unk50;                      /* 0x50 D_800A0514 entry of Unk48 */
-    UCHAR *Unk54;                      /* 0x54 D_800A0514 entry of Unk4C */
-    UCHAR *Unk58;                      /* 0x58 combine table record (8 bytes, D_800A07C4) */
-    UCHAR *Unk5C;                      /* 0x5C combine: slot no of item A */
-    UCHAR *Unk60;                      /* 0x60 combine: slot no of item B */
-    UCHAR Unk64;                       /* 0x64 combine result kind */
-    UCHAR Unk65;                       /* 0x65 combine result count */
-    SHORT Unk66;                       /* 0x66 */
-    SHORT Unk68;                       /* 0x68 */
-    UCHAR Unk6A;                       /* 0x6A weapon of a combine (D_800A00EC) */
-    UCHAR pad6B[0x6E - 0x6B];
-    UCHAR Unk6E;                       /* 0x6E */
-    UCHAR Unk6F;                       /* 0x6F */
-    UCHAR Unk70;                       /* 0x70 */
-    signed char Unk71;                 /* 0x71 */
-    signed char Unk72;                 /* 0x72 */
-    UCHAR Unk73;                       /* 0x73 */
-    UCHAR pad74[0x76 - 0x74];
-    UCHAR Unk76;                       /* 0x76 */
-    UCHAR Unk77;                       /* 0x77 */
-    UCHAR pad78[0x7C - 0x78];
-    LONG Unk7C;                        /* 0x7C */
-    LONG Unk80;                        /* 0x80 */
-    LONG Unk84;                        /* 0x84 */
-    LONG Unk88;                        /* 0x88 */
-    LONG Unk8C;                        /* 0x8C */
-    LONG Unk90;                        /* 0x90 */
-    LONG Unk94;                        /* 0x94 */
-    LONG Unk98;                        /* 0x98 */
-    LONG Unk9C;                        /* 0x9C */
-    LONG UnkA0;                        /* 0xA0 */
-    LONG UnkA4;                        /* 0xA4 */
-    UCHAR UnkA8;                       /* 0xA8 */
-    UCHAR UnkA9;                       /* 0xA9 */
-    UCHAR UnkAA;                       /* 0xAA */
-    UCHAR UnkAB;                       /* 0xAB */
-    UCHAR UnkAC;                       /* 0xAC */
-    UCHAR UnkAD;                       /* 0xAD */
-    signed char UnkAE;                 /* 0xAE */
-    signed char UnkAF;                 /* 0xAF */
-    UCHAR UnkB0;                       /* 0xB0 */
-    UCHAR UnkB1;                       /* 0xB1 */
-    UCHAR padB2[0xB4 - 0xB2];
-    ULONG *pUnkB4;                     /* 0xB4 map data: word offsets to ST_MAP_ROOM/ST_MAP_INFO tables and (room, cut, flag, kind) lists */
-    USHORT UnkB8;                      /* 0xB8 */
-    UCHAR UnkBA;                       /* 0xBA */
-    signed char UnkBB;                 /* 0xBB */
-    UCHAR UnkBC;                       /* 0xBC file number */
-    UCHAR UnkBD;                       /* 0xBD page number */
-    signed char UnkBE;                 /* 0xBE blink timer */
-    UCHAR UnkBF;                       /* 0xBF */
-    UCHAR UnkC0;                       /* 0xC0 */
-    UCHAR UnkC1;                       /* 0xC1 */
-    UCHAR padC2[0xC4 - 0xC2];
-    SHORT UnkC4;                       /* 0xC4 */
-    SHORT UnkC6;                       /* 0xC6 */
-    SHORT UnkC8;                       /* 0xC8 */
-    UCHAR UnkCA;                       /* 0xCA */
-    UCHAR UnkCB;                       /* 0xCB */
-    ULONG *UnkCC;                      /* 0xCC MAP.MAP data */
-    UCHAR UnkD0;                       /* 0xD0 clut rows of the status textures */
-    UCHAR UnkD1;                       /* 0xD1 */
-    UCHAR UnkD2;                       /* 0xD2 */
-    UCHAR UnkD3;                       /* 0xD3 */
-    UCHAR UnkD4;                       /* 0xD4 */
-    UCHAR UnkD5;                       /* 0xD5 */
-    UCHAR UnkD6;                       /* 0xD6 */
-    UCHAR UnkD7;                       /* 0xD7 */
-    UCHAR UnkD8;                       /* 0xD8 */
-    UCHAR padD9[0xE0 - 0xD9];
-    UCHAR *UnkE0;                      /* 0xE0 */
-    ST_POS Pos[32];                    /* 0xE4 panel positions, indexed by the prm>>8 byte of the prim setters */
-    DR_TPAGE Ot[2][40];                /* 0x164 per-buffer ordering nodes, index prm>>16 of the prim setters */
-    DR_TPAGE Tpage[2][2];              /* 0x3E4 */
-    DR_TPAGE Tp404[4];                 /* 0x404 */
-    DR_TPAGE Tp424[2];                 /* 0x424 */
-    DR_TPAGE Tp434[2];                 /* 0x434 */
-} ST_WORK;
 
 /* MAP.MAP (St.UnkCC) */
 typedef struct tagST_MAP_PART {
@@ -197,74 +59,6 @@ typedef struct tagST_MAP_ARROW {
     SHORT Y;                           /* 0xA */
 } ST_MAP_ARROW;
 
-/* overlays for G areas past the named fields */
-typedef struct { UCHAR pad[0x265C]; ENEMY_WORK *pEm[42]; } G265C;  /* 0x265C: pUnk265C, pUnk2660, pEnemy[] as one array */
-typedef struct tagUNK7C7C {
-    ST_ITEM Item[10];                  /* 0x000 inventory */
-    ST_ITEM Box[64];                   /* 0x028 item box */
-    UCHAR Unk128;                      /* 0x128 equipped slot (0xFF none) */
-    UCHAR Unk129;                      /* 0x129 equipped item id */
-    UCHAR Num;                         /* 0x12A */
-    UCHAR pad12B;
-    USHORT Unk12C[10];                 /* 0x12C */
-} UNK7C7C;
-typedef struct tagGLOBAL_X {
-    UCHAR pad0[0x2100];
-    USHORT Unk2100;                    /* 0x2100 G.Unk2100 */
-    UCHAR pad2102[0x2108 - 0x2102];
-    ULONG Key_trg;                     /* 0x2108 G.Key_trg */
-    UCHAR pad210C[0x2110 - 0x210C];
-    UCHAR Cbuf_id;                     /* 0x2110 G.Cbuf_id */
-    UCHAR pad2111[0x2120 - 0x2111];
-    ULONG System_flg;                  /* 0x2120 */
-    UCHAR pad2124[0x21D8 - 0x2124];
-    UCHAR *pUnk21D8;                   /* 0x21D8 G.pAot_data */
-    ST_AOT_ITEM *pUnk21DC;             /* 0x21DC */
-    UCHAR pad21E0[0x2474 - 0x21E0];
-    ULONG Unk2474[4];                  /* 0x2474 flag bits (Flg_ck) */
-    UCHAR Ctpage;                      /* 0x2484 RE2 Ctpage (tpage x of the next Mapping_tim) */
-    UCHAR Cclut;                       /* 0x2485 RE2 Cclut (clut row) */
-    UCHAR pad2486[0x2489 - 0x2486];
-    UCHAR Unk2489;                     /* 0x2489 */
-    UCHAR pad248A[0x248C - 0x248A];
-    ULONG Pl_be_flg;                   /* 0x248C start of the player ENEMY_WORK */
-    UCHAR pad2490[0x24D6 - 0x2490];
-    UCHAR Unk24D6;                     /* 0x24D6 player +0x4A (8..10: alternate status panel) */
-    UCHAR pad24D7[0x2558 - 0x24D7];
-    SHORT Pl_life;                     /* 0x2558 G.Pl_life */
-    SHORT Pl_life_max;                 /* 0x255A player max life */
-    UCHAR pad255C[0x255E - 0x255C];
-    USHORT Pl_status_flg;              /* 0x255E G.Pl_status_flg */
-    UCHAR pad2560[0x77F8 - 0x2560];
-    ULONG Unk77F8[3];                  /* 0x77F8 flag words (Flg_ck 6..10) */
-    UCHAR pad7804[0x7806 - 0x7804];
-    USHORT Unk7806;                    /* 0x7806 */
-    UCHAR Unk7808;                     /* 0x7808 */
-    UCHAR pad7809[0x7812 - 0x7809];
-    SHORT Unk7812;                     /* 0x7812 G.Sce_work[2]: id of the item last used */
-    USHORT Unk7814;                    /* 0x7814 last picked item id */
-    UCHAR pad7816[0x783E - 0x7816];
-    UCHAR Unk783E;                     /* 0x783E */
-    UCHAR pad783F[0x7840 - 0x783F];
-    UCHAR Unk7840;                     /* 0x7840 */
-    UCHAR pad7841[0x78D0 - 0x7841];
-    ULONG Unk78D0[8];                  /* 0x78D0 item pickup flags (Unk783E < 2) */
-    ULONG Unk78F0[8];                  /* 0x78F0 item pickup flags */
-    ULONG Unk7910[1];                  /* 0x7910 item flags (Flg_on with D_800A0514[id][2]) */
-    UCHAR pad7914[0x79A4 - 0x7914];
-    LONG Unk79A4[14];                  /* 0x79A4 */
-    ULONG Unk79DC[4];                  /* 0x79DC */
-    ULONG Unk79EC[1];                  /* 0x79EC flag word */
-    ULONG Unk79F0[1];                  /* 0x79F0 flag word */
-    ULONG Unk79F4[1];                  /* 0x79F4 flag word (Flg_on with item id - 0x85) */
-    LONG Unk79F8;                      /* 0x79F8 */
-    UNK7C7C Unk79FC[2];                /* 0x79FC, 0x140 bytes each */
-    UNK7C7C *pUnk7C7C;                 /* 0x7C7C */
-    LONG Unk7C80;                      /* 0x7C80 */
-    SHORT Unk7C84[(0x7E94 - 0x7C84) / 2]; /* 0x7C84 */
-    LONG Unk7E94;                      /* 0x7E94 total life healed? */
-} GLOBAL_X;
-#define GX (*(GLOBAL_X *)&G)
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
 void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
@@ -314,7 +108,6 @@ extern char D_80010F84[];
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern USHORT D_8009F4F8[][2];
 extern LONG D_800D23B8;
-extern ST_WORK St;
 void func_80073CCC(UCHAR *a, UCHAR *b);
 extern UCHAR D_800DBB58;
 extern USHORT D_800A004C[][2];
@@ -484,7 +277,6 @@ void func_80063850(ST_WORK *pSt)
     }
 }
 
-
 extern UCHAR D_800DBB5B;
 extern UCHAR D_800CEA80[];
 LONG func_8001B894();
@@ -494,7 +286,7 @@ void func_80063CAC(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     UCHAR *pA = pG->pAot_data;
-    UCHAR *pD = (UCHAR *)pG->Unk21DC;
+    UCHAR *pD = (UCHAR *)pG->pUnk21DC;
     UCHAR n;
     LONG ofs;
     ULONG f;
@@ -502,7 +294,7 @@ void func_80063CAC(ST_WORK *pSt)
 
     switch (pSt->Rtn1) {
     case 0:
-        switch (pSt->Unk4) {
+        switch (pSt->St_type) {
         case 0:
             pSt->Rtn0 = 2;
             pSt->Rtn1 = 5;
@@ -512,7 +304,7 @@ void func_80063CAC(ST_WORK *pSt)
             pSt->Flg = (f | 0x80000000) & ~0x100000;
             Cd_read(0x1D, pSt->pBuf, 0, "FILEI.TIM");
             p = pSt->pBuf;
-            pG->Unk2484 = 0x917;
+            pG->Ctp.Tpage_clut = 0x917;
             Mapping_tim(p);
             break;
         case 3:
@@ -646,7 +438,6 @@ void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
     }
 }
 
-
 void func_800643E4(ST_WORK *pSt)
 {
     ULONG a[2];
@@ -683,7 +474,7 @@ void func_8006446C(ST_WORK *pSt)
         Snd_se_stad(5, 0, 0, 0);
     } else if (G.Key_trg & 0x1000) {
         if ((signed char)pSt->Unk1C >= 0) {
-            id = GX.pUnk7C7C->Item[(signed char)pSt->Unk1C].Id;
+            id = G.pUnk7C7C->Item[(signed char)pSt->Unk1C].Id;
             for (i = 0; i < 1; i++) {
                 if (id == D_8009F564[i]) {
                     Mess_set(0, 0x1000, 0xB, 0);
@@ -708,7 +499,7 @@ void func_8006446C(ST_WORK *pSt)
             f = 1;
         }
         if (G.Unk2100 & 0x4000) {
-            if ((signed char)pSt->Unk1C < GX.pUnk7C7C->Num - 2) {
+            if ((signed char)pSt->Unk1C < G.pUnk7C7C->Num - 2) {
                 pSt->Unk1C += 2;
                 f = 1;
             }
@@ -741,19 +532,18 @@ void func_8006446C(ST_WORK *pSt)
     }
 }
 
-
-extern ST_ITEM *D_800D23B4;
+extern ITEM_WORK *D_800D23B4;
 void func_80065BA4(UCHAR a, UCHAR b);
 void func_80065C8C(UCHAR dst, UCHAR src);
 void func_8006ABF8(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
 
 void func_800646F0(ST_WORK *pSt)
 {
-    ST_ITEM tmp;
+    ITEM_WORK tmp;
     RECT r;
-    ST_ITEM *pI;
-    ST_ITEM *pB;
-    GLOBAL_X *pG;
+    ITEM_WORK *pI;
+    ITEM_WORK *pB;
+    tagGLOBAL *pG;
     signed char n;
     UCHAR *pInfo;
     signed char no;
@@ -770,14 +560,14 @@ void func_800646F0(ST_WORK *pSt)
     }
     if (G.Key_trg & 0x1000) {
         no = pSt->Unk1C;
-        pI = &GX.pUnk7C7C->Item[no];
+        pI = &G.pUnk7C7C->Item[no];
         if (pI->Id == 0) {
             no = Search_item_id(0, 0);
         }
         do {
-            if (GX.pUnk7C7C->Unk128 == no) {
-                GX.pUnk7C7C->Unk129 = 0;
-                GX.pUnk7C7C->Unk128 = 0xFF;
+            if (G.pUnk7C7C->Unk128 == no) {
+                G.pUnk7C7C->Unk129 = 0;
+                G.pUnk7C7C->Unk128 = 0xFF;
                 func_8006AE20(10, 11);
             }
             pInfo = D_800A0514[pI->Id];
@@ -876,7 +666,7 @@ void func_800646F0(ST_WORK *pSt)
         pSt->Flg |= 0x8000;
     }
     if (G.Unk20F8 & 0x5000) {
-        pI = &GX.pUnk7C7C->Item[n + 10];
+        pI = &G.pUnk7C7C->Item[n + 10];
         func_8006ABF8(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
         DrawSync(0);
     }
@@ -914,7 +704,7 @@ void func_800646F0(ST_WORK *pSt)
         pSt->UnkCB = 2;
         pSt->Flg |= 0x8000;
     }
-    pG = &GX;
+    pG = &G;
     if (*(ULONG *)&pG->Unk2100 & 0xC) {
         r.w = 20;
         r.h = 30;
@@ -923,7 +713,7 @@ void func_800646F0(ST_WORK *pSt)
             n = pSt->Unk1F + 0x3E;
         }
         for (i = 0; i < 5; i++) {
-            pI = &GX.pUnk7C7C->Item[n + 10];
+            pI = &G.pUnk7C7C->Item[n + 10];
         func_8006ABF8(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
             DrawSync(0);
             if (++n >= 0x40) {
@@ -942,23 +732,23 @@ void func_80064E80(ST_WORK *pSt)
 
     if (pSt->Unk13 == 0) {
         no = pSt->Rtn2;
-        if (pSt->Rtn2 >= GX.pUnk7C7C->Num - 1) {
+        if (pSt->Rtn2 >= G.pUnk7C7C->Num - 1) {
             pSt->Rtn1 = 0;
             pSt->Unk22 = 0;
             pSt->Unk24 = 0;
             return;
         }
         n = no;
-        GX.pUnk7C7C->Item[n].Id = GX.pUnk7C7C->Item[n + 1].Id;
-        GX.pUnk7C7C->Item[n].Num = GX.pUnk7C7C->Item[n + 1].Num;
-        GX.pUnk7C7C->Item[n].Flg = GX.pUnk7C7C->Item[n + 1].Flg;
-        GX.pUnk7C7C->Item[n + 1].Id = 0;
-        GX.pUnk7C7C->Item[n + 1].Num = 0;
-        GX.pUnk7C7C->Item[n + 1].Flg = 0;
+        G.pUnk7C7C->Item[n].Id = G.pUnk7C7C->Item[n + 1].Id;
+        G.pUnk7C7C->Item[n].Num = G.pUnk7C7C->Item[n + 1].Num;
+        G.pUnk7C7C->Item[n].Flg = G.pUnk7C7C->Item[n + 1].Flg;
+        G.pUnk7C7C->Item[n + 1].Id = 0;
+        G.pUnk7C7C->Item[n + 1].Num = 0;
+        G.pUnk7C7C->Item[n + 1].Flg = 0;
         func_8006AD38(no, no + 1);
-        if (GX.pUnk7C7C->Unk128 == n + 1) {
-            GX.pUnk7C7C->Unk128 = n;
-            GX.pUnk7C7C->Unk129 = GX.pUnk7C7C->Item[GX.pUnk7C7C->Unk128].Id;
+        if (G.pUnk7C7C->Unk128 == n + 1) {
+            G.pUnk7C7C->Unk128 = n;
+            G.pUnk7C7C->Unk129 = G.pUnk7C7C->Item[G.pUnk7C7C->Unk128].Id;
         }
         if ((signed char)pSt->Unk1C == n + 1) {
             pSt->Unk1C--;
@@ -966,7 +756,7 @@ void func_80064E80(ST_WORK *pSt)
             pSt->Pos[12].Y = ((signed char)pSt->Unk1C >> 1) * 30;
         }
         pSt->Rtn2++;
-        if (GX.pUnk7C7C->Item[n + 2].Id == 0) {
+        if (G.pUnk7C7C->Item[n + 2].Id == 0) {
             pSt->Rtn1 = 0;
             pSt->Unk22 = 0;
             pSt->Unk24 = 0;
@@ -975,7 +765,6 @@ void func_80064E80(ST_WORK *pSt)
     }
     pSt->Unk13--;
 }
-
 
 void func_80065054(ST_WORK *pSt)
 {
@@ -1069,7 +858,6 @@ void func_8006511C(ST_WORK *pSt)
     func_8006E7D4(pSt, (TILE *)0x8019D748, D_8009F4C0, 1);
     func_80065EE0(pSt);
 }
-
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800654A8);
 
@@ -1214,10 +1002,9 @@ void func_80065EE0(ST_WORK *pSt)
 
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800661B4);
 
-
 void func_80066530(ST_WORK *pSt)
 {
-switch (pSt->Unk4) { case 1: pSt->Rtn1 = 0xB; pSt->Rtn2 = 0; pSt->Rtn0++; break; case 0: pSt->Pos[3].X = 0x48; pSt->Pos[4].X = 0x48; pSt->Pos[5].X = 0x48; pSt->Pos[6].X = 0x48; pSt->Pos[7].X = 0x48; pSt->Pos[8].X = -0xD8; pSt->Pos[9].X = -0xD8; pSt->Pos[14].X = -0xD8; pSt->Pos[24].X = -0xD8; pSt->Pos[10].Y = 0x30; pSt->Rtn1 = 0; pSt->Unk22 = 0; pSt->Unk24 = 0; pSt->Flg |= 0x20000000; pSt->Flg |= 0x40000000; pSt->Rtn0++; break; }
+switch (pSt->St_type) { case 1: pSt->Rtn1 = 0xB; pSt->Rtn2 = 0; pSt->Rtn0++; break; case 0: pSt->Pos[3].X = 0x48; pSt->Pos[4].X = 0x48; pSt->Pos[5].X = 0x48; pSt->Pos[6].X = 0x48; pSt->Pos[7].X = 0x48; pSt->Pos[8].X = -0xD8; pSt->Pos[9].X = -0xD8; pSt->Pos[14].X = -0xD8; pSt->Pos[24].X = -0xD8; pSt->Pos[10].Y = 0x30; pSt->Rtn1 = 0; pSt->Unk22 = 0; pSt->Unk24 = 0; pSt->Flg |= 0x20000000; pSt->Flg |= 0x40000000; pSt->Rtn0++; break; }
 }
 
 void func_800665C8(ST_WORK *pSt)
@@ -1236,7 +1023,7 @@ void func_80066604(ST_WORK *pSt)
     } else {
         if (G.Key_trg & 0x1000) {
             if ((signed char)pSt->Unk1C >= 0) {
-                p = (UCHAR *)&GX.pUnk7C7C->Item[(signed char)pSt->Unk1C];
+                p = (UCHAR *)&G.pUnk7C7C->Item[(signed char)pSt->Unk1C];
                 if (p[0] != 0) {
                     pSt->Rtn1 = 1;
                     pSt->Unk1E = 4;
@@ -1273,7 +1060,7 @@ void func_80066604(ST_WORK *pSt)
                 }
             }
             if (G.Unk2100 & 0x4000) {
-                if ((signed char)pSt->Unk1C < GX.pUnk7C7C->Num - 2) {
+                if ((signed char)pSt->Unk1C < G.pUnk7C7C->Num - 2) {
                     pSt->Unk1C += 2;
                     se = 1;
                 }
@@ -1305,7 +1092,6 @@ void func_80066604(ST_WORK *pSt)
     }
 }
 
-
 void func_800668E4(ST_WORK *pSt)
 {
     if (func_80069614(pSt, 0)) {
@@ -1316,7 +1102,7 @@ void func_800668E4(ST_WORK *pSt)
 
 void func_80066920(ST_WORK *pSt)
 {
-    ST_ITEM *e = &GX.pUnk7C7C->Item[pSt->Unk1C];
+    ITEM_WORK *e = &G.pUnk7C7C->Item[pSt->Unk1C];
     LONG n = 3;
 
     if (e->Flg & 0x10) {
@@ -1472,10 +1258,10 @@ void func_80066CA0(ST_WORK *pSt)
         }
         if (G.Key_trg & 0x1000) {
             no = D_800A00B0_b[pSt->Unk20][0];
-            if (GX.Unk79F8 == 0x1E && pSt->Unk20 == 0) {
+            if (G.Unk79EC[3] == 0x1E && pSt->Unk20 == 0) {
                 no = 0x1E;
             }
-            if (Flg_ck(GX.Unk79F4, no)) {
+            if (Flg_ck(&G.Unk79EC[2], no)) {
                 pSt->Unk13 = 0;
                 pSt->Rtn2++;
                 pSt->Flg &= ~0x1000000;
@@ -1663,9 +1449,7 @@ void func_80066CA0(ST_WORK *pSt)
     }
 }
 
-
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_800676B8);
-
 
 void func_80067B70(ST_WORK *pSt)
 {
@@ -1691,9 +1475,9 @@ LONG Pl_wep_eff_parts_cnt_l(void) __asm__("Pl_wep_eff_parts_cnt"); /* UCHAR resu
 
 void func_80067C14(ST_WORK *pSt)
 {
-    GLOBAL_X *pG = &GX;
-    ST_ITEM *p;
-    ST_ITEM *q;
+    tagGLOBAL *pG = &G;
+    ITEM_WORK *p;
+    ITEM_WORK *q;
     UCHAR *pc;
     SHORT n;
     LONG i;
@@ -1776,7 +1560,7 @@ void func_80067C14(ST_WORK *pSt)
         }
     }
     if (G.Unk2100 & 0x4000) {
-        if ((signed char)pSt->Unk1D < GX.pUnk7C7C->Num - 2) {
+        if ((signed char)pSt->Unk1D < G.pUnk7C7C->Num - 2) {
             pSt->Unk1D += 2;
             se = 1;
         }
@@ -1800,7 +1584,6 @@ void func_80067C14(ST_WORK *pSt)
     pSt->Pos[13].Y = ((signed char)pSt->Unk1D >> 1) * 30;
 }
 
-
 INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_80068024);
 
 void func_80068A54(ST_WORK *pSt)
@@ -1817,7 +1600,7 @@ void func_80068AB4(ST_WORK *pSt)
     if (!(D_800DBB58 & 0x80)) {
         switch (G.Unk7848) {
         case 0:
-            Pl_wep_eff_parts_init(&GX.Unk2489 + 3);
+            Pl_wep_eff_parts_init(&G.Save_slot + 3);
             func_80046C90();
             func_80068024(pSt);
             break;
@@ -1849,12 +1632,12 @@ void func_8006AB08(UCHAR no);
 void func_80068BC0(ST_WORK *pSt)
 {
     USHORT f = 0;
-    ST_ITEM *pA = pSt->Unk48;
-    ST_ITEM *pB = pSt->Unk4C;
+    ITEM_WORK *pA = pSt->Unk48;
+    ITEM_WORK *pB = pSt->Unk4C;
     UCHAR *pC = pSt->Unk58;
     UCHAR *pN = pSt->Unk5C;
     UCHAR *pM = pSt->Unk60;
-    GLOBAL_X *pG = &GX;
+    tagGLOBAL *pG = &G;
     UCHAR *pI;
 
     if (pSt->Unk13 < 5) {
@@ -1889,7 +1672,7 @@ void func_80068BC0(ST_WORK *pSt)
         pI = D_800A0514[pA->Id];
         pA->Num = pC[4];
         pA->Flg = pI[3];
-        if (Flg_ck(GX.Unk77F8, 9) && (pA->Id == 0xD || pA->Id == 0x10)) {
+        if (Flg_ck(G.Unk77F8, 9) && (pA->Id == 0xD || pA->Id == 0x10)) {
             pA->Flg |= 3;
         }
         func_8006AB08(*pN);
@@ -2023,12 +1806,11 @@ void func_80068BC0(ST_WORK *pSt)
     pA->Flg |= f;
 }
 
-
 UCHAR *func_8006A918(ST_WORK *pSt, UCHAR id);
 
 void func_80069280(ST_WORK *pSt)
 {
-    GLOBAL_X *pG = &GX;
+    tagGLOBAL *pG = &G;
     UCHAR *p;
     UCHAR *pE;
 
@@ -2099,11 +1881,10 @@ void func_80069280(ST_WORK *pSt)
     }
 }
 
-
 void func_8006954C(ST_WORK *pSt)
 {
-    GLOBAL_X *pG = &GX;
-    ST_ITEM *p = &pG->pUnk7C7C->Item[pSt->Unk1C];
+    tagGLOBAL *pG = &G;
+    ITEM_WORK *p = &pG->pUnk7C7C->Item[pSt->Unk1C];
     USHORT w = p->Flg;
     UCHAR id = p->Id;
     USHORT n;
@@ -2134,8 +1915,8 @@ UCHAR func_80069614(ST_WORK *pSt, LONG a1)
     UCHAR *pI;
 
     if (a1 == 0) {
-        pI = (UCHAR *)&GX.pUnk7C7C->Item[pSt->Unk1C];
-        pSt->Unk42 = *(ST_ITEM *)pI;
+        pI = (UCHAR *)&G.pUnk7C7C->Item[pSt->Unk1C];
+        pSt->Unk42 = *(ITEM_WORK *)pI;
         f = pSt->Unk42.Flg;
         if (pSt->Unk3A == 0) {
             p = (POLY_FT4 *)0x801AE5A8;
@@ -2247,18 +2028,16 @@ UCHAR func_80069614(ST_WORK *pSt, LONG a1)
     return 0;
 }
 
-
-
 void func_80069A6C(ST_WORK *pSt)
 {
-    GLOBAL_X *pG;
+    tagGLOBAL *pG;
     UCHAR i;
     LONG k;
     LONG j;
     UCHAR c;
 
     if (pSt->Unk13 == 0) {
-        pG = &GX;
+        pG = &G;
         i = pSt->Rtn2;
         if (pSt->Rtn2 >= pG->pUnk7C7C->Num - 1) {
             pSt->Rtn1 = 3;
@@ -2291,13 +2070,12 @@ void func_80069A6C(ST_WORK *pSt)
 }
 #undef IT
 
-
 signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id");
 
 void func_80069C3C(ST_WORK *pSt)
 {
-    UCHAR *pA = GX.pUnk21D8;
-    ST_AOT_ITEM *pD = GX.pUnk21DC;
+    UCHAR *pA = G.pAot_data;
+    ST_AOT_ITEM *pD = G.pUnk21DC;
     UCHAR *p;
     UCHAR id;
     signed char n;
@@ -2326,7 +2104,7 @@ void func_80069C3C(ST_WORK *pSt)
                 if (n == -1) {
                     break;
                 }
-                p = (UCHAR *)&GX.pUnk7C7C->Item[n];
+                p = (UCHAR *)&G.pUnk7C7C->Item[n];
                 if (D_800A0514[p[0]][1] >= p[1] + pD->Num) {
                     pSt->Unk6E = n;
                     pSt->Unk73 = 1;
@@ -2347,7 +2125,7 @@ void func_80069C3C(ST_WORK *pSt)
                 break;
             }
             pSt->Unk6E = n;
-            if (Flg_ck(GX.Unk77F8, 9) && (UCHAR)pD->Id == 0xC) {
+            if (Flg_ck(G.Unk77F8, 9) && (UCHAR)pD->Id == 0xC) {
                 D_800DBB5B = 0x14;
             } else {
                 D_800DBB5B = pD->Id;
@@ -2397,7 +2175,7 @@ void func_80069C3C(ST_WORK *pSt)
             pSt->Unk6F -= 3;
             pSt->Unk70 -= 2;
         } else {
-            p = (UCHAR *)&GX.pUnk7C7C->Item[(signed char)pSt->Unk6E];
+            p = (UCHAR *)&G.pUnk7C7C->Item[(signed char)pSt->Unk6E];
             switch (pSt->Unk73) {
             case 0:
                 func_8006AE20(pSt->Unk6E, 12);
@@ -2408,7 +2186,7 @@ void func_80069C3C(ST_WORK *pSt)
                 if (p[0] == 0xE) {
                     ((USHORT *)p)[1] = f | 0x100;
                 }
-                if (Flg_ck(GX.Unk77F8, 9) && (ULONG)(p[0] - 2) < 0x13) {
+                if (Flg_ck(G.Unk77F8, 9) && (ULONG)(p[0] - 2) < 0x13) {
                     ((USHORT *)p)[1] |= 3;
                     if (p[0] == 0xC) {
                         p[0] = 0x14;
@@ -2420,18 +2198,18 @@ void func_80069C3C(ST_WORK *pSt)
                 p[1] += pD->Num;
                 break;
             }
-            GX.Unk7814 = pD->Id;
+            G.Sce_work[3] = pD->Id;
             *pA = 0;
             m = pD->Md1;
             if ((ULONG)((USHORT)G.Unk783E - 2) >= 3) {
-                Flg_on(GX.Unk78D0, pD->Flg);
+                Flg_on(G.Unk78D0, pD->Flg);
             } else {
-                Flg_on(GX.Unk78F0, pD->Flg);
+                Flg_on(G.Unk78F0, pD->Flg);
             }
-            func_8001B894(0x705, &G.Ob_model[m][0x20]);
+            func_8001B894(0x705, &G.Ob_model[m].M);
             func_8001B894(0x905, 0);
             if (!(m & 0x80)) {
-                *(LONG *)G.Ob_model[m] = 0;
+                G.Ob_model[m].Be_flg = 0;
             }
             if (pD->Flg >= 0xF0) {
                 G.Unk7DC0[pD->Flg - 0xF0].Unk0 = 0;
@@ -2445,13 +2223,12 @@ void func_80069C3C(ST_WORK *pSt)
     }
 }
 
-
 extern ULONG D_800CC840;
 
 void func_8006A234(ST_WORK *pSt)
 {
-    GLOBAL_X *pG = &GX;
-    ST_ITEM *p;
+    tagGLOBAL *pG = &G;
+    ITEM_WORK *p;
     UCHAR *pI;
     UCHAR n;
     LONG dx, dy;
@@ -2575,14 +2352,14 @@ void func_8006A59C(ST_WORK *pSt)
         pSt->Pos[14].X += 0x20;
     }
     func_8006CD68(pSt->Unk1C);
-    Flg_on(GX.Unk79F4, pE[2] - 0x85);
+    Flg_on(&G.Unk79EC[2], pE[2] - 0x85);
     for (i = 0; i < 30; i++) {
         if (D_800A00B0[i] == pSt->UnkBC) {
             break;
         }
     }
-    if (GX.Unk79F8 == i) {
-        GX.Unk79F8++;
+    if (G.Unk79EC[3] == i) {
+        G.Unk79EC[3]++;
     }
     func_8006AE20(pSt->Unk1C, 11);
     for (c = pSt->Unk1C; c < 9; c = n) {
@@ -2591,7 +2368,6 @@ void func_8006A59C(ST_WORK *pSt)
     }
     pSt->Unk1C = -2;
 }
-
 
 void func_8006A888(ST_WORK *pSt)
 {
@@ -2842,7 +2618,7 @@ void func_8006AE90(ST_WORK *pSt)
     c = pSt->UnkD0;
     func_8006E600(pSt, (void *)0x801AC000, D_8009F890, (c << 8) | 2);
     func_8006E600(pSt, (void *)0x801AC1B8, D_8009F8CC, (c << 8) | 5);
-    switch (GX.Unk24D6) {
+    switch (G.Pl_id) {
     case 8:
     case 9:
     case 10:
@@ -2905,8 +2681,7 @@ void func_8006AE90(ST_WORK *pSt)
     func_8006E84C(pSt);
 }
 
-
-extern UCHAR D_800D225E;               /* GX.Unk79FC[0].Num as its own symbol (reloaded every loop pass) */
+extern UCHAR D_800D225E;               /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
 extern UCHAR D_800A0004_t[][12] __asm__("D_800A0004");
 extern USHORT D_800A0080[][2];
 void func_8006CA10(ST_WORK *pSt);
@@ -2915,10 +2690,10 @@ SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm);
 
 void func_8006B66C(ST_WORK *pSt)
 {
-    GLOBAL_X *pG = &GX;
+    tagGLOBAL *pG = &G;
     SPRT *p;
     UCHAR *pT;
-    ST_ITEM *pI;
+    ITEM_WORK *pI;
     UCHAR *pInfo;
     ULONG i;
     LONG n;
@@ -2926,7 +2701,7 @@ void func_8006B66C(ST_WORK *pSt)
     UCHAR id;
     USHORT x, y;
     ULONG xy;
-    GLOBAL_X *pG2;
+    tagGLOBAL *pG2;
     LONG no;
     ULONG name;
     UCHAR c;
@@ -2969,10 +2744,10 @@ void func_8006B66C(ST_WORK *pSt)
         AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n]);
         AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i]);
     }
-    pI = &GX.pUnk7C7C->Item[pSt->Unk1C];
+    pI = &G.pUnk7C7C->Item[pSt->Unk1C];
     pInfo = D_800A0514[pI->Id];
     func_8006E8BC(pSt, (SPRT *)0x801AC000, D_8009F890, 0x30002);
-    switch ((ULONG)GX.Unk7C80) {
+    switch ((ULONG)G.Item_work_no) {
     case 0:
         func_8006E8BC(pSt, (SPRT *)0x801AC050, D_8009F8A8, ((n | 4) << 16) | 1);
         break;
@@ -3006,10 +2781,10 @@ void func_8006B66C(ST_WORK *pSt)
             func_8006E8BC(pSt, (SPRT *)0x801ACA50, D_8009FF80, ((n * 2 + 1) << 16) | 0xE01);
             k = pSt->Unk20;
             id = D_800A00B0[k];
-            if (GX.Unk79F8 == 30 && k == 0) {
+            if (G.Unk79EC[3] == 30 && k == 0) {
                 id = 30;
             }
-            if (Flg_ck(GX.Unk79F4, id)) {
+            if (Flg_ck(&G.Unk79EC[2], id)) {
                 Name_disp(0xE, 0xC8, 0x501, id + 0x85);
             }
         }
@@ -3081,7 +2856,7 @@ void func_8006B66C(ST_WORK *pSt)
         p = (SPRT *)0x801ACD84;
     }
     i = 0;
-    if (GX.Unk79FC[0].Num) {
+    if (G.Item_work[0].Num) {
         do {
             pI = &pG->pUnk7C7C->Item[i];
             x = D_800A0080[i][0] + pSt->Pos[1].X;
@@ -3122,7 +2897,7 @@ void func_8006B66C(ST_WORK *pSt)
     if ((pSt->Flg & 0x4000000) && pSt->Unk1C >= 0) {
         func_8006E8BC(pSt, (SPRT *)0x801ACA00, D_8009FF68, ((n * 2 + 1) << 16) | 0xC01);
     }
-    pG2 = &GX;
+    pG2 = &G;
     if (pSt->Flg & 0x2000000) {
         func_8006E8BC(pSt, (SPRT *)0x801ACA28, D_8009FF74, ((n * 2 + 1) << 16) | 0xD01);
     }
@@ -3223,7 +2998,6 @@ void func_8006C484(ST_WORK *pSt)
     }
 }
 
-
 SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm)
 {
     signed char d[4];
@@ -3290,7 +3064,6 @@ SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm)
     return p;
 }
 
-
 typedef struct tagST_ICON {
     UCHAR U;                           /* 0x0 */
     UCHAR pad1;
@@ -3330,14 +3103,14 @@ void func_8006CA10(ST_WORK *pSt)
         p->w = pI->W;
         p->h = pI->H;
         p->clut = (pSt->UnkD8 + 0x1E0) << 6;
-        if (Flg_ck(GX.Unk79F4, D_800A00B0[i])) {
+        if (Flg_ck(&G.Unk79EC[2], D_800A00B0[i])) {
             p->u0 = pI->U;
             p->v0 = pI->V;
         } else {
             p->u0 = D_8009F9F8[31].U;
             p->v0 = D_8009F9F8[31].V;
         }
-        if (GX.Unk79F8 == 30 && i == 0) {
+        if (G.Unk79EC[3] == 30 && i == 0) {
             p->u0 = D_8009F9F8[30].U;
             p->v0 = D_8009F9F8[30].V;
         }
@@ -3361,11 +3134,10 @@ void func_8006CA10(ST_WORK *pSt)
     }
 }
 
-
 signed char Search_item_id(UCHAR id, signed char i)
 {
-    for (; (UCHAR)i < GX.pUnk7C7C->Num; i++) {
-        if (GX.pUnk7C7C->Item[(UCHAR)i].Id == id) {
+    for (; (UCHAR)i < G.pUnk7C7C->Num; i++) {
+        if (G.pUnk7C7C->Item[(UCHAR)i].Id == id) {
             return i;
         }
     }
@@ -3374,7 +3146,7 @@ signed char Search_item_id(UCHAR id, signed char i)
 
 signed char func_8006CCF0(UCHAR no, signed char n, UCHAR f)
 {
-    ST_ITEM *p = &GX.pUnk7C7C->Item[no];
+    ITEM_WORK *p = &G.pUnk7C7C->Item[no];
 
     if ((p->Flg & 3) != 3) {
         p->Num -= n;
@@ -3385,10 +3157,10 @@ signed char func_8006CCF0(UCHAR no, signed char n, UCHAR f)
     return (signed char)p->Num;
 }
 
-/* needs UNK7C7C item table typed as ST_ITEM Item[0x4A] (typedef struct tagST_ITEM { UCHAR Id; UCHAR Num; USHORT Flg; } ST_ITEM;) */
+/* needs ITEM_SET item table typed as ITEM_WORK Item[0x4A] (typedef struct tagST_ITEM { UCHAR Id; UCHAR Num; USHORT Flg; } ITEM_WORK;) */
 void func_8006CD68(UCHAR no)
 {
-    GLOBAL_X *pG = &GX;
+    tagGLOBAL *pG = &G;
     ST_WORK *pSt = &St;
     UCHAR i;
 
@@ -3410,25 +3182,24 @@ void func_8006CD68(UCHAR no)
     pSt->Flg14 |= 0x40000000;
 }
 
-
 void func_8006CEA8(void)
 {
     UCHAR no;
 
-    if ((no = GX.pUnk7C7C->Unk128) != 0xFF) {
+    if ((no = G.pUnk7C7C->Unk128) != 0xFF) {
         func_8006CD68(no);
-        GX.pUnk7C7C->Unk129 = 0;
-        GX.pUnk7C7C->Unk128 = 0xFF;
+        G.pUnk7C7C->Unk129 = 0;
+        G.pUnk7C7C->Unk128 = 0xFF;
     }
 }
 
-/* needs ST_ITEM Item[] in UNK7C7C (see func_8006CD68); func_8006A95C first param changed to ST_WORK *pSt; func_8006CCF0 param n changed to signed char (both still match) */
+/* needs ITEM_WORK Item[] in ITEM_SET (see func_8006CD68); func_8006A95C first param changed to ST_WORK *pSt; func_8006CCF0 param n changed to signed char (both still match) */
 signed char func_8006CF0C(UCHAR f)
 {
     ST_WORK *pSt = &St;
-    GLOBAL_X *pG = &GX;
+    tagGLOBAL *pG = &G;
     UCHAR *pI;
-    ST_ITEM *p;
+    ITEM_WORK *p;
     signed char no;
     signed char n;
     UCHAR num;
@@ -3460,17 +3231,16 @@ signed char func_8006CF0C(UCHAR f)
     return 0;
 }
 
-
 LONG func_8006D030(UCHAR f)
 {
-    ST_ITEM *p;
+    ITEM_WORK *p;
     USHORT w;
     LONG t;
 
-    if (GX.pUnk7C7C->Unk128 == 0xFF) {
+    if (G.pUnk7C7C->Unk128 == 0xFF) {
         return -1;
     }
-    p = &GX.pUnk7C7C->Item[GX.pUnk7C7C->Unk128];
+    p = &G.pUnk7C7C->Item[G.pUnk7C7C->Unk128];
     w = p->Flg;
     t = w & 3;
     if (t == 3) {
@@ -3493,30 +3263,30 @@ LONG func_8006D030(UCHAR f)
     return p->Num;
 }
 
-/* fdiff: 2 false diffs on jtbl_80010F9C (switch jump table) -> verify with linkcheck. Needs: UNK7C7C as { ST_ITEM Item[10]; ST_ITEM Box[64]; ... SHORT Unk12C[4] at 0x12C }, GLOBAL_X fields System_flg(0x2120) Unk24D6 Unk77F8[3] Unk79A4[14] Unk79EC Unk79F0 Unk79F4 Unk79F8 */
+/* fdiff: 2 false diffs on jtbl_80010F9C (switch jump table) -> verify with linkcheck. Needs: ITEM_SET as { ITEM_WORK Item[10]; ITEM_WORK Box[64]; ... SHORT Unk12C[4] at 0x12C }, GLOBAL_X fields System_flg(0x2120) Unk24D6 Unk77F8[3] Unk79A4[14] Unk79EC Unk79F0 Unk79F4 Unk79F8 */
 extern LONG D_800C79CC;
-extern ST_ITEM D_800A018C[2][5];
-extern ST_ITEM D_800A01B4[2][6];
-extern ST_ITEM D_800A01E4[];
-extern ST_ITEM D_800A0200[];
-extern ST_ITEM D_800A021C[];
-extern ST_ITEM D_800A0238[];
-extern ST_ITEM D_800A0258[];
-extern ST_ITEM D_800A0278[2][4];
-extern ST_ITEM D_800A0298[2][11];
+extern ITEM_WORK D_800A018C[2][5];
+extern ITEM_WORK D_800A01B4[2][6];
+extern ITEM_WORK D_800A01E4[];
+extern ITEM_WORK D_800A0200[];
+extern ITEM_WORK D_800A021C[];
+extern ITEM_WORK D_800A0238[];
+extern ITEM_WORK D_800A0258[];
+extern ITEM_WORK D_800A0278[2][4];
+extern ITEM_WORK D_800A0298[2][11];
 
 void func_8006D0D8(void)
 {
-    GLOBAL_X *pG = &GX;
-    GLOBAL_X *pG2;
+    tagGLOBAL *pG = &G;
+    tagGLOBAL *pG2;
     UCHAR mode;
     ULONG j, k;
     LONG unused[2];
-    ST_ITEM *pS;
-    ST_ITEM *pD;
+    ITEM_WORK *pS;
+    ITEM_WORK *pD;
 
-    pG->Unk7C80 = 0;
-    pG->pUnk7C7C = &pG->Unk79FC[0];
+    pG->Item_work_no = 0;
+    pG->pUnk7C7C = &pG->Item_work[0];
     mode = Flg_ck(&pG->System_flg, 0x17) != 0;
     if (Flg_ck(&pG->System_flg, 0x18)) {
         mode = 2;
@@ -3532,17 +3302,17 @@ void func_8006D0D8(void)
     }
     for (j = 0; j < 2; j++) {
         if (mode == 1 || mode == 4) {
-            GX.Unk79FC[j].Num = 10;
+            G.Item_work[j].Num = 10;
         } else {
-            GX.Unk79FC[j].Num = 8;
+            G.Item_work[j].Num = 8;
         }
-        pD = GX.Unk79FC[j].Item;
+        pD = G.Item_work[j].Item;
         for (k = 0; k < 10; pD++, k++) {
             pD->Id = 0;
             pD->Num = 0;
             pD->Flg = 0;
         }
-        pD = GX.Unk79FC[j].Box;
+        pD = G.Item_work[j].Box;
         for (k = 0; k < 64; pD++, k++) {
             pD->Id = 0;
             pD->Num = 0;
@@ -3556,7 +3326,7 @@ void func_8006D0D8(void)
             pS = D_800A01B4[j];
             break;
         case 2:
-            switch (GX.Unk24D6) {
+            switch (G.Pl_id) {
             case 8:
                 pS = D_800A01E4;
                 break;
@@ -3575,13 +3345,13 @@ void func_8006D0D8(void)
             pS = D_800A0258;
             break;
         }
-        pD = &GX.Unk79FC[j].Item[0];
+        pD = &G.Item_work[j].Item[0];
         while ((signed char)pS->Id != -1) {
-            if (GX.Unk7806 == 0 || (UCHAR)(pS->Id + 0x7D) >= 2) {
+            if (G.Unk7806 == 0 || (UCHAR)(pS->Id + 0x7D) >= 2) {
                 pD->Id = pS->Id;
                 pD->Num = pS->Num;
                 pD->Flg = pS->Flg;
-                if (Flg_ck(GX.Unk77F8, 9) && mode != 2 && (UCHAR)(pD->Id - 2) < 0x13) {
+                if (Flg_ck(G.Unk77F8, 9) && mode != 2 && (UCHAR)(pD->Id - 2) < 0x13) {
                     pD->Flg |= 3;
                 }
                 pD++;
@@ -3593,12 +3363,12 @@ void func_8006D0D8(void)
         } else {
             pS = D_800A0278[j];
         }
-        pD = &GX.Unk79FC[j].Box[32];
+        pD = &G.Item_work[j].Box[32];
         while ((signed char)pS->Id != -1) {
             pD->Id = pS->Id;
             pD->Num = pS->Num;
             pD->Flg = pS->Flg;
-            if (Flg_ck(GX.Unk77F8, 9) && (UCHAR)(pD->Id - 2) < 0x13) {
+            if (Flg_ck(G.Unk77F8, 9) && (UCHAR)(pD->Id - 2) < 0x13) {
                 pD->Flg |= 3;
             }
             pD++;
@@ -3607,75 +3377,74 @@ void func_8006D0D8(void)
         switch (mode) {
         case 0:
         case 1:
-            if (Flg_ck(GX.Unk77F8, 6)) {
-                pD = &GX.Unk79FC[j].Box[28 + j];
+            if (Flg_ck(G.Unk77F8, 6)) {
+                pD = &G.Item_work[j].Box[28 + j];
                 pD->Id = 0xA;
                 pD->Num = 0xFF;
                 pD->Flg = 3;
             }
-            if (Flg_ck(GX.Unk77F8, 7)) {
-                pD = &GX.Unk79FC[j].Box[29 + j];
+            if (Flg_ck(G.Unk77F8, 7)) {
+                pD = &G.Item_work[j].Box[29 + j];
                 pD->Id = 0xB;
                 pD->Num = 0xFF;
                 pD->Flg = 3;
             }
-            if (Flg_ck(GX.Unk77F8, 8)) {
-                pD = &GX.Unk79FC[j].Box[30 + j];
+            if (Flg_ck(G.Unk77F8, 8)) {
+                pD = &G.Item_work[j].Box[30 + j];
                 pD->Id = 0xF;
                 pD->Num = 0xFF;
                 pD->Flg = 0x17;
             }
-            if (j == 0 && Flg_ck(GX.Unk77F8, 10)) {
-                pD = &GX.Unk79FC[0].Box[31];
+            if (j == 0 && Flg_ck(G.Unk77F8, 10)) {
+                pD = &G.Item_work[0].Box[31];
                 pD->Id = 0x80;
                 pD->Num = 1;
                 pD->Flg = 0;
             }
             break;
         }
-        pD = &GX.Unk79FC[j].Item[0];
-        GX.Unk79FC[j].Unk129 = pD->Id;
-        GX.Unk79FC[j].Unk128 = 0;
+        pD = &G.Item_work[j].Item[0];
+        G.Item_work[j].Unk129 = pD->Id;
+        G.Item_work[j].Unk128 = 0;
         for (k = 0; k < 4; k++) {
-            GX.Unk79FC[j].Unk12C[k] = 0;
+            G.Item_work[j].Unk12C[k] = 0;
         }
         if (mode == 2) {
             break;
         }
     }
-    pG2 = &GX;
-    pG2->Unk79F4[0] = 0;
-    pG2->Unk79F8 = 0;
-    Flg_on(pG2->Unk79F4, 0x1E);
+    pG2 = &G;
+    pG2->Unk79EC[2] = 0;
+    pG2->Unk79EC[3] = 0;
+    Flg_on(&pG2->Unk79EC[2], 0x1E);
     if (!Flg_ck(&pG2->System_flg, 0x18) && pG2->Unk7806) {
-        Flg_on(pG2->Unk79F4, 0);
-        Flg_on(pG2->Unk79F4, 0x1C);
-        pG2->Unk79F8 = 2;
+        Flg_on(&pG2->Unk79EC[2], 0);
+        Flg_on(&pG2->Unk79EC[2], 0x1C);
+        pG2->Unk79EC[3] = 2;
     }
-    if (Flg_ck(&GX.System_flg, 0x18)) {
+    if (Flg_ck(&G.System_flg, 0x18)) {
         for (k = 0; k < 14; k++) {
-            GX.Unk79A4[k] = -1;
+            G.Unk79A4[k] = -1;
         }
-        Flg_on(GX.Unk79F0, 0);
-        Flg_on(GX.Unk79F0, 1);
-        Flg_on(GX.Unk79EC, 0);
-        Flg_on(GX.Unk79EC, 1);
+        Flg_on(&G.Unk79EC[1], 0);
+        Flg_on(&G.Unk79EC[1], 1);
+        Flg_on(G.Unk79EC, 0);
+        Flg_on(G.Unk79EC, 1);
     }
 }
-
 
 extern char D_80010FEC[];
 
 void func_8006D720(void)
 {
     ST_WORK *pSt = &St;
-    ST_ITEM *p;
+    ITEM_WORK *p;
     ULONG i;
     UCHAR n;
     LONG pad[2];
 
     if (Flg_ck(&G.System_flg, 0x18)) {
-        switch (GX.Unk24D6) {
+        switch (G.Pl_id) {
         case 8:
             Cd_read(0x5A, (ULONG *)0x801B1500, 0, "STMAIN1.TIM");
             break;
@@ -3695,15 +3464,15 @@ void func_8006D720(void)
     FLD(&G, 0x2484, SHORT) = 0x1A;
     Mapping_tim((ULONG *)0x801B1500);
     Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
-    p = GX.pUnk7C7C->Item;
+    p = G.pUnk7C7C->Item;
     for (i = 0; i < 10; i++, p++) {
         func_8006AB68(i, p->Id, 0x801B1500, (ULONG *)0x801B1000);
         DrawSync(0);
     }
-    if (GX.pUnk7C7C->Unk128 != 0xFF) {
-        func_8006AE20(10, GX.pUnk7C7C->Unk128);
+    if (G.pUnk7C7C->Unk128 != 0xFF) {
+        func_8006AE20(10, G.pUnk7C7C->Unk128);
     }
-    n = GX.pUnk7C7C->Unk129;
+    n = G.pUnk7C7C->Unk129;
     pSt->UnkD0 = 4;
     pSt->UnkD1 = 5;
     pSt->UnkD2 = 6;
@@ -3713,7 +3482,7 @@ void func_8006D720(void)
     pSt->UnkD3 = 0;
     pSt->UnkD8 = 9;
     pSt->UnkD6 = 0;
-    pSt->Unk4 = 0;
+    pSt->St_type = 0;
     pSt->Unk6 = 0;
     pSt->Unk2E = 0;
     pSt->UnkB8 = 0;
@@ -3732,7 +3501,7 @@ void func_8006D948(ST_WORK *pSt)
     RECT r;
     tagGLOBAL *pG = &G;
     SND_WORK *pW = &Snd_work;
-    USHORT *pD = (USHORT *)pG->Unk21DC;
+    USHORT *pD = (USHORT *)pG->pUnk21DC;
     ENEMY_WORK *pPl;
     UCHAR *p;
     ULONG i;
@@ -3744,10 +3513,10 @@ void func_8006D948(ST_WORK *pSt)
     pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
     if (pSt->Unk2E) {
         pSt->Unk2E = 0;
-        ((GLOBAL_X *)pG)->pUnk7C7C->Unk128 = pSt->Unk2F;
-        ((GLOBAL_X *)pG)->pUnk7C7C->Unk129 = pSt->Unk30;
+        pG->pUnk7C7C->Unk128 = pSt->Unk2F;
+        pG->pUnk7C7C->Unk129 = pSt->Unk30;
         pPl->Type &= 0xFF00;
-        pPl->Type |= ((GLOBAL_X *)pG)->pUnk7C7C->Unk129;
+        pPl->Type |= pG->pUnk7C7C->Unk129;
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
@@ -3757,13 +3526,13 @@ void func_8006D948(ST_WORK *pSt)
     Cd_seek_s(0x34, 0, "SEEK ITEMI.PIX");
     if (pSt->Flg14 & 0x40000000) {
         Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
-        p = (UCHAR *)((GLOBAL_X *)pG)->pUnk7C7C->Item;
+        p = (UCHAR *)pG->pUnk7C7C->Item;
         for (i = 0; i < 10; i++, p += 4) {
             func_8006AB68(i, *p, 0x801B1500, (ULONG *)0x801B1000);
             DrawSync(0);
         }
-        if (GX.pUnk7C7C->Unk128 != 0xFF) {
-            func_8006AE20(10, ((GLOBAL_X *)pG)->pUnk7C7C->Unk128);
+        if (G.pUnk7C7C->Unk128 != 0xFF) {
+            func_8006AE20(10, pG->pUnk7C7C->Unk128);
         } else {
             func_8006AE20(10, 11);
         }
@@ -3786,8 +3555,8 @@ void func_8006D948(ST_WORK *pSt)
     pSt->Unk3B = 0;
     pSt->Unk3C = 0;
     pSt->Unk3D = 0;
-    pSt->Unk28 = ((GLOBAL_X *)pG)->pUnk7C7C->Unk129;
-    pSt->Unk29 = ((GLOBAL_X *)pG)->Unk24D6;
+    pSt->Unk28 = pG->pUnk7C7C->Unk129;
+    pSt->Unk29 = pG->Pl_id;
     pSt->Unk32 = 0;
     pSt->Unk22 = 0;
     pSt->Unk24 = 0;
@@ -3800,9 +3569,9 @@ void func_8006D948(ST_WORK *pSt)
         pSt->UnkAB = 4;
         break;
     }
-    if (pSt->Unk4 == 1) {
+    if (pSt->St_type == 1) {
         if (*pD >= 0x85 && *pD < 0xA4) {
-            pSt->Unk4 = 3;
+            pSt->St_type = 3;
             pSt->UnkBC = *pD + 0x7B;
             pSt->UnkBD = 0;
             Flg_on(&G.Unk79EC[2], pSt->UnkBC);
@@ -3816,11 +3585,11 @@ void func_8006D948(ST_WORK *pSt)
             }
         }
         if (*pD >= 0xA4) {
-            pSt->Unk4 = 5;
+            pSt->St_type = 5;
             Flg_on(&G.Unk79EC[0], *pD - 0xA4);
         }
     }
-    switch (pSt->Unk4) {
+    switch (pSt->St_type) {
     case 4:
         pSt->pBuf = (ULONG *)0x801B1500;
         r.x = 0x1C0;
@@ -3862,7 +3631,7 @@ void func_8006D948(ST_WORK *pSt)
         i = Cd_read_l(0x32, pSt->pBuf, 0, D_80010FEC);
         pSt->Unk1F = 0x20;
         pSt->pBuf = (ULONG *)((UCHAR *)pSt->pBuf + i);
-        p = (UCHAR *)&GX.pUnk7C7C->Item[40];
+        p = (UCHAR *)&G.pUnk7C7C->Item[40];
         for (i = 30; i < 35; i++, p += 4) {
             func_8006ABF8(i, *p, 0x801A1500, (ULONG *)0x801A1000);
             DrawSync(0);
@@ -3915,7 +3684,6 @@ void func_8006D948(ST_WORK *pSt)
     Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 6);
 }
 
-
 extern void (*D_800A02F0[])(ST_WORK *pSt);
 void func_8006D948(ST_WORK *pSt);
 void func_8006E0A4(ST_WORK *pSt);
@@ -3949,7 +3717,7 @@ void func_8006E0A4(ST_WORK *pSt)
     tagGLOBAL *pG = &G;
     ENEMY_WORK *pPl;
 
-    switch (pSt->Unk4) {
+    switch (pSt->St_type) {
     case 2:
         r.x = 0x1C0;
         r.y = 0x100;
@@ -3980,13 +3748,13 @@ void func_8006E0A4(ST_WORK *pSt)
         D_800D442D = 2;
         break;
     }
-    pSt->Unk4 = 0;
+    pSt->St_type = 0;
     pSt->UnkB8 = 0;
     pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
-    if (pSt->Unk28 != ((GLOBAL_X *)pG)->pUnk7C7C->Unk129) {
-        pSt->Unk28 = ((GLOBAL_X *)pG)->pUnk7C7C->Unk129;
+    if (pSt->Unk28 != pG->pUnk7C7C->Unk129) {
+        pSt->Unk28 = pG->pUnk7C7C->Unk129;
         pPl->Type &= 0xFF00;
-        pPl->Type |= ((GLOBAL_X *)pG)->pUnk7C7C->Unk129;
+        pPl->Type |= pG->pUnk7C7C->Unk129;
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
@@ -3994,7 +3762,6 @@ void func_8006E0A4(ST_WORK *pSt)
     D_800D442C = 2;
     Task_signal(0);
 }
-
 
 void func_8006E268(ST_WORK *pSt)
 {
@@ -4028,7 +3795,7 @@ void func_80070244(ST_WORK *pSt);
 
 void func_8006E34C(ST_WORK *pSt)
 {
-    switch (pSt->Unk4) {
+    switch (pSt->St_type) {
     case 4:
     case 5:
         if (pSt->Flg & 0x200000) {
@@ -4064,7 +3831,7 @@ void func_8006E424(ST_WORK *pSt)
     if (pW->UnkB1C != 0) {
         return;
     }
-    switch (pSt->Unk4) {
+    switch (pSt->St_type) {
     case 4:
         pSt->Rtn0 = 4;
         break;
@@ -4155,7 +3922,6 @@ void func_8006E600(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
         src += 12;
     }
 }
-
 
 void func_8006E6D8(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
 {
@@ -4263,7 +4029,6 @@ void func_8006E9D4(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
     }
 }
 
-
 void func_8006EAF0(ST_WORK *pSt, TILE *p, UCHAR *src, ULONG prm)
 {
     ULONG i;
@@ -4292,15 +4057,15 @@ void func_8006EBEC(void)
 
     OpenTIM_v();
     p = ReadTIM(&tim);
-    p->prect->x = (GX.Ctpage << 6) - (GX.Ctpage >= 0x10 ? 0x400 : 0);
+    p->prect->x = (G.Ctp.u.Ctpage << 6) - (G.Ctp.u.Ctpage >= 0x10 ? 0x400 : 0);
     y = p->prect->y;
-    if (GX.Ctpage >= 0x10) {
+    if (G.Ctp.u.Ctpage >= 0x10) {
         y += 0x100;
     }
     p->prect->y = y;
     LoadImage(p->prect, p->paddr);
     if (p->caddr) {
-        p->crect->y = GX.Cclut + 0x1E0;
+        p->crect->y = G.Ctp.u.Cclut + 0x1E0;
         LoadImage(p->crect, p->caddr);
     }
     DrawSync(0);
@@ -4323,7 +4088,7 @@ void func_8006ECB0(ULONG no)
         D_800D23B8 = 1;
         break;
     }
-    GX.pUnk7C7C = &GX.Unk79FC[GX.Unk7C80];
+    G.pUnk7C7C = &G.Item_work[G.Item_work_no];
     St.Flg14 |= 0x40000000;
 }
 
@@ -4333,11 +4098,11 @@ void func_8006ED28(ST_WORK *pSt)
 
     pSt->UnkBB = 0;
     pSt->UnkBA = 0;
-    pSt->UnkAB = GX.Unk783E;
-    pSt->UnkAC = GX.Unk7840;
+    pSt->UnkAB = (UCHAR)G.Unk783E;
+    pSt->UnkAC = (UCHAR)G.Unk7840;
     func_80073CCC(&pSt->UnkAB, &pSt->UnkAC);
-    pSt->UnkAA = GX.Unk783E;
-    c = GX.Unk7840;
+    pSt->UnkAA = (UCHAR)G.Unk783E;
+    c = (UCHAR)G.Unk7840;
     func_80073CCC(&pSt->UnkAA, &c);
 }
 
@@ -4554,7 +4319,6 @@ void func_8006ED98(ST_WORK *pSt)
     pSt->UnkA0 = pSt->Unk98 + 0xE0;
 }
 
-
 void func_8006F6CC(ST_WORK *pSt)
 {
     D_800A0500[pSt->Rtn1](pSt);
@@ -4661,7 +4425,6 @@ void func_8006F708(ST_WORK *pSt)
     }
 }
 
-
 void func_8006FAE4(ST_WORK *pSt)
 {
     if (pSt->UnkA8) {
@@ -4736,7 +4499,7 @@ void func_80070024(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     UCHAR *pA = pG->pAot_data;
-    UCHAR *pD = (UCHAR *)pG->Unk21DC;
+    UCHAR *pD = (UCHAR *)pG->pUnk21DC;
     UCHAR n;
     LONG ofs;
 
@@ -4746,7 +4509,7 @@ void func_80070024(ST_WORK *pSt)
         pSt->Rtn1++;
         break;
     case 1:
-        switch (pSt->Unk4) {
+        switch (pSt->St_type) {
         case 0:
             pSt->Rtn0 = 2;
             pSt->Rtn1 = 4;
@@ -4791,9 +4554,7 @@ void func_80070024(ST_WORK *pSt)
     }
 }
 
-
 /* MAP.MAP room part: texture rect, position, clut/tpage (0xC bytes) */
-
 
 extern ULONG D_800D2124[];
 extern ULONG D_800D2128[];
@@ -5060,7 +4821,6 @@ void func_80070244(ST_WORK *pSt)
     }
 }
 
-
 /* needs ST_MAP_PART (see func_80070244.c draft) and ST_WORK Unk7C..UnkA4 */
 void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut)
 {
@@ -5083,7 +4843,6 @@ void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut)
     setRGB0(p, 0x80, 0x80, 0x80);
     p->clut = ((pPt->Clut + ((pPt->Tpage & 1) * 8 + 0x1EA) + clut) << 6) | 0x13;
 }
-
 
 /* MATCH (fdiff shows 2 false %hi/%lo diffs for the "MAP.MAP" string; check with linkcheck) */
 extern UCHAR D_800A03A0[];
@@ -5111,7 +4870,6 @@ void func_800713DC(ST_WORK *pSt, UCHAR no)
     D_800CCBBC = 0x1A18;
     func_8006EBEC_p((ULONG *)(pSt->UnkCC[7] + (ULONG)pSt->UnkCC));
 }
-
 
 void func_80071510(UCHAR a, UCHAR b)
 {
@@ -5197,7 +4955,6 @@ LONG func_800716A4(UCHAR st, UCHAR rm)
     }
     return 1;
 }
-
 
 LONG func_80071878(UCHAR st, UCHAR rm, UCHAR cut)
 {
@@ -5774,7 +5531,6 @@ LONG func_80071878(UCHAR st, UCHAR rm, UCHAR cut)
     return 1;
 }
 
-
 LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR cut)
 {
     ST_WORK *pSt = &St;
@@ -5889,7 +5645,6 @@ LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR cut)
     return 0;
 }
 
-
 LONG func_80072AEC(UCHAR st, UCHAR rm, UCHAR cut)
 {
     switch (St.UnkB8) {
@@ -5970,7 +5725,6 @@ LONG func_80072AEC(UCHAR st, UCHAR rm, UCHAR cut)
     }
     return 0;
 }
-
 
 LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR cut)
 {
@@ -6343,7 +6097,6 @@ LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR cut)
     return 1;
 }
 
-
 LONG func_800738CC(UCHAR st, UCHAR rm, UCHAR cut)
 {
     UCHAR *p;
@@ -6434,7 +6187,6 @@ LONG func_800738CC(UCHAR st, UCHAR rm, UCHAR cut)
     }
     return 0;
 }
-
 
 LONG func_80073BC8(ST_WORK *pSt, UCHAR st, UCHAR rm)
 {

@@ -13,29 +13,11 @@
 
 extern COL_OBJ *D_800DCDD0[];             /* objects collected this frame, NULL terminated */
 extern ULONG D_8009CBC8[];
-/* SCA hit work (0x800DEB58, same layout as SCA_WORK in sca.c) */
-typedef struct tagSCA_WORK {
-    ULONG Pt0;                         /* 0x00 */
-    ULONG Pt1;                         /* 0x04 */
-    SHORT Unk8;                        /* 0x08 (func_8004B7E8) */
-    SHORT padA;
-    LONG X;                            /* 0x0C */
-    LONG Z;                            /* 0x10 */
-    LONG Old_x;                        /* 0x14 */
-    LONG Old_z;                        /* 0x18 */
-} SCA_WORK;
-extern SCA_WORK D_800DEB58;
 extern COL_ENT D_800DEB48;
 LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
 void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
 
 extern ULONG D_800D1F2C;
-
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
-typedef struct {
-    UCHAR pad0[0x265C];
-    ENEMY_WORK *pWork[42];             /* 0x265C */
-} G_WORKS;
 
 UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
 LONG func_800336B4(ENEMY_WORK *pEm);
@@ -56,7 +38,6 @@ LONG func_8004D404(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old);
 ULONG func_80035678(COL_OBJ *pObj, LONG W, SCA_DATA *pSca, ULONG Old);
 void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type);
 LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT);
-
 
 void func_80033508(void)
 {
@@ -137,7 +118,7 @@ LONG func_800336B4(ENEMY_WORK *pEm)
     LONG i;
 
     for (i = 0; i < 42; i++) {
-        if (((G_WORKS *)&G)->pWork[i] == pEm) {
+        if (G.pEnemy[i] == pEm) {
             return i;
         }
     }
@@ -539,7 +520,7 @@ LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm)
     if (pEm->Be_flg & 0x4000) {
         return 0;
     }
-    for (pp = &G.pUnk265C; pp != G.ppEnemy_end; pp++) {
+    for (pp = &G.pEnemy[0]; pp != G.ppEnemy_end; pp++) {
         pT = *pp;
         if (pEm == pT) {
             continue;

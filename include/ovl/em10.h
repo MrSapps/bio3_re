@@ -78,14 +78,6 @@ typedef struct tagEM10_ESP {
 #define SUPER_VECTOR(p) ((SVECTOR *)&(p)->Add_dir)
 #define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 
-/* G+0x265C viewed as one work list (RE2 G.pEnemy: [0] player, [1] sub player, [2..] enemies),
- * as in spl.c / sce1.c */
-typedef struct {
-    UCHAR pad[0x265C];
-    ENEMY_WORK *pWork[42];
-} G_WORK_LIST;
-#define G_pWork (((G_WORK_LIST *)&G)->pWork)
-
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
 void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);            /* root_ck.c */

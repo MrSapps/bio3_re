@@ -13,21 +13,6 @@ extern LONG (*D_8009E088[])(ULONG P0, ULONG P1, SCA_DATA *pT); /* line test per 
 LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
 LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
 
-/* SCA hit work shared with sabun.c / oba.c (0x800DEB58) */
-typedef struct tagSCA_WORK {
-    ULONG Pt0;                         /* 0x00 line end points, (x << 16) | (z & 0xFFFF) */
-    ULONG Pt1;                         /* 0x04 */
-    SHORT Unk8;                        /* 0x08 (func_8004B7E8) */
-    SHORT padA;
-    LONG X;                            /* 0x0C position rotated into a 45 degree shape's frame */
-    LONG Z;                            /* 0x10 */
-    LONG Old_x;                        /* 0x14 */
-    LONG Old_z;                        /* 0x18 */
-    UCHAR pad1C[0x28 - 0x1C];
-    ENEMY_WORK *pEm_hit;               /* 0x28 character hit by Sca_ck_line-like scans (func_8004ED4C) */
-    ENEMY_WORK *pEm_hit2;              /* 0x2C same, for objects of type >= 3 */
-} SCA_WORK;
-extern SCA_WORK D_800DEB58;
 extern SCA_DATA D_800DEB48;            /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
 
 ULONG func_8004B874(COL_OBJ *pObj, LONG R, ULONG Arg2);
@@ -40,7 +25,6 @@ ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT);
 #define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
-
 
 LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);  /* do segments P0-P1 and P2-P3 cross (GTE nclip) */
 
@@ -445,9 +429,6 @@ LONG Sca_high_circle(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     return High;
 }
 
-
-
-
 LONG Sca_high_naname_a(SCA_DATA *pT, VECTOR *pPos, LONG High);
 LONG Sca_high_naname_b(SCA_DATA *pT, VECTOR *pPos, LONG High);
 LONG Sca_high_naname_c(SCA_DATA *pT, VECTOR *pPos, LONG High);
@@ -507,8 +488,6 @@ LONG Sca_high_naname_d(SCA_DATA *pT, VECTOR *pPos, LONG High)
     }
     return High;
 }
-
-
 
 LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High, LONG Unused)
 {
@@ -1076,7 +1055,6 @@ LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     }
     return 1;
 }
-
 
 USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT);
 

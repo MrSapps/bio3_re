@@ -51,6 +51,76 @@ typedef struct tagRCUT {
     ULONG *pSp;                        /* 0x1C */
 } RCUT;
 
+/* Object model work (RE2 struct tagOBJ_MODEL_WORK, OMA.H). Only proven fields. */
+typedef struct tagOBJ_MODEL_WORK {
+    ULONG Be_flg;                      /* 0x00 */
+    UCHAR Routine_0;                   /* 0x04 */
+    UCHAR Routine_1;                   /* 0x05 */
+    UCHAR Routine_2;                   /* 0x06 */
+    UCHAR Routine_3;                   /* 0x07 */
+    UCHAR Parts_num;                   /* 0x08 */
+    signed char nFloor;                /* 0x09 */
+    UCHAR padA[0x10 - 0xA];
+    ULONG Attribute;                   /* 0x10 RE2 Attribute (func_8003589C) */
+    struct tagMD_OBJ *pTmd;            /* 0x14 RE2 pTmd (an MD object in RE3) */
+    UCHAR pad18[0x20 - 0x18];
+    MATRIX M;                          /* 0x20 M.t = Pos_x/y/z */
+    SHORT Old_x;                       /* 0x40 */
+    SHORT Old_y;                       /* 0x42 */
+    SHORT Old_z;                       /* 0x44 */
+    USHORT Type;                       /* 0x46 */
+    UCHAR Tpage;                       /* 0x48 */
+    UCHAR Unk49;                       /* 0x49 */
+    UCHAR Unk4A;                       /* 0x4A Id; 1: packets at pPacket188 */
+    UCHAR pad4B;
+    MATRIX Workm;                      /* 0x4C */
+    SVECTOR Cdir;                      /* 0x6C */
+    ULONG Poly_rgb;                    /* 0x74 */
+    MATRIX *pSuper;                    /* 0x78 */
+    UCHAR pad7C[0xAE - 0x7C];
+    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (func_80036570) */
+    UCHAR padB0[0xBA - 0xB0];
+    USHORT UnkBA;                      /* 0xBA */
+    UCHAR padBC[0xC0 - 0xBC];
+    UCHAR Push_cnt;                    /* 0xC0 frames pushed (func_80036570) */
+    UCHAR UnkC1;                       /* 0xC1 index into G.pUnk75AC */
+    UCHAR UnkC2;                       /* 0xC2 flag id set when done (func_80036C60) */
+    UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
+    struct tagPARTS_W *pParts;         /* 0xC4 */
+    UCHAR padC8[0x130 - 0xC8];
+    ULONG Unk130;                      /* 0x130 */
+    UCHAR pad134[0x188 - 0x134];
+    ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (Col_chg_init) */
+    SHORT Unk18C;                      /* 0x18C fall speed (func_80036D94) */
+    SHORT Unk18E;                      /* 0x18E */
+    SHORT Unk190;                      /* 0x190 */
+    SHORT Unk192;                      /* 0x192 ground y */
+} OBJ_MODEL_WORK;                      /* 0x194, G.Ob_model[] */
+
+/* item slot (RE2 struct tagITEM_WORK, STATUS.H) */
+typedef struct tagITEM_WORK {
+    UCHAR Id;                          /* 0x0 */
+    UCHAR Num;                         /* 0x1 */
+    USHORT Flg;                        /* 0x2 RE2 Size, dummy */
+} ITEM_WORK;
+
+/* items of one character (G.Item_work[], 0x140 bytes) */
+typedef struct tagITEM_SET {
+    ITEM_WORK Item[10];                /* 0x000 inventory */
+    ITEM_WORK Box[64];                 /* 0x028 item box */
+    UCHAR Unk128;                      /* 0x128 equipped slot (0xFF none) */
+    UCHAR Unk129;                      /* 0x129 equipped item id */
+    UCHAR Num;                         /* 0x12A */
+    UCHAR pad12B;
+    USHORT Unk12C[10];                 /* 0x12C */
+} ITEM_SET;
+
+/* enemy code bank in one overlay load slot (RE2 struct tagEM_BIN_INFO, EM_SET.H) */
+typedef struct tagEM_BIN_INFO {
+    USHORT Id;                         /* 0x0 enemy kind of the loaded bank */
+    USHORT Use;                        /* 0x2 set once loaded */
+} EM_BIN_INFO;
+
 /* G: global work area (RE2 struct tagGLOBAL, 0x800CC1E8 in RE2) */
 struct tagROOM_WORK;
 struct tagENEMY_WORK;
@@ -83,7 +153,7 @@ typedef struct tagGLOBAL {
     UCHAR Unk2116;                     /* 0x2116 quake timer? (Quake_add) */
     UCHAR pad2117;
     SHORT Unk2118;                     /* 0x2118 */
-    SHORT Unk211A;                     /* 0x211A */
+    USHORT Score;                      /* 0x211A Mercenaries score (result) */
     UCHAR pad211C[0x2120 - 0x211C];
     ULONG System_flg;                  /* 0x2120 */
     USHORT *pBs_size;                  /* 0x2124 RE2 pBs_size: per room offset into pUnk2128 (Bg_draw) */
@@ -101,7 +171,7 @@ typedef struct tagGLOBAL {
     void *pSce_aot_on;                 /* 0x2154 RE2 pSce_aot_on (door AOT data) */
     struct tagSCE_AOT *Sce_aot[32];    /* 0x2158 RE2 Sce_aot (cleared by Sce_aot_init) */
     void *pAot_data;                   /* 0x21D8 RE2 pAot_data */
-    LONG Unk21DC;                      /* 0x21DC */
+    void *pUnk21DC;                    /* 0x21DC data of the AOT being handled (sce_at, status item pickup) */
     ULONG Game_time_offset;            /* 0x21E0 RE2 Game_time_offset: VSync(-1) at the last play time update (mem_card Save_push) */
     USHORT *pXa_sector;                /* 0x21E4 RE2 G.pXa_sector (Xa_play table for the stage) */
     void (*pPldamage_Em[64])();        /* 0x21E8 RE2 pPldamage_Em, index enemy Id - 0x10 (Pl_Em_damage) */
@@ -111,7 +181,13 @@ typedef struct tagGLOBAL {
     LONG Unk246C;                      /* 0x246C flags, cleared by Init_global; < 0 blocks the pause (main) */
     ULONG Unk2470;                     /* 0x2470 */
     ULONG Unk2474[4];                  /* 0x2474 */
-    USHORT Unk2484;                    /* 0x2484 RE2 Ctpage/Cclut pair (Bg_draw saves it) */
+    union {
+        USHORT Tpage_clut;             /* 0x2484 both bytes as one halfword (Bg_draw saves it) */
+        struct {
+            UCHAR Ctpage;              /* 0x2484 RE2 Ctpage: next free texture page x */
+            UCHAR Cclut;               /* 0x2485 RE2 Cclut: next free clut row */
+        } u;
+    } Ctp;
     UCHAR Next_cut_no;                /* 0x2486 */
     UCHAR Em_num;                      /* 0x2487 number of enemy works to allocate (Enemy_work_set) */
     UCHAR Unk2488;                     /* 0x2488 non-zero: no vibration (RE2 G.Dummy8_3[0], Pad_set) */
@@ -141,7 +217,8 @@ typedef struct tagGLOBAL {
     SHORT Pl_cdir_y;                   /* 0x24FA Player.Cdir_y */
     UCHAR pad24FC[0x2558 - 0x24FC];
     SHORT Pl_life;                     /* 0x2558 Player.Life */
-    UCHAR pad255A[0x255E - 0x255A];
+    SHORT Pl_life_max;                 /* 0x255A Player max life (status) */
+    UCHAR pad255C[0x255E - 0x255C];
     USHORT Pl_status_flg;              /* 0x255E Player.Status_flg */
     UCHAR pad2560[0x2574 - 0x2560];
     ULONG *Pl_pKan_t_ptr;              /* 0x2574 Player.pKan_t_ptr */
@@ -161,14 +238,16 @@ typedef struct tagGLOBAL {
     UCHAR Pl_damage_cnt;               /* 0x25B9 Player.Damage_cnt */
     UCHAR pad25BA[0x260C - 0x25BA];
     ULONG Pl_unk180[4];                /* 0x260C Player.Unk180 (kan/seq args of func_80079690 / Joint_move) */
-    UCHAR pad261C[0x2640 - 0x261C];
+    ULONG *Pl_pUnk190_seq_t_ptr;       /* 0x261C Player.pUnk190_seq_t_ptr */
+    ULONG *Pl_pUnk194_kan_t_ptr;       /* 0x2620 Player.pUnk194_kan_t_ptr */
+    ULONG *Pl_pUnk198_seq_t_ptr;       /* 0x2624 Player.pUnk198_seq_t_ptr */
+    ULONG *Pl_pUnk19C_kan_t_ptr;       /* 0x2628 Player.pUnk19C_kan_t_ptr */
+    UCHAR pad262C[0x2640 - 0x262C];
     ULONG Pl_unk1B4;                   /* 0x2640 Player +0x1B4 (weapon data offset 4, Pl_weapon_ch) */
     UCHAR pad2644[0x2658 - 0x2644];
     SHORT Pl_poison_timer;             /* 0x2658 RE2 Pl_poison_timer (Pl_move: -1 -> 30 and Life--) */
     UCHAR pad265A[0x265C - 0x265A];
-    struct tagENEMY_WORK *pUnk265C;    /* 0x265C work processed before the enemy list (player?) */
-    struct tagENEMY_WORK *pUnk2660;    /* 0x2660 work processed when Be_flg & 1 (sub player?) */
-    struct tagENEMY_WORK *pEnemy[40];  /* 0x2664 RE2 pEnemy */
+    struct tagENEMY_WORK *pEnemy[42];  /* 0x265C RE2 pEnemy: [0] player, [1] sub player, [2..] enemies */
     struct tagENEMY_WORK **ppEnemy_end; /* 0x2704 RE2 ppEnemy_end (end of used pEnemy[]) */
     UCHAR pad2708[0x2904 - 0x2708];
     struct tagKAGE_WORK9 Kage9[5];     /* 0x2904 */
@@ -177,12 +256,9 @@ typedef struct tagGLOBAL {
     void (*Unk3EE0[24])();             /* 0x3EE0 all set to Spl by Spl_set */
     UCHAR pad3F40[0x3FA0 - 0x3F40];
     void (*Em_ov_mtbl[2][112])(struct tagENEMY_WORK *); /* 0x3FA0 RE2 Em_ov_mtbl: move routine by Id - 0x10 inside each enemy overlay bank (Em_move_tbl_set) */
-    USHORT Unk4320;                    /* 0x4320 0xFF on room load (Set_room) */
-    USHORT Unk4322;                    /* 0x4322 set when the first enemy sound bank is loaded (func_80014968) */
-    USHORT Unk4324;                    /* 0x4324 0xFF on room load (Set_room) */
-    USHORT Unk4326;                    /* 0x4326 set when a later enemy sound bank is loaded */
-    UCHAR Ob_model[32][0x194];         /* 0x4328 RE2 Ob_model (OBJ_MODEL_WORK, 0x194 bytes each) */
-    UCHAR *pUnk75A8;                   /* 0x75A8 set to Ob_model[0] (diedemo func_80194574) */
+    EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
+    OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
+    OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
     USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (func_800557A0); OM_TARGET records (pl_wep.h) */
     ULONG Om_target_num;               /* 0x75D4 used entries of pUnk75AC (Obj_model_set; sce0 clears it as pUnk75AC[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
@@ -236,7 +312,7 @@ typedef struct tagGLOBAL {
     UCHAR pad785A[0x785C - 0x785A];
     SHORT Unk785C;                     /* 0x785C cleared by em36 (Nemesis) death */
     USHORT Unk785E;                    /* 0x785E counter (func_8003CEA0) */
-    SHORT Unk7860;                     /* 0x7860 */
+    USHORT Time;                       /* 0x7860 Mercenaries time left (result) */
     SHORT Unk7862;                     /* 0x7862 */
     SHORT Unk7864;                     /* 0x7864 set with Unk784E by the title extra menu */
     UCHAR pad7866[0x7868 - 0x7866];
@@ -247,20 +323,22 @@ typedef struct tagGLOBAL {
     ULONG Unk78B0[8];                  /* 0x78B0 flag bits (func_800738CC) */
     ULONG Unk78D0[8];                  /* 0x78D0 flag bits (func_80072D38, func_80063CAC) */
     ULONG Unk78F0[8];                  /* 0x78F0 flag bits (func_80072D38, func_80063CAC) */
-    UCHAR pad7910[0x7914 - 0x7910];
+    ULONG Unk7910[1];                  /* 0x7910 item flags (status: Flg_on with D_800A0514[id][2]) */
     ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (Psp_trans) */
     UCHAR pad7924[0x7994 - 0x7924];
     ULONG Unk7994[2];                  /* 0x7994 flag bits (func_800738CC) */
     ULONG Unk799C[1];                  /* 0x799C flag bits (func_800557A0) */
-    UCHAR pad79A0[0x79EC - 0x79A0];
+    UCHAR pad79A0[0x79A4 - 0x79A0];
+    LONG Unk79A4[14];                  /* 0x79A4 (status: -1 on init) */
+    ULONG Unk79DC[4];                  /* 0x79DC */
     ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (func_80072D38) */
-    UCHAR Item_work[2][0x140];         /* 0x79FC per character, pUnk7C7C points to one (mem_card Load_pop) */
-    UCHAR *pUnk7C7C;                   /* 0x7C7C item work? (Id, Num) pairs */
+    ITEM_SET Item_work[2];             /* 0x79FC per character, pUnk7C7C points to one (mem_card Load_pop) */
+    ITEM_SET *pUnk7C7C;                /* 0x7C7C items of the current character */
     ULONG Item_work_no;                /* 0x7C80 index into Item_work (mem_card Load_pop) */
     USHORT Unk7C84[1];                 /* 0x7C84 index from D_800A0FDC table */
     UCHAR pad7C86[0x7D8C - 0x7C86];
-    UCHAR Save_vol;                    /* 0x7D8C Snd_work.Unk7C8 (mem_card Save_push) */
-    UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Unk7CA */
+    UCHAR Save_vol;                    /* 0x7D8C Snd_work.Vol.Se (mem_card Save_push) */
+    UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Vol.Bgm */
     UCHAR Save_mono;                   /* 0x7D8E Snd_work.UnkB75 */
     UCHAR pad7D8F;
     ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (func_80024C58) */
@@ -275,12 +353,13 @@ typedef struct tagGLOBAL {
     } Unk7DC0[8];
     LONG Unk7E20;                      /* 0x7E20 */
     SHORT Unk7E24[8];                  /* 0x7E24 cleared by func_800528D4 */
-    UCHAR pad7E34[0x7E98 - 0x7E34];
-    LONG Unk7E98[3];                   /* 0x7E98 saved/restored by func_80078FE8/func_8007906C (sub) */
-    UCHAR Unk7EA4[3];                  /* 0x7EA4 */
+    UCHAR pad7E34[0x7E94 - 0x7E34];
+    LONG Unk7E94;                      /* 0x7E94 total life healed? (status) */
+    LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by func_80078FE8) */
+    UCHAR Merc_grade[3];               /* 0x7EA4 best grade per character, 0xFF none */
     UCHAR pad7EA7;
-    LONG Unk7EA8[3];                   /* 0x7EA8 */
-    LONG Unk7EB4;                      /* 0x7EB4 */
+    ULONG Merc_money[3];               /* 0x7EA8 best money per character */
+    ULONG Money;                       /* 0x7EB4 money for the shop */
 } tagGLOBAL;
 extern tagGLOBAL G;                    /* 0x800CA738 */
 

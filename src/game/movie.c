@@ -67,7 +67,7 @@ LONG Init_movie_work(ULONG Id)
     } else {
         pWork->Eom = 0;
     }
-    pWork->Movie_volume = pTbl->Volume * Snd_work.Unk7CA / 127;
+    pWork->Movie_volume = pTbl->Volume * Snd_work.Vol.Bgm / 127;
     pWork->Frame = 0;
     pWork->Free0 = 0;
     pWork->Movie_cancel = pTbl->Cancel;

@@ -12,6 +12,7 @@
 #include "pad.h"
 #include "pl_wep.h"
 #include "sub.h"
+#include "snd.h"
 
 /* one draw buffer of primitives (0x144 bytes); the title menu and the extra
  * menu use the area differently */
@@ -58,35 +59,6 @@ typedef struct tagTITLE_WORK {
 
 /* Main_rtn, Sub_rtn, Page and pad3 written as one word */
 #define TITLE_RTN_SET(pTi, Rtn) (*(ULONG *)&(pTi)->Main_rtn = (Rtn))
-
-/* Game (main.h tagGAME) with the demo fields the title uses */
-typedef struct tagGAME_TITLE {
-    UCHAR pad0[0x48];
-    UCHAR *pDemo;                      /* 0x48 tagGAME.pSave: pad data of the running demo */
-    UCHAR Unk4C;                       /* 0x4C */
-    UCHAR Unk4D;                       /* 0x4D */
-    UCHAR Demo_cnt;                    /* 0x4E */
-    UCHAR Demo_no;                     /* 0x4F next demo, 0..2 */
-    ULONG Demo_time;                   /* 0x50 */
-} GAME_TITLE;
-extern GAME_TITLE Game_t __asm__("Game");
-
-/* Snd_work (snd.h SND_WORK) with the byte at 0x7C0 */
-typedef struct tagSND_WORK_TITLE {
-    UCHAR pad0[0x7C0];
-    UCHAR Unk7C0;                      /* 0x7C0 */
-} SND_WORK_TITLE;
-extern SND_WORK_TITLE Snd_work_t __asm__("Snd_work");
-
-/* G past the end of tagGLOBAL: "The Mercenaries" records (same layout as result.h GLOBAL_RESULT) */
-typedef struct tagGLOBAL_TITLE {
-    UCHAR pad0[0x7E98];
-    LONG Merc_time[3];                 /* 0x7E98 best time per character, -1 none */
-    UCHAR Merc_grade[3];               /* 0x7EA4 best grade per character, 0xFF none */
-    UCHAR pad7EA7;
-    ULONG Merc_money[3];               /* 0x7EA8 best money per character */
-} GLOBAL_TITLE;
-#define GT ((GLOBAL_TITLE *)&G)
 
 /* overlay .data (still in asm) */
 extern ULONG Title_pdemo_cd[3] __asm__("D_801974B4");                  /* 0x801974B4 demo file per demo */

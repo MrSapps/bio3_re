@@ -6,6 +6,7 @@
  */
 #include "bio3.h"
 #include "em_sub.h"
+#include "joint.h"
 
 /* em37's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM37_FREE {
@@ -18,14 +19,6 @@ typedef struct tagEM37_FREE {
 /* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
 #define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
 #define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
-
-/* PARTS_W free work used as two light colours (as em34) */
-typedef struct tagPARTS_RGB_VIEW {
-    UCHAR pad[0x74];
-    ULONG Rgb0;                        /* 0x74 */
-    ULONG Rgb1;                        /* 0x78 */
-} PARTS_RGB_VIEW;
-#define PW_RGB(p) ((PARTS_RGB_VIEW *)(p))
 
 /* random idle motions, copied to the stack by the move routines */
 typedef struct tagEM37_MOTION {

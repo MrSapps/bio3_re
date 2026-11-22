@@ -14,8 +14,10 @@
 #include "player.h"
 #include "main.h"
 #include "sub.h"
+#include "md_sub.h"
 #include "mojidisp.h"
 #include "pl_wep.h"
+#include "joint.h"
 
 /* em34's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM34_FREE {
@@ -45,30 +47,6 @@ typedef struct tagEM34_FREE {
     UCHAR Near_cnt;                    /* 0x23 (0x1EF) frames the sub player is closer */
 } EM34_FREE;
 
-/* RE2 PARTS_NECK_FREE_WORK (MAIN.H): PARTS_W free work of the neck part */
-typedef struct tagPARTS_NECK_FREE_WORK {
-    SHORT N_rot_y;                     /* 0x74 */
-    SHORT N_rot_z;                     /* 0x76 */
-    SHORT Add_dir_y;                   /* 0x78 */
-    SHORT Add_dir_z;                   /* 0x7A */
-    SHORT L_rot_y;                     /* 0x7C */
-    SHORT L_rot_z;                     /* 0x7E */
-} PARTS_NECK_FREE_WORK;
-
-typedef struct tagPARTS_NECK_VIEW {
-    UCHAR pad[0x74];
-    PARTS_NECK_FREE_WORK Neck;         /* 0x74 RE2 PARTS_W.Free */
-} PARTS_NECK_VIEW;
-#define PW_NECK(p) (&((PARTS_NECK_VIEW *)(p))->Neck)
-
-/* PARTS_W free work used as two light colours (player burnt by the claw, Em134_pldm02) */
-typedef struct tagPARTS_RGB_VIEW {
-    UCHAR pad[0x74];
-    ULONG Rgb0;                        /* 0x74 */
-    ULONG Rgb1;                        /* 0x78 */
-} PARTS_RGB_VIEW;
-#define PW_RGB(p) ((PARTS_RGB_VIEW *)(p))
-
 /* PARTS_W free work of the claw arm blown off by the explosion (Em34_sce08) */
 typedef struct tagPARTS_FREE_VIEW {
     UCHAR pad[0x74];
@@ -84,14 +62,6 @@ typedef struct tagPARTS_FREE_VIEW {
 
 /* the player's ENEMY_WORK inside G (RE2 G.Player); same address as Pl_work, but G-relative */
 #define G_PL ((ENEMY_WORK *)&G.Pl_be_flg)
-
-/* hit area handed to func_800445C8 (pl_wep.c): the target is inside the box */
-typedef struct tagEM34_HIT_AREA {
-    LONG *pPos;                        /* 0x00 centre (VECTOR) */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM34_HIT_AREA;
 
 /* attack point handed to func_80047F70 (pl_wep.c): hits other enemies */
 typedef struct tagEM34_AT_POINT {
@@ -140,7 +110,7 @@ LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);         /* pl_wep
 LONG SquareRoot0(LONG a);                                               /* libgte */
 SHORT Get_dir_xz(LONG X, LONG Z);                                       /* em_sub.c */
 void func_8002C680(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add); /* md_sub.c */
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM34_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 LONG func_80047F70(ENEMY_WORK *pEm, EM34_AT_POINT *pAt, SHORT *pData);  /* pl_wep.c */
 LONG func_8005F984(LONG Dmg, ULONG Flg);                                /* spl_auto.c: sub player life down */
 LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg);      /* sca.c */

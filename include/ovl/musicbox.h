@@ -31,13 +31,7 @@ typedef struct tagMBOX_WORK {
     UCHAR padB;
 } MBOX_WORK;
 
-/* G viewed with Ob_model as OBJ_MODEL_WORK[]: bio3.h declares it as bytes, but this code
- * indexes it as a struct array ((n + 11) * 0x194 is not folded, unlike pointer arithmetic) */
-typedef struct tagG_OM_VIEW {
-    UCHAR pad0[0x4328];
-    OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 G.Ob_model */
-} G_OM_VIEW;
-#define OM(n) (((G_OM_VIEW *)pG)->Ob_model[n])
+#define OM(n) (pG->Ob_model[n])
 
 /* overlay .data (still in asm) */
 extern UCHAR Mbox_mess[] __asm__("D_801C2A44");         /* message texts */

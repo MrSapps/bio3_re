@@ -43,7 +43,7 @@ LONG func_8004F5B4(ULONG P0, ULONG P1, struct tagSCA_DATA *pT);       /* sca.c *
 void func_80103A90(ENEMY_WORK *pEm);
 void func_80103D58(ENEMY_WORK *pEm);
 void func_80109428(ENEMY_WORK *pEm);
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM23_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);         /* pl_wep.c */
 void func_80106AA8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
 void func_801072F8(ENEMY_WORK *pEm);
@@ -464,7 +464,7 @@ void func_80101008(ENEMY_WORK *pEm)
         if (!(pEm->Status_flg & 2) && !Hit)
             EM_RTN(pEm) = 0x1201;
     }
-    if ((Rnd() & 0x1F) == 1 && func_8010C76C(&G.pUnk2660) && (LONG)pEm->Unk154 > 8000 && !(pEm->UnkAE & 0x20))
+    if ((Rnd() & 0x1F) == 1 && func_8010C76C(&G.pEnemy[1]) && (LONG)pEm->Unk154 > 8000 && !(pEm->UnkAE & 0x20))
         EM_RTN(pEm) = 0x1501;
     if (EF(pEm)->Unk2E && pEm->Id == 0x28 && (LONG)pEm->Unk154 < 6000 && !Ck2 && (LONG)pEm->Unk154 > 1000) {
         if (Rnd() & 1)
@@ -512,7 +512,7 @@ void func_80101364(ENEMY_WORK *pEm)
         if (!(pEm->Status_flg & 2) && !Hit)
             EM_RTN(pEm) = 0x1201;
     }
-    if ((Rnd() & 0xF) == 1 && func_8010C76C(&G.pUnk2660) && (LONG)pEm->Unk154 > 8000 && !(pEm->UnkAE & 0x20))
+    if ((Rnd() & 0xF) == 1 && func_8010C76C(&G.pEnemy[1]) && (LONG)pEm->Unk154 > 8000 && !(pEm->UnkAE & 0x20))
         EM_RTN(pEm) = 0x1501;
     if (EF(pEm)->Unk2E && pEm->Id == 0x28 && (LONG)pEm->Unk154 < 6000 && !Ck2 && (LONG)pEm->Unk154 > 1000) {
         if (Rnd() & 1)
@@ -599,7 +599,7 @@ void func_8010175C(ENEMY_WORK *pEm)
         EF(pEm)->Unk22 = (EF(pEm)->pSca->X0 + EF(pEm)->pSca->X1) >> 2;
         EF(pEm)->Unk24 = (EF(pEm)->pSca->Z0 + EF(pEm)->pSca->Z1) >> 2;
     }
-    if ((Rnd() & 0x3F) == 1 && func_8010C76C(&G.pUnk2660) && (LONG)pEm->Unk154 > 8000 && !(pEm->UnkAE & 0x20))
+    if ((Rnd() & 0x3F) == 1 && func_8010C76C(&G.pEnemy[1]) && (LONG)pEm->Unk154 > 8000 && !(pEm->UnkAE & 0x20))
         EM_RTN(pEm) = 0x1501;
     if (EF(pEm)->Unk2E && pEm->Id == 0x28 && pEm->Unk154 - 1001 < 4999 && (Rnd() & 1))
         EM_RTN(pEm) = 0x1401;
@@ -658,7 +658,7 @@ void func_80101B94(ENEMY_WORK *pEm)
     if ((LONG)pEm->Unk154 < 5000 && (pEm->Status_flg & 0x2000)) {
         if (Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0xC00))
             EM_RTN(pEm) = 0x601;
-    } else if ((Rnd() & 0x17) == 1 && func_8010C76C(&G.pUnk2660) && !(pEm->UnkAE & 0x20)) {
+    } else if ((Rnd() & 0x17) == 1 && func_8010C76C(&G.pEnemy[1]) && !(pEm->UnkAE & 0x20)) {
         EM_RTN(pEm) = 0x1501;
     }
     EF(pEm)->Unk22 = pEm->Dest_x;
@@ -1779,7 +1779,7 @@ void func_80105B70(ENEMY_WORK *pEm)
 void func_80105C14(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     SVECTOR Sv;
-    EM23_HIT_AREA Area;
+    HIT_AREA Area;
     ENEMY_WORK *pPl = &Pl_work;
 
     switch (pEm->Routine_2) {
@@ -1886,7 +1886,7 @@ void func_801060D0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     VECTOR Unused;
     SVECTOR Sv;
-    EM23_HIT_AREA Area;
+    HIT_AREA Area;
     ENEMY_WORK *pPl = &Pl_work;
 
     switch (pEm->Routine_2) {
@@ -2189,7 +2189,7 @@ void func_80107454(ENEMY_WORK *pEm)
 void func_801075A0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     SVECTOR Sv;
-    EM23_HIT_AREA Area;
+    HIT_AREA Area;
     ENEMY_WORK *pPl = &Pl_work;
     LONG Move;
 
@@ -2627,7 +2627,7 @@ void func_801088FC(void) {
 void func_80108904(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     SVECTOR Sv;
-    EM23_HIT_AREA Unused;
+    HIT_AREA Unused;
     ENEMY_WORK *pPl = &Pl_work;
     LONG Right;
 
@@ -2683,7 +2683,7 @@ void func_80108BBC(void) {
 void func_80108BC4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     SVECTOR Unused;
-    EM23_HIT_AREA Area;
+    HIT_AREA Area;
     SVECTOR Sv;
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -2769,7 +2769,7 @@ LONG func_80108EDC(ENEMY_WORK *pEm, USHORT Rtn0, USHORT Rtn1)
     ENEMY_WORK *pE;
     LONG Ck;
 
-    for (ppEm = G_pl.pEnemy; ppEm != G_pl.ppEnemy_end; ppEm++) {
+    for (ppEm = &G_pl.pEnemy[2]; ppEm != G_pl.ppEnemy_end; ppEm++) {
         pE = *ppEm;
         if (pE != pEm && (pE->Be_flg & 1)) {
             if ((USHORT)EM_RTN01(pE) == Rtn0 || (USHORT)EM_RTN01(pE) == Rtn1)
@@ -2793,7 +2793,7 @@ void func_80108F68(ENEMY_WORK *pEm)
     Min = 0x7FFFFFFF;
     EF(pEm)->Flg = 0;
     Dist = 0;
-    for (ppE = G.pEnemy; ppE != G.ppEnemy_end; ppE++) {
+    for (ppE = &G.pEnemy[2]; ppE != G.ppEnemy_end; ppE++) {
         pE = *ppE;
         if ((pE->Be_flg & 1) && (pE->Id == 0x23 || pE->Id == 0x28) && pE->Routine_0 != 7) {
             if ((LONG)pE->Unk154 < Min) {
@@ -2806,7 +2806,7 @@ void func_80108F68(ENEMY_WORK *pEm)
     }
     if (pE->Routine_0 != 7 && pE->Routine_0 != 3 && !(EF(pNear)->Flg & 8))
         Snd_se_enem(13, pNear);
-    for (ppE = G.pEnemy; ppE != G.ppEnemy_end; ppE++) {
+    for (ppE = &G.pEnemy[2]; ppE != G.ppEnemy_end; ppE++) {
         pE = *ppE;
         if ((pE->Be_flg & 1) && pE != pNear && (pE->Id == 0x23 || pE->Id == 0x28) && pE->Routine_0 != 7) {
             if (!Dist) {
@@ -4173,7 +4173,7 @@ void func_8010C694(ENEMY_WORK *pEm)
     ENEMY_WORK **ppE;
     ENEMY_WORK *pE;
 
-    ppE = func_8010C76C(&G.pUnk265C);
+    ppE = func_8010C76C(&G.pEnemy[0]);
     if (ppE) {
         pE = *ppE;
         Sv.vx = -250;

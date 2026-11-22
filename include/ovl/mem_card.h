@@ -5,6 +5,7 @@
  * RE2 predecessor: ref/bio2-ds/Bio2/prog/MEM_CARD.C (names follow it where the code matches).
  */
 #include "bio3.h"
+#include "sub.h"
 
 /* memory card file header (RE2 struct tag_CARD, 0x200 bytes) */
 typedef struct tag_CARD {
@@ -87,19 +88,6 @@ typedef struct tagMWORK {
     UCHAR Card_buf[0x980];             /* 0x1C0 save image (0x200 card header, then the game data) */
     SAVE_INFO Save_info[15];           /* 0xB40 */
 } MWORK;
-
-/* game state kept for the "retry" after a save (D_800C7048, see sub.c) */
-typedef struct {
-    USHORT Cdir_y;                     /* 0x0 */
-    SHORT Pos_x;                       /* 0x2 */
-    SHORT Pos_y;                       /* 0x4 */
-    SHORT Pos_z;                       /* 0x6 */
-    USHORT Life;                       /* 0x8 */
-    UCHAR UnkA;                        /* 0xA */
-    UCHAR UnkB;                        /* 0xB */
-    UCHAR Save[0x908];                 /* 0xC */
-} FC_SAVE;
-extern FC_SAVE D_800C7048;
 
 /* overlay functions (RE2 names where the code matches) */
 void func_801C20AC(void);                       /* Mem_card */

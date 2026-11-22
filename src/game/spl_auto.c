@@ -6,8 +6,9 @@
 #include "sub.h"
 #include "player.h"
 #include "om.h"
-
-
+#include "esp.h"
+#include "cd.h"
+#include "status.h"
 
 extern UCHAR D_800D442C[];
 extern UCHAR D_800E017F[];
@@ -37,17 +38,8 @@ LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
 LONG Pad_vib_fade_set();
-LONG func_8001B894();
 void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
 extern UCHAR D_8009E340[];
-extern UCHAR D_800E0170;
-typedef struct {
-    void *pData;                       /* 0x0 */
-    UCHAR pad4;
-    UCHAR Id;                          /* 0x5 */
-    UCHAR pad6[2];
-} SCE_UNK_DECC0;
-extern SCE_UNK_DECC0 D_800DECC0[];
 LONG Xa_play();
 typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
 typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
@@ -69,13 +61,6 @@ extern EM_FUNC3 D_8009EAFC[];
 extern EM_FUNC3 D_8009EB4C[];
 extern EM_FUNC3 D_8009EB9C[];
 extern EM_FUNC3 D_8009EBEC[];
-typedef struct {
-    UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5[0xB8 - 0x5];
-    SHORT UnkB8;                       /* 0xB8 */
-} ST_WORK;
-extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern UCHAR D_800A0FDC[];
 extern SHORT D_800D1F8E[];
 extern SHORT D_800D1F82;
@@ -97,51 +82,18 @@ void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079868(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_800E01C6[];
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-typedef struct {
-    LONG Unk0;                         /* 0x00 */
-    LONG Pos[3];                       /* 0x04 */
-    LONG Tgt[3];                       /* 0x10 */
-} SCE_CAMERA;
-extern SCE_CAMERA D_800E0150;
 LONG Set_view(LONG *pPos, LONG *pTgt);
-typedef struct {
-    UCHAR Unk0;                        /* 0x00 */
-    UCHAR Unk1;                        /* 0x01 */
-    UCHAR pad2[0x24 - 0x2];
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0xC0 - 0x26];
-    LONG UnkC0;                        /* 0xC0 */
-    UCHAR padC4[0xD4 - 0xC4];
-} SCE_UNK_D4;
-extern SCE_UNK_D4 D_800BA8A8[];
 extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
 void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
-typedef struct {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR pad4[0x20 - 0x4];
-    LONG Pos[3];                       /* 0x020 */
-    UCHAR pad2C[0x4A - 0x2C];
-    UCHAR Attr;                        /* 0x04A */
-    UCHAR pad4B[0xC1 - 0x4B];
-    UCHAR UnkC1;                       /* 0x0C1 */
-    UCHAR padC2;
-    UCHAR UnkC3;                       /* 0x0C3 */
-    UCHAR padC4[0x194 - 0xC4];
-} SCE_OM_WORK;
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
 ENEMY_WORK *Spl_em_cdir_ck();
 ENEMY_WORK *Spl_pllock_get();
 extern UCHAR D_800A0514[];
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
 extern UCHAR D_8009CDE0[];
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
 ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
@@ -193,70 +145,7 @@ extern UCHAR D_800B9E21;
 void Xa_fade_set(ULONG frames);
 void Pad_vib_init(void);
 
-/* Loop-header record of For: SHORT break offset at +2, SHORT loop count at +4 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT Brk_ofs;
-    SHORT Lcnt;
-} SCE_FOR_REC;
-
-/* Loop-header record of While / Do: SHORT break offset at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT Brk_ofs;
-} SCE_BRK_REC;
-
-/* Switch head record: USHORT break offset at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Brk_ofs;
-} SCE_SWITCH_REC;
-
-/* Case record: USHORT offset to the next case at +2, case value at +4 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Ofs;
-    USHORT Val;
-} SCE_CASE_REC;
-
-/* Goto record: SHORT jump offset at +4 */
-typedef struct {
-    UCHAR Dummy[4];
-    SHORT Jmp_ofs;
-} SCE_GOTO_REC;
-
-/* Save record: SHORT value at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT Set_val;
-} SCE_SAVE_REC;
-
-/* Calc record: USHORT command word at +2 (low byte operator, high byte variable), SHORT immediate at +4 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Cmd_word;
-    SHORT Imm;
-} SCE_CALC_REC;
-
-/* Member_set record: SHORT value at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    SHORT D0;
-} SCE_MEMBER_SET_REC;
-
 extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] */
-/* G+0x265C viewed as one work list (RE2 G.pEnemy: [0] player, [1] sub player, [2..] enemies) */
-typedef struct {
-    UCHAR pad[0x265C];
-    ENEMY_WORK *pWork[42];
-} G_WORK_LIST;
-#define G_pWork (((G_WORK_LIST *)&G)->pWork)
-
-/* Speed record: USHORT value at +2 */
-typedef struct {
-    UCHAR Dummy[2];
-    USHORT Spd_val;
-} SCE_SPEED_REC;
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
@@ -292,7 +181,7 @@ void Spl_Root_ck_sys(ENEMY_WORK *pEm)
     LONG Dx, Dz;
 
     pPl = (ENEMY_WORK *)((UCHAR *)&G + 0x248C);
-    if (!(G.Status_flg & 0x80000000) || pEm != G.pUnk2660) {
+    if (!(G.Status_flg & 0x80000000) || pEm != G.pEnemy[1]) {
         Vec.vx = pEm->Unk14C;
         Vec.vz = pEm->Unk14E;
         Vec.vy = 0;
@@ -1755,7 +1644,7 @@ void Aida_mv08(ENEMY_WORK *pEm)
         pEm->Routine_3 += Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
         break;
     case 4:
-        if ((LONG)G.Status_flg < 0 && pEm == G.pUnk2660) {
+        if ((LONG)G.Status_flg < 0 && pEm == G.pEnemy[1]) {
             pEm->Routine_1 = 0;
         }
         pEm->Routine_2 = 0;
@@ -1826,7 +1715,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         pEm->Routine_3 += Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         break;
     case 6:
-        if ((LONG)G.Status_flg < 0 && pEm == G.pUnk2660) {
+        if ((LONG)G.Status_flg < 0 && pEm == G.pEnemy[1]) {
             pEm->Routine_1 = 0;
             pEm->Routine_2 = 0;
             pEm->Routine_3 = 0;
@@ -2728,7 +2617,7 @@ void Spl_enemy_ck(ENEMY_WORK *pEm)
     Near_em[1] = NULL;
     Near_em[2] = NULL;
     if (pG->Em_num != 0) {
-        ppEnemy = pG->pEnemy;
+        ppEnemy = &pG->pEnemy[2];
         do {
             pCur = *ppEnemy;
             if ((pCur->Be_flg & 1) && (pCur->Type & 0xC000) == 0) {
@@ -2931,7 +2820,7 @@ LONG func_8005F984(LONG Dmg, ULONG Flg)
 {
     ENEMY_WORK *pW;
 
-    pW = G.pUnk2660;
+    pW = G.pEnemy[1];
     if ((ULONG)(Dmg - 10) < 0x5B) {
         Dmg += 5;
     }
@@ -2953,7 +2842,7 @@ LONG Spl_life_down(ENEMY_WORK *pEm, LONG Dmg, ULONG Flg)
 {
     ENEMY_WORK *pW;
 
-    pW = G.pUnk2660;
+    pW = G.pEnemy[1];
     pW->Life -= Dmg;
     G.Unk7852 -= Dmg;
     *(ULONG *)&pW->Routine_0 = 2;

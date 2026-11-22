@@ -7,19 +7,6 @@
 #define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
-/* player state kept by func_800791F0 (0x800C7048) */
-typedef struct tagPL_SAVE {
-    USHORT Cdir_y;                     /* 0x0 */
-    SHORT Pos_x;                       /* 0x2 */
-    SHORT Pos_y;                       /* 0x4 */
-    SHORT Pos_z;                       /* 0x6 */
-    USHORT Life;                       /* 0x8 */
-    UCHAR Pl_id;                       /* 0xA */
-    UCHAR Poison;                      /* 0xB 0x80 | poison timer */
-    UCHAR Save[0x908];                 /* 0xC copy of G.Card_head.. */
-} PL_SAVE;
-extern PL_SAVE D_800C7048;
-
 /* two-bone joint lengths (func_80079374) */
 typedef struct tagMY_JNT {
     SVECTOR a;
@@ -48,16 +35,6 @@ LONG Cd_read_s(LONG Fno, LONG a1, ULONG *pAdr, LONG a3, char *pName);
 void func_8007836C(LONG no, ULONG *pAdr);
 void func_800783BC(ULONG no, ULONG size, ULONG *a2);
 
-/* G.Unk2484 as the RE2 Ctpage/Cclut bytes (next free texture page x / clut row); a byte
- * pointer into G.Unk2484 does not match, the original addresses them as G fields (as cd.c) */
-typedef struct {
-    UCHAR pad[0x2484];
-    UCHAR Ctpage;                      /* 0x2484 */
-    UCHAR Cclut;                       /* 0x2485 */
-} G_CTPAGE;
-#define G_TP_X (((G_CTPAGE *)&G)->Ctpage)
-#define G_CLUT_Y (((G_CTPAGE *)&G)->Cclut)
-
 void Mapping_tim(ULONG *pAdr)
 {
     TIM_IMAGE tim;
@@ -68,18 +45,18 @@ void Mapping_tim(ULONG *pAdr)
     OpenTIM(pAdr);
     p = (TIM_IMAGE *)ReadTIM((u_long *)&tim);
     r = p->prect;
-    x = G_TP_X << 6;
-    if (G_TP_X >= 16) {
+    x = G.Ctp.u.Ctpage << 6;
+    if (G.Ctp.u.Ctpage >= 16) {
         x -= 0x400;
     }
     r->x = x;
-    p->prect->y = (G_TP_X >= 16) << 8;
+    p->prect->y = (G.Ctp.u.Ctpage >= 16) << 8;
     LoadImage(p->prect, p->paddr);
-    G_TP_X += (p->prect->w + 0x3F) / 64;
+    G.Ctp.u.Ctpage += (p->prect->w + 0x3F) / 64;
     if (p->caddr) {
-        p->crect->y = G_CLUT_Y + 0x1E0;
+        p->crect->y = G.Ctp.u.Cclut + 0x1E0;
         LoadImage(p->crect, p->caddr);
-        G_CLUT_Y += p->crect->h;
+        G.Ctp.u.Cclut += p->crect->h;
     }
     DrawSync(0);
 }
@@ -332,11 +309,11 @@ void func_80078FE8(void)
     p->Unk2 = pG->Unk7806;
     D_800E11D0.Unk0 = pG->Save_cnt;
     for (; i < 3; i++) {
-        p->Unk8[i] = pG->Unk7E98[i];
-        D_800E11D0.Unk14[i] = pG->Unk7EA4[i];
-        p->Unk18[i] = pG->Unk7EA8[i];
+        p->Unk8[i] = pG->Merc_time[i];
+        D_800E11D0.Unk14[i] = pG->Merc_grade[i];
+        p->Unk18[i] = pG->Merc_money[i];
     }
-    D_800E11F4 = pG->Unk7EB4;
+    D_800E11F4 = pG->Money;
 }
 
 void func_8007906C(void)
@@ -351,11 +328,11 @@ void func_8007906C(void)
     pG->Unk7806 = p->Unk2;
     pG->Save_cnt = D_800E11D0.Unk0;
     for (; i < 3; i++) {
-        pG->Unk7E98[i] = p->Unk8[i];
-        pG->Unk7EA4[i] = D_800E11D0.Unk14[i];
-        pG->Unk7EA8[i] = p->Unk18[i];
+        pG->Merc_time[i] = p->Unk8[i];
+        pG->Merc_grade[i] = D_800E11D0.Unk14[i];
+        pG->Merc_money[i] = p->Unk18[i];
     }
-    pG->Unk7EB4 = D_800E11F4;
+    pG->Money = D_800E11F4;
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/sub", func_800790F0);
@@ -394,7 +371,6 @@ void func_800792FC(void)
     Cd_read(0x127, (ULONG *)0x80101000, 0, "INIT_SUB");
     func_8007836C(2, (ULONG *)0x80101000);
 }
-
 
 void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
 {
@@ -482,7 +458,6 @@ void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
     }
     MulMatrix(pM0, &m1);
 }
-
 
 void Copy_rot_matrix(MATRIX *m0, MATRIX *m1)
 {
@@ -700,7 +675,7 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
         y = EM_P(pEm, 0x1AE, SHORT);
         d <<= 3;
         if (d < y) {
-            if (pEm != G.pUnk265C && pEm->Type != 1) {
+            if (pEm != G.pEnemy[0] && pEm->Type != 1) {
                 EM_P(pEm, 0x1AE, SHORT) = d;
             }
         } else {

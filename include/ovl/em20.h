@@ -15,6 +15,7 @@
 #include "pad.h"
 #include "player.h"
 #include "main.h"
+#include "pl_wep.h"
 
 /* RE2 EM20_FREE (EM_SUB.H), the enemy's Free[] at 0x1CC */
 typedef struct tagEM20_FREE {
@@ -31,7 +32,7 @@ typedef struct tagEM20_FREE {
     UCHAR Combo_flg;                   /* 0x0B (0x1D7) */
     SHORT Dash_turn;                   /* 0x0C (0x1D8) */
     UCHAR Kill_ok;                     /* 0x0E (0x1DA) */
-    UCHAR Target_pl;                   /* 0x0F (0x1DB) 1: target is the sub player (G.pUnk2660) */
+    UCHAR Target_pl;                   /* 0x0F (0x1DB) 1: target is the sub player (G.pEnemy[1]) */
     SHORT Yori_fx;                     /* 0x10 (0x1DC) */
     SHORT Yori_fz;                     /* 0x12 (0x1DE) */
     UCHAR No_hit;                      /* 0x14 (0x1E0) */
@@ -70,14 +71,6 @@ typedef struct tagEM20_ESP_TBL {
     USHORT Type;                       /* 0x2 Esp type (code bits 16..31) */
     SVECTOR Ofs;                       /* 0x4 offset from the part; pad = code bits 0..15 */
 } EM20_ESP_TBL;
-
-/* hit box test around a point (pl_wep.c func_800445C8) */
-typedef struct tagHIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */

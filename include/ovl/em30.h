@@ -57,7 +57,7 @@ typedef struct tagEM30_FREE {
 /* a collision sub-work's private work: which part of which body it follows */
 typedef struct tagEM30_SUB_FREE {
     LONG Parts_no;                     /* 0x00 (0x1CC) part of the body */
-    LONG Oya_no;                       /* 0x04 (0x1D0) index of the body in G.pUnk265C[] */
+    LONG Oya_no;                       /* 0x04 (0x1D0) index of the body in G.pEnemy[0][] */
 } EM30_SUB_FREE;
 
 #define G_PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
@@ -84,26 +84,6 @@ typedef struct tagEM30_SABUN {
     } Key[3];
 } EM30_SABUN;
 #define EM30_SABUN_P(pP) ((EM30_SABUN *)(pP)->pUnk98)
-
-/* G viewed with the work pointer table as one array (em_sub.c G_EMTBL: [0] player, [1] sub, [2..] enemies) */
-typedef struct tagEM30_G {
-    UCHAR pad0[0x213C];
-    ENEMY_WORK *pEm_mem;               /* 0x213C next free work */
-    UCHAR pad2140[0x2487 - 0x2140];
-    UCHAR Em_num;                      /* 0x2487 */
-    UCHAR pad2488[0x265C - 0x2488];
-    ENEMY_WORK *pEm_tbl[42];           /* 0x265C */
-    ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
-} EM30_G;
-#define EM30_GW ((EM30_G *)&G)
-
-/* hit box test around a point (pl_wep.c func_800445C8) */
-typedef struct tagHIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */

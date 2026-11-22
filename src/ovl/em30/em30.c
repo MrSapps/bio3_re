@@ -102,7 +102,7 @@ void func_801000AC(ENEMY_WORK *pEm)
         }
     } else {
         pG = &G;
-        pOya = (&pG->pUnk265C)[EM30_SUB(pEm)->Oya_no];
+        pOya = (&pG->pEnemy[0])[EM30_SUB(pEm)->Oya_no];
         if (pOya->Routine_0 != 3 && !(pG->System_flg & 0x800)) {
             pP = &pOya->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no];
             if (pP->UnkA2 & 1) {
@@ -513,13 +513,13 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if (Joint_move(pEm, Kan, Seq, 0x80)) {
             pP = &pEm->pSin_parts_ptr[4];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             pP = &pEm->pSin_parts_ptr[5];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             pP = &pEm->pSin_parts_ptr[6];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             pEm->Routine_2 = 2;
             pEm->Timer0 = 50;
             EM_MOVE(pEm) = 0;
@@ -539,7 +539,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pP->UnkA2 &= ~1;
             pP = &pEm->pSin_parts_ptr[8];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             pP = &pEm->pSin_parts_ptr[10];
             pP->UnkA2 &= ~1;
             pP = &pEm->pSin_parts_ptr[12];
@@ -558,20 +558,20 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if (pEm->Move_cnt == 77) {
             pP = &pEm->pSin_parts_ptr[1];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 1;
         }
         if (pEm->Move_cnt == 86) {
             pP = &pEm->pSin_parts_ptr[2];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 2;
             Snd_se_enem(10, pEm);
         }
         if (pEm->Move_cnt == 96) {
             pP = &pEm->pSin_parts_ptr[3];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 3;
         }
         if (pEm->Move_cnt == 40) {
@@ -714,7 +714,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pP->UnkA2 |= 1;
             pP = &pEm->pSin_parts_ptr[8];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
         }
         if (pEm->Move_cnt == 7) {
             pP = pEm->pSin_parts_ptr;
@@ -725,13 +725,13 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if (pEm->Move_cnt == 15) {
             pP = &pEm->pSin_parts_ptr[1];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 1;
         }
         if (pEm->Move_cnt == 34) {
             pP = &pEm->pSin_parts_ptr[2];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 2;
         }
         if (pEm->Move_cnt == 35)
@@ -739,14 +739,14 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if (pEm->Move_cnt == 50) {
             pP = &pEm->pSin_parts_ptr[3];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 3;
         }
         if (pEm->Move_cnt == 71) {
             pP = &pEm->pSin_parts_ptr[4];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[5].Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 5;
         }
         if (pEm->Move_cnt == 40 || pEm->Move_cnt == 80)
@@ -754,7 +754,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if (pEm->Move_cnt == 99) {
             pP = &pEm->pSin_parts_ptr[6];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 6;
         }
         if (pEm->Move_cnt >= 31) {
@@ -874,21 +874,21 @@ void func_801025E0(ENEMY_WORK *pEm)
         func_801023F4(pEm, 1, 150);
     }
     pP->UnkA2 |= 1;
-    EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+    G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
     pP = &pEm->pSin_parts_ptr[2];
     if (!(pP->UnkA2 & 1)) {
         func_801023F4(pEm, 2, 100);
         func_801023F4(pEm, 2, 150);
     }
     pP->UnkA2 |= 1;
-    EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+    G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
     pP = &pEm->pSin_parts_ptr[3];
     if (!(pP->UnkA2 & 1)) {
         func_801023F4(pEm, 3, 100);
         func_801023F4(pEm, 3, 150);
     }
     pP->UnkA2 |= 1;
-    EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+    G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
     pP = &pEm->pSin_parts_ptr[4];
     if (!(pP->UnkA2 & 1)) {
         func_801023F4(pEm, 4, 100);
@@ -919,7 +919,7 @@ void func_801025E0(ENEMY_WORK *pEm)
         func_801023F4(pEm, 8, 150);
     }
     pP->UnkA2 |= 1;
-    EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+    G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
     pP = &pEm->pSin_parts_ptr[10];
     pP->UnkA2 |= 1;
     pP = &pEm->pSin_parts_ptr[12];
@@ -1089,13 +1089,13 @@ void func_80102E70(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
                 pPl->Damage_cnt |= 0x80;
                 pEm->Be_flg |= 0x800;
                 pEm->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[8].Unk82]->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[1].Unk82]->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[2].Unk82]->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[3].Unk82]->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[4].Unk82]->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[5].Unk82]->Damage_cnt |= 0x80;
-                EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[6].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Damage_cnt |= 0x80;
+                G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Damage_cnt |= 0x80;
                 pPl->Routine_0 = 6;
                 pPl->Routine_1 = 0;
                 pPl->Routine_2 = 0;
@@ -1312,7 +1312,7 @@ void func_80103684(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pP->UnkA2 |= 1;
             pP = &pEm->pSin_parts_ptr[8];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
         }
         if (pEm->Move_cnt == 7) {
             pP = pEm->pSin_parts_ptr;
@@ -1325,38 +1325,38 @@ void func_80103684(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if (pEm->Move_cnt == 11) {
             pP = &pEm->pSin_parts_ptr[1];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 1;
         }
         if (pEm->Move_cnt == 17) {
             pP = &pEm->pSin_parts_ptr[2];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 2;
         }
         if (pEm->Move_cnt == 30) {
             pP = &pEm->pSin_parts_ptr[3];
             pP->UnkA2 |= 1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg |= 0x80;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg |= 0x80;
             EM30_W(pEm)->Unk18 = 3;
         }
         if (pEm->Move_cnt == 49) {
             pP = &pEm->pSin_parts_ptr[3];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 2;
         }
         if (pEm->Move_cnt == 51) {
             pP = &pEm->pSin_parts_ptr[2];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 1;
             Snd_se_enem(10, pEm);
         }
         if (pEm->Move_cnt == 54) {
             pP = &pEm->pSin_parts_ptr[1];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 0;
         }
         if (pEm->Move_cnt == 61) {
@@ -1364,7 +1364,7 @@ void func_80103684(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pP->UnkA2 &= ~1;
             pP = &pEm->pSin_parts_ptr[8];
             pP->UnkA2 &= ~1;
-            EM30_GW->pEm_tbl[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
+            G.pEnemy[pP->Unk82]->pKage_work->Be_flg &= 0x7F;
             EM30_W(pEm)->Unk18 = 8;
         }
         if (pEm->Move_cnt == 63) {
@@ -1747,17 +1747,17 @@ void func_80104C58(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate)
 /* allocate a new work (copy of pEm) at the end of the work list (RE2 Enemy_work_set style) */
 ENEMY_WORK *func_80104E58(ENEMY_WORK *pEm)
 {
-    EM30_G *pG = (EM30_G *)&G;
+    tagGLOBAL *pG = &G;
     ULONG n = 0;
 
-    while (&pG->pEm_tbl[n] != pG->ppEnemy_end)
+    while (&pG->pEnemy[n] != pG->ppEnemy_end)
         n++;
     pG->Em_num++;
-    pG->pEm_tbl[n] = pG->pEm_mem;
-    pG->ppEnemy_end = &pG->pEm_tbl[n + 1];
+    pG->pEnemy[n] = pG->pEm_mem;
+    pG->ppEnemy_end = &pG->pEnemy[n + 1];
     pG->pEm_mem++;
-    *pG->pEm_tbl[n] = *pEm;
-    return pG->pEm_tbl[n];
+    *pG->pEnemy[n] = *pEm;
+    return pG->pEnemy[n];
 }
 
 /* morph the body (keys 0..2 of parts 1..3) in a cycle, faster with the speed.
@@ -1909,7 +1909,7 @@ void func_80105514(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Snd_se_enem(2, pEm);
         }
     } else {
-        pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         if (EM30_SUB(pEm)->Parts_no == 8) {
             if (EM30_W(pOya)->Unk03) {
                 EM30_W(pOya)->Unk0C += 5;
@@ -1957,7 +1957,7 @@ void func_80105740(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     ENEMY_WORK *pOya;
 
     if (pEm->Type & 1) {
-        pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         pOya->Unk12C = pEm->Unk12C;
         if (pOya->Routine_0 == 1)
             pOya->Unk1C4 = EM_RTN(pOya);
@@ -2011,7 +2011,7 @@ void func_801059A8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     ENEMY_WORK *pOya;
 
     if (pEm->Type & 1) {
-        pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         if (!Flg_ck(&G.Unk7888, 0) && EM30_W(pOya)->Unk0B != 1) {
             pOya->Unk12C = pEm->Unk12C;
             pOya->Unk132 = pEm->Unk132;
@@ -2050,7 +2050,7 @@ void func_80105B4C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     ENEMY_WORK *pOya;
 
     if (pEm->Type & 1) {
-        pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         if (!Flg_ck(&G.Unk7888, 0) && EM30_W(pOya)->Unk0B != 1) {
             pOya->Unk12C = pEm->Unk12C;
             pOya->Unk132 = pEm->Unk132;
@@ -2093,7 +2093,7 @@ void func_80105C8C(ENEMY_WORK *pEm)
     if (Dm > 100)
         n += 2;
     if (pEm->Type & 1) {
-        pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         while (n--) {
             Sv.vx = (Rnd() & 0xFF) - 0x7F;
             Sv.vy = (Rnd() & 0xFF) - 0x7F;
@@ -2128,7 +2128,7 @@ void func_80105E94(ENEMY_WORK *pEm)
     ULONG Dir;
 
     if (pEm->Type & 1) {
-        pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         do {
             Sv.vx = (Rnd() & 0xFF) - 0x7F;
             Sv.vy = -(Rnd() & 0xFF);
@@ -2197,7 +2197,7 @@ void func_80106130(ENEMY_WORK *pEm)
         if (!(pEm->Type & 1))
             pP = pEm->pSin_parts_ptr;
         else
-            pP = &EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no]->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no];
+            pP = &G.pEnemy[EM30_SUB(pEm)->Oya_no]->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no];
         Sv.vx = pP->Workm.t[0] + Ofs.vx;
         Sv.vy = pP->Workm.t[1] + Ofs.vy;
         Sv.vz = pP->Workm.t[2] + Ofs.vz;
@@ -2245,7 +2245,7 @@ void func_80106710(ENEMY_WORK *pEm)
 
     if (pEm->Type & 1) {
         Dn = EM30_SUB(pEm)->Parts_no;
-        pEm = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+        pEm = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         Up = Dn;
         if (Dn >= 7)
             Dn = 6;
@@ -2257,14 +2257,14 @@ void func_80106710(ENEMY_WORK *pEm)
         if (Up < 7 && Up) {
             pP = &pEm->pSin_parts_ptr[Up];
             No = pP->Unk82;
-            EM30_W(EM30_GW->pEm_tbl[No])->Unk13 = Val;
+            EM30_W(G.pEnemy[No])->Unk13 = Val;
         }
         if (!Up)
             EM30_W(pEm)->Unk13 = Val;
         if (Dn > 0) {
             pP = &pEm->pSin_parts_ptr[Dn];
             No = pP->Unk82;
-            EM30_W(EM30_GW->pEm_tbl[No])->Unk13 = Val;
+            EM30_W(G.pEnemy[No])->Unk13 = Val;
         }
         if (!Dn)
             EM30_W(pEm)->Unk13 = Val;
@@ -2285,7 +2285,7 @@ void func_8010682C(ENEMY_WORK *pEm)
     if (EM30_W(pEm)->Unk13 == 1 || EM30_W(pEm)->Unk13 == 3 || EM30_W(pEm)->Unk13 == 8) {
         if (EM30_W(pEm)->Unk13 == 8) {
             if (pEm->Type & 1) {
-                pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+                pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
                 Pos.vx = pOya->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no].Workm.t[0];
                 Pos.vy = pOya->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no].Workm.t[1];
                 Pos.vz = pOya->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no].Workm.t[2];
@@ -2307,7 +2307,7 @@ void func_8010682C(ENEMY_WORK *pEm)
             Sv.vz <<= 2;
             Sv.vy <<= 2;
             if (pEm->Type & 1) {
-                pOya = EM30_GW->pEm_tbl[EM30_SUB(pEm)->Oya_no];
+                pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
                 func_8001B484(0x2B, (USHORT)pOya->Cdir_y | 0x40000000, &pOya->pSin_parts_ptr[EM30_SUB(pEm)->Parts_no].Workm, &Sv, NULL);
             } else {
                 func_8001B484(0x2B, (USHORT)pEm->Cdir_y | 0x40000000, &pEm->pSin_parts_ptr[8].Workm, &Sv, NULL);
@@ -2376,26 +2376,26 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Unk120 |= 1;
         pEm->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[8];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[1];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[2];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[3];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[4];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[5];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[6];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         EM30_W(pEm)->Unk12 = pPl->Type;
         if (Blow[EM30_W(pEm)->Unk12]) {
             pP = &pEm->pSin_parts_ptr[8];
@@ -2562,7 +2562,7 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
                 pK = (KAGE_WORK *)pEm->pKage_work;
             } else {
                 pP = &pEm->pSin_parts_ptr[i];
-                pK = (KAGE_WORK *)EM30_GW->pEm_tbl[pP->Unk82]->pKage_work;
+                pK = (KAGE_WORK *)G.pEnemy[pP->Unk82]->pKage_work;
             }
             *(ULONG *)&pK->Prim[0].r0 = (*(ULONG *)&pK->Prim[0].r0 & 0xFF000000) | 0xBF3030;
             *(ULONG *)&pK->Prim[1].r0 = (*(ULONG *)&pK->Prim[1].r0 & 0xFF000000) | 0xBF3030;
@@ -2579,7 +2579,7 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
                     pK = (KAGE_WORK *)pEm->pKage_work;
                 } else {
                     pP = &pEm->pSin_parts_ptr[i];
-                    pK = (KAGE_WORK *)EM30_GW->pEm_tbl[pP->Unk82]->pKage_work;
+                    pK = (KAGE_WORK *)G.pEnemy[pP->Unk82]->pKage_work;
                 }
                     pK->Half_x++;
                 pK->Half_z++;
@@ -2607,13 +2607,13 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
     if (pEm->Pos_y > 1100 && pEm->Col_id) {
         pEm->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[8].Unk82]->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[1].Unk82]->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[2].Unk82]->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[3].Unk82]->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[4].Unk82]->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[5].Unk82]->Col_id = 0;
-        EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[6].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Col_id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Col_id = 0;
     }
     if (pEm->Pos_y < 1400) {
         pEm->Pos_y = pEm->Pos_y < 1000 ? pEm->Pos_y + 6 : pEm->Pos_y + 2;
@@ -2632,7 +2632,7 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pP = &pEm->pSin_parts_ptr[6];
         pP->Workm.t[1] += 2;
         {
-            ENEMY_WORK *pB = EM30_GW->pEm_tbl[(Rnd() & 7) + 2];
+            ENEMY_WORK *pB = G.pEnemy[(Rnd() & 7) + 2];
 
             if (++pEm->UnkE2 == 8) {
                 pEm->UnkE2 = 0;
@@ -2681,26 +2681,26 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Life = -1;
         pEm->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[8];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[1];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[2];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[3];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[4];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[5];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[6];
-        EM30_GW->pEm_tbl[pP->Unk82]->Life = -1;
-        EM30_GW->pEm_tbl[pP->Unk82]->Damage_cnt |= 0x80;
+        G.pEnemy[pP->Unk82]->Life = -1;
+        G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pEm->Routine_2++;
         func_8003884C(Em30_vib_tbl, 8);
         pEm->Timer0 = 0;
@@ -2833,13 +2833,13 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Em_dead_flg_on_cand(pEm);
         if (pEm->Pos_y < 900 && pEm->Col_id) {
             pEm->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[8].Unk82]->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[1].Unk82]->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[2].Unk82]->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[3].Unk82]->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[4].Unk82]->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[5].Unk82]->Col_id = 0;
-            EM30_GW->pEm_tbl[pEm->pSin_parts_ptr[6].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Col_id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Col_id = 0;
         }
         if (pEm->Pos_y < 1400) {
             pEm->Pos_y += 2;
@@ -2847,7 +2847,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
                 ENEMY_WORK *pB;
 
                 pEm->Timer0 = 0;
-                pB = EM30_GW->pEm_tbl[(Rnd() & 7) + 2];
+                pB = G.pEnemy[(Rnd() & 7) + 2];
                 if ((pB->Be_flg & 1) && pB->Id == 0x30)
                     func_80105E94(pB);
             }

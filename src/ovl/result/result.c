@@ -356,7 +356,7 @@ void func_801C3294(void)
 {
     Cd_read(0x46, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 
@@ -374,7 +374,7 @@ void func_801C32F4(void)
 LONG func_801C3344(RESULT_WORK *pWk)
 {
     tagGLOBAL *pG = &G;
-    LONG Time = pG->Unk7860;
+    LONG Time = (SHORT)pG->Time;
     LONG Hour;
     LONG Min;
 
@@ -627,7 +627,7 @@ void func_801C4128(void)
 {
     Cd_read(0x46, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 
@@ -973,7 +973,7 @@ void func_801C5324(void)
 {
     Cd_read(0x46, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 
@@ -1070,7 +1070,7 @@ void func_801C5854(void)
 {
     Cd_read(!Flg_ck(Gr.Unk7868, 0x58) ? 0x50 : 0x4C, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 
@@ -1134,7 +1134,7 @@ void func_801C5AF4(void)
 {
     Cd_read(0x4E, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 
@@ -1526,5 +1526,4 @@ void func_801C678C(RESULT_WORK *pWk)
         pWk->Grade = 5;
     }
 }
-
 

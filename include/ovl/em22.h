@@ -16,6 +16,7 @@
 #include "main.h"
 #include "sca.h"
 #include "sub.h"
+#include "pl_wep.h"
 
 /* em22's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM22_FREE {
@@ -68,14 +69,6 @@ typedef struct tagEM22_FREE {
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 #define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 
-/* hit area handed to func_800445C8 (pl_wep.c HIT_AREA) */
-typedef struct tagEM22_HIT_AREA {
-    LONG *pPos;                        /* 0x00 centre (VECTOR) */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM22_HIT_AREA;
-
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
 LONG SquareRoot0(LONG a);                                               /* libgte */
@@ -92,7 +85,7 @@ void func_80018EC8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg); /* em_su
 void Spd_get(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);         /* em_sub.c */
 UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);                           /* oba.c */
 void func_8002646C(ENEMY_WORK *pEm, LONG A, LONG B, LONG C);            /* joint.c (SHORT, SHORT, UCHAR) */
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM22_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);         /* pl_wep.c */
 void func_80016600(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);              /* door.c */
 void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);          /* snd.c */

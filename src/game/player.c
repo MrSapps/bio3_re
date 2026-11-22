@@ -8,59 +8,10 @@
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
+#include "pl_wep.h"
+#include "oba.h"
+#include "joint.h"
 
-/* RE3-only collision object list (80033508..80035790). Nodes are linked through pNext;
- * the player's node lives at Pl_work + 0x80. */
-typedef struct tagCOL_OBJ {
-    UCHAR Id;                          /* 0x00 */
-    UCHAR Flg;                         /* 0x01 */
-    UCHAR Type;                        /* 0x02 0 = player, < 3 = character */
-    UCHAR Unk3;                        /* 0x03 */
-    ENEMY_WORK *pEm;                   /* 0x04 */
-    LONG Pos_x;                        /* 0x08 */
-    LONG Pos_y;                        /* 0x0C */
-    LONG Pos_z;                        /* 0x10 */
-    SHORT Old_x;                       /* 0x14 */
-    SHORT Old_y;                       /* 0x16 */
-    SHORT Old_z;                       /* 0x18 */
-    USHORT W0;                         /* 0x1A */
-    USHORT D0;                         /* 0x1C */
-    USHORT H;                          /* 0x1E */
-    USHORT W1;                         /* 0x20 */
-    USHORT D1;                         /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
-    SHORT Unk26;                       /* 0x26 */
-    SHORT Unk28;                       /* 0x28 */
-    SHORT Unk2A;                       /* 0x2A */
-    SHORT Unk2C;                       /* 0x2C */
-    USHORT Hit_flg;                    /* 0x2E */
-    MATRIX *pM;                        /* 0x30 */
-    struct tagCOL_OBJ *pNext;          /* 0x34 */
-    UCHAR Em_idx;                      /* 0x38 */
-    UCHAR Unk39;                       /* 0x39 */
-    SHORT Unk3A;                       /* 0x3A */
-    LONG Unk3C;                        /* 0x3C */
-} COL_OBJ;
-
-typedef struct tagCOL_ENT {            /* 0x18 bytes */
-    SHORT X0;                          /* 0x00 */
-    SHORT Z0;                          /* 0x02 */
-    SHORT X1;                          /* 0x04 */
-    SHORT Z1;                          /* 0x06 */
-    USHORT Unk8;                       /* 0x08 */
-    USHORT UnkA;                       /* 0x0A */
-    LONG UnkC;                         /* 0x0C -1 terminates */
-    UCHAR Type;                        /* 0x10 */
-    UCHAR Em_idx;                      /* 0x11 */
-    UCHAR pad12[2];
-    COL_OBJ *pObj;                     /* 0x14 */
-} COL_ENT;
-
-typedef struct tagCOL_WORK {
-    COL_OBJ *pTop;                     /* 0x00 */
-    COL_OBJ *pTail;                    /* 0x04 */
-    COL_ENT Ent[1];                    /* 0x08 */
-} COL_WORK;
 extern COL_WORK D_800DCED0;
 extern COL_OBJ *D_800DCDD0[];
 
@@ -76,24 +27,12 @@ void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
 
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);
 
-/* array inside G at an offset not yet in tagGLOBAL (keeps the &G + index*size + ofs addressing) */
-#define G_ARR(type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)&G)->a)
-#define P_ARR(p, type, ofs) (((struct { UCHAR pad[ofs]; type a[1]; } *)(p))->a)
-
-typedef ULONG OT8[8];
-
 extern ULONG D_800CC87C;
 extern ULONG D_800D1F2C;
 extern UCHAR D_8009CD3C;
 ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
 LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
 void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-/* G.pUnk265C, G.pUnk2660 and G.pEnemy[40] seen as one array */
-typedef struct {
-    UCHAR pad0[0x265C];
-    ENEMY_WORK *pWork[42];             /* 0x265C */
-} G_WORKS;
 
 UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
 LONG func_800336B4(ENEMY_WORK *pEm);
@@ -131,14 +70,11 @@ void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
 
 extern void (*D_8009CBB4[])(void);
 
-#define EM_COL(p) ((COL_OBJ *)((UCHAR *)(p) + 0x80))
-
 LONG func_800346AC(COL_OBJ *pObj, ENEMY_WORK *pEm, ENEMY_WORK *pT);
 
 LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
 
-void func_8002AB34(ULONG *pTmd, ULONG Tpage, ULONG Clut);
 PARTS_W *func_8002E61C(ENEMY_WORK *pEm, PARTS_W *pParts);
 PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
 void func_8003589C(ENEMY_WORK *pEm, ULONG *pData);
@@ -147,12 +83,6 @@ extern UCHAR D_800CC84B;
 
 ULONG Tex_chg_(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr) __asm__("Tex_chg");
 
-typedef struct tagOM_WORK {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR Routine_0;                   /* 0x004 */
-    UCHAR pad5[0x194 - 0x5];
-} OM_WORK;
-extern void (*D_8009CC64[])(OM_WORK *pOm);
 extern LONG D_800DD4AC;
 extern ENEMY_WORK *D_800DD4B0;
 void func_80036570(void);
@@ -179,48 +109,11 @@ extern SVECTOR D_800DD4A0;
 extern UCHAR D_800DD4A8;
 void Rot_add_matrix(LONG *pPos, SHORT *pDir, MATRIX *pM, SVECTOR *Add_dir);
 
-typedef struct {
-    LONG *pPos;
-    SHORT W;
-    SHORT H;
-    SHORT D;
-    SHORT padA;
-    SHORT R;
-    SHORT padE;
-} HIT_REQ;
 LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
 LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
 
-typedef struct {                       /* object model part, 0xBC bytes (func_80037680) */
-    ULONG Be_flg;                      /* 0x00 */
-    UCHAR pad4[0x74 - 0x4];
-    SHORT Cdir_y;                      /* 0x74 */
-    SHORT Unk76;                       /* 0x76 */
-    SHORT Unk78;                       /* 0x78 */
-    SHORT Unk7A;                       /* 0x7A */
-    USHORT Unk7C;                      /* 0x7C */
-    SHORT pad7E;
-    SHORT Unk80;                       /* 0x80 */
-    UCHAR pad82[0xA2 - 0x82];
-    USHORT UnkA2;                      /* 0xA2 */
-    UCHAR padA4[0xBC - 0xA4];
-} OM_PARTS;
-
-typedef struct {
-    UCHAR pad0[2];
-    UCHAR Num;
-    UCHAR Idx;
-} OM_BREAK_TBL;
-extern OM_BREAK_TBL D_8009CBEC[];
 extern ULONG D_8009CC54[];
 
-typedef struct {
-    OBJ_MODEL_WORK Om[32];
-    OBJ_MODEL_WORK *pEnd;              /* G + 0x75A8 */
-} OB_MODEL_TBL;
-extern OB_MODEL_TBL D_800CEA60;        /* G.Ob_model */
-
-typedef ULONG ULONG4[4];
 ULONG func_80037D50(VECTOR *pPos);
 
 LONG func_800101C8(VECTOR *pPos, UCHAR *pArea);
@@ -288,15 +181,9 @@ void Player_move(ENEMY_WORK *pEm)
 
 void Kage_work9_set(KAGE_WORK9 **ppKage, ULONG Arg1, ULONG Arg2, ULONG Arg3, VECTOR *pPos);
 
-typedef struct {
-    UCHAR pad0[0x74];
-    SHORT Free[6];                     /* 0x74 */
-    UCHAR pad80[0xBC - 0x80];
-} PARTS_FREE;
-
 void Pl_init(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
-    PARTS_FREE *pNeck;
+    PARTS_W *pNeck;
     LONG half_x;
     LONG half_z;
     LONG w;
@@ -324,13 +211,13 @@ void Pl_init(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     pEm->Unk122 = -(pEm->nFloor * 1800);
     pEm->Status_flg |= 0x400;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
-    pNeck = (PARTS_FREE *)&pEm->pSin_parts_ptr[1];
-    pNeck->Free[2] = 0x60;
-    pNeck->Free[3] = 0x40;
-    pNeck->Free[4] = 0x200;
-    pNeck->Free[5] = 0x138;
-    pNeck->Free[0] = 0;
-    pNeck->Free[1] = 0;
+    pNeck = &pEm->pSin_parts_ptr[1];
+    PW_NECK(pNeck)->Add_dir_y = 0x60;
+    PW_NECK(pNeck)->Add_dir_z = 0x40;
+    PW_NECK(pNeck)->L_rot_y = 0x200;
+    PW_NECK(pNeck)->L_rot_z = 0x138;
+    PW_NECK(pNeck)->N_rot_y = 0;
+    PW_NECK(pNeck)->N_rot_z = 0;
     if (!(*((UCHAR *)&G + 0x2912) & 1)) {
         Kage_work9_set(&pEm->pKage_work, 0, half_x | (half_z << 16), 0, (VECTOR *)&pEm->Pos_x);
     }
@@ -608,7 +495,7 @@ void pl_mv01(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(0, m * 3 + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 2;
+            G.Unk75E8 |= 2;
         }
         Spd_get(pEm, (ULONG)pEm->pSub0_kan_t_ptr, (ULONG)pEm->pSub0_seq_t_ptr, 0);
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
@@ -715,7 +602,7 @@ void pl_mv02(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Spd_get(pEm, (ULONG)pEm->pSub0_kan_t_ptr, (ULONG)pEm->pSub0_seq_t_ptr, 0);
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
@@ -857,7 +744,7 @@ void pl_mv03(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(0, m * 3 + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 2;
+            G.Unk75E8 |= 2;
         }
         break;
     }
@@ -887,7 +774,7 @@ ULONG Lim_dir_ck(ENEMY_WORK *pEm, ULONG Lim, SHORT Dir)
     pG = &G;
     if (pG->Em_num != 0) {
         min = Lim;
-        ppEm = pG->pEnemy;
+        ppEm = &pG->pEnemy[2];
         do {
             pT = *ppEm;
             if ((pT->Be_flg & 1) && (pT->Type & 0xE000) == 0) {
@@ -1001,7 +888,7 @@ void pl_mv04(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(0, m * 3 + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 2;
+            G.Unk75E8 |= 2;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1033,14 +920,14 @@ void func_8003A688(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
         *(ULONG *)&pEm->Move_no = n;
         Get_speedXZ(pEm, 0x700, &pEm->Spd_x, &pEm->Spd_z);
         G.Status_flg &= ~0x100;
-        G_ARR(USHORT, 0x75E8)[0] |= 4;
+        G.Unk75E8 |= 4;
         Snd_se_walk(0, 11, pEm);
     case 1:
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x100);
         pEm->Cdir_y += 0x100;
         if (--*((signed char *)pEm + 0xE2) == 0) {
             *(ULONG *)&pEm->Routine_0 = 1;
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
             Snd_se_walk(0, 11, pEm);
         }
         pEm->Pos_x += pEm->Spd_x;
@@ -1130,7 +1017,7 @@ void pl_mv0a(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         dir = pEm->Cdir_y;
@@ -1260,19 +1147,19 @@ void func_8003B784(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             goto case2;
         }
         pEm->Routine_2 = 1;
-        Spd_get(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0);
+        Spd_get(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0);
     case 1:
-        Spd_get(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0);
+        Spd_get(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0);
         Flg = *pEm->pNow_seq;
         if (Flg & 0x200) {
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
-        Joint_move(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0x200);
+        Joint_move(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_ARR(ENEMY_WORK, 0x248C), G_ARR(LONG, 0x2620)[0], G_ARR(LONG, 0x261C)[0], 0x200);
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, (LONG)G.Pl_pUnk194_kan_t_ptr, (LONG)G.Pl_pUnk190_seq_t_ptr, 0x200);
         func_80079868(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
@@ -1290,7 +1177,7 @@ void func_8003B784(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1379,19 +1266,19 @@ void func_8003BCA4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             goto case2;
         }
         pEm->Routine_2 = 1;
-        Spd_get(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 1);
+        Spd_get(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 1);
     case 1:
-        Spd_get(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 1);
+        Spd_get(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 1);
         Flg = *pEm->pNow_seq;
         if (Flg & 0x200) {
             n = Flg & 0x400;
             m = n == 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
-        Joint_move(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0x10200);
+        Joint_move(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0x10200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_ARR(ENEMY_WORK, 0x248C), G_ARR(LONG, 0x2620)[0], G_ARR(LONG, 0x261C)[0], 0x10200);
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, (LONG)G.Pl_pUnk194_kan_t_ptr, (LONG)G.Pl_pUnk190_seq_t_ptr, 0x10200);
         func_80079868(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
@@ -1412,7 +1299,7 @@ void func_8003BCA4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1488,9 +1375,9 @@ void func_8003C104(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             goto case2;
         }
         pEm->Routine_2 = 1;
-        Spd_get(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0);
+        Spd_get(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0);
     case 1:
-        Spd_get(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0);
+        Spd_get(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0);
         if (pEm->Move_cnt == 0) {
             pEm->Spd_x = 30;
         }
@@ -1499,11 +1386,11 @@ void func_8003C104(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
-        Joint_move(pEm, G_ARR(LONG, 0x2628)[0], G_ARR(LONG, 0x2624)[0], 0x200);
+        Joint_move(pEm, (LONG)G.Pl_pUnk19C_kan_t_ptr, (LONG)G.Pl_pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_ARR(ENEMY_WORK, 0x248C), G_ARR(LONG, 0x2620)[0], G_ARR(LONG, 0x261C)[0], 0x200);
+        func_80079690((ENEMY_WORK *)&G.Pl_be_flg, (LONG)G.Pl_pUnk194_kan_t_ptr, (LONG)G.Pl_pUnk190_seq_t_ptr, 0x200);
         func_80079868(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
@@ -1521,7 +1408,7 @@ void func_8003C104(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1665,7 +1552,7 @@ void func_8003C740(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         func_80034124(&D_800CCC44);
         dir = pEm->Cdir_y;
@@ -1715,7 +1602,7 @@ void func_8003C740(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Add_speedXZ(pEm, 0);
         func_80034124(&D_800CCC44);
@@ -1754,7 +1641,7 @@ void func_8003CA88(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         Add_speedXZ(pEm, 0);
         func_80034124(&D_800CCC44);
@@ -1788,7 +1675,7 @@ void func_8003CA88(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G_ARR(USHORT, 0x75E8)[0] |= 4;
+            G.Unk75E8 |= 4;
         }
         if (pEm->Unk122 - 300 < pEm->Pos_y) {
             pEm->Routine_3 = 4;
@@ -1811,7 +1698,7 @@ void func_8003CA88(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Damage_cnt &= 0x7F;
         pEm->Be_flg &= ~0x8000;
         Snd_se_walk(1, 11, pEm);
-        G_ARR(USHORT, 0x75E8)[0] |= 4;
+        G.Unk75E8 |= 4;
     case 5:
         if (pEm->Move_cnt == 6) {
             Snd_se_walk(1, 14, pEm);
@@ -1834,23 +1721,14 @@ void pl_mv0d_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
 {
 }
 
-typedef struct {
-    LONG *pPos;
-    SHORT W;
-    SHORT H;
-    SHORT D;
-    SHORT padA;
-    SHORT R;
-    SHORT padE;
-} HIT_REQ2;
-LONG func_800472EC_h(HIT_REQ2 *pReq, ULONG *a1) __asm__("func_800472EC");
+LONG func_800472EC_h(HIT_REQ *pReq, ULONG *a1) __asm__("func_800472EC");
 void Quake_add(LONG X, LONG Y);
 extern ULONG D_8009CE0C;
 extern UCHAR *D_800BA6E8;
 
 void func_8003CEA0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
-    HIT_REQ2 Req;
+    HIT_REQ Req;
     ENEMY_WORK *pT;
     LONG hit;
     LONG *p;
@@ -1900,7 +1778,7 @@ void func_8003CEA0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         }
         hit = 0;
         if (*pEm->pNow_seq & 0x200) {
-            Req.pPos = pEm->pSin_parts_ptr->Workm.t;
+            Req.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
             Req.W = 1000;
             Req.H = 0;
             Req.D = 0;
@@ -1991,7 +1869,7 @@ void pl_dm01(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         n = Flg & 0x400;
         m = n != 0;
         Snd_se_walk(1, m * 14, pEm);
-        G_ARR(USHORT, 0x75E8)[0] |= 4;
+        G.Unk75E8 |= 4;
     }
 }
 

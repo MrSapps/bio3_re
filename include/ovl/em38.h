@@ -87,14 +87,6 @@ typedef struct tagEM38_ROOT {
 } EM38_ROOT;
 #define EM38_ROOT_CUT(r) ((VCUT *)&(r)->Pos_z)
 
-/* hit box test around a point (pl_wep.c func_800445C8) */
-typedef struct tagHIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
-
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 LONG Rnd(void) __asm__("func_800102E8");
 LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* em_sub.c, called with int args */                                /* RE2 Rnd (sld.s) */

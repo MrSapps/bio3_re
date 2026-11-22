@@ -437,16 +437,16 @@ void func_801C2D54(MWORK *pMw)
         case 2:
             G.System_flg |= 0x80;
             func_800100A4(D_800C7048.Save, G.Card_head, sizeof(D_800C7048.Save));
-            D_800C7048.UnkA = G.Pl_id;
+            D_800C7048.Pl_id = G.Pl_id;
             D_800C7048.Pos_x = G.Pl_pos_x;
             D_800C7048.Pos_y = G.Pl_pos_y;
             D_800C7048.Pos_z = G.Pl_pos_z;
             D_800C7048.Cdir_y = G.Pl_cdir_y;
             D_800C7048.Life = G.Pl_life;
             if (G.Pl_status_flg & 0x200) {
-                D_800C7048.UnkB = G.Pl_poison_timer | 0x80;
+                D_800C7048.Poison = G.Pl_poison_timer | 0x80;
             } else {
-                D_800C7048.UnkB = 0;
+                D_800C7048.Poison = 0;
             }
             break;
         case 3:
@@ -565,7 +565,7 @@ void func_801C34E8(MWORK *pMw)
 
     pMw->Cursor = pMw->Slot;
     func_800100A4(D_801C6920, G.pUnk7C7C, sizeof(D_801C6920));
-    pMw->Item_bak = G.pUnk7C7C[0x128];
+    pMw->Item_bak = G.pUnk7C7C->Unk128;
     if (!(G.System_flg & 0x4080)) {
         func_8006CCF0(Search_item_id(0x81, 0), 1, 0);
     }
@@ -594,7 +594,7 @@ void func_801C34E8(MWORK *pMw)
             G.Save_cnt = Save_cnt;
         }
         func_800100A4(G.pUnk7C7C, D_801C6920, sizeof(D_801C6920));
-        G.pUnk7C7C[0x128] = pMw->Item_bak;
+        G.pUnk7C7C->Unk128 = pMw->Item_bak;
         pMw->Err = 5;
         pMw->Key_lock = 0;
         pMw->Rno = 3;
@@ -1294,8 +1294,8 @@ void func_801C56E0(void)
     } else {
         pG->Save_poison = 0;
     }
-    pG->Save_vol = Snd_work.Unk7C8;
-    pG->Save_vol2 = Snd_work.Unk7CA;
+    pG->Save_vol = Snd_work.Vol.Se;
+    pG->Save_vol2 = Snd_work.Vol.Bgm;
     pG->Save_mono = Snd_work.UnkB75;
     pG->Save_unk780C = Main.Unk195;
     pG->Save_unk780D = Main.Unk196;
@@ -1321,12 +1321,12 @@ void func_801C57E0(void)
         pG->Pl_poison_timer = 0;
         pG->Pl_status_flg &= ~0x200;
     }
-    Snd_work.Unk7C8 = pG->Save_vol;
-    Snd_work.Unk7CA = pG->Save_vol2;
+    Snd_work.Vol.Se = pG->Save_vol;
+    Snd_work.Vol.Bgm = pG->Save_vol2;
     Snd_work.UnkB75 = pG->Save_mono;
     Main.Unk195 = pG->Save_unk780C;
     Main.Unk196 = pG->Save_unk780D;
-    G.pUnk7C7C = G.Item_work[G.Item_work_no];
+    G.pUnk7C7C = &G.Item_work[G.Item_work_no];
     Set_volume(CD.Vol);
 }
 

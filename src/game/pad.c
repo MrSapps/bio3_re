@@ -21,20 +21,6 @@ extern UCHAR Pad_act_align[];          /* 0x80098928 */
 extern USHORT Key_type[][16];          /* 0x8009CC9C RE2 Key_type, row Main.Unk195 */
 extern USHORT Key_type_demo[16];       /* 0x8009CC7C used while a demo plays back */
 
-/* demo pad data (RE2 struct PDEMO), after the save block in Game.pSave */
-typedef struct tagSAVE_POS {
-    UCHAR pad0[0x71A];
-    USHORT Pdemo_cnt;                  /* 0x71A */
-    USHORT Padd[1];                    /* 0x71C */
-} SAVE_POS;
-
-/* tagGAME (main.h) ends at 0x4F; Pad_set uses the word after it */
-typedef struct {
-    tagGAME Base;
-    ULONG Pdemo_cnt;                   /* 0x50 RE2 G.Pdemo_cnt */
-} GAME_EXT;
-extern GAME_EXT Game_ext __asm__("Game");
-
 /* RE2 Padd_trg / Padd_rep are ULONG; tagGLOBAL has USHORT views (lhu readers elsewhere) */
 #define PADD_TRG(pG) (*(ULONG *)&(pG)->Unk20FC)
 #define PADD_REP(pG) (*(ULONG *)&(pG)->Unk2100)
@@ -140,27 +126,27 @@ accepted:
         Padd = pG->Padd_data[0][2] << 8 | pG->Padd_data[0][3];
         pG->Unk20F8 = (USHORT)~Padd;
         Work2 = (PADD_TRG(pG) ^ pG->Unk20F8) & pG->Unk20F8;
-        switch (Game_ext.Base.Unk4E) {
+        switch (Game.Unk4E) {
         case 1:
-            if (Game_ext.Pdemo_cnt < Game_ext.Base.pSave->Pdemo_cnt - 0x1F && !(Work2 & 0xC00)) {
+            if (Game.Pdemo_cnt < Game.pSave->Pdemo_cnt - 0x1F && !(Work2 & 0xC00)) {
                 break;
             }
-            Game_ext.Base.Unk4E = 2;
+            Game.Unk4E = 2;
         case 2:
             Fade_set(1, 0, 2, 2, 0, 0xFFFFFF, 0x1E);
-            Game_ext.Base.Unk4E = 3;
+            Game.Unk4E = 3;
         case 3:
             if (Fade_status(1) & 4) {
-                Game_ext.Base.Unk4E = 0;
-                Main.Unk196 = Game_ext.Base.Unk4D;
-                Main.Unk195 = Game_ext.Base.Unk4C;
+                Game.Unk4E = 0;
+                Main.Unk196 = Game.Unk4D;
+                Main.Unk195 = Game.Unk4C;
                 G.System_flg |= 0x200000;
             }
             break;
         }
-        if (Game_ext.Base.Unk4E != 0) {
+        if (Game.Unk4E != 0) {
             pKey = Key_type_demo;
-            *(USHORT *)&G.Unk20F8 = Game_ext.Base.pSave->Padd[Game_ext.Pdemo_cnt++];
+            *(USHORT *)&G.Unk20F8 = Game.pSave->Padd[Game.Pdemo_cnt++];
         }
     }
     Padd = pG->Unk20F8;
@@ -215,7 +201,6 @@ accepted:
         } while (--Work2 != 0);
     }
 }
-
 
 void func_80038634(ULONG Flg, SHORT Val)
 {

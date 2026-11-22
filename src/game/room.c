@@ -4,14 +4,8 @@
 #include "pl_wep2.h"
 #include "pad.h"
 #include "sce0.h"
+#include "esp.h"
 
-/* RE2 Esp_call-like effect spawn; returns the effect work or -1 */
-typedef struct {
-    UCHAR pad0[0x10];
-    SHORT Unk10;                       /* 0x10 */
-    SHORT Unk12;                       /* 0x12 */
-    SHORT Unk14;                       /* 0x14 */
-} ESP_WORK;
 ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv);
 SHORT func_8006D030(ULONG Arg0);
 void func_80044804(MATRIX *pM, ULONG Arg1, ULONG Type);
@@ -45,13 +39,6 @@ extern USHORT D_8009DCB4[];
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
 
-typedef struct {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
-
 extern ENEMY_WORK Pl_work;
 extern UCHAR D_8009DDC4[][2];
 extern UCHAR D_8009DE10;
@@ -63,42 +50,11 @@ extern signed char D_8009DE28;
 
 extern LONG D_800D204C[];
 
-typedef struct {
-    ULONG Tag;                         /* 0x00 */
-    ULONG Tpage;                       /* 0x04 */
-    ULONG pad8;
-    ULONG Code;                        /* 0x0C */
-    UCHAR pad10[0x1C - 0x10];
-} PRIM_1C;
-typedef struct {
-    UCHAR *p0;                         /* 0x00 */
-    UCHAR *p1;                         /* 0x04 */
-    PRIM_1C *pPrim;                    /* 0x08 */
-    UCHAR padC[0x16 - 0xC];
-    SHORT Unk16;                       /* 0x16 */
-    UCHAR pad18[0x20 - 0x18];
-    UCHAR Unk20;                       /* 0x20 */
-    UCHAR Unk21;                       /* 0x21 */
-} W_DEB18;
-extern W_DEB18 D_800DEB18;
 void func_80010150(void *p, ULONG Size);
 void func_80048FF4(void);
 
 #define PLAYER ((ENEMY_WORK *)((UCHAR *)&G + 0x248C))
 
-/* player state kept at the end of the save block (Game.pSave, see game.c) */
-typedef struct tagSAVE_POS {
-    UCHAR Data[0x708];                 /* 0x000 copied to G+0x77F0 */
-    SHORT Pos_x;                       /* 0x708 */
-    SHORT Pos_y;                       /* 0x70A */
-    SHORT Pos_z;                       /* 0x70C */
-    SHORT Cdir_y;                      /* 0x70E */
-    SHORT Life;                        /* 0x710 */
-    UCHAR Id;                          /* 0x712 */
-    UCHAR Unk713;                      /* 0x713 */
-    ULONG Unk714;                      /* 0x714 random seed (Set_door) */
-    USHORT Unk718;                     /* 0x718 */
-} SAVE_POS;
 extern UCHAR D_800D225E;
 extern UCHAR D_800E017F;
 extern UCHAR D_800E0186[];
@@ -138,7 +94,7 @@ void Set_room(void)
     ENEMY_WORK *pEm_mem;
 
     pEm_mem = (ENEMY_WORK *)pG->Unk2138;
-    pG->Unk2484 = 0xD05;
+    pG->Ctp.Tpage_clut = 0xD05;
     Stage = pG->Unk783E;
     Room = pG->Unk7840;
     pG->Unk75EA = 0;
@@ -150,19 +106,19 @@ void Set_room(void)
     Kage_work_init();
     Kage_work9_init();
     func_80010150(pG->pad2708, 0x1FC);
-    ppEm = &pG->pUnk2660;
-    pG->ppEnemy_end = pG->pEnemy;
+    ppEm = &pG->pEnemy[1];
+    pG->ppEnemy_end = &pG->pEnemy[2];
     pG->Em_num = 0;
     for (i = 41; i > 0; i--) {
         *ppEm++ = (ENEMY_WORK *)pG->pad2708;
     }
-    pG->Unk4320 = 0xFF;
-    pG->Unk4324 = 0xFF;
-    pG->Unk4322 = 0;
-    pG->Unk4326 = 0;
-    pG->pUnk75A8 = pG->Ob_model[0];
+    pG->Em_bin_info[0].Id = 0xFF;
+    pG->Em_bin_info[1].Id = 0xFF;
+    pG->Em_bin_info[0].Use = 0;
+    pG->Em_bin_info[1].Use = 0;
+    pG->pObj_work_end = &pG->Ob_model[0];
     for (i = 0; i < 32; i++) {
-        *(ULONG *)pG->Ob_model[0] = 0;
+        pG->Ob_model[0].Be_flg = 0;
     }
     if (pPl->Id != pG->Unk784E) {
         if (pG->Unk784E >= 8) {
@@ -229,7 +185,7 @@ void Set_room(void)
         D_800E0186[0] = 0;
     }
     Sce_scheduler_set();
-    if (G.Em_num != 0 || D_800E017F != 0xFF || G.pUnk2660->Be_flg != 0) {
+    if (G.Em_num != 0 || D_800E017F != 0xFF || G.pEnemy[1]->Be_flg != 0) {
         Cd_read_l(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
@@ -251,13 +207,6 @@ void Set_stage(void)
     G.Unk2138 = ((Size + 3) & ~3) + 0x8011A000;
     Task_sleep(1);
 }
-
-/* RE2 view of G.pEnemy: its list starts with the player and sub player at 0x265C */
-typedef struct {
-    UCHAR pad[0x265C];
-    ENEMY_WORK *pEnemy[42];
-} G_ENEMY_LIST;
-#define G_pEnemy (((G_ENEMY_LIST *)&G)->pEnemy)
 
 /* hand the room's sub animation sets (pRoom->pEdd) to the player and enemy works */
 void func_800498F0(void)
@@ -287,17 +236,17 @@ void func_800498F0(void)
         for (Bits >>= 1; Bits != 0; Bits >>= 1, No++) {
             if (Bits & 1) {
                 if (No < 15) {
-                    pEm = G_pEnemy[No + 1];
+                    pEm = G.pEnemy[No + 1];
                     if (pEm->Be_flg & 1) {
                         pEm->pUnk100_kan_t_ptr = pKan + 1;
-                        G_pEnemy[No + 1]->pUnk104_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
+                        G.pEnemy[No + 1]->pUnk104_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
                     }
                 } else if (No < 23) {
-                    G_pEnemy[No - 15]->pUnk19C_kan_t_ptr = pKan + 1;
-                    G_pEnemy[No - 15]->pUnk198_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
+                    G.pEnemy[No - 15]->pUnk19C_kan_t_ptr = pKan + 1;
+                    G.pEnemy[No - 15]->pUnk198_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
                 } else {
-                    G_pEnemy[No - 23]->pUnk194_kan_t_ptr = pKan + 1;
-                    G_pEnemy[No - 23]->pUnk190_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
+                    G.pEnemy[No - 23]->pUnk194_kan_t_ptr = pKan + 1;
+                    G.pEnemy[No - 23]->pUnk190_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
                 }
             }
         }
@@ -325,7 +274,7 @@ void Em_init_move(void)
         Stop_save = 0;
     }
     func_80038F98(PLAYER);
-    ppEm = &G.pUnk2660;
+    ppEm = &G.pEnemy[1];
     if (G.ppEnemy_end != ppEm) {
         do {
             pEm = *ppEm;

@@ -53,10 +53,10 @@ void func_801C20FC(void)
     } else {
         Select_obj[3].Y += 10;
     }
-    pG->pEm = pG->pUnk265C;
+    pG->pEm = pG->pEnemy[0];
     pG->Unk208C = (ULONG)((ULONG *)pSel->pHeap + pG->Cbuf_id * 13);
     for (n = 3, i = 0; n != 0; i++, n--) {
-        pEm = (&pG->pUnk265C)[i];
+        pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
         pEm->Unk7C = (ULONG)pG->pOt1;
         func_801C28D0(pEm);
@@ -121,14 +121,14 @@ void func_801C235C(void)
     pSel->pHeap = pSel->pHeap + sizeof(SELECT_MOJI) + sizeof(ENEMY_WORK) * 3;
     Size = sizeof(ENEMY_WORK);
     for (n = 3, i = 0; n != 0; i++, n--) {
-        (&pG->pUnk265C)[i] = (ENEMY_WORK *)pWork;
+        (&pG->pEnemy[0])[i] = (ENEMY_WORK *)pWork;
         ((ENEMY_WORK *)pWork)->Be_flg = 1;
         pWork += Size;
-        (&pG->pUnk265C)[i]->Id = 0;
+        (&pG->pEnemy[0])[i]->Id = 0;
     }
 
     for (n = 3, i = 0; n != 0; i++, n--) {
-        pEm = ((SEL_G_WORKS *)pG)->pWork[i];
+        pEm = pG->pEnemy[i];
         pG->pEm = pEm;
         pEm->Id = Select_pl_init[i].Id;
         pEm->Type = Select_pl_init[i].Type;
@@ -315,7 +315,7 @@ void func_801C2E1C(void)
 
     for (i = 0; i < 3; i++) {
         pG = &G;
-        pEm = (&pG->pUnk265C)[i];
+        pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
         switch (pEm->Id) {
         case 0:
@@ -335,8 +335,8 @@ void func_801C2E1C(void)
                 pEm->Timer0 = 25;
                 pEm->Spd_x = 10;
                 pEm->Spd_z = -10;
-                pG->pUnk265C->Be_flg |= 0x10;
                 pG->pEnemy[0]->Be_flg |= 0x10;
+                pG->pEnemy[2]->Be_flg |= 0x10;
             case 3:
                 if (pEm->Timer0 != 0) {
                     pEm->Cdir_y += 0x10;
@@ -368,8 +368,8 @@ void func_801C2E1C(void)
                 *(ULONG *)&pEm->Move_no = 0x70001;
                 pEm->Routine_2 = 3;
                 pEm->Timer0 = 60;
-                pG->pUnk265C->Be_flg |= 0x10;
-                pG->pUnk2660->Be_flg |= 0x10;
+                pG->pEnemy[0]->Be_flg |= 0x10;
+                pG->pEnemy[1]->Be_flg |= 0x10;
                 pEm->Spd_x = 10;
                 pEm->Spd_z = 0;
                 pEm->UnkDA = 60;
@@ -407,8 +407,8 @@ void func_801C2E1C(void)
                 *(ULONG *)&pEm->Move_no = 0x70001;
                 pEm->Routine_2 = 3;
                 pEm->Timer0 = 15;
-                pG->pUnk2660->Be_flg |= 0x10;
-                pG->pEnemy[0]->Be_flg |= 0x10;
+                pG->pEnemy[1]->Be_flg |= 0x10;
+                pG->pEnemy[2]->Be_flg |= 0x10;
             case 3:
                 if (pEm->Timer0 != 0) {
                     pEm->Cdir_y += 0x10;
@@ -476,7 +476,7 @@ void func_801C331C(void)
     SELECT_WORK *pSel = &Select_wk;
     tagGLOBAL *pG = &G;
 
-    (&pG->pUnk265C)[pSel->Cursor_no]->Routine_2 = 2;
+    (&pG->pEnemy[0])[pSel->Cursor_no]->Routine_2 = 2;
     Pad_vib_set0(3, 0);
     Pad_vib_set1(5, 150, 0);
     Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 2);
@@ -520,7 +520,7 @@ void func_801C354C(void)
 
     Id = Select_pl_init[pSel->Cursor_no].Id;
     pG->Unk2118 = 0;
-    pG->Unk211A = 0;
+    pG->Score = 0;
     pG->Unk2116 = 0;
     pG->Pl_id = Id;
     Main.Vloop = pSel->Vloop_bak;
@@ -538,7 +538,7 @@ void func_801C35C8(void)
     ULONG i;
 
     for (i = 0; i < 3; i++) {
-        pEm = (&pG->pUnk265C)[i];
+        pEm = (&pG->pEnemy[0])[i];
         pEm->Unk158 = Select_dir_L[pSel->Cursor_no][i];
         pEm->Unk1BC[0] = Select_dir_fpos[pSel->Cursor_no][i];
         pEm->Spd_y = 0;
@@ -559,7 +559,7 @@ void func_801C3660(void)
 
     for (i = 0; i < 3; i++) {
         pG = &G;
-        pEm = (&pG->pUnk265C)[i];
+        pEm = (&pG->pEnemy[0])[i];
         pEm->Unk154 &= 0xFFF;
         pEm->Unk158 &= 0xFFF;
         if (pEm->Unk154 == pEm->Unk158) {
@@ -901,7 +901,7 @@ void func_801C4774(void)
 {
     Cd_read(0x52, (ULONG *)0x8019C000, 0, "Select BG");
     Cd_read(0x54, (ULONG *)0x80100000, 0, (char *)Select_str_sel);
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 

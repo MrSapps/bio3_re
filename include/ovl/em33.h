@@ -14,6 +14,7 @@
 #include "main.h"
 #include "sub.h"
 #include "pad.h"
+#include "pl_wep.h"
 
 /* free work of the head at 0x1CC */
 typedef struct tagEM33_FREE {
@@ -82,26 +83,11 @@ typedef struct tagEM33_SABUN {
 } EM33_SABUN;
 #define EM33_SABUN_P(pP) ((EM33_SABUN *)(pP)->pUnk98)
 
-/* the player work is followed by the work list (G.pUnk265C, G.pUnk2660, G.pEnemy[]) */
+/* the player work is followed by the work list (G.pEnemy[0], G.pEnemy[1], G.pEnemy[]) */
 typedef struct tagEM33_PL {
     UCHAR Pl[0x1D0];                   /* Pl_work */
     ENEMY_WORK *pWork[42];             /* 0x1D0 = G + 0x265C */
 } EM33_PL;
-
-/* G viewed with the work pointer table as one array (as em_sub.c G_EMTBL: [0] player, [1] sub, [2..] enemies) */
-typedef struct tagEM33_G {
-    UCHAR pad0[0x213C];
-    ENEMY_WORK *pEm_mem;               /* 0x213C */
-    UCHAR pad2140[0x2487 - 0x2140];
-    UCHAR Em_num;                      /* 0x2487 */
-    UCHAR pad2488[0x24C0 - 0x2488];
-    LONG Pl_pos_x;                     /* 0x24C0 Pl_work.Pos_x */
-    LONG Pl_pos_y;                     /* 0x24C4 Pl_work.Pos_y */
-    LONG Pl_pos_z;                     /* 0x24C8 Pl_work.Pos_z */
-    UCHAR pad24CC[0x265C - 0x24CC];
-    ENEMY_WORK *pEm_tbl[42];           /* 0x265C */
-    ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
-} EM33_G;
 
 /* G viewed with the player work inside it (RE2 G.Player, = Pl_work) */
 typedef struct tagEM33_GPL {
@@ -117,14 +103,6 @@ typedef struct tagEM33_SPD_TBL {
     SHORT Spd[8];
 } EM33_SPD_TBL;
 
-/* hit area handed to func_800445C8 (pl_wep.c HIT_AREA) */
-typedef struct tagEM33_HIT_AREA {
-    LONG *pPos;                        /* 0x00 centre (VECTOR) */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM33_HIT_AREA;
-
 extern UCHAR *D_800BA6E8;              /* [3]: sound bank id (Snd_se_stad callers) */
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
@@ -137,7 +115,7 @@ LONG func_800336B4(ENEMY_WORK *pEm);                                    /* oba.c
 void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP);                       /* sabun.c: apply the morph keys */
 void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
 LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3);           /* ground height (sca.c) */
-LONG func_800445C8(LONG *pA0, LONG *pA1, EM33_HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
+LONG func_800445C8(LONG *pA0, LONG *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c */
 LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);         /* pl_wep.c */
 void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
 

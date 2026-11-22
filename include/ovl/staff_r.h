@@ -90,7 +90,7 @@ typedef struct tagSTAFF_MESS {
     ULONG Time;                        /* 0x8 */
 } STAFF_MESS;
 
-/* G.Unk2484 (texture page / clut row used by Mapping_tim) referenced as a scalar,
+/* G.Ctp.Tpage_clut (texture page / clut row used by Mapping_tim) referenced as a scalar,
  * as other game files do with D_800CCBBC: the code addresses it by symbol, not via &G */
 extern USHORT G_tpage_clut __asm__("D_800CCBBC");
 

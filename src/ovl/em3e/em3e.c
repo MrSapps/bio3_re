@@ -1,5 +1,6 @@
 #include "common.h"
 #include "ovl/em3e.h"
+#include "md_sub.h"
 
 /* routine tables (module .data), unprototyped: routines take (pEm, Kan, Seq) */
 extern void (*Em3e_routine_0[8])() __asm__("D_80101754");

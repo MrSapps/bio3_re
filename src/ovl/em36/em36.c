@@ -34,7 +34,7 @@ extern void (*Em36_dm2[33])() __asm__("D_8010CE88");
 extern void (*Em36_sce[12])() __asm__("D_8010CF0C");
 extern void (*Em36_die[4])() __asm__("D_8010CF3C");
 extern void (*Em36_die2[1])() __asm__("D_8010CF4C");
-extern EM36_HIT_AREA Em36_hit_area __asm__("D_8010CF5C");
+extern HIT_AREA Em36_hit_area __asm__("D_8010CF5C");
 
 void func_801082BC(ENEMY_WORK *pEm);
 void func_8010832C(ENEMY_WORK *pEm);
@@ -975,7 +975,7 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if (*pEm->pNow_seq & 0x400) {
         pPos = &pEm->Pos_x;
-        Em36_hit_area.pPos = pPos;
+        Em36_hit_area.pPos = (VECTOR *)pPos;
         Em36_hit_area.pBox = Em36_punch_box0;
         Em36_hit_area.Dir = pEm->Cdir_y;
         Em36_hit_area.Id = 1;
@@ -1288,7 +1288,7 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
     }
     if (*pEm->pNow_seq & 0x400) {
-        Em36_hit_area.pPos = &pEm->Pos_x;
+        Em36_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
         Em36_hit_area.pBox = Em36_lunge_box0;
         Em36_hit_area.Dir = pEm->Cdir_y;
         Em36_hit_area.Id = 1;
@@ -1623,7 +1623,7 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     if (pEm->Move_cnt >= 22 && pEm->Move_cnt < 28) {
-        Em36_hit_area.pPos = &pEm->Pos_x;
+        Em36_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
         Em36_hit_area.pBox = Em36_sweep_box0;
         Em36_hit_area.Dir = pEm->Cdir_y;
         Em36_hit_area.Id = 3;
@@ -1632,7 +1632,7 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em36_hit_area, &Pl_work);
     }
     if (pEm->Move_cnt >= 24 && pEm->Move_cnt < 29) {
-        Em36_hit_area.pPos = &pEm->Pos_x;
+        Em36_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
         Em36_hit_area.pBox = Em36_sweep_box1;
         Em36_hit_area.Dir = pEm->Cdir_y;
         Em36_hit_area.Id = 3;
@@ -1641,7 +1641,7 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em36_hit_area, &Pl_work);
     }
     if (pEm->Move_cnt >= 26 && pEm->Move_cnt < 32) {
-        Em36_hit_area.pPos = &pEm->Pos_x;
+        Em36_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
         Em36_hit_area.pBox = Em36_sweep_box2;
         Em36_hit_area.Dir = pEm->Cdir_y;
         Em36_hit_area.Id = 3;
@@ -1802,7 +1802,7 @@ void func_80106438(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     if (*pEm->pNow_seq & 0x400) {
-        Em36_hit_area.pPos = EM36_W(pEm)->pSub->pSin_parts_ptr[3].Workm.t;
+        Em36_hit_area.pPos = (VECTOR *)EM36_W(pEm)->pSub->pSin_parts_ptr[3].Workm.t;
         Em36_hit_area.pBox = Em36_swing_box0;
         Em36_hit_area.Dir = pEm->Cdir_y;
         Em36_hit_area.Id = 1;
@@ -3126,14 +3126,14 @@ void func_80109FCC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* sce: grab the work Add_dir (G.pUnk265C[]) and throw it */
+/* sce: grab the work Add_dir (G.pEnemy[0][]) and throw it */
 void func_8010A29C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pT;
     SHORT Base_x, Base_z;
     LONG Unused[6];
 
-    pT = ((EM36_G_WORKS *)&G)->pWork[pEm->Add_dir];
+    pT = G.pEnemy[pEm->Add_dir];
     switch (pEm->Routine_2) {
     case 0:
         EM_MOVE(pEm) = 0xF0013;

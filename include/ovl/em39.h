@@ -10,6 +10,7 @@
 #include "em_sub.h"
 #include "pad.h"
 #include "player.h"
+#include "pl_wep.h"
 
 /* em39's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM39_FREE {
@@ -23,14 +24,6 @@ typedef struct tagEM39_FREE {
 /* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
 #define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
 #define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
-
-/* hit box test around a point (pl_wep.c func_800445C8) */
-typedef struct tagHIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
 
 /* module .data */
 extern SHORT Em39_box0[4] __asm__("D_801013A4");        /* hit boxes of the lash */

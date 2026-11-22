@@ -31,4 +31,20 @@ typedef struct tagSCA_DATA {
     SHORT High;                        /* 0xE */
 } SCA_DATA;
 
+/* line / shape test work (0x800DEB58) */
+typedef struct tagSCA_WORK {
+    ULONG Pt0;                         /* 0x00 line end points, (x << 16) | (z & 0xFFFF) */
+    ULONG Pt1;                         /* 0x04 */
+    SHORT Unk8;                        /* 0x08 (func_8004B7E8) */
+    SHORT padA;
+    LONG X;                            /* 0x0C position rotated into a 45 degree shape's frame */
+    LONG Z;                            /* 0x10 */
+    LONG Old_x;                        /* 0x14 */
+    LONG Old_z;                        /* 0x18 */
+    UCHAR pad1C[0x28 - 0x1C];
+    struct tagENEMY_WORK *pEm_hit;     /* 0x28 character hit by Sca_ck_line-like scans (func_8004ED4C) */
+    struct tagENEMY_WORK *pEm_hit2;    /* 0x2C same, for objects of type >= 3 */
+} SCA_WORK;
+extern SCA_WORK D_800DEB58;
+
 #endif /* SCA_H */

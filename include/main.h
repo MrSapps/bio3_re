@@ -20,9 +20,10 @@ typedef struct tagROOM_WORK {
     UCHAR nSprite;                     /* 0x00 RE2 nSprite (Psp_trans) */
     UCHAR nCut;                        /* 0x01 RE2 nCut (Set_room) */
     UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
-    UCHAR pad3[7 - 3];
+    UCHAR pad3[6 - 3];
+    UCHAR Unk6;                        /* 0x06 sound bank voice base / 4 (func_80078204) */
     UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (func_80048630) */
-    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room */
+    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room; room sound table, -1 terminated (func_80078204) */
     UCHAR padC[0x20 - 0xC];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */
     RCUT *pRcut;                       /* 0x24 RE2 pRcut */
@@ -90,6 +91,23 @@ typedef struct tagMAIN {
 } tagMAIN;
 extern tagMAIN Main;                   /* 0x800D42A0 */
 
+/* save block kept by Game.pSave (func_80024B34): the save image, the player state,
+ * then the demo pad data (RE2 struct PDEMO) */
+typedef struct tagSAVE_POS {
+    UCHAR Data[0x708];                 /* 0x000 copied to G+0x77F0 */
+    SHORT Pos_x;                       /* 0x708 */
+    SHORT Pos_y;                       /* 0x70A */
+    SHORT Pos_z;                       /* 0x70C */
+    SHORT Cdir_y;                      /* 0x70E */
+    SHORT Life;                        /* 0x710 */
+    UCHAR Id;                          /* 0x712 */
+    UCHAR Unk713;                      /* 0x713 */
+    ULONG Unk714;                      /* 0x714 random seed (Set_door) */
+    USHORT Unk718;                     /* 0x718 */
+    USHORT Pdemo_cnt;                  /* 0x71A RE2 PDEMO: number of recorded pad words */
+    USHORT Padd[1];                    /* 0x71C recorded pad words */
+} SAVE_POS;
+
 /* game work (RE2 struct tagGAME; RE3 has one more byte before Plight_flg) */
 typedef struct tagGAME {
     UCHAR Doordemo_flg;                /* 0x00 */
@@ -102,11 +120,12 @@ typedef struct tagGAME {
     VECTOR Plight_pos;                 /* 0x30 */
     UCHAR pad40[0x44 - 0x40];
     ULONG Stop_bak;                    /* 0x44 RE2 Game.Stop_bak */
-    struct tagSAVE_POS *pSave;         /* 0x48 (func_80024B34) */
+    SAVE_POS *pSave;                   /* 0x48 (func_80024B34) */
     UCHAR Unk4C;                       /* 0x4C */
     UCHAR Unk4D;                       /* 0x4D */
     UCHAR Unk4E;                       /* 0x4E (Set_door) */
     UCHAR Unk4F;                       /* 0x4F cleared by Init_system */
+    ULONG Pdemo_cnt;                   /* 0x50 RE2 G.Pdemo_cnt: demo pad data read position (Pad_set) */
 } tagGAME;
 extern tagGAME Game;                   /* 0x800C7960 */
 

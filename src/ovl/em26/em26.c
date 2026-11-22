@@ -143,7 +143,7 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         }
     }
     if ((LONG)G.Status_flg < 0) {
-        pTg = G.pUnk2660;
+        pTg = G.pEnemy[1];
         if (pEm->nFloor == pTg->nFloor)
             if ((pEm->Unk158 & 0x3FFFFFFF) < 550)
                 if (EM_RTN01(pTg) == 0x101 || EM_RTN01(pTg) == 0x201 || EM_RTN01(pTg) == 0x301 || EM_RTN01(pTg) == 0x401)
@@ -164,7 +164,7 @@ void func_80100614(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             if ((LONG)pEm->Unk154 < (pEm->Unk158 & 0x3FFFFFFF))
                 EM26_W(pEm)->pTarget_pl = G_PLAYER;
             else
-                EM26_W(pEm)->pTarget_pl = G.pUnk2660;
+                EM26_W(pEm)->pTarget_pl = G.pEnemy[1];
         }
     case 1:
         if (--pEm->Timer0 == -1)
@@ -411,7 +411,7 @@ ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl)
         pPl = &Pl_work;
         Dist = pEm->Unk154;
     } else {
-        pPl = G.pUnk2660;
+        pPl = G.pEnemy[1];
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     }
     if (Dist < pPl->Col_w0 + 40 && (ULONG)(pPl->Pos_y - pEm->Pos_y) < 3000 && !pFp->Atck_flg) {

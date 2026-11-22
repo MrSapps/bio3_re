@@ -3,14 +3,8 @@
 #include "monitor.h"
 #include "pl_wep2.h"
 #include "pad.h"
+#include "esp.h"
 
-/* RE2 Esp_call-like effect spawn; returns the effect work or -1 */
-typedef struct {
-    UCHAR pad0[0x10];
-    SHORT Unk10;                       /* 0x10 */
-    SHORT Unk12;                       /* 0x12 */
-    SHORT Unk14;                       /* 0x14 */
-} ESP_WORK;
 ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv);
 SHORT func_8006D030(ULONG Arg0);
 void func_80044804(MATRIX *pM, ULONG Arg1, ULONG Type);
@@ -44,13 +38,6 @@ extern USHORT D_8009DCB4[];
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
 
-typedef struct {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
-
 extern ENEMY_WORK Pl_work;
 extern UCHAR D_8009DDC4[][2];
 extern UCHAR D_8009DE10;
@@ -62,24 +49,6 @@ extern signed char D_8009DE28;
 
 extern LONG D_800D204C[];
 
-typedef struct {
-    ULONG Tag;                         /* 0x00 */
-    ULONG Tpage;                       /* 0x04 */
-    ULONG pad8;
-    ULONG Code;                        /* 0x0C */
-    UCHAR pad10[0x1C - 0x10];
-} PRIM_1C;
-typedef struct {
-    UCHAR *p0;                         /* 0x00 */
-    UCHAR *p1;                         /* 0x04 */
-    PRIM_1C *pPrim;                    /* 0x08 */
-    UCHAR padC[0x16 - 0xC];
-    SHORT Unk16;                       /* 0x16 */
-    UCHAR pad18[0x20 - 0x18];
-    UCHAR Unk20;                       /* 0x20 */
-    UCHAR Unk21;                       /* 0x21 */
-} W_DEB18;
-extern W_DEB18 D_800DEB18;
 void func_80010150(void *p, ULONG Size);
 void func_80048FF4(void);
 

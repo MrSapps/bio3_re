@@ -31,7 +31,7 @@ void func_801C2118(void)
     ULONG n;
 
     for (n = 5, i = 0; n != 0; i++, n--) {
-        pEm = (&pG->pUnk265C)[i];
+        pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
         func_801C2170(pEm);
     }
@@ -170,10 +170,10 @@ void func_801C21C8(JILL_WORK *pW)
     pHeap = pW->pHeap;
     pW->pHeap = pHeap + sizeof(ENEMY_WORK) * 5;
     for (n = 5, i = 0; n != 0; i++, n--) {
-        (&pG->pUnk265C)[i] = (ENEMY_WORK *)pHeap;
+        (&pG->pEnemy[0])[i] = (ENEMY_WORK *)pHeap;
         ((ENEMY_WORK *)pHeap)->Be_flg = 1;
         pHeap += Size;
-        (&pG->pUnk265C)[i]->Id = 0;
+        (&pG->pEnemy[0])[i]->Id = 0;
     }
     pW->pHeap = pHeap;
 }
@@ -217,13 +217,13 @@ UCHAR *func_801C2858(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
     pEm->Clut = TpClut >> 16;
     pEm->Tpage = TpClut;
     pEm->pTmd = (ULONG *)(p + pHdr[2]);
-    Cclut = G_CCLUT;
-    Ctpage = G_CTPAGE;
-    G_CCLUT = pEm->Clut;
-    G_CTPAGE = pEm->Tpage;
+    Cclut = G.Ctp.u.Cclut;
+    Ctpage = G.Ctp.u.Ctpage;
+    G.Ctp.u.Cclut = pEm->Clut;
+    G.Ctp.u.Ctpage = pEm->Tpage;
     Mapping_tim((ULONG *)(p + pHdr[4]));
-    G_CCLUT = Cclut;
-    G_CTPAGE = Ctpage;
+    G.Ctp.u.Cclut = Cclut;
+    G.Ctp.u.Ctpage = Ctpage;
     DrawSync(0);
     func_8002AB34(pEm->pTmd, pEm->Tpage, pEm->Clut);
     pEm->pTmd += 2;
@@ -281,7 +281,7 @@ void func_801C2DF4(void)
 {
     Cd_read(0x36, (ULONG *)0x8019C000, 0, "Jill BG");
     Cd_read(0x38, (ULONG *)0x80100000, 0, (char *)Jill_str);
-    G.Unk2484 = 0xF15;
+    G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 

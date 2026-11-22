@@ -20,7 +20,7 @@ void func_801C204C(void)
     Cd_read(0x1A, (ULONG *)0x80100000, 0, "EPIS.TIM");
     DrawSync(0);
     func_800100A4((void *)0x8019C000, (void *)0x80100000, 0x26000);
-    G.Unk2484 = 0xD05;
+    G.Ctp.Tpage_clut = 0xD05;
     Mapping_tim((ULONG *)0x80126000);
     Bg_set_mode(2, 0);
     Main.Unk191 = 1;

@@ -3,89 +3,13 @@
 #include "snd.h"
 #include "em_sub.h"
 #include "cd.h"
-
-/* status work (RE3, 0x800E01C0) */
-typedef struct tagST_WORK {
-    UCHAR pad0[0x10];
-    UCHAR Rtn0;                        /* 0x10 */
-    UCHAR Rtn1;                        /* 0x11 */
-    UCHAR Rtn2;                        /* 0x12 */
-    UCHAR pad13[0x14 - 0x13];
-    ULONG Flg14;                       /* 0x14 */
-    ULONG Flg;                         /* 0x18 */
-    UCHAR Unk1C;                       /* 0x1C */
-    UCHAR Unk1D;                       /* 0x1D */
-    UCHAR Unk1E;                       /* 0x1E */
-    UCHAR pad1F[0x22 - 0x1F];
-    SHORT Unk22;                       /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0x58 - 0x26];
-    LONG Unk58;                        /* 0x58 */
-    UCHAR pad5C[0xAA - 0x5C];
-    UCHAR UnkAA;                       /* 0xAA */
-    UCHAR UnkAB;                       /* 0xAB */
-    UCHAR UnkAC;                       /* 0xAC */
-    UCHAR padAD[0xBA - 0xAD];
-    UCHAR UnkBA;                       /* 0xBA */
-    UCHAR UnkBB;                       /* 0xBB */
-    UCHAR padBC[0xC8 - 0xBC];
-    SHORT UnkC8;                       /* 0xC8 */
-    UCHAR UnkCA;                       /* 0xCA */
-    UCHAR UnkCB;                       /* 0xCB */
-    UCHAR padCC[0x118 - 0xCC];
-    SHORT Unk118;                      /* 0x118 */
-    SHORT Unk11A;                      /* 0x11A */
-} ST_WORK;
-
-/* overlays for G areas past the named fields */
-typedef struct { UCHAR pad[0x265C]; ENEMY_WORK *pEm[42]; } G265C;  /* 0x265C: pUnk265C, pUnk2660, pEnemy[] as one array */
-typedef struct tagUNK7C7C {
-    UCHAR Tbl[0x4A][4];                /* 0x000 */
-    UCHAR Unk128;                      /* 0x128 */
-    UCHAR Unk129;                      /* 0x129 */
-    UCHAR Num;                         /* 0x12A */
-    UCHAR pad12B[0x140 - 0x12B];
-} UNK7C7C;
-typedef struct tagGLOBAL_X {
-    UCHAR pad0[0x2489];
-    UCHAR Unk2489;                     /* 0x2489 */
-    UCHAR pad248A[0x2558 - 0x248A];
-    SHORT Unk2558;                     /* 0x2558 player life? */
-    UCHAR pad255A[0x255E - 0x255A];
-    USHORT Unk255E;                    /* 0x255E */
-    UCHAR pad2560[0x77F8 - 0x2560];
-    LONG Unk77F8;                      /* 0x77F8 */
-    UCHAR pad77FC[0x7806 - 0x77FC];
-    USHORT Unk7806;                    /* 0x7806 */
-    UCHAR Unk7808;                     /* 0x7808 */
-    UCHAR pad7809[0x783E - 0x7809];
-    UCHAR Unk783E;                     /* 0x783E */
-    UCHAR pad783F[0x7840 - 0x783F];
-    UCHAR Unk7840;                     /* 0x7840 */
-    UCHAR pad7841[0x7848 - 0x7841];
-    SHORT Unk7848;                     /* 0x7848 (D_800D1F80) */
-    UCHAR pad784A[0x79FC - 0x784A];
-    UNK7C7C Unk79FC[2];                /* 0x79FC, 0x140 bytes each */
-    UNK7C7C *pUnk7C7C;                 /* 0x7C7C */
-    LONG Unk7C80;                      /* 0x7C80 */
-    SHORT Unk7C84[(0x7E98 - 0x7C84) / 2]; /* 0x7C84 */
-    LONG Unk7E98[3];                   /* 0x7E98 */
-    UCHAR Unk7EA4[3];                  /* 0x7EA4 */
-    UCHAR pad7EA7;
-    LONG Unk7EA8[3];                   /* 0x7EA8 */
-    LONG Unk7EB4;                      /* 0x7EB4 */
-} GLOBAL_X;
-#define GX (*(GLOBAL_X *)&G)
+#include "status.h"
 
 #define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
-#define ST_P(p, ofs, type) FLD(p, ofs, type)
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
-typedef struct { UCHAR b[0x140]; } FA_B140R;
-typedef DR_TPAGE FA_TP2[2][2];
-typedef UCHAR FA_B140[2][0x140];
 extern UCHAR D_800CC848;
 void func_800642D4(ST_WORK *pSt, void *p, UCHAR *pXy, ULONG f);
 void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
@@ -123,137 +47,30 @@ extern SHORT D_800CCBBC;
 void Mapping_tim(ULONG *p);
 void func_8006ED28(ST_WORK *pSt);
 void FB_OpenTIM(void) __asm__("OpenTIM");
-typedef struct { UCHAR pad[0x2484]; UCHAR Unk2484; UCHAR Unk2485; } FB_G2484;
 UCHAR FB_func_8006E598(void) __asm__("func_8006E598");
 extern UCHAR D_800A04F8[];
 extern UCHAR D_800A07C4[];
 extern UCHAR D_800A0514[][4];
-/* ---- forkC: sound driver ---- */
-typedef struct tagFC_SNDW {
-    UCHAR pad0[0x7C0];
-    UCHAR Rv_mode;                     /* 0x7C0 requested reverb mode */
-    UCHAR Rv_cur;                      /* 0x7C1 current reverb mode */
-    UCHAR Rv_step;                     /* 0x7C2 */
-    signed char Rv_cnt;                /* 0x7C3 */
-    SHORT Vol[8];                      /* 0x7C4 (Vol[2] = SND_WORK.Unk7C8) */
-    UCHAR pad7D4[0xAD8 - 0x7D4];
-    LONG Cam_x;                        /* 0xAD8 listener position */
-    LONG Cam_y;                        /* 0xADC */
-    LONG Cam_z;                        /* 0xAE0 */
-    UCHAR padAE4[0xAE8 - 0xAE4];
-    SpuCommonAttr Cattr;               /* 0xAE8 */
-    UCHAR padB10[0xB3C - (0xAE8 + sizeof(SpuCommonAttr))];
-    LONG Dist[8];                      /* 0xB3C */
-    UCHAR Vprio[24];                   /* 0xB5C */
-    UCHAR UnkB74;                      /* 0xB74 */
-    UCHAR padB75[0xB77 - 0xB75];
-    UCHAR UnkB77;                      /* 0xB77 */
-    UCHAR padB78;
-    UCHAR UnkB79;                      /* 0xB79 */
-} FC_SNDW;
-#define FC_SW (*(FC_SNDW *)&Snd_work)
-typedef struct { UCHAR pad[6]; UCHAR Unk6; UCHAR pad7; LONG *pSnd; UCHAR pad0C[0x34 - 0xC]; SHORT *pSnd_area; } FC_ROOM;
-typedef struct { UCHAR pad[0x213C]; UCHAR *Unk213C; } FC_G;
 extern SpuReverbAttr D_800A1108[];
 extern UCHAR D_800A10F4[][0x14];
 
-typedef struct { UCHAR pad[0x2484]; UCHAR Tp_x; UCHAR Clut_y; } FC_G2;
-typedef struct {
-    USHORT Cdir_y;                     /* 0x0 */
-    SHORT Pos_x;                       /* 0x2 */
-    SHORT Pos_y;                       /* 0x4 */
-    SHORT Pos_z;                       /* 0x6 */
-    USHORT Life;                       /* 0x8 */
-    UCHAR UnkA;                        /* 0xA */
-    UCHAR UnkB;                        /* 0xB */
-    UCHAR Save[0x908];                 /* 0xC */
-} FC_SAVE;
-extern FC_SAVE D_800C7048;
-typedef struct { UCHAR pad[0x24D6]; UCHAR Unk24D6; UCHAR pad24D7[0x2558 - 0x24D7]; USHORT Life; UCHAR pad255A[0x255E - 0x255A]; USHORT Unk255E; } FC_G3;
-#define FC_G3X (*(FC_G3 *)&G)
 void func_80078FE8(void);
 void func_8007906C(void);
 void func_800792FC(void);
 void func_800790F0(ULONG *pAdr);
 
-typedef struct { ULONG Mask; UCHAR pad4[0xC]; } FC_TR;
-typedef struct { UCHAR pad0[0x5C]; FC_TR Tr[16]; } FC_SEQX;
-typedef struct { UCHAR pad0[0xAC]; FC_SEQX Seq[3]; } FC_SNDW2;
-
 extern LONG D_800E0608;
 void func_80075C30(void);
 
-typedef struct {
-    ULONG Mask;                        /* 0x0 */
-    SHORT Pitch;                       /* 0x4 */
-    UCHAR pad6[2];
-    UCHAR Pan;                         /* 0x8 */
-    UCHAR pad9;
-    UCHAR Vol;                         /* 0xA */
-    UCHAR padB[3];
-    UCHAR UnkE;                        /* 0xE */
-    UCHAR UnkF;                        /* 0xF */
-} FC_TRK;
-typedef struct {
-    ULONG *pHead;                      /* 0x00 */
-    UCHAR *pPtr;                       /* 0x04 */
-    UCHAR *pLoop;                      /* 0x08 */
-    LONG Delta;                        /* 0x0C */
-    ULONG Tempo;                       /* 0x10 */
-    ULONG Tempo2;                      /* 0x14 */
-    LONG Unk18;                        /* 0x18 */
-    UCHAR pad1C[4];
-    LONG Unk20;                        /* 0x20 */
-    SHORT Unk24;                       /* 0x24 */
-    SHORT No;                          /* 0x26 */
-    UCHAR pad28[4];
-    UCHAR Play;                        /* 0x2C */
-    UCHAR Stop;                        /* 0x2D */
-    UCHAR pad2E[0x38 - 0x2E];
-    UCHAR Fade;                        /* 0x38 */
-    UCHAR pad39[3];
-    ULONG Fade_vol;                    /* 0x3C */
-    ULONG Fade_step;                   /* 0x40 */
-    UCHAR pad44[0x56 - 0x44];
-    USHORT Reso;                       /* 0x56 */
-    UCHAR pad58[0x5C - 0x58];
-    FC_TRK Tr[16];                     /* 0x5C */
-} FC_SEQ2;
-typedef struct {
-    UCHAR pad0[0x14];
-    SHORT Unk14;
-    UCHAR pad16[0x1D - 0x16];
-    UCHAR Unk1D;
-    UCHAR pad1E[2];
-} FC_VOICE;
-typedef struct {
-    UCHAR pad0[0xAC];
-    FC_SEQ2 Seq[3];                    /* 0x0AC */
-    FC_VOICE Voice[24];                /* 0x4C0 */
-    UCHAR pad7C0[0xB74 - 0x7C0];
-    UCHAR UnkB74;                      /* 0xB74 */
-    UCHAR padB75;
-    UCHAR UnkB76;                      /* 0xB76 */
-} FC_SNDW4;
-
-typedef struct { UCHAR pad[0x24]; LONG *pCam; } FC_ROOM2;
 #define FC_SQ(x) ((x) * (x))
 
-typedef struct { UCHAR A0; UCHAR B0; UCHAR A1; UCHAR B1; } FC_MAP;
-extern FC_MAP D_800A0430[];
 LONG func_8004D720(VECTOR *pV, LONG a1, LONG a2, LONG a3);
 extern MATRIX D_800E1200[];
 extern MATRIX D_800E1220;
 extern MATRIX D_800E1260;
 extern MATRIX D_800E1280;
-typedef struct tagMY_JNT {
-    SVECTOR a;
-    SVECTOR b;
-    SHORT c[2];
-} MY_JNT;
 void HMatrix(MATRIX *a, MATRIX *b, MATRIX *c, LONG r);
 void MulLMatrix(MATRIX *a, MATRIX *b, MATRIX *c);
-void func_80079374(MATRIX *a, MATRIX *b, LONG *t, MY_JNT *j);
 void func_80079CC0(ENEMY_WORK *pEm, LONG h);
 void MY_func_800611E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("Spl_sce07");
 LONG func_80062BFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
@@ -262,7 +79,6 @@ void Pad_vib_fade_set(LONG a0, LONG a1, LONG a2, LONG a3);
 void MY_func_8001B484(LONG id, ULONG code, MATRIX *pM, SVECTOR *pOfs, SVECTOR *p5) __asm__("func_8001B484");
 
 /* ---- merged helpers (forks + parent) ---- */
-
 
 /* local prototypes (this module) */
 LONG Snd_seq_get_vlq(UCHAR **pp);
@@ -302,7 +118,6 @@ extern char D_80010F84[];
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 extern USHORT D_8009F4F8[][2];
 extern LONG D_800D23B8;
-extern ST_WORK St;
 extern UCHAR *D_800BA6E8;
 void func_80073CCC(UCHAR *a, UCHAR *b);
 extern SpuCommonAttr D_800E10F8;
@@ -376,7 +191,7 @@ void func_80073E84(void)
 {
     SpuReverbAttr r;
     SpuCommonAttr *pA;
-    FC_SNDW *pW = &FC_SW;
+    SND_WORK *pW = &Snd_work;
 
     SsUtReverbOff();
     pA = &pW->Cattr;
@@ -390,18 +205,18 @@ void func_80073E84(void)
     pA->cd.mix = 1;
     SpuSetCommonAttr(pA);
     SpuSetTransferMode(0);
-    pW->Vol[0] = 0x7F;
-    pW->Vol[1] = 0x7F;
-    pW->Vol[2] = 0x7F;
-    pW->Vol[3] = 0x7F;
-    pW->Vol[4] = 0x7F;
-    pW->Vol[5] = 0x7F;
-    pW->Vol[6] = 0x7F;
-    pW->Vol[7] = 0x7F;
+    pW->Vol.Master = 0x7F;
+    pW->Vol.Unk6 = 0x7F;
+    pW->Vol.Se = 0x7F;
+    pW->Vol.Bgm = 0x7F;
+    pW->Vol.Master_old = 0x7F;
+    pW->Vol.UnkE = 0x7F;
+    pW->Vol.Se_old = 0x7F;
+    pW->Vol.Bgm_old = 0x7F;
     Snd_work_init();
-    pW->Rv_mode = 0;
-    pW->Rv_cur = 0;
-    pW->Rv_step = 0;
+    pW->Vol.Rv_mode = 0;
+    pW->Vol.Rv_cur = 0;
+    pW->Vol.Rv_step = 0;
     r.mask = 1;
     r.mode = 0;
     SpuSetReverbModeParam(&r);
@@ -458,18 +273,18 @@ void Snd_work_init(void)
 
 void func_800740AC(void)
 {
-    if (FC_SW.Rv_step == 0) {
+    if (Snd_work.Vol.Rv_step == 0) {
         SpuReserveReverbWorkArea(1);
-        SpuClearReverbWorkArea(D_800A1108[FC_SW.Rv_mode - 1].mode);
-        FC_SW.Rv_cnt = 30;
-        FC_SW.Rv_step++;
-    } else if (--FC_SW.Rv_cnt == 0) {
-        SpuSetReverbModeParam((SpuReverbAttr *)D_800A10F4[FC_SW.Rv_mode]);
-        SpuSetReverbDepth((SpuReverbAttr *)D_800A10F4[FC_SW.Rv_mode]);
+        SpuClearReverbWorkArea(D_800A1108[Snd_work.Vol.Rv_mode - 1].mode);
+        Snd_work.Vol.Rv_cnt = 30;
+        Snd_work.Vol.Rv_step++;
+    } else if (--Snd_work.Vol.Rv_cnt == 0) {
+        SpuSetReverbModeParam((SpuReverbAttr *)D_800A10F4[Snd_work.Vol.Rv_mode]);
+        SpuSetReverbDepth((SpuReverbAttr *)D_800A10F4[Snd_work.Vol.Rv_mode]);
         SpuSetReverb(1);
-        FC_SW.Rv_step = 0;
-        FC_SW.Rv_cur = FC_SW.Rv_mode;
-        FC_SW.Rv_mode = 0;
+        Snd_work.Vol.Rv_step = 0;
+        Snd_work.Vol.Rv_cur = Snd_work.Vol.Rv_mode;
+        Snd_work.Vol.Rv_mode = 0;
     }
 }
 
@@ -486,11 +301,11 @@ void func_800741A0(void)
     LONG i;
 
     Flg = 0;
-    pVol = (SND_VOL *)&pW->Rv_mode;
+    pVol = &pW->Vol;
     if (!(pW->UnkB38 & 1)) {
         return;
     }
-    if (pW->Rv_mode && pW->Rv_mode != pW->Rv_cur) {
+    if (pW->Vol.Rv_mode && pW->Vol.Rv_mode != pW->Vol.Rv_cur) {
         func_800740AC();
     }
     if (pW->UnkB1C) {
@@ -819,7 +634,7 @@ void func_80074CD0(SND_VOICE *pV, signed char v)
 
 LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq)
 {
-    FC_SNDW *pW = &FC_SW;
+    SND_WORK *pW = &Snd_work;
     SND_VOICE *pV;
     LONG dx, dy, dz, d;
 
@@ -835,9 +650,9 @@ LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq)
         }
     }
     if (pReq->Unk1E) {
-        pW->Cam_x = ((FC_ROOM2 *)G.pRoom)->pCam[G.Cut_no * 8 + 1];
-        pW->Cam_y = ((FC_ROOM2 *)G.pRoom)->pCam[G.Cut_no * 8 + 2];
-        pW->Cam_z = ((FC_ROOM2 *)G.pRoom)->pCam[G.Cut_no * 8 + 3];
+        pW->Cam_x = G.pRoom->pRcut[G.Cut_no].View_p[0];
+        pW->Cam_y = G.pRoom->pRcut[G.Cut_no].View_p[1];
+        pW->Cam_z = G.pRoom->pRcut[G.Cut_no].View_p[2];
         dx = (pW->Cam_x - pReq->Pos.vx) >> 1;
         dz = (pW->Cam_z - pReq->Pos.vz) >> 1;
         dy = (pW->Cam_y - pReq->Pos.vy) >> 1;
@@ -1006,10 +821,10 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
         }
         break;
     }
-    *pR = *pR * pW->Unk7C4 / 127;
-    *pL = *pL * pW->Unk7C4 / 127;
-    *pR = *pR * pW->Unk7C8 / 127;
-    *pL = *pL * pW->Unk7C8 / 127;
+    *pR = *pR * pW->Vol.Master / 127;
+    *pL = *pL * pW->Vol.Master / 127;
+    *pR = *pR * pW->Vol.Se / 127;
+    *pL = *pL * pW->Vol.Se / 127;
 }
 
 LONG func_8007592C(LONG x0, LONG z0, LONG x1, LONG z1)
@@ -1083,7 +898,7 @@ LONG func_80075AE4(UCHAR *pVag, SND_VOICE *pV)
     VabHdr *pVh = (VabHdr *)Snd_work.Bank[pV->Unk1B].pHead;
     ULONG i = pV->Unk17;
 
-    return pVh->mvol * ((ProgAtr *)(pVh + 1))[i].mvol / 127 * pVag[2] / 127 * Snd_work.Unk7C8 / 127;
+    return pVh->mvol * ((ProgAtr *)(pVh + 1))[i].mvol / 127 * pVag[2] / 127 * Snd_work.Vol.Se / 127;
 }
 
 void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan)
@@ -1215,7 +1030,7 @@ void func_80075C30(void)
 
 void func_80076114(UCHAR *pSeq, UCHAR *pTr)
 {
-    FC_SNDW *pW;
+    SND_WORK *pW;
     VabHdr *pVh;
     LONG vel;
     VagAtr *pVag;
@@ -1225,12 +1040,12 @@ void func_80076114(UCHAR *pSeq, UCHAR *pTr)
     (*(UCHAR **)(pSeq + 4))++;
     vel = **(UCHAR **)(pSeq + 4);
     (*(UCHAR **)(pSeq + 4))++;
-    pW = &FC_SW;
+    pW = &Snd_work;
     pVh = (VabHdr *)((SND_WORK *)pW)->Bank[pTr[0xF]].pHead;
-    pTr[0xB] = pW->Vol[3] * pVh->mvol / 127;
+    pTr[0xB] = pW->Vol.Bgm * pVh->mvol / 127;
     pTr[0xB] = pTr[0xB] * pTr[0xA] / 127;
     pTr[0xB] = pTr[0xB] * pTr[7] / 127;
-    pTr[0xB] = pTr[0xB] * pW->Vol[0] / 127;
+    pTr[0xB] = pTr[0xB] * pW->Vol.Master / 127;
     pTr[0xB] = pTr[0xB] * vel / 127;
     pVag = (VagAtr *)((SND_WORK *)pW)->Bank[pTr[0xF]].Unk4 + pTr[6] * *(LONG *)((UCHAR *)pVh + 0xC);
     pPa = (ProgAtr *)pVh + pTr[6] + 2;
@@ -1284,9 +1099,9 @@ void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->pData++;
     pW = &Snd_work;
     pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
-    pTr->UnkB = pW->Unk7CA * pVh->mvol / 127;
+    pTr->UnkB = pW->Vol.Bgm * pVh->mvol / 127;
     pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
-    pTr->UnkB = pTr->UnkB * pW->Unk7C4 / 127;
+    pTr->UnkB = pTr->UnkB * pW->Vol.Master / 127;
     pTr->UnkB = pTr->UnkB * Vel / 127;
     pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
     pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3];
@@ -1616,29 +1431,29 @@ LONG func_80077220(LONG a0, LONG a1, LONG a2, LONG a3)
 
 void func_800772A0(LONG no, UCHAR *pData, LONG a2, LONG a3)
 {
-    FC_SNDW4 *pW = (FC_SNDW4 *)&Snd_work;
-    FC_SEQ2 *p = &pW->Seq[no];
-    FC_TRK *pT;
-    FC_VOICE *pV;
+    SND_WORK *pW = &Snd_work;
+    SND_SEQ *p = &pW->Seq[no];
+    SND_TRACK *pT;
+    SND_VOICE *pV;
     ULONG i;
     ULONG t;
 
-    p->pPtr = p->pLoop = pData + 0xC;
+    p->pData = p->pTop = pData + 0xC;
     p->Unk18 = a3;
-    p->Unk20 = a2;
+    p->Bank = a2;
     p->Unk24 = a2;
     t = *(ULONG *)(pData + 4);
-    p->Reso = *(USHORT *)(pData + 8);
+    p->Resolution = *(USHORT *)(pData + 8);
     p->Delta = 0;
-    p->Tempo2 = p->Tempo = t * 1000 / p->Reso;
-    pT = p->Tr;
+    p->Tempo_cnt = p->Tempo = t * 1000 / p->Resolution;
+    pT = p->Trk;
     pV = &pW->Voice[8];
     for (i = 0; i < 16; i++) {
-        pT->Vol = 0x7F;
+        pT->Vol2 = 0x7F;
         pT->Pan = 0x40;
-        pT->Pitch = 0x2000;
+        pT->Bend = 0x2000;
         pT->Mask = 0;
-        pT->UnkF = a2;
+        pT->Bank = a2;
         pT->UnkE = a2;
         if (pV->Unk1D == 0) {
             pV->Unk14 = 0x2000;
@@ -1646,13 +1461,13 @@ void func_800772A0(LONG no, UCHAR *pData, LONG a2, LONG a3)
         pT++;
         pV++;
     }
-    p->Fade = 0;
-    p->Fade_step = 0;
-    p->Fade_vol = 0;
+    p->Unk38 = 0;
+    p->Unk40 = 0;
+    p->Unk3C = 0;
     pW->UnkB74 |= 1 << p->No;
     pW->UnkB76 &= ~(1 << no);
-    p->Play = 1;
-    p->Stop = 0;
+    p->Unk2C = 1;
+    p->Unk2D = 0;
 }
 
 void Snd_seq_stop(SHORT no)
@@ -1677,16 +1492,16 @@ void func_8007745C(LONG no)
     ULONG mask;
     UCHAR i, j;
     ULONG v;
-    FC_SNDW2 *pW = (FC_SNDW2 *)&Snd_work;
+    SND_WORK *pW = &Snd_work;
 
     mask = 0;
     if (Snd_work.Seq[no].Unk2C != 0) {
         Snd_work.UnkB76 |= 1 << no;
         Snd_work.Seq[no].Unk2C = 0;
         for (i = 0; i < 16; i++) {
-            if (pW->Seq[no].Tr[i].Mask != 0) {
+            if (pW->Seq[no].Trk[i].Mask != 0) {
                 j = 8;
-                v = pW->Seq[no].Tr[i].Mask;
+                v = pW->Seq[no].Trk[i].Mask;
                 for (; j < 24; j++) {
                     if (v & (1 << j)) {
                         mask |= 1 << j;
@@ -1741,7 +1556,6 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     SVECTOR t;
     PARTS_W *pP;
     LONG se;
-
 
     pP = &pEm->pSin_parts_ptr[parts];
     se = MY_func_80077B84(pP->Workm.t[0], pP->Workm.t[2], FLD(pEm, 9, signed char)) & 0x7F;
@@ -1826,7 +1640,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     v.vx = pP->Workm.t[0];
     v.vy = pP->Workm.t[1];
     v.vz = pP->Workm.t[2];
-    if (pEm == G.pUnk265C) {
+    if (pEm == G.pEnemy[0]) {
         Snd_se_stad(kind | 0x10200, &v, 0, 0);
     } else {
         Snd_se_stad(kind | 0x10200, &v, -10, -2);
@@ -1837,7 +1651,7 @@ UCHAR func_80077B84(LONG x, LONG z, LONG id)
 {
     LONG pos[3]; UCHAR *pe; LONG n;
     LONG f;
-    pe = (UCHAR *)((FC_ROOM *)G.pRoom)->pSnd_area; n = *(SHORT *)pe; pe += 2; pos[0] = x; pos[2] = z; pe += n * 0xC;
+    pe = (UCHAR *)G.pRoom->pUnk34; n = *(SHORT *)pe; pe += 2; pos[0] = x; pos[2] = z; pe += n * 0xC;
     while (n--) {
         pe -= 0xC;
         f = ((SHORT *)pe)[5];
@@ -1969,21 +1783,21 @@ void func_80078204(void)
     LONG *p;
     SND_WORK *pW;
 
-    p = ((FC_ROOM *)G.pRoom)->pSnd;
+    p = (LONG *)G.pRoom->pEdt0;
     pW = &Snd_work;
     if (p == NULL) {
         pW->Bank_id[2].Id = -1;
         return;
     }
     *(LONG **)&D_800BA6E8 = p;
-    pW->UnkB78 = ((FC_ROOM *)G.pRoom)->Unk6 * 4;
+    pW->UnkB78 = G.pRoom->Unk6 * 4;
     while (*p != -1) {
         p++;
     }
     p++;
     func_8007836C(2, (ULONG *)p);
-    if (((FC_ROOM *)G.pRoom)->pSnd != NULL) {
-        ((FC_G *)&G)->Unk213C = (UCHAR *)(((ULONG)pW->Bank[2].pHead + pW->Bank[2].pHead[1] + 3) & ~3);
+    if (G.pRoom->pEdt0 != NULL) {
+        G.pEm_mem = (ENEMY_WORK *)(((ULONG)pW->Bank[2].pHead + pW->Bank[2].pHead[1] + 3) & ~3);
     }
     func_800783BC(2, p[0x30], 0);
 }
@@ -2062,5 +1876,5 @@ void func_80078498(UCHAR a, UCHAR b, SHORT c)
     if (i >= 5) {
         i -= 5;
     }
-    GX.Unk7C84[D_800A0FDC[i] + b] = c;
+    G.Unk7C84[D_800A0FDC[i] + b] = c;
 }

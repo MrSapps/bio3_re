@@ -5,7 +5,7 @@
 void func_801C2020(void)
 {
     tagGLOBAL *pG = &G;
-    R214_EVT *pEvt = (R214_EVT *)pG->Unk21DC;
+    R214_EVT *pEvt = pG->pUnk21DC;
     R214_WORK *pRw;
     ULONG i;
 

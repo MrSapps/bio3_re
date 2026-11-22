@@ -4,14 +4,8 @@
 #include "pl_wep2.h"
 #include "pad.h"
 #include "sub.h"
+#include "esp.h"
 
-/* RE2 Esp_call-like effect spawn; returns the effect work or -1 */
-typedef struct {
-    UCHAR pad0[0x10];
-    SHORT Unk10;                       /* 0x10 */
-    SHORT Unk12;                       /* 0x12 */
-    SHORT Unk14;                       /* 0x14 */
-} ESP_WORK;
 ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv);
 SHORT func_8006D030(ULONG Arg0);
 void func_80044804(MATRIX *pM, ULONG Arg1, ULONG Type);
@@ -45,13 +39,6 @@ extern PARTS_W *D_8009CD30;
 extern USHORT D_8009DCB4[];
 void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
 void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
-
-typedef struct {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, z, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} HIT_AREA;
 
 extern ENEMY_WORK Pl_work;
 extern UCHAR D_8009DDC4[][2];

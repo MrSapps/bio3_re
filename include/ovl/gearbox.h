@@ -33,7 +33,7 @@ typedef struct tagGEAR_WORK {
     LINE_F3 Line[2][2];                /* 0x14 cursor box, per draw buffer */
 } GEAR_WORK;
 
-#define OM(n) ((OBJ_MODEL_WORK *)G.Ob_model[n])
+#define OM(n) (&G.Ob_model[n])
 
 /* overlay .data (still in asm) */
 extern signed char Gear_dir_tbl[6][4] __asm__("D_801C2AB0");   /* next cursor per pad direction (up, down, right, left) */

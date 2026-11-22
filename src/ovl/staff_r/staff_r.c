@@ -267,11 +267,11 @@ void func_801C2BB8(void)
         Fade_set(0, 1, 2, 2, 0xFFFFFF, 0, 0x3C);
         Staff_seq.Rtn0 = 0;
         Staff_wk.Rtn2++;
-        G.Unk2484 = Staff_tex[5].Tp + (Staff_tex[5].Clut_y << 8);
+        G.Ctp.Tpage_clut = Staff_tex[5].Tp + (Staff_tex[5].Clut_y << 8);
         Mapping_tim(Staff_wk.pBuf);
-        G.Unk2484 = Staff_tex[6].Tp + (Staff_tex[6].Clut_y << 8);
+        G.Ctp.Tpage_clut = Staff_tex[6].Tp + (Staff_tex[6].Clut_y << 8);
         Mapping_tim(Staff_wk.pStr_bg);
-        G.Unk2484 = 0xE;
+        G.Ctp.Tpage_clut = 0xE;
         Mapping_tim(Staff_wk.pStaff_u);
         Staff_wk.pStaff_u += 0x8040 / 4;
     }
@@ -408,7 +408,7 @@ void func_801C32DC(void)
     switch (pW->Rtn3) {
     case 0:
         if (++pW->Timer2 >= 2) {
-            G.Unk2484 = 0x1D0B;
+            G.Ctp.Tpage_clut = 0x1D0B;
             Mapping_tim(pW->pStaff_u);
             pW->pStaff_u += 0x3220 / 4;
             for (i = 0; i < 2; i++) {

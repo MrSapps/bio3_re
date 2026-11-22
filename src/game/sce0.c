@@ -6,8 +6,9 @@
 #include "sub.h"
 #include "player.h"
 #include "om.h"
-
-
+#include "esp.h"
+#include "cd.h"
+#include "status.h"
 
 extern UCHAR D_800D442C[];
 extern UCHAR D_800E017F[];
@@ -37,45 +38,11 @@ LONG Quake_add();
 LONG Pad_vib_set0();
 LONG Pad_vib_set1();
 LONG Pad_vib_fade_set();
-LONG func_8001B894();
 void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
 extern UCHAR D_8009E340[];
-extern UCHAR D_800E0170;
-typedef struct {
-    void *pData;                       /* 0x0 */
-    UCHAR pad4;
-    UCHAR Id;                          /* 0x5 */
-    UCHAR pad6[2];
-} SCE_UNK_DECC0;
-extern SCE_UNK_DECC0 D_800DECC0[];
 LONG Xa_play();
 typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
 typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern EM_FUNC D_8009ECDC[];
-extern EM_FUNC D_8009ECF8[];
-extern EM_FUNC3 D_8009ED24[];
-extern EM_FUNC3 D_8009ED84[];
-extern EM_FUNC3 D_8009E7DC[];
-extern EM_FUNC3 D_8009E82C[];
-extern EM_FUNC3 D_8009E87C[];
-extern EM_FUNC3 D_8009E8CC[];
-extern EM_FUNC3 D_8009E91C[];
-extern EM_FUNC3 D_8009E96C[];
-extern EM_FUNC3 D_8009E9BC[];
-extern EM_FUNC3 D_8009EA0C[];
-extern EM_FUNC3 D_8009EA5C[];
-extern EM_FUNC3 D_8009EAAC[];
-extern EM_FUNC3 D_8009EAFC[];
-extern EM_FUNC3 D_8009EB4C[];
-extern EM_FUNC3 D_8009EB9C[];
-extern EM_FUNC3 D_8009EBEC[];
-typedef struct {
-    UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 */
-    UCHAR pad5[0xB8 - 0x5];
-    SHORT UnkB8;                       /* 0xB8 */
-} ST_WORK;
-extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern UCHAR D_800A0FDC[];
 extern SHORT D_800D1F8E[];
 extern SHORT D_800D1F82;              /* RE2 G.SaveData.Sce_random */
@@ -98,51 +65,18 @@ void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
 void func_80079868(ENEMY_WORK *pEm, ULONG A1);
 extern UCHAR D_800E01C6[];
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-typedef struct {
-    LONG Unk0;                         /* 0x00 */
-    LONG Pos[3];                       /* 0x04 */
-    LONG Tgt[3];                       /* 0x10 */
-} SCE_CAMERA;
-extern SCE_CAMERA D_800E0150;
 LONG Set_view(LONG *pPos, LONG *pTgt);
-typedef struct {
-    UCHAR Unk0;                        /* 0x00 */
-    UCHAR Unk1;                        /* 0x01 */
-    UCHAR pad2[0x24 - 0x2];
-    SHORT Unk24;                       /* 0x24 */
-    UCHAR pad26[0xC0 - 0x26];
-    LONG UnkC0;                        /* 0xC0 */
-    UCHAR padC4[0xD4 - 0xC4];
-} SCE_UNK_D4;
-extern SCE_UNK_D4 D_800BA8A8[];
 extern UCHAR D_8009E70C[];
 extern UCHAR D_8009E70D[];
 extern UCHAR D_8009EC3C[];
 extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
 void func_8001B484(ULONG A0, ULONG A1, MATRIX *pM, SVECTOR *pSv, ULONG A4);
-typedef struct {
-    ULONG Be_flg;                      /* 0x000 */
-    UCHAR pad4[0x20 - 0x4];
-    LONG Pos[3];                       /* 0x020 */
-    UCHAR pad2C[0x4A - 0x2C];
-    UCHAR Attr;                        /* 0x04A */
-    UCHAR pad4B[0xC1 - 0x4B];
-    UCHAR UnkC1;                       /* 0x0C1 */
-    UCHAR padC2;
-    UCHAR UnkC3;                       /* 0x0C3 */
-    UCHAR padC4[0x194 - 0xC4];
-} SCE_OM_WORK;
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT D_800E01B6;
 ENEMY_WORK *Spl_em_cdir_ck();
 ENEMY_WORK *Spl_pllock_get();
 extern UCHAR D_800A0514[];
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
 extern UCHAR D_8009CDE0[];
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
 ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
@@ -274,13 +208,13 @@ UCHAR func_800520D8(ULONG Id)
 
 void *func_8005211C(ULONG Id)
 {
-    SCE_UNK_DECC0 *p;
+    EM_DAT *p;
     ULONG i;
 
     p = D_800DECC0;
     for (i = 0; i < D_800E0170; i++, p++) {
-        if (p->Id == Id) {
-            return p->pData;
+        if (p->Kind == Id) {
+            return p->pEm;
         }
     }
     return NULL;
@@ -299,13 +233,6 @@ void Sce_aot_init(void)
     G.nSce_aot = 0;
 }
 
-/* G.Unk2484 as the RE2 Ctpage/Cclut bytes */
-typedef struct {
-    UCHAR pad[0x2484];
-    UCHAR Ctpage;                      /* 0x2484 */
-    UCHAR Cclut;                       /* 0x2485 */
-} G_CTPAGE;
-
 /* RE2 Sce_model_init */
 void Sce_model_init(void)
 {
@@ -319,7 +246,7 @@ void Sce_model_init(void)
     pG = &G;
     pG->pOld_tim = NULL;
     pG->pOld_tmd = NULL;
-    pOm = (OBJ_MODEL_WORK *)pG->Ob_model;
+    pOm = pG->Ob_model;
     for (i = 32; i != 0; i--) {
         pOm->Be_flg = 0;
         pOm->UnkC3 = 0;
@@ -328,11 +255,11 @@ void Sce_model_init(void)
 
     i = pG->pRoom->nOmodel;
     pMi = pG->pRoom->pOmodel;
-    pOm = (OBJ_MODEL_WORK *)pG->Ob_model;
+    pOm = pG->Ob_model;
     for (; i != 0; i--) {
-        Tpage = ((G_CTPAGE *)pG)->Ctpage;
+        Tpage = pG->Ctp.u.Ctpage;
         pTim = pMi->Tim_adr;
-        Clut = ((G_CTPAGE *)pG)->Cclut;
+        Clut = pG->Ctp.u.Cclut;
         pOm->Tpage = Tpage;
         pOm->Unk49 = Clut;
         if (pG->pOld_tim != pTim) {
@@ -402,7 +329,7 @@ void Sce_work_clr_set(void)
     G.pUnk75AC[10] = 0;
     Sce.Unk1488 = 0;
     Sce.Unk149B = 0;
-    Sce.pUnk1460 = G.pEnemy[0];
+    Sce.pUnk1460 = G.pEnemy[2];
     for (i = 0, p = (LONG *)D_800DECC0; i < 5; i++) {
         *p++ = -1;
     }
@@ -497,7 +424,7 @@ void Sce_kirakira_set(void)
 
     Cnt = G.pRoom->nOmodel;
     for (i = 0; i < Cnt;) {
-        pOm = &((OBJ_MODEL_WORK *)G.Ob_model)[i++];
+        pOm = &G.Ob_model[i++];
         if ((pOm->Be_flg & 1) == 0) {
             continue;
         }
@@ -682,7 +609,7 @@ void Sce_scheduler_main(void)
     Sce.Pl_pos[1] = G.Pl_pos_y;
     Sce.Pl_pos[2] = G.Pl_pos_z;
     G.Pl_status_flg &= ~0x80;
-    pSub = G.pUnk2660;
+    pSub = G.pEnemy[1];
     if (pSub->Be_flg & 1) {
         Sce.Sub_pos[0] = pSub->Pos_x;
         Sce.Sub_pos[1] = pSub->Pos_y;
@@ -714,9 +641,9 @@ void Sce_scheduler_main(void)
     if (Sce.Pl_pos[0] != G.Pl_pos_x || Sce.Pl_pos[1] != G.Pl_pos_y || Sce.Pl_pos[2] != G.Pl_pos_z) {
         G.Pl_status_flg |= 0x80;
     }
-    if (G.pUnk2660->Be_flg & 1) {
-        if (Sce.Sub_pos[0] != G.pUnk2660->Pos_x || Sce.Sub_pos[1] != G.pUnk2660->Pos_y || Sce.Sub_pos[2] != G.pUnk2660->Pos_z) {
-            G.pUnk2660->Status_flg |= 0x80;
+    if (G.pEnemy[1]->Be_flg & 1) {
+        if (Sce.Sub_pos[0] != G.pEnemy[1]->Pos_x || Sce.Sub_pos[1] != G.pEnemy[1]->Pos_y || Sce.Sub_pos[2] != G.pEnemy[1]->Pos_z) {
+            G.pEnemy[1]->Status_flg |= 0x80;
         }
     }
 }

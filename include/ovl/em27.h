@@ -10,6 +10,7 @@
 #include "pad.h"
 #include "player.h"
 #include "main.h"
+#include "joint.h"
 
 /* em27's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM27_FREE {
@@ -25,17 +26,6 @@ typedef struct tagEM27_FREE {
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 /* the player work inside G (RE2 G.Player; Pl_work is the same address) */
 #define G_PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
-
-/* RE2 PARTS_NECK_FREE_WORK (MAIN.H): PARTS_W free work of the neck part */
-typedef struct tagPARTS_NECK_FREE_WORK {
-    SHORT N_rot_y;                     /* 0x74 */
-    SHORT N_rot_z;                     /* 0x76 */
-    SHORT Add_dir_y;                   /* 0x78 */
-    SHORT Add_dir_z;                   /* 0x7A */
-    SHORT L_rot_y;                     /* 0x7C */
-    SHORT L_rot_z;                     /* 0x7E */
-} PARTS_NECK_FREE_WORK;
-#define PW_NECK(p) ((PARTS_NECK_FREE_WORK *)&(p)->Unk74)
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
 extern void (*Em27_routine_0[])() __asm__("D_80101A34");

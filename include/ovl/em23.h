@@ -83,22 +83,12 @@ typedef struct tagEM23_FREE {
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
-/* hit area handed to func_800445C8 (pl_wep.c) */
-typedef struct tagEM23_HIT_AREA {
-    VECTOR *pPos;                      /* 0x00 */
-    SHORT *pBox;                       /* 0x04 x, y, w, d */
-    USHORT Dir;                        /* 0x08 */
-    UCHAR Id;                          /* 0x0A */
-} EM23_HIT_AREA;
-
 /* G seen from the player work (Pl_work = G + 0x248C, RE2 G.Player): one symbol, so gcc
-   addresses G.pEnemy / G.ppEnemy_end relative to &Pl_work */
+   addresses &G.pEnemy[2] / G.ppEnemy_end relative to &Pl_work */
 typedef struct {
     UCHAR pad[0x248C];
     UCHAR Player[0x1D0];               /* 0x248C Pl_work */
-    ENEMY_WORK *pUnk265C;              /* 0x265C */
-    ENEMY_WORK *pUnk2660;              /* 0x2660 */
-    ENEMY_WORK *pEnemy[40];            /* 0x2664 */
+    ENEMY_WORK *pEnemy[42];            /* 0x265C G.pEnemy */
     ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
     UCHAR pad2708[0x75E8 - 0x2708];
     USHORT Unk75E8;                    /* 0x75E8 G.Unk75E8: player fire flags */

@@ -11,50 +11,7 @@
 /* room sound directory at 0x801C181C (CD_ENTRY list, Id bit 7 = more entries follow) */
 #define CD_DIR ((CD_ENTRY *)0x801C181C)
 #define CD_DIR_HEAD ((ULONG *)0x801C1814)
-/* ROOM_WORK fields not in main.h yet */
-typedef struct {
-    UCHAR pad0[8];
-    CD_LINK *pLink;                    /* 0x08 */
-    UCHAR padC[0x5C - 0xC];
-    ULONG Unk5C;                       /* 0x5C */
-} ROOM_SND;
-/* G.Unk2484 as the RE2 Ctpage/Cclut bytes */
-typedef struct {
-    UCHAR pad[0x2484];
-    UCHAR Ctpage;                      /* 0x2484 */
-    UCHAR Cclut;                       /* 0x2485 */
-} G_CTPAGE;
 
-/* G viewed with the work pointer table as one array (RE2 pEnemy[]: [0] player, [1] sub player, [2..] enemies) */
-typedef struct {
-    UCHAR pad0[0x2134];
-    struct tagROOM_WORK *pRoom;        /* 0x2134 */
-    UCHAR pad2138[0x213C - 0x2138];
-    ENEMY_WORK *pEm_mem;               /* 0x213C */
-    UCHAR pad2140[0x2487 - 0x2140];
-    UCHAR Em_num;                      /* 0x2487 */
-    UCHAR pad2488[0x265C - 0x2488];
-    ENEMY_WORK *pEm_tbl[42];           /* 0x265C */
-    ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
-    UCHAR pad2708[0x3DE0 - 0x2708];
-    void (*Em_routine[64])(ENEMY_WORK *); /* 0x3DE0 */
-    UCHAR pad3EE0[0x3FA0 - 0x3EE0];
-    void (*Em_ov_mtbl[2][112])(ENEMY_WORK *); /* 0x3FA0 */
-    struct {
-        USHORT Id;                     /* enemy kind of the loaded bank */
-        USHORT Flg;                    /* set once loaded */
-    } Em_bank[2];                      /* 0x4320 G.Unk4320..Unk4326 */
-} G_EMTBL;
-/* ENEMY_WORK fields not in em_sub.h yet */
-typedef struct {
-    UCHAR pad0[0x11C];
-    ULONG *pUnk11C;                    /* 0x11C */
-    UCHAR pad120[0x174 - 0x120];
-    ULONG Unk174;                      /* 0x174 */
-    UCHAR pad178[0x1B4 - 0x178];
-    ULONG Unk1B4;                      /* 0x1B4 */
-} EM_CD;
-#define EM_CD(p) ((EM_CD *)(p))
 void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData);
 void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pData);
 extern UCHAR D_800E017F;               /* room sound pack id */
@@ -373,7 +330,6 @@ retry:
     }
 }
 
-extern LONG D_800DECC0[5];
 void func_80012ECC(tagCD *pCd);
 void func_800130A0(tagCD *pCd);
 void func_80013EF8(UCHAR intr, UCHAR *result);
@@ -444,17 +400,17 @@ retry2:
     pCd->Fsector_num = (pCd->Fsize + 0x7FF) >> 11;
     pCd->Current_sector = pCd->Fsector;
     pCd->Fsize_now = pCd->Fsize;
-    pCd->Unk8D0 = ((G_CTPAGE *)&G)->Ctpage;
-    pCd->Unk8D1 = ((G_CTPAGE *)&G)->Cclut;
+    pCd->Unk8D0 = G.Ctp.u.Ctpage;
+    pCd->Unk8D1 = G.Ctp.u.Cclut;
     pCd->Unk8CC = (ULONG)G.pEm_mem;
     if (pCd->Type == 4) {
         i = 0;
-        pFlg = D_800DECC0;
+        pFlg = (LONG *)D_800DECC0;
         Sce.Unk148E = 0xFF;
         Sce.Unk148F = 0xFF;
         Sce.Unk1494 = 0xFF;
         Sce.Unk1488 = 0;
-        Sce.pUnk1460 = G.pEnemy[0];
+        Sce.pUnk1460 = G.pEnemy[2];
         for (; i < 5; i++) {
             *pFlg++ = -1;
         }
@@ -619,30 +575,6 @@ void func_80012ECC(tagCD *pCd)
     }
 }
 
-/* enemy model data records (8 bytes, D_800E0170 used) */
-typedef struct {
-    ENEMY_WORK *pEm;                   /* 0x0 */
-    UCHAR Id;                          /* 0x4 */
-    UCHAR Kind;                        /* 0x5 */
-    UCHAR pad6[2];
-} EM_DAT;
-extern EM_DAT Em_dat_tbl[] __asm__("D_800DECC0");
-extern UCHAR D_800E0170;               /* used Em_dat_tbl records */
-/* SCENARIO fields not in sce0.h yet */
-typedef struct {
-    UCHAR pad0[0x145C];
-    UCHAR *pCScd;                      /* 0x145C */
-    ENEMY_WORK *pUnk1460;              /* 0x1460 */
-    UCHAR pad1464[0x1488 - 0x1464];
-    UCHAR Unk1488;                     /* 0x1488 */
-    UCHAR pad1489[0x148C - 0x1489];
-    UCHAR Type;                        /* 0x148C */
-    UCHAR pad148D;
-    UCHAR Unk148E;                     /* 0x148E */
-    UCHAR Unk148F;                     /* 0x148F */
-    ULONG *pUnk1490;                   /* 0x1490 */
-} SCE_CD;
-extern SCE_CD Sce_cd __asm__("Sce");
 ULONG Em_kind_search(ULONG Id);
 UCHAR func_800520D8(ULONG Id);
 void *func_8005211C(ULONG Id);
@@ -655,7 +587,7 @@ void func_800130A0(tagCD *pCd)
     ULONG Adr[7] = { 0, 0x80100000, 0x8010D000, 0x801FB600, 0, 0x801F7E00, 0x801F2600 };
     TIM_IMAGE Tim;
     TIM_IMAGE *pTim;
-    G_EMTBL *pG;
+    tagGLOBAL *pG;
     EM_DAT *pDat;
     ENEMY_WORK *pEm;
     void *pData;
@@ -667,8 +599,8 @@ void func_800130A0(tagCD *pCd)
     ULONG k;
 
     No = pCd->Ring_status[pCd->Write_ctr] & 0x7F;
-    pG = (G_EMTBL *)&G;
-    pDat = &Em_dat_tbl[D_800E0170];
+    pG = &G;
+    pDat = &D_800DECC0[D_800E0170];
     Type = pCd->pEntry[No].Type & 0x7F;
     if (Type == 5 && pCd->pEntry[No].Id != pCd->Unk8C2) {
         return;
@@ -712,10 +644,10 @@ void func_800130A0(tagCD *pCd)
     func_800100A4((void *)pCd->Unk8A8, (UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), Size);
     pCd->Unk8A8 += 0x800;
     if (pCd->Unk8D4 == 1) {
-        for (; pG->ppEnemy_end != &pG->pEm_tbl[pCd->Unk8D4]; pCd->Unk8D4++) {
-            if (pCd->pEntry[No].Id == pG->pEm_tbl[pCd->Unk8D4]->Id) {
-                pG->pEm_tbl[pCd->Unk8D4]->Clut = pCd->Unk8D1;
-                pG->pEm_tbl[pCd->Unk8D4]->Tpage = pCd->Unk8D0;
+        for (; pG->ppEnemy_end != &pG->pEnemy[pCd->Unk8D4]; pCd->Unk8D4++) {
+            if (pCd->pEntry[No].Id == pG->pEnemy[pCd->Unk8D4]->Id) {
+                pG->pEnemy[pCd->Unk8D4]->Clut = pCd->Unk8D1;
+                pG->pEnemy[pCd->Unk8D4]->Tpage = pCd->Unk8D0;
                 if (pCd->Unk8D4 == 1) {
                     break;
                 }
@@ -737,31 +669,31 @@ void func_800130A0(tagCD *pCd)
     }
     if (pCd->pEntry[No - 1].Unk5 == 1 && pCd->Unk8D4 == 2) {
         pCd->Unk8D4 = 1;
-        for (k = 1; pG->ppEnemy_end != &pG->pEm_tbl[k]; pCd->Unk8D4 = k + 1, k = pCd->Unk8D4) {
-            if (pCd->pEntry[No].Id == pG->pEm_tbl[k]->Id) {
-                pEm = pG->pEm_tbl[k];
+        for (k = 1; pG->ppEnemy_end != &pG->pEnemy[k]; pCd->Unk8D4 = k + 1, k = pCd->Unk8D4) {
+            if (pCd->pEntry[No].Id == pG->pEnemy[k]->Id) {
+                pEm = pG->pEnemy[k];
                 break;
             }
         }
         Work = pCd->Unk8CC;
-        Sce_cd.Unk148E = pEm->Id;
+        Sce.Unk148E = pEm->Id;
         pEm->Unk4B &= 0xF;
-        Sce_cd.Unk148F = pEm->Unk4B;
-        Sce_cd.pUnk1460 = pEm;
+        Sce.Unk148F = pEm->Unk4B;
+        Sce.pUnk1460 = pEm;
         Kind = Em_kind_search(pEm->Id);
         pData = func_8005211C(Kind);
         if (pData == NULL) {
             pDat->pEm = pEm;
             pDat->Id = pEm->Id;
             pDat->Kind = Kind;
-            Sce_cd.Unk1488++;
+            Sce.Unk1488++;
         } else {
             pEm->Unk4B |= func_800520D8(pEm->Id);
         }
         Work = func_8001760C(pCd->pEntry[No].Id, pEm, Work, pData);
-        Sce_cd.pUnk1490 = EM_CD(pEm)->pUnk11C;
-        Sce_cd.Type = 0;
-        Sce_cd.pCScd = pG->pRoom->pScd;
+        Sce.pUnk1490 = pEm->pUnk11C;
+        Sce.Type = 0;
+        Sce.pCScd = pG->pRoom->pScd;
         Work = PartsWork_set(pEm, Work);
         Work = func_800261AC(pEm, Work, pEm->pUnk10C);
         Sa_dat_set(pEm, pEm->pUnk118);
@@ -772,17 +704,16 @@ void func_800130A0(tagCD *pCd)
             } else {
                 pCd->Unk8D4 = 1;
             }
-            pG->Em_bank[pCd->Unk8D4].Flg = 1;
-            pG->Em_bank[pCd->Unk8D4].Id = pCd->pEntry[No].Id;
+            pG->Em_bin_info[pCd->Unk8D4].Use = 1;
+            pG->Em_bin_info[pCd->Unk8D4].Id = pCd->pEntry[No].Id;
             pG->Em_routine[pCd->pEntry[No].Id - 0x10] = pG->Em_ov_mtbl[pCd->Unk8D4][pCd->pEntry[No].Id - 0x10];
             return;
         }
-        if (*Sce_cd.pUnk1490 != 0) {
-            func_8007A2D4(pEm, Sce_cd.pUnk1490);
+        if (*Sce.pUnk1490 != 0) {
+            func_8007A2D4(pEm, Sce.pUnk1490);
         }
     }
 }
-
 
 void func_80013754(void)
 {
@@ -818,7 +749,6 @@ void func_80013754(void)
     pCd->Entry_no = i;
 }
 
-
 void func_800138B0(void)
 {
     tagGLOBAL *pG;
@@ -837,7 +767,7 @@ void func_800138B0(void)
     pCd->Unk8C8 |= 1;
     do {
         if (pEnt->Id == Key) {
-            ((ROOM_SND *)pG->pRoom)->Unk5C = pCd->Unk8CC;
+            pG->pRoom->pEdd = (UCHAR *)pCd->Unk8CC;
             if (pEnt == CD_DIR) {
                 pCd->Unk8BC = pCd->pEntry[0].Size;
             } else {
@@ -1204,7 +1134,7 @@ void func_80014300(UCHAR intr, UCHAR *result)
         pCd->Limit_break = 0;
         pCd->Entry_no++;
         if ((pCd->Unk8C8 & 3) != 3) {
-            if (G.Em_num == 0 && !(G.pUnk2660->Be_flg & 1)) {
+            if (G.Em_num == 0 && !(G.pEnemy[1]->Be_flg & 1)) {
                 pCd->Fsize_now = 0;
                 pCd->Fsector_num = 0;
                 pCd->Unk8C0 = 0xFF;
@@ -1308,9 +1238,9 @@ void func_80014968(tagCD *pCd)
         if (pCd->Unk8D5 != 0) {
             n++;
             Size += (pEnt->Size + 0x7FF) & ~0x7FF;
-            G.Unk4326 = 1;
+            G.Em_bin_info[1].Use = 1;
         } else {
-            G.Unk4322 = 1;
+            G.Em_bin_info[0].Use = 1;
         }
         pCd->Unk8C8 |= 4 << (pCd->Unk8D5 * 3);
         Cd_set_read_pos(Size);
@@ -1319,7 +1249,7 @@ void func_80014968(tagCD *pCd)
         break;
     case 4:
         pCd->Unk8C8 |= 8 << (pCd->Unk8D5 * 3);
-        if (G.Unk4322 == 0 && pCd->Em_id[pCd->Unk8D5] < 0x50) {
+        if (G.Em_bin_info[0].Use == 0 && pCd->Em_id[pCd->Unk8D5] < 0x50) {
             return;
         }
         Size = 0x800;
@@ -1352,11 +1282,10 @@ void func_80014968(tagCD *pCd)
     }
 }
 
-
 /* enemies of the same kind share the model data of the first one (CD.Em_id[0], then Em_id[1]) */
 void func_80014D10(void)
 {
-    G_EMTBL *pG = (G_EMTBL *)&G;
+    tagGLOBAL *pG = &G;
     tagCD *pCd = &CD;
     ENEMY_WORK *pSrc;
     ENEMY_WORK *pEm;
@@ -1368,38 +1297,38 @@ void func_80014D10(void)
     if (pCd->Em_id[0] >= 0x50) {
         return;
     }
-    for (; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
-        if (pG->pEm_tbl[i]->Id == pCd->Em_id[0]) {
-            pSrc = pG->pEm_tbl[i];
+    for (; &pG->pEnemy[i] != pG->ppEnemy_end; i++) {
+        if (pG->pEnemy[i]->Id == pCd->Em_id[0]) {
+            pSrc = pG->pEnemy[i];
             i++;
             break;
         }
     }
     Second = pCd->Em_id[1] >= 0x50;
-    if (&pG->pEm_tbl[i] == pG->ppEnemy_end && Second) {
-        if (*EM_CD(pSrc)->pUnk11C != 0) {
-            func_8007A2D4(pSrc, EM_CD(pSrc)->pUnk11C);
+    if (&pG->pEnemy[i] == pG->ppEnemy_end && Second) {
+        if (*pSrc->pUnk11C != 0) {
+            func_8007A2D4(pSrc, pSrc->pUnk11C);
         }
         return;
     }
     Work = pCd->Unk8CC;
 copy:
-    for (; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
-        pEm = pG->pEm_tbl[i];
+    for (; &pG->pEnemy[i] != pG->ppEnemy_end; i++) {
+        pEm = pG->pEnemy[i];
         if (pEm->Id == pSrc->Id) {
             pEm->pUnk10C = pEm->pKan_t_ptr = pSrc->pKan_t_ptr;
             pEm->pSeq_t_ptr = pSrc->pSeq_t_ptr;
             pEm->pTmd = pSrc->pTmd;
-            EM_CD(pEm)->Unk174 = EM_CD(pSrc)->Unk174;
+            pEm->pUnk174 = pSrc->pUnk174;
             pEm->pSub0_kan_t_ptr = pSrc->pSub0_kan_t_ptr;
             pEm->pSub0_seq_t_ptr = pSrc->pSub0_seq_t_ptr;
             pEm->pSub1_kan_t_ptr = pSrc->pSub1_kan_t_ptr;
             pEm->pSub1_seq_t_ptr = pSrc->pSub1_seq_t_ptr;
             pEm->pUnk118 = pSrc->pUnk118;
-            EM_CD(pEm)->pUnk11C = EM_CD(pSrc)->pUnk11C;
+            pEm->pUnk11C = pSrc->pUnk11C;
             pEm->Tpage = pSrc->Tpage;
             pEm->Clut = pSrc->Clut;
-            EM_CD(pEm)->Unk1B4 = EM_CD(Sce.pUnk1460)->Unk1B4;
+            pEm->pUnk1B4 = Sce.pUnk1460->pUnk1B4;
             pEm->Unk180[0] = Sce.pUnk1460->Unk180[0];
             pEm->Unk180[1] = Sce.pUnk1460->Unk180[1];
             pEm->Unk180[2] = Sce.pUnk1460->Unk180[2];
@@ -1410,9 +1339,9 @@ copy:
         }
     }
     if (!Second) {
-        for (i = 2; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
-            if (pG->pEm_tbl[i]->Id == pCd->Em_id[1]) {
-                pSrc = pG->pEm_tbl[i];
+        for (i = 2; &pG->pEnemy[i] != pG->ppEnemy_end; i++) {
+            if (pG->pEnemy[i]->Id == pCd->Em_id[1]) {
+                pSrc = pG->pEnemy[i];
                 break;
             }
         }
@@ -1420,9 +1349,9 @@ copy:
         Second = 1;
         goto copy;
     }
-    for (i = 2; &pG->pEm_tbl[i] != pG->ppEnemy_end; i++) {
-        if ((pG->pEm_tbl[i]->Be_flg & 1) && *EM_CD(pG->pEm_tbl[i])->pUnk11C != 0) {
-            func_8007A2D4(pG->pEm_tbl[i], EM_CD(pG->pEm_tbl[i])->pUnk11C);
+    for (i = 2; &pG->pEnemy[i] != pG->ppEnemy_end; i++) {
+        if ((pG->pEnemy[i]->Be_flg & 1) && *pG->pEnemy[i]->pUnk11C != 0) {
+            func_8007A2D4(pG->pEnemy[i], pG->pEnemy[i]->pUnk11C);
         }
     }
     pCd->Unk8CC = Work;
@@ -1442,7 +1371,7 @@ void Cd_set_read_pos(ULONG size)
 /* collects the distinct enemy kinds of the room in CD.Em_id[], sorted ascending, 0xFF = unused */
 void func_800150E4(void)
 {
-    G_EMTBL *pG = (G_EMTBL *)&G;
+    tagGLOBAL *pG = &G;
     tagCD *pCd = &CD;
     UCHAR i, j, n;
 
@@ -1451,15 +1380,15 @@ void func_800150E4(void)
     }
     i = 1;
     n = 0;
-    for (; pG->ppEnemy_end != &pG->pEm_tbl[i]; i++) {
-        if (pG->pEm_tbl[i]->Id != 0 && pCd->Em_id[n] == 0xFF) {
+    for (; pG->ppEnemy_end != &pG->pEnemy[i]; i++) {
+        if (pG->pEnemy[i]->Id != 0 && pCd->Em_id[n] == 0xFF) {
             for (j = 0; j < n; j++) {
-                if (pCd->Em_id[j] == pG->pEm_tbl[i]->Id) {
+                if (pCd->Em_id[j] == pG->pEnemy[i]->Id) {
                     break;
                 }
             }
             if (n == j) {
-                pCd->Em_id[n] = pG->pEm_tbl[i]->Id;
+                pCd->Em_id[n] = pG->pEnemy[i]->Id;
                 n++;
             }
         }

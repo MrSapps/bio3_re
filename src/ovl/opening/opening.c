@@ -58,12 +58,12 @@ void func_801C21E4(void)
 
     Cd_read(0x3D, (ULONG *)0x80100000, 0, "OPENING0_DAT");
     i = 0;
-    G.Unk2484 = 5;
+    G.Ctp.Tpage_clut = 5;
     do {
         Mapping_tim(D_801C2F14[i]);
         i++;
     } while (i < 6);
-    G.Unk2484 = (i << 8) + 0x15;
+    G.Ctp.Tpage_clut = (i << 8) + 0x15;
     do {
         Mapping_tim(D_801C2F14[i]);
         i++;

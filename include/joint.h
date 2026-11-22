@@ -14,6 +14,25 @@ typedef struct tagJOINT_P {
     SVECTOR P0_sv;                     /* 0x28 */
 } JOINT_P;
 
+/* PARTS_W free work (RE2 PARTS_W.Free[]; RE3 has it at PARTS_W + 0x74) as the neck parts use it
+ * (RE2 struct tagPARTS_NECK_FREE_WORK, MAIN.H) */
+typedef struct tagPARTS_NECK_FREE_WORK {
+    SHORT N_rot_y;                     /* 0x74 */
+    SHORT N_rot_z;                     /* 0x76 */
+    SHORT Add_dir_y;                   /* 0x78 */
+    SHORT Add_dir_z;                   /* 0x7A */
+    SHORT L_rot_y;                     /* 0x7C */
+    SHORT L_rot_z;                     /* 0x7E */
+} PARTS_NECK_FREE_WORK;
+#define PW_NECK(p) ((PARTS_NECK_FREE_WORK *)&(p)->Unk74)
+
+/* PARTS_W free work of colour-faded parts (em34, em37) */
+typedef struct tagPARTS_RGB_FREE_WORK {
+    ULONG Rgb0;                        /* 0x74 */
+    ULONG Rgb1;                        /* 0x78 */
+} PARTS_RGB_FREE_WORK;
+#define PW_RGB(p) ((PARTS_RGB_FREE_WORK *)&(p)->Unk74)
+
 ULONG func_80028308(JOINT_P *pJp, ULONG *pKan, ULONG *pSeq, ULONG Late_flg); /* RE2 Joint_move_p */
 ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top);  /* PartsWork_set */
 void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan);      /* part positions from kan data */

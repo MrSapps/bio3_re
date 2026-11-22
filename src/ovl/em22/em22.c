@@ -176,7 +176,6 @@ void func_8010023C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         EM22_W(pEm)->Unk13 = 0;
 }
 
-
 /* RE2 Em_move */
 void func_80100680(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
@@ -210,7 +209,6 @@ void func_80100680(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         func_80108DAC(pEm);
     }
 }
-
 
 /* think routine 0 */
 void func_80100844(ENEMY_WORK *pEm)
@@ -293,7 +291,6 @@ void func_80100A54(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
     Add_speedXZ(pEm, 0);
 }
-
 
 /* think routine 1 */
 void func_80100B08(ENEMY_WORK *pEm)
@@ -424,7 +421,6 @@ void func_80100B08(ENEMY_WORK *pEm)
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (Rnd() + 0x10) & 0xF);
 }
 
-
 /* move routine 1 */
 void func_801011BC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
@@ -449,7 +445,6 @@ void func_801011BC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Add_speedXZ(pEm, 0);
     func_80109058(pEm);
 }
-
 
 /* think routine 2 */
 void func_801012E4(ENEMY_WORK *pEm)
@@ -555,7 +550,6 @@ void func_801012E4(ENEMY_WORK *pEm)
     }
 }
 
-
 /* move routine 2 */
 void func_80101858(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
@@ -572,7 +566,6 @@ void func_80101858(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     func_80109058(pEm);
 }
 
-
 /* point 800 ahead and to the side of pEm, relative to pT, into Unk0A/Unk0C */
 void func_80101914(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
@@ -584,7 +577,6 @@ void func_80101914(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     EM22_W(pEm)->Unk0A = pT->Pos_x + Sv.vx;
     EM22_W(pEm)->Unk0C = pT->Pos_z + Sv.vz;
 }
-
 
 LONG func_80101988(ENEMY_WORK *pEm)
 {
@@ -599,7 +591,6 @@ LONG func_80101988(ENEMY_WORK *pEm)
     return func_8004D720(pP->Workm.t, pEm->Col_w0, 0x200, 0) < Ceil;
 }
 
-
 LONG func_80101A30(ENEMY_WORK *pEm)
 {
     tagGLOBAL *pG = &G;
@@ -610,7 +601,6 @@ LONG func_80101A30(ENEMY_WORK *pEm)
         return 0;
     return 1;
 }
-
 
 /* think routine 3 */
 void func_80101AA4(ENEMY_WORK *pEm)
@@ -626,8 +616,8 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     SHORT Box0[4];
     SHORT Box1[4];
     LONG Unused[4];
-    EM22_HIT_AREA Area0;
-    EM22_HIT_AREA Area1;
+    HIT_AREA Area0;
+    HIT_AREA Area1;
     LONG *pPos;
 
     switch (pEm->Routine_2) {
@@ -656,7 +646,7 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Box0[1] = 0;
             Box0[2] = 600;
             Box0[3] = 1400;
-            Area0.pPos = pEm->pSin_parts_ptr[8].Workm.t;
+            Area0.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
             Area0.pBox = Box0;
             Area0.Dir = pEm->Cdir_y;
             if (!pEm->Water) {
@@ -672,7 +662,7 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Box1[1] = 0;
             Box1[2] = 700;
             Box1[3] = 1400;
-            Area1.pPos = pEm->pSin_parts_ptr[8].Workm.t;
+            Area1.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
             Area1.pBox = Box1;
             Area1.Dir = pEm->Cdir_y;
             Area1.Id = 0x80;
@@ -718,7 +708,6 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Add_speedXZ(pEm, 0);
 }
 
-
 /* point 200 ahead of pEm, relative to pT, into Unk0A/Unk0C */
 void func_80101EF0(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
@@ -731,7 +720,6 @@ void func_80101EF0(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     EM22_W(pEm)->Unk0C = pT->Pos_z + Sv.vz;
     EM22_W(pEm)->Unk2A = pEm->Unk154;
 }
-
 
 /* think routine 4 */
 void func_80101F60(ENEMY_WORK *pEm)
@@ -751,13 +739,12 @@ void func_80101F60(ENEMY_WORK *pEm)
     pEm->Unk16A = 0;
 }
 
-
 /* move routine 4: jump attack */
 void func_80102044(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Sv;
-    EM22_HIT_AREA Area;
+    HIT_AREA Area;
     LONG Unused[2];
     VECTOR V;
     LONG Dir;
@@ -842,7 +829,7 @@ void func_80102044(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Sv.vy = 200;
             Sv.vz = 1200;
             Sv.pad = 1200;
-            Area.pPos = pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             if (!pEm->Water) {
@@ -914,14 +901,12 @@ void func_80102044(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Add_speedXZ(pEm, 0);
 }
 
-
 /* think routine 5 */
 void func_8010281C(ENEMY_WORK *pEm)
 {
     if (EM22_W(pEm)->Unk19 < 32)
         EM22_W(pEm)->Unk19++;
 }
-
 
 /* move routine 5 */
 void func_8010283C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
@@ -976,7 +961,6 @@ void func_8010283C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
 }
 
-
 /* think routine 6 */
 void func_80102A10(ENEMY_WORK *pEm)
 {
@@ -1001,12 +985,9 @@ void func_80102A10(ENEMY_WORK *pEm)
     }
 }
 
-
 INCLUDE_ASM("asm/nonmatchings/ovl/em22/em22", func_80102AEC);
 
-
 INCLUDE_ASM("asm/nonmatchings/ovl/em22/em22", func_80103110);
-
 
 /* two way points 1800 / 3600 to one side of pEm (Unk2C/Unk2E, Unk0A/Unk0C) */
 void func_8010316C(ENEMY_WORK *pEm, LONG Flg, VECTOR *pV)
@@ -1035,7 +1016,6 @@ void func_8010316C(ENEMY_WORK *pEm, LONG Flg, VECTOR *pV)
         EM22_W(pEm)->Unk0A = pEm->Pos_x + 3600;
     }
 }
-
 
 /* look for a wall edge to climb along (searches the shapes found by Sca_search) */
 LONG func_80103260(ENEMY_WORK *pEm)
@@ -1121,7 +1101,6 @@ LONG func_80103260(ENEMY_WORK *pEm)
     }
     return i != 30;
 }
-
 
 /* think routine 7 */
 void func_801036B0(ENEMY_WORK *pEm)
@@ -1219,7 +1198,6 @@ void func_801036B8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
 }
 
-
 /* think routine 8 */
 void func_80103B34(ENEMY_WORK *pEm)
 {
@@ -1257,7 +1235,6 @@ void func_80103B3C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Add_speedXZ(pEm, 0);
 }
 
-
 /* think routine 9 */
 void func_80103CB4(ENEMY_WORK *pEm)
 {
@@ -1292,7 +1269,6 @@ void func_80103CBC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Add_speedXZ(pEm, 0);
 }
 
-
 /* think routine 10 */
 void func_80103E38(ENEMY_WORK *pEm)
 {
@@ -1303,7 +1279,7 @@ void func_80103E40(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Sv;
-    EM22_HIT_AREA Area;
+    HIT_AREA Area;
 
     switch (pEm->Routine_2) {
     case 0:
@@ -1340,7 +1316,7 @@ void func_80103E40(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Sv.vy = 0;
             Sv.vz = 1400;
             Sv.pad = 1400;
-            Area.pPos = pEm->pSin_parts_ptr->Workm.t;
+            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x82;
@@ -1376,7 +1352,6 @@ void func_80103E40(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         }
     }
 }
-
 
 /* think routine 11 */
 void func_801041C8(ENEMY_WORK *pEm)
@@ -1563,7 +1538,7 @@ void func_80104A10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Sv;
-    EM22_HIT_AREA Area;
+    HIT_AREA Area;
 
     func_80101914(pEm, pPl);
     switch (pEm->Routine_2) {
@@ -1594,7 +1569,7 @@ void func_80104A10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Sv.vz = 1000;
             Sv.vy = 0;
             Sv.pad = 1400;
-            Area.pPos = pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             if (!pEm->Water) {
@@ -3042,7 +3017,7 @@ LONG func_80108CB8(ENEMY_WORK *pEm, ULONG Rtn)
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pT;
 
-    for (ppEm = G.pEnemy; ppEm != G.ppEnemy_end; ppEm++) {
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pT = *ppEm;
         if (pT != pEm && (pT->Id == 0x22 || pT->Id == 0x24) && (pT->Be_flg & 1)
             && (USHORT)EM_RTN01(pT) == (USHORT)Rtn)

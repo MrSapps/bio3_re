@@ -7,7 +7,7 @@ void func_801C2354(void)
     Task_suspend(0);
     DrawSync(0);
     for (;;) {
-        switch (((USHORT *)G.Unk21DC)[1]) {
+        switch (((USHORT *)G.pUnk21DC)[1]) {
         case 0:
             func_801C347C();
             break;
@@ -467,7 +467,7 @@ void func_801C347C(void)
             pG = &G;
             Pc_wk = (PC_WORK *)pG->pEm_mem;
             pG->pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)pG->pEm_mem + 1);
-            func_801C44F4(((USHORT *)pG->Unk21DC)[2], 1);
+            func_801C44F4(((USHORT *)pG->pUnk21DC)[2], 1);
             Pc0_pass_no = 0;
             if (Flg_ck(pG->Unk7868, 8)) {
                 if (Flg_ck(pG->Unk7868, 0x3B)) {
@@ -607,7 +607,7 @@ void func_801C3A0C(void)
             pG = &G;
             pPc = Pc_wk = (PC_WORK *)pG->pEm_mem;
             pG->pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)pG->pEm_mem + 1);
-            func_801C44F4(((USHORT *)pG->Unk21DC)[2], 1);
+            func_801C44F4(((USHORT *)pG->pUnk21DC)[2], 1);
             Pc1_done = 0;
             Pc1_skip = 0;
             pG->Unk75ED = 1;

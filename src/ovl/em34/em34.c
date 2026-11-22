@@ -24,7 +24,7 @@ extern ULONG *Em34_tmd_new5 __asm__("D_8010C538");
 extern ULONG *Em34_tmd_old5 __asm__("D_8010C53C");
 extern ULONG *Em34_tmd_new8 __asm__("D_8010C540");
 extern ULONG *Em34_tmd_old8 __asm__("D_8010C544");
-extern EM34_HIT_AREA Em34_hit_area __asm__("D_8010C558");
+extern HIT_AREA Em34_hit_area __asm__("D_8010C558");
 extern EM34_MOVE3 Em34_catch_move __asm__("D_8010003C"); /* .rodata, shared by two motions */
 extern EM34_MOVE3 Em34_pl_move __asm__("D_80100140");
 extern EM34_MOVE3 Em34_pl_stop __asm__("D_80100040");
@@ -131,18 +131,18 @@ void Em134(ENEMY_WORK *pEm)
         if ((pEm->Unk158 & 0x3FFFFFFF) < (LONG)pEm->Unk154 >> 1) {
             EM34_W(pEm)->Target_time = 60;
             EM34_W(pEm)->Flg |= 0x100;
-            EM34_W(pEm)->pTarget = pG->pUnk2660;
+            EM34_W(pEm)->pTarget = pG->pEnemy[1];
         }
         if ((pEm->Unk158 & 0x3FFFFFFF) < (LONG)pEm->Unk154) {
             if (++EM34_W(pEm)->Near_cnt > 150) {
                 EM34_W(pEm)->Target_time = 60;
                 EM34_W(pEm)->Flg |= 0x100;
-                EM34_W(pEm)->pTarget = pG->pUnk2660;
+                EM34_W(pEm)->pTarget = pG->pEnemy[1];
             }
             if (EM34_W(pEm)->Near_cnt > 60 && (LONG)pEm->Unk154 < 3500) {
                 EM34_W(pEm)->Target_time = 90;
                 EM34_W(pEm)->Flg |= 0x100;
-                EM34_W(pEm)->pTarget = pG->pUnk2660;
+                EM34_W(pEm)->pTarget = pG->pEnemy[1];
             }
         } else {
             EM34_W(pEm)->Near_cnt = 0;
@@ -152,7 +152,7 @@ void Em134(ENEMY_WORK *pEm)
     }
     if (EM34_W(pEm)->Flg & 0x100) {
         G.Unk75EA |= 4;
-        pTv = (VECTOR *)&pG->pUnk2660->Pos_x;
+        pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
     }
     Root_ck(pEm, pTv, 0, 0);
     if (pEm->Damage_cnt & 0x7F)
@@ -315,7 +315,7 @@ void Em34_taiki_br(ENEMY_WORK *pEm)
     ULONG Dist = pEm->Unk154;
     SHORT Dir;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Dir = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
     if (Dist < 3000 && Dir)
@@ -332,7 +332,7 @@ void Em34_taiki_br_h(ENEMY_WORK *pEm)
     ULONG Dist = pEm->Unk154;
     SHORT Dir;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Dir = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
     if (Dist < 3000 && Dir)
@@ -500,7 +500,7 @@ void Em34_walk_br0h(ENEMY_WORK *pEm)
     SHORT Dir2;
     SHORT Dir6;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Dir4 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
     Dir2 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x200);
@@ -539,7 +539,7 @@ void Em34_walk_br1h(ENEMY_WORK *pEm)
     SHORT Dir2;
     SHORT Dir6;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Dir4 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
     Dir2 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x200);
@@ -691,7 +691,7 @@ void Em34_run_br0h(ENEMY_WORK *pEm)
     ULONG Dist = pEm->Unk154;
     SHORT Dir2;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 800);
     Dir2 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x200);
@@ -709,7 +709,7 @@ void Em34_run_br1h(ENEMY_WORK *pEm)
     SHORT Dir8;
     SHORT Dir2;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Dir8 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 800);
     Dir2 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x200);
@@ -844,7 +844,7 @@ void Em34_back_br0h(ENEMY_WORK *pEm)
     ULONG Dist = pEm->Unk154;
     SHORT Dir4;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 800);
     Dir4 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
@@ -873,7 +873,7 @@ void Em34_back_br1h(ENEMY_WORK *pEm)
     SHORT Dir8;
     SHORT Dir4;
 
-    if (pT == G.pUnk2660)
+    if (pT == G.pEnemy[1])
         Dist = pEm->Unk158 & 0x3FFFFFFF;
     Dir8 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 800);
     Dir4 = Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400);
@@ -979,7 +979,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     LONG Dir;
 
     pG = &G;
-    pSpl = pG->pUnk2660;
+    pSpl = pG->pEnemy[1];
     Dist = pEm->Unk154;
     pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
     if (pT == pSpl)
@@ -1130,7 +1130,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
     default:
         if (*pEm->pNow_seq & 0x400) {
-            Em34_hit_area.pPos = &pEm->Pos_x;
+            Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
             Em34_hit_area.pBox = Em34_at_box;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = Id_tbl0[(Rnd() >> (Rnd() & 3)) & 7];
@@ -1138,11 +1138,11 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Em34_hit_area.Id = Id_tbl1[(Rnd() >> (Rnd() & 3)) & 7];
             func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G_PL);
             if ((LONG)G.Status_flg < 0) {
-                Em34_hit_area.pPos = &pEm->Pos_x;
+                Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
                 Em34_hit_area.pBox = Em34_at_box;
                 Em34_hit_area.Dir = pEm->Cdir_y;
                 Em34_hit_area.Id = 0;
-                func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G.pUnk2660);
+                func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G.pEnemy[1]);
             }
         }
         break;
@@ -1156,7 +1156,7 @@ void func_80103AD0(void) {
 void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     tagGLOBAL *pG = &G;
-    ENEMY_WORK *pSpl = pG->pUnk2660;
+    ENEMY_WORK *pSpl = pG->pEnemy[1];
     ENEMY_WORK *pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
     PARTS_W *pP;
     SVECTOR Ofs;
@@ -1239,7 +1239,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     if (*pEm->pNow_seq & 0x400) {
-        Em34_hit_area.pPos = &pEm->Pos_x;
+        Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
         Em34_hit_area.pBox = Em34_at_box2;
         Em34_hit_area.Dir = pEm->Cdir_y;
         Em34_hit_area.Id = 1;
@@ -1331,7 +1331,7 @@ void Em34_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
     default:
         if (*pEm->pNow_seq & 0x400) {
-            Em34_hit_area.pPos = &pEm->Pos_x;
+            Em34_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
             Em34_hit_area.pBox = Em34_at_box;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = Id_tbl0[(Rnd() >> (Rnd() & 3)) & 7] + 0x40;
@@ -2041,7 +2041,7 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     if (*pEm->pNow_seq & 0x400) {
-        Em34_hit_area.pPos = pPos = &pEm->Pos_x;
+        Em34_hit_area.pPos = (VECTOR *)(pPos = &pEm->Pos_x);
         Em34_hit_area.pBox = Em34_at_box4;
         Em34_hit_area.Dir = pEm->Cdir_y;
         Em34_hit_area.Id = Id_tbl[(Rnd() >> (Rnd() & 3)) & 7];
@@ -2147,13 +2147,13 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         {
             LONG *pPos = pP->Workm.t;
 
-            Em34_hit_area.pPos = pPos;
+            Em34_hit_area.pPos = (VECTOR *)pPos;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = 1;
             if (!(Rnd() & 3))
                 Em34_hit_area.Id = 3;
             func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
-            Em34_hit_area.pPos = pPos;
+            Em34_hit_area.pPos = (VECTOR *)pPos;
             Em34_hit_area.pBox = Em34_at_box7;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = 2;

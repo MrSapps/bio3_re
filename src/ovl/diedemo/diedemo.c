@@ -69,7 +69,7 @@ void func_80194140(void)
     D_800DBB58 = 0;
     G.Pl_damage_cnt = 0x80;
     G.Next_cut_no = G.Cut_no;
-    G.pUnk2660->Damage_cnt = 0x80;
+    G.pEnemy[1]->Damage_cnt = 0x80;
     if (G.System_flg & 0x200) {
         if (G.System_flg & 0x80) {
             Xa_play(3, 0x18);
@@ -107,7 +107,7 @@ void func_80194140(void)
         D_8019807C[9] = D_801981B0;
         Diedemo.Wait_ctr = 0x14;
         Diedemo.Em_flg = 1;
-        G.Pl_pEnemy_ptr = G.pEnemy[0];
+        G.Pl_pEnemy_ptr = G.pEnemy[2];
         G.System_flg |= 0x800;
     }
     Main.Vloop = 3;
@@ -190,12 +190,12 @@ void func_80194574(void)
         while (Diedemo.Ctr-- != 0) {
             Task_sleep(1);
         }
-        G.pUnk265C->Be_flg |= 0x80000;
-        G.pUnk265C->Unk1BC[0] = 0;
-        G.pUnk265C->Unk1BC[1] = 0;
-        G.pUnk2660->Be_flg |= 0x80000;
-        G.pUnk2660->Unk1BC[0] = 0;
-        G.pUnk2660->Unk1BC[1] = 0;
+        G.pEnemy[0]->Be_flg |= 0x80000;
+        G.pEnemy[0]->Unk1BC[0] = 0;
+        G.pEnemy[0]->Unk1BC[1] = 0;
+        G.pEnemy[1]->Be_flg |= 0x80000;
+        G.pEnemy[1]->Unk1BC[0] = 0;
+        G.pEnemy[1]->Unk1BC[1] = 0;
         if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 |= 0x20000000;
         }
@@ -206,11 +206,11 @@ void func_80194574(void)
         } else {
             G.Unk2468 |= 0x80000000;
         }
-        G.pUnk75A8 = G.Ob_model[0];
+        G.pObj_work_end = &G.Ob_model[0];
         G.System_flg |= 0x80000000;
         pG = &G;
         for (i = 0; i < 32; i++) {
-            *(ULONG *)pG->Ob_model[i] = 0;
+            pG->Ob_model[i].Be_flg = 0;
         }
         Bg_set_mode(1, 0);
         func_8001B894(0x2000000, NULL);
@@ -218,7 +218,7 @@ void func_80194574(void)
         pGw->Pl_be_flg |= 0x2000;
         n = pGw->pRoom->nOmodel;
         for (j = 0; j < n; j++) {
-            *(ULONG *)pGw->Ob_model[j] |= 0x10;
+            pGw->Ob_model[j].Be_flg |= 0x10;
         }
         if (G.System_flg & 0x800) {
             func_80194A3C();
@@ -250,7 +250,7 @@ void func_80194A3C(void)
     if (!(Diedemo.Em_flg & 1)) {
         Diedemo.Theta = G.Pl_cdir_y;
     } else {
-        Diedemo.Theta = G.pUnk2660->Cdir_y;
+        Diedemo.Theta = G.pEnemy[1]->Cdir_y;
     }
     Diedemo.Theta &= 0xFFF;
     if (!(Diedemo.Em_flg & 1)) {
@@ -261,7 +261,7 @@ void func_80194A3C(void)
             Diedemo.Theta += pCut->M_theta;
             Diedemo.Prad = pCut->Mrad;
         }
-    } else if (Cdir_ck_l(G.pUnk2660, G.Pl_pEnemy_ptr)) {
+    } else if (Cdir_ck_l(G.pEnemy[1], G.Pl_pEnemy_ptr)) {
         Diedemo.Theta += pCut->P_theta;
         Diedemo.Prad = pCut->Prad;
     } else {
@@ -273,7 +273,7 @@ void func_80194A3C(void)
         if (!(Diedemo.Em_flg & 1)) {
             pM = &G.Pl_pSin_parts_ptr[pCut->R_ptr].Workm;
         } else {
-            pM = &G.pUnk2660->pSin_parts_ptr[pCut->R_ptr].Workm;
+            pM = &G.pEnemy[1]->pSin_parts_ptr[pCut->R_ptr].Workm;
         }
         break;
     case 1:
@@ -308,13 +308,13 @@ void func_80194C98(void)
     if (!(Diedemo.Em_flg & 1)) {
         Diedemo.Theta = G.Pl_cdir_y;
     } else {
-        Diedemo.Theta = G.pUnk2660->Cdir_y;
+        Diedemo.Theta = G.pEnemy[1]->Cdir_y;
     }
     Diedemo.pCutinfo = D_8019807C;
     if (!(Diedemo.Em_flg & 1)) {
         pM = &G.Pl_pSin_parts_ptr->Workm;
     } else {
-        pM = &G.pUnk2660->pSin_parts_ptr->Workm;
+        pM = &G.pEnemy[1]->pSin_parts_ptr->Workm;
     }
     pRcut = &Diedemo.Rcut;
     pRcut->View_p[1] = pM->t[1] - 1000;
@@ -344,15 +344,15 @@ void func_80194DB4(void)
     }
     G.Cccut = pVcut;
     if (Diedemo.Em_flg & 1) {
-        pG->pUnk265C->Be_flg |= 0x10;
-        pG->pUnk265C->Type |= 0x8000;
+        pG->pEnemy[0]->Be_flg |= 0x10;
+        pG->pEnemy[0]->Type |= 0x8000;
     } else {
-        pG->pUnk2660->Be_flg |= 0x10;
-        pG->pUnk2660->Type |= 0x8000;
+        pG->pEnemy[1]->Be_flg |= 0x10;
+        pG->pEnemy[1]->Type |= 0x8000;
     }
-    pG->pUnk265C->Water = 0;
-    pG->pUnk2660->Water = 0;
-    for (ppEm = pG->pEnemy; ppEm != pG->ppEnemy_end; ppEm++) {
+    pG->pEnemy[0]->Water = 0;
+    pG->pEnemy[1]->Water = 0;
+    for (ppEm = &pG->pEnemy[2]; ppEm != pG->ppEnemy_end; ppEm++) {
         pG->pEm = pEm = *ppEm;
         if (pEm->Be_flg & 1) {
             pEm->Be_flg |= 0x10;
@@ -368,8 +368,8 @@ void func_80194DB4(void)
         }
     }
     if (G.System_flg & 0x200) {
-        pG->pUnk265C->Be_flg |= 0x10;
-        pG->pUnk2660->Be_flg |= 0x10;
+        pG->pEnemy[0]->Be_flg |= 0x10;
+        pG->pEnemy[1]->Be_flg |= 0x10;
     }
     pKill = pG->Pl_pEnemy_ptr;
     switch (pKill->Id) {
@@ -413,7 +413,7 @@ void func_80194FE4(void)
         pKill->Be_flg ^= 0x10;
         pKill->Type ^= 0x8000;
         pKill->Be_flg |= 0x2000;
-        for (ppEm = pG->pEnemy; ppEm != pG->ppEnemy_end; ppEm++) {
+        for (ppEm = &pG->pEnemy[2]; ppEm != pG->ppEnemy_end; ppEm++) {
             pG->pEm = pEm = *ppEm;
             if (pEm->Id == 0x37) {
                 pEm->Be_flg ^= 0x10;
@@ -422,8 +422,8 @@ void func_80194FE4(void)
         }
         break;
     case 0x24:
-        pG->pUnk265C->Be_flg |= 0x10;
-        pG->pUnk2660->Be_flg |= 0x10;
+        pG->pEnemy[0]->Be_flg |= 0x10;
+        pG->pEnemy[1]->Be_flg |= 0x10;
         break;
     }
 }
@@ -433,30 +433,30 @@ void func_80195124(void)
     tagGLOBAL *pG = &G;
 
     if (Flg_ck(pG->Unk7868, 0xC2)) {
-        pG->pUnk2660->Be_flg &= 0xFFEF;
-        pG->pUnk2660->Be_flg |= 0x2000;
-        pG->pUnk2660->Type &= 0x7FFF;
-        pG->pEnemy[0]->Be_flg &= 0xFFEF;
-        pG->pEnemy[0]->Type &= 0x7FFF;
         pG->pEnemy[1]->Be_flg &= 0xFFEF;
+        pG->pEnemy[1]->Be_flg |= 0x2000;
         pG->pEnemy[1]->Type &= 0x7FFF;
-        pG->pUnk2660->Routine_0 = 6;
-        pG->pUnk2660->Routine_1 = 0;
-        pG->pUnk2660->Routine_2 = 0;
-        pG->pUnk2660->Routine_3 = 0;
-        pG->pUnk2660->Pos_x = 0;
-        pG->pUnk2660->Pos_z = 0;
-        pG->pUnk2660->Unk40[0] = 0;
-        pG->pUnk2660->Unk40[2] = 0;
-        pG->pEnemy[0]->Pos_x = 0;
-        pG->pEnemy[0]->Pos_z = 0;
-        pG->pEnemy[0]->Unk40[0] = 0;
-        pG->pEnemy[0]->Unk40[2] = 0;
-        pG->pEnemy[0]->Routine_0 = 4;
-        pG->pEnemy[0]->Routine_1 = 0xB;
-        pG->pEnemy[0]->Routine_2 = 0;
-        pG->pEnemy[0]->Routine_3 = 0;
-        pG->pEnemy[0]->Type ^= 0x100;
+        pG->pEnemy[2]->Be_flg &= 0xFFEF;
+        pG->pEnemy[2]->Type &= 0x7FFF;
+        pG->pEnemy[3]->Be_flg &= 0xFFEF;
+        pG->pEnemy[3]->Type &= 0x7FFF;
+        pG->pEnemy[1]->Routine_0 = 6;
+        pG->pEnemy[1]->Routine_1 = 0;
+        pG->pEnemy[1]->Routine_2 = 0;
+        pG->pEnemy[1]->Routine_3 = 0;
+        pG->pEnemy[1]->Pos_x = 0;
+        pG->pEnemy[1]->Pos_z = 0;
+        pG->pEnemy[1]->Unk40[0] = 0;
+        pG->pEnemy[1]->Unk40[2] = 0;
+        pG->pEnemy[2]->Pos_x = 0;
+        pG->pEnemy[2]->Pos_z = 0;
+        pG->pEnemy[2]->Unk40[0] = 0;
+        pG->pEnemy[2]->Unk40[2] = 0;
+        pG->pEnemy[2]->Routine_0 = 4;
+        pG->pEnemy[2]->Routine_1 = 0xB;
+        pG->pEnemy[2]->Routine_2 = 0;
+        pG->pEnemy[2]->Routine_3 = 0;
+        pG->pEnemy[2]->Type ^= 0x100;
         pG->Unk2468 = (pG->Unk2468 & ~0x40000000) | 0x80000000;
         Flg_off(pG->Unk7868, 0xC2);
         Diedemo.Unk44 = 0;
@@ -494,7 +494,7 @@ void func_80195378(void)
         Diedemo.Daddpos = 1;
         Diedemo.Prad = 0x10;
         Diedemo.Ctr = 0;
-        for (ppEm = pG->pEnemy; ppEm != pG->ppEnemy_end; ppEm++) {
+        for (ppEm = &pG->pEnemy[2]; ppEm != pG->ppEnemy_end; ppEm++) {
             pG->pEm = pEm = *ppEm;
             if (pEm->Be_flg & 1) {
                 if (pEm->Id == 0x37 || pEm->Id == 0x39) {
@@ -522,14 +522,14 @@ void func_801954D4(void)
             if (!(Diedemo.Em_flg & 1)) {
                 Diedemo.Theta = G.Pl_cdir_y;
             } else {
-                Diedemo.Theta = G.pUnk2660->Cdir_y;
+                Diedemo.Theta = G.pEnemy[1]->Cdir_y;
             }
             Diedemo.pCutinfo = D_8019807C;
             D_8019807C[0].Wait_ctr = D_8019807C[Diedemo.Id_ctr].Wait_ctr;
             if (!(Diedemo.Em_flg & 1)) {
                 pM = &G.Pl_pSin_parts_ptr->Workm;
             } else {
-                pM = &G.pUnk2660->pSin_parts_ptr->Workm;
+                pM = &G.pEnemy[1]->pSin_parts_ptr->Workm;
             }
             pRcut = &Diedemo.Rcut;
             pRcut->View_p[1] = pM->t[1] - 1000;
@@ -560,14 +560,14 @@ void func_80195640(void)
             if (!(Diedemo.Em_flg & 1)) {
                 Diedemo.Theta = G.Pl_cdir_y;
             } else {
-                Diedemo.Theta = G.pUnk2660->Cdir_y;
+                Diedemo.Theta = G.pEnemy[1]->Cdir_y;
             }
             Diedemo.pCutinfo = D_8019807C;
             D_8019807C[0].Wait_ctr = D_8019807C[Diedemo.Id_ctr].Wait_ctr + 0x14;
             if (!(Diedemo.Em_flg & 1)) {
                 pM = &G.Pl_pSin_parts_ptr->Workm;
             } else {
-                pM = &G.pUnk2660->pSin_parts_ptr->Workm;
+                pM = &G.pEnemy[1]->pSin_parts_ptr->Workm;
             }
             pRcut = &Diedemo.Rcut;
             pRcut->View_p[1] = pM->t[1] - 1000;
@@ -652,7 +652,7 @@ void func_801958FC(void)
         }
         pLc->L[0] = L;
     }
-    Set_light(pLc, (VECTOR *)&G.pUnk265C->Pos_x);
+    Set_light(pLc, (VECTOR *)&G.pEnemy[0]->Pos_x);
 }
 
 /* routine 7: end of the demo */
@@ -703,7 +703,7 @@ void func_80195C04(void)
         if (!(pDie->Em_flg & 1)) {
             pM = &G.Pl_pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         } else {
-            pM = &G.pUnk2660->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
+            pM = &G.pEnemy[1]->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         }
         break;
     case 1:
@@ -738,7 +738,7 @@ void func_80195E68(void)
         if (!(pDie->Em_flg & 1)) {
             pM = &G.Pl_pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         } else {
-            pM = &G.pUnk2660->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
+            pM = &G.pEnemy[1]->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         }
         break;
     case 1:
@@ -771,7 +771,7 @@ void func_801960CC(void)
         if (!(Diedemo.Em_flg & 1)) {
             pLc = Get_light_cut(&G.Pl_pos_x);
         } else {
-            pLc = Get_light_cut(&G.pUnk2660->Pos_x);
+            pLc = Get_light_cut(&G.pEnemy[1]->Pos_x);
         }
         break;
     case 1:
@@ -784,7 +784,7 @@ void func_801960CC(void)
         if (!(Diedemo.Em_flg & 1)) {
             pM = &G.Pl_pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
         } else {
-            pM = &G.pUnk2660->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
+            pM = &G.pEnemy[1]->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
         }
         break;
     case 1:
@@ -816,7 +816,7 @@ void func_801960CC(void)
         if (!(Diedemo.Em_flg & 1)) {
             Set_light(pLc, (VECTOR *)&G.Pl_pos_x);
         } else {
-            Set_light(pLc, (VECTOR *)&G.pUnk2660->Pos_x);
+            Set_light(pLc, (VECTOR *)&G.pEnemy[1]->Pos_x);
         }
         break;
     case 1:
@@ -828,7 +828,7 @@ void func_801960CC(void)
 /* RE2 Die_spr_init */
 void func_80196334(void)
 {
-    G.Unk2484 = 0x1F15;
+    G.Ctp.Tpage_clut = 0x1F15;
     Mapping_tim((ULONG *)0x8019C000);
     pDiespr = (DIESPR *)0x801B1000;
     pDiespr->Rno = 0;
@@ -1091,7 +1091,7 @@ void func_80197EF8(void)
 
     Die_type = G.Pl_id;
     if (!(G.System_flg & 0x800) && (G.Status_flg & 0x80000000) &&
-        (G.pUnk2660->Routine_0 == 3 || G.pUnk2660->Routine_0 == 7)) {
+        (G.pEnemy[1]->Routine_0 == 3 || G.pEnemy[1]->Routine_0 == 7)) {
         Diedemo.Em_flg = 1;
         Die_type = 8;
     }

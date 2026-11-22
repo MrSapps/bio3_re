@@ -52,7 +52,7 @@ typedef struct tagDIEDEMO {
     UCHAR S_trans_flg;                 /* 0x35 */
     SHORT Daddpos;                     /* 0x36 */
     SHORT Wait_ctr;                    /* 0x38 */
-    UCHAR Em_flg;                      /* 0x3A bit 0: killed by the partner (G.pUnk2660) */
+    UCHAR Em_flg;                      /* 0x3A bit 0: killed by the partner (G.pEnemy[1]) */
     UCHAR Unk3B;                       /* 0x3B */
     USHORT Id_ctr;                     /* 0x3C cut info index */
     UCHAR pad3E[0x40 - 0x3E];

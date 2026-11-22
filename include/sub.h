@@ -40,26 +40,19 @@ LIGHT_CUT_DATA *Get_light_cut(LONG *pPos);
 void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV);
 void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight);
 
-/* RE3 model object entry (0x18 bytes; RE2 Mapping_tmd works on TMD objects instead).
- * The pointer fields hold file offsets until Md_adr_cnv relocates them. */
-typedef struct tagMD_OBJ {
-    ULONG *pVert;                      /* 0x00 */
-    ULONG *pNorm;                      /* 0x04 */
-    ULONG n_vert;                      /* 0x08 low half count, high half (count + 2) / 3 */
-    ULONG *pPrim3;                     /* 0x0C 0xC byte entries */
-    ULONG *pPrim4;                     /* 0x10 0x10 byte entries */
-    USHORT n_prim3;                    /* 0x14 */
-    USHORT n_prim4;                    /* 0x16 */
-} MD_OBJ;
+/* player state kept by func_800791F0 (0x800C7048) */
+typedef struct tagPL_SAVE {
+    USHORT Cdir_y;                     /* 0x0 */
+    SHORT Pos_x;                       /* 0x2 */
+    SHORT Pos_y;                       /* 0x4 */
+    SHORT Pos_z;                       /* 0x6 */
+    USHORT Life;                       /* 0x8 */
+    UCHAR Pl_id;                       /* 0xA */
+    UCHAR Poison;                      /* 0xB 0x80 | poison timer */
+    UCHAR Save[0x908];                 /* 0xC copy of G.Card_head.. */
+} PL_SAVE;
+extern PL_SAVE D_800C7048;
 
-typedef struct tagMD_HEAD {
-    ULONG n_obj;                       /* 0x00 */
-    MD_OBJ Obj[1];                     /* 0x04 */
-} MD_HEAD;
-
-void Md_adr_cnv(MD_HEAD *pMd);      /* relocate MD_OBJ offsets */
-ULONG func_8002AB34(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
-void Md_set_abr(MD_OBJ *pObj, ULONG Abr);           /* set semi-trans rate of all prims */
 ULONG Flg_ck(ULONG *pFlg, ULONG Id);                 /* bit Id of a flag array */
 void Flg_on(ULONG *pFlg, ULONG Id);                  /* set bit Id of a flag array */
 
