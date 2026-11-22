@@ -45,7 +45,7 @@ void func_80194140(void)
     Diedemo.S_trans_flg = 0;
     Diedemo.Id_ctr = 10;
     if (G.System_flg & 0x800) {
-        Id = G.Pl_pEnemy_ptr->Id;
+        Id = G.Player.pEnemy_ptr->Id;
         if (Id < 0x20) {
             Diedemo.Id_ctr = 1;
         } else {
@@ -64,13 +64,13 @@ void func_80194140(void)
     G.Status_flg &= ~0x1000;
     G.Status_flg &= ~4;
     G.Status_flg &= ~2;
-    Pl_wep_eff_parts_init((PLAYER_WORK *)&G.Pl_be_flg);
+    Pl_wep_eff_parts_init(G_PLAYER);
     func_80046C90();
     if (G.Status_flg & STAT_XA_VOICE) {
         Xa_error();
     }
     D_800DBB58 = 0;
-    G.Pl_damage_cnt = 0x80;
+    G.Player.Damage_cnt = 0x80;
     G.Next_cut_no = G.Cut_no;
     G.pEnemy[1]->Damage_cnt = 0x80;
     if (G.System_flg & 0x200) {
@@ -110,7 +110,7 @@ void func_80194140(void)
         D_8019807C[9] = D_801981B0;
         Diedemo.Wait_ctr = 0x14;
         Diedemo.Em_flg = 1;
-        G.Pl_pEnemy_ptr = G.pEnemy[2];
+        G.Player.pEnemy_ptr = G.pEnemy[2];
         G.System_flg |= 0x800;
     }
     Main.Vloop = 3;
@@ -187,7 +187,7 @@ void func_80194574(void)
             }
         }
     } else {
-        G.Pl_be_flg &= ~0x20;
+        G.Player.Be_flg &= ~0x20;
         D_80198204 = 1;
         Diedemo.Ctr = D_801981CC[Diedemo.Id_ctr].Wait;
         while (Diedemo.Ctr-- != 0) {
@@ -218,7 +218,7 @@ void func_80194574(void)
         Bg_set_mode(1, 0);
         func_8001B894(0x2000000, NULL);
         pGw = &G;
-        pGw->Pl_be_flg |= 0x2000;
+        pGw->Player.Be_flg |= 0x2000;
         n = pGw->pRoom->nOmodel;
         for (j = 0; j < n; j++) {
             pGw->Ob_model[j].Be_flg |= 0x10;
@@ -251,7 +251,7 @@ void func_80194A3C(void)
     Diedemo.Radius = pCut->Radius;
     Diedemo.P_radius = pCut->P_radius;
     if (!(Diedemo.Em_flg & 1)) {
-        Diedemo.Theta = G.Pl_cdir_y;
+        Diedemo.Theta = G.Player.Cdir_y;
     } else {
         Diedemo.Theta = G.pEnemy[1]->Cdir_y;
     }
@@ -264,7 +264,7 @@ void func_80194A3C(void)
             Diedemo.Theta += pCut->M_theta;
             Diedemo.Prad = pCut->Mrad;
         }
-    } else if (Cdir_ck_l(G.pEnemy[1], G.Pl_pEnemy_ptr)) {
+    } else if (Cdir_ck_l(G.pEnemy[1], G.Player.pEnemy_ptr)) {
         Diedemo.Theta += pCut->P_theta;
         Diedemo.Prad = pCut->Prad;
     } else {
@@ -274,13 +274,13 @@ void func_80194A3C(void)
     switch (pCut->R_obj) {
     case 0:
         if (!(Diedemo.Em_flg & 1)) {
-            pM = &G.Pl_pSin_parts_ptr[pCut->R_ptr].Workm;
+            pM = &G.Player.pSin_parts_ptr[pCut->R_ptr].Workm;
         } else {
             pM = &G.pEnemy[1]->pSin_parts_ptr[pCut->R_ptr].Workm;
         }
         break;
     case 1:
-        pM = &G.Pl_pEnemy_ptr->pSin_parts_ptr[pCut->R_ptr].Workm;
+        pM = &G.Player.pEnemy_ptr->pSin_parts_ptr[pCut->R_ptr].Workm;
         break;
     }
     pRcut = &Diedemo.Rcut;
@@ -309,13 +309,13 @@ void func_80194C98(void)
     Diedemo.Daddpos = 1;
     Diedemo.Prad = 0x10;
     if (!(Diedemo.Em_flg & 1)) {
-        Diedemo.Theta = G.Pl_cdir_y;
+        Diedemo.Theta = G.Player.Cdir_y;
     } else {
         Diedemo.Theta = G.pEnemy[1]->Cdir_y;
     }
     Diedemo.pCutinfo = D_8019807C;
     if (!(Diedemo.Em_flg & 1)) {
-        pM = &G.Pl_pSin_parts_ptr->Workm;
+        pM = &G.Player.pSin_parts_ptr->Workm;
     } else {
         pM = &G.pEnemy[1]->pSin_parts_ptr->Workm;
     }
@@ -374,7 +374,7 @@ void func_80194DB4(void)
         pG->pEnemy[0]->Be_flg |= 0x10;
         pG->pEnemy[1]->Be_flg |= 0x10;
     }
-    pKill = pG->Pl_pEnemy_ptr;
+    pKill = pG->Player.pEnemy_ptr;
     switch (pKill->Id) {
     case 0x34:
     case 0x35:
@@ -401,16 +401,16 @@ void func_80194DB4(void)
 void func_80194FE4(void)
 {
     tagGLOBAL *pG = &G;
-    ENEMY_WORK *pKill = pG->Pl_pEnemy_ptr;
+    ENEMY_WORK *pKill = pG->Player.pEnemy_ptr;
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pEm;
 
     switch ((ULONG)pKill->Id) {
     case 0x36:
-        pG->Pl_be_flg |= 0x2000;
-        pKill->Pos_x += pG->Pl_pos_x;
-        pKill->Pos_z += pG->Pl_pos_z;
-        pG->Pl_pos_x = pG->Pl_pos_z = 0;
+        pG->Player.Be_flg |= 0x2000;
+        pKill->Pos_x += pG->Player.Pos_x;
+        pKill->Pos_z += pG->Player.Pos_z;
+        pG->Player.Pos_x = pG->Player.Pos_z = 0;
     case 0x34:
     case 0x35:
         pKill->Be_flg ^= 0x10;
@@ -449,12 +449,12 @@ void func_80195124(void)
         pG->pEnemy[1]->Routine_3 = 0;
         pG->pEnemy[1]->Pos_x = 0;
         pG->pEnemy[1]->Pos_z = 0;
-        pG->pEnemy[1]->Unk40[0] = 0;
-        pG->pEnemy[1]->Unk40[2] = 0;
+        pG->pEnemy[1]->Old_x = 0;
+        pG->pEnemy[1]->Old_z = 0;
         pG->pEnemy[2]->Pos_x = 0;
         pG->pEnemy[2]->Pos_z = 0;
-        pG->pEnemy[2]->Unk40[0] = 0;
-        pG->pEnemy[2]->Unk40[2] = 0;
+        pG->pEnemy[2]->Old_x = 0;
+        pG->pEnemy[2]->Old_z = 0;
         pG->pEnemy[2]->Routine_0 = 4;
         pG->pEnemy[2]->Routine_1 = 0xB;
         pG->pEnemy[2]->Routine_2 = 0;
@@ -515,7 +515,7 @@ void func_801954D4(void)
     MATRIX *pM;
     RCUT *pRcut;
 
-    if (G.Pl_pEnemy_ptr->Id == 0x36) {
+    if (G.Player.pEnemy_ptr->Id == 0x36) {
         if (Diedemo.Ctr == 0x73) {
             Diedemo.Radius = 3000;
             Diedemo.P_radius = 0;
@@ -523,14 +523,14 @@ void func_801954D4(void)
             Diedemo.Daddpos = 1;
             Diedemo.Prad = 0x10;
             if (!(Diedemo.Em_flg & 1)) {
-                Diedemo.Theta = G.Pl_cdir_y;
+                Diedemo.Theta = G.Player.Cdir_y;
             } else {
                 Diedemo.Theta = G.pEnemy[1]->Cdir_y;
             }
             Diedemo.pCutinfo = D_8019807C;
             D_8019807C[0].Wait_ctr = D_8019807C[Diedemo.Id_ctr].Wait_ctr;
             if (!(Diedemo.Em_flg & 1)) {
-                pM = &G.Pl_pSin_parts_ptr->Workm;
+                pM = &G.Player.pSin_parts_ptr->Workm;
             } else {
                 pM = &G.pEnemy[1]->pSin_parts_ptr->Workm;
             }
@@ -553,7 +553,7 @@ void func_80195640(void)
     MATRIX *pM;
     RCUT *pRcut;
 
-    if (G.Pl_pEnemy_ptr->Id == 0x36) {
+    if (G.Player.pEnemy_ptr->Id == 0x36) {
         if (Diedemo.Ctr == 0xA0) {
             Diedemo.Radius = 3000;
             Diedemo.P_radius = 0;
@@ -561,14 +561,14 @@ void func_80195640(void)
             Diedemo.Daddpos = 1;
             Diedemo.Prad = 0x10;
             if (!(Diedemo.Em_flg & 1)) {
-                Diedemo.Theta = G.Pl_cdir_y;
+                Diedemo.Theta = G.Player.Cdir_y;
             } else {
                 Diedemo.Theta = G.pEnemy[1]->Cdir_y;
             }
             Diedemo.pCutinfo = D_8019807C;
             D_8019807C[0].Wait_ctr = D_8019807C[Diedemo.Id_ctr].Wait_ctr + 0x14;
             if (!(Diedemo.Em_flg & 1)) {
-                pM = &G.Pl_pSin_parts_ptr->Workm;
+                pM = &G.Player.pSin_parts_ptr->Workm;
             } else {
                 pM = &G.pEnemy[1]->pSin_parts_ptr->Workm;
             }
@@ -623,7 +623,7 @@ void func_801958FC(void)
     LIGHT_CUT_DATA *pLc;
     ULONG L;
 
-    pLc = Get_light_cut(&G.Pl_pos_x);
+    pLc = Get_light_cut(&G.Player.Pos_x);
     func_80196380();
     func_80195C04();
     func_80195E68();
@@ -704,13 +704,13 @@ void func_80195C04(void)
     switch (pDie->pCutinfo->R_obj) {
     case 0:
         if (!(pDie->Em_flg & 1)) {
-            pM = &G.Pl_pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
+            pM = &G.Player.pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         } else {
             pM = &G.pEnemy[1]->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         }
         break;
     case 1:
-        pM = &G.Pl_pEnemy_ptr->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
+        pM = &G.Player.pEnemy_ptr->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         break;
     }
     pRcut->View_p[1] -= pDie->Addpos;
@@ -739,13 +739,13 @@ void func_80195E68(void)
     switch (pDie->pCutinfo->R_obj) {
     case 0:
         if (!(pDie->Em_flg & 1)) {
-            pM = &G.Pl_pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
+            pM = &G.Player.pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         } else {
             pM = &G.pEnemy[1]->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         }
         break;
     case 1:
-        pM = &G.Pl_pEnemy_ptr->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
+        pM = &G.Player.pEnemy_ptr->pSin_parts_ptr[pDie->pCutinfo->R_ptr].Workm;
         break;
     }
     pRcut->View_p[1] -= pDie->Addpos;
@@ -772,26 +772,26 @@ void func_801960CC(void)
     switch (Diedemo.pCutinfo->R_obj) {
     case 0:
         if (!(Diedemo.Em_flg & 1)) {
-            pLc = Get_light_cut(&G.Pl_pos_x);
+            pLc = Get_light_cut(&G.Player.Pos_x);
         } else {
             pLc = Get_light_cut(&G.pEnemy[1]->Pos_x);
         }
         break;
     case 1:
-        pLc = Get_light_cut((LONG *)&G.Pl_pEnemy_ptr->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm);
+        pLc = Get_light_cut((LONG *)&G.Player.pEnemy_ptr->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm);
         break;
     }
     pRcut = &Diedemo.Rcut;
     switch (Diedemo.pCutinfo->R_obj) {
     case 0:
         if (!(Diedemo.Em_flg & 1)) {
-            pM = &G.Pl_pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
+            pM = &G.Player.pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
         } else {
             pM = &G.pEnemy[1]->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
         }
         break;
     case 1:
-        pM = &G.Pl_pEnemy_ptr->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
+        pM = &G.Player.pEnemy_ptr->pSin_parts_ptr[Diedemo.pCutinfo->R_ptr].Workm;
         break;
     }
     pLc->Mode[2] = 0;
@@ -817,13 +817,13 @@ void func_801960CC(void)
     switch (Diedemo.pCutinfo->R_obj) {
     case 0:
         if (!(Diedemo.Em_flg & 1)) {
-            Set_light(pLc, (VECTOR *)&G.Pl_pos_x);
+            Set_light(pLc, (VECTOR *)&G.Player.Pos_x);
         } else {
             Set_light(pLc, (VECTOR *)&G.pEnemy[1]->Pos_x);
         }
         break;
     case 1:
-        Set_light(pLc, (VECTOR *)&G.Pl_pEnemy_ptr->Pos_x);
+        Set_light(pLc, (VECTOR *)&G.Player.pEnemy_ptr->Pos_x);
         break;
     }
 }
@@ -1092,7 +1092,7 @@ void func_80197EF8(void)
 {
     UCHAR Die_type;
 
-    Die_type = G.Pl_id;
+    Die_type = G.Player.Id;
     if (!(G.System_flg & 0x800) && (G.Status_flg & 0x80000000) &&
         (G.pEnemy[1]->Routine_0 == 3 || G.pEnemy[1]->Routine_0 == 7)) {
         Diedemo.Em_flg = 1;

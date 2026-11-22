@@ -184,7 +184,7 @@ void func_801011EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
 void func_80101288(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    ENEMY_WORK *pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    ENEMY_WORK *pPl = G_PLAYER;
 
     Em36_mv_br03[pEm->Routine_1](pEm);
     Em36_mv03[pEm->Routine_1](pEm, pKan, pSeq);
@@ -368,7 +368,7 @@ void func_80101CC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, pKan, pSeq, 0x80);
         Add_speedXZ(pEm, 0);
-        if (pEm->UnkAE & 0x30) {
+        if (pEm->Col.Hit_flg & 0x30) {
             if (++pEm->UnkDA > 100) {
                 pEm->UnkE2 = 30;
                 Side = Rnd() & 1;
@@ -469,7 +469,7 @@ void func_80102204(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, pKan, pSeq, 0x40);
         Add_speedXZ(pEm, 0);
-        if (pEm->UnkAE & 0x30) {
+        if (pEm->Col.Hit_flg & 0x30) {
             if (++pEm->UnkDA > 150) {
                 pEm->UnkE2 = 60;
                 Side = Rnd() & 1;
@@ -547,7 +547,7 @@ void func_80102608(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Goto01(pEm, EM36_W(pEm)->Lost_dir, 24);
         Joint_move(pEm, pKan, pSeq, 0x40);
         Add_speedXZ(pEm, 0);
-        if (pEm->UnkAE & 0x20 && !EM36_W(pEm)->Lost_time) {
+        if (pEm->Col.Hit_flg & 0x20 && !EM36_W(pEm)->Lost_time) {
             if (++pEm->UnkDA > 150) {
                 pEm->UnkDA = 0;
                 EM36_W(pEm)->Lost_dir -= (SHORT)(Rnd() * 4 - 0xA00);
@@ -556,7 +556,7 @@ void func_80102608(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM36_W(pEm)->Unk20 = Rnd() & 7;
             }
         }
-        if (pEm->UnkAE & 0x10 && !EM36_W(pEm)->Lost_time) {
+        if (pEm->Col.Hit_flg & 0x10 && !EM36_W(pEm)->Lost_time) {
             if ((pEm->UnkDA += 20) > 150) {
                 pEm->UnkDA = 0;
                 EM36_W(pEm)->Lost_dir -= (SHORT)(Rnd() * 4 - 0xA00);
@@ -567,7 +567,7 @@ void func_80102608(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (EM36_W(pEm)->Lost_time) {
             EM36_W(pEm)->Lost_time--;
-            if (pEm->UnkAE & 0x10 || !EM36_W(pEm)->Lost_time) {
+            if (pEm->Col.Hit_flg & 0x10 || !EM36_W(pEm)->Lost_time) {
                 EM36_W(pEm)->Unk1D = 0;
                 EM36_W(pEm)->Flg |= 0x100;
                 EM36_W(pEm)->Unk20 = Rnd() & 7;
@@ -683,7 +683,7 @@ void func_80102CC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->UnkE2--;
         }
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, Add);
-        if (pEm->UnkAE & 0x30) {
+        if (pEm->Col.Hit_flg & 0x30) {
             if (++pEm->UnkDA > 90) {
                 pEm->UnkE2 = 10;
                 Side = Rnd() & 1;
@@ -1074,7 +1074,7 @@ void func_80104364(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt = 2;
         EM36_W(pEm)->Flg |= 1;
     case 1:
-        if (pEm->UnkAE & 0x30)
+        if (pEm->Col.Hit_flg & 0x30)
             pEm->Damage_cnt = 0;
         Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x60);
         Spd_get(pEm, pKan, pSeq, 0);
@@ -1206,7 +1206,7 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM36_W(pEm)->Unk22 += 2;
         }
         Add_speedXZ(pEm, 0);
-        if (*pEm->pNow_seq & 0x200 && !pPl->Damage_cnt && !(pPl->UnkAE & 0x40) && !(pEm->UnkAE & 0x40) && EM36_W(pEm)->Flg & 0x800) {
+        if (*pEm->pNow_seq & 0x200 && !pPl->Damage_cnt && !(pPl->Col.Hit_flg & 0x40) && !(pEm->Col.Hit_flg & 0x40) && EM36_W(pEm)->Flg & 0x800) {
             pEm->UnkE3 = 0x81;
             Ofs.vx = 0;
             Ofs.vy = 0;
@@ -1265,7 +1265,7 @@ void func_80104CA4(void) {
 /* motion: grab and squeeze the player */
 void func_80104CAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    ENEMY_WORK *pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    ENEMY_WORK *pPl = G_PLAYER;
     SHORT Base_x, Base_z;
     SHORT Ret;
     UCHAR Rate;
@@ -1276,7 +1276,7 @@ void func_80104CAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_MOVE(pEm) = 0xF0013;
         pEm->Routine_2 = 1;
         pEm->Timer0 = pEm->Cdir_y;
-        Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x800);
+        Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x800);
         pPl->pEnemy_ptr = pEm;
         Set_base_pos(pPl, pKan, pSeq, 0);
         pEm->Cdir_y = pEm->Timer0;
@@ -1375,7 +1375,7 @@ void func_8010580C(void) {
 /* motion: grab the player */
 void func_80105814(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    ENEMY_WORK *pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    ENEMY_WORK *pPl = G_PLAYER;
     VECTOR *pV;
     LONG Unused[6];
 
@@ -1384,7 +1384,7 @@ void func_80105814(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_MOVE(pEm) = 0x70018;
         pEm->Routine_2 = 1;
         pEm->Timer0 = pEm->Cdir_y;
-        Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x800);
+        Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x800);
         pPl->pEnemy_ptr = pEm;
         Set_base_pos(pPl, pKan, pSeq, 0);
         pEm->Cdir_y = pEm->Timer0;
@@ -3155,7 +3155,7 @@ void func_8010A53C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_1) {
     case 0:
-        pEm->Col_id = 0;
+        pEm->Col.Id = 0;
         pEm->Life = -1;
         pEm->Routine_1 = 1;
         pEm->Unk120 |= 1;
@@ -3213,9 +3213,9 @@ void func_8010A6C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk120 |= 0x12;
         Snd_se_stad(0x10002, (VECTOR *)&pEm->Pos_x, 0, 0);
         pEm->Unk12C = 24;
-        pEm->Timer0 = pEm->Col_d0;
-        pEm->Col_w0 = 0;
-        pEm->Col_d0 = 0;
+        pEm->Timer0 = pEm->Col.D0;
+        pEm->Col.W0 = 0;
+        pEm->Col.D0 = 0;
         pEm->UnkE2 = 8;
         if (pEm->UnkDA > 2000)
             pEm->UnkE2 = 5;
@@ -3260,8 +3260,8 @@ void func_8010A6C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Routine_2 = 3;
                 EM_MOVE(pEm) = 2;
                 pEm->Be_flg &= ~0x2000;
-                pEm->Col_w0 = pEm->Timer0;
-                pEm->Col_d0 = pEm->Timer0;
+                pEm->Col.W0 = pEm->Timer0;
+                pEm->Col.D0 = pEm->Timer0;
                 Pad_vib_set0(2, 0);
                 Pad_vib_fade_set(45, 150, 0, 0);
                 G.Status_flg &= ~0x40;
@@ -3448,7 +3448,7 @@ void func_8010B194(void) {
 /* dodge timer: step aside when the player aims and fires */
 void func_8010B19C(ENEMY_WORK *pEm)
 {
-    ENEMY_WORK *pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    ENEMY_WORK *pPl = G_PLAYER;
     LONG Div;
     LONG Time;
 
@@ -3554,7 +3554,7 @@ void func_8010B5EC(ENEMY_WORK *pEm)
     LONG Dir2;
     SVECTOR Ofs;
 
-    Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Pl_pos_x, G.Pl_pos_z) - (USHORT)pEm->Cdir_y;
+    Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z) - (USHORT)pEm->Cdir_y;
     if (pEm->Unk132 & 0xA00)
         return;
     if ((pEm->Unk132 & 3) == 1) {
@@ -3600,7 +3600,7 @@ void func_8010B804(ENEMY_WORK *pEm)
     pEm->Be_flg |= 8;
     pEm->Status_flg |= 2;
     Sv.vx = 0;
-    Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Pl_pos_x, G.Pl_pos_z) - pEm->Cdir_y + 0x100;
+    Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z) - pEm->Cdir_y + 0x100;
     Sv.vz = 0;
     RotMatrix_gte(&Sv, &M);
     Sv.vx = 0x7FA;
@@ -3678,7 +3678,7 @@ void func_8010BBE8(ENEMY_WORK *pEm)
     pEm->Be_flg |= 8;
     pEm->Status_flg |= 2;
     Sv.vx = 0;
-    Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Pl_pos_x, G.Pl_pos_z) - pEm->Cdir_y + 0x100;
+    Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z) - pEm->Cdir_y + 0x100;
     Sv.vz = 0;
     RotMatrix_gte(&Sv, &M);
     Sv.vx = 0xC00;

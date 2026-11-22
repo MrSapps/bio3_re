@@ -1,6 +1,7 @@
 #include "sce0.h"
 #include "player.h"
 #include "joint.h"
+#include "md_sub.h"
 #include "pad.h"
 #include "sld.h"
 #include "spl.h"
@@ -50,21 +51,6 @@ void Spl(ENEMY_WORK *pEm)
     Rot_neck(pEm, pEm->Cdir_y);
 }
 
-/* sub player work tail (ENEMY_WORK.Unk1CC[] is player-only data) */
-typedef struct {
-    UCHAR pad[0x1D0];
-    SHORT Unk1D0;                      /* 0x1D0 */
-    UCHAR pad1D2[2];
-    SHORT Unk1D4;                      /* 0x1D4 */
-    UCHAR pad1D6;
-    UCHAR Unk1D7;                      /* 0x1D7 */
-    SHORT Unk1D8;                      /* 0x1D8 */
-    UCHAR pad1DA[4];
-    UCHAR Unk1DE;                      /* 0x1DE */
-} SPL_WORK;
-#define SPL(pEm) ((SPL_WORK *)(pEm))
-#define PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
-
 void Spl_Init(ENEMY_WORK *pEm)
 {
     USHORT Neck_dir[26] = {
@@ -72,7 +58,7 @@ void Spl_Init(ENEMY_WORK *pEm)
         0x1000, 0x1052, 0x1000, 0x1052, 0x107B, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000,
     };
     COL_OBJ *pCol;
-    ULONG *pTmd;
+    MD_OBJ *pTmd;
     PARTS_W *pP;                       /* clear loop, neck free work, then the weapon part */
     PARTS_W *pHand;
     LONG i;
@@ -85,7 +71,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     *(LONG *)&pEm->Move_no = 2;
     Joint_move(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x100);
     Kage_work9_set(&pEm->Kage.pKw9, 0, 0x22601C2, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
-    pCol = (COL_OBJ *)&pEm->Col_id;
+    pCol = &pEm->Col;
     pCol->pEm = pEm;
     pSize = D_8009E374[pEm->Id];
     pCol->W0 = pCol->D0 = pSize[1];
@@ -99,7 +85,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     } else {
         pCol->Type = 2;
     }
-    func_80033580((COL_OBJ *)&pEm->Col_id, 0);
+    func_80033580(&pEm->Col, 0);
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     pEm->Unk134 = 1500;
@@ -130,7 +116,7 @@ void Spl_Init(ENEMY_WORK *pEm)
         pEm->Type &= ~0x1000;
         G.Status_flg |= 0x80000000;
         pEm->Max_life = 200;
-        pEm->pUnk114 = PLAYER;
+        pEm->pUnk114 = G_PLAYER;
         pEm->Unk120 = 0;
         pEm->Routine_0 = 1;
         pEm->Routine_1 = 0;
@@ -140,12 +126,12 @@ void Spl_Init(ENEMY_WORK *pEm)
         pEm->Routine_0 = 4;
         pEm->Routine_1 = 6;
     }
-    SPL(pEm)->Unk1D7 = 0;
-    SPL(pEm)->Unk1DE = 0;
+    SPL_W(pEm)->Unk1D7 = 0;
+    SPL_W(pEm)->Unk1DE = 0;
     D_8009E70C[0] = 0;
-    SPL(pEm)->Unk1D0 = 0;
-    SPL(pEm)->Unk1D8 = 0;
-    SPL(pEm)->Unk1D4 = 0;
+    SPL_W(pEm)->Unk1D0 = 0;
+    SPL_W(pEm)->Unk1D8 = 0;
+    SPL_W(pEm)->Unk1D4 = 0;
     i = pEm->Parts_num;
     while (i >= 16) {
         i--;

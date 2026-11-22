@@ -98,7 +98,7 @@ typedef struct tagGLOBAL_RESULT {
     UCHAR pad210C[0x211A - 0x210C];
     USHORT Score;                      /* 0x211A Mercenaries score (tagGLOBAL.Unk211A is SHORT) */
     UCHAR pad211C[0x24D6 - 0x211C];
-    UCHAR Pl_id;                       /* 0x24D6 same as tagGLOBAL.Pl_id */
+    UCHAR Pl_id;                       /* 0x24D6 same as tagGLOBAL.Player.Id */
     UCHAR pad24D7[0x77F8 - 0x24D7];
     ULONG Unk77F8[3];                  /* 0x77F8 same as tagGLOBAL.Unk77F8 */
     UCHAR pad7804[0x7848 - 0x7804];

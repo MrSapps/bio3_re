@@ -6,7 +6,7 @@
  * routine tables are in the module's .data. RE2 -> RE3 ENEMY_WORK fields:
  * Timer0 0xD8, Timer1 UnkDA, Timer2 UnkE2, Timer3 UnkE3, Neck_flg Unk120,
  * Ground Unk122, L_pl Unk154, L_spl Unk158, Hokan_flg UnkCA, Sca_info word at
- * 0xAC (EM20_SCA_INFO), At_em_no Col_unk3, Be_flg 0x4000000/0x8000000/0x10000000
+ * 0xAC (EM20_SCA_INFO), At_em_no Col.Unk3, Be_flg 0x4000000/0x8000000/0x10000000
  * moved to Unk132 0x4000/0x8000 and Be_flg 0x4000.
  */
 #include "bio3.h"
@@ -51,7 +51,7 @@ typedef struct tagEM20_FREE {
 #define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
 #define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* RE2 Sca_info: the collision node's Unk2C/Hit_flg pair read as one word */
-#define EM20_SCA_INFO(p) (*(ULONG *)&(p)->Col_unk2C)
+#define EM20_SCA_INFO(p) (*(ULONG *)&(p)->Col.Unk2C)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 #define PW_FREEL(p) ((ULONG *)&(p)->Unk74)

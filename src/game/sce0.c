@@ -486,10 +486,10 @@ void Sce_scheduler_main(void)
     SCE_TASK *pSce;
     ENEMY_WORK *pSub;
 
-    Sce.Pl_pos[0] = G.Pl_pos_x;
-    Sce.Pl_pos[1] = G.Pl_pos_y;
-    Sce.Pl_pos[2] = G.Pl_pos_z;
-    G.Pl_status_flg &= ~0x80;
+    Sce.Pl_pos[0] = G.Player.Pos_x;
+    Sce.Pl_pos[1] = G.Player.Pos_y;
+    Sce.Pl_pos[2] = G.Player.Pos_z;
+    G.Player.Status_flg &= ~0x80;
     pSub = G.pEnemy[1];
     if (pSub->Be_flg & 1) {
         Sce.Sub_pos[0] = pSub->Pos_x;
@@ -519,8 +519,8 @@ void Sce_scheduler_main(void)
     }
     Sce_work_clr();
     Sce_work_clr_at();
-    if (Sce.Pl_pos[0] != G.Pl_pos_x || Sce.Pl_pos[1] != G.Pl_pos_y || Sce.Pl_pos[2] != G.Pl_pos_z) {
-        G.Pl_status_flg |= 0x80;
+    if (Sce.Pl_pos[0] != G.Player.Pos_x || Sce.Pl_pos[1] != G.Player.Pos_y || Sce.Pl_pos[2] != G.Player.Pos_z) {
+        G.Player.Status_flg |= 0x80;
     }
     if (G.pEnemy[1]->Be_flg & 1) {
         if (Sce.Sub_pos[0] != G.pEnemy[1]->Pos_x || Sce.Sub_pos[1] != G.pEnemy[1]->Pos_y || Sce.Sub_pos[2] != G.pEnemy[1]->Pos_z) {

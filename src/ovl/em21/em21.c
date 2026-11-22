@@ -22,17 +22,17 @@ void func_8010014C(ENEMY_WORK *pEm)
     Vec0.vx = pEm->Pos_x;
     Vec0.vy = pEm->Pos_y;
     Vec0.vz = pEm->Pos_z;
-    Vec1.vx = G.Pl_pos_x;
-    Vec1.vy = G.Pl_pos_y;
-    Vec1.vz = G.Pl_pos_z;
+    Vec1.vx = G.Player.Pos_x;
+    Vec1.vy = G.Player.Pos_y;
+    Vec1.vz = G.Player.Pos_z;
     if (pEm->Status_flg & 0x2000)
         EF(pEm)->Flg |= 2;
     else
         EF(pEm)->Flg &= ~2;
     if ((LONG)pEm->Unk154 < 1100)
-        pEm->Col_unk26 = 180;
+        pEm->Col.Unk26 = 180;
     else
-        pEm->Col_unk26 = 530;
+        pEm->Col.Unk26 = 530;
     func_80104D5C();
     Em21_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
     func_801002F8(pEm);
@@ -42,7 +42,7 @@ void func_8010014C(ENEMY_WORK *pEm)
     EF(pEm)->Old_z = pEm->Pos_z;
     if (G.pEnemy[3] == pEm) {
         Print_color(3, 1, 0);
-        Print8(50, 50, "%04x, %d", pEm->UnkAE, EF(pEm)->Sca_cnt);
+        Print8(50, 50, "%04x, %d", pEm->Col.Hit_flg, EF(pEm)->Sca_cnt);
     }
 }
 
@@ -109,17 +109,17 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk13A = 400;
     pEm->Unk138 = 0x54;
     pEm->Unk139 = 0xA8;
-    pEm->Col_unk26 = 0x212;
-    pEm->Col_h = 0x424;
+    pEm->Col.Unk26 = 0x212;
+    pEm->Col.H = 0x424;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pEm->Unk140 = 0;
-    pEm->pCol_em = pEm;
-    pEm->Col_unk24 = 0;
-    pEm->Col_unk28 = 0;
-    pEm->Col_flg = 0;
-    pEm->Col_type = 2;
+    pEm->Col.pEm = pEm;
+    pEm->Col.Unk24 = 0;
+    pEm->Col.Unk28 = 0;
+    pEm->Col.Flg = 0;
+    pEm->Col.Type = 2;
     func_80104D50(pEm, 350);
-    func_80033580((COL_OBJ *)&pEm->Col_id, 0);
+    func_80033580(&pEm->Col, 0);
     Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
     if (pEm->Type & 0x4000) {
         pEm->Routine_0 = 4;
@@ -147,7 +147,7 @@ void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EF(pEm)->Idly_flg = Rnd_area();
         }
     }
-    if (G.Pl_life < 0) {
+    if (G.Player.Life < 0) {
         if (EF(pEm)->Pl_dead_cnt) {
             if (EF(pEm)->Idly_cnt)
                 Flg = 1;
@@ -158,11 +158,11 @@ void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Flg = 1;
     }
     if (Flg) {
-        Root_ck(pEm, (VECTOR *)&G.Pl_pos_x, EF(pEm)->Idly_flg, 1);
+        Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, EF(pEm)->Idly_flg, 1);
         if (EF(pEm)->Idly_cnt-- == 0)
             EF(pEm)->Idly_flg = 0;
     } else {
-        Root_ck(pEm, (VECTOR *)&G.Pl_pos_x, 0, 0);
+        Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     }
     if (pEm->Type & 0x80) {
         Em21_outdoor_br[pEm->Routine_1](pEm);
@@ -189,7 +189,7 @@ void func_80100834(ENEMY_WORK *pEm)
     LONG D0;
 
     D0 = 0;
-    if (G.Pl_life < 0 && EF(pEm)->Pl_dead_cnt <= 0 && (LONG)pEm->Unk154 < 1800)
+    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0 && (LONG)pEm->Unk154 < 1800)
         return;
     if ((LONG)pEm->Unk154 <= 1800)
         D0 = 1;
@@ -378,9 +378,9 @@ void func_80100DC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (EF(pEm)->Cnt == 0)
             pEm->Routine_2 = EF(pEm)->Tmp;
         if (Rnd() & 1)
-            Goto00(pEm, -pEm->Pos_x + G.Pl_pos_x, -pEm->Pos_z + G.Pl_pos_z, 0x20);
+            Goto00(pEm, -pEm->Pos_x + G.Player.Pos_x, -pEm->Pos_z + G.Player.Pos_z, 0x20);
         else
-            Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x20);
+            Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x20);
         Add_speedXYZ(pEm, 0, 0);
         if (pEm->Spd_x < 300)
             pEm->Spd_x++;
@@ -425,7 +425,7 @@ void func_8010104C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 2;
     case 2:
     move:
-        Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, EF(pEm)->Cnt2);
+        Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, EF(pEm)->Cnt2);
         Add_speedXYZ(pEm, 0, 0);
         if (pEm->Spd_x < 300)
             pEm->Spd_x++;
@@ -455,7 +455,7 @@ void func_80101238(ENEMY_WORK *pEm)
         else
             func_80104648(pEm, 7);
     }
-    if (G.Pl_pos_y < pEm->Pos_y) {
+    if (G.Player.Pos_y < pEm->Pos_y) {
         pEm->Timer0 = Rnd() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
         func_80104648(pEm, 5);
@@ -473,7 +473,7 @@ void func_80101238(ENEMY_WORK *pEm)
         }
     }
     func_80104654(pEm);
-    if (G.Pl_life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
+    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
         func_80104A90(pEm);
     } else {
         func_80104A08(pEm);
@@ -523,7 +523,7 @@ void func_80101538(ENEMY_WORK *pEm)
     if (pEm->Timer0-- == 0)
         func_80104648(pEm, 4);
     func_80104654(pEm);
-    if (G.Pl_life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
+    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
         func_80104A90(pEm);
     } else {
         func_80104A08(pEm);
@@ -559,7 +559,7 @@ void func_80101708(ENEMY_WORK *pEm)
     if (pEm->Timer0-- == 0)
         func_80104648(pEm, 4);
     func_80104654(pEm);
-    if (G.Pl_life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
+    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
         func_80104A90(pEm);
     } else {
         func_80104A08(pEm);
@@ -669,7 +669,7 @@ void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_y = pEm->Unk122 - 250;
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EF(pEm)->Flg &= ~0x100;
-            if (G.Pl_life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
+            if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
                 func_80104648(pEm, 0);
             } else {
                 pEm->Timer0 = Rnd() << 1;
@@ -704,7 +704,7 @@ void func_80101C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (EF(pEm)->Cnt2-- == 0)
             EF(pEm)->Cnt2 = 14;
-        if ((LONG)pEm->Unk154 < 900 && G.Pl_pos_y - 3700 < pEm->Pos_y)
+        if ((LONG)pEm->Unk154 < 900 && G.Player.Pos_y - 3700 < pEm->Pos_y)
             pEm->Pos_y -= 50;
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x80);
         pEm->Cdir_y += (signed char)EF(pEm)->Tmp;
@@ -790,7 +790,7 @@ void func_80101E5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_br_crash_f_i */
 void func_80102010(ENEMY_WORK *pEm)
 {
-    if (Goto00_ck(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x80) || !(EF(pEm)->Flg & 2))
+    if (Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x80) || !(EF(pEm)->Flg & 2))
         func_80104648(pEm, 4);
     func_80104654(pEm);
     func_80104A08(pEm);
@@ -804,7 +804,7 @@ void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         EM_MOVE(pEm) = 0x70004;
-        EF(pEm)->Tmp_0 = G.Unk25AE - 2800;
+        EF(pEm)->Tmp_0 = G.Player.Unk122 - 2800;
         D0 = EF(pEm)->Tmp_0 - pEm->Pos_y;
         if (D0 < 0)
             EF(pEm)->Tmp = 0;
@@ -818,11 +818,11 @@ void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_enem(1, pEm);
             EF(pEm)->Cnt2 = 14;
         }
-        Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x80);
+        Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x80);
         if (pEm->Spd_x < 300)
             pEm->Spd_x += 5;
         Joint_move(pEm, pKan, pSeq, 0x200);
-        D0 = G.Unk25AE - 2800;
+        D0 = G.Player.Unk122 - 2800;
         if (EF(pEm)->Tmp == 0) {
             if (D0 < pEm->Pos_y)
                 pEm->Pos_y -= 40;
@@ -910,7 +910,7 @@ void func_80102298(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_br_peck_f_i */
 void func_801024D8(ENEMY_WORK *pEm)
 {
-    if (Goto00_ck(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x100) || !(EF(pEm)->Flg & 2)) {
+    if (Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100) || !(EF(pEm)->Flg & 2)) {
         func_80104D50(pEm, 350);
         func_80104648(pEm, 4);
     }
@@ -939,7 +939,7 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EF(pEm)->Cnt2 = 14;
         }
         if (EF(pEm)->Flg & 4) {
-            Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x80);
+            Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x80);
             if (pEm->Spd_x < 300)
                 pEm->Spd_x += 4;
             if ((LONG)pEm->Unk154 < 2300) {
@@ -955,12 +955,12 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     EF(pEm)->Atck = 0;
             }
         } else {
-            Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x200);
+            Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x200);
             if (pEm->Spd_x < 300)
                 pEm->Spd_x += 12;
         }
         Joint_move(pEm, pKan, pSeq, 0x200);
-        EF(pEm)->Tmp_0 = G.Unk25AE - 2800;
+        EF(pEm)->Tmp_0 = G.Player.Unk122 - 2800;
         D1 = EF(pEm)->Tmp_0 - pEm->Pos_y;
         if (D1 < -60 || D1 > 60) {
             if (D1 < -60)
@@ -991,13 +991,13 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     LONG D0;
     SVECTOR Svec;
 
-    if (G.Pl_life <= 0)
+    if (G.Player.Life <= 0)
         EF(pEm)->Tmp = 0;
     else
         EF(pEm)->Tmp = 1;
     switch (pEm->Routine_2) {
     case 0:
-        if (G.Pl_life < 0)
+        if (G.Player.Life < 0)
             goto end;
         pEm->Spd_x = 0;
         pEm->Spd_y = 0;
@@ -1009,14 +1009,14 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EF(pEm)->Unk0B = 0;
             func_80104B90(8);
             func_80104B90(0x40);
-            func_80104638((ENEMY_WORK *)&G.Pl_be_flg, 5, 0);
-            G.Pl_pEnemy_ptr = pEm;
-            G.Pl_pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
-            G.Pl_pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
-            G.Pl_be_flg |= 0x8800;
+            func_80104638(G_PLAYER, 5, 0);
+            G.Player.pEnemy_ptr = pEm;
+            G.Player.pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
+            G.Player.pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
+            G.Player.Be_flg |= 0x8800;
         }
         pEm->Pos_y = EF(pEm)->Tmp_0;
-        Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x800);
+        Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x800);
         EM_MOVE(pEm) = 0x70005;
         EF(pEm)->Cnt = 100;
         EF(pEm)->Cnt2 = 0;
@@ -1094,8 +1094,8 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_80104648(pEm, 4);
         if (EF(pEm)->Flg & 4) {
             func_80104B90(0x10);
-            G.Pl_routine_2 = 3;
-            G.Pl_be_flg &= ~0x8800;
+            G.Player.Routine_2 = 3;
+            G.Player.Be_flg &= ~0x8800;
         }
     }
 }
@@ -1103,7 +1103,7 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_Damage */
 void func_80102C48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Pl_pos_x, 0, 0);
+    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     Em21_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
 }
 
@@ -1122,7 +1122,7 @@ void func_80102CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Sca_cnt = 0;
         EF(pEm)->Tmp_0 = 0;
         EF(pEm)->Flg |= 0x100;
-        D0 = Direction_ck(G.Pl_pos_x, G.Pl_pos_z, pEm->Pos_x, pEm->Pos_z);
+        D0 = Direction_ck(G.Player.Pos_x, G.Player.Pos_z, pEm->Pos_x, pEm->Pos_z);
         EF(pEm)->Tmp_1 = D0 - pEm->Cdir_y;
         G.pEm->Spd_x = 100;
         if (Rnd() & 1)
@@ -1203,7 +1203,7 @@ void func_8010304C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     pEm->Life = -1;
     pEm->Spd_y = 0;
-    D0 = Direction_ck(G.Pl_pos_x, G.Pl_pos_z, pEm->Pos_x, pEm->Pos_z);
+    D0 = Direction_ck(G.Player.Pos_x, G.Player.Pos_z, pEm->Pos_x, pEm->Pos_z);
     Rnd0 = Rnd();
     func_80103258(pEm->pSin_parts_ptr, D0);
     if (Rnd0 & 1) {
@@ -1286,7 +1286,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Life = -1;
         func_80104C00(pEm);
         func_80104C94(pEm, (Rnd() & 3) + 5);
-        pEm->Cdir_y = G.Pl_cdir_y;
+        pEm->Cdir_y = G.Player.Cdir_y;
         pEm->Spd_x = 600;
         EM_MOVE(pEm) = 0x70009;
         pEm->Routine_2 = 1;
@@ -1305,7 +1305,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EF(pEm)->Cnt = 16;
             pEm->Routine_2 = 3;
         }
-        if (pEm->UnkAE & 0x20) {
+        if (pEm->Col.Hit_flg & 0x20) {
             pEm->Pos_x = EF(pEm)->Old_x;
             pEm->Pos_y = EF(pEm)->Old_y;
             pEm->Pos_z = EF(pEm)->Old_z;
@@ -1347,7 +1347,7 @@ void func_801035BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_Scenario */
 void func_801035C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Pl_pos_x, 0, 0);
+    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     Em21_sce_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
@@ -1466,7 +1466,7 @@ void func_8010386C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 4:
         if (!(Rnd() & 0x7F))
             Snd_se_enem(1, pEm);
-        Goto00(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x20);
+        Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x20);
         Add_speedXYZ(pEm, 0, 0);
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (pEm->Pos_y > -6000)
@@ -1743,13 +1743,13 @@ void func_80104654(ENEMY_WORK *pEm)
     ULONG Cdir_y;
 
     Cdir_y = pEm->Cdir_y & 0xFFF;
-    if (pEm->UnkAE & 0x20) {
+    if (pEm->Col.Hit_flg & 0x20) {
         if (!EF(pEm)->Sca_cnt) {
             if (pEm->Spd_x > 230) {
                 Svec.vx = pEm->Pos_x;
                 Svec.vy = pEm->Pos_y;
                 Svec.vz = pEm->Pos_z;
-                D0 = func_800502B8_(&Svec, pEm->pSca_hit_data);
+                D0 = func_800502B8_(&Svec, pEm->Col.pSca_hit_data);
                 if (D0 == 2) {
                     if (Cdir_y < 0x80 || Cdir_y > 0xF80)
                         func_80104648(pEm, 10);
@@ -1779,9 +1779,9 @@ void func_801047A8(ENEMY_WORK *pEm)
 {
     LONG Dy;
 
-    if (G.Pl_life < 0 || G.Pl_damage_cnt)
+    if (G.Player.Life < 0 || G.Player.Damage_cnt)
         return;
-    if ((pEm->Unk1CC[4] & 0xA0000) == 0xA0000 && !Goto00_ck(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x100)) {
+    if ((pEm->Unk1CC[4] & 0xA0000) == 0xA0000 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100)) {
         func_80104648(pEm, 13);
         EF(pEm)->Flg &= ~0x40;
         EF(pEm)->Flg &= ~0x08;
@@ -1792,9 +1792,9 @@ void func_801047A8(ENEMY_WORK *pEm)
         EF(pEm)->Na_cnt--;
         return;
     }
-    Dy = -(pEm->Pos_y + 2800) + G.Pl_pos_y;
+    Dy = -(pEm->Pos_y + 2800) + G.Player.Pos_y;
     if ((LONG)pEm->Unk154 > 900 && (LONG)pEm->Unk154 < 7200 && !(G.Unk75EA & 1) && (EF(pEm)->Flg & 2)
-        && Dy < 1800 && Dy > -1800 && !Goto00_ck(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x100)) {
+        && Dy < 1800 && Dy > -1800 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100)) {
         G.Unk75EA |= 1;
         EF(pEm)->Flg |= 4;
         if (!(Rnd() & 0xF))
@@ -1805,7 +1805,7 @@ void func_801047A8(ENEMY_WORK *pEm)
     }
     if ((LONG)pEm->Unk154 < 900 && Dy < 900 && Dy > -1800) {
         if (!EF(pEm)->Obj_cnt && pEm->Spd_x > 230 && !(G.Unk75EA & 1)) {
-            if (!Goto00_ck(pEm, G.Pl_pos_x, G.Pl_pos_z, 0x100))
+            if (!Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100))
                 func_80104648(pEm, 12);
         }
         if (EF(pEm)->Obj_cnt > 10) {
@@ -1913,8 +1913,8 @@ void func_80104C94(ENEMY_WORK *pEm, LONG Num)
 /* RE2 Em21_atd_set */
 void func_80104D50(ENEMY_WORK *pEm, LONG Size)
 {
-    pEm->Col_w0 = Size;
-    pEm->Col_d0 = Size;
+    pEm->Col.W0 = Size;
+    pEm->Col.D0 = Size;
 }
 
 /* RE3: player hit while crows were pecking it, scatter the attackers */
@@ -1924,7 +1924,7 @@ void func_80104D5C(void)
     ENEMY_WORK **ppEm;
     ULONG D0;
 
-    if (!G.Pl_damage_cnt)
+    if (!G.Player.Damage_cnt)
         return;
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm = *ppEm;
@@ -1953,7 +1953,7 @@ void func_80104E60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pT->Routine_0 == 2 || pT->Routine_0 == 3 || pT->Routine_0 == 7) {
         func_80104D5C();
         EM_RTN(pEm) = 1;
-        G.Pl_damage_cnt &= 0x7F;
+        G.Player.Damage_cnt &= 0x7F;
         pEm->Unk120 &= 0xED;
         pT->Be_flg &= ~0x800;
         func_80104B90(0x10);
@@ -1991,11 +1991,11 @@ void func_80104F48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ_n(pEm, 0, 0);
         break;
     case 3:
-        if (G.Pl_life < 0) {
-            G.Pl_routine_0 = 3;
-            G.Pl_routine_1 = 0;
-            G.Pl_routine_2 = 0;
-            G.Pl_routine_3 = 0;
+        if (G.Player.Life < 0) {
+            G.Player.Routine_0 = 3;
+            G.Player.Routine_1 = 0;
+            G.Player.Routine_2 = 0;
+            G.Player.Routine_3 = 0;
             break;
         }
         EM_MOVE(pEm) = 0x70002;

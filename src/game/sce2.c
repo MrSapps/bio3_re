@@ -2,6 +2,7 @@
 #include "player.h"
 #include "status.h"
 #include "joint.h"
+#include "md_sub.h"
 #include "pl_wep.h"
 #include "sce2.h"
 #include "sce_at.h"
@@ -164,7 +165,7 @@ ULONG Aot_on(SCE_TASK *pSce)
         pArg = pAot + 0xC;
     }
     if (pSce->pWork == (ENEMY_WORK *)1) {
-        G.pEm = (ENEMY_WORK *)&G.Pl_be_flg;
+        G.pEm = G_PLAYER;
     } else {
         G.pEm = pSce->pWork;
     }
@@ -573,7 +574,7 @@ ULONG Plc_ret(SCE_TASK *pSce)
     pW->Damage_cnt = 0;
     pW->Type &= 0xAEFF;
     pSce->Data++;
-    func_80034124((COL_OBJ *)&pW->Col_id);
+    func_80034124(&pW->Col);
     return 1;
 }
 
@@ -641,14 +642,14 @@ ULONG Splc_ret(SCE_TASK *pSce)
 
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 1;
-    pW->pUnk114 = (ENEMY_WORK *)&G.Pl_be_flg;
+    pW->pUnk114 = G_PLAYER;
     pW->Unk120 = 0;
     pW->Type = (pW->Type & 0xAEFF) | 0x400;
     G.Status_flg |= 0x80000000;
     pW->Life = G.Unk7852;
     pW->Max_life = 200;
     pSce->Data++;
-    func_80034124((COL_OBJ *)&pW->Col_id);
+    func_80034124(&pW->Col);
     return 1;
 }
 
@@ -889,9 +890,9 @@ ULONG Super_set(SCE_TASK *pSce)
         break;
     case 0x40:
         if (Sup_no & 0x80) {
-            pEm->pSuper = &pG->Pl_pSin_parts_ptr[Sup_no & 0x7F].Workm;
+            pEm->pSuper = &pG->Player.pSin_parts_ptr[Sup_no & 0x7F].Workm;
         } else {
-            pEm->pSuper = (MATRIX *)pG->Pl_workm_m;
+            pEm->pSuper = (MATRIX *)pG->Player.Workm_m;
         }
         break;
     case 0x80:
@@ -933,7 +934,7 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     ULONG Flg;
 
     Wep = pSce->Data[1];
-    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    pPl = G_PLAYER;
     Flg = Wep & 0x80;
     if (Wep == 0xFF) {
         G.pUnk7C7C->Unk128 = 0xFF;
@@ -972,7 +973,7 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     ENEMY_WORK *pPl;
     ULONG Wep;
 
-    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    pPl = G_PLAYER;
     Wep = D_800E01E8;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
@@ -998,7 +999,7 @@ ULONG func_80057DD8(SCE_TASK *pSce)
     ENEMY_WORK *pW;
     PARTS_W *p0;
     PARTS_W *p1;
-    ULONG *pTmd;
+    MD_OBJ *pTmd;
 
     pW = pSce->pWork;
     p0 = &pW->pSin_parts_ptr[4];
@@ -1274,9 +1275,9 @@ ULONG func_80058B84(SCE_TASK *pSce)
 
     pSce->Data++;
     pG = &G;
-    if (pG->Pl_damage_cnt == 0) {
+    if (pG->Player.Damage_cnt == 0) {
         Key = pG->Key;
-        if (!(Key & 0x100) || pG->Unk24D2 == 0) {
+        if (!(Key & 0x100) || (UCHAR)pG->Player.Type == 0) {
             if (Key & 0x80) {
                 if (!(pG->Status_flg & 0x100)) {
                     if (!(D_800DBB58 & 0xC0) && D_800C7961 == 0) {

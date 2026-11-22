@@ -20,11 +20,11 @@ void func_80100060(ENEMY_WORK *pEm)
     V.vz = pEm->Pos_z;
     V.vy = pEm->Unk122;
     if (func_8004D720(&V.vx, 350, 0x8000, 0) != pEm->Unk122) {
-        pEm->Pos_x = pEm->Unk40[0];
-        pEm->Pos_z = pEm->Unk40[2];
+        pEm->Pos_x = pEm->Old_x;
+        pEm->Pos_z = pEm->Old_z;
     } else {
-        pEm->Unk40[0] = pEm->Pos_x;
-        pEm->Unk40[2] = pEm->Pos_z;
+        pEm->Old_x = pEm->Pos_x;
+        pEm->Old_z = pEm->Pos_z;
     }
 }
 
@@ -338,7 +338,7 @@ void func_801010D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x = -100;
         pEm->Spd_z = 0;
         Add_speedXZ(pEm, 0);
-        pEm->Unk122 = func_8004D720(&pEm->Pos_x, pEm->Col_w0, 0x200, 9);
+        pEm->Unk122 = func_8004D720(&pEm->Pos_x, pEm->Col.W0, 0x200, 9);
         pEm->Pos_y += pEm->Timer0;
         if (pEm->Timer0 < 800)
             pEm->Timer0 <<= 1;
@@ -510,7 +510,7 @@ void func_80101668(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em_dead_flg_on_cand(pEm);
         *(ULONG *)&pKage->Prim[0].r0 = (*(ULONG *)&pKage->Prim[0].r0 & 0xFF000000) | 0xEF409F;
         *(ULONG *)&pKage->Prim[1].r0 = (*(ULONG *)&pKage->Prim[1].r0 & 0xFF000000) | 0xEF409F;
-        pEm->Col_id = 0;
+        pEm->Col.Id = 0;
         Sv.vx = (Rnd() & 7) - 4;
         Sv.vy = 0;
         Sv.vz = (Rnd() & 7) - 4;

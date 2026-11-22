@@ -361,8 +361,8 @@ void Om_set_fall_dir(ENEMY_WORK *pEm)
     SHORT dx;
     SHORT dz;
 
-    dx = pEm->Pos_x - G.Pl_pos_x;
-    dz = pEm->Pos_z - G.Pl_pos_z;
+    dx = pEm->Pos_x - G.Player.Pos_x;
+    dz = pEm->Pos_z - G.Player.Pos_z;
     if (__builtin_abs(dx) < 900) {
         D_800DE61A = 0;
         D_800DE61E = (dz >> 31) | 1;
@@ -385,12 +385,12 @@ void func_80036C60(OBJ_MODEL_WORK *pOm)
     if (!(pOm->Be_flg & 1)) {
         return;
     }
-    if (pG->Pl_routine_1 != 1 && pG->Pl_routine_1 != 9) {
+    if (pG->Player.Routine_1 != 1 && pG->Player.Routine_1 != 9) {
         pOm->Push_cnt = 0;
     }
     if ((pOm->UnkAE & 0x10) && (pOm->UnkBA & 0x8000)) {
         D_800DD4AC++;
-        if (pG->Pl_nFloor == pOm->nFloor) {
+        if (pG->Player.nFloor == pOm->nFloor) {
             D_800DD4B0 = pOm;
         }
     }

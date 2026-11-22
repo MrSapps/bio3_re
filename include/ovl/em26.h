@@ -25,8 +25,6 @@ typedef struct tagEM26_FREE {
 } EM26_FREE;
 
 #define EM26_W(p) ((EM26_FREE *)(p)->Unk1CC)
-/* the player work inside G (RE2 G.Player; Pl_work is the same address) */
-#define G_PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 /* blood effect of a death (RE2 EM26_BLOOD_TBL; RE3 adds a third Esp code byte) */
 typedef struct tagEM26_BLOOD_TBL {

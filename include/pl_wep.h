@@ -25,9 +25,6 @@ typedef struct tagHIT_ATTR {
     SHORT Damage;                      /* 0x12 subtracted from Life */
 } HIT_ATTR;
 
-/* the player is an ENEMY_WORK too (G.Player at G+0x248C), as in RE2 PL_WEP.C */
-typedef ENEMY_WORK PLAYER_WORK;
-
 extern USHORT Pl_wep_rot_tbl0[];        /* 0x8009D0B4 Cdir_z sequence, 0x8000 ends */
 extern USHORT Pl_wep_rot_tbl1[];        /* 0x8009D0DC */
 
@@ -42,12 +39,12 @@ typedef struct tagPL_WEP_POLY {
 extern PL_WEP_POLY Pl_wep_poly[6];
 extern UCHAR Pl_aim_dir;                /* 0x8009CD3D 0 level, 1 up, 2 down */      /* 0x800DE8F8 */
 
-extern ULONG *Pl_wep_tmd;                /* 0x8009CD38 weapon TMD; [-1] = parts count */
+extern struct tagMD_OBJ *Pl_wep_tmd;    /* 0x8009CD38 weapon model objects (md_sub.h); n_obj in the word before */
 extern PARTS_W *Pl_wep_parts;           /* 0x800DE8F0 weapon part (pSin_parts_ptr[22]) */
 extern PARTS_W *Pl_wep_oya;             /* 0x800DE8F4 part the weapon hangs from (pSin_parts_ptr[4]) */
-typedef void (*PL_WEP_FN)(PLAYER_WORK *pEm);
+typedef void (*PL_WEP_FN)(ENEMY_WORK *pEm);
 extern PL_WEP_FN Pl_weapon_init[];      /* 0x8009DCD4 index Type */
-typedef void (*PL_MV05_FN)(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+typedef void (*PL_MV05_FN)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 extern PL_MV05_FN pl_mv05_t2_spr[];     /* 0x8009CED8 index Type - 1: pl_wXX_t2_move */
 extern PL_MV05_FN pl_mv05_w_tbl[];      /* 0x8009CE88 index Type - 1 */
 extern PL_MV05_FN pl_mv05_w0b_tbl[];    /* 0x8009D088 index Routine_2 */
@@ -124,7 +121,7 @@ typedef struct tagPL_WEP_DATA {
     PL_WEP_DMG **pDmg;                 /* 0x1C index enemy Id - 0x10, then Type - 1 */
 } PL_WEP_DATA;
 
-LONG Pl_wep_eff_parts_init(PLAYER_WORK *pEm);
+LONG Pl_wep_eff_parts_init(ENEMY_WORK *pEm);
 void func_80046C90(void);
 
 extern PARTS_W *D_8009CD30;
@@ -161,45 +158,45 @@ void pl_mv05_w0_t10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void func_8003FEFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void pl_mv05_w2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
-void pl_mv05_w2_t2(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
-void pl_mv05_w2_t4(PLAYER_WORK *pEm);
-void pl_mv05_w0b(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
-void pl_mv05_w0b_t2(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
-void Pl_wep_ready_reset(PLAYER_WORK *pEm);
-void Pl_wep_recoil_6(PLAYER_WORK *pEm);
-void Pl_wep_recoil_10(PLAYER_WORK *pEm);
-void Pl_wep_flag_set(PLAYER_WORK *pEm);
-void Pl_wep_spin_0b(PLAYER_WORK *pEm);
-void pl_w01_t2_move(PLAYER_WORK *pEm);
-void pl_w02_t2_move(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
-void func_800410F8(PLAYER_WORK *pEm);
-void func_80041594(PLAYER_WORK *pEm);
-void func_800418CC(PLAYER_WORK *pEm);
-void func_80041A80(PLAYER_WORK *pEm);
-void func_80041C34(PLAYER_WORK *pEm);
-void func_80041DE8(PLAYER_WORK *pEm);
-void func_80041F9C(PLAYER_WORK *pEm);
-void func_800421F8(PLAYER_WORK *pEm);
-void func_80042474(PLAYER_WORK *pEm);
-void func_80042660(PLAYER_WORK *pEm);
-void func_800427D8(PLAYER_WORK *pEm);
-void func_80042AE4(PLAYER_WORK *pEm);
-void func_80042E34(PLAYER_WORK *pEm);
-void func_80043328(PLAYER_WORK *pEm);
-void func_800434F8(PLAYER_WORK *pEm);
-void func_800439F8(PLAYER_WORK *pEm);
-void Pl_weapon_ch(PLAYER_WORK *pEm);
-void Weapon_cls(PLAYER_WORK *pEm);
-void Weapon_parts_clr(PLAYER_WORK *pEm);
-void Pl_weapon_ch_init(PLAYER_WORK *pEm);
-void Non_init(PLAYER_WORK *pEm);
-void Plw02_init(PLAYER_WORK *pEm);
-void Plw_init_43FF0(PLAYER_WORK *pEm);
-void Plw_init_44054(PLAYER_WORK *pEm);
-void Plw_init_440AC(PLAYER_WORK *pEm);
-void Plw_init_440F4(PLAYER_WORK *pEm);
-void Plw_init_44134(PLAYER_WORK *pEm);
-void Plw_init_4417C(PLAYER_WORK *pEm);
+void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w2_t4(ENEMY_WORK *pEm);
+void pl_mv05_w0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void Pl_wep_ready_reset(ENEMY_WORK *pEm);
+void Pl_wep_recoil_6(ENEMY_WORK *pEm);
+void Pl_wep_recoil_10(ENEMY_WORK *pEm);
+void Pl_wep_flag_set(ENEMY_WORK *pEm);
+void Pl_wep_spin_0b(ENEMY_WORK *pEm);
+void pl_w01_t2_move(ENEMY_WORK *pEm);
+void pl_w02_t2_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void func_800410F8(ENEMY_WORK *pEm);
+void func_80041594(ENEMY_WORK *pEm);
+void func_800418CC(ENEMY_WORK *pEm);
+void func_80041A80(ENEMY_WORK *pEm);
+void func_80041C34(ENEMY_WORK *pEm);
+void func_80041DE8(ENEMY_WORK *pEm);
+void func_80041F9C(ENEMY_WORK *pEm);
+void func_800421F8(ENEMY_WORK *pEm);
+void func_80042474(ENEMY_WORK *pEm);
+void func_80042660(ENEMY_WORK *pEm);
+void func_800427D8(ENEMY_WORK *pEm);
+void func_80042AE4(ENEMY_WORK *pEm);
+void func_80042E34(ENEMY_WORK *pEm);
+void func_80043328(ENEMY_WORK *pEm);
+void func_800434F8(ENEMY_WORK *pEm);
+void func_800439F8(ENEMY_WORK *pEm);
+void Pl_weapon_ch(ENEMY_WORK *pEm);
+void Weapon_cls(ENEMY_WORK *pEm);
+void Weapon_parts_clr(ENEMY_WORK *pEm);
+void Pl_weapon_ch_init(ENEMY_WORK *pEm);
+void Non_init(ENEMY_WORK *pEm);
+void Plw02_init(ENEMY_WORK *pEm);
+void Plw_init_43FF0(ENEMY_WORK *pEm);
+void Plw_init_44054(ENEMY_WORK *pEm);
+void Plw_init_440AC(ENEMY_WORK *pEm);
+void Plw_init_440F4(ENEMY_WORK *pEm);
+void Plw_init_44134(ENEMY_WORK *pEm);
+void Plw_init_4417C(ENEMY_WORK *pEm);
 ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL);
 LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);
 LONG func_800445C8(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pEm inside the box */
@@ -207,13 +204,13 @@ LONG func_8004470C(ULONG A, ULONG B, VECTOR *pV, LONG W);
 LONG func_8004479C(ULONG A, ULONG B, VECTOR *pV);
 ENEMY_WORK *func_80044804(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
 void func_80044E90(MATRIX *pM0, MATRIX *pM1, SVECTOR *pOut);
-void Mag_set(PLAYER_WORK *pEm);
+void Mag_set(ENEMY_WORK *pEm);
 void Mag_down(ENEMY_WORK *pEm);
-void Pl_wep_eff_init(PLAYER_WORK *pEm);
+void Pl_wep_eff_init(ENEMY_WORK *pEm);
 void func_800452E0(void);
 void func_800452E8(ENEMY_WORK *pEm);
 void func_80045514(void);
-LONG func_800455B4(PLAYER_WORK *pEm);
+LONG func_800455B4(ENEMY_WORK *pEm);
 UCHAR Pl_wep_eff_parts_cnt(void);
 ENEMY_WORK *func_800457A4(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim);
 void func_80045950(ENEMY_WORK *pEm);
@@ -230,7 +227,7 @@ ULONG func_800470F4(VECTOR *pPos, LONG Ll0, LONG Ll1);
 LONG func_800472EC(HIT_REQ *pReq, HIT_ATTR *pAttr);
 LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
 LONG func_80047BD0(HIT_REQ *pReq, HIT_ATTR *pAttr);
-VECTOR *func_80047DD0(PLAYER_WORK *pEm, ULONG LL);
+VECTOR *func_80047DD0(ENEMY_WORK *pEm, ULONG LL);
 ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr);
 void Quake_add(LONG X, LONG Y);
 void func_8004834C(ULONG Id, LONG Flg);

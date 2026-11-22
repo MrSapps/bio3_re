@@ -24,8 +24,6 @@ typedef struct tagEM27_FREE {
 #define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
 #define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
-/* the player work inside G (RE2 G.Player; Pl_work is the same address) */
-#define G_PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
 extern void (*Em27_routine_0[])() __asm__("D_80101A34");

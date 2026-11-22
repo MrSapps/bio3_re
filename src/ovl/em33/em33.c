@@ -26,7 +26,7 @@ void func_801000D4(ENEMY_WORK *pEm)
         pEm->Damage_cnt--;
     if (!(pEm->Type & 1)) {
         if (*(SHORT *)&pEm->Routine_0 == 0x601)
-            pEm->Col_id = 0;
+            pEm->Col.Id = 0;
         Em33_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
         pEm->pEnemy_ptr = pPl;
         Rot_neck_em(pEm, pEm->Cdir_y);
@@ -52,11 +52,11 @@ void func_801000D4(ENEMY_WORK *pEm)
         }
         y = pEm->Pos_y;
         if (y < 0) {
-            pEm->Col_unk26 = -y;
-            pEm->Col_h = 800 - y;
+            pEm->Col.Unk26 = -y;
+            pEm->Col.H = 800 - y;
         } else {
-            pEm->Col_unk26 = 0;
-            pEm->Col_h = 800;
+            pEm->Col.Unk26 = 0;
+            pEm->Col.H = 800;
         }
     } else {
         ppWork = ((EM33_PL *)pPl)->pWork;
@@ -74,20 +74,20 @@ void func_801000D4(ENEMY_WORK *pEm)
         if (pEm->Routine_0 == 2)
             Em33_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
         if (*(SHORT *)&pOya->Routine_0 == 0x602)
-            pEm->Col_id = 0;
+            pEm->Col.Id = 0;
         M = GsIDMATRIX;
-        MulMatrix2(((COL_OBJ *)&pEm->Col_id)->pM, &M);
-        pEm->Col_unk26 = 0;
-        ApplyMatrix(&M, (SVECTOR *)&pEm->Col_unk24, &V);
-        y = ((COL_OBJ *)&pEm->Col_id)->pM->t[1] + V.vy;
+        MulMatrix2((&pEm->Col)->pM, &M);
+        pEm->Col.Unk26 = 0;
+        ApplyMatrix(&M, (SVECTOR *)&pEm->Col.Unk24, &V);
+        y = (&pEm->Col)->pM->t[1] + V.vy;
         if (y < 0) {
-            pEm->Col_unk26 = -y;
-            pEm->Col_h = 800 - y;
+            pEm->Col.Unk26 = -y;
+            pEm->Col.H = 800 - y;
         } else
-            pEm->Col_h = 800;
-        pEm->Pos_x = ((COL_OBJ *)&pEm->Col_id)->Pos_x;
-        pEm->Pos_y = ((COL_OBJ *)&pEm->Col_id)->Pos_y;
-        pEm->Pos_z = ((COL_OBJ *)&pEm->Col_id)->Pos_z;
+            pEm->Col.H = 800;
+        pEm->Pos_x = (&pEm->Col)->Pos_x;
+        pEm->Pos_y = (&pEm->Col)->Pos_y;
+        pEm->Pos_z = (&pEm->Col)->Pos_z;
     }
     func_80106668(pEm);
 }
@@ -121,26 +121,26 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM33_W(pEm)->Unk28 = 0;
     Kage_work_set(&pEm->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
     pEm->Be_flg |= 0x8000;
-    pEm->pCol_em = pEm;
+    pEm->Col.pEm = pEm;
     if (pEm->Id == 0x33)
         pEm->Be_flg |= 0x2010;
     else
         pEm->Be_flg |= 0x1000;
     if (pEm->Id == 0x33) {
-        pEm->Col_w0 = pEm->Col_d0 = 1200;
+        pEm->Col.W0 = pEm->Col.D0 = 1200;
         EM33_W(pEm)->Unk12 = 1;
         pEm->Pos_y = 200;
     } else {
-        pEm->Col_w0 = pEm->Col_d0 = 1100;
+        pEm->Col.W0 = pEm->Col.D0 = 1100;
         pEm->Status_flg |= 0x100;
     }
-    pEm->Col_h = 800;
-    pEm->Col_unk24 = 400;
-    pEm->Col_unk28 = 0;
-    pEm->Col_unk26 = 0;
-    pEm->Col_flg = 0;
-    pEm->Col_type = 2;
-    func_80033580((COL_OBJ *)&pEm->Col_id, 0);
+    pEm->Col.H = 800;
+    pEm->Col.Unk24 = 400;
+    pEm->Col.Unk28 = 0;
+    pEm->Col.Unk26 = 0;
+    pEm->Col.Flg = 0;
+    pEm->Col.Type = 2;
+    func_80033580(&pEm->Col, 0);
     pEm->Unk134 = 1800;
     pEm->Unk136 = -1400;
     pEm->Unk138 = 0x78;
@@ -149,7 +149,7 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Neck_no = 8;
     pEm->Unk140 = 0;
     pEm->Unk120 = 0;
-    EM33_W(pEm)->Col_id = pEm->Col_id |= 0x80;
+    EM33_W(pEm)->Col_id = pEm->Col.Id |= 0x80;
     {
         PARTS_W *pS = pEm->pSin_parts_ptr;
 
@@ -227,7 +227,7 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* set up body segment pEm following part Parts of the head pOya */
 void func_801009DC(ENEMY_WORK *pEm, LONG No, ENEMY_WORK *pOya, LONG Parts)
 {
-    COL_OBJ *pCol = (COL_OBJ *)&pEm->Col_id;
+    COL_OBJ *pCol = &pEm->Col;
 
     pEm->Type = 1;
     pEm->Unk16B = 0;
@@ -1095,7 +1095,7 @@ void func_8010324C(ENEMY_WORK *pEm)
 /* Side = zone of the room the player is in (0..3, 4 = none); with Flg, pick the hole to come out of */
 void func_8010342C(ENEMY_WORK *pEm, LONG Flg)
 {
-    ENEMY_WORK *pPl = &G_pl.Player;
+    ENEMY_WORK *pPl = G_PLAYER;
     VECTOR Pos;
     SHORT Zone[4];
 
@@ -1112,7 +1112,7 @@ void func_8010342C(ENEMY_WORK *pEm, LONG Flg)
     Zone[1] = -20090;
     if (func_800101C8(&Pos.vx, Zone))
         EM33_W(pEm)->Side = 1;
-    if (Flg_ck(&G_pl.Flg7888, 0) && Flg_ck(&G_pl.Flg7888, 1)) {
+    if (Flg_ck(&G.Unk7888, 0) && Flg_ck(&G.Unk7888, 1)) {
         Zone[2] = 2400;
         Zone[3] = 4400;
         Zone[0] = -23650;
@@ -1252,12 +1252,12 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE3 = 0;
         EM33_W(pEm)->Unk06 = 60;
         EM33_W(pEm)->Unk08 = 4;
-        pEm->Col_d0 = 2000;
-        pEm->Col_w0 = 2000;
+        pEm->Col.D0 = 2000;
+        pEm->Col.W0 = 2000;
         {
             ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
-        pW->Col_d0 = 2000;
-        pW->Col_w0 = 2000;
+        pW->Col.D0 = 2000;
+        pW->Col.W0 = 2000;
         }
         EM33_W(pEm)->Unk24 = 60;
         Snd_se_enem(4, pEm);
@@ -1356,12 +1356,12 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM33_W(pEm)->Unk04 = EM33_W(pEm)->Unk06;
         break;
     case 4:
-        pEm->Col_d0 = 1200;
-        pEm->Col_w0 = 1200;
+        pEm->Col.D0 = 1200;
+        pEm->Col.W0 = 1200;
         {
             ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
-        pW->Col_d0 = 1400;
-        pW->Col_w0 = 1400;
+        pW->Col.D0 = 1400;
+        pW->Col.W0 = 1400;
         }
         do {
             if (Joint_move(pEm, pKan, pSeq, 0x10080)) {
@@ -1381,12 +1381,12 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } while (--n);
         break;
     case 5:
-        pEm->Col_d0 = 1200;
-        pEm->Col_w0 = 1200;
+        pEm->Col.D0 = 1200;
+        pEm->Col.W0 = 1200;
         {
             ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
-        pW->Col_d0 = 1400;
-        pW->Col_w0 = 1400;
+        pW->Col.D0 = 1400;
+        pW->Col.W0 = 1400;
         }
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             EM33_W(pEm)->Unk0B = 1;
@@ -1681,14 +1681,14 @@ void func_80105A48(ENEMY_WORK *pEm, LONG No)
     if (pP->UnkA2 & 1) {
         pP->UnkA2 &= ~0x400;
         pW->Kage.pKw->Be_flg |= 0x80;
-        pW->Col_id = EM33_W(pEm)->Col_id;
+        pW->Col.Id = EM33_W(pEm)->Col_id;
         pW->Type &= ~0x4000;
         if (No == 0)
             pW->Be_flg &= ~0x20;
     } else {
         pP->UnkA2 |= 0x400;
         pW->Kage.pKw->Be_flg &= 0x7F;
-        pW->Col_id = Pl_work.Col_id;
+        pW->Col.Id = Pl_work.Col.Id;
         pW->Type |= 0x4000;
         if (No == 0)
             pW->Be_flg |= 0x20;
@@ -1921,7 +1921,7 @@ void func_80106668(ENEMY_WORK *pEm)
         pEm->Unk16B = 0;
     case 2:
         Sv.vx = 0;
-        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Pl_pos_x, G.Pl_pos_z);
+        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z);
         Sv.vz = 0;
         RotMatrix(&Sv, &M);
         Sv.vx = -(pEm->Unk16B * 120);

@@ -5,6 +5,7 @@
 #include "root_ck.h"
 #include "spl_auto.h"
 #include "spl_sce.h"
+#include "spl.h"
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
@@ -187,7 +188,7 @@ void Spl_sce04(ENEMY_WORK *pEm)
     case 1:
         if ((UCHAR)func_80062B68(pEm, pKan, pSeq)) {
             Spd_get(pEm, pKan, pSeq, 0);
-            if (pEm->UnkAE & 0x40) {
+            if (pEm->Col.Hit_flg & 0x40) {
                 if (func_800632B8(pEm, 0) & 0x1000) {
                     *(ULONG *)&pEm->Routine_0 = 0xC04;
                 } else {
@@ -200,7 +201,7 @@ void Spl_sce04(ENEMY_WORK *pEm)
         }
         break;
     case 2:
-        if (pEm->UnkAE & 0x40) {
+        if (pEm->Col.Hit_flg & 0x40) {
             if (func_800632B8(pEm, 0) & 0x1000) {
                 *(ULONG *)&pEm->Routine_0 = 0xC04;
             } else {
@@ -228,7 +229,7 @@ void Spl_sce04(ENEMY_WORK *pEm)
 
 void func_800608C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (!(pEm->UnkAE & 0x40)) {
+    if (!(pEm->Col.Hit_flg & 0x40)) {
         *(ULONG *)&pEm->Routine_0 = 0x20404;
         *(LONG *)&pEm->Move_no = 0x70000;
         Spl_sce04(pEm);
@@ -293,7 +294,7 @@ void func_800608C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     func_8006055C(pEm);
-    if (pEm->UnkAE & 0x20) {
+    if (pEm->Col.Hit_flg & 0x20) {
         Goto01(pEm, func_800632B8(pEm, 0), 0x10);
     } else {
         Goto01(pEm, func_800632B8(pEm, 0), 4);
@@ -341,7 +342,7 @@ void Spl_sce05(ENEMY_WORK *pEm)
         }
         break;
     case 2:
-        if (pEm->UnkAE & 0x40) {
+        if (pEm->Col.Hit_flg & 0x40) {
             r = func_800632B8(pEm, 0) & 0x1000;
             if (r) {
                 r = 0xD04;
@@ -386,7 +387,7 @@ void Spl_sce05(ENEMY_WORK *pEm)
 
 void func_80060E90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (!(pEm->UnkAE & 0x40)) {
+    if (!(pEm->Col.Hit_flg & 0x40)) {
         *(ULONG *)&pEm->Routine_0 = 0x20504;
         *(LONG *)&pEm->Move_no = 0x70001;
         Spl_sce05(pEm);
@@ -437,7 +438,7 @@ void func_80060E90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     }
-    if (pEm->UnkAE & 0x20) {
+    if (pEm->Col.Hit_flg & 0x20) {
         Goto01(pEm, func_800634F4(pEm, 0), 0x10);
     } else {
         Goto01(pEm, func_800634F4(pEm, 0), 4);
@@ -506,7 +507,7 @@ void Spl_sce07(ENEMY_WORK *pEm)
         }
         n = pEm->Unk152;
     }
-    if (pEm->UnkAE & 0x40) {
+    if (pEm->Col.Hit_flg & 0x40) {
         r = func_800632B8(pEm, 0) & 0x1000;
         if (r) {
             r = 0xE04;
@@ -561,7 +562,7 @@ void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     } else if (pEm->Routine_2 == 3) {
         *(USHORT *)&pEm->Routine_2 = 0;
     }
-    if (!(pEm->UnkAE & 0x40)) {
+    if (!(pEm->Col.Hit_flg & 0x40)) {
         *(ULONG *)&pEm->Routine_0 = 0x704;
         MY_func_800611E0(pEm, pKan, pSeq);
         return;
@@ -604,7 +605,7 @@ void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     }
-    if (pEm->UnkAE & 0x20) {
+    if (pEm->Col.Hit_flg & 0x20) {
         Goto01(pEm, func_800632B8(pEm, 0), 0x10);
     } else {
         Goto01(pEm, func_800632B8(pEm, 0), 4);
@@ -792,10 +793,10 @@ void func_80061BC4(ENEMY_WORK *pEm)
         sv.vy = 350;
         sv.vz = 0;
         func_8001B484(3, (USHORT)pEm->Cdir_y | 0x10000000, &pP[4].Workm, &sv, 0);
-        ((USHORT *)pEm->Unk1CC)[2] &= ~0x4000;
+        SPL_W(pEm)->Unk1D0 &= ~0x4000;
         r = (LONG)func_80044804(&pEm->pSin_parts_ptr[4].Workm, D_8009DBB4[8], 3); /* 0xFF: no target */
         if (r != 0 && r != 0xFF) {
-            ((USHORT *)pEm->Unk1CC)[2] |= 0x4000;
+            SPL_W(pEm)->Unk1D0 |= 0x4000;
         }
     case 1:
         if (Joint_move(pEm, pEm->pUnk18C_kan_t_ptr, pEm->pUnk188_seq_t_ptr, 0x200) != 0) {
@@ -871,7 +872,7 @@ void func_80061DF4(ENEMY_WORK *pEm)
             sv.vy = 0x185;
             sv.vz = -0x26;
             pR = func_8001B484(0x603, (USHORT)func_800102E8_() | 0x10000000, &pP[4].Workm, &sv, 0);
-            if (pR != (ESP_WORK *)-1) {
+            if (pR != ESP_NONE) {
                 pR->Spd_x = 0x14;
                 pR->Spd_y = -0x28;
             }
@@ -1293,7 +1294,7 @@ LONG func_800632B8(ENEMY_WORK *pEm, LONG f)
     LONG Ret;
 
     n = func_80063690(pEm);
-    Dir = D_8009EEC8[(UCHAR)pEm->Col_unk39 & 7];
+    Dir = D_8009EEC8[(UCHAR)pEm->Col.Unk39 & 7];
     d = (Dir - pEm->Cdir_y) & 0xFFF;
     Ret = Dir;
     if (d - 0x400 > 0x800) {
@@ -1347,7 +1348,7 @@ LONG func_800634F4(ENEMY_WORK *pEm, LONG f)
     LONG Ret;
 
     n = func_80063690(pEm);
-    Dir = D_8009EEC8[(UCHAR)pEm->Col_unk39 & 7];
+    Dir = D_8009EEC8[(UCHAR)pEm->Col.Unk39 & 7];
     d = (Dir - pEm->Cdir_y) & 0xFFF;
     Ret = Dir;
     if (d - 0x400 > 0x800) {

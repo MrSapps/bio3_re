@@ -311,18 +311,18 @@ void func_800791F0(void)
 {
     func_80078FE8();
     func_800100A4(G.Card_head, D_800C7048.Save, 0x908);
-    G.Pl_id = D_800C7048.Pl_id;
-    G.Pl_pos_x = D_800C7048.Pos_x;
-    G.Pl_pos_y = D_800C7048.Pos_y;
-    G.Pl_pos_z = D_800C7048.Pos_z;
-    G.Pl_cdir_y = D_800C7048.Cdir_y;
-    G.Pl_life = D_800C7048.Life;
+    G.Player.Id = D_800C7048.Pl_id;
+    G.Player.Pos_x = D_800C7048.Pos_x;
+    G.Player.Pos_y = D_800C7048.Pos_y;
+    G.Player.Pos_z = D_800C7048.Pos_z;
+    G.Player.Cdir_y = D_800C7048.Cdir_y;
+    G.Player.Life = D_800C7048.Life;
     if (D_800C7048.Poison & 0x80) {
         G.Pl_poison_timer = D_800C7048.Poison;
-        G.Pl_status_flg |= 0x200;
+        G.Player.Status_flg |= 0x200;
     } else {
         G.Pl_poison_timer = 0;
-        G.Pl_status_flg &= ~0x200;
+        G.Player.Status_flg &= ~0x200;
     }
     func_8007906C();
     G.Next_cut_no = G.Cut_no;
@@ -566,7 +566,7 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     m5.t[2] = j.b.vz;
     func_8002D4B0(&m0, &m5, &m2);
     func_8002D4B0(&m0, &m4, &m1);
-    if (pEm->UnkAE & 0x40) {
+    if (pEm->Col.Hit_flg & 0x40) {
         func_80079CC0(pEm, pEm->pSin_parts_ptr->Pos_y);
     }
     ApplyMatrix(&m3, (SVECTOR *)pEm->Unk1A4, (VECTOR *)m3.t);

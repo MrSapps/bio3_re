@@ -412,13 +412,13 @@ void func_801C2D54(MWORK *pMw)
         case 2:
             G.System_flg |= 0x80;
             func_800100A4(D_800C7048.Save, G.Card_head, sizeof(D_800C7048.Save));
-            D_800C7048.Pl_id = G.Pl_id;
-            D_800C7048.Pos_x = G.Pl_pos_x;
-            D_800C7048.Pos_y = G.Pl_pos_y;
-            D_800C7048.Pos_z = G.Pl_pos_z;
-            D_800C7048.Cdir_y = G.Pl_cdir_y;
-            D_800C7048.Life = G.Pl_life;
-            if (G.Pl_status_flg & 0x200) {
+            D_800C7048.Pl_id = G.Player.Id;
+            D_800C7048.Pos_x = G.Player.Pos_x;
+            D_800C7048.Pos_y = G.Player.Pos_y;
+            D_800C7048.Pos_z = G.Player.Pos_z;
+            D_800C7048.Cdir_y = G.Player.Cdir_y;
+            D_800C7048.Life = G.Player.Life;
+            if (G.Player.Status_flg & 0x200) {
                 D_800C7048.Poison = G.Pl_poison_timer | 0x80;
             } else {
                 D_800C7048.Poison = 0;
@@ -1258,13 +1258,13 @@ void func_801C56E0(void)
             pG->Game_time_offset = Now;
         }
     }
-    pG->Save_pl_id = pG->Pl_id;
-    pG->Save_pos_x = pG->Pl_pos_x;
-    pG->Save_pos_y = pG->Pl_pos_y;
-    pG->Save_pos_z = pG->Pl_pos_z;
-    pG->Save_cdir_y = pG->Pl_cdir_y;
-    pG->Save_life = pG->Pl_life;
-    if (G.Pl_status_flg & 0x200) {
+    pG->Save_pl_id = pG->Player.Id;
+    pG->Save_pos_x = pG->Player.Pos_x;
+    pG->Save_pos_y = pG->Player.Pos_y;
+    pG->Save_pos_z = pG->Player.Pos_z;
+    pG->Save_cdir_y = pG->Player.Cdir_y;
+    pG->Save_life = pG->Player.Life;
+    if (G.Player.Status_flg & 0x200) {
         pG->Save_poison = G.Pl_poison_timer | 0x80;
     } else {
         pG->Save_poison = 0;
@@ -1282,19 +1282,19 @@ void func_801C57E0(void)
     tagGLOBAL *pG = &G;
 
     pG->Next_cut_no = pG->Cut_no;
-    pG->Pl_id = pG->Save_pl_id;
-    pG->Pl_pos_x = pG->Save_pos_x;
-    pG->Pl_pos_y = pG->Save_pos_y;
-    pG->Pl_pos_z = pG->Save_pos_z;
-    pG->Pl_cdir_y = pG->Save_cdir_y;
-    pG->Pl_life = pG->Save_life;
-    pG->Pl_nFloor = pG->Save_pos_y / -1800;
+    pG->Player.Id = pG->Save_pl_id;
+    pG->Player.Pos_x = pG->Save_pos_x;
+    pG->Player.Pos_y = pG->Save_pos_y;
+    pG->Player.Pos_z = pG->Save_pos_z;
+    pG->Player.Cdir_y = pG->Save_cdir_y;
+    pG->Player.Life = pG->Save_life;
+    pG->Player.nFloor = pG->Save_pos_y / -1800;
     if (pG->Save_poison & 0x80) {
         pG->Pl_poison_timer = pG->Save_poison & 0x7F;
-        pG->Pl_status_flg |= 0x200;
+        pG->Player.Status_flg |= 0x200;
     } else {
         pG->Pl_poison_timer = 0;
-        pG->Pl_status_flg &= ~0x200;
+        pG->Player.Status_flg &= ~0x200;
     }
     Snd_work.Vol.Se = pG->Save_vol;
     Snd_work.Vol.Bgm = pG->Save_vol2;

@@ -83,18 +83,6 @@ typedef struct tagEM23_FREE {
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
-/* G seen from the player work (Pl_work = G + 0x248C, RE2 G.Player): one symbol, so gcc
-   addresses &G.pEnemy[2] / G.ppEnemy_end relative to &Pl_work */
-typedef struct {
-    UCHAR pad[0x248C];
-    UCHAR Player[0x1D0];               /* 0x248C Pl_work */
-    ENEMY_WORK *pEnemy[42];            /* 0x265C G.pEnemy */
-    ENEMY_WORK **ppEnemy_end;          /* 0x2704 */
-    UCHAR pad2708[0x75E8 - 0x2708];
-    USHORT Unk75E8;                    /* 0x75E8 G.Unk75E8: player fire flags */
-} G_PL_VIEW;
-extern G_PL_VIEW G_pl __asm__("G");
-
 extern USHORT Em23_life[16] __asm__("D_8010C7C8");
 extern USHORT Em23_life_easy[16] __asm__("D_8010C7E8");
 extern void (*Em23_routine_0[])() __asm__("D_8010C808");

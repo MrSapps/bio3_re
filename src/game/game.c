@@ -11,8 +11,6 @@
 #include "spl.h"
 #include "status.h"
 
-/* player work (RE2 G.Player; tagGLOBAL only has individual Pl_* fields) */
-#define PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -49,19 +47,19 @@ void Gun_light_set(void)
     LIGHT_CUT_DATA *pLight;
     SVECTOR v;
 
-    pLight = Get_light_cut(&G.Pl_pos_x);
+    pLight = Get_light_cut(&G.Player.Pos_x);
     func_800100A4(Game.Plight_bak, pLight, 0x28);
     pLight->Mode[2] = 0;
     pLight->L[2] = 1;
     v.vx = 0x4B0;
     v.vz = 0;
-    Rot_vector(G.Pl_cdir_y, &v, &v);
+    Rot_vector(G.Player.Cdir_y, &v, &v);
     Game.Plight_col[0] = 0xFF;
     Game.Plight_col[1] = 0xE6;
     Game.Plight_col[2] = 0xA0;
-    Game.Plight_pos.vx = G.Pl_pos_x + v.vx;
-    Game.Plight_pos.vy = G.Pl_pos_y - 0x960;
-    Game.Plight_pos.vz = G.Pl_pos_z + v.vz;
+    Game.Plight_pos.vx = G.Player.Pos_x + v.vx;
+    Game.Plight_pos.vy = G.Player.Pos_y - 0x960;
+    Game.Plight_pos.vz = G.Player.Pos_z + v.vz;
     switch (Game.Plight_cnt) {
     case 0:
         {
@@ -104,7 +102,7 @@ void Gun_light_set(void)
 
 void Gun_light_reset(void)
 {
-    func_800100A4(Get_light_cut(&G.Pl_pos_x), Game.Plight_bak, 0x28);
+    func_800100A4(Get_light_cut(&G.Player.Pos_x), Game.Plight_bak, 0x28);
     if (Game.Plight_cnt >= 2) {
         Game.Plight_flg = 0;
         Game.Plight_cnt = 0;
@@ -121,15 +119,15 @@ void func_800245A0(void)
 
     Bg_set_mode(1, 0);
     func_80038634(0, 0);
-    pG->pEnemy[0] = PLAYER;
-    pPl = PLAYER;
+    pG->pEnemy[0] = G_PLAYER;
+    pPl = G_PLAYER;
     if (pG->System_flg & 0x1000) {
         if (pG->System_flg & 0x80) {
             pPl->Max_life = pPl->Life = 200;
-            pPl->Pos_x = pPl->Unk40[0] = -18415;
-            pPl->Pos_z = pPl->Unk40[2] = -22736;
+            pPl->Pos_x = pPl->Old_x = -18415;
+            pPl->Pos_z = pPl->Old_z = -22736;
             pPl->Cdir_y = 0x4A8;
-            pPl->Pos_y = pPl->Unk40[1] = 0;
+            pPl->Pos_y = pPl->Old_y = 0;
             pPl->Unk122 = 0;
             pPl->nFloor = 0;
             pG->Unk783E = 6;
@@ -137,10 +135,10 @@ void func_800245A0(void)
             pG->Cut_no = 2;
         } else {
             pPl->Max_life = pPl->Life = 200;
-            pPl->Pos_x = pPl->Unk40[0] = 13262;
-            pPl->Pos_z = pPl->Unk40[2] = -12537;
+            pPl->Pos_x = pPl->Old_x = 13262;
+            pPl->Pos_z = pPl->Old_z = -12537;
             pPl->Cdir_y = 0x720;
-            pPl->Pos_y = pPl->Unk40[1] = 0;
+            pPl->Pos_y = pPl->Old_y = 0;
             pPl->Unk122 = 0;
             pPl->nFloor = 0;
             pPl->Status_flg = 0;
@@ -156,15 +154,15 @@ void func_800245A0(void)
         goto set;
     } else {
         pPl->Max_life = 200;
-        pPl->Unk40[0] = pPl->Pos_x;
-        pPl->Unk40[1] = pPl->Pos_y;
-        pPl->Unk40[2] = pPl->Pos_z;
+        pPl->Old_x = pPl->Pos_x;
+        pPl->Old_y = pPl->Pos_y;
+        pPl->Old_z = pPl->Pos_z;
         pPl->Unk122 = pPl->Pos_y;
         pPl->nFloor = (SHORT)pPl->Pos_y / -1800;
     }
 set:
     pPl->Be_flg = 1;
-    ((ENEMY_WORK *)pG->Sub_work)->Col_id = 0;
+    pG->Sub_work.Col.Id = 0;
     Esp_init_C();
     Trans_work_init();
     func_8006D720();
@@ -179,7 +177,7 @@ set:
     }
     Set_room();
     func_80077F60();
-    pG->pEm = (ENEMY_WORK *)&pG->Pl_be_flg;
+    pG->pEm = PLAYER_EM(pG);
     Player_set(pG->pEm);
     SetBackColor(0x80, 0x80, 0x80);
     pMain->Unk191 = 0;
@@ -225,20 +223,20 @@ void Set_door(void)
     if (pG->Status_flg & 0x40000000) {
         func_80024C58();
     }
-    pG->Pl_damage_cnt = 0;
-    pG->Pl_be_flg &= 0x9F4F;
-    *(USHORT *)&pG->Unk24D2 &= 0xBEFF;
+    pG->Player.Damage_cnt = 0;
+    pG->Player.Be_flg &= 0x9F4F;
+    pG->Player.Type &= 0xBEFF;
     pG->System_flg |= 0x400000;
     Bg_set_mode(1, 0);
     Task_execute(1, Door_main);
     Task_sleep(1);
     Door_snd_trans();
     pAot = (DOOR_NEXT *)pG->pSce_aot_on;
-    pG->Pl_pos_x = pG->Pl_old_x = pAot->Next_pos_x;
-    pG->Unk25AE = pG->Pl_pos_y = pG->Pl_old_y = pAot->Next_pos_y;
-    pG->Pl_pos_z = pG->Pl_old_z = pAot->Next_pos_z;
-    pG->Pl_cdir_y = pAot->Next_cdir_y;
-    pG->Pl_nFloor = pAot->Next_nfloor;
+    pG->Player.Pos_x = pG->Player.Old_x = pAot->Next_pos_x;
+    pG->Player.Unk122 = pG->Player.Pos_y = pG->Player.Old_y = pAot->Next_pos_y;
+    pG->Player.Pos_z = pG->Player.Old_z = pAot->Next_pos_z;
+    pG->Player.Cdir_y = pAot->Next_cdir_y;
+    pG->Player.nFloor = pAot->Next_nfloor;
     n = pAot->Next_cut;
     pG->Next_cut_no = n;
     pG->Cut_no_old = pG->Unk7840 + (pG->Unk783E + 1) * 0x100;
@@ -280,12 +278,12 @@ void func_80024B34(void)
     pG = &G;
     pMain = &Main;
     pGame = &Game;
-    pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
+    pPl = PLAYER_EM(pG);
     pSave = pGame->pSave;
     func_800100A4(&pG->Game_time, pSave, 0x708);
-    pPl->Pos_x = pPl->Unk40[0] = pSave->Pos_x;
-    pPl->Pos_y = pPl->Unk40[1] = pSave->Pos_y;
-    pPl->Pos_z = pPl->Unk40[2] = pPl->Unk122 = pSave->Pos_z;
+    pPl->Pos_x = pPl->Old_x = pSave->Pos_x;
+    pPl->Pos_y = pPl->Old_y = pSave->Pos_y;
+    pPl->Pos_z = pPl->Old_z = pPl->Unk122 = pSave->Pos_z;
     pPl->nFloor = pSave->Pos_y / -1800;
     pPl->Cdir_y = pSave->Cdir_y;
     pPl->Life = pSave->Life;

@@ -48,18 +48,18 @@ void Sce_at(void)
     ENEMY_WORK **ppEw;
     OBJ_MODEL_WORK *pOm_end;
 
-    if (G.Pl_life < 0) {
+    if (G.Player.Life < 0) {
         return;
     }
-    G.Pl_water = 0;
+    G.Player.Water = 0;
     D_800DECAC = 0;
-    if (G.Pl_damage_cnt != 0 || Game.Unk1 != 0) {
+    if (G.Player.Damage_cnt != 0 || Game.Unk1 != 0) {
         G.Status_flg &= ~0x800000;
     }
     if (G.Status_flg & 0x800000) {
-        Sce_at_check(&G.Pl_be_flg, 1, 0x10);
+        Sce_at_check(&G.Player, 1, 0x10);
     }
-    Sce_at_check(&G.Pl_be_flg, 1, 0);
+    Sce_at_check(&G.Player, 1, 0);
     for (ppEw = &G.pEnemy[2]; ppEw != G.ppEnemy_end; ppEw++) {
         pEw = *ppEw;
         if (pEw->Be_flg & 1) {
@@ -214,8 +214,8 @@ ULONG Sce_Item(void *pAot)
     G.pUnk21DC = pAot;
     G.pAot_data = pCAot;
     if ((((UCHAR *)pAot)[7] & 1) != 0) {
-        G.Pl_routine_1 = 8;
-        G.Pl_routine_2 = 0;
+        G.Player.Routine_1 = 8;
+        G.Player.Routine_2 = 0;
         return 1;
     }
     if (((UCHAR *)pAot)[4] >= 0xF8) {
@@ -416,7 +416,7 @@ ULONG Sce_Hikidashi(void *pAot)
 
     pG = &G;
     pDat = (USHORT *)pAot;
-    if (pG->Front_func == NULL && pG->Pl_damage_cnt == 0 && !(pG->Status_flg & 0x300)
+    if (pG->Front_func == NULL && pG->Player.Damage_cnt == 0 && !(pG->Status_flg & 0x300)
         && pG->Next_cut_no == pG->Cut_no) {
         if (pG->Unk783E < 2) {
             pFlg = pG->Unk78D0;
@@ -558,7 +558,7 @@ ULONG Sce_Damage(void *pAot)
 /* RE2 Sce_Door */
 ULONG func_80051CB0(void *pAot)
 {
-    if ((G.Status_flg & 0x400000) == 0 && G.Pl_damage_cnt == 0 && (G.Status_flg & 0x100) == 0 &&
+    if ((G.Status_flg & 0x400000) == 0 && G.Player.Damage_cnt == 0 && (G.Status_flg & 0x100) == 0 &&
         (D_800DBB58 & 0xC0) == 0) {
         Game.Doordemo_flg = 1;
         G.pSce_aot_on = pAot;
@@ -588,10 +588,10 @@ void func_80051D60(void)
     case 1:
         if ((Moji.Mess_flg & 0x80) == 0) {
             if (pG->Unk7848 == 0) {
-                *(ULONG *)&pG->Pl_routine_0 = 1;
+                *(ULONG *)&pG->Player.Routine_0 = 1;
                 pG->Unk2468 = Game.Stop_bak;
-                if (pG->Pl_status_flg & 0x200) {
-                    pG->Pl_status_flg &= ~0x200;
+                if (pG->Player.Status_flg & 0x200) {
+                    pG->Player.Status_flg &= ~0x200;
                     Mess_set(0, 0, 8, 0xff000000);
                 } else {
                     Mess_set(0, 0, 9, 0xff000000);

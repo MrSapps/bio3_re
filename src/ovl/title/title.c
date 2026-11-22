@@ -595,7 +595,7 @@ void func_801952D8(TITLE_WORK *pTi)
 /* start the game with the sound bank of the player */
 void func_801954D0(TITLE_WORK *pTi)
 {
-    switch (G.Pl_id) {
+    switch (G.Player.Id) {
     case 0:
     case 1:
     case 2:
@@ -873,7 +873,7 @@ void func_80195C68(TITLE_WORK *pTi)
         func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
         func_8007906C();
         G.Pl_poison_timer = 0;
-        G.Pl_status_flg &= ~0x200;
+        G.Player.Status_flg &= ~0x200;
         Task_lexecute(1, 6);
         Task_sleep(1);
     } else {
@@ -1038,7 +1038,7 @@ void func_801966CC(TITLE_WORK *pTi)
     }
     Cd_read(Title_pdemo_cd[Game.Unk4F], (ULONG *)0x80192000, 0, "Pdemo");
     Game.pSave = (SAVE_POS *)0x80192000;
-    G.Pl_id = Game.pSave->Id;
+    G.Player.Id = Game.pSave->Id;
     if (++Game.Unk4F >= 3) {
         Game.Unk4F = 0;
     }
@@ -1183,10 +1183,10 @@ start:
     G.Merc_grade[i] = 0xFF;
     G.Merc_money[i] = 0;
     G.Pl_poison_timer = 0;
-    G.pEnemy[0] = (ENEMY_WORK *)&G.Pl_be_flg;
-    G.Pl_status_flg &= ~0x200;
+    G.pEnemy[0] = G_PLAYER;
+    G.Player.Status_flg &= ~0x200;
     G.Next_cut_no = G.Cut_no;
-    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    pPl = G_PLAYER;
     switch (pTi->Cur) {
     case 0:
         Task_lexecute(1, 5);
@@ -1198,13 +1198,13 @@ start:
         Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
         pPl->Life = 200;
         pPl->Max_life = 200;
-        pPl->Unk40[0] = 0x33CE;
+        pPl->Old_x = 0x33CE;
         pPl->Pos_x = 0x33CE;
-        pPl->Unk40[2] = -0x30F9;
+        pPl->Old_z = -0x30F9;
         pPl->Pos_z = -0x30F9;
         pPl->Unk122 = 0;
         pPl->Cdir_y = 0x720;
-        pPl->Unk40[1] = 0;
+        pPl->Old_y = 0;
         pPl->Pos_y = 0;
         pPl->Status_flg = 0;
         pG->Unk783E = 0;
@@ -1221,12 +1221,12 @@ start:
     case 1:
         pPl->Life = 200;
         pPl->Max_life = 200;
-        pPl->Unk40[0] = -0x36A4;
+        pPl->Old_x = -0x36A4;
         pPl->Pos_x = -0x36A4;
-        pPl->Unk40[2] = -0x481B;
+        pPl->Old_z = -0x481B;
         pPl->Pos_z = -0x481B;
         pPl->Cdir_y = 0xB58;
-        pPl->Unk40[1] = 0;
+        pPl->Old_y = 0;
         pPl->Pos_y = 0;
         pPl->Unk122 = 0;
         pPl->nFloor = 0;
@@ -1244,12 +1244,12 @@ start:
     case 2:
         pPl->Life = 200;
         pPl->Max_life = 200;
-        pPl->Unk40[0] = -0x286;
+        pPl->Old_x = -0x286;
         pPl->Pos_x = -0x286;
-        pPl->Unk40[2] = -0x4065;
+        pPl->Old_z = -0x4065;
         pPl->Pos_z = -0x4065;
         pPl->Cdir_y = 0xB4B;
-        pPl->Unk40[1] = 0;
+        pPl->Old_y = 0;
         pPl->Pos_y = 0;
         pPl->Unk122 = 0;
         pPl->nFloor = 0;
@@ -1267,12 +1267,12 @@ start:
     case 3:
         pPl->Life = 200;
         pPl->Max_life = 200;
-        pPl->Unk40[0] = -0x47EF;
+        pPl->Old_x = -0x47EF;
         pPl->Pos_x = -0x47EF;
-        pPl->Unk40[2] = -0x58D0;
+        pPl->Old_z = -0x58D0;
         pPl->Pos_z = -0x58D0;
         pPl->Cdir_y = 0x4A8;
-        pPl->Unk40[1] = 0;
+        pPl->Old_y = 0;
         pPl->Pos_y = 0;
         pPl->Unk122 = 0;
         pPl->nFloor = 0;

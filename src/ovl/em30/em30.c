@@ -74,11 +74,11 @@ void func_801000AC(ENEMY_WORK *pEm)
         }
         y = pEm->Pos_y;
         if (y < 0) {
-            pEm->Col_unk26 = -y;
-            pEm->Col_h = 800 - y;
+            pEm->Col.Unk26 = -y;
+            pEm->Col.H = 800 - y;
         } else {
-            pEm->Col_unk26 = 0;
-            pEm->Col_h = 800;
+            pEm->Col.Unk26 = 0;
+            pEm->Col.H = 800;
         }
     } else {
         pG = &G;
@@ -100,19 +100,19 @@ void func_801000AC(ENEMY_WORK *pEm)
         else if (pEm->Damage_cnt & 0x7F)
             pEm->Damage_cnt--;
         M = GsIDMATRIX;
-        MulMatrix2(pEm->pCol_m, &M);
-        pEm->Col_unk26 = 0;
-        ApplyMatrix(&M, (SVECTOR *)&pEm->Col_unk24, &Out);
-        y = pEm->pCol_m->t[1] + Out.vy;
+        MulMatrix2(pEm->Col.pM, &M);
+        pEm->Col.Unk26 = 0;
+        ApplyMatrix(&M, (SVECTOR *)&pEm->Col.Unk24, &Out);
+        y = pEm->Col.pM->t[1] + Out.vy;
         if (y < 0) {
-            pEm->Col_unk26 = -y;
-            pEm->Col_h = 800 - y;
+            pEm->Col.Unk26 = -y;
+            pEm->Col.H = 800 - y;
         } else {
-            pEm->Col_h = 800;
+            pEm->Col.H = 800;
         }
-        pEm->Pos_x = pEm->Col_pos_x;
-        pEm->Pos_y = pEm->Col_pos_y;
-        pEm->Pos_z = pEm->Col_pos_z;
+        pEm->Pos_x = pEm->Col.Pos_x;
+        pEm->Pos_y = pEm->Col.Pos_y;
+        pEm->Pos_z = pEm->Col.Pos_z;
     }
     func_8010682C(pEm);
     func_80106130(pEm);
@@ -154,7 +154,7 @@ void func_80100544(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Kage_work_set(&pEm->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pBody->Workm.t);
     pEm->Be_flg |= 0x9000;
     pEm->Status_flg |= 0x100;
-    pCol = EM_COL(pEm);
+    pCol = &pEm->Col;
     pCol->W0 = pCol->D0 = 1100;
     pCol->Unk24 = 400;
     pCol->pEm = pEm;
@@ -172,7 +172,7 @@ void func_80100544(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Neck_no = 8;
     pEm->Unk140 = 0;
     pEm->Unk120 = 0;
-    EM30_W(pEm)->Unk0E = pEm->Col_id |= 0x80;
+    EM30_W(pEm)->Unk0E = pEm->Col.Id |= 0x80;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[8];
     PW_FREE(pP)[2] = 0x40;
@@ -259,7 +259,7 @@ void func_80100B34(ENEMY_WORK *pSub, LONG No, ENEMY_WORK *pEm, LONG Parts_no)
 {
     COL_OBJ *pCol;
 
-    pCol = EM_COL(pSub);
+    pCol = &pSub->Col;
     pSub->Type = 1;
     pSub->Unk16B = 0;
     pSub->Unk16A = 0;
@@ -345,7 +345,7 @@ void func_80100DBC(ENEMY_WORK *pEm)
             EM_RTN(pEm) = 0x401;
         }
     }
-    if ((Pl_work.UnkBA & 0x3FFF) || (LONG)pEm->Unk154 < 1200) {
+    if ((Pl_work.Col.Unk3A & 0x3FFF) || (LONG)pEm->Unk154 < 1200) {
         EM30_W(pEm)->Unk1A++;
         if (EM30_W(pEm)->Unk04 >= 2)
             EM30_W(pEm)->Unk04 -= 2;
@@ -2164,7 +2164,7 @@ void func_80106130(ENEMY_WORK *pEm)
         pEm->Unk16B = 0;
     case 2:
         Sv.vx = 0;
-        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Pl_pos_x, G.Pl_pos_z);
+        Sv.vy = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z);
         Sv.vz = 0;
         RotMatrix(&Sv, &M);
         Sv.vx = -(pEm->Unk16B * 120);
@@ -2585,15 +2585,15 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
         }
     }
-    if (pEm->Pos_y > 1100 && pEm->Col_id) {
-        pEm->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Col_id = 0;
-        G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Col_id = 0;
+    if (pEm->Pos_y > 1100 && pEm->Col.Id) {
+        pEm->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Col.Id = 0;
+        G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Col.Id = 0;
     }
     if (pEm->Pos_y < 1400) {
         pEm->Pos_y = pEm->Pos_y < 1000 ? pEm->Pos_y + 6 : pEm->Pos_y + 2;
@@ -2704,7 +2704,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y = 0x98B;
         pEm->UnkE2 = 0;
         pEm->Routine_2++;
-        func_80034124(EM_COL(pEm));
+        func_80034124(&pEm->Col);
     case 2:
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x80);
         if (!EM30_W(pEm)->Unk13)
@@ -2811,15 +2811,15 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Routine_2 >= 4) {
         if (pEm->Pos_y < 600)
             Em_dead_flg_on_cand(pEm);
-        if (pEm->Pos_y < 900 && pEm->Col_id) {
-            pEm->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Col_id = 0;
-            G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Col_id = 0;
+        if (pEm->Pos_y < 900 && pEm->Col.Id) {
+            pEm->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[8].Unk82]->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[1].Unk82]->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[2].Unk82]->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[3].Unk82]->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[4].Unk82]->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[5].Unk82]->Col.Id = 0;
+            G.pEnemy[pEm->pSin_parts_ptr[6].Unk82]->Col.Id = 0;
         }
         if (pEm->Pos_y < 1400) {
             pEm->Pos_y += 2;

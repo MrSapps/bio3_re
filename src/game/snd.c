@@ -1396,7 +1396,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
             s.vz = 0;
             t.vy = 0;
             t.vz = 0;
-            func_8001B484(0xE, (USHORT)G.Pl_cdir_y | 0x10000000, &pP->Workm, &s, &t);
+            func_8001B484(0xE, (USHORT)G.Player.Cdir_y | 0x10000000, &pP->Workm, &s, &t);
         } else {
             pP--;
             s.vy = pEm->Water - pP->Workm.t[1];
@@ -1421,17 +1421,17 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
                 s.vy += 100;
                 if (kind == 0) {
                     s.vx = -100;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
                 }
                 if (kind == 1) {
                     s.vx = -300;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0x15000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x800) & 0xFFFF) | 0x15000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y + 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
                 }
             } else {
                 if (s.vy < 1200 && pEm->Id < 0x10) {
@@ -1446,17 +1446,17 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
                 }
                 if (kind == 0) {
                     s.vx = -200;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
                 }
                 if (kind == 1) {
                     s.vx = -600;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0x17000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x800) & 0xFFFF) | 0x17000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
-                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y - 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Player.Cdir_y + 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
                 }
             }
         }

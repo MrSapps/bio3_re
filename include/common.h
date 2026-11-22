@@ -26,6 +26,9 @@ typedef void VOID;
 #define NULL ((void *)0)
 #endif
 
+/* compile-time check (C89: a negative array size stops the build, no code is emitted) */
+#define STATIC_ASSERT(name, cond) typedef char static_assert_##name[(cond) ? 1 : -1]
+
 /* Scratchpad (0x1F800000, 1 KiB) */
 #define ScratchPad ((UCHAR *)0x1F800000)
 

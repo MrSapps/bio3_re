@@ -12,7 +12,6 @@
 
 #define RND() ((signed char)func_800102E8())
 
-#define PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
 
@@ -20,7 +19,7 @@ void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 lo
 void Set_room(void)
 {
     tagGLOBAL *pG = &G;
-    ENEMY_WORK *pPl = PLAYER;
+    ENEMY_WORK *pPl = G_PLAYER;
     ROOM_WORK *pRoom;
     ENEMY_WORK **ppEm;
     ULONG **ppAdr;
@@ -42,12 +41,12 @@ void Set_room(void)
     pRoom = pG->pRoom;
     Kage_work_init();
     Kage_work9_init();
-    func_80010150(pG->Sub_work, 0x1FC);
+    func_80010150(&pG->Sub_work, sizeof(ENEMY_WORK));
     ppEm = &pG->pEnemy[1];
     pG->ppEnemy_end = &pG->pEnemy[2];
     pG->Em_num = 0;
     for (i = 41; i > 0; i--) {
-        *ppEm++ = (ENEMY_WORK *)pG->Sub_work;
+        *ppEm++ = &pG->Sub_work;
     }
     pG->Em_bin_info[0].Id = 0xFF;
     pG->Em_bin_info[1].Id = 0xFF;
@@ -167,8 +166,8 @@ void func_800498F0(void)
         pKan = (ULONG *)(pEdd + pOfs[0]);
         Bits = *pKan;
         if (Bits & 1) {
-            G.Pl_pUnk100_kan_t_ptr = pKan + 1;
-            G.Pl_pUnk104_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
+            G.Player.pUnk100_kan_t_ptr = pKan + 1;
+            G.Player.pUnk104_seq_t_ptr = (ULONG *)(pEdd + pOfs[1]);
         }
         for (Bits >>= 1; Bits != 0; Bits >>= 1, No++) {
             if (Bits & 1) {
@@ -208,7 +207,7 @@ void Em_init_move(void)
     } else {
         Stop_save = 0;
     }
-    func_80038F98(PLAYER);
+    func_80038F98(G_PLAYER);
     ppEm = &G.pEnemy[1];
     if (G.ppEnemy_end != ppEm) {
         do {

@@ -83,20 +83,14 @@ typedef struct tagEM33_SABUN {
 } EM33_SABUN;
 #define EM33_SABUN_P(pP) ((EM33_SABUN *)(pP)->pUnk98)
 
-/* the player work is followed by the work list (G.pEnemy[0], G.pEnemy[1], G.pEnemy[]) */
+/* the player work as G lays it out, followed by the work list: em33 reaches G.pEnemy[] from
+   pPl = &Pl_work (one base register; G.pEnemy itself is a second address) */
 typedef struct tagEM33_PL {
-    UCHAR Pl[0x1D0];                   /* Pl_work */
-    ENEMY_WORK *pWork[42];             /* 0x1D0 = G + 0x265C */
+    PLAYER_WORK Player;                /* Pl_work = G.Player */
+    SHORT Pl_poison_timer;             /* 0x1CC G.Pl_poison_timer */
+    UCHAR pad1CE[0x1D0 - 0x1CE];
+    ENEMY_WORK *pWork[42];             /* 0x1D0 = G.pEnemy */
 } EM33_PL;
-
-/* G viewed with the player work inside it (RE2 G.Player, = Pl_work) */
-typedef struct tagEM33_GPL {
-    UCHAR pad0[0x248C];
-    ENEMY_WORK Player;                 /* 0x248C Pl_work */
-    UCHAR pad_pl[0x7888 - 0x248C - sizeof(ENEMY_WORK)];
-    ULONG Flg7888;                     /* 0x7888 G.Unk7888 */
-} EM33_GPL;
-extern EM33_GPL G_pl __asm__("G");
 
 /* Spd_z by Move_cnt / 10 while surfacing (copied to the stack as one block) */
 typedef struct tagEM33_SPD_TBL {

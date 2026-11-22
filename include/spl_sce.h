@@ -11,7 +11,7 @@ extern SHORT D_8009EDF4[];
 extern SHORT D_8009EE1C[];
 extern void (*D_8009EE44[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern void (*D_8009EEA4[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern SHORT D_8009EEC8[]; /* direction by Col_unk39 & 7 */
+extern SHORT D_8009EEC8[]; /* direction by Col.Unk39 & 7 */
 extern ULONG D_800D1FC0[];
 
 void Spl_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

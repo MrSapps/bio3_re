@@ -1423,7 +1423,7 @@ void func_80067C14(ST_WORK *pSt)
                             pSt->Flg &= ~0x20000000;
                             return;
                         }
-                        Pl_wep_eff_parts_init((PLAYER_WORK *)&pG->Pl_be_flg);
+                        Pl_wep_eff_parts_init(PLAYER_EM(pG));
                         func_80046C90();
                     } else {
                         Mess_set(0, 0x1000, 10, 0);
@@ -1489,7 +1489,7 @@ void func_80068AB4(ST_WORK *pSt)
     if (!(D_800DBB58 & 0x80)) {
         switch (G.Unk7848) {
         case 0:
-            Pl_wep_eff_parts_init((PLAYER_WORK *)&G.Pl_be_flg);
+            Pl_wep_eff_parts_init(G_PLAYER);
             func_80046C90();
             func_80068024(pSt);
             break;
@@ -2446,7 +2446,7 @@ void func_8006AE90(ST_WORK *pSt)
     c = pSt->UnkD0;
     func_8006E600(pSt, (void *)0x801AC000, D_8009F890, (c << 8) | 2);
     func_8006E600(pSt, (void *)0x801AC1B8, D_8009F8CC, (c << 8) | 5);
-    switch (G.Pl_id) {
+    switch (G.Player.Id) {
     case 8:
     case 9:
     case 10:
@@ -3032,7 +3032,7 @@ signed char func_8006CF0C(UCHAR f)
         }
         p->Num = num + n;
         func_8006CCF0(no, n, 0);
-        pG->Pl_status_flg |= 0x400;
+        pG->Player.Status_flg |= 0x400;
     }
     return 0;
 }
@@ -3120,7 +3120,7 @@ void func_8006D0D8(void)
             pS = D_800A01B4[j];
             break;
         case 2:
-            switch (G.Pl_id) {
+            switch (G.Player.Id) {
             case 8:
                 pS = D_800A01E4;
                 break;
@@ -3236,7 +3236,7 @@ void func_8006D720(void)
     LONG pad[2];
 
     if (Flg_ck(&G.System_flg, 0x18)) {
-        switch (G.Pl_id) {
+        switch (G.Player.Id) {
         case 8:
             Cd_read(0x5A, (ULONG *)0x801B1500, 0, "STMAIN1.TIM");
             break;
@@ -3297,7 +3297,7 @@ void func_8006D948(ST_WORK *pSt)
     Bg_set_mode(1, 0x80808);
     func_80038634(0xF00C, 0x60A);
     D_800D442C = 1;
-    pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
+    pPl = PLAYER_EM(pG);
     if (pSt->Unk2E) {
         pSt->Unk2E = 0;
         pG->pUnk7C7C->Unk128 = pSt->Unk2F;
@@ -3343,7 +3343,7 @@ void func_8006D948(ST_WORK *pSt)
     pSt->Unk3C = 0;
     pSt->Unk3D = 0;
     pSt->Unk28 = pG->pUnk7C7C->Unk129;
-    pSt->Unk29 = pG->Pl_id;
+    pSt->Unk29 = pG->Player.Id;
     pSt->Unk32 = 0;
     pSt->Unk22 = 0;
     pSt->Unk24 = 0;
@@ -3530,7 +3530,7 @@ void func_8006E0A4(ST_WORK *pSt)
     }
     pSt->St_type = 0;
     pSt->UnkB8 = 0;
-    pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
+    pPl = PLAYER_EM(pG);
     if (pSt->Unk28 != pG->pUnk7C7C->Unk129) {
         pSt->Unk28 = pG->pUnk7C7C->Unk129;
         pPl->Type &= 0xFF00;
@@ -3650,8 +3650,8 @@ void func_8006E4CC(ST_WORK *pSt)
 
 LONG func_8006E598(void)
 {
-    USHORT f = G.Pl_status_flg;
-    LONG l = G.Pl_life;
+    USHORT f = G.Player.Status_flg;
+    LONG l = G.Player.Life;
 
     if (f & 0x100) {
         return 5;
@@ -3965,16 +3965,16 @@ void func_8006ED98(ST_WORK *pSt)
             }
         } else {
             pRoom = (ST_MAP_ROOM *)pSt->pUnkB4;
-            x = G.Pl_pos_x;
-            z = G.Pl_pos_z;
+            x = G.Player.Pos_x;
+            z = G.Player.Pos_z;
             pRoom = (ST_MAP_ROOM *)((UCHAR *)pRoom + *(ULONG *)pRoom);
             pRoom += pSt->UnkAC;
             if (G.Unk783E == 1 && G.Unk7840 == 15 && x >= -0x2276) {
                 x += 0x251D;
             }
-            if (G.Unk783E == 3 && G.Unk7840 == 21 && G.Pl_pos_x >= 800) {
-                x = G.Pl_pos_x - 0x2328;
-                z = G.Pl_pos_z;
+            if (G.Unk783E == 3 && G.Unk7840 == 21 && G.Player.Pos_x >= 800) {
+                x = G.Player.Pos_x - 0x2328;
+                z = G.Player.Pos_z;
             }
             pSt->Unk7C = -(pRoom->X0 + (x - pRoom->X1) / 450);
             pSt->Unk80 = (z - pRoom->Z1) / 450 - pRoom->Z0;
@@ -3983,7 +3983,7 @@ void func_8006ED98(ST_WORK *pSt)
     }
     for (i = 0, pF = (POLY_FT4 *)0x801AFE80; i < 2; i++, pF++) {
         setPolyFT4(pF);
-        u = ((USHORT)(G.Pl_cdir_y + 0x100) >> 6) & 0x38;
+        u = ((USHORT)(G.Player.Cdir_y + 0x100) >> 6) & 0x38;
         pF->v0 = 0xF0;
         pF->v1 = 0xF0;
         pF->v2 = 0xF8;
@@ -4409,14 +4409,14 @@ void func_80070244(ST_WORK *pSt)
         pRm = (SHORT *)pSt->pUnkB4;
         pRm = (SHORT *)((UCHAR *)pRm + *(ULONG *)pRm);
         pRm += pSt->UnkAC * 4;
-        px = G.Pl_pos_x;
-        pz = G.Pl_pos_z;
+        px = G.Player.Pos_x;
+        pz = G.Player.Pos_z;
         if (G.Unk783E == 1 && G.Unk7840 == 0xF && px >= -0x2276) {
             px += 0x251D;
         }
-        if (G.Unk783E == 3 && G.Unk7840 == 0x15 && G.Pl_pos_x >= 0x320) {
-            px = G.Pl_pos_x - 0x2328;
-            pz = G.Pl_pos_z;
+        if (G.Unk783E == 3 && G.Unk7840 == 0x15 && G.Player.Pos_x >= 0x320) {
+            px = G.Player.Pos_x - 0x2328;
+            pz = G.Player.Pos_z;
         }
         dx = pRm[0] + (px - pRm[2]) / 450;
         dy = pRm[1] - (pz - pRm[3]) / 450;
@@ -4708,7 +4708,7 @@ LONG func_80071878(UCHAR st, UCHAR rm, UCHAR cut)
     tagGLOBAL *pG = &G;
     UCHAR *p = (UCHAR *)St.pUnkB4;
     USHORT cur = St.UnkAC | (St.UnkAA << 8);
-    UCHAR fl = pG->Pl_nFloor;
+    UCHAR fl = pG->Player.nFloor;
     ULONG *pF0 = pG->Unk78D0;
     ULONG *pF2 = pG->Unk7868;
     ULONG *pF1 = G.Unk78F0;
@@ -5301,7 +5301,7 @@ LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR cut)
             return 5;
         }
         if (rm == 0xC && pSt->UnkAC == rm) {
-            if (G.Pl_pos_x < -0x2D6E) {
+            if (G.Player.Pos_x < -0x2D6E) {
                 if (cut == 1) {
                     return 0;
                 }
@@ -5476,7 +5476,7 @@ LONG func_80072AEC(UCHAR st, UCHAR rm, UCHAR cut)
 LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR cut)
 {
     tagGLOBAL *pG = &G;
-    UCHAR fl = pG->Pl_nFloor;
+    UCHAR fl = pG->Player.nFloor;
     LONG cur = St.UnkAC | (St.UnkAA << 8);
     UCHAR f = Flg_ck(pG->Unk79EC, st);
     ULONG *pF4 = &G.Unk7888;
@@ -5972,11 +5972,11 @@ void func_80073CCC(UCHAR *pA, UCHAR *pB)
 {
     LONG i;
 
-    if (*pA == 1 && *pB == 15 && G.Pl_pos_x >= -0x2276) {
+    if (*pA == 1 && *pB == 15 && G.Player.Pos_x >= -0x2276) {
         *pB = 16;
         return;
     }
-    if (*pA == 3 && *pB == 21 && G.Pl_pos_x >= 800) {
+    if (*pA == 3 && *pB == 21 && G.Player.Pos_x >= 800) {
         *pB = 0x11;
         return;
     }
@@ -5984,7 +5984,7 @@ void func_80073CCC(UCHAR *pA, UCHAR *pB)
         *pB = 0x11;
         return;
     }
-    if (*pA == 2 && *pB == 0x17 && G.Pl_pos_z >= -0x2C24 && !Flg_ck(G.Unk7868, 200)) {
+    if (*pA == 2 && *pB == 0x17 && G.Player.Pos_z >= -0x2C24 && !Flg_ck(G.Unk7868, 200)) {
         *pB = 2;
     }
     if (*pA >= 5) {

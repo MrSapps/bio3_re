@@ -350,7 +350,7 @@ LONG func_801C3344(RESULT_WORK *pWk)
     func_801C62B0(&D_801C6D60[22], 2);
     func_801C62B0(&D_801C6D60[23], 2);
     func_801C62B0(&D_801C6D60[24], 2);
-    switch (pG->Pl_id) {
+    switch (pG->Player.Id) {
     case 8:
         Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2010);
         break;
@@ -714,7 +714,7 @@ void func_801C473C(RESULT_WORK *pWk)
     func_801C62B0(&D_801C6D60[22], 2);
     func_801C62B0(&D_801C6D60[23], 2);
     func_801C62B0(&D_801C6D60[24], 2);
-    switch (pG->Pl_id) {
+    switch (pG->Player.Id) {
     case 8:
         Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2010);
         break;

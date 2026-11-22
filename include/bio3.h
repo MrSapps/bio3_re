@@ -124,9 +124,203 @@ typedef struct tagEM_BIN_INFO {
     USHORT Use;                        /* 0x2 set once loaded */
 } EM_BIN_INFO;
 
+/* collision object: one node of the OBA.C collision list, embedded in every ENEMY_WORK at 0x80 (Col) */
+typedef struct tagCOL_OBJ {
+    UCHAR Id;                          /* 0x00 */
+    UCHAR Flg;                         /* 0x01 */
+    UCHAR Type;                        /* 0x02 0 = player, < 3 = character */
+    UCHAR Unk3;                        /* 0x03 (RE2 At_em_no: 0xFF = touching no work) */
+    struct tagENEMY_WORK *pEm;         /* 0x04 owner */
+    LONG Pos_x;                        /* 0x08 */
+    LONG Pos_y;                        /* 0x0C */
+    LONG Pos_z;                        /* 0x10 */
+    SHORT Old_x;                       /* 0x14 */
+    SHORT Old_y;                       /* 0x16 */
+    SHORT Old_z;                       /* 0x18 */
+    USHORT W0;                         /* 0x1A radius / half width */
+    USHORT D0;                         /* 0x1C half depth */
+    USHORT H;                          /* 0x1E */
+    USHORT W1;                         /* 0x20 */
+    USHORT D1;                         /* 0x22 */
+    SHORT Unk24;                       /* 0x24 */
+    SHORT Unk26;                       /* 0x26 */
+    SHORT Unk28;                       /* 0x28 */
+    SHORT Unk2A;                       /* 0x2A */
+    SHORT Unk2C;                       /* 0x2C (em20 reads it with Hit_flg as one word, RE2 Sca_info) */
+    USHORT Hit_flg;                    /* 0x2E 0x100: pushed along a slope */
+    MATRIX *pM;                        /* 0x30 (em30 sub-works: matrix of the followed part) */
+    struct tagCOL_OBJ *pNext;          /* 0x34 */
+    UCHAR Em_idx;                      /* 0x38 */
+    signed char Unk39;                 /* 0x39 (em10 pldm00 passes it to func_8002646C) */
+    USHORT Unk3A;                      /* 0x3A bits of the works hit (RE2 At_em_flg, em10 pldm00) */
+    struct tagSCA_DATA *pSca_hit_data; /* 0x3C RE2 pSca_hit_data (wall hit by Sca_ck_em) */
+} COL_OBJ;
+
+/* enemy work (RE2 struct tagENEMY_WORK; RE3 layout differs: no pTmd2/pPacket2, no dummy00).
+ * The player is the first 0x1CC bytes of one (PLAYER_WORK, G.Player): EM_WORK_HEAD lists those
+ * members once for both structs; code passes the player as (ENEMY_WORK *) like RE2 does. */
+#define EM_WORK_HEAD \
+    ULONG Be_flg;                      /* 0x000 */                            \
+    UCHAR Routine_0;                   /* 0x004 */                            \
+    UCHAR Routine_1;                   /* 0x005 */                            \
+    UCHAR Routine_2;                   /* 0x006 */                            \
+    UCHAR Routine_3;                   /* 0x007 */                            \
+    UCHAR Parts_num;                   /* 0x008 RE3 moved it here (PartsWork_set) */ \
+    signed char nFloor;                /* 0x009 RE2 nFloor (Pos_y / -1800) */ \
+    SHORT Water;                       /* 0xA RE2 Water (Sce_Water) */        \
+    UCHAR UnkC;                        /* 0x00C */                            \
+    UCHAR UnkD;                        /* 0x00D */                            \
+    UCHAR padE[0x10 - 0xE];                                                   \
+    ULONG Attribute;                   /* 0x010 RE2 Attribute */              \
+    ULONG *pTmd;                       /* 0x014 RE2 pTmd: MD file, then (+8) its objects, n_obj at [-1] */ \
+    UCHAR pad18[0x20 - 0x18];                                                 \
+    SHORT Workm_m[3][3];               /* 0x020 RE2 Workm.m (Workm.t is Pos_x..Pos_z) */ \
+    UCHAR pad32[0x34 - 0x32];                                                 \
+    LONG Pos_x;                        /* 0x034 */                            \
+    LONG Pos_y;                        /* 0x038 */                            \
+    LONG Pos_z;                        /* 0x03C */                            \
+    SHORT Old_x;                       /* 0x040 RE2 Old_x: position of the last frame (func_80024B34) */ \
+    SHORT Old_y;                       /* 0x042 */                            \
+    SHORT Old_z;                       /* 0x044 */                            \
+    USHORT Type;                       /* 0x046 low byte = player weapon (RE2 Type & 0xfff) */ \
+    UCHAR Tpage;                       /* 0x048 RE2 Tpage */                  \
+    UCHAR Clut;                        /* 0x049 RE2 Clut */                   \
+    UCHAR Id;                          /* 0x04A enemy kind (0x10+ for enemies, Pl_Em_damage indexes by Id - 0x10) */ \
+    UCHAR Unk4B;                       /* 0x4B */                             \
+    MATRIX Super_matrix;               /* 0x04C RE2 Super_matrix (em10 Kahannsin_walk: lower half on its own) */ \
+    SHORT Cdir_x;                      /* 0x06C */                            \
+    SHORT Cdir_y;                      /* 0x06E */                            \
+    SHORT Cdir_z;                      /* 0x070 */                            \
+    USHORT dummy01;                    /* 0x072 */                            \
+    ULONG Poly_rgb;                    /* 0x074 */                            \
+    MATRIX *pSuper;                    /* 0x078 */                            \
+    ULONG *pUnk7C;                     /* 0x07C ordering table of the work (func_80037C38) */ \
+    COL_OBJ Col;                       /* 0x080 collision node (OBA.C) */     \
+    SHORT Spd_x;                       /* 0x0C0 */                            \
+    SHORT Spd_y;                       /* 0x0C2 */                            \
+    SHORT Spd_z;                       /* 0x0C4 */                            \
+    UCHAR UnkC6;                       /* 0xC6 */                             \
+    UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (func_800445C8) */ \
+    UCHAR Move_no;                     /* 0x0C8 */                            \
+    UCHAR Move_cnt;                    /* 0x0C9 */                            \
+    UCHAR UnkCA;                       /* 0x0CA joint interpolation rate (func_8002B190) */ \
+    UCHAR padCB;                                                              \
+    SHORT Life;                        /* 0x0CC */                            \
+    SHORT Max_life;                    /* 0x0CE */                            \
+    SHORT Size;                        /* 0x0D0 RE2 Size (uniform scale, Be_flg 0x100000) */ \
+    USHORT Status_flg;                 /* 0x0D2 player: 0x200 poisoned (Pl_move), 0x800 cleared by Pl_life_up */ \
+    SHORT Dest_x;                      /* 0x0D4 target x (Goto00/Goto01 helpers) */ \
+    SHORT Dest_z;                      /* 0x0D6 target z */                   \
+    SHORT Timer0;                      /* 0x0D8 */                            \
+    SHORT UnkDA;                       /* 0xDA */                             \
+    SHORT Base_pos_x;                  /* 0x0DC */                            \
+    SHORT Base_pos_y;                  /* 0x0DE */                            \
+    SHORT Base_pos_z;                  /* 0x0E0 */                            \
+    s8 UnkE2;                          /* 0xE2 */                             \
+    signed char UnkE3;                 /* 0xE3 RE2 Timer3 (lb in em10) */     \
+    USHORT *pNow_seq;                  /* 0x0E4 */                            \
+    ULONG *pKan_t_ptr;                 /* 0x0E8 RE3 moved it here (RE2: after Parts_num) */ \
+    ULONG *pSeq_t_ptr;                 /* 0x0EC */                            \
+    ULONG *pSub0_kan_t_ptr;            /* 0x0F0 */                            \
+    ULONG *pSub0_seq_t_ptr;            /* 0x0F4 */                            \
+    ULONG *pSub1_kan_t_ptr;            /* 0x0F8 */                            \
+    ULONG *pSub1_seq_t_ptr;            /* 0x0FC */                            \
+    ULONG *pUnk100_kan_t_ptr;          /* 0x100 */                            \
+    ULONG *pUnk104_seq_t_ptr;          /* 0x104 */                            \
+    struct tagPARTS_W *pSin_parts_ptr; /* 0x108 */                            \
+    ULONG *pUnk10C;                    /* 0x10C base kan of the part tree (func_800261AC) */ \
+    struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */                            \
+    struct tagENEMY_WORK *pUnk114;     /* 0x114 */                            \
+    ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */ \
+    ULONG *pUnk11C;                    /* 0x11C (func_8001760C: first EMD section) */ \
+    UCHAR Unk120;                      /* 0x120 */                            \
+    UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */ \
+    SHORT Unk122;                      /* 0x122 */                            \
+    SHORT Spd_base_x;                  /* 0x124 RE2 Spd_base_x (Spd_get) */   \
+    SHORT Spd_base_y;                  /* 0x126 */                            \
+    SHORT Spd_base_z;                  /* 0x128 */                            \
+    SHORT Unk12A;                      /* 0x12A */                            \
+    UCHAR Unk12C;                      /* 0x12C */                            \
+    UCHAR Damage_cnt;                  /* 0x12D player: |= 0x80 on game over (Pl_life_down) */ \
+    UCHAR Root_ck_cnt;                 /* 0x12E RE2 Root_ck_cnt */            \
+    UCHAR Unk12F;                      /* 0x12F compared with the room sound table (Snd_se_enem) */ \
+    SHORT Unk130;                      /* 0x130 direction */                  \
+    USHORT Unk132;                     /* 0x132 bits 8-12 cleared by Pl_life_down */ \
+    SHORT Unk134;                      /* 0x134 */                            \
+    SHORT Unk136;                      /* 0x136 */                            \
+    UCHAR Unk138;                      /* 0x138 */                            \
+    UCHAR Unk139;                      /* 0x139 */                            \
+    SHORT Unk13A;                      /* 0x13A */                            \
+    UCHAR *pUnk13C;                    /* 0x13C */                            \
+    LONG Unk140;                       /* 0x140 */                            \
+    USHORT Unk144;                     /* 0x144 0x100: no seq sound */        \
+    UCHAR Unk146;                      /* 0x146 RE2 Set_flg_no */             \
+    UCHAR Unk147;                      /* 0x147 flag no (Em_dead_flg_on_cand) */ \
+    SHORT Add_dir;                     /* 0x148 turn speed passed to Goto00 */ \
+    SHORT Unk14A;                      /* 0x14A */                            \
+    SHORT Unk14C;                      /* 0x14C */                            \
+    SHORT Unk14E;                      /* 0x14E */                            \
+    USHORT Unk150;                     /* 0x150 0x80: scenario move request, low bits its kind (Spl_sce) */ \
+    SHORT Unk152;                      /* 0x152 */                            \
+    ULONG Unk154;                      /* 0x154 */                            \
+    LONG Unk158;                       /* 0x158 distance to target? (masked 0x3FFFFFFF) */ \
+    LONG *pUnk15C;                     /* 0x15C target position (func_8003CEA0) */ \
+    union {                                                                   \
+        struct tagKAGE_WORK *pKw;      /* 0x160 RE2 pKage_work: enemies (Kage_work_set) */ \
+        struct tagKAGE_WORK9 *pKw9;    /* 0x160 player (Kage_work9_set) */    \
+    } Kage;                                                                   \
+    SHORT Unk164;                      /* 0x164 */                            \
+    SHORT Unk166;                      /* 0x166 */                            \
+    SHORT Unk168;                      /* 0x168 */                            \
+    UCHAR Unk16A;                      /* 0x16A em22: set on a seq flag 0x800 (id 0x24) */ \
+    UCHAR Unk16B;                      /* 0x16B */                            \
+    LONG *pUnk16C;                     /* 0x16C hit position (func_800445C8 arg 0) */ \
+    LONG *pUnk170;                     /* 0x170 hitter position (func_800445C8 arg 1) */ \
+    struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
+    SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */ \
+    USHORT Unk17E;                     /* 0x17E */                            \
+    ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */ \
+    ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
+    ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
+    ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */                            \
+    ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (func_800498F0) */ \
+    ULONG *pUnk194_kan_t_ptr;          /* 0x194 */                            \
+    ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */ \
+    ULONG *pUnk19C_kan_t_ptr;          /* 0x19C */                            \
+    UCHAR Unk1A0;                      /* 0x1A0 */                            \
+    UCHAR Unk1A1;                      /* 0x1A1 */                            \
+    UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */            \
+    UCHAR pad1A3;                                                             \
+    SHORT Unk1A4[3];                   /* 0x1A4 em23 damage: hit offset? */   \
+    UCHAR pad1AA[0x1AC - 0x1AA];                                              \
+    SHORT Unk1AC[3];                   /* 0x1AC em23 damage */                \
+    UCHAR pad1B2[0x1B4 - 0x1B2];                                              \
+    ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Player.pUnk1B4, select overlay) */ \
+    SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */ \
+    SHORT Unk1BA;                      /* 0x1BA func_8002646C */              \
+    SHORT Unk1BC[2];                   /* 0x1BC decayed by Unk1C2 (func_80026648) */ \
+    UCHAR Unk1C0;                      /* 0x1C0 */                            \
+    UCHAR Unk1C1;                      /* 0x1C1 func_8002646C */              \
+    SHORT Unk1C2;                      /* 0x1C2 func_8002646C */              \
+    ULONG Unk1C4;                      /* 0x1C4 em23: Routine_0..3 of the last frame */ \
+    SHORT Unk1C8;                      /* 0x1C8 */                            \
+    USHORT Unk1CA;                     /* 0x1CA */                            \
+    /* 0x1CC */
+
+/* the player (RE2 struct tagPLAYER_WORK, G.Player at G + 0x248C, also the exe symbol Pl_work) */
+typedef struct tagPLAYER_WORK {
+    EM_WORK_HEAD
+} PLAYER_WORK;
+
+typedef struct tagENEMY_WORK {
+    EM_WORK_HEAD
+    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Unk7D90 (func_80024C58) */
+} ENEMY_WORK;
+STATIC_ASSERT(player_work_size, sizeof(PLAYER_WORK) == 0x1CC);
+STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
+
 /* G: global work area (RE2 struct tagGLOBAL, 0x800CC1E8 in RE2) */
 struct tagROOM_WORK;
-struct tagENEMY_WORK;
 struct tagPARTS_W;
 struct tagSCE_AOT;
 typedef struct tagGLOBAL {
@@ -165,8 +359,8 @@ typedef struct tagGLOBAL {
     UCHAR pad2130[0x2134 - 0x2130];
     struct tagROOM_WORK *pRoom;        /* 0x2134 */
     ULONG Unk2138;                     /* 0x2138 free memory after the 0x8011A000 overlay (Set_stage) */
-    struct tagENEMY_WORK *pEm_mem;     /* 0x213C enemy work allocation pointer (Enemy_work_set) */
-    struct tagENEMY_WORK *pEm;         /* 0x2140 current enemy (RE2 G.pEm) */
+    ENEMY_WORK *pEm_mem;               /* 0x213C enemy work allocation pointer (Enemy_work_set) */
+    ENEMY_WORK *pEm;                   /* 0x2140 current enemy (RE2 G.pEm) */
     struct tagVCUT *Cccut;             /* 0x2144 RE2 G.Cccut (current camera cut zone) */
     struct tagVCUT *Cccut_next;        /* 0x2148 */
     ULONG *pOld_tim;                   /* 0x214C RE2 pOld_tim (Sce_model_init) */
@@ -196,74 +390,18 @@ typedef struct tagGLOBAL {
     UCHAR Unk2488;                     /* 0x2488 non-zero: no vibration (RE2 G.Dummy8_3[0], Pad_set) */
     UCHAR Save_slot;                   /* 0x2489 last memory card slot used (mem_card) */
     UCHAR pad248A[0x248C - 0x248A];
-    ULONG Pl_be_flg;                   /* 0x248C Player.Be_flg (start of the player ENEMY_WORK) */
-    UCHAR Pl_routine_0;                /* 0x2490 Player.Routine_0 */
-    UCHAR Pl_routine_1;                /* 0x2491 Player.Routine_1 */
-    UCHAR Pl_routine_2;                /* 0x2492 Player.Routine_2 */
-    UCHAR Pl_routine_3;                /* 0x2493 Player.Routine_3 */
-    UCHAR pad2494;
-    signed char Pl_nFloor;             /* 0x2495 Player.nFloor (Player at 0x248C?) */
-    SHORT Pl_water;                    /* 0x2496 Player.Water */
-    UCHAR pad2498[0x24AC - 0x2498];
-    SHORT Pl_workm_m[3][3];            /* 0x24AC Player.Workm_m (rotation of the player matrix) */
-    UCHAR pad24BE[0x24C0 - 0x24BE];
-    LONG Pl_pos_x;                     /* 0x24C0 Player.Pos_x (VECTOR Pos) */
-    LONG Pl_pos_y;                     /* 0x24C4 Player.Pos_y */
-    LONG Pl_pos_z;                     /* 0x24C8 Player.Pos_z */
-    SHORT Pl_old_x;                    /* 0x24CC Player.Old_x */
-    SHORT Pl_old_y;                    /* 0x24CE Player.Old_y */
-    SHORT Pl_old_z;                    /* 0x24D0 Player.Old_z */
-    UCHAR Unk24D2;                     /* 0x24D2 Player +0x46 (Type high byte?) */
-    UCHAR pad24D3;
-    UCHAR Pl_tpage;                    /* 0x24D4 Player +0x48 texture page (func_80046C90) */
-    UCHAR Pl_clut;                     /* 0x24D5 Player +0x49 clut row */
-    UCHAR Pl_id;                       /* 0x24D6 Player.Id (8 Carlos, 9 Mikhail, 10 Nicholai: result overlay) */
-    UCHAR pad24D7[0x24FA - 0x24D7];
-    SHORT Pl_cdir_y;                   /* 0x24FA Player.Cdir_y */
-    UCHAR pad24FC[0x2558 - 0x24FC];
-    SHORT Pl_life;                     /* 0x2558 Player.Life */
-    SHORT Pl_life_max;                 /* 0x255A Player max life (status) */
-    UCHAR pad255C[0x255E - 0x255C];
-    USHORT Pl_status_flg;              /* 0x255E Player.Status_flg */
-    UCHAR pad2560[0x2574 - 0x2560];
-    ULONG *Pl_pKan_t_ptr;              /* 0x2574 Player.pKan_t_ptr */
-    ULONG *Pl_pSeq_t_ptr;              /* 0x2578 Player.pSeq_t_ptr */
-    UCHAR pad257C[0x2584 - 0x257C];
-    ULONG *Pl_pSub1_kan_t_ptr;         /* 0x2584 Player.pSub1_kan_t_ptr (em21 peck) */
-    ULONG *Pl_pSub1_seq_t_ptr;         /* 0x2588 Player.pSub1_seq_t_ptr */
-    ULONG *Pl_pUnk100_kan_t_ptr;       /* 0x258C Player.pUnk100_kan_t_ptr (func_800498F0) */
-    ULONG *Pl_pUnk104_seq_t_ptr;       /* 0x2590 Player.pUnk104_seq_t_ptr */
-    struct tagPARTS_W *Pl_pSin_parts_ptr; /* 0x2594 Player.pSin_parts_ptr */
-    UCHAR pad2598[0x259C - 0x2598];
-    struct tagENEMY_WORK *Pl_pEnemy_ptr;/* 0x259C Player.pEnemy_ptr */
-    UCHAR pad25A0[0x25AD - 0x25A0];
-    UCHAR Pl_neck_no;                  /* 0x25AD Player.Neck_no */
-    SHORT Unk25AE;                     /* 0x25AE Player +0x122, set from the door y (Set_door) */
-    UCHAR pad25B0[0x25B9 - 0x25B0];
-    UCHAR Pl_damage_cnt;               /* 0x25B9 Player.Damage_cnt */
-    UCHAR pad25BA[0x260C - 0x25BA];
-    ULONG *Pl_pUnk180_seq_t_ptr;       /* 0x260C Player.pUnk180_seq_t_ptr (func_80079690) */
-    ULONG *Pl_pUnk184_kan_t_ptr;       /* 0x2610 Player.pUnk184_kan_t_ptr */
-    ULONG *Pl_pUnk188_seq_t_ptr;       /* 0x2614 Player.pUnk188_seq_t_ptr (Joint_move) */
-    ULONG *Pl_pUnk18C_kan_t_ptr;       /* 0x2618 Player.pUnk18C_kan_t_ptr */
-    ULONG *Pl_pUnk190_seq_t_ptr;       /* 0x261C Player.pUnk190_seq_t_ptr */
-    ULONG *Pl_pUnk194_kan_t_ptr;       /* 0x2620 Player.pUnk194_kan_t_ptr */
-    ULONG *Pl_pUnk198_seq_t_ptr;       /* 0x2624 Player.pUnk198_seq_t_ptr */
-    ULONG *Pl_pUnk19C_kan_t_ptr;       /* 0x2628 Player.pUnk19C_kan_t_ptr */
-    UCHAR pad262C[0x2640 - 0x262C];
-    ULONG Pl_unk1B4;                   /* 0x2640 Player +0x1B4 (weapon data offset 4, Pl_weapon_ch) */
-    UCHAR pad2644[0x2658 - 0x2644];
+    PLAYER_WORK Player;                /* 0x248C RE2 Player (= Pl_work) */
     SHORT Pl_poison_timer;             /* 0x2658 RE2 Pl_poison_timer (Pl_move: -1 -> 30 and Life--) */
     UCHAR pad265A[0x265C - 0x265A];
-    struct tagENEMY_WORK *pEnemy[42];  /* 0x265C RE2 pEnemy: [0] player, [1] sub player, [2..] enemies */
-    struct tagENEMY_WORK **ppEnemy_end; /* 0x2704 RE2 ppEnemy_end (end of used pEnemy[]) */
-    ULONG Sub_work[0x1FC / 4];         /* 0x2708 spare ENEMY_WORK: every free pEnemy[] slot points here (Enemy_work_set) */
+    ENEMY_WORK *pEnemy[42];            /* 0x265C RE2 pEnemy: [0] player, [1] sub player, [2..] enemies */
+    ENEMY_WORK **ppEnemy_end;          /* 0x2704 RE2 ppEnemy_end (end of used pEnemy[]) */
+    ENEMY_WORK Sub_work;               /* 0x2708 spare enemy work: every free pEnemy[] slot points here (Enemy_work_set) */
     struct tagKAGE_WORK9 Kage9[5];     /* 0x2904 */
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
-    void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
+    void (*Em_routine[64])(ENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
     void (*Unk3EE0[24])(); /* 0x3EE0 all set to Spl by Spl_set */
     UCHAR pad3F40[0x3FA0 - 0x3F40];
-    void (*Em_ov_mtbl[2][112])(struct tagENEMY_WORK *); /* 0x3FA0 RE2 Em_ov_mtbl: move routine by Id - 0x10 inside each enemy overlay bank (Em_move_tbl_set) */
+    void (*Em_ov_mtbl[2][112])(ENEMY_WORK *); /* 0x3FA0 RE2 Em_ov_mtbl: move routine by Id - 0x10 inside each enemy overlay bank (Em_move_tbl_set) */
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
     OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
     OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
@@ -369,7 +507,14 @@ typedef struct tagGLOBAL {
     ULONG Merc_money[3];               /* 0x7EA8 best money per character */
     ULONG Money;                       /* 0x7EB4 money for the shop */
 } tagGLOBAL;
+STATIC_ASSERT(g_player_ofs, (ULONG)&((tagGLOBAL *)0)->Player == 0x248C);
+STATIC_ASSERT(g_penemy_ofs, (ULONG)&((tagGLOBAL *)0)->pEnemy == 0x265C);
 extern tagGLOBAL G;                    /* 0x800CA738 */
+
+/* the player as the ENEMY_WORK the code passes around (RE2 writes (ENEMY_WORK *)&G.Player);
+   PLAYER_EM(pG) for code that addresses G through a local pointer */
+#define PLAYER_EM(pG) ((ENEMY_WORK *)&(pG)->Player)
+#define G_PLAYER PLAYER_EM(&G)
 
 /* G.System_flg bits */
 #define SYS_SPAD_STACK 0x4000000
@@ -381,7 +526,7 @@ extern tagGLOBAL G;                    /* 0x800CA738 */
 typedef struct tagPARTS_W {
     ULONG Be_flg;                      /* 0x00 */
     ULONG Attribute;                   /* 0x04 */
-    ULONG *pTmd;                       /* 0x08 model object (md_sub.h MD_OBJ) */
+    struct tagMD_OBJ *pTmd;            /* 0x08 RE2 pTmd: the part's model object (md_sub.h) */
     ULONG *pPacket;                    /* 0x0C */
     ULONG Unk10;                       /* 0x10 */
     SHORT M[3][3];                     /* 0x14 */

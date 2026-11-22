@@ -218,7 +218,7 @@ void func_80048FF4(void)
     pFlg = D_800DEB18.p0;
     cx = D_800DEB18.Cx;
     D_800DEB18.R = R;
-    y = G.Pl_pos_y;
+    y = G.Player.Pos_y;
     cz = D_800DEB18.Cz;
     func_80010150(pFlg, 100);
     pV = D_800DEB18.pPos;

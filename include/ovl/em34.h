@@ -60,8 +60,6 @@ typedef struct tagPARTS_FREE_VIEW {
 /* Flg, Unk06 and Unk07 read as one word (lw + andi/and) */
 #define EM34_FLG_L(p) (*(ULONG *)&EM34_W(p)->Flg)
 
-/* the player's ENEMY_WORK inside G (RE2 G.Player); same address as Pl_work, but G-relative */
-#define G_PL ((ENEMY_WORK *)&G.Pl_be_flg)
 
 
 /* morph (sabun) data at PARTS_W.pUnk98 (sabun.c), same as em38 */
@@ -109,10 +107,10 @@ extern void (*Em34_die[93])() __asm__("D_8010C378");
 extern void (*Em34_sce[13])() __asm__("D_8010C4EC");
 extern void (*Em34_pldamage[4])() __asm__("D_8010C520");
 extern void (*Em34_pldie[2])() __asm__("D_8010C530");
-extern ULONG *Em34_tmd_new5 __asm__("D_8010C538");
-extern ULONG *Em34_tmd_old5 __asm__("D_8010C53C");
-extern ULONG *Em34_tmd_new8 __asm__("D_8010C540");
-extern ULONG *Em34_tmd_old8 __asm__("D_8010C544");
+extern MD_OBJ *Em34_tmd_new5 __asm__("D_8010C538");
+extern MD_OBJ *Em34_tmd_old5 __asm__("D_8010C53C");
+extern MD_OBJ *Em34_tmd_new8 __asm__("D_8010C540");
+extern MD_OBJ *Em34_tmd_old8 __asm__("D_8010C544");
 extern HIT_AREA Em34_hit_area __asm__("D_8010C558");
 extern SHORT Em34_floor __asm__("D_8010C564"); /* BSS past the file end (ovl/em34.bss.ld) */
 

@@ -32,7 +32,7 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk13A = 2700;
     pEm->Unk140 = 0;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[4].Workm;
-    pCol = (COL_OBJ *)&pEm->Col_id;
+    pCol = &pEm->Col;
     pCol->H = 4500;
     pCol->pEm = pEm;
     pCol->D0 = 2700;
@@ -224,7 +224,7 @@ void func_80100878(ENEMY_WORK *pEm)
 /* Em3e_sce: Routine_0 4 */
 void func_80100890(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Pl_pos_x, 0, 0);
+    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     Em3e_sce_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
@@ -402,7 +402,7 @@ void func_80100DC0(ENEMY_WORK *pEm, ULONG No)
     PARTS_W *pP = &pEm->pSin_parts_ptr[No];
 
     pP->UnkA2 |= 0x100;
-    Md_set_abr((MD_OBJ *)pP->pTmd, 1);
+    Md_set_abr(pP->pTmd, 1);
 }
 
 /* Em3e_rotor */

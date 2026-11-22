@@ -46,7 +46,7 @@ void func_801C20B8(void)
     Main.Unk18E = 1;
     G.Status_flg |= 0x80;
     OM(14)->Be_flg |= 0x10;
-    G.Pl_be_flg |= 0x10;
+    G.Player.Be_flg |= 0x10;
     Cut_change(8);
     G.Status_flg |= 0x400000;
 }
@@ -71,7 +71,7 @@ void func_801C2244(void)
     G.Cut_no = 2;
     Main.Unk18E = 1;
     OM(14)->Be_flg &= ~0x10;
-    G.Pl_be_flg &= ~0x10;
+    G.Player.Be_flg &= ~0x10;
     Cut_change(2);
     G.Status_flg |= 0x400000;
     Flg_on(&G.Unk7888, 0x1F);

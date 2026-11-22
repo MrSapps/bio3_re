@@ -60,7 +60,6 @@ typedef struct tagEM30_SUB_FREE {
     LONG Oya_no;                       /* 0x04 (0x1D0) index of the body in G.pEnemy[0][] */
 } EM30_SUB_FREE;
 
-#define G_PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 #define EM30_W(p) ((EM30_FREE *)(p)->Unk1CC)
 #define EM30_SUB(p) ((EM30_SUB_FREE *)(p)->Unk1CC)
 /* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x201) */

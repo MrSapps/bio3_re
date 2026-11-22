@@ -33,7 +33,7 @@ void Add_speedXZ(ENEMY_WORK *pEm, LONG muki)
     Sv.vy = pEm->Cdir_y + (SHORT)muki;
     Sv.vz = 0;
     RotMatrix_gte(&Sv, &M);
-    if ((pEm->UnkAE & 0x40) && !(pEm->Be_flg & BE_FLG_400)) {
+    if ((pEm->Col.Hit_flg & 0x40) && !(pEm->Be_flg & BE_FLG_400)) {
         pEm->Spd_x = (SHORT)(pEm->Spd_x * 3) >> 2;
     }
     ApplyMatrixSV(&M, (SVECTOR *)&pEm->Spd_x, &Sv);
@@ -1094,7 +1094,7 @@ ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG 
             pEw = func_8001B484(a1, a2, pM, NULL, 0);
         }
     }
-    if (pEw != (ESP_WORK *)-1) {
+    if (pEw != ESP_NONE) {
         pEw->pEm = pParent->pEm;
         pEw->Unk32 = 0;
         func_8001BCFC(pEw);
@@ -1372,14 +1372,14 @@ void func_8001C5BC(ESP_WORK *pEw)
                     return;
                 }
             }
-            if (pEw->Routine_1 == 4 && p != (ESP_WORK *)-1) {
+            if (pEw->Routine_1 == 4 && p != ESP_NONE) {
                 p->Spd_x += D_80098728[func_800102E8()] % pEw->Unk22;
                 p->Spd_y += D_80098728[func_800102E8()] % pEw->Unk22;
             }
-            if (p != (ESP_WORK *)-1) {
+            if (p != ESP_NONE) {
                 p->pEm = pEw->pEm;
             }
-            if (!(pEw->Flg2 & 0x100) && p != (ESP_WORK *)-1) {
+            if (!(pEw->Flg2 & 0x100) && p != ESP_NONE) {
                 p->Flg2 |= 0x100;
                 pEw->Flg2 |= 0x100;
             }
@@ -1586,7 +1586,7 @@ void func_8001CFF4(ESP_WORK *pEw, ULONG n)
         } else {
             pEw->UnkB4--;
         }
-        if (p != (ESP_WORK *)-1) {
+        if (p != ESP_NONE) {
             p->UnkB6 = 1;
         }
         for (p = D_80098090 - 1; p >= D_8009808C; p--) {
@@ -1651,7 +1651,7 @@ void func_8001D210(ESP_WORK *pEw)
             Hit = 1;
         }
         if (Hit) {
-            if (pEw->pMat == &G.Pl_pSin_parts_ptr[4].Workm) {
+            if (pEw->pMat == &G.Player.pSin_parts_ptr[4].Workm) {
                 n = 2;
                 if (((UCHAR *)&pEw->Id.W)[1] == 2) {
                     n = 0xD;
@@ -1863,7 +1863,7 @@ void func_8001D7D0(ESP_WORK *pEw)
             Pos.vy = pEw->Pos.vy - 100;
             Pos.vz = pEw->Pos.vz;
             pNew = func_8001B35C(pEw, 0x3000E00, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
-            if (pNew != (ESP_WORK *)-1) {
+            if (pNew != ESP_NONE) {
                 if (pEw->Flg2 & 0x30) {
                     pNew->UnkB6 = 1;
                 } else {
@@ -1880,7 +1880,7 @@ void func_8001D7D0(ESP_WORK *pEw)
             func_8001B35C(pEw, 0x2203, (USHORT)pEw->UnkBA | 0x34000000, &GsIDMATRIX, &Avg.vx, 0);
             func_8001B35C(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
             pNew = func_8001B35C(pEw, 0x2003, (USHORT)pEw->UnkBA | 0x10000000, &GsIDMATRIX, &pEw->Old.vx, 0);
-            if (pNew != (ESP_WORK *)-1) {
+            if (pNew != ESP_NONE) {
                 if (pEw->Flg2 & 0x20) {
                     pNew->UnkB6 = 1;
                 } else {
@@ -2087,7 +2087,7 @@ void func_8001F674(ESP_WORK *pEw)
                               ((0x2800 - pEw->UnkB4 * 1000) << 16) |
                                   (USHORT)(pEw->Unk2C + (signed char)D_80098728[func_800102E8()] + Ofs[i]),
                               &GsIDMATRIX, &pEw->Old.vx, 0);
-            if (p != (ESP_WORK *)-1) {
+            if (p != ESP_NONE) {
                 p->Spd_x -= pEw->UnkB4 * 10;
                 p->Spd_y = Spd[i];
                 if (pEw->UnkBA == 0) {
@@ -2130,7 +2130,7 @@ void func_8001F824(ESP_WORK *pEw)
         Pos.vz = pEw->Old.vz;
         p = func_8001B35C(pEw, 0x505, ((pEw->Unk2E - ((signed char)func_800102E8() << 4)) << 16) | pEw->Unk2C,
                           &GsIDMATRIX, &Pos.vx, 0);
-        if (p != (ESP_WORK *)-1) {
+        if (p != ESP_NONE) {
             p->UnkBA = 1;
             if (!(pEw->Flg2 & 0x80)) {
                 p->UnkBA = 0x81;
@@ -2144,7 +2144,7 @@ void func_8001F824(ESP_WORK *pEw)
             Pos.vz = pEw->Old.vz;
             p = func_8001B35C(pEw, 0x405, ((pEw->Unk2E - ((signed char)func_800102E8() << 4)) << 16) | pEw->Unk2C,
                               &GsIDMATRIX, &Pos.vx, 0);
-            if (p != (ESP_WORK *)-1) {
+            if (p != ESP_NONE) {
                 p->Spd_x = (D_80098728[func_800102E8()] & 0x1F) + 0x50;
                 if (pEw->UnkB4 == 7) {
                     p->UnkBA = 1;
@@ -2241,7 +2241,7 @@ void func_8001FDD0(ESP_WORK *pEw)
     for (i = 0; i < 2; i++) {
         pNew = func_8001B35C(pEw, 0x3000F00, (pEw->Unk2E << 16) | (USHORT)(pEw->Unk2C + (signed char)func_800102E8() * 4),
                              pEw->pMat, pEw->Unk38, 0);
-        if (pNew != (ESP_WORK *)-1) {
+        if (pNew != ESP_NONE) {
             pNew->Spd_x = (D_80098728[func_800102E8()] & 0x3F) + 0x82;
             pNew->Spd_y = (D_80098728[func_800102E8()] & 0x7F) - 100;
         }

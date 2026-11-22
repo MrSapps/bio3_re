@@ -1414,13 +1414,13 @@ ULONG Pos_set(SCE_TASK *pSce)
     x = ((SHORT *)pData)[1];
     y = ((SHORT *)pData)[2];
     z = ((SHORT *)pData)[3];
-    pW->Unk40[0] = x;
+    pW->Old_x = x;
     pW->Pos_x = x;
-    pW->Unk40[1] = y;
+    pW->Old_y = y;
     pW->Pos_y = y;
-    pW->Unk40[2] = z;
+    pW->Old_z = z;
     pW->Pos_z = z;
-    func_80034124((COL_OBJ *)&pW->Col_id);
+    func_80034124(&pW->Col);
     pSce->Data = pData + 8;
     return 1;
 }

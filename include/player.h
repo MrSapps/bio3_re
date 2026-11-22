@@ -27,7 +27,10 @@ extern PL_FUNC Pl_die_t[];             /* 0x8009CE80 index Routine_1 */
 /* G.System_flg bits */
 #define SYS_GAME_OVER 0x20000
 
-extern ENEMY_WORK Pl_work;             /* 0x800CCBC4 = G + 0x248C, RE2 G.Player */
+/* 0x800CCBC4 = &G.Player as its own exe symbol: the player as the ENEMY_WORK the code passes
+   (no cast at the ~200 &Pl_work uses; only the PLAYER_WORK head, 0x1CC bytes, exists). Code that
+   addresses it apart from G gets its own base register, so both forms stay. */
+extern ENEMY_WORK Pl_work;
 
 void Pl_dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 ULONG Pl_life_down(LONG Down_life, ULONG Mode);

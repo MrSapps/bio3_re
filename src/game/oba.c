@@ -13,7 +13,7 @@ void func_80033508(void)
     D_800DCED0.pTop = NULL;
     D_800DCED0.Ent[0].C.All = -1;
     pEm = &Pl_work;
-    pObj = EM_COL(pEm);
+    pObj = &pEm->Col;
     pObj->pEm = pEm;
     pObj->W0 = pObj->D0 = 450;
     pObj->W1 = pObj->D1 = 450;
@@ -39,7 +39,7 @@ UCHAR func_80033580(COL_OBJ *pObj, ULONG Id)
         }
     }
     pObj->pNext = NULL;
-    pObj->Unk3C = 0;
+    pObj->pSca_hit_data = 0;
     pObj->Unk2A = 0;
     pObj->Unk2C = 0;
     if (Id != 0) {
@@ -211,8 +211,8 @@ LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
                 p->Pos_x = w0;
                 p->Pos_y = w1;
                 p->Pos_z = w2;
-                w0 = p->pEm->Unk40[0];
-                w1 = p->pEm->Unk40[2];
+                w0 = p->pEm->Old_x;
+                w1 = p->pEm->Old_z;
                 p->pEm->Pos_x = w0;
                 p->pEm->Pos_z = w1;
                 if (p->Type < 3) {
@@ -222,11 +222,11 @@ LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
                 dz = dx = 0;
             } else {
                 w2 = pEm->Pos_y;
-                dx = -pEm->Unk40[0] + (ex = pEm->Pos_x);
-                dz = -pEm->Unk40[2] + (ez = pEm->Pos_z);
-                pEm->Unk40[0] = ex;
-                pEm->Unk40[2] = ez;
-                pEm->Unk40[1] = w2;
+                dx = -pEm->Old_x + (ex = pEm->Pos_x);
+                dz = -pEm->Old_z + (ez = pEm->Pos_z);
+                pEm->Old_x = ex;
+                pEm->Old_z = ez;
+                pEm->Old_y = w2;
                 w0 = p->Pos_x;
                 w1 = p->Pos_z;
                 w2 = p->Pos_y;
@@ -445,13 +445,13 @@ LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     LONG ax;
     LONG az;
 
-    Sv.vx = EM_COL(pEm)->W0 * 120 / 100 + 0x110;
+    Sv.vx = pEm->Col.W0 * 120 / 100 + 0x110;
     Sv.vz = 0;
     Rot_vector(pEm->Cdir_y, &Sv, &Sv);
     Sv.vx += pEm->Pos_x;
     Sv.vz += pEm->Pos_z;
-    w = EM_COL(pT)->W0 - 0x110;
-    d = EM_COL(pT)->D0 - 0x110;
+    w = pT->Col.W0 - 0x110;
+    d = pT->Col.D0 - 0x110;
     dx = pT->Pos_x - pEm->Pos_x;
     dz = pT->Pos_z - pEm->Pos_z;
     if ((ULONG)(dx + w) > (ULONG)(w * 2) && (ULONG)(dz + d) > (ULONG)(d * 2)) {
@@ -460,13 +460,13 @@ LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     ax = __builtin_abs(dx);
     az = __builtin_abs(dz);
     if (az < ax) {
-        dx = Sv.vx - EM_COL(pT)->Pos_x;
-        dz = pEm->Pos_z - EM_COL(pT)->Pos_z;
-        d += EM_COL(pEm)->W0;
+        dx = Sv.vx - pT->Col.Pos_x;
+        dz = pEm->Pos_z - pT->Col.Pos_z;
+        d += pEm->Col.W0;
     } else {
-        dx = pEm->Pos_x - EM_COL(pT)->Pos_x;
-        dz = Sv.vz - EM_COL(pT)->Pos_z;
-        w += EM_COL(pEm)->W0;
+        dx = pEm->Pos_x - pT->Col.Pos_x;
+        dz = Sv.vz - pT->Col.Pos_z;
+        w += pEm->Col.W0;
     }
     if ((ULONG)(dx + w) > (ULONG)(w * 2)) {
         return 0;
@@ -495,7 +495,7 @@ LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm)
         if ((Be & 0x6000) == 0x6000) {
             continue;
         }
-        if (EM_COL(pT)->Id == EM_COL(pEm)->Id) {
+        if (pT->Col.Id == pEm->Col.Id) {
             continue;
         }
         if (func_800346AC(pPos, pEm, pT)) {
@@ -522,8 +522,8 @@ LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
     if ((pEm->Be_flg & pT->Be_flg) & 0x800) {
         return 0;
     }
-    pA = EM_COL(pEm);
-    pB = EM_COL(pT);
+    pA = &pEm->Col;
+    pB = &pT->Col;
     if (!(pA->Id & pB->Id)) {
         return 0;
     }
@@ -623,7 +623,7 @@ LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
             if (Tbe & 0x1000) {
                 continue;
             }
-            if (pT->Type == 0 && (ULONG)(G.Pl_routine_1 - 11) < 2) {
+            if (pT->Type == 0 && (ULONG)(G.Player.Routine_1 - 11) < 2) {
                 continue;
             }
         }

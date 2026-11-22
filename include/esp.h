@@ -94,6 +94,8 @@ void Esp_init_C(void);
 LONG Esp_init_R(void);
 ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
 void Esp_data_set1(ULONG *pTim);
+/* what func_8001B35C / func_8001B484 and the other effect starters return when no effect was started */
+#define ESP_NONE ((ESP_WORK *)-1)
 ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
 ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd); /* RE2 Esp_call */
 void func_8001BA48();

@@ -17,12 +17,12 @@ void EM_MAIN(ENEMY_WORK *pEm)
     if (EM20_W(pEm)->No_fire)
         EM20_W(pEm)->No_fire--;
     Em20_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    if ((pEm->Pos_x == pEm->Unk40[0] && pEm->Pos_z == pEm->Unk40[2]) || pEm->Col_unk3 != 0xFF)
+    if ((pEm->Pos_x == pEm->Old_x && pEm->Pos_z == pEm->Old_z) || pEm->Col.Unk3 != 0xFF)
         EM20_W(pEm)->Stay++;
     else
         EM20_W(pEm)->Stay = 0;
-    if ((pEm->UnkAE & 0x40) && !EM20_W(pEm)->Jump_flg)
-        func_8002646C_(pEm, 400, 50, pEm->Col_unk39);
+    if ((pEm->Col.Hit_flg & 0x40) && !EM20_W(pEm)->Jump_flg)
+        func_8002646C_(pEm, 400, 50, pEm->Col.Unk39);
     else
         pEm->Be_flg |= 0x80000;
 }
@@ -47,7 +47,7 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Max_life += 10;
     pEm->Life += 10;
     Kage_work_set(&pEm->Kage.pKw, 0, 0x25804B0, 0, (VECTOR *)&pEm->Pos_x);
-    pCol = (COL_OBJ *)&pEm->Col_id;
+    pCol = &pEm->Col;
     pCol->pEm = pEm;
     pCol->W0 = pCol->D0 = 600;
     pCol->H = 2000;
@@ -176,7 +176,7 @@ LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt &= 0x7F;
         break;
     case 1:
-        if (pEm->UnkAE & 0x40)
+        if (pEm->Col.Hit_flg & 0x40)
             pEm->Spd_x = 48;
         else
             pEm->Spd_x = 30;
@@ -197,7 +197,7 @@ LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 3:
-        if (pEm->UnkAE & 0x40)
+        if (pEm->Col.Hit_flg & 0x40)
             pEm->Spd_x = 48;
         else
             pEm->Spd_x = 30;
@@ -221,7 +221,7 @@ void Em20_Move_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     LONG ck;
 
     ck = Em20_rndwalk(pEm, pKan, pSeq);
-    if (__builtin_abs(G.Pl_nFloor - pEm->nFloor) < 2 || (pEm->Status_flg & 0x2000)) {
+    if (__builtin_abs(G.Player.nFloor - pEm->nFloor) < 2 || (pEm->Status_flg & 0x2000)) {
         if ((LONG)pEm->Unk154 < 4000 || ck == 1 || (G.Unk75EA & 0x20)) {
             pEm->Routine_1 = 1;
             EM_RTN23(pEm) = 0;
@@ -347,7 +347,7 @@ void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pFp->Stay = 0;
         }
         pEm->Cdir_y += d_tmp;
-    } else if (!--pFp->Fix_cnt && !(pEm->UnkAE & 0x20)) {
+    } else if (!--pFp->Fix_cnt && !(pEm->Col.Hit_flg & 0x20)) {
         pFp->Fix_cnt = 0;
         pFp->Em_next = 0;
     }
@@ -514,7 +514,7 @@ void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_enem(3, pEm);
         G.Unk75EA |= 0x20;
     }
-    if (pEm->Timer0 < 6 && __builtin_abs(G.Pl_nFloor - pEm->nFloor) < 2) {
+    if (pEm->Timer0 < 6 && __builtin_abs(G.Player.nFloor - pEm->nFloor) < 2) {
         func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit0, pPl);
         func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit1, pPl);
     }
@@ -659,7 +659,7 @@ void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pPl;
     ULONG range;
 
-    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    pPl = G_PLAYER;
     range = (EM_RTN01(pPl) == 0x201) ? 5000 : 3500;
     if (pEm->Unk154 <= range) {
         pEm->Routine_2 = 2;
@@ -909,7 +909,7 @@ void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em20_rndwalk(pEm, pKan, pSeq);
-    if ((G.Pl_nFloor == pEm->nFloor || (pEm->Status_flg & 0x2000))
+    if ((G.Player.nFloor == pEm->nFloor || (pEm->Status_flg & 0x2000))
         && ((LONG)pEm->Unk154 < 4000 || (G.Unk75EA & 0x20) || ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)))) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
@@ -923,7 +923,7 @@ void Em20_Move_died(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     pTg = G.pEnemy[1];
     if ((LONG)G.Status_flg >= 0 || pTg->Life)
-        pTg = (ENEMY_WORK *)&G.Pl_be_flg;
+        pTg = G_PLAYER;
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
@@ -937,7 +937,7 @@ void Em20_Move_died(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Root_ck(pEm, (VECTOR *)&pTg->Pos_x, 0, 0);
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x10);
         Add_speedXZ(pEm, 0);
-        if ((!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x100) && (LONG)pEm->Unk154 < 2500) || pEm->Col_unk3 != 0xFF) {
+        if ((!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x100) && (LONG)pEm->Unk154 < 2500) || pEm->Col.Unk3 != 0xFF) {
             pEm->Routine_2 = 2;
             EM_MOVE(pEm) = 0xF0000;
         }
@@ -963,7 +963,7 @@ void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pPl;
     ULONG range;
 
-    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
+    pPl = G_PLAYER;
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
@@ -974,7 +974,7 @@ void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move(pEm, pKan, pSeq, 0x80);
         break;
     case 1:
-        if (G.Pl_life >= 0) {
+        if (G.Player.Life >= 0) {
             range = (EM_RTN01(pPl) == 0x201) ? 5000 : 3500;
             if (pEm->Unk154 <= range)
                 EM_RTN23(pEm) = 1;
@@ -1072,7 +1072,7 @@ void Em20_mv_house10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 3:
-        if (pEm->UnkAE & 0x20)
+        if (pEm->Col.Hit_flg & 0x20)
             EM_RTN23(pEm) = 0;
     }
     Add_speedXZ(pEm, 0);
@@ -1152,7 +1152,7 @@ void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_MOVE(pEm) = 0xF0015;
         Joint_move(pEm, pKan, pSeq, 0x100);
     }
-    if (pEm->UnkAE & 0x20) {
+    if (pEm->Col.Hit_flg & 0x20) {
         EM_RTN23(pEm) = 3;
         EM_MOVE(pEm) = 0xF0016;
         Joint_move(pEm, pKan, pSeq, 0x100);
@@ -1237,7 +1237,7 @@ void Em20_Mv_jumpin20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM20_W(pEm)->No_hit = 0;
         pEm->Type &= 0xBFFF;
         pEm->Damage_cnt &= 0x7F;
-        pEm->nFloor = G.Pl_nFloor;
+        pEm->nFloor = G.Player.nFloor;
     }
 }
 
@@ -1282,7 +1282,7 @@ void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM20_FREE *pFp;
 
     pFp = EM20_W(pEm);
-    pEm->Timer0 = (G.Pl_cdir_y & 0xFFF) - (pEm->Cdir_y & 0xFFF);
+    pEm->Timer0 = (G.Player.Cdir_y & 0xFFF) - (pEm->Cdir_y & 0xFFF);
     pEm->Timer0 += dir_hosei[Rnd() & 7];
     pEm->Unk120 |= 2;
     pEm->Type &= 0xDFFF;
@@ -1616,12 +1616,12 @@ void Em20_Dmg_nml2_00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Set_dmghit(ENEMY_WORK *pEm, ULONG Type)
 {
     if (!Type) {
-        pEm->Col_h = 1000;
+        pEm->Col.H = 1000;
         pEm->Unk136 = -500;
         pEm->Unk134 = 1700;
         pEm->Unk132 &= 0xBFFF;
     } else {
-        pEm->Col_h = 2000;
+        pEm->Col.H = 2000;
         pEm->Unk136 = -1000;
         pEm->Unk134 = 1200;
         pEm->Unk132 &= 0xBFFF;
@@ -1699,7 +1699,7 @@ void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(G.Status_flg & 0x8000))
             Set_head_bomb(pEm);
         if (!EM20_W(pEm)->Target_pl)
-            Em20_Pl_to_dmg(0, Cdir_ck(pEm, (ENEMY_WORK *)&G.Pl_be_flg));
+            Em20_Pl_to_dmg(0, Cdir_ck(pEm, G_PLAYER));
         EM20_W(pEm)->Blood = 0x12;
         EM_MOVE(pEm) = 0x70011;
         Joint_move(pEm, pKan, pSeq, 0x200);
@@ -2016,7 +2016,7 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt == 0x62) {
             Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
             for (i = 0; i < 4; i++) {
-                pP = &G.Pl_pSin_parts_ptr[pl_chi_parts[i]];
+                pP = &G.Player.pSin_parts_ptr[pl_chi_parts[i]];
                 PW_FREEL(pP)[0] = 0x20;
                 PW_FREEL(pP)[1] = 0x101030;
                 pP->UnkA2 |= 4;
@@ -2235,7 +2235,7 @@ void Em20_Pl_to_die(ULONG pl)
 /* RE2 Ck_Floor */
 void Ck_Floor(ENEMY_WORK *pEm)
 {
-    if (__builtin_abs(G.Pl_nFloor - pEm->nFloor) >= 2 && !(pEm->Status_flg & 0x2000)) {
+    if (__builtin_abs(G.Player.nFloor - pEm->nFloor) >= 2 && !(pEm->Status_flg & 0x2000)) {
         pEm->Routine_1 = 9;
         EM_RTN23(pEm) = 0;
         G.Unk75EA &= 0xFFDF;
@@ -2256,7 +2256,7 @@ ENEMY_WORK *Get_target_pl(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pTg;
 
-    pTg = (ENEMY_WORK *)&G.Pl_be_flg;
+    pTg = G_PLAYER;
     EM20_W(pEm)->Target_pl = 0;
     if ((LONG)G.Status_flg < 0) {
         pTg = G.pEnemy[1];

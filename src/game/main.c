@@ -541,8 +541,8 @@ ULONG Cut_check(ULONG Flg)
     ULONG next_cut;
 
     for (cp = pG->Cccut_next + 1; cp->Fcut == pG->Next_cut_no; cp++) {
-        if (cp->Be_flg != 0 && (cp->nFloor == -0x80 || cp->nFloor == pG->Pl_nFloor) &&
-            func_8001020C(&pG->Pl_pos_x, cp) != 0) {
+        if (cp->Be_flg != 0 && (cp->nFloor == -0x80 || cp->nFloor == pG->Player.nFloor) &&
+            func_8001020C(&pG->Player.Pos_x, cp) != 0) {
             next_cut = cp->Tcut;
             goto apply_cut;
         }

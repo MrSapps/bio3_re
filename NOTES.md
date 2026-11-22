@@ -104,16 +104,27 @@ prologue/epilogue register save order should separate GCC 2.7.2 from 2.8.1/2.95.
 One definition per type: a struct used by more than one file lives in the header of the module that
 owns the data (RE2's header split); a .c keeps a private type only when no other file uses that layout.
 - bio3.h: tagGLOBAL (G) and the structs G embeds: KAGE_WORK/KAGE_WORK9, RCUT, OBJ_MODEL_WORK
-  (G.Ob_model[32]), ITEM_WORK/ITEM_SET (G.Item_work[2]), EM_BIN_INFO (G.Em_bin_info[2]), PARTS_W.
+  (G.Ob_model[32]), ITEM_WORK/ITEM_SET (G.Item_work[2]), EM_BIN_INFO (G.Em_bin_info[2]), PARTS_W,
+  COL_OBJ, PLAYER_WORK and ENEMY_WORK. The player is `PLAYER_WORK Player` at G+0x248C (RE2 G.Player):
+  the first 0x1CC bytes of an ENEMY_WORK, both structs declared from one member list (EM_WORK_HEAD) and
+  checked by STATIC_ASSERT (common.h). Code passes the player as an ENEMY_WORK: G_PLAYER /
+  PLAYER_EM(pG) (= RE2's (ENEMY_WORK *)&G.Player), or the exe symbol Pl_work (player.h, typed
+  ENEMY_WORK; it is &G.Player under its own name, which gives gcc a different base register, so
+  both forms stay). G.Pl_poison_timer follows the player; G.Sub_work is the spare ENEMY_WORK.
+  ENEMY_WORK.Col (0x80) is the OBA.C collision node COL_OBJ; Unk1CC[] (enemies only) is each
+  kind's free area (spl.h SPL_FREE / SPL_W for the sub player, overlays EMxx_W).
+  PARTS_W.pTmd, ENEMY_WORK.pUnk174 and Pl_wep_tmd are MD_OBJ * (md_sub.h; 0x18-byte objects);
+  ENEMY_WORK.pTmd stays ULONG * (the MD file: n_obj word, then the objects).
+  ENEMY_WORK.Kage is a union (pKw: enemies, Kage_work_set; pKw9: player, Kage_work9_set) = RE2 pKage_work.
+  ENEMY_WORK 0x180..0x19C are 8 kan/seq pointers (pUnk180_seq_t_ptr .. pUnk19C_kan_t_ptr).
   G.pEnemy[42] is RE2's pEnemy ([0] player, [1] sub player, [2..] enemies); G.Ctp is the Ctpage/Cclut
   byte pair, also written as one halfword (Tpage_clut).
 - main.h: VCUT, ROOM_WORK, FADE, DBUF, tagMAIN, tagGAME, SAVE_POS (Game.pSave). game.h: FLASH_WORK.
-- em_sub.h: ENEMY_WORK, KAN_HEAD. joint.h: JOINT_P and the PARTS_W free-work layouts at +0x74
+- em_sub.h: KAN_HEAD, TBL12. joint.h: JOINT_P and the PARTS_W free-work layouts at +0x74
   (PARTS_NECK_FREE_WORK / PW_NECK, PARTS_RGB_FREE_WORK / PW_RGB).
-  ENEMY_WORK.Kage is a union (pKw: enemies, Kage_work_set; pKw9: player, Kage_work9_set) = RE2 pKage_work.
-  ENEMY_WORK 0x180..0x19C are 8 kan/seq pointers (pUnk180_seq_t_ptr .. pUnk19C_kan_t_ptr; G.Pl_* likewise).
 - door.h: DOOR_WORK (pDwork[] slots, D_800BA700) and DOOR (RE2 tagDOOR, pDoor[0] = D_800BA6F8).
-- esp.h: the effect pool (ESP_WORK D_800BA8A8[96], RE2 Esp[]; RE3 layout), SSEQUENCE, SPR_GP.
+- esp.h: the effect pool (ESP_WORK D_800BA8A8[96], RE2 Esp[]; RE3 layout), SSEQUENCE, SPR_GP; ESP_NONE is
+  the (ESP_WORK *)-1 the effect starters return.
 - md_sub.h: MD_OBJ/MD_HEAD (RE3 model files) and the sorter works MD_WORK, MD_WORK2, RGB_BLEND_WORK,
   SORT_PARAM. om.h: CC_PARTS_WORK, CC_WORK (OBJ_MODEL_WORK itself is in bio3.h).
 - pl_wep.h: HIT_REQ (func_800472EC/func_80047BD0), HIT_AREA (func_800445C8, every overlay uses it),
@@ -123,11 +134,10 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
 - status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in 800636D4.c.
 - snd.h: SND_* incl. SND_VOL embedded at SND_WORK.Vol (0x7C0) and the listener Cam_x/y/z, Cattr.
 - sub.h: LIGHT_CUT_DATA, LIGHT_ZONE, PL_SAVE (D_800C7048). sca.h: SCA_HEAD, SCA_DATA, SCA_WORK.
-  oba.h: COL_OBJ, COL_ENT, COL_WORK. Overlay-only types live in include/ovl/<name>.h.
+  oba.h: COL_ENT, COL_WORK. Overlay-only types live in include/ovl/<name>.h.
 Views of G that remain on purpose (codegen needs a second declaration of the symbol, so gcc does
-not share the &G base): result.h GLOBAL_RESULT `Gr`, em23.h G_PL_VIEW and em33.h EM33_GPL `G_pl`.
-The player is still split into G.Pl_* fields (RE2 has `PLAYER_WORK Player` at 0x248C); folding it
-into an ENEMY_WORK member would also let those two overlay views go.
+not share the &G base): result.h GLOBAL_RESULT `Gr`. em33.h EM33_PL reaches G.pEnemy[] from
+pPl = &Pl_work (one base register).
 Prototypes: every function defined in src/game/<m>.c is declared once, in include/<m>.h (RE2 names:
 esp_r.h, psp.h, room.h, root_ck.h, sabun.h, sce1.h, sce2.h, sce_at.h, spl.h, spl_auto.h, spl_sce.h;
 800636D4.c -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from

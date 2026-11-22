@@ -524,9 +524,9 @@ void func_801C354C(void)
     pG->Unk2118 = 0;
     pG->Score = 0;
     pG->Unk2116 = 0;
-    pG->Pl_id = Id;
+    pG->Player.Id = Id;
     Main.Vloop = pSel->Vloop_bak;
-    pG->Unk784E = pG->Pl_id;
+    pG->Unk784E = pG->Player.Id;
     Task_signal(0);
     Task_exit();
 }

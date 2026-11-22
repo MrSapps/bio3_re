@@ -201,8 +201,8 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
         gte_SetTransMatrix(&M);
     }
     if (Flg & 0x20) {
-        pG->pUnk208C = func_8002BA3C((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
-        pG->pUnk208C = func_8002C068((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = func_8002BA3C(pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = func_8002C068(pP->pTmd, pG->pUnk208C, pP);
         func_8002783C(pP);
     } else if (Flg & 0x10) {
         D_800C79F0 = &M;
@@ -369,7 +369,7 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
     PARTS_W *pCur;
     UCHAR *pLink_top;
     UCHAR *pChild;
-    ULONG *pTmd_cur;
+    MD_OBJ *pTmd_cur;
     ULONG *pLink;
     ULONG n;
     ULONG Cnt;
@@ -379,7 +379,7 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
     pPos = (SHORT *)pKan + 4;
     n = pEm->Parts_num;
     pCur = pEm->pSin_parts_ptr;
-    pTmd_cur = pEm->pTmd;
+    pTmd_cur = (MD_OBJ *)pEm->pTmd;
     pLink_top = (UCHAR *)pKan + (*(USHORT *)pKan & 0xFFFC);
     pLink = (ULONG *)pLink_top;
     Link_cnt = ((USHORT *)pKan)[2];
@@ -404,9 +404,9 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
         pCur->Unk84 = Part_no;
         pCur->UnkA2 = 0xB;
         pCur->pTmd = pTmd_cur;
-        if ((USHORT)pTmd_cur[2] < 4) {
+        if ((USHORT)pTmd_cur->n_vert < 4) {
             pCur->UnkA2 = 0;
-            pTmd_cur[2] = 0;
+            pTmd_cur->n_vert = 0;
         }
         pCur->Old_x = pCur->Pos_x = pPos[0];
         pCur->Old_y = pCur->Pos_y = pPos[1];
@@ -427,7 +427,7 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
             pCur->pOya_parts = NULL;
         }
         pCur++;
-        pTmd_cur += 6;
+        pTmd_cur++;
         Part_no++;
     }
     return work_top;
@@ -1216,8 +1216,8 @@ void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     gte_SetRotMatrix(&M);
     gte_SetTransMatrix(&M);
     if (Flg & 0x20) {
-        pG->pUnk208C = func_8002BA3C((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
-        pG->pUnk208C = func_8002C068((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = func_8002BA3C(pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = func_8002C068(pP->pTmd, pG->pUnk208C, pP);
         func_8002783C(pP);
     } else if (Flg & 2) {
         func_8002606C_(&pP->Attribute, Flg, pP);

@@ -644,12 +644,12 @@ void Enemy_work_set(void)
     ppEm = &pG->pEnemy[1];
     i = 41;
     do {
-        *ppEm = (ENEMY_WORK *)pG->Sub_work;
+        *ppEm = &pG->Sub_work;
         i--;
         ppEm++;
     } while (i != 0);
     Em_num = pG->Em_num;
-    pG->pEnemy[0] = (ENEMY_WORK *)&pG->Pl_be_flg;
+    pG->pEnemy[0] = PLAYER_EM(pG);
     pG->pEnemy[0]->Be_flg = 1;
     pG->ppEnemy_end = &pG->pEnemy[2];
     if (Em_num != 0) {
@@ -719,8 +719,8 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
         pEm->pSub0_kan_t_ptr -= Work;
         pEm->pSub1_seq_t_ptr -= Work;
         pEm->pSub1_kan_t_ptr -= Work;
-        pEm->pSeq_t_ptr = pG->Pl_pSeq_t_ptr;
-        pEm->pUnk10C = pEm->pKan_t_ptr = pG->Pl_pKan_t_ptr;
+        pEm->pSeq_t_ptr = pG->Player.pSeq_t_ptr;
+        pEm->pUnk10C = pEm->pKan_t_ptr = pG->Player.pKan_t_ptr;
     }
     if (pEm->Unk4B & 0x20) {
         Work = Mem_top + pChg[3];

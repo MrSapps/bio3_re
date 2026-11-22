@@ -83,8 +83,6 @@ typedef struct tagEM25_SCA_HEAD {
 } EM25_SCA_HEAD;
 #define SCA_HEAD_NUM(p) (((EM25_SCA_HEAD *)(p))->Num)
 
-/* the player work as G.Player: G-relative accesses share its base */
-#define G_PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 /* module functions (RE2 EM25.C / EM25_S0.C names) */
 void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("func_801001D0");
