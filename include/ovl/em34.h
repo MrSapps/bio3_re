@@ -26,8 +26,8 @@ typedef struct tagEM34_FREE {
     USHORT Flg;                        /* 0x04 (0x1D0) 0x100: chasing the sub player */
     UCHAR Unk06;                       /* 0x06 (0x1D2) timer */
     UCHAR Unk07;                       /* 0x07 (0x1D3) */
-    USHORT Unk08;                      /* 0x08 (0x1D4) direction offset of the scripted shot (Em34_sce10) */
-    USHORT Unk0A;                      /* 0x0A (0x1D6) */
+    SHORT Unk08;                       /* 0x08 (0x1D4) direction offset of the scripted shot (Em34_sce10) */
+    SHORT Unk0A;                       /* 0x0A (0x1D6) */
     UCHAR Flinch;                      /* 0x0C (0x1D8) body flinch state (Em34_after0) */
     signed char Flinch_cnt;            /* 0x0D (0x1D9) */
     signed char Flinch_dir;            /* 0x0E (0x1DA) 1 or -1 */

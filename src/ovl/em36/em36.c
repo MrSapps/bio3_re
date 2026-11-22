@@ -54,7 +54,143 @@ void func_8010C4FC(ENEMY_WORK *pEm);
 void func_8010C6CC(ENEMY_WORK *pEm);
 void func_8010C764(ENEMY_WORK *pEm);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em36/em36", func_801000F8);
+/* RE2 Em12a: enemy main routine */
+void func_801000F8(ENEMY_WORK *pEm)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    VECTOR *pTv;
+    LONG Dist;
+    PARTS_W *pP;
+    LONG Spd;
+    ULONG Se;
+    USHORT Seq;
+    USHORT Rno;
+    LONG Route;
+    VECTOR *pV;
+    LONG Unused[2];
+
+    pTv = (VECTOR *)&pPl->Pos_x;
+    if (EM36_W(pEm)->Lost_time)
+        pTv = &Em36_lost_pos;
+    if ((UCHAR)pEm->Type == 8 || (UCHAR)pEm->Type == 12)
+        pTv = &Em36_route_pos[EM36_W(pEm)->Route_no];
+    if (EM36_W(pEm)->Flg & 0x1000 && *(SHORT *)&pEm->Routine_0 != 0x601 && EM36_W(pEm)->Unk15 < 3) {
+        Route = pEm->Unk14E & 0xF;
+        pTv = &Em36_route[Route][EM36_W(pEm)->Unk28];
+    }
+    Root_ck(pEm, pTv, 0, 0);
+    EM36_W(pEm)->Flg &= ~0x800;
+    pEm->Pos_y -= 400;
+    pPl->Pos_y -= 400;
+    if (!Sca_ck_line((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, 0x40, 1))
+        EM36_W(pEm)->Flg |= 0x800;
+    pEm->Pos_y += 400;
+    pPl->Pos_y += 400;
+    if (*(SHORT *)&pPl->Routine_0 == 0x701)
+        EM36_W(pEm)->Flg |= 0x800;
+    if (pEm->Damage_cnt & 0x7F)
+        pEm->Damage_cnt--;
+    if (!(pEm->Type & 1))
+        func_8010B19C(pEm);
+    Em36_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
+    if (G.Unk783E == 4 && G.Unk7840 == 9) {
+        Rno = pEm->Unk14E;
+        if (Rno & 0x80) {
+            if (!(EM36_W(pEm)->Flg & 0x1000)) {
+                Route = Rno & 0xF;
+                pV = &Em36_route[Route][0];
+                EM36_W(pEm)->Unk26 = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
+                if (EM36_W(pEm)->Unk26 < 3000) {
+                    EM36_W(pEm)->Unk28 = 1;
+                    EM36_W(pEm)->Flg |= 0x1000;
+                    pV = &Em36_route[Route][1];
+                    Dist = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
+                    pV = &Em36_route[Route][2];
+                    if (SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z)) < Dist)
+                        EM36_W(pEm)->Unk28 = 2;
+                }
+            }
+        } else {
+            EM36_W(pEm)->Flg &= ~0x1000;
+        }
+    }
+    func_8010BEAC(pEm);
+    func_8010BDD0(pEm);
+    func_8010B308(pEm);
+    if (pEm->Type & 1) {
+        func_8010C4FC(pEm);
+        if (EM36_W(pEm)->Unk15 >= 2)
+            func_8010C6CC(pEm);
+        if (EM36_W(pEm)->Unk15 >= 3)
+            func_8010C764(pEm);
+    }
+    if ((LONG)pEm->Unk154 < 3000) {
+        if (EM36_W(pEm)->Unk29)
+            EM36_W(pEm)->Unk29--;
+    } else {
+        EM36_W(pEm)->Unk29 = 120;
+    }
+    if (pEm->Be_flg & 8) {
+        if (pEm->Unk178[2] > 0) {
+            pEm->Unk178[2] -= 24;
+            if (pEm->Unk178[2] < 0)
+                pEm->Unk178[2] = 0;
+        }
+        if (pEm->Unk178[0] > 0) {
+            pEm->Unk178[0] -= 24;
+            if (pEm->Unk178[0] < 0)
+                pEm->Unk178[0] = 0;
+        }
+        if (pEm->Unk178[2] < 0) {
+            pEm->Unk178[2] += 24;
+            if (pEm->Unk178[2] > 0)
+                pEm->Unk178[2] = 0;
+        }
+        if (pEm->Unk178[0] < 0) {
+            pEm->Unk178[0] += 24;
+            if (pEm->Unk178[0] > 0)
+                pEm->Unk178[0] = 0;
+        }
+        if (pEm->Unk178[0] == 0 && pEm->Unk178[2] == 0) {
+            pEm->Be_flg &= ~8;
+            pP = &pEm->pSin_parts_ptr[0];
+            pP->UnkA2 &= ~0x40;
+            pP = &pEm->pSin_parts_ptr[9];
+            pP->UnkA2 &= ~0x40;
+        }
+    }
+    if (EM36_W(pEm)->Unk08)
+        EM36_W(pEm)->Unk08--;
+    if (EM36_W(pEm)->Unk06)
+        EM36_W(pEm)->Unk06--;
+    if (EM36_W(pEm)->Unk09)
+        EM36_W(pEm)->Unk09--;
+    if (EM36_W(pEm)->Unk14)
+        EM36_W(pEm)->Unk14--;
+    if (EM36_W(pEm)->Unk2A)
+        EM36_W(pEm)->Unk2A--;
+    func_8001AECC(pEm, 0xFE700002, 0x190000C);
+    pEm->pEnemy_ptr = pPl;
+    Rot_neck_em(pEm, pEm->Cdir_y);
+    Spd = 0x200;
+    if (pEm->Routine_0 == 7 || EM_RTN(pEm) == 0x30801)
+        Spd = 0;
+    pP = &pEm->pSin_parts_ptr[1];
+    EM36_SABUN_P(pP)->Key[0].Rate += EM36_W(pEm)->Unk16;
+    if (EM36_SABUN_P(pP)->Key[0].Rate >= 0x1000)
+        EM36_W(pEm)->Unk16 = -Spd;
+    if (EM36_SABUN_P(pP)->Key[0].Rate <= 0)
+        EM36_W(pEm)->Unk16 = Spd;
+    func_8004A934(pEm, pP, Spd);
+    Seq = *pEm->pNow_seq;
+    if (Seq & 0xF000) {
+        Se = (Seq >> 12) - 1;
+        if ((UCHAR)pEm->Type == 3 && Se - 11 < 4)
+            Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+        else
+            Snd_se_enem((USHORT)Se, pEm);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em36/em36", func_8010076C);
 

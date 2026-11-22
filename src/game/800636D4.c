@@ -213,7 +213,9 @@ typedef struct tagGLOBAL_X {
     USHORT Unk2100;                    /* 0x2100 G.Unk2100 */
     UCHAR pad2102[0x2108 - 0x2102];
     ULONG Key_trg;                     /* 0x2108 G.Key_trg */
-    UCHAR pad210C[0x2120 - 0x210C];
+    UCHAR pad210C[0x2110 - 0x210C];
+    UCHAR Cbuf_id;                     /* 0x2110 G.Cbuf_id */
+    UCHAR pad2111[0x2120 - 0x2111];
     ULONG System_flg;                  /* 0x2120 */
     UCHAR pad2124[0x21D8 - 0x2124];
     UCHAR *pUnk21D8;                   /* 0x21D8 G.pAot_data */
@@ -2904,7 +2906,245 @@ void func_8006AE90(ST_WORK *pSt)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", func_8006B66C);
+extern UCHAR D_800D225E;               /* GX.Unk79FC[0].Num as its own symbol (reloaded every loop pass) */
+extern UCHAR D_800A0004_t[][12] __asm__("D_800A0004");
+extern USHORT D_800A0080[][2];
+void func_8006CA10(ST_WORK *pSt);
+void Name_disp(LONG x, LONG y, ULONG Attr, ULONG No);
+SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm);
+
+void func_8006B66C(ST_WORK *pSt)
+{
+    GLOBAL_X *pG = &GX;
+    SPRT *p;
+    UCHAR *pT;
+    ST_ITEM *pI;
+    UCHAR *pInfo;
+    ULONG i;
+    LONG n;
+    signed char k;
+    UCHAR id;
+    USHORT x, y;
+    ULONG xy;
+    GLOBAL_X *pG2;
+    LONG no;
+    ULONG name;
+    UCHAR c;
+
+    p = (SPRT *)0x801ACA00;
+    n = 8;
+    if (pSt->Rtn1 == 0) {
+        if (pG->Cbuf_id) {
+            p = (SPRT *)0x801ACA14;
+        }
+        setRGB0(p, pSt->Unk22 - 0x80, pSt->Unk22 - 0x80, pSt->Unk22 - 0x80);
+    } else {
+        setRGB0(&p[0], 0x80, 0x80, 0x80);
+        setRGB0(&p[1], 0x80, 0x80, 0x80);
+    }
+    p = (SPRT *)0x801ACA28;
+    if ((*(ULONG *)&pSt->Rtn0 & 0xFFFF00) == 0x10700) {
+        if (G.Cbuf_id) {
+            p = (SPRT *)0x801ACA3C;
+        }
+        setRGB0(p, pSt->Unk22 - 0x80, pSt->Unk22 - 0x80, pSt->Unk22 - 0x80);
+    } else {
+        setRGB0(&p[0], 0x80, 0x80, 0x80);
+        setRGB0(&p[1], 0x80, 0x80, 0x80);
+    }
+    p = (SPRT *)0x801ACA50;
+    if ((*(ULONG *)&pSt->Rtn0 & 0xFFFF00) == 0x30500) {
+        if (G.Cbuf_id) {
+            p = (SPRT *)0x801ACA64;
+        }
+        setRGB0(p, pSt->Unk22 - 0x80, pSt->Unk22 - 0x80, pSt->Unk22 - 0x80);
+    } else {
+        setRGB0(&p[0], 0x80, 0x80, 0x80);
+        setRGB0(&p[1], 0x80, 0x80, 0x80);
+    }
+    for (i = 0; i < 8; i++) {
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n * 4]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n * 3]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n * 2]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i]);
+    }
+    pI = &GX.pUnk7C7C->Item[pSt->Unk1C];
+    pInfo = D_800A0514[pI->Id];
+    func_8006E8BC(pSt, (SPRT *)0x801AC000, D_8009F890, 0x30002);
+    switch ((ULONG)GX.Unk7C80) {
+    case 0:
+        func_8006E8BC(pSt, (SPRT *)0x801AC050, D_8009F8A8, ((n | 4) << 16) | 1);
+        break;
+    case 1:
+        func_8006E8BC(pSt, (SPRT *)0x801AC078, D_8009F8B4, ((n | 4) << 16) | 1);
+        break;
+    case 2:
+        func_8006E8BC(pSt, (SPRT *)0x801AC0A0, D_8009F8C0, ((n | 4) << 16) | 1);
+        break;
+    }
+    func_8006E8BC(pSt, (SPRT *)0x801AC0C8 + pSt->Unk34 * 2, D_800A0004_t[pSt->Unk34], ((n * 2 + 2) << 16) | 1);
+    func_8006E8BC(pSt, (SPRT *)0x801AC460, D_8009FBC0, ((n | 2) << 16) | 0x101);
+    func_8006E8BC(pSt, (SPRT *)0x801AC1B8, D_8009F8CC, 0x30105);
+    func_8006E8BC(pSt, (SPRT *)0x801AC398, D_8009F9D4, ((n | 2) << 16) | 0x103);
+    func_8006E8BC(pSt, (SPRT *)0x801AC488, D_8009FF8C, ((n * 2 + 2) << 16) | 0x103);
+    func_8006E9D4(pSt, (void *)0x801AE5A8, D_8009F9B0, 0x70103);
+    func_8006E9D4(pSt, (void *)0x801ADBA8, D_8009FC5C, 0x70808);
+    func_8006E9D4(pSt, (void *)0x801AEFA8, D_8009FF2C, 0x70801);
+    func_8006E8BC(pSt, (SPRT *)0x801AC410, D_8009FBA8, (((n * 3) | 1) << 16) | 0x802);
+    if (pSt->Flg & 0x1000) {
+        func_8006EAF0(pSt, (TILE *)0x801AF508, D_8009FB90, 0x70902);
+        func_8006E9D4(pSt, (void *)0x801ADE28, D_8009FCBC, 0x70908);
+        func_8006CA10(pSt);
+        if (pSt->Flg & 0x2000) {
+            func_8006E8BC(pSt, (SPRT *)0x801ADB58, D_8009FB78, ((n * 2 + 1) << 16) | 0x1701);
+        }
+        if (pSt->Flg & 0x4000) {
+            func_8006E8BC(pSt, (SPRT *)0x801ADB30, D_8009FB84, ((n * 2 + 1) << 16) | 0x1601);
+        }
+        if (pSt->Flg & 0x1000000) {
+            func_8006E8BC(pSt, (SPRT *)0x801ACA50, D_8009FF80, ((n * 2 + 1) << 16) | 0xE01);
+            k = pSt->Unk20;
+            id = D_800A00B0[k];
+            if (GX.Unk79F8 == 30 && k == 0) {
+                id = 30;
+            }
+            if (Flg_ck(GX.Unk79F4, id)) {
+                Name_disp(0xE, 0xC8, 0x501, id + 0x85);
+            }
+        }
+        func_8006E9D4(pSt, (void *)0x801AE0A8, D_8009FD1C, 0x70A08);
+        func_8006E9D4(pSt, (void *)0x801AF048, D_8009FF44, 0x70A01);
+    }
+    if (pSt->Flg & 0x400000) {
+        func_8006C370(pSt);
+    }
+    func_8006E9D4(pSt, (void *)0x801AE328, D_8009FD7C, 0x70B08);
+    func_8006E9D4(pSt, (void *)0x801AF098, D_8009FF50, 0x70B01);
+    if (pSt->Unk42.Flg & 0x10) {
+        func_8006E8BC(pSt, (SPRT *)0x801ACA78, D_8009FBCC, 0x60304);
+    } else {
+        func_8006E8BC(pSt, (SPRT *)0x801ACB18, D_8009FBFC, 0x60304);
+    }
+    func_8006E8BC(pSt, (SPRT *)0x801ACBB8, D_8009FC2C, 0x40401);
+    func_8006E8BC(pSt, (SPRT *)0x801ACBE0, D_8009FC38, 0x40501);
+    func_8006E8BC(pSt, (SPRT *)0x801ACC08, D_8009FC44, 0x40601);
+    if (pSt->Unk42.Flg & 0x10) {
+        func_8006E8BC(pSt, (SPRT *)0x801ACC30, D_8009FC50, 0x40701);
+    }
+    if (pInfo[0] == 1) {
+        func_8006E8BC(pSt, (SPRT *)0x801ACC58, D_8009FFB0, ((n * 2 + 4) << 16) | 0x401);
+    } else {
+        func_8006E8BC(pSt, (SPRT *)0x801ACC80, D_8009FFBC, ((n * 2 + 4) << 16) | 0x401);
+    }
+    func_8006E8BC(pSt, (SPRT *)0x801ACCA8, D_8009FFC8, ((n * 2 + 4) << 16) | 0x501);
+    func_8006E8BC(pSt, (SPRT *)0x801ACCF8, D_8009FFE0, ((n * 2 + 4) << 16) | 0x601);
+    if (pSt->Unk42.Flg & 0x10) {
+        if (pI->Flg & 0x100) {
+            func_8006E8BC(pSt, (SPRT *)0x801ACD48, D_8009FFF8, ((n * 2 + 4) << 16) | 0x701);
+        } else {
+            func_8006E8BC(pSt, (SPRT *)0x801ACD20, D_8009FFEC, ((n * 2 + 4) << 16) | 0x701);
+        }
+    }
+    pT = D_8009FE6C;
+    p = (SPRT *)0x801AEAA8;
+    if ((signed char)pSt->Unk1E == 0) {
+        pT += 0x18;
+        p = (SPRT *)0x801AEB48;
+    }
+    func_8006E9D4(pSt, p, pT, 0x50402);
+    pT = D_8009FE9C;
+    p = (SPRT *)0x801AEBE8;
+    if ((signed char)pSt->Unk1E == 1) {
+        pT += 0x18;
+        p = (SPRT *)0x801AEC88;
+    }
+    func_8006E9D4(pSt, p, pT, 0x50502);
+    pT = D_8009FECC;
+    p = (SPRT *)0x801AED28;
+    if ((signed char)pSt->Unk1E == 2) {
+        pT += 0x18;
+        p = (SPRT *)0x801AEDC8;
+    }
+    func_8006E9D4(pSt, p, pT, 0x50602);
+    if (pSt->Unk42.Flg & 0x10) {
+        pT = D_8009FEFC;
+        p = (SPRT *)0x801AEE68;
+        if ((signed char)pSt->Unk1E == 3) {
+            pT += 0x18;
+            p = (SPRT *)0x801AEF08;
+        }
+        func_8006E9D4(pSt, p, pT, 0x50702);
+    }
+    p = (SPRT *)0x801ACD70;
+    if (G.Cbuf_id) {
+        p = (SPRT *)0x801ACD84;
+    }
+    i = 0;
+    if (GX.Unk79FC[0].Num) {
+        do {
+            pI = &pG->pUnk7C7C->Item[i];
+            x = D_800A0080[i][0] + pSt->Pos[1].X;
+            y = D_800A0080[i][1] + pSt->Pos[1].Y;
+            xy = x | (y << 16);
+            c = pSt->UnkD3 + ((pI->Flg & 0xC) >> 2) + 2;
+            p = func_8006C6D0(p, pI->Num, xy, c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
+        } while (++i < D_800D225E);
+    }
+    if ((i = pG->pUnk7C7C->Unk128) != 0xFF) {
+        pI = &pG->pUnk7C7C->Item[i];
+        c = pSt->UnkD3 + ((pI->Flg & 0xC) >> 2) + 2;
+        x = D_800A0080[10][0] + pSt->Pos[1].X;
+        y = D_800A0080[10][1] + pSt->Pos[1].Y;
+        func_8006C6D0(p, pI->Num, x | (y << 16), c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
+    }
+    pT = D_8009FDDC;
+    p = (SPRT *)0x801AE698;
+    if (pSt->Unk1C == -2) {
+        pT += 0x18;
+        p = (SPRT *)0x801AE738;
+    }
+    func_8006E9D4(pSt, p, pT, 0x40102);
+    pT = D_8009FE0C;
+    p = (SPRT *)0x801AE7D8;
+    if (pSt->Unk1C == -1) {
+        pT += 0x18;
+        p = (SPRT *)0x801AE878;
+    }
+    func_8006E9D4(pSt, p, pT, 0x40102);
+    pT = D_8009FE3C;
+    p = (SPRT *)0x801AE918;
+    if (pSt->Unk1C < -2) {
+        pT += 0x18;
+        p = (SPRT *)0x801AE9B8;
+    }
+    func_8006E9D4(pSt, p, pT, 0x40102);
+    if ((pSt->Flg & 0x4000000) && pSt->Unk1C >= 0) {
+        func_8006E8BC(pSt, (SPRT *)0x801ACA00, D_8009FF68, ((n * 2 + 1) << 16) | 0xC01);
+    }
+    pG2 = &GX;
+    if (pSt->Flg & 0x2000000) {
+        func_8006E8BC(pSt, (SPRT *)0x801ACA28, D_8009FF74, ((n * 2 + 1) << 16) | 0xD01);
+    }
+    if (pG2->pUnk7C7C->Num == 8) {
+        func_8006E8BC(pSt, (SPRT *)0x801AC280, D_8009F908, 0x10207);
+        func_8006EAF0(pSt, (TILE *)0x801AF4E8, D_8009FF5C, 0x10201);
+    }
+    if (pSt->Flg & 0x20000000) {
+        if (pSt->Flg & 0x2000000) {
+            no = (signed char)pSt->Unk1D;
+            pI = &pG2->pUnk7C7C->Item[no];
+        } else {
+            no = pSt->Unk1C;
+            pI = &pG2->pUnk7C7C->Item[no];
+        }
+        name = pI->Id;
+        if (no >= 0) {
+            Name_disp(0xE, 0xAD, 0x501, name);
+        }
+    }
+    func_8006C484(pSt);
+}
 
 void func_8006C370(ST_WORK *pSt)
 {

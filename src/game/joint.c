@@ -1329,7 +1329,154 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     } while (--n != 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/joint", func_80028308);
+/* RE2 Joint_move_p; the header prototype takes the tables as pointers */
+ULONG func_80028308_(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg) __asm__("func_80028308");
+
+ULONG func_80028308_(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
+{
+    ULONG *pRot;
+    USHORT *pSeq;
+    ULONG f_base;
+    PARTS_W *pP;
+    PARTS_W *pP_walk;
+    ULONG Hokan;
+    ULONG P0_no;
+    ULONG On_flg;
+    ULONG Max;
+    ULONG n;
+    ULONG Cnt;
+    LONG w;
+    LONG dx;
+    LONG dy;
+    LONG dz;
+    SVECTOR Unused[2];                 /* frame space only */
+
+    pSeq = (USHORT *)(Seq_t_ptr + pJp->Move_no * 8);
+    pSeq = (USHORT *)(Seq_t_ptr + pSeq[1]) + pJp->Move_cnt;
+    f_base = ((USHORT *)(Seq_t_ptr + pJp->Move_no * 8))[2];
+    pRot = (ULONG *)(Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
+    pRot += (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (f_base + *(UCHAR *)pSeq);
+    w = ((SHORT *)pRot)[3];
+    w *= G.pEm->Unk12A;
+    Hokan = pJp->Hokan_flg;
+    pRot += 2;
+    P0_no = pJp->P0_parts_no;
+    pP = G.pEm->pSin_parts_ptr;
+    On_flg = pJp->On_parts_flg;
+    Max = *(USHORT *)(Seq_t_ptr + pJp->Move_no * 8);
+    pP_walk = pP;
+    pJp->P0_m.t[1] = w >> 12;
+    Cnt = *(USHORT *)(Kan_t_ptr + 4);
+    w = Late_flg & 0xFFFF;
+    n = Cnt;
+unpack:
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[0].Unk88 = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
+        pP_walk[0].Unk8C = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
+    }
+    if (P0_no == 0) {
+        P0_no = -1;
+        *(ULONG *)&pJp->P0_sv.vx = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
+        pJp->P0_sv.vz = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
+        RotMatrix(&pJp->P0_sv, &pJp->P0_m);
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[1].Unk88 = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
+        pP_walk[1].Unk8C = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[2].Unk88 = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
+        pP_walk[2].Unk8C = ((USHORT *)pRot)[6] & 0xFFF;
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[3].Unk88 = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
+        pP_walk[3].Unk8C = (pRot[4] & 0xFFF0) >> 4;
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[4].Unk88 = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
+        pP_walk[4].Unk8C = (pRot[5] & 0xFFF00) >> 8;
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[5].Unk88 = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
+        pP_walk[5].Unk8C = (pRot[6] & 0xFFF000) >> 12;
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[6].Unk88 = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
+        pP_walk[6].Unk8C = (pRot[7] & 0xFFF0000) >> 16;
+    }
+    On_flg >>= 1;
+    if (--n == 0) goto unpacked;
+    if (On_flg & 1) {
+        *(ULONG *)&pP_walk[7].Unk88 = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
+        pP_walk[7].Unk8C = pRot[8] >> 20;
+    }
+    On_flg >>= 1;
+    pRot += 9;
+    pP_walk += 8;
+    if (--n != 0) {
+        goto unpack;
+    }
+unpacked:
+    On_flg = pJp->On_parts_flg;
+    if (Hokan == 0) {
+        do {
+            if (On_flg & 1) {
+                *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Unk88;
+                pP->Cdir_z = pP->Unk8C;
+                RotMatrix_gte((SVECTOR *)&pP->Unk88, (MATRIX *)pP->M);
+            }
+            On_flg >>= 1;
+            pP++;
+        } while (--Cnt != 0);
+    } else {
+        do {
+            if (On_flg & 1) {
+                *(ULONG *)&pP->Cdir_x &= 0xFFF0FFF;
+                pP->Cdir_z &= 0xFFF;
+                gte_lddp(w);
+                gte_ldsv(&pP->Cdir_x);
+                dx = pP->Unk88 - pP->Cdir_x + 0x800;
+                dy = pP->Unk8A - pP->Cdir_y + 0x800;
+                dz = pP->Unk8C - pP->Cdir_z + 0x800;
+                if ((ULONG)dx > 0x1000) {
+                    pP->Unk88 += (dx & 0x80000000) ? 0x1000 : -0x1000;
+                }
+                if ((ULONG)dy > 0x1000) {
+                    pP->Unk8A += (dy & 0x80000000) ? 0x1000 : -0x1000;
+                }
+                if ((ULONG)dz > 0x1000) {
+                    pP->Unk8C += (dz & 0x80000000) ? 0x1000 : -0x1000;
+                }
+                gte_gpf12_b();
+                gte_lddp(0x1000 - w);
+                gte_ldsv(&pP->Unk88);
+                gte_gpl12();
+                gte_stsv(&pP->Cdir_x);
+                RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+            }
+            On_flg >>= 1;
+            pP++;
+            pJp->Hokan_flg--;
+        } while (--Cnt != 0);
+    }
+    if (++pJp->Move_cnt >= Max) {
+        pJp->Move_cnt = 0;
+        return 1;
+    }
+    return 0;
+}
 
 void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
 

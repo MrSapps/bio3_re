@@ -42,11 +42,20 @@ LONG func_800336B4(ENEMY_WORK *pEm);
 void func_80034124(COL_OBJ *pObj);
 void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
 void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
+LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
 void func_80033FBC(COL_OBJ *pTop);
 void func_80033B88(COL_OBJ *pTop);
 COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
 void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
+void func_80034814(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
+void func_80034F08(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG func_8004AF04(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
+ULONG func_8004D6B8(LONG X, LONG Z);
+LONG func_8004D404(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old);
+ULONG func_80035678(COL_OBJ *pObj, LONG W, SCA_DATA *pSca, ULONG Old);
+void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type);
+LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT);
 
 
 void func_80033508(void)
@@ -207,7 +216,87 @@ void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
     pEnt->C.All = -1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_8003389C);
+/* no return value: v0 stays out of the last delay slot */
+LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
+{
+    COL_OBJ *p;
+    ENEMY_WORK *pEm;
+    ULONG Tbl;
+    LONG dx;
+    LONG dz;
+    LONG w0;
+    LONG w1;
+    LONG w2;
+    LONG ex;
+    LONG ez;
+    LONG i;
+
+    i = 0;
+    if ((p = D_800DCDD0[0]) != NULL) {
+        do {
+            pEnt = D_800DCED0.Ent;
+            pEm = p->pEm;
+            while (pEnt->pObj != p) {
+                pEnt++;
+            }
+            Tbl = -1;
+            if (p->Type < 5) {
+                Tbl = D_8009CBC8[p->Type];
+                if (p->Type < 3 && (pEm->Damage_cnt & 0x80)) {
+                    p->Hit_flg |= 0x8000;
+                }
+            }
+            if (p->Type < 3) {
+                func_80034814(pEm, p->W0, Tbl, p);
+            } else {
+                func_80035184(pEm, p->W0, Tbl, p);
+            }
+            if (!(p->Flg & 0x80)) {
+                func_8004AF04(pEm, p->W0, Tbl, p);
+            }
+            if (p->Type < 3) {
+                func_80034F08(pEm, p->W0, Tbl, p);
+            }
+            p->Hit_flg |= 0x4000;
+            if (p->Hit_flg & 0x100) {
+                w0 = p->Old_x;
+                w1 = p->Old_y;
+                w2 = p->Old_z;
+                p->Pos_x = w0;
+                p->Pos_y = w1;
+                p->Pos_z = w2;
+                w0 = p->pEm->Unk40[0];
+                w1 = p->pEm->Unk40[2];
+                p->pEm->Pos_x = w0;
+                p->pEm->Pos_z = w1;
+                if (p->Type < 3) {
+                    pEm->Base_pos_x = w0;
+                    pEm->Base_pos_z = w1;
+                }
+                dz = dx = 0;
+            } else {
+                w2 = pEm->Pos_y;
+                dx = -pEm->Unk40[0] + (ex = pEm->Pos_x);
+                dz = -pEm->Unk40[2] + (ez = pEm->Pos_z);
+                pEm->Unk40[0] = ex;
+                pEm->Unk40[2] = ez;
+                pEm->Unk40[1] = w2;
+                w0 = p->Pos_x;
+                w1 = p->Pos_z;
+                w2 = p->Pos_y;
+                p->Old_x = w0;
+                p->Old_z = w1;
+                p->Old_y = w2;
+                p->W1 = p->W0;
+                p->D1 = p->D0;
+            }
+            pEnt->X0 += dx;
+            pEnt->X1 += dx;
+            pEnt->Z0 += dz;
+            pEnt->Z1 += dz;
+        } while ((p = D_800DCDD0[++i]) != NULL);
+    }
+}
 
 void func_80033B20(void)
 {
@@ -524,7 +613,6 @@ INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034814);
 
 LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
-LONG func_8004AF04(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
 LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT);
 
 void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
@@ -552,9 +640,115 @@ INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034E78);
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034F08);
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80035184);
+/* no return value; pE and pEnt walk the same list (two pointers in the original) */
+LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
+{
+    COL_ENT *pEnt;
+    COL_ENT *pE;
+    COL_OBJ *pT;
+    ULONG Area;
+    ULONG Be;
+    ULONG Tbe;
+    LONG Shape;
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_800353CC);
+    pE = pEnt = D_800DCED0.Ent;
+    Area = func_8004D6B8((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
+    for (; pEnt->C.All != -1; pEnt = ++pE) {
+        if ((pEnt->Area & Area) != Area) {
+            continue;
+        }
+        if (!(pEnt->Id & Tbl)) {
+            continue;
+        }
+        pT = pE->pObj;
+        if (pObj == pT) {
+            continue;
+        }
+        if (pE->Type == 3) {
+            Be = pEm->Be_flg;
+            if (Be & 0x8000) {
+                continue;
+            }
+            if ((Be | pT->pEm->Be_flg) & 0x1000) {
+                continue;
+            }
+        } else {
+            if (pEm->Be_flg & 0x8000) {
+                continue;
+            }
+            Tbe = pT->pEm->Be_flg;
+            if ((pEm->Be_flg | Tbe) & 0x4000) {
+                continue;
+            }
+            if (Tbe & 0x1000) {
+                continue;
+            }
+            if (pT->Type == 0 && (ULONG)(G.Pl_routine_1 - 11) < 2) {
+                continue;
+            }
+        }
+        if (pObj->pEm->Be_flg & pT->pEm->Be_flg & 0x800) {
+            continue;
+        }
+        Shape = pEnt->Id & 0xF;
+        if (Shape < 2) {
+            if (pObj->Pos_y - pObj->H >= pT->Pos_y) {
+                continue;
+            }
+            if (pT->Pos_y - pT->H >= pObj->Pos_y) {
+                continue;
+            }
+        }
+        if (Shape != 0) {
+            continue;
+        }
+        if (pT->Type == 0 && (pObj->pEm->Be_flg & 0x100) && pT->pEm->Damage_cnt == 0 && func_800353CC(pObj, pT) == 0) {
+            pObj->Hit_flg |= 0x2000;
+        }
+    }
+}
+
+LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT)
+{
+    LONG x;
+    LONG z;
+    LONG ex;
+    LONG ez;
+    LONG tx;
+    LONG tz;
+    LONG tex;
+    LONG tez;
+    LONG Ret;
+
+    x = pObj->Pos_x;
+    z = pObj->Pos_z;
+    ex = pObj->pEm->Pos_x;
+    ez = pObj->pEm->Pos_z;
+    tx = pT->Pos_x;
+    tz = pT->Pos_z;
+    tex = pT->pEm->Pos_x;
+    tez = pT->pEm->Pos_z;
+    func_8003553C(pObj, pT);
+    Ret = func_8004AF04(pObj->pEm, pObj->W0, 0x4000, pObj);
+    if (Ret != 0 || !(D_800D1F2C & 0x10) || pT->pEm->Damage_cnt != 0) {
+        pObj->Pos_x = x;
+        pObj->Pos_z = z;
+        pObj->pEm->Pos_x = ex;
+        pObj->pEm->Pos_z = ez;
+        pT->Pos_x = tx;
+        pT->Pos_z = tz;
+        pT->pEm->Pos_x = tex;
+        pT->pEm->Pos_z = tez;
+    } else {
+        pObj->Unk3A |= 0x8000 >> pT->Em_idx;
+        pObj->Unk3 = pT->Em_idx;
+        pObj->Hit_flg |= 0x10;
+        pT->Unk3A |= 0x8000 >> pObj->Em_idx;
+        pT->Unk3 = pObj->Em_idx;
+        pT->Hit_flg |= 0x10;
+    }
+    return Ret;
+}
 
 LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT)
 {

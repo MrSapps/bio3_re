@@ -141,7 +141,17 @@ LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
 void func_8002AB34(ULONG *pTmd, ULONG Tpage, ULONG Clut);
 PARTS_W *func_8002E61C(ENEMY_WORK *pEm, PARTS_W *pParts);
 PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
-void func_8003589C(ENEMY_WORK *pEm, ULONG *pData);
+void func_8003589C(OBJ_MODEL_WORK *pOm, ULONG *pKan);
+void Md_set_abr(ULONG *pTmd, ULONG Abr);             /* md_sub.c */
+#define PW_FREE(p) ((USHORT *)&(p)->Unk74)  /* PARTS_W 0x74..0x7F */
+/* per object-model type (ENEMY_WORK.Type & 0x1F) */
+typedef struct {
+    UCHAR Unk0;                        /* 0x0 non-zero: part Unk1 starts hidden (func_8003589C) */
+    UCHAR Unk1;                        /* 0x1 */
+    UCHAR Num;                         /* 0x2 */
+    UCHAR Idx;                         /* 0x3 */
+} OM_BREAK_TBL;
+extern OM_BREAK_TBL D_8009CBEC[];
 
 void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
 {
@@ -160,7 +170,7 @@ void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
         G_ARR(PARTS_W *, 0x213C)[0] = func_8002E61C(pEm, G_ARR(PARTS_W *, 0x213C)[0]);
     } else {
         G_ARR(PARTS_W *, 0x213C)[0] = func_80035868(pEm, G_ARR(PARTS_W *, 0x213C)[0]);
-        func_8003589C(pEm, *(ULONG **)((UCHAR *)pEm + 0x184));
+        func_8003589C((OBJ_MODEL_WORK *)pEm, *(ULONG **)((UCHAR *)pEm + 0x184));
     }
 }
 
@@ -695,12 +705,6 @@ typedef struct {                       /* object model part, 0xBC bytes (func_80
     UCHAR padA4[0xBC - 0xA4];
 } OM_PARTS;
 
-typedef struct {
-    UCHAR pad0[2];
-    UCHAR Num;
-    UCHAR Idx;
-} OM_BREAK_TBL;
-extern OM_BREAK_TBL D_8009CBEC[];
 extern ULONG D_8009CC54[];
 
 void func_80037680(OBJ_MODEL_WORK *pOm)

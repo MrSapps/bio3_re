@@ -69,6 +69,13 @@ typedef struct tagEM38_SABUN {
 /* the same free work as halfwords */
 #define PW_FREES(p) ((SHORT *)&(p)->Unk74)
 
+/* parts swelling with the body in the transformation (module .data D_8010CDEC) */
+typedef struct tagEM38_SWELL {
+    UCHAR Num0;                        /* 0x00 parts given the size with func_8010C9A4 */
+    UCHAR Num1;                        /* 0x01 parts given the size directly */
+    UCHAR Parts[14];                   /* 0x02 part numbers */
+} EM38_SWELL;
+
 /* walk targets (module .data D_8010CA10, 0x20 bytes each) */
 typedef struct tagEM38_ROOT {
     LONG Pos_x;                        /* 0x00 */
@@ -107,5 +114,6 @@ LONG func_800445C8(void *pA0, void *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_w
 void Copy_rot_matrix(MATRIX *m0, MATRIX *m1);                          /* sub.c */
 void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);   /* em_sub.c */
 void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4); /* RE2 Esp_call */
+void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos); /* joint.c, RE2 Joint_trans */
 
 #endif /* OVL_EM38_H */

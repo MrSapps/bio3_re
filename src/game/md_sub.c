@@ -54,6 +54,14 @@
 #define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
 #define gte_stszotz(r0) __asm__ volatile("mfc2 $12, $19; nop; sra $12, $12, 2; sw $12, 0(%0)" : : "r"(r0) : "$12", "memory")
 #define gte_ldsz4(r0, r1, r2, r3) __asm__ volatile("mtc2 %0, $16; mtc2 %1, $17; mtc2 %2, $18; mtc2 %3, $19" : : "r"(r0), "r"(r1), "r"(r2), "r"(r3))
+#define gte_ReadRotMatrix(r0) __asm__ volatile("cfc2 $12, $0; cfc2 $13, $1; sw $12, 0(%0); sw $13, 4(%0); cfc2 $12, $2; cfc2 $13, $3; cfc2 $14, $4; sw $12, 8(%0); sw $13, 12(%0); sw $14, 16(%0); cfc2 $12, $5; cfc2 $13, $6; cfc2 $14, $7; sw $12, 20(%0); sw $13, 24(%0); sw $14, 28(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
+#define gte_ldlv0(r0) __asm__ volatile("lhu $13, 4(%0); lhu $12, 0(%0); sll $13, $13, 16; or $12, $12, $13; mtc2 $12, $0; lwc2 $1, 8(%0)" : : "r"(r0) : "$12", "$13")
+#define gte_stlvnl(r0) __asm__ volatile("swc2 $25, 0(%0); swc2 $26, 4(%0); swc2 $27, 8(%0)" : : "r"(r0) : "memory")
+#define gte_rtv0tr() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_rtv0tr_b() __asm__ volatile(".word 0x4A480012")
+#define gte_rtv1tr() __asm__ volatile("nop; nop; .word 0x4A488012")
+#define gte_rtv2tr() __asm__ volatile("nop; nop; .word 0x4A490012")
+#define gte_llv0() __asm__ volatile("nop; nop; .word 0x4A4A6412") /* mvmva 1,1,0,3,1: light matrix * v0, lm */
 
 /* 0x68 byte prim work (func_8002D41C) */
 typedef struct tagRGB_BLEND_WORK {
@@ -99,9 +107,9 @@ typedef struct tagSORT_PARAM {
     ULONG Unk14;                       /* 0x14 */
 } SORT_PARAM;
 void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D184(void *pWork0, void *pWork1, ULONG Arg2, MATRIX *pM);
+void func_8002D184(ULONG *pXy, SHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
 POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
 POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002DFE0(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
@@ -116,8 +124,9 @@ POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
 POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
 void func_8002B2BC(KAN_HEAD *pKan, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
-ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
+POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
 
+/* 7 diffs (draft in scratchpad): giv base must be &n_prim3, gcc picks the last pObj field read (pPrim4) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002AB34);
 
 void Md_adr_cnv(MD_HEAD *pMd)
@@ -214,7 +223,93 @@ void MulLMatrix(MATRIX *lwm, MATRIX *klwm, MATRIX *nlm)
     nlm->t[2] = vec.vz;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002AF9C);
+/* floor panel GT4 sort (func_8002E74C): one colour, screen xy / z from the projected tables */
+void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+{
+    ULONG IdxMask;
+    LONG Otz;
+    ULONG n;
+    ULONG *ot;
+    LONG *p;
+    ULONG Rgb;
+    ULONG i0;
+    LONG i1;
+    ULONG i2;
+    LONG i3;
+    LONG k;
+    ULONG *xy0;
+    ULONG *xy1;
+    ULONG *xy2;
+    USHORT *z0;
+    USHORT *z1;
+    USHORT *z2;
+    USHORT *z3;
+    ULONG *tmp;
+    ULONG Mask;                        /* both masks are kept in registers */
+
+    Mask = 0xFFFFFF;
+    IdxMask = 0xFF0000;
+    n = pPrm->pObj->n_prim4;
+    if (n == 0) {
+        return;
+    }
+    p = (LONG *)pPrm->pObj->pPrim4;
+    ot = pPrm->pOt;
+    Rgb = pPrm->u.Rgb;
+    i0 = (p[2] & IdxMask) >> 16;
+    i1 = p[2] >> 24;
+    i2 = (p[3] & IdxMask) >> 16;
+    i3 = p[3] >> 24;
+    xy0 = &pSxy[i0];
+    xy1 = &pSxy[i1];
+    xy2 = &pSxy[i2];
+    z0 = &pSz[i0];
+    z1 = &pSz[i1];
+    z2 = &pSz[i2];
+    z3 = &pSz[i3];
+loop:
+    gte_ldsxy3(*xy0, *xy1, *xy2);
+    gte_ldsz4(*z0, *z1, *z2, *z3);
+    p += 4;
+    n--;
+    gte_nclip_b();
+    k = i3;
+    i0 = (p[2] & IdxMask) >> 16;
+    i1 = p[2] >> 24;
+    i2 = (p[3] & IdxMask) >> 16;
+    i3 = p[3] >> 24;
+    xy0 = &pSxy[i0];
+    xy1 = &pSxy[i1];
+    xy2 = &pSxy[i2];
+    z0 = &pSz[i0];
+    z1 = &pSz[i1];
+    z2 = &pSz[i2];
+    z3 = &pSz[i3];
+    gte_stopz(&Otz);
+    if (Otz <= 0) {
+        goto next;
+    }
+    gte_avsz4_b();
+    *(ULONG *)&pPacket->x3 = pSxy[k];
+    *(ULONG *)&pPacket->r0 = Rgb;
+    *(ULONG *)&pPacket->r1 = Rgb;
+    *(ULONG *)&pPacket->r2 = Rgb;
+    *(ULONG *)&pPacket->r3 = Rgb;
+    gte_stsxy3_gt3(pPacket);
+    gte_stotz(&Otz);
+    if (Otz & ~0x1FFF) {
+        Otz = 0x1FFF;
+    }
+    tmp = &ot[Otz >> 3];
+    Otz = *tmp;
+    *tmp = (ULONG)pPacket & Mask;
+    pPacket->tag = (Otz & Mask) | 0xC000000;
+next:
+    pPacket += 2;
+    if (n != 0) {
+        goto loop;
+    }
+}
 
 void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
 
@@ -381,14 +476,260 @@ void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
    copies a1 to t0 twice, and every one copies params into t-regs (`addu t0,a1,zero`) to free the
    a-regs as temporaries. gcc 2.8.1 keeps pPacket in a1 (its copy preference outranks pZ0's two
    refs), and no PsyQ inline_c.h macro (4.3-4.5) uses fixed registers, so the copy has no clean
-   C source. */
+   C source. Note: a parameter copy alone is not proof (func_8002AF9C and func_8002C068 are C and
+   copy a0 to v1/a3: a local-alloc'd temp took the incoming a-reg during the parameter's life). */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B6FC);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B86C);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002BA3C);
+extern SHORT D_80098A88[2][30];        /* RE2 Bomb_tbl: push-out distance per frame */
+extern SVECTOR D_80098B00;             /* spin of the exploding parts, +0x80 per call */
+extern MATRIX D_800D4570;              /* rotation of D_80098B00, translation = polygon centre */
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002C068);
+/* RE2 Bomb_Parts_SortGT3: every polygon is pushed out along its normal */
+POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
+{
+    MATRIX bbm1;
+    MATRIX bbm0;
+    VECTOR Vec;
+    LONG D2;
+    SVECTOR *sp;
+    SVECTOR *np;
+    SVECTOR *s0;
+    SVECTOR *s1;
+    SVECTOR *s2;
+    SVECTOR *s3;
+    ULONG *p_prim;
+    ULONG *ot;
+    ULONG *tmp;
+    VECTOR *v;
+    ULONG cnt0;
+    ULONG rgb;
+    ULONG Tb_no;
+    ULONG Tb_lo;
+    ULONG Tb_hi;
+    LONG bomb;
+    SHORT Abr;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+
+    RotMatrix(&D_80098B00, &D_800D4570);
+    D_80098B00.vy += 0x80;
+    D_80098B00.vx += 0x80;
+    cnt0 = pObj->n_prim3;
+    if (cnt0 == 0) {
+        return pPacket;
+    }
+    ot = (ULONG *)G.pEm->Unk7C;
+    p_prim = pObj->pPrim3;
+    np = (SVECTOR *)pObj->pNorm;
+    sp = (SVECTOR *)pObj->pVert;
+    i0 = p_prim[1] >> 24;
+    i1 = (p_prim[2] >> 16) & 0xFF;
+    i2 = p_prim[2] >> 24;
+    s0 = &np[i0];
+    Tb_no = (USHORT)pP->Unk7C;
+    Tb_lo = Tb_no & 0x7FFF;
+    Tb_hi = Tb_no >> 15;
+    gte_ReadRotMatrix(&bbm0);
+    v = (VECTOR *)bbm1.t;
+    bomb = D_80098A88[Tb_hi][Tb_lo];
+    v->vx = (s0->vx >> 10) * bomb;
+    v->vy = (s0->vy >> 10) * bomb;
+    v->vz = (s0->vz >> 10) * bomb;
+    gte_ldlv0(v);
+    rgb = pP->Poly_rgb;
+    rgb &= 0xFFFFFF;
+    rgb |= 0x34000000;
+    rgb |= (SHORT)((pP->UnkA2 & 0x100) >> 7) << 24;
+    gte_rtv0tr_b();
+    s1 = &sp[i0];
+    s2 = &sp[i1];
+    s3 = &sp[i2];
+    do {
+        gte_stlvnl(v);
+        D_800D4570.t[0] = (s1->vx + s2->vx + s3->vx) / 3;
+        D_800D4570.t[1] = (s1->vy + s2->vy + s3->vy) / 3;
+        D_800D4570.t[2] = (s1->vz + s2->vz + s3->vz) / 3;
+        gte_SetRotMatrix(&D_800D4570);
+        gte_SetTransMatrix(&D_800D4570);
+        Vec.vx = -D_800D4570.t[0];
+        Vec.vy = -D_800D4570.t[1];
+        Vec.vz = -D_800D4570.t[2];
+        gte_ldlv0(&Vec);
+        gte_rtv0tr();
+        gte_stlvnl(D_800D4570.t);
+        D_800D4570.t[0] += (s0->vx >> 10) * bomb;
+        D_800D4570.t[1] += (s0->vy >> 10) * bomb;
+        D_800D4570.t[2] += (s0->vz >> 10) * bomb;
+        func_8002D4B0(&bbm0, &D_800D4570, &bbm1);
+        gte_SetRotMatrix(&bbm1);
+        gte_SetTransMatrix(&bbm1);
+        gte_ldv3(s1, s2, s3);
+        p_prim += 3;
+        cnt0--;
+        gte_rtpt_b();
+        i0 = p_prim[1] >> 24;
+        i1 = (p_prim[2] >> 16) & 0xFF;
+        i2 = p_prim[2] >> 24;
+        s1 = &sp[i0];
+        s2 = &sp[i1];
+        s3 = &sp[i2];
+        s0 = &np[i0];
+        gte_avsz3_b();
+        *(ULONG *)&pPacket->r0 = rgb;
+        *(ULONG *)&pPacket->r1 = rgb;
+        *(ULONG *)&pPacket->r2 = rgb;
+        gte_stsxy3_gt3(pPacket);
+        gte_stotz(&D2);
+        gte_SetTransMatrix(&bbm0);
+        gte_SetRotMatrix(&bbm0);
+        bomb = D_80098A88[Tb_hi][Tb_lo];
+        v->vx = (s0->vx >> 10) * bomb;
+        v->vy = (s0->vy >> 10) * bomb;
+        v->vz = (s0->vz >> 10) * bomb;
+        gte_ldlv0(v);
+        gte_rtv0tr();
+        *(ULONG *)&pPacket->u0 = p_prim[-3];
+        *(ULONG *)&pPacket->u1 = p_prim[-2] & 0xFFFFFF;
+        *(ULONG *)&pPacket->u2 = p_prim[-1];
+        if (D2 > 0x1FFF) {
+            D2 = 0x1FFF;
+        }
+        tmp = (ULONG *)((UCHAR *)ot + (((ULONG)D2 >> 1) & 0xFFC));
+        D2 = *tmp;
+        *tmp = (ULONG)pPacket & 0xFFFFFF;
+        pPacket->tag = D2 | 0x9000000;
+        pPacket += 2;
+    } while (cnt0 != 0);
+    return pPacket;
+}
+
+/* RE2 Bomb_Parts_SortGT4 */
+POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
+{
+    MATRIX bbm0;
+    MATRIX bbm1;
+    VECTOR Vec;
+    LONG D2;
+    SVECTOR *sp;
+    SVECTOR *np;
+    SVECTOR *s0;
+    SVECTOR *s1;
+    SVECTOR *s2;
+    SVECTOR *s3;
+    ULONG *p_prim;
+    ULONG *ot;
+    ULONG *tmp;
+    VECTOR *v;
+    ULONG cnt0;
+    ULONG rgb;
+    ULONG Tb_no;
+    ULONG Tb_lo;
+    ULONG Tb_hi;
+    LONG bomb;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    ULONG i3;
+
+    cnt0 = pObj->n_prim4;
+    if (cnt0 == 0) {
+        return pPacket;
+    }
+    sp = (SVECTOR *)pObj->pVert;
+    np = (SVECTOR *)pObj->pNorm;
+    p_prim = pObj->pPrim4;
+    ot = (ULONG *)G.pEm->Unk7C;
+    Tb_no = (USHORT)pP->Unk7C;
+    Tb_lo = Tb_no & 0x7FFF;
+    Tb_hi = Tb_no >> 15;
+    gte_ReadRotMatrix(&bbm0);
+    i0 = (p_prim[2] & 0xFF0000) >> 16;
+    i1 = p_prim[2] >> 24;
+    i2 = (p_prim[3] & 0xFF0000) >> 16;
+    i3 = p_prim[3] >> 24;
+    s0 = &np[i0];
+    v = (VECTOR *)bbm1.t;
+    bomb = D_80098A88[Tb_hi][Tb_lo];
+    v->vx = (s0->vx >> 10) * bomb;
+    v->vy = (s0->vy >> 10) * bomb;
+    v->vz = (s0->vz >> 10) * bomb;
+    gte_ldlv0(v);
+    rgb = pP->Poly_rgb;
+    rgb &= 0xFFFFFF;
+    rgb |= 0x3C000000;
+    rgb |= (SHORT)((pP->UnkA2 & 0x100) >> 7) << 24;
+    gte_rtv0tr_b();
+    s1 = &sp[i0];
+    s2 = &sp[i1];
+    s3 = &sp[i2];
+    do {
+        gte_stlvnl(v);
+        D_800D4570.t[0] = (s1->vx + s3->vx) / 2;
+        D_800D4570.t[1] = (s1->vy + s3->vy) / 2;
+        D_800D4570.t[2] = (s1->vz + s3->vz) / 2;
+        gte_SetRotMatrix(&D_800D4570);
+        gte_SetTransMatrix(&D_800D4570);
+        Vec.vx = -D_800D4570.t[0];
+        Vec.vy = -D_800D4570.t[1];
+        Vec.vz = -D_800D4570.t[2];
+        gte_ldlv0(&Vec);
+        gte_rtv0tr();
+        gte_stlvnl(D_800D4570.t);
+        D_800D4570.t[0] += (s0->vx >> 10) * bomb;
+        D_800D4570.t[1] += (s0->vy >> 10) * bomb;
+        D_800D4570.t[2] += (s0->vz >> 10) * bomb;
+        func_8002D4B0(&bbm0, &D_800D4570, &bbm1);
+        gte_SetRotMatrix(&bbm1);
+        gte_SetTransMatrix(&bbm1);
+        gte_ldv3(s1, s2, s3);
+        p_prim += 4;
+        cnt0--;
+        gte_rtpt_b();
+        s0 = &sp[i3];
+        i0 = (p_prim[2] & 0xFF0000) >> 16;
+        i1 = p_prim[2] >> 24;
+        i2 = (p_prim[3] & 0xFF0000) >> 16;
+        i3 = p_prim[3] >> 24;
+        s1 = &sp[i0];
+        s2 = &sp[i1];
+        s3 = &sp[i2];
+        gte_stsxy3_gt3(pPacket);
+        gte_ldv0(s0);
+        gte_rtps();
+        *(ULONG *)&pPacket->r0 = rgb;
+        *(ULONG *)&pPacket->r1 = rgb;
+        *(ULONG *)&pPacket->r2 = rgb;
+        *(ULONG *)&pPacket->r3 = rgb;
+        gte_avsz4_b();
+        gte_stsxy(&pPacket->x3);
+        gte_stotz(&D2);
+        s0 = &np[i0];
+        gte_SetTransMatrix(&bbm0);
+        gte_SetRotMatrix(&bbm0);
+        bomb = D_80098A88[Tb_hi][Tb_lo];
+        v->vx = (s0->vx >> 10) * bomb;
+        v->vy = (s0->vy >> 10) * bomb;
+        v->vz = (s0->vz >> 10) * bomb;
+        gte_ldlv0(v);
+        gte_rtv0tr();
+        *(ULONG *)&pPacket->u0 = p_prim[-4];
+        *(ULONG *)&pPacket->u1 = p_prim[-3];
+        *(ULONG *)&pPacket->u2 = p_prim[-2];
+        *(ULONG *)&pPacket->u3 = p_prim[-1];
+        if (D2 > 0x1FFF) {
+            D2 = 0x1FFF;
+        }
+        tmp = (ULONG *)((UCHAR *)ot + (((ULONG)D2 >> 1) & 0xFFC));
+        D2 = *tmp;
+        *tmp = (ULONG)pPacket & 0xFFFFFF;
+        pPacket->tag = D2 | 0xC000000;
+        pPacket += 2;
+    } while (cnt0 != 0);
+    return pPacket;
+}
 
 void func_8002C680(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add)
 {
@@ -446,15 +787,374 @@ void Md_set_abr(MD_OBJ *pObj, ULONG Abr)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002C824);
+extern MATRIX D_800D4550;              /* light matrix saved by func_8002C824, restored by func_8002CABC */
+extern MATRIX D_80098B08;              /* light matrix of the lit sorts */
+extern ULONG D_80098B28[][4];          /* uv words per primitive code */
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002CABC);
+/* lit GT3 sort: flat-ish light from the normals, back faces and unlit faces skipped */
+POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+{
+    VECTOR Lv;
+    LONG Otz;
+    ULONG n;
+    ULONG *ot;
+    SVECTOR *np;
+    LONG *p;
+    ULONG Uv0;
+    ULONG Uv1;
+    ULONG Uv2;
+    LONG i0;
+    LONG i1;
+    LONG i2;
+    USHORT *z0;
+    USHORT *z1;
+    USHORT *z2;
+    SVECTOR *n0;
+    SVECTOR *n1;
+    SVECTOR *n2;
+    LONG c0;
+    LONG c1;
+    LONG c2;
+    ULONG *tmp;
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002CE08);
+    n = pPrm->pObj->n_prim3;
+    if (n == 0) {
+        return pPacket;
+    }
+    ReadLightMatrix(&D_800D4550);
+    SetLightMatrix(&D_80098B08);
+    ot = pPrm->pOt;
+    np = (SVECTOR *)pPrm->pObj->pNorm;
+    p = (LONG *)pPrm->pObj->pPrim3;
+    i0 = p[1] >> 24;
+    i1 = (p[2] >> 16) & 0xFF;
+    i2 = p[2] >> 24;
+    Uv2 = pPrm->u.c.Code;              /* the code byte selects the uv set */
+    Uv0 = D_80098B28[Uv2][0];
+    Uv1 = D_80098B28[Uv2][1];
+    Uv2 = D_80098B28[Uv2][2];
+loop:
+    gte_ldsxy3(pSxy[i0], pSxy[i1], pSxy[i2]);
+    p += 3;
+    n--;
+    gte_nclip_b();
+    z0 = &pSz[i0];
+    z1 = &pSz[i1];
+    z2 = &pSz[i2];
+    n0 = &np[i0];
+    n1 = &np[i1];
+    n2 = &np[i2];
+    i0 = p[1] >> 24;
+    i1 = (p[2] >> 16) & 0xFF;
+    i2 = p[2] >> 24;
+    gte_stopz(&Otz);
+    if (Otz <= 0) {
+        goto next;
+    }
+    gte_ldv0(n0);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c0 = Lv.vx;
+    gte_ldv0(n1);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c1 = Lv.vx;
+    gte_ldv0(n2);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c2 = Lv.vx;
+    if (c0 + c1 + c2 <= 0) {
+        goto next;
+    }
+    gte_ldsz3(*z0, *z1, *z2);
+    *(ULONG *)&pPacket->r0 = ((c0 >> 4) * 0x10101) | 0x36000000;
+    gte_avsz3_b();
+    *(ULONG *)&pPacket->r1 = (c1 >> 4) * 0x10101;
+    *(ULONG *)&pPacket->r2 = (c2 >> 4) * 0x10101;
+    *(ULONG *)&pPacket->u0 = Uv0;
+    *(ULONG *)&pPacket->u1 = Uv1;
+    *(ULONG *)&pPacket->u2 = Uv2;
+    gte_stotz(&Otz);
+    gte_stsxy3_gt3(pPacket);
+    tmp = &ot[Otz >> 3];
+    Otz = *tmp;
+    *tmp = (ULONG)pPacket & 0xFFFFFF;
+    pPacket->tag = Otz | 0x9000000;
+    pPacket += 2;
+next:
+    if (n != 0) {
+        goto loop;
+    }
+    return pPacket;
+}
+
+/* lit GT4 sort (see func_8002C824), z from the summed vertex depths; restores the light matrix */
+POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz)
+{
+    VECTOR Lv;
+    LONG Otz;
+    ULONG n;
+    ULONG *ot;
+    SVECTOR *np;
+    LONG *p;
+    ULONG Uv0;
+    ULONG Uv1;
+    ULONG Uv2;
+    ULONG Uv3;
+    LONG i0;
+    LONG i1;
+    LONG i2;
+    LONG i3;
+    LONG k;
+    SHORT *z0;
+    SHORT *z1;
+    SHORT *z2;
+    SVECTOR *n0;
+    SVECTOR *n1;
+    SVECTOR *n2;
+    SVECTOR *n3;
+    LONG c0;
+    LONG c1;
+    LONG c2;
+    LONG c3;
+    ULONG *tmp;
+
+    n = pPrm->pObj->n_prim4;
+    if (n == 0) {
+        return pPacket;
+    }
+
+    np = (SVECTOR *)pPrm->pObj->pNorm;
+    p = (LONG *)pPrm->pObj->pPrim4;
+    ot = pPrm->pOt;
+    Uv3 = pPrm->u.c.Code;
+    Uv0 = D_80098B28[Uv3][0];
+    Uv1 = D_80098B28[Uv3][1];
+    Uv2 = D_80098B28[Uv3][2];
+    Uv3 = D_80098B28[Uv3][3];
+    i0 = (p[2] & 0xFF0000) >> 16;
+    i1 = p[2] >> 24;
+    i2 = (p[3] & 0xFF0000) >> 16;
+    i3 = p[3] >> 24;
+
+loop:
+    gte_ldsxy3(pSxy[i0], pSxy[i1], pSxy[i2]);
+    p += 4;
+    n--;
+    gte_nclip_b();
+    z0 = &pSz[i0];
+    z1 = &pSz[i1];
+    z2 = &pSz[i2];
+    k = i3;
+    n0 = &np[i0];
+    n1 = &np[i1];
+    n2 = &np[i2];
+    n3 = &np[k];
+    i0 = (p[2] & 0xFF0000) >> 16;
+    i1 = p[2] >> 24;
+    i2 = (p[3] & 0xFF0000) >> 16;
+    i3 = p[3] >> 24;
+    gte_stopz(&Otz);
+    if (Otz <= 0) {
+        goto next;
+    }
+    gte_ldv0(n0);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c0 = Lv.vx;
+    gte_ldv0(n1);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c1 = Lv.vx;
+    gte_ldv0(n2);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c2 = Lv.vx;
+    gte_ldv0(n3);
+    gte_llv0();
+    gte_stlvl(&Lv);
+    c3 = Lv.vx;
+    if (c0 + c1 + c2 + c3 <= 0) {
+        goto next;
+    }
+    Otz = *z0 + *z1 + *z2 + pSz[k];
+    *(ULONG *)&pPacket->x3 = pSxy[k];
+    *(ULONG *)&pPacket->r0 = ((c0 >> 4) * 0x10101) | 0x3E000000;
+    *(ULONG *)&pPacket->r1 = (c1 >> 4) * 0x10101;
+    *(ULONG *)&pPacket->r2 = (c2 >> 4) * 0x10101;
+    *(ULONG *)&pPacket->r3 = (c3 >> 4) * 0x10101;
+    *(ULONG *)&pPacket->u0 = Uv0;
+    *(ULONG *)&pPacket->u1 = Uv1;
+    *(ULONG *)&pPacket->u2 = Uv2;
+    *(ULONG *)&pPacket->u3 = Uv3;
+    gte_stsxy3_gt3(pPacket);
+    tmp = &ot[Otz >> 7];
+    Otz = *tmp;
+    *tmp = (ULONG)pPacket & 0xFFFFFF;
+    pPacket->tag = Otz | 0xC000000;
+    pPacket += 2;
+next:
+    if (n != 0) {
+        goto loop;
+    }
+    SetLightMatrix(&D_800D4550);
+    return pPacket;
+}
+
+/* unlit GT3 sort with one colour (semi-transparent code 0x36) */
+POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+{
+    LONG Unused[4];
+    LONG Otz;
+    ULONG n;
+    ULONG *ot;
+    LONG *p;
+    ULONG Rgb;
+    ULONG w;
+    ULONG Uv0;
+    ULONG Uv1;
+    ULONG Uv2;
+    LONG i0;
+    LONG i1;
+    LONG i2;
+    USHORT *z0;
+    USHORT *z1;
+    USHORT *z2;
+    ULONG *tmp;
+
+    n = pPrm->pObj->n_prim3;
+    if (n == 0) {
+        return pPacket;
+    }
+    p = (LONG *)pPrm->pObj->pPrim3;
+    w = pPrm->u.Rgb;
+    ot = pPrm->pOt;
+    Uv2 = w >> 24;
+    Rgb = (w & 0xFFFFFF) | 0x36000000;
+    i0 = p[1] >> 24;
+    i1 = (p[2] >> 16) & 0xFF;
+    i2 = p[2] >> 24;
+    Uv0 = D_80098B28[Uv2][0];
+    Uv1 = D_80098B28[Uv2][1];
+    Uv2 = D_80098B28[Uv2][2];
+loop:
+    gte_ldsxy3(pSxy[i0], pSxy[i1], pSxy[i2]);
+    p += 3;
+    n--;
+    gte_nclip_b();
+    z0 = &pSz[i0];
+    z1 = &pSz[i1];
+    z2 = &pSz[i2];
+    i0 = p[1] >> 24;
+    i1 = (p[2] >> 16) & 0xFF;
+    i2 = p[2] >> 24;
+    gte_stopz(&Otz);
+    if (Otz <= 0) {
+        goto next;
+    }
+    gte_ldsz3(*z0, *z1, *z2);
+    gte_avsz3();
+    *(ULONG *)&pPacket->r0 = Rgb;
+    *(ULONG *)&pPacket->r1 = Rgb;
+    *(ULONG *)&pPacket->r2 = Rgb;
+    *(ULONG *)&pPacket->u0 = Uv0;
+    *(ULONG *)&pPacket->u1 = Uv1;
+    *(ULONG *)&pPacket->u2 = Uv2;
+    gte_stotz(&Otz);
+    gte_stsxy3_gt3(pPacket);
+    tmp = &ot[Otz >> 3];
+    Otz = *tmp;
+    *tmp = (ULONG)pPacket & 0xFFFFFF;
+    pPacket->tag = Otz | 0x9000000;
+    pPacket += 2;
+next:
+    if (n != 0) {
+        goto loop;
+    }
+    return pPacket;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002CF90);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D184);
+/* project the vertices flattened onto the floor (y clamped to <= 0) into screen xy / z tables */
+void func_8002D184(ULONG *pXy, SHORT *pZ, MD_OBJ *pObj, MATRIX *pM)
+{
+    LONG Z[3];
+    SVECTOR Sv[3];
+    SVECTOR *pSv;
+    LONG *pz1;
+    LONG *pz2;
+    SVECTOR *pV;
+    ULONG n;
+    SHORT *pZ1;                        /* previous triple's z slots, clamped one iteration late */
+    SHORT *pZ2;
+
+    pXy -= 3;
+    pZ -= 3;
+    pz1 = &Z[1];
+    pz2 = &Z[2];
+    pSv = Sv;
+    pV = (SVECTOR *)pObj->pVert;
+    n = pObj->n_vert >> 16;
+    Z[0] = 0;
+    *pz1 = 0;
+    *pz2 = 0;
+loop:
+    gte_ldv3c(pV);
+    pV += 3;
+    n--;
+    gte_SetRotMatrix(pM);
+    gte_SetTransMatrix(pM);
+    gte_rtv0tr();
+    gte_stsv(pSv);
+    gte_rtv1tr();
+    gte_stsv(pSv + 1);
+    gte_rtv2tr();
+    gte_stsv(pSv + 2);
+    if (pSv[0].vy > 0) {
+        pSv[0].vy = 0;
+    }
+    if (pSv[1].vy > 0) {
+        pSv[1].vy = 0;
+    }
+    if (pSv[2].vy > 0) {
+        pSv[2].vy = 0;
+    }
+    gte_ldv3c(pSv);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_rtpt();
+    if (Z[0] > 0x7FFF) {
+        *pZ = 0x7FFF;
+    }
+    if (*pz1 > 0x7FFF) {
+        *pZ1 = 0x7FFF;
+    }
+    if (*pz2 > 0x7FFF) {
+        *pZ2 = 0x7FFF;
+    }
+    pXy += 3;
+    pZ += 3;
+    pZ1 = pZ + 1;
+    pZ2 = pZ + 2;
+    gte_stsxy3c(pXy);
+    gte_stsz3c(Z);
+    pZ[0] = Z[0];
+    pZ[1] = *pz1;
+    pZ[2] = *pz2;
+    if (n != 0) {
+        goto loop;
+    }
+    if (Z[0] > 0x7FFF) {
+        pZ[0] = 0x7FFF;
+    }
+    if (*pz1 > 0x7FFF) {
+        pZ[1] = 0x7FFF;
+    }
+    if (*pz2 > 0x7FFF) {
+        pZ[2] = 0x7FFF;
+    }
+}
 
 void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb)
 {
@@ -482,6 +1182,7 @@ INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D6D8);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D898);
 
+/* hand-scheduled: Otz is loaded (lw v0,0(sp)) between the lwc2 $0 and lwc2 $1 of one gte_ldv3 asm */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002DAAC);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002DC98);

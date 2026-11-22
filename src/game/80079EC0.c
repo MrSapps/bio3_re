@@ -512,25 +512,46 @@ loop:
     }
 }
 
+/* model vertex/normal lists (Arg2 of func_8007A350) */
+typedef struct tagSORT_MDL {
+    SVECTOR *pVtx;                     /* 0x00 */
+    SVECTOR *pNor;                     /* 0x04 */
+} SORT_MDL;
+
 /* model sort environment shared by the sort routines below */
 typedef struct tagSORT_ENV {
     ENEMY_WORK *pEm;                   /* 0x00 G.pEm */
-    ULONG Unk4;                        /* 0x04 */
+    SORT_MDL *pMdl;                    /* 0x04 */
     MATRIX *pWs;                       /* 0x08 &GsWSMATRIX */
     MATRIX *pM;                        /* 0x0C D_800C79F0 */
     VECTOR *pV;                        /* 0x10 D_800C79F4 */
 } SORT_ENV;
 extern SORT_ENV D_800E15A0;
-extern UCHAR D_800E1388[];
+extern ULONG D_800E1388[];             /* per-vertex colours of the model being sorted */
 extern MATRIX *D_800C79F0;
 extern VECTOR *D_800C79F4;
 extern MATRIX GsWSMATRIX;
-void func_8007A600(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007A918(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007AC8C(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007B2FC(UCHAR *pDst, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007B518(UCHAR *pDst, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007B824(UCHAR *pDst, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+/* joint offset of a model part (first EMD section, ENEMY_WORK pUnk11C) */
+typedef struct tagJOINT_OFS {
+    SHORT x;
+    SHORT y;
+    SHORT z;
+} JOINT_OFS;
+
+/* screen xy of a vertex, as one word or two halves */
+typedef union tagSXY {
+    LONG l;
+    struct {
+        SHORT x;
+        SHORT y;
+    } s;
+} SXY;
+void func_8007A600(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007A918(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007AC8C(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007B2FC(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007B518(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
 
 void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 {
@@ -542,7 +563,7 @@ void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
     pHead = (UCHAR *)pP->pUnkA8;
     Ofs = ((ULONG *)pHead)[0];
     pEnv->pEm = G.pEm;
-    pEnv->Unk4 = Arg2;
+    pEnv->pMdl = (SORT_MDL *)Arg2;
     pEnv->pWs = &GsWSMATRIX;
     pEnv->pM = D_800C79F0;
     pEnv->pV = D_800C79F4;
@@ -561,9 +582,9 @@ void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 
 extern UCHAR *D_800E15C8;              /* sort data of the part being drawn (func_8007A490) */
 extern ULONG D_800E1598;               /* its current offset word */
-void func_8007BFBC(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007C434(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007C91C(void *pWork0, void *pWork1, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007C434(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void func_8007C91C(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 
 /* func_8007A350 for parts drawn with the alternate (Flg 0x400) routines */
 void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
@@ -575,7 +596,7 @@ void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
     D_800E15C8 = pHead = (UCHAR *)pP->pUnkA8;
     Ofs = ((ULONG *)pHead)[0];
     pEnv->pEm = G.pEm;
-    pEnv->Unk4 = Arg2;
+    pEnv->pMdl = (SORT_MDL *)Arg2;
     pEnv->pWs = &GsWSMATRIX;
     pEnv->pM = D_800C79F0;
     pEnv->pV = D_800C79F4;
@@ -592,17 +613,131 @@ void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
     }
 }
 
+/* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
+#define gte_SetRotMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $0; ctc2 $13, $1; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $2; ctc2 $13, $3; ctc2 $14, $4" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_SetLightMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $8; ctc2 $13, $9; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $10; ctc2 $13, $11; ctc2 $14, $12" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_SetTransMatrix(r0) __asm__ volatile("lw $12, 20(%0); lw $13, 24(%0); ctc2 $12, $5; lw $14, 28(%0); ctc2 $13, $6; ctc2 $14, $7" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_ldclmv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 6(%0); lhu $14, 12(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_stclmv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 6(%0); sh $14, 12(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
+#define gte_rtir() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_ncct_b() __asm__ volatile(".word 0x4B18043F")
+#define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
+#define gte_strgb3(r0, r1, r2) __asm__ volatile("swc2 $20, 0(%0); swc2 $21, 0(%1); swc2 $22, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+#define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+#define gte_stsz3(r0, r1, r2) __asm__ volatile("swc2 $17, 0(%0); swc2 $18, 0(%1); swc2 $19, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
+#define gte_ldlv0(r0) __asm__ volatile("lhu $13, 4(%0); lhu $12, 0(%0); sll $13, $13, 16; or $12, $12, $13; mtc2 $12, $0; lwc2 $1, 8(%0)" : : "r"(r0) : "$12", "$13")
+#define gte_stlvnl(r0) __asm__ volatile("swc2 $25, 0(%0); swc2 $26, 4(%0); swc2 $27, 8(%0)" : : "r"(r0) : "memory")
+#define gte_rtv0tr() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_rtv1tr() __asm__ volatile("nop; nop; .word 0x4A488012")
+#define gte_rtv2tr() __asm__ volatile("nop; nop; .word 0x4A490012")
+#define gte_rtpt() __asm__ volatile("nop; nop; .word 0x4A280030")
+/* average of two 0x00BBGGRR colours */
+#define RGB_AVG(a, b) (((((a) & 0xFF00) + ((b) & 0xFF00)) >> 1 & 0xFF00) | ((((a) & 0xFF00FF) + ((b) & 0xFF00FF)) >> 1 & 0xFF00FF))
+#define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
+#define gte_ldv3c(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 8(%0); lwc2 $3, 12(%0); lwc2 $4, 16(%0); lwc2 $5, 20(%0)" : : "r"(r0))
+#define gte_rtv0() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtv1() __asm__ volatile("nop; nop; .word 0x4A48E012")
+#define gte_rtv2() __asm__ volatile("nop; nop; .word 0x4A496012")
+#define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
+#define gte_ldsv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 2(%0); lhu $14, 4(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_stsv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 2(%0); sh $14, 4(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
+#define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t2,a0,zero` / `addu t3,a1,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A600);
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A918);
 
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007AC8C);
 
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t8,a0,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B2FC);
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B518);
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B824);
+extern SVECTOR D_800E1568[6];          /* normals of the two bones being blended (func_8007B824) */
+
+void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
+{
+    PARTS_W *pParts;
+    SVECTOR *pNor;
+    SVECTOR *pN;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    LONG w0;
+    LONG w1;
+    LONG w2;
+    ULONG *p0;
+    ULONG *p1;
+    ULONG *p2;
+
+    pN = D_800E1568;
+    pParts = pEnv->pEm->pSin_parts_ptr;
+    pNor = pEnv->pMdl->pNor;
+    gte_SetLightMatrix(&LIGHTMATRIX);
+    i0 = pData[2];
+    i1 = pData[4];
+    w0 = pData[3] * 32;
+    i2 = pData[6];
+    w1 = pData[5] * 32;
+    w2 = pData[7] * 32;
+    do {
+        gte_SetRotMatrix(&pParts[pData[0]].Workm);
+        gte_ldv3(&pNor[i0], &pNor[i1], &pNor[i2]);
+        gte_rtv0();
+        gte_stsv(&pN[0]);
+        gte_rtv1();
+        gte_stsv(&pN[1]);
+        gte_rtv2();
+        gte_stsv(&pN[2]);
+        gte_SetRotMatrix(&pParts[pData[1]].Workm);
+        gte_ldv0(&pNor[i0]);
+        gte_rtv0();
+        gte_stsv(&pN[3]);
+        gte_rtv1();
+        gte_stsv(&pN[4]);
+        gte_rtv2();
+        gte_stsv(&pN[5]);
+        gte_lddp(0x1000 - w0);
+        gte_ldsv(&pN[0]);
+        gte_gpf12();
+        gte_lddp(w0);
+        gte_ldsv(&pN[3]);
+        gte_gpl12();
+        gte_stsv(&pN[0]);
+        gte_lddp(0x1000 - w1);
+        gte_ldsv(&pN[1]);
+        gte_gpf12();
+        gte_lddp(w1);
+        gte_ldsv(&pN[4]);
+        gte_gpl12();
+        gte_stsv(&pN[1]);
+        gte_lddp(0x1000 - w2);
+        gte_ldsv(&pN[2]);
+        gte_gpf12();
+        gte_lddp(w2);
+        gte_ldsv(&pN[5]);
+        gte_gpl12();
+        gte_stsv(&pN[2]);
+        gte_ldv3c(pN);
+        pData += 8;
+        gte_ncct_b();
+        p0 = &pRgb[i0];
+        p1 = &pRgb[i1];
+        p2 = &pRgb[i2];
+        i0 = pData[2];
+        i1 = pData[4];
+        w0 = pData[3] * 32;
+        i2 = pData[6];
+        w1 = pData[5] * 32;
+        w2 = pData[7] * 32;
+        gte_strgb3(p0, p1, p2);
+    } while (*pData != 0xFF);
+}
 
 #define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_ldsz3(r0, r1, r2) __asm__ volatile("mtc2 %0, $17; mtc2 %1, $18; mtc2 %2, $19" : : "r"(r0), "r"(r1), "r"(r2))
@@ -639,6 +774,7 @@ typedef struct tagSORT_PRM {
     ULONG *pRgb;                       /* 0x0C per-vertex colours */
 } SORT_PRM;
 
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t7/t8 from a2/a3 */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BC7C);
 
 /* textured gouraud quad of a sort list: the vertex numbers are the top two bytes of W[2] and W[3] */
@@ -646,10 +782,109 @@ typedef struct tagSORT_GT4 {
     LONG W[4];
 } SORT_GT4;
 
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t8/t9 from a2/a3 */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BDF8);
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BFBC);
+void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    SVECTOR W[3];
+    LONG Sz[3];
+    MATRIX *pM;
+    MATRIX *pWs;
+    VECTOR *pV;
+    ENEMY_WORK *pEm;
+    JOINT_OFS *pOfs;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SHORT *pZ0;
+    SHORT *pZ1;
+    SHORT *pZ2;
+
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pEm = pEnv->pEm;
+    pOfs = (JOINT_OFS *)pEm->pUnk11C;
+    pVtx = pEnv->pMdl->pVtx;
+    Sz[0] = 0;
+    Sz[1] = 0;
+    Sz[2] = 0;
+    do {
+        n = *pData;
+        *pM = pEm->pSin_parts_ptr[n].Workm;
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+            pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+    loop:
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        pData += 3;
+        n--;
+        gte_rtv0tr();
+        gte_stsv(&W[0]);
+        gte_rtv1tr();
+        gte_stsv(&W[1]);
+        gte_rtv2tr();
+        gte_stsv(&W[2]);
+        if (W[0].vy > 0) {
+            W[0].vy = 0;
+        }
+        if (W[1].vy > 0) {
+            W[1].vy = 0;
+        }
+        if (W[2].vy > 0) {
+            W[2].vy = 0;
+        }
+        gte_ldv3c(W);
+        gte_SetRotMatrix(pWs);
+        gte_SetTransMatrix(pWs);
+        gte_rtpt();
+        if (Sz[0] > 0x7FFF) {
+            *pZ0 = 0x7FFF;
+        }
+        if (Sz[1] > 0x7FFF) {
+            *pZ1 = 0x7FFF;
+        }
+        if (Sz[2] > 0x7FFF) {
+            *pZ2 = 0x7FFF;
+        }
+        pZ0 = &pSz[i0];
+        pZ1 = &pSz[i1];
+        pZ2 = &pSz[i2];
+        gte_stsxy3(&pSxy[i0], &pSxy[i1], &pSxy[i2]);
+        gte_stsz3(&Sz[0], &Sz[1], &Sz[2]);
+        *pZ0 = Sz[0];
+        *pZ1 = Sz[1];
+        *pZ2 = Sz[2];
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+    if (Sz[0] > 0x7FFF) {
+        *pZ0 = 0x7FFF;
+    }
+    if (Sz[1] > 0x7FFF) {
+        *pZ1 = 0x7FFF;
+    }
+    if (Sz[2] > 0x7FFF) {
+        *pZ2 = 0x7FFF;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007C434);
 
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007C91C);

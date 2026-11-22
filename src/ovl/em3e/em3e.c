@@ -139,7 +139,20 @@ void func_801003C4(void) {
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em3e/em3e", func_801003CC);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em3e/em3e", func_801004F4);
+/* fly 1: head for the destination */
+void func_801004F4(ENEMY_WORK *pEm)
+{
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM3E_W(pEm)->Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, pEm->Dest_x, pEm->Dest_z);
+        pEm->Spd_x = Rsin_tbl[(EM3E_W(pEm)->Dir / 16 + 0x40) & 0xFF] * 240 / 256;
+        pEm->Spd_z = -(Rsin_tbl[(EM3E_W(pEm)->Dir / 16) & 0xFF] * 240 / 256);
+        pEm->Routine_2++;
+    case 1:
+        func_8010158C(pEm);
+    }
+}
 
 /* Em3e_damage: Routine_0 2, 3 */
 void func_801005E4(ENEMY_WORK *pEm)
@@ -272,7 +285,48 @@ void func_80100908(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em3e/em3e", func_80100A10);
+/* sce 1: crash */
+void func_80100A10(ENEMY_WORK *pEm)
+{
+    LONG Range;
+    LONG Fall;
+    LONG Size;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        pEm->Be_flg |= 0x2050;
+        pEm->Type |= 0x4000;
+        func_80100C0C(pEm);
+        pEm->Routine_2++;
+    case 1:
+        if (pEm->Add_dir != 1)
+            break;
+        pEm->Add_dir = 0;
+        EM3E_W(pEm)->Timer = 0;
+        pEm->Be_flg ^= 0x10;
+        pEm->Routine_2++;
+        EM3E_W(pEm)->Turn = pEm->Pos_y;
+        EM3E_W(pEm)->Start_x = pEm->Pos_x;
+        EM3E_W(pEm)->Fall_x = pEm->Pos_x - 20000;
+        break;
+    case 2:
+        pEm->Pos_y -= EM3E_W(pEm)->Timer >> 4;
+        EM3E_W(pEm)->Timer += 10;
+        Range = EM3E_W(pEm)->Turn + 26000;
+        Fall = EM3E_W(pEm)->Turn - pEm->Pos_y;
+        Size = (Fall << 12) / Range;
+        func_80100C80(pEm, 0, Size);
+        func_80100C80(pEm, 1, Size);
+        func_80100C80(pEm, 2, Size);
+        pEm->Pos_x = EM3E_W(pEm)->Start_x - EM3E_W(pEm)->Fall_x * Fall / Range;
+        if (pEm->Pos_y < -25999) {
+            pEm->Add_dir = 1;
+            func_80100CAC(pEm);
+            pEm->Routine_2++;
+        }
+        break;
+    }
+}
 
 /* Em3e_dead: Routine_0 7 */
 void func_80100BBC(ENEMY_WORK *pEm)
@@ -582,4 +636,34 @@ void func_8010158C(ENEMY_WORK *pEm)
 }
 
 /* re-aim at a new destination when reached or out of the zone (while damaged) */
-INCLUDE_ASM("asm/nonmatchings/ovl/em3e/em3e", func_801015C0);
+/* Em3e_retarget */
+void func_801015C0(ENEMY_WORK *pEm)
+{
+    SHORT Zone[4];
+    SHORT Area[4];
+
+    if (pEm->Timer0 == 0) {
+        Zone[0] = pEm->Dest_x - 450;
+        Zone[1] = pEm->Dest_z - 450;
+        Zone[2] = 900;
+        Zone[3] = 900;
+        Area[0] = 10000;
+        Area[1] = -25000;
+        Area[2] = 17000;
+        Area[3] = 25000;
+        if (func_800101C8(&pEm->Pos_x, Zone) || !func_800101C8(&pEm->Pos_x, Area)) {
+            pEm->Timer0 = 30;
+            if (pEm->Pos_x > 20000) {
+                pEm->Dest_x = 10000;
+                pEm->Dest_z = Rnd() * -25;
+            } else {
+                pEm->Dest_x = 27000;
+                pEm->Dest_z = Rnd() * -25;
+            }
+            EM3E_W(pEm)->Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, pEm->Dest_x, pEm->Dest_z);
+            pEm->Spd_x = Rsin_tbl[(EM3E_W(pEm)->Dir / 16 + 0x40) & 0xFF] * 240 / 256;
+            pEm->Spd_z = -(Rsin_tbl[(EM3E_W(pEm)->Dir / 16) & 0xFF] * 240 / 256);
+        }
+    } else
+        pEm->Timer0--;
+}

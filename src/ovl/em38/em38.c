@@ -29,6 +29,9 @@ extern VCUT Em38_cut __asm__("D_8010CC88");                 /* zone that sets fl
 extern KAGE_WORK *Em38_kage[] __asm__("D_8010CE68");        /* shadow works of the parts */
 extern COL_OBJ Em38_col[5] __asm__("D_8010CE98");            /* extra collision objects */
 extern MATRIX Em38_spit_m __asm__("D_8010CFD8");             /* effect matrix of sce04 */
+extern signed char Em38_pulse[64] __asm__("D_8010CDFC");    /* size pulse of the dying body */
+extern EM38_SWELL Em38_swell __asm__("D_8010CDEC");
+extern UCHAR Em38_pulse_no __asm__("D_8010CFF8");            /* index into Em38_pulse (module BSS) */
 
 void func_801011D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_8010B550(ENEMY_WORK *pEm);
@@ -48,6 +51,7 @@ void func_8010C3E8(ENEMY_WORK *pEm);
 void func_80109564(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80109F14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_8010C9A4(ENEMY_WORK *pEm, PARTS_W *pP, LONG Rate);
+void func_8010A7D4(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
 
 /* RE2 EM_MAIN */
 void func_80100154(ENEMY_WORK *pEm)
@@ -162,7 +166,345 @@ void func_80100154(ENEMY_WORK *pEm)
         MulKage(*ppK, pEm->Unk122, 0, pEm->Be_flg & 0x30);
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em38/em38", func_80100714);
+/* RE2 Em_init */
+void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    tagGLOBAL *pG;
+    PARTS_W *pP;
+    PARTS_W *pO;
+    ENEMY_WORK **ppE;
+    ENEMY_WORK *pE;
+    UCHAR Id;
+    UCHAR i;
+
+    pG = &G;
+    EM_RTN(pEm) = 1;
+    pEm->Damage_cnt = 0;
+    EM38_W(pEm)->Unk0A = 0;
+    EM38_W(pEm)->Unk0B = 0;
+    EM38_W(pEm)->Unk1C = 0;
+    EM38_W(pEm)->Unk1E = 90;
+    EM38_W(pEm)->Unk1D = 0;
+    EM38_W(pEm)->Flg = 0;
+    EM38_W(pEm)->Unk16 = 0;
+    EM38_W(pEm)->Unk20 = 0;
+    pEm->Spd_x = 0;
+    pEm->Spd_z = 0;
+    Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0x6A406A4, 0, (VECTOR *)pEm->pSin_parts_ptr[1].Workm.t);
+    pEm->pKage_work->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[0], 0, 0x4B004B0, 0, (VECTOR *)pEm->pSin_parts_ptr[2].Workm.t);
+    Em38_kage[0]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[1], 0, 0x4B004B0, 0, (VECTOR *)pEm->pSin_parts_ptr[16].Workm.t);
+    Em38_kage[1]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[2], 0, 0x4B004B0, 0, (VECTOR *)pEm->pSin_parts_ptr[13].Workm.t);
+    Em38_kage[2]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[3], 0, 0x3840384, 0, (VECTOR *)pEm->pSin_parts_ptr[9].Workm.t);
+    Em38_kage[3]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[4], 0, 0x3840384, 0, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t);
+    Em38_kage[4]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[5], 0, 0x3E803E8, 0, (VECTOR *)pEm->pSin_parts_ptr[17].Workm.t);
+    Em38_kage[5]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[6], 0, 0x2BC02BC, 0, (VECTOR *)pEm->pSin_parts_ptr[18].Workm.t);
+    Em38_kage[6]->Be_flg |= 0x40;
+    Kage_work_set((ULONG *)&Em38_kage[7], 0, 0x3200320, 0, (VECTOR *)pEm->pSin_parts_ptr[14].Workm.t);
+    Em38_kage[7]->Be_flg |= 0x40;
+    pEm->Col_h = 2500;
+    pEm->pCol_em = pEm;
+    pEm->Col_w0 = 1800;
+    pEm->Col_d0 = 1800;
+    pEm->Col_unk24 = 0;
+    pEm->Col_unk28 = 0;
+    pEm->Col_unk26 = 0;
+    pEm->Col_flg = 0;
+    pEm->Col_type = 2;
+    pEm->Be_flg |= 0x8000;
+    Id = func_80033580((COL_OBJ *)&pEm->Col_id, 0);
+    Em38_col[3].pEm = pEm;
+    Em38_col[3].W0 = 900;
+    Em38_col[3].D0 = 900;
+    Em38_col[3].H = 200;
+    Em38_col[3].Unk24 = 0;
+    Em38_col[3].Unk28 = 0;
+    Em38_col[3].Unk26 = 0;
+    Em38_col[3].Flg = 0x80;
+    Em38_col[3].Type = 2;
+    func_80033580(&Em38_col[3], Id);
+    Em38_col[3].pM = &pEm->pSin_parts_ptr[4].Workm;
+    Em38_col[4].W0 = 900;
+    Em38_col[4].D0 = 900;
+    Em38_col[4].pEm = pEm;
+    Em38_col[4].H = 800;
+    Em38_col[4].Unk24 = 0;
+    Em38_col[4].Unk28 = 0;
+    Em38_col[4].Unk26 = 0;
+    Em38_col[4].Flg = 0x80;
+    Em38_col[4].Type = 2;
+    func_80033580(&Em38_col[4], Id);
+    Em38_col[4].pM = &pEm->pSin_parts_ptr[2].Workm;
+    pEm->Unk136 = -800;
+    pEm->Unk138 = 100;
+    pEm->Unk139 = 230;
+    pEm->Unk134 = 1800;
+    pEm->Unk13A = 1600;
+    pEm->Unk140 = 0;
+    pEm->Unk120 = 0;
+    pEm->Neck_no = 1;
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[1].Workm;
+    pP = &pEm->pSin_parts_ptr[1];
+    PW_FREES(pP)[2] = 0x30;
+    PW_FREES(pP)[3] = 0x30;
+    PW_FREES(pP)[4] = 0x19C;
+    PW_FREES(pP)[0] = 0;
+    PW_FREES(pP)[1] = 0;
+    PW_FREES(pP)[5] = 0x138;
+    pEm->Life = 800;
+    pEm->Max_life = 800;
+    if (pG->System_flg & 0x100) {
+        pEm->Life = 600;
+        pEm->Max_life = 600;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        EM_MOVE(pEm) = 0;
+        pP = &pB[22];
+        pO = &pB[1];
+        pEm->Max_life += 100;
+        pEm->Life += 100;
+        pP->pSuper = &pO->Workm;
+        pP->Pos_x = -0xF0;
+        pP->Pos_y = -0x19F;
+        pP->Pos_z = -0x3A2;
+        pP->pOya_parts = pO;
+        pP->Cdir_x = -0x2AA;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        EM38_SA(pP)->Key[0].Rate = 0;
+        EM38_SA(pP)->Key[1].Rate = 0;
+        EM38_SA(pP)->Key[2].Rate = 0;
+        EM38_SA(pP)->Key[3].Rate = 0;
+        EM38_SA(pP)->Key[4].Rate = 0;
+        EM38_SA(pP)->Key[5].Rate = 0;
+        EM38_SA(pP)->Key[6].Rate = 0;
+        pB[22].Be_flg = (pB[22].Be_flg & ~1) | 4;
+        pP->Size_x = 0x1000;
+        pP->Size_y = 0;
+        pP->Size_z = 0x1000;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[23];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->Pos_x = -3;
+        pP->Pos_y = -0x66C;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -0x21F;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        pP->UnkB4 = 0;
+        pB[23].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[24];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->Pos_x = 0xC2;
+        pP->Pos_y = -0x3D6;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -0x405;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        pP->UnkB4 = 0;
+        pB[24].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[25];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->Pos_x = -0x355;
+        pP->Pos_y = -0x381;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -0x34F;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        pP->UnkB4 = 0;
+        pB[25].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[26];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->Pos_x = -0x35D;
+        pP->Pos_y = -0x520;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -0x37;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        pP->UnkB4 = 0;
+        pB[26].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[27];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->pOya_parts = pO;
+        pP->Pos_x = 0;
+        pP->Pos_y = 0;
+        pP->Pos_z = 0;
+        pP->UnkA2 |= 0x100;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        Md_set_abr((MD_OBJ *)pP->pTmd, 1);
+        pP->UnkB4 = 0;
+        pB[27].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[28];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->pOya_parts = pO;
+        pP->Pos_x = 0;
+        pP->Pos_y = 0;
+        pP->Pos_z = 0;
+        pP->UnkA2 |= 0x100;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        Md_set_abr((MD_OBJ *)pP->pTmd, 1);
+        pP->UnkB4 = 0;
+        pB[28].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[29];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->pOya_parts = pO;
+        pP->Pos_x = 0;
+        pP->Pos_y = 0;
+        pP->Pos_z = 0;
+        pP->UnkA2 |= 0x100;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        Md_set_abr((MD_OBJ *)pP->pTmd, 1);
+        pP->UnkB4 = 0;
+        pB[29].Be_flg &= ~1;
+    }
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+
+        pP = &pB[30];
+        pO = &pB[1];
+        pP->pSuper = &pO->Workm;
+        pP->pOya_parts = pO;
+        pP->Pos_x = 0;
+        pP->Pos_y = 0;
+        pP->Pos_z = 0;
+        pP->UnkA2 |= 0x100;
+        RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        Md_set_abr((MD_OBJ *)pP->pTmd, 1);
+        pP->UnkB4 = 0;
+        pB[30].Be_flg &= ~1;
+    }
+    pEm->Be_flg |= 0x200000;
+    pG->pPldamage_Em[pEm->Id - 0x10] = func_80109564;
+    pG->pPldie_Em[pEm->Id - 0x10] = func_80109F14;
+    EM38_W(pEm)->pUnk00 = NULL;
+    pEm->Timer0 = 0;
+    ppE = pG->pEnemy;
+    do {
+        pE = *ppE;
+        if (pEm->Timer0 == 1 && pE->Id == 0x39) {
+            EM38_W(pEm)->pUnk04 = pE;
+            pEm->Timer0 = 2;
+        }
+        if (pEm->Timer0 == 0 && pE->Id == 0x39) {
+            EM38_W(pEm)->pUnk00 = pE;
+            pEm->Timer0 = 1;
+        }
+        ppE++;
+    } while (ppE != pG->ppEnemy_end);
+    EM_RTN(pEm) = 4;
+    pEm->Timer0 = 0;
+    EM38_W(pEm)->Flg |= 0x10;
+    pEm->Damage_cnt |= 0x80;
+    pEm->Be_flg |= 0x20;
+    EM38_W(pEm)->pUnk00->Be_flg |= 0x10;
+    EM38_W(pEm)->pUnk04->Be_flg |= 0x10;
+    pP = pEm->pSin_parts_ptr;
+    i = 22;
+    do {
+        pP->Be_flg |= 4;
+        pP->Size_x = 0x999;
+        pP->Size_y = 0x999;
+        pP->Size_z = 0x999;
+        func_8010C9A4(pEm, pP, 0x999);
+        pP++;
+    } while (--i);
+    pP = &pEm->pSin_parts_ptr[4];
+    pP->Size_x = 0x999;
+    pP->Size_y = 0x400;
+    pP->Size_z = 0x999;
+    pP = &pEm->pSin_parts_ptr[5];
+    pP->Size_x = 0x999;
+    pP->Size_y = 0x400;
+    pP->Size_z = 0x999;
+    func_8010C9A4(pEm, pP, 0x400);
+    pP = &pEm->pSin_parts_ptr[6];
+    pP->Size_x = 0x999;
+    pP->Size_y = 0x400;
+    pP->Size_z = 0x999;
+    func_8010C9A4(pEm, pP, 0x400);
+    pP = &pEm->pSin_parts_ptr[7];
+    pP->Size_x = 0x999;
+    pP->Size_y = 0x400;
+    pP->Size_z = 0x999;
+    func_8010C9A4(pEm, pP, 0x400);
+    pP = &pEm->pSin_parts_ptr[8];
+    pP->Size_x = 0x999;
+    pP->Size_y = 0x400;
+    pP->Size_z = 0x999;
+    func_8010C9A4(pEm, pP, 0x400);
+    pP = &pEm->pSin_parts_ptr[16];
+    pP->Size_x = 0;
+    pP->Size_y = 0;
+    pP->Size_z = 0;
+    pP = &pEm->pSin_parts_ptr[17];
+    pP->Size_x = 0;
+    pP->Size_y = 0;
+    pP->Size_z = 0;
+    func_8010C9A4(pEm, pP, 0);
+    pP = &pEm->pSin_parts_ptr[18];
+    pP->Size_x = 0;
+    pP->Size_y = 0;
+    pP->Size_z = 0;
+    func_8010C9A4(pEm, pP, 0);
+    pP = &pEm->pSin_parts_ptr[19];
+    pP->Size_x = 0;
+    pP->Size_y = 0;
+    pP->Size_z = 0;
+    func_8010C9A4(pEm, pP, 0);
+    pEm->Unk12A = 0x999;
+    EM_MOVE(pEm) = 0x18;
+    Joint_move(pEm, pKan, pSeq, 0x80);
+    pP = pEm->pSin_parts_ptr;
+    EM38_SA(pP)->Key[0].Rate = 0x1000;
+    func_8004AC54(pEm, pP);
+    pP = &pEm->pSin_parts_ptr[12];
+    EM38_SA(pP)->Key[0].Rate = 0x1000;
+    func_8004AC54(pEm, pP);
+    pP = &pEm->pSin_parts_ptr[2];
+    EM38_SA(pP)->Key[0].Rate = 0x1000;
+    func_8004AC54(pEm, pP);
+    pP = &pEm->pSin_parts_ptr[20];
+    EM38_SA(pP)->Key[0].Rate = 0;
+    EM38_SA(pP)->Key[1].Rate = 0;
+    func_8004AC54(pEm, pP);
+}
 
 /* RE2 Em_Move */
 void func_801011D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
@@ -918,12 +1260,354 @@ void func_801037E8(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em38/em38", func_801038E8);
+/* mv0a: walk to the nearest zone and climb into the wall */
+void func_801038E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Ofs = { 0x898 };
+    SVECTOR Sv;
+    MATRIX M;
+    VECTOR V;
+    LONG Base;
+    LONG Min;
+    LONG L;
+    LONG Dx, Dz;
+    LONG n;
+    LONG k;
+    LONG Near;
+    SHORT Old_x, Old_z;
+    SHORT Add;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x7F0001;
+        pEm->Routine_2 = 1;
+        pEm->Timer0 = 0;
+        EM38_W(pEm)->Flg |= 2;
+        Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+        k = Base;
+        for (n = 4; n != 0; n--) {
+            if (func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[k]))) {
+                k |= 0x80;
+                break;
+            }
+            k++;
+        }
+        if (k & 0x80) {
+            EM38_W(pEm)->Unk16 = k & 0x7F;
+        } else {
+            n = 4;
+            k = Base;
+            Min = 0x7FFFFFFF;
+            do {
+                Dx = (pEm->Pos_x - Em38_root[k].Pos_x) >> 1;
+                Dz = (pEm->Pos_z - Em38_root[k].Pos_z) >> 1;
+                L = SquareRoot0(Dx * Dx + Dz * Dz) * 2;
+                if (L < Min) {
+                    Near = k;
+                    Min = L;
+                }
+                k++;
+                n--;
+            } while (n);
+            EM38_W(pEm)->Unk16 = Near;
+        }
+    case 1:
+        Old_x = pEm->Spd_x;
+        Old_z = pEm->Spd_z;
+        Spd_get(pEm, pKan, pSeq, 0);
+        pEm->Spd_x += 5;
+        pEm->Spd_x -= ((pEm->Spd_x - Old_x) * pEm->UnkCA) >> 7;
+        pEm->Spd_z -= ((pEm->Spd_z - Old_z) * pEm->UnkCA) >> 7;
+        Joint_move(pEm, pKan, pSeq, 0x20);
+        Add = 8;
+        if (pEm->Spd_x > 30)
+            Add = 16;
+        if (pEm->Spd_x > 20)
+            Add += 8;
+        if (EM38_W(pEm)->Flg & 0x80) {
+            Add += 0x40;
+            pEm->Spd_x += 30;
+        }
+        Goto00(pEm, pEm->Dest_x, pEm->Dest_z, Add);
+        Add_speedXZ(pEm, 0);
+        if (func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16])))
+            pEm->Routine_2 = 2;
+        if (pEm->Timer0)
+            pEm->Timer0--;
+        if (!EM38_W(pEm)->Unk20 && (LONG)pEm->Unk154 < 8000 && !pEm->Timer0) {
+            EM_RTN(pEm) = 0x101;
+            pEm->Timer0 = 30;
+            EM38_W(pEm)->Flg &= ~2;
+        }
+        break;
+    case 2:
+        Spd_get(pEm, pKan, pSeq, 0);
+        Joint_move(pEm, pKan, pSeq, 0x20);
+        Add = 8;
+        if (pEm->Spd_x > 30)
+            Add = 16;
+        if (pEm->Spd_x > 20)
+            Add += 8;
+        if (EM38_W(pEm)->Flg & 0x80)
+            Add += 0x40;
+        Goto01(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, Add);
+        Add_speedXZ(pEm, 0);
+        if (pEm->Timer0)
+            pEm->Timer0--;
+        if (!func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16])) && !pEm->Timer0) {
+            pEm->Routine_2 = 1;
+            pEm->Timer0 = 30;
+            Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+            n = 4;
+            k = Base;
+            for (; n != 0; n--) {
+                if (func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[k]))) {
+                    k |= 0x80;
+                    break;
+                }
+                k++;
+            }
+            if (k & 0x80) {
+                EM38_W(pEm)->Unk16 = k & 0x7F;
+            } else {
+                n = 4;
+                k = Base;
+                Min = 0x7FFFFFFF;
+                do {
+                    Dx = (pEm->Pos_x - Em38_root[k].Pos_x) >> 1;
+                    Dz = (pEm->Pos_z - Em38_root[k].Pos_z) >> 1;
+                    L = SquareRoot0(Dx * Dx + Dz * Dz) * 2;
+                    if (L < Min) {
+                        Near = k;
+                        Min = L;
+                    }
+                    k++;
+                    n--;
+                } while (n);
+                EM38_W(pEm)->Unk16 = Near;
+            }
+            break;
+        }
+        RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
+        ApplyMatrixSV(&M, &Ofs, &Sv);
+        V.vx = pEm->Pos_x + Sv.vx;
+        V.vy = pEm->Pos_y;
+        V.vz = pEm->Pos_z + Sv.vz;
+        func_8004D720(&V, 1, 0x200, 0);
+        if (!Goto01_ck(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, 0x40) && (pEm->UnkAE & 0x20)
+            && func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16]))) {
+            pEm->Routine_2 = 3;
+            pEm->nFloor = 2;
+            EM_MOVE(pEm) = 0x1F000C;
+            pEm->Be_flg |= 0x2000;
+            EM38_W(pEm)->Flg |= 0xC;
+        }
+        break;
+    case 3:
+        if (pEm->Move_cnt < 16)
+            Goto01(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, 0x10);
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (!pEm->Move_cnt) {
+            pEm->Spd_x = 0;
+            pEm->Spd_z = 0;
+        }
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+            EM_RTN(pEm) = 0xD01;
+            EM38_W(pEm)->Unk1E = 90;
+            pEm->Be_flg &= ~0x2000;
+            EM38_W(pEm)->Flg &= ~0xC;
+            EM38_W(pEm)->Unk17 = (Rnd() & 3) + 1;
+        }
+        Add_speedXZ(pEm, 0);
+        if (pEm->Move_cnt == 46) {
+            pEm->Pos_y = -3600;
+            pEm->Col_w0 = 2000;
+            pEm->Col_d0 = 2000;
+            pEm->Unk122 = -3600;
+            pEm->Unk134 = 0;
+            pEm->Be_flg |= 0x20;
+        }
+        break;
+    case 4:
+        break;
+    }
+}
 
 void func_80103FF0(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em38/em38", func_80103FF8);
+/* mv0b: walk to the zone nearest the player and drop down from the wall */
+void func_80103FF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    SVECTOR Ofs = { 0x960 };
+    SVECTOR Sv;
+    MATRIX M;
+    VECTOR V;
+    EM38_ROOT *pR;
+    LONG Base;
+    LONG Min;
+    LONG L;
+    LONG Dx, Dz;
+    LONG n;
+    LONG k;
+    LONG Near;
+    SHORT Old_x, Old_z;
+    SHORT Add;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x7F0001;
+        pEm->Routine_2 = 1;
+        pEm->Timer0 = 0;
+        EM38_W(pEm)->Flg |= 2;
+        Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+        k = Base;
+        for (n = 4; n != 0; n--) {
+            if (func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[k + 8]))) {
+                k |= 0x80;
+                break;
+            }
+            k++;
+        }
+        if (k & 0x80) {
+            EM38_W(pEm)->Unk16 = (k & 0x7F) + 8;
+        } else {
+            n = 4;
+            k = Base;
+            Min = 0x7FFFFFFF;
+            do {
+                Dx = (pPl->Pos_x - Em38_root[k + 8].Pos_x) >> 1;
+                Dz = (pPl->Pos_z - Em38_root[k + 8].Pos_z) >> 1;
+                L = SquareRoot0(Dx * Dx + Dz * Dz) * 2;
+                if (L < Min) {
+                    Near = k + 8;
+                    Min = L;
+                }
+                k++;
+                n--;
+            } while (n);
+            EM38_W(pEm)->Unk16 = Near;
+        }
+    case 1:
+        Old_x = pEm->Spd_x;
+        Old_z = pEm->Spd_z;
+        Spd_get(pEm, pKan, pSeq, 0);
+        pEm->Spd_x -= ((pEm->Spd_x - Old_x) * pEm->UnkCA) >> 7;
+        pEm->Spd_z -= ((pEm->Spd_z - Old_z) * pEm->UnkCA) >> 7;
+        if (pEm->Timer0)
+            pEm->Timer0--;
+        pEm->Spd_x += 20;
+        Joint_move(pEm, pKan, pSeq, 0x20);
+        Add = 16;
+        pR = &Em38_root[EM38_W(pEm)->Unk16];
+        if (pEm->Spd_x > 30)
+            Add = 24;
+        if (pEm->Spd_x > 20)
+            Add += 8;
+        Goto00(pEm, pR->Pos_x, pR->Pos_z, Add);
+        Add_speedXZ(pEm, 0);
+        if (func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16])) && !pEm->Timer0) {
+            pEm->Routine_2 = 2;
+            pEm->Timer0 = 30;
+        }
+        break;
+    case 2:
+        Spd_get(pEm, pKan, pSeq, 0);
+        Joint_move(pEm, pKan, pSeq, 0x20);
+        if (pEm->Timer0)
+            pEm->Timer0--;
+        Add = 16;
+        if (pEm->Spd_x > 30)
+            Add = 24;
+        if (pEm->Spd_x > 20)
+            Add += 16;
+        if (pEm->Spd_x > 10)
+            Add += 8;
+        Goto01(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, Add);
+        Add_speedXZ(pEm, 0);
+        if (!func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16])) && !pEm->Timer0) {
+            pEm->Routine_2 = 1;
+            pEm->Timer0 = 30;
+            Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+            n = 4;
+            k = Base;
+            for (; n != 0; n--) {
+                if (func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[k + 8]))) {
+                    k |= 0x80;
+                    break;
+                }
+                k++;
+            }
+            if (k & 0x80) {
+                EM38_W(pEm)->Unk16 = (k & 0x7F) + 8;
+            } else {
+                n = 4;
+                k = Base;
+                Min = 0x7FFFFFFF;
+                do {
+                    Dx = (pPl->Pos_x - Em38_root[k + 8].Pos_x) >> 1;
+                    Dz = (pPl->Pos_z - Em38_root[k + 8].Pos_z) >> 1;
+                    L = SquareRoot0(Dx * Dx + Dz * Dz) * 2;
+                    if (L < Min) {
+                        Near = k + 8;
+                        Min = L;
+                    }
+                    k++;
+                    n--;
+                } while (n);
+                EM38_W(pEm)->Unk16 = Near;
+            }
+            break;
+        }
+        RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
+        ApplyMatrixSV(&M, &Ofs, &Sv);
+        V.vx = pEm->Pos_x + Sv.vx;
+        V.vy = pEm->Pos_y;
+        V.vz = pEm->Pos_z + Sv.vz;
+        func_8004D720(&V, 1, 0x200, 0);
+        if (!Goto01_ck(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, 0x80) && (pEm->UnkAE & 0x20)
+            && func_8001020C(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16]))) {
+            pEm->Routine_2 = 3;
+            EM_MOVE(pEm) = 0x1F000D;
+            pEm->Be_flg |= 0x2000;
+            EM38_W(pEm)->Flg |= 0xC;
+            Snd_se_enem(9, pEm);
+        }
+        break;
+    case 3:
+        if (pEm->Move_cnt < 16)
+            Goto01(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, 0x10);
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (!pEm->Move_cnt) {
+            pEm->Spd_x = 0;
+            pEm->Spd_z = 0;
+        }
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+            EM_RTN(pEm) = 0x101;
+            EM38_W(pEm)->Unk1E = 90;
+            pEm->Be_flg &= ~0x2000;
+            EM38_W(pEm)->Flg &= ~0xC;
+        }
+        if (pEm->Move_cnt > 38 && pEm->Spd_x > 30)
+            Goto00(pEm, pEm->Pos_x, pEm->Pos_z, 0x10);
+        if (pEm->Move_cnt == 38)
+            pEm->Be_flg &= ~0x2000;
+        Add_speedXZ(pEm, 0);
+        if (pEm->Move_cnt == 37) {
+            pEm->Col_w0 = 1800;
+            pEm->Col_d0 = 1800;
+            pEm->Unk134 = 1800;
+            pEm->Pos_y = 0;
+            pEm->Unk122 = 0;
+            pEm->nFloor = 0;
+            pEm->Be_flg &= ~0x20;
+        }
+        break;
+    case 4:
+        break;
+    }
+}
 
 /* mv0c_br */
 void func_80104718(ENEMY_WORK *pEm)
@@ -1556,9 +2240,636 @@ void func_80106128(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em38/em38", func_801064C8);
+/* sce: transformation (the body swells, grows the new parts and sheds the tentacles) */
+void func_801064C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Sv;
+    PARTS_W *pB;
+    PARTS_W *pP;
+    LONG Size;
+    LONG i, n;
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em38/em38", func_801075D8);
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x1F0012;
+        pEm->Routine_2 = 1;
+        Em38_pulse_no = 0;
+    case 1:
+        if ((pEm->Move_cnt > 5 && pEm->Move_cnt < 75) || (pEm->Move_cnt > 100 && pEm->Move_cnt < 170)) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            Size = pB->Size_x;
+            if (Size < 0x400 || Size > 0xC00) {
+                if (pEm->Move_cnt & 1)
+                    Size += 0x2A;
+                else
+                    Size -= 0x28;
+            } else {
+                if (pEm->Move_cnt & 1)
+                    Size += 0x34;
+                else
+                    Size -= 0x32;
+            }
+            if (pEm->Move_cnt > 20 && pEm->Move_cnt < 45)
+                Size += 8;
+            if (pEm->Move_cnt > 130 && pEm->Move_cnt < 160)
+                Size += 0x18;
+            Size += Em38_pulse[Em38_pulse_no];
+            Em38_pulse_no = (Em38_pulse_no + 1) & 0x1F;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            n = Em38_swell.Num0;
+            i = 0;
+            do {
+                func_8010C9A4(pEm, &pB[Em38_swell.Parts[i]], Size);
+                i++;
+            } while (--n);
+            n = Em38_swell.Num1;
+            i = 0;
+            do {
+                PARTS_W *pQ = &pB[Em38_swell.Parts[i]];
+
+                pQ->Size_x = Size;
+                pQ->Size_y = Size;
+                pQ->Size_z = Size;
+                i++;
+            } while (--n);
+            pEm->Unk12A = Size;
+        }
+        if (pEm->Move_cnt > 130 && pEm->Move_cnt < 164) {
+            pP = pEm->pSin_parts_ptr;
+            Size = EM38_SA(pP)->Key[0].Rate;
+            Size += ((pEm->Move_cnt & 1) << 7) - 0xC0;
+            if (Size < 0)
+                Size = 0;
+            if (pEm->Move_cnt == 163)
+                Size = 0;
+            EM38_SA(pP)->Key[0].Rate = Size;
+            func_8004AC54(pEm, pP);
+            pP = &pEm->pSin_parts_ptr[12];
+            EM38_SA(pP)->Key[0].Rate = Size;
+            func_8004AC54(pEm, pP);
+            pP = &pEm->pSin_parts_ptr[2];
+            EM38_SA(pP)->Key[0].Rate = Size;
+            func_8004AC54(pEm, pP);
+            pP = &pEm->pSin_parts_ptr[20];
+            EM38_SA(pP)->Key[1].Rate = Size;
+            func_8004AC54(pEm, pP);
+        }
+        if (pEm->Move_cnt > 70 && pEm->Move_cnt < 90) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            pP = &pB[2];
+            Size = pP->Size_x;
+            Size += 0x5C;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP[0].Size_x = Size;
+            pP[0].Size_y = Size;
+            pP[0].Size_z = Size;
+            pP[1].Size_x = Size;
+            pP[1].Size_y = Size;
+            pP[1].Size_z = Size;
+            func_8010C9A4(pEm, &pB[3], Size);
+        }
+        if (pEm->Move_cnt > 90 && pEm->Move_cnt < 110) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            pP = &pB[4];
+            Size = pP->Size_x;
+            Size += 0x3C;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP[0].Size_x = Size;
+            pP[0].Size_z = Size;
+            pP[1].Size_x = Size;
+            pP[1].Size_z = Size;
+            pP[2].Size_x = Size;
+            pP[2].Size_z = Size;
+            pP[3].Size_x = Size;
+            pP[3].Size_z = Size;
+            pP[4].Size_x = Size;
+            pP[4].Size_z = Size;
+            func_8010C9A4(pEm, &pB[8], Size);
+            if (pEm->Move_cnt == 109 || pEm->Move_cnt == 99 || pEm->Move_cnt == 95) {
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x2000) << 16) | (USHORT)(Rnd() << 4), &pP[2].Workm, 0, 0);
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x2000) << 16) | (USHORT)(Rnd() << 4), &pP[3].Workm, 0, 0);
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x2000) << 16) | (USHORT)(Rnd() << 4), &pP[4].Workm, 0, 0);
+            }
+        }
+        if (pEm->Move_cnt > 80 && pEm->Move_cnt < 110) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            pP = &pB[4];
+            Size = pP->Size_y;
+            Size += 0x80;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP[0].Size_y = Size;
+            pP[1].Size_y = Size;
+            func_8010C9A4(pEm, &pB[5], Size);
+            pP[2].Size_y = Size;
+            func_8010C9A4(pEm, &pB[6], Size);
+            pP[3].Size_y = Size;
+            func_8010C9A4(pEm, &pB[7], Size);
+            pP[4].Size_y = Size;
+            func_8010C9A4(pEm, &pB[8], Size);
+            if (pEm->Move_cnt == 81 || pEm->Move_cnt == 88) {
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), &pB[6].Workm, 0, 0);
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), &pB[7].Workm, 0, 0);
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), &pB[8].Workm, 0, 0);
+            }
+        }
+        if (pEm->Move_cnt == 29)
+            pEm->pSin_parts_ptr[16].Poly_rgb = 0x404020;
+        if (pEm->Move_cnt > 30 && pEm->Move_cnt < 160 && !(pEm->Move_cnt & 3)) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            Sv.vx = 0x100 - (Rnd() << 1);
+            Sv.vy = 0x100 - (Rnd() << 1);
+            Sv.vz = 0x100 - (Rnd() << 1);
+            {
+                MATRIX *pM = &pB[16].Workm;
+
+                func_8001B484(0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), pM, &Sv, 0);
+                func_8001B484(0x1800, 0x10000000, pM, &Sv, 0);
+                Sv.vx = 0x100 - (Rnd() << 1);
+                Sv.vy = 0x100 - (Rnd() << 1);
+                Sv.vz = 0x100 - (Rnd() << 1);
+                func_8001B484((((Rnd() & 1) + 1) << 24) | 0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), pM, &Sv, 0);
+                func_8001B484((((Rnd() & 1) + 1) << 24) | 0x1800, 0x10000000, pM, &Sv, 0);
+            }
+            pP = &pEm->pSin_parts_ptr[17 + Rnd() % 3];
+            Sv.vx = 0x100 - (Rnd() << 1);
+            Sv.vy = 0x100 - (Rnd() << 1);
+            Sv.vz = 0x100 - (Rnd() << 1);
+            func_8001B484((((Rnd() & 1) + 1) << 24) | 0x1900, (((Rnd() << 1) + 0x2000) << 16) | (USHORT)(Rnd() << 4), &pP->Workm, &Sv, 0);
+            pP = &pEm->pSin_parts_ptr[17 + Rnd() % 3];
+            Sv.vx = 0x100 - (Rnd() << 1);
+            Sv.vy = 0x100 - (Rnd() << 1);
+            Sv.vz = 0x100 - (Rnd() << 1);
+            func_8001B484((((Rnd() & 1) + 1) << 24) | 0x1900, (((Rnd() << 1) + 0x2000) << 16) | (USHORT)(Rnd() << 4), &pP->Workm, &Sv, 0);
+        }
+        if (pEm->Move_cnt > 30 && pEm->Move_cnt < 100) {
+            pP = &pEm->pSin_parts_ptr[16];
+            Size = pP->Size_x;
+            Size += 0x40;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP[0].Size_x = Size;
+            pP[0].Size_z = Size;
+            pP[1].Size_x = Size;
+            pP[1].Size_z = Size;
+            pP[2].Size_x = Size;
+            pP[2].Size_z = Size;
+            pP[3].Size_x = Size;
+            pP[3].Size_z = Size;
+        }
+        if (pEm->Move_cnt > 90 && pEm->Move_cnt < 180) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            pP = &pB[16];
+            Size = pP->Size_y;
+            Size += 0x80;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP[0].Size_y = Size;
+            pP[1].Size_y = Size;
+            func_8010C9A4(pEm, &pB[17], Size);
+        }
+        if (pEm->Move_cnt > 70 && pEm->Move_cnt < 180) {
+            pP = &pEm->pSin_parts_ptr[18];
+            Size = pP->Size_y;
+            Size += 0x80;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP->Size_y = Size;
+            func_8010C9A4(pEm, pP, Size);
+        }
+        if (pEm->Move_cnt > 50 && pEm->Move_cnt < 180) {
+            pP = &pEm->pSin_parts_ptr[19];
+            Size = pP->Size_y;
+            Size += 0x40;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP->Size_y = Size;
+            func_8010C9A4(pEm, pP, Size);
+        }
+        if (pEm->Move_cnt > 120 && pEm->Move_cnt < 190) {
+            pP = &pEm->pSin_parts_ptr[16];
+            if ((pP->Poly_rgb & 0xFF0000) != 0x800000)
+                pP->Poly_rgb += 0x10100;
+        }
+        if (pEm->Move_cnt > 90 && pEm->Move_cnt < 190) {
+            pP = &pEm->pSin_parts_ptr[16];
+            if ((pP->Poly_rgb & 0xFF) != 0x80)
+                pP->Poly_rgb += 1;
+        }
+        if (pEm->Move_cnt > 150 && pEm->Move_cnt < 180) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            pP = &pB[20];
+            Size = pP->Size_x;
+            Size += 0x40;
+            if (Size > 0x1000)
+                Size = 0x1000;
+            pP[0].Size_x = Size;
+            pP[0].Size_y = Size;
+            pP[0].Size_z = Size;
+            pP[1].Size_x = Size;
+            pP[1].Size_y = Size;
+            pP[1].Size_z = Size;
+            if (!(pEm->Move_cnt & 3)) {
+                Sv.vx = 0x100 - (Rnd() << 1);
+                Sv.vy = 0x100 - (Rnd() << 1);
+                Sv.vz = 0x100 - (Rnd() << 1);
+                {
+                    MATRIX *pM = &pB[20].Workm;
+
+                    func_8001B484(0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), pM, &Sv, 0);
+                    Sv.vx = 0x100 - (Rnd() << 1);
+                    Sv.vy = 0x100 - (Rnd() << 1);
+                    Sv.vz = 0x100 - (Rnd() << 1);
+                    func_8001B484(0x1600, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), pM, &Sv, 0);
+                }
+            }
+        }
+        if (pEm->Move_cnt > 90 && pEm->Move_cnt < 180) {
+            PARTS_W *pB = pEm->pSin_parts_ptr;
+
+            pP = &pB[22];
+            if (pEm->Move_cnt == 91)
+                pP->Poly_rgb = 0x505030;
+            if ((pP->Poly_rgb & 0xFF0000) != 0x800000)
+                pP->Poly_rgb += 0x10100;
+            if ((pP->Poly_rgb & 0xFF) != 0x80)
+                pP->Poly_rgb += 1;
+            pB[22].Be_flg |= 1;
+            pP->Size_y += 0x40;
+            if (pP->Size_y > 0x1000)
+                pP->Size_y = 0x1000;
+            if (!(pEm->Move_cnt & 3)) {
+                Sv.vx = 0x100 - (Rnd() << 1);
+                Sv.vy = 0x100 - (Rnd() << 1);
+                Sv.vz = 0x100 - (Rnd() << 1);
+                {
+                    MATRIX *pM = &pB[22].Workm;
+
+                    func_8001B484(0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), pM, &Sv, 0);
+                    Sv.vx = 0x100 - (Rnd() << 1);
+                    Sv.vy = 0x100 - (Rnd() << 1);
+                    Sv.vz = 0x100 - (Rnd() << 1);
+                    func_8001B484((((Rnd() & 1) + 1) << 24) | 0x1900, (((Rnd() << 1) + 0x1800) << 16) | (USHORT)(Rnd() << 4), pM, &Sv, 0);
+                }
+            }
+        }
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x80))
+            pEm->Routine_2 = 2;
+        Add_speedXZ(pEm, 0);
+        break;
+    case 2:
+        EM_MOVE(pEm) = 0x30017;
+        pEm->Routine_2 = 3;
+    case 3:
+        func_80018EC8(pEm, pKan, pSeq, 0);
+        if (!pEm->Move_cnt) {
+            pEm->Spd_x = 0;
+            pEm->Spd_z = 0;
+            EM38_W(pEm)->pUnk00->Be_flg &= ~0x10;
+            EM38_W(pEm)->pUnk00->Routine_1 = 3;
+        }
+        if (Joint_move(pEm, pKan, pSeq, 0x400)) {
+            pEm->Routine_2 = 4;
+            pEm->pSin_parts_ptr[22].Be_flg &= ~4;
+            EM38_W(pEm)->pUnk04->Be_flg &= ~0x10;
+            EM38_W(pEm)->pUnk04->Routine_1 = 3;
+            pP = pEm->pSin_parts_ptr;
+            for (n = 22; n != 0; n--) {
+                pP->Be_flg &= ~4;
+                pP->Size_x = 0x1000;
+                pP->Size_y = 0x1000;
+                pP->Size_z = 0x1000;
+                if (n != 22)
+                    func_8010C9A4(pEm, pP, 0x1000);
+                pP++;
+            }
+            pP = &pEm->pSin_parts_ptr[6];
+            pP[0].Be_flg |= 4;
+            pP[1].Be_flg |= 4;
+            pP[2].Be_flg |= 4;
+            func_800251FC(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
+            EM38_W(pEm)->Flg &= ~0x10;
+            pB = pEm->pSin_parts_ptr;
+            func_8010A7D4(pEm, &pB[12], &pB[16]);
+            pB = pEm->pSin_parts_ptr;
+            func_8010A7D4(pEm, &pB[16], &pB[17]);
+            pB = pEm->pSin_parts_ptr;
+            func_8010A7D4(pEm, &pB[17], &pB[18]);
+            pB = pEm->pSin_parts_ptr;
+            func_8010A7D4(pEm, &pB[18], &pB[19]);
+            pEm->Unk12A = 0x1000;
+        }
+        Add_speedXZ(pEm, 0);
+        if (pEm->Move_cnt == 30) {
+            pEm->pSin_parts_ptr[23].Be_flg |= 1;
+            pEm->pSin_parts_ptr[24].Be_flg |= 1;
+            pEm->pSin_parts_ptr[25].Be_flg |= 1;
+            pEm->pSin_parts_ptr[26].Be_flg |= 1;
+            pP = &pEm->pSin_parts_ptr[27];
+            pP->UnkB4 = 3;
+            pP->Be_flg |= 1;
+            pP = &pEm->pSin_parts_ptr[28];
+            pP->UnkB4 = 3;
+            pP->Be_flg |= 1;
+            pP = &pEm->pSin_parts_ptr[29];
+            pP->UnkB4 = 3;
+            pP->Be_flg |= 1;
+            pP = &pEm->pSin_parts_ptr[30];
+            pP->UnkB4 = 3;
+            pP->Be_flg |= 1;
+        }
+        break;
+    case 4:
+        EM_MOVE(pEm) = 0x400000;
+        pEm->Routine_2 = 5;
+        pEm->Timer0 = 150;
+        EM38_W(pEm)->Unk1D = 120;
+    case 5:
+        Spd_get(pEm, pKan, pSeq, 0);
+        Joint_move(pEm, pKan, pSeq, 0x3F);
+        if (--pEm->Timer0 == -1) {
+            EM_RTN(pEm) = 1;
+            pEm->Damage_cnt &= 0x7F;
+        }
+        if (pEm->Timer0 == 100)
+            Snd_se_enem(9, pEm);
+        Add_speedXZ(pEm, 0);
+        break;
+    }
+}
+
+/* sce: death throes (the tentacles fall, the body swells and bursts) */
+void func_801075D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Sv;
+    PARTS_W *pP;
+    PARTS_W *pS;
+    PARTS_W *pW;
+    LONG i;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x30013;
+        pEm->Routine_2 = 1;
+        Snd_se_enem(8, pEm);
+        pEm->Life = -1;
+        EM_RTN(EM38_W(pEm)->pUnk00) = 3;
+        EM_RTN(EM38_W(pEm)->pUnk04) = 3;
+        EM38_W(pEm)->pUnk00->Be_flg |= 0x10;
+        EM38_W(pEm)->pUnk04->Be_flg |= 0x10;
+        pEm->Type |= 3;
+        pEm->pSin_parts_ptr[16].Be_flg &= ~2;
+        pEm->pSin_parts_ptr[17].Be_flg &= ~2;
+        pEm->pSin_parts_ptr[18].Be_flg &= ~2;
+        pEm->pSin_parts_ptr[19].Be_flg &= ~2;
+        pS = &pEm->pSin_parts_ptr[27];
+        for (i = 4; i != 0; i--) {
+            if (!pS->UnkB4) {
+                pS->UnkB4 = 1;
+                Snd_se_enem(0, pEm);
+            }
+            pS++;
+        }
+        pP = &pEm->pSin_parts_ptr[4];
+        pP->UnkA2 |= 0x20;
+        pP->Be_flg |= 2;
+        PW_FREES(pP)[0] = 0;
+        PW_FREES(pP)[4] = 0;
+        PW_FREES(pP)[2] = 0;
+        PW_FREES(pP)[1] = 0;
+        PW_FREES(pP)[3] = 3;
+        PW_FREES(pP)[6] = 0;
+        pP->Poly_rgb = 0x101030;
+        pP = &pEm->pSin_parts_ptr[22];
+        pP->UnkA2 |= 0x20;
+        pP->Be_flg |= 2;
+        PW_FREES(pP)[0] = 0;
+        PW_FREES(pP)[4] = 0;
+        PW_FREES(pP)[2] = 0;
+        PW_FREES(pP)[1] = 0;
+        PW_FREES(pP)[3] = 3;
+        PW_FREES(pP)[6] = 0;
+        pP->Poly_rgb = 0x101030;
+        func_8010B848(pEm);
+        pP = &pEm->pSin_parts_ptr[20];
+        EM38_SA(pP)->Key[0].Rate = 0;
+        EM38_SA(pP)->Key[1].Rate = 0x1000;
+        func_8004AC54(pEm, pP);
+        for (i = 8; i != 0; i--)
+            Em38_kage[i - 1]->Be_flg = 0;
+        pEm->Col_w0 = 900;
+        pEm->Col_d0 = 900;
+        pEm->Col_h = 1000;
+        Em38_col[1].Id = 0;
+        Em38_col[3].Id = 0;
+        Em38_col[4].Id = 0;
+    case 1:
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x400)) {
+            EM_MOVE(pEm) = 0x30015;
+            pEm->Routine_2 = 2;
+            Snd_se_enem(9, pEm);
+            func_8001B484(0x205, 0x20000000, &pEm->pSin_parts_ptr[20].Workm, 0, 0);
+            {
+                MATRIX *pM = &pEm->pSin_parts_ptr[21].Workm;
+
+                func_8001B484(0x205, 0x18000000, pM, 0, 0);
+                func_8001B484(0x1001B03, 0x10000000, pM, 0, 0);
+            }
+            {
+                MATRIX *pM = &pEm->pSin_parts_ptr[2].Workm;
+
+                Sv.vx = 400;
+                Sv.vy = -400;
+                Sv.vz = 0;
+                func_8001B484(0x205, 0x20000000, pM, &Sv, 0);
+                func_8001B484(0x1001B03, 0x0A000000, pM, &Sv, 0);
+            }
+            pW = &pEm->pSin_parts_ptr[16];
+            Sv.vx = 0;
+            Sv.vy = 400;
+            Sv.vz = 0;
+            func_8001B484(0x205, 0x20000000, &pW->Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            {
+                MATRIX *pM = &pP->Workm;
+
+                Sv.vx = -500;
+                Sv.vy = -400;
+                Sv.vz = 0;
+                func_8001B484(0x205, 0x28000000, pM, &Sv, 0);
+                func_8001B484(0x1001B03, 0x10000000, pM, 0, 0);
+            }
+        }
+        Add_speedXZ(pEm, 0);
+        break;
+    case 2:
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x400)) {
+            pEm->Routine_2 = 3;
+            pEm->Timer0 = 150;
+            pEm->UnkDA = 0;
+            pP = pEm->pSin_parts_ptr;
+            for (i = 22; i != 0; i--) {
+                pP->Be_flg |= 4;
+                pP->Size_x = 0x1000;
+                pP->Size_y = 0x1000;
+                pP->Size_z = 0x1000;
+                pP++;
+            }
+            pEm->UnkE2 = 5;
+            EM_MOVE(pEm) = 0xF0016;
+            pP = &pEm->pSin_parts_ptr[23];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[24];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[25];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[26];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[27];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[28];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[29];
+            pP->UnkA2 &= ~1;
+            pP = &pEm->pSin_parts_ptr[30];
+            pP->UnkA2 &= ~1;
+        }
+        Add_speedXZ(pEm, 0);
+        if (pEm->Move_cnt == 5) {
+            pP = &pEm->pSin_parts_ptr[9];
+            pP->UnkA2 |= 0x20;
+            pP->Be_flg |= 2;
+            PW_FREES(pP)[0] = 0;
+            PW_FREES(pP)[4] = 0;
+            PW_FREES(pP)[2] = 0;
+            PW_FREES(pP)[1] = 0;
+            PW_FREES(pP)[3] = 3;
+            PW_FREES(pP)[6] = 0;
+            pP->Poly_rgb = 0x101030;
+            pP = &pEm->pSin_parts_ptr[13];
+            pP->UnkA2 |= 0x20;
+            pP->Be_flg |= 2;
+            PW_FREES(pP)[0] = 0;
+            PW_FREES(pP)[4] = 0;
+            PW_FREES(pP)[2] = 0;
+            PW_FREES(pP)[1] = 0;
+            PW_FREES(pP)[3] = 3;
+            PW_FREES(pP)[6] = 0;
+            pP->Poly_rgb = 0x101030;
+        }
+        if (pEm->Move_cnt == 30) {
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0;
+            Sv.vy = -800;
+            Sv.vz = 0;
+            func_8001B484(0x1403, 0x18000000, &pP->Workm, &Sv, 0);
+            pW = &pEm->pSin_parts_ptr[12];
+            Sv.vx = 0;
+            Sv.vy = 0;
+            Sv.vz = 0;
+            func_8001B484(0x1403, 0x18000000, &pW->Workm, &Sv, 0);
+            pW = &pEm->pSin_parts_ptr[16];
+            Sv.vx = 0x80;
+            Sv.vy = 200;
+            Sv.vz = 0x40;
+            func_8001B484(0x1403, 0x14000000, &pW->Workm, &Sv, 0);
+            func_8001B484(0x1403, 0x10000000, &pEm->pSin_parts_ptr[3].Workm, &Sv, 0);
+            pW = &pEm->pSin_parts_ptr[17];
+            Sv.vx = 0x22;
+            Sv.vy = 0x41;
+            Sv.vz = 0x100;
+            func_8001B484(0x1403, 0x10000000, &pW->Workm, &Sv, 0);
+        }
+        if (pEm->Move_cnt == 18) {
+            Pad_vib_set0(4, 0);
+            Pad_vib_set1(6, 250, 0);
+        }
+        if (pEm->Move_cnt == 33) {
+            Pad_vib_set0(3, 0);
+            Pad_vib_set1(5, 200, 0);
+        }
+        if (pEm->Move_cnt == 42) {
+            Pad_vib_set0(3, 0);
+            Pad_vib_fade_set(45, 200, 0, 0);
+        }
+        break;
+    case 3:
+        if (!(pEm->UnkE2 & 0x80) && Joint_move(pEm, pKan, pSeq, 0x100))
+            pEm->UnkE2 |= 0x80;
+        if (!(--pEm->UnkE2 & 0x7F)) {
+            pEm->UnkE2 = (Rnd() & 0xF) + 3;
+            EM_MOVE(pEm) = 0xF0016;
+        }
+        if (--pEm->Timer0 == -1)
+            pEm->Routine_2 = 4;
+        if (!(pEm->Timer0 % 45)) {
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x200 - (Rnd() << 2);
+            Sv.vy = 0x200 - (Rnd() << 2);
+            Sv.vz = 0x200 - (Rnd() << 2);
+            func_8001B484(0x1C03, 0x18000000, &pP->Workm, &Sv, 0);
+            func_8001B484(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[12].Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd() << 1);
+            Sv.vy = 0x100 - (Rnd() << 1);
+            Sv.vz = 0x100 - (Rnd() << 1);
+            func_8001B484(0x1C03, 0x14000000, &pP[16].Workm, &Sv, 0);
+            func_8001B484(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[3].Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd() << 1);
+            Sv.vy = 0x100 - (Rnd() << 1);
+            Sv.vz = 0x100 - (Rnd() << 1);
+            func_8001B484(0x1C03, 0x10000000, &pP[17].Workm, &Sv, 0);
+            func_8001B484(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[18].Workm, &Sv, 0);
+            Snd_se_stad(0x10214, (VECTOR *)&pEm->Pos_x, 0, 0);
+        }
+        pP = pEm->pSin_parts_ptr;
+        if ((pP->Poly_rgb & 0xFFFFFF) != 0x505050) {
+            pS = pP;
+            for (i = 22; i != 0; i--) {
+                pS->Poly_rgb -= 0x10101;
+                pS++;
+            }
+            pP = pEm->pSin_parts_ptr;
+        }
+        if (pP->Size_x > 0xC00) {
+            for (i = 22; i != 0; i--) {
+                pP->Size_x -= 4 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+                pP->Size_y -= 4 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+                pP->Size_z -= 4 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+                if (i != 22)
+                    func_8010C9A4(pEm, pP, pP->Size_x);
+                pP++;
+            }
+            pEm->UnkDA++;
+        }
+        break;
+    case 4:
+        if (!(pEm->UnkE2 & 0x80) && Joint_move(pEm, pKan, pSeq, 0x100))
+            pEm->UnkE2 |= 0x80;
+        if (!(--pEm->UnkE2 & 0x7F)) {
+            pEm->UnkE2 = (Rnd() & 0x1F) + 3;
+            EM_MOVE(pEm) = 0xF0016;
+        }
+        if (!(pEm->Timer0 % 45))
+            Snd_se_stad(0x10214, (VECTOR *)&pEm->Pos_x, 0, 0);
+        pEm->Timer0++;
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/ovl/em38/em38", func_801081C8);
 

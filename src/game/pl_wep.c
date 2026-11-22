@@ -10,7 +10,7 @@
 #include "cd.h"
 
 extern PL_WEP_DATA *D_8009DBB4[];      /* per-weapon hit data, index player Id */
-ULONG *func_80044804(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
+ENEMY_WORK *func_80044804(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
 LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);
 LONG Dir_limit(LONG Dir, LONG Base, LONG Lim, SHORT *pDir);
 LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
@@ -47,9 +47,11 @@ typedef struct tagHIT_ATTR {
     UCHAR Unk1;                        /* 0x01 */
     SHORT Top;                         /* 0x02 */
     SHORT Bottom;                      /* 0x04 */
-    UCHAR pad6;
+    UCHAR Damage_cnt2;                 /* 0x06 Damage_cnt for the second box (func_800472EC) */
     UCHAR Damage_cnt;                  /* 0x07 */
-    UCHAR pad8[0xE - 0x8];
+    SHORT W2;                          /* 0x08 second, inner hit box (func_800472EC) */
+    SHORT D2;                          /* 0x0A */
+    SHORT Damage2;                     /* 0x0C damage for the second box */
     SHORT W;                           /* 0x0E */
     SHORT D;                           /* 0x10 */
     SHORT Damage;                      /* 0x12 subtracted from Life */
@@ -223,7 +225,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
 {
     PARTS_W *pP;
     PARTS_W *pP2;
-    ULONG *pHit;
+    ENEMY_WORK *pHit;
     LONG Lo;
     LONG Hi;
     MATRIX Mtx;
@@ -319,7 +321,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key)
     if (pHit != 0) {
         Snd_se_stad(0x10106, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
         pEm->UnkE3 = 3;
-        pEm->UnkDA = (*pHit >> 22) & 3;
+        pEm->UnkDA = (pHit->Be_flg >> 22) & 3;
         if (pEm->UnkDA == 3) {
             pEm->UnkDA = 7;
         }
@@ -2755,6 +2757,8 @@ LONG func_8004479C(ULONG A, ULONG B, VECTOR *pV)
     return (SHORT)(ay - t) >= pV->vx;
 }
 
+LONG Cdir_ck_pos_l(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT) __asm__("Cdir_ck_pos");
+
 INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80044804);
 
 void func_80044E90(MATRIX *pM0, MATRIX *pM1, SVECTOR *pOut)
@@ -3457,7 +3461,112 @@ VECTOR *func_80047DD0(PLAYER_WORK *pEm, ULONG LL)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80047F70);
+ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
+{
+    ENEMY_WORK **ppT;
+    ENEMY_WORK **ppEnd;
+    ENEMY_WORK *pT;
+    EM_HIT_AREA *pH;
+    MATRIX *pM;
+    VECTOR *pPos;
+    ULONG Ret;
+    LONG Part;
+    LONG Hit;
+    LONG Lo;
+    LONG Hi;
+    LONG Y;
+    LONG H;
+    LONG Dmg;
+    SHORT Top;
+    SHORT Bottom;
+    UCHAR Kind;
+    UCHAR Cnt;
+    LONG w;
+    LONG d;
+    SVECTOR Rot;
+    MATRIX M;
+    MATRIX Mt;
+    VECTOR V;
+
+    Rot.vx = 0;
+    Rot.vy = pReq->R;
+    Rot.vz = 0;
+    RotMatrix_gte(&Rot, &M);
+    *(VECTOR *)M.t = *pReq->pPos;
+    pPos = pReq->pPos;
+    Bottom = pAttr->Bottom;
+    Top = pAttr->Top;
+    TransposeMatrix(&M, &Mt);
+    SetRotMatrix(&Mt);
+    ppT = G.pEnemy;
+    Kind = pAttr->Unk0;
+    ppEnd = G.ppEnemy_end;
+    if (ppEnd == ppT) {
+        return 0;
+    }
+    Ret = 0;
+    do {
+        pT = *ppT;
+        if ((pT->Be_flg & 1) && pT->Damage_cnt == 0 && !(pT->Type & 0xC000) && pT != pEm) {
+            pH = (EM_HIT_AREA *)&pT->Unk134;
+            pM = pH->pM;
+            V.vx = pM->t[0] - pPos->vx;
+            V.vy = pM->t[1] - pPos->vy;
+            V.vz = pM->t[2] - pPos->vz;
+            ApplyRotMatrixLV(&V, &V);
+            if (Bottom <= pT->Unk134 + V.vy && Top >= pH->Bottom + V.vy) {
+                Hit = 0;
+                w = pAttr->W + pT->Unk13A;
+                d = pAttr->D + pT->Unk13A;
+                if ((ULONG)(V.vx + w) < (ULONG)(w * 2)) {
+                    Hit = (ULONG)(d * 2) > (ULONG)(V.vz + d);
+                }
+                if (Hit) {
+                    Part = 0;
+                    pT->Unk132 &= 0xC000;
+                    pT->Unk1C4 = *(ULONG *)&pT->Routine_0;
+                    pT->Unk132 |= 4;
+                    Dmg = pAttr->Damage;
+                    Cnt = pAttr->Damage_cnt;
+                    pT->Unk132 |= 1;
+                    Y = pT->Unk134;
+                    H = pH->Bottom - Y;
+                    Lo = Y + V.vy + ((H * pT->Unk138) >> 8);
+                    Hi = Y + V.vy + ((H * pT->Unk139) >> 8);
+                    if (Lo > 0) {
+                        pT->Unk132 = (pT->Unk132 & 0xFFFC) | 2;
+                        Part = 1;
+                    }
+                    if (Hi > 0) {
+                        Part = 2;
+                        pT->Unk132 |= 3;
+                    }
+                    if (pT->Unk134 + V.vy <= 0) {
+                        Part = 0;
+                        pT->Unk132 = (pT->Unk132 & 0xFFFC) | 1;
+                    }
+                    if (pH->Bottom + V.vy >= 0) {
+                        Part = 2;
+                        pT->Unk132 |= 3;
+                    }
+                    pT->Unk12C = pAttr->Unk1;
+                    pT->Damage_cnt = Cnt;
+                    d = Cdir_ck_pos_l(pPos->vx, pPos->vz, pT);
+                    Ret |= 0x20000001;
+                    *(ULONG *)&pT->Routine_0 = (Part << 8) | 2;
+                    pT->Unk132 = pT->Unk132 | (d << 4) | ((Kind & 0x1F) << 8);
+                    pT->Life -= Dmg;
+                    if (pT->Life < 0) {
+                        *(ULONG *)&pT->Routine_0 = (Part << 8) | 3;
+                        pT->Damage_cnt |= 0x80;
+                    }
+                }
+            }
+        }
+        ppT++;
+    } while (ppT != ppEnd);
+    return Ret;
+}
 
 void Quake_add(LONG X, LONG Y)
 {

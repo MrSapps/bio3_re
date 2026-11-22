@@ -19,7 +19,8 @@ typedef struct tagOBJ_MODEL_WORK {
     UCHAR Routine_3;                   /* 0x07 */
     UCHAR Parts_num;                   /* 0x08 */
     signed char nFloor;                /* 0x09 */
-    UCHAR padA[0x14 - 0xA];
+    UCHAR padA[0x10 - 0xA];
+    ULONG Attribute;                   /* 0x10 RE2 Attribute (func_8003589C) */
     OM_TMD_HEAD *pTmd_head;            /* 0x14 */
     UCHAR pad18[0x20 - 0x18];
     MATRIX M;                          /* 0x20 M.t = Pos_x/y/z */

@@ -1968,11 +1968,165 @@ void func_8001D7C0(void) {
 void func_8001D7C8(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001D7D0);
-
 LONG func_80044804(MATRIX *pM, ULONG a1, ULONG a2);
 LONG func_80047860(MATRIX *pM, ULONG a1, ULONG a2);
 extern ULONG D_8009DBB4;
+
+void func_8001D7D0(EFF_WORK *pEw)
+{
+    EFF_WORK *pNew;
+    LONG Ret;
+    VECTOR Pos;
+    SVECTOR Rot;
+    VECTOR Avg;
+    HIT_REQ Req;
+
+    if (pEw->Unk2C != 0) {
+        pEw->UnkBA = pEw->Unk2C;
+        pEw->Unk2C = 0;
+    }
+    Ret = pEw->Flg2 & 0x30;
+    Ret |= func_80044804(&pEw->Workm2, D_8009DBB4, pEw->Routine_1 + 6);
+    Ret |= func_80047860(&pEw->Workm2, D_8009DBB4, pEw->Routine_1 + 6);
+    if (++pEw->UnkB4 >= 15) {
+        Ret |= 1;
+    }
+    Pos.vx = (signed char)D_80098728[func_800102E8()] >> 1;
+    Pos.vy = 0;
+    Pos.vz = (signed char)D_80098728[func_800102E8()] >> 1;
+    func_8001B35C(pEw, 0xC03, 0x10000000, &pEw->Workm2, &Pos.vx, 0);
+    if (pEw->Flg2 & 8) {
+        Pos.vx = pEw->Pos_x;
+        Pos.vy = pEw->Pos_y;
+        Pos.vz = pEw->Pos_z;
+        Req.pPos = &Pos.vx;
+        Req.W = 0;
+        Req.H = 0;
+        Req.D = 0;
+        Req.R = pEw->UnkBA;
+        func_800472EC(&Req, D_80097FCC[15]);
+        func_80047BD0(&Req, D_80097FCC[15]);
+        Ret |= 1;
+        if (Water_ck(pEw->Pos_x, pEw->Pos_z) != 1) {
+            func_8001B35C(pEw, 0x71C, (USHORT)pEw->UnkBA | 0x0C000000, &GsIDMATRIX, &Pos.vx, 0);
+            func_8001B35C(pEw, 0x91C, (USHORT)pEw->UnkBA | 0x15000000, &GsIDMATRIX, &Pos.vx, 0);
+            Rot.vx = 0x400;
+            Rot.vy = 0;
+            Rot.vz = 0;
+            func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+            Rot.vx = 0x400;
+            Rot.vy = 0;
+            Rot.vz = 0x400;
+            func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+            Avg.vx = (pEw->Pos_x + pEw->Old_x) / 2;
+            Avg.vy = (pEw->Pos_y + pEw->Old_y) / 2;
+            Avg.vz = (pEw->Pos_z + pEw->Old_z) / 2;
+            switch (pEw->Routine_1) {
+            case 0:
+                func_8001B35C(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                break;
+            case 1:
+                func_8001B35C(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                break;
+            case 2:
+                func_8001B35C(pEw, 0x2000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                break;
+            case 3:
+                func_8001B35C(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                break;
+            }
+            Snd_se_stad(0x1022A, (VECTOR *)&pEw->Pos_x, 0, 0);
+            pEw->Be_flg = 0;
+            return;
+        }
+        func_8001B35C(pEw, 0x91C, (USHORT)pEw->UnkBA | 0x15000000, &GsIDMATRIX, &Pos.vx, 0);
+        Rot.vx = 0x400;
+        Rot.vy = 0;
+        Rot.vz = 0;
+        func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+        Rot.vx = 0x400;
+        Rot.vy = 0;
+        Rot.vz = 0x400;
+        func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+    }
+    Avg.vx = (pEw->Pos_x + pEw->Old_x) / 2;
+    Avg.vy = (pEw->Pos_y + pEw->Old_y) / 2;
+    Avg.vz = (pEw->Pos_z + pEw->Old_z) / 2;
+    if (Ret) {
+        switch (pEw->Routine_1) {
+        case 0:
+            Snd_se_stad(0x1010E, (VECTOR *)&pEw->Pos_x, 0, 0);
+            func_8001B35C(pEw, 0x203, (USHORT)pEw->UnkBA | 0x09000000, &GsIDMATRIX, &Avg.vx, 0);
+            Req.pPos = &pEw->Pos_x;
+            Req.W = 0;
+            Req.H = 0;
+            Req.D = 0;
+            Req.R = pEw->UnkBA;
+            func_800472EC(&Req, D_80097FCC[15]);
+            func_80047BD0(&Req, D_80097FCC[15]);
+            break;
+        case 1:
+            Snd_se_stad(0x1010F, (VECTOR *)&pEw->Pos_x, 0, 0);
+            func_8001B35C(pEw, 0x3000903, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Avg.vx, 0);
+            func_8001B35C(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+            Pos.vx = pEw->Pos_x;
+            Pos.vy = pEw->Pos_y;
+            Pos.vz = pEw->Pos_z;
+            func_8001B35C(pEw, 0x1000803, (USHORT)pEw->UnkBA | 0x30000000, &GsIDMATRIX, &Pos.vx, 0);
+            if (pEw->Flg2 & 0x20) {
+                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA - 0xFA) | 0x30000000, &GsIDMATRIX, &pEw->Old_x, 0);
+                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA + 0xFA) | 0x30000000, &GsIDMATRIX, &pEw->Old_x, 0);
+            } else {
+                func_8001B35C(pEw, 0x3000D03, (USHORT)pEw->UnkBA | 0x32000000, &GsIDMATRIX, &pEw->Old_x, 0);
+                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA - 0x15E) | 0x30000000, &GsIDMATRIX, &pEw->Old_x, 0);
+                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA + 0x15E) | 0x30000000, &GsIDMATRIX, &pEw->Old_x, 0);
+            }
+            Req.pPos = &pEw->Pos_x;
+            Req.W = 0;
+            Req.H = 0;
+            Req.D = 0;
+            Req.R = pEw->UnkBA;
+            func_800472EC(&Req, D_80097FCC[16]);
+            func_80047BD0(&Req, D_80097FCC[16]);
+            break;
+        case 2:
+            Snd_se_stad(0x10110, (VECTOR *)&pEw->Pos_x, 0, 0);
+            func_8001B35C(pEw, 0x2000903, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Avg.vx, 0);
+            func_8001B35C(pEw, 0x2000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+            Pos.vx = pEw->Pos_x;
+            Pos.vy = pEw->Pos_y - 100;
+            Pos.vz = pEw->Pos_z;
+            pNew = func_8001B35C(pEw, 0x3000E00, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
+            if (pNew != (EFF_WORK *)-1) {
+                if (pEw->Flg2 & 0x30) {
+                    pNew->UnkB6 = 1;
+                } else {
+                    pNew->UnkB6 = 0;
+                }
+            }
+            Pos.vx = pEw->Pos_x;
+            Pos.vy = pEw->Pos_y + 300;
+            Pos.vz = pEw->Pos_z;
+            func_8001B35C(pEw, 0x3001000, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
+            break;
+        case 3:
+            Snd_se_stad(0x10111, (VECTOR *)&pEw->Pos_x, 0, 0);
+            func_8001B35C(pEw, 0x2203, (USHORT)pEw->UnkBA | 0x34000000, &GsIDMATRIX, &Avg.vx, 0);
+            func_8001B35C(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+            pNew = func_8001B35C(pEw, 0x2003, (USHORT)pEw->UnkBA | 0x10000000, &GsIDMATRIX, &pEw->Old_x, 0);
+            if (pNew != (EFF_WORK *)-1) {
+                if (pEw->Flg2 & 0x20) {
+                    pNew->UnkB6 = 1;
+                } else {
+                    pNew->UnkB6 = 0;
+                }
+            }
+            func_8001B35C(pEw, 0xB03, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &pEw->Old_x, 0);
+            break;
+        }
+        pEw->Be_flg = 0;
+    }
+}
 
 void func_8001E0F4(EFF_WORK *pEw)
 {

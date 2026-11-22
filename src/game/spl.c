@@ -6,6 +6,7 @@
 #include "sub.h"
 #include "player.h"
 #include "om.h"
+#include "oba.h"
 
 
 
@@ -309,7 +310,127 @@ void Spl(ENEMY_WORK *pEm)
     Rot_neck(pEm, pEm->Cdir_y);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/spl", Spl_Init);
+extern USHORT D_8009E374[][4];         /* collision size by Id: [0] Unk26, [1] W0/D0 */
+void Kage_work9_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
+
+/* sub player work tail (ENEMY_WORK.Unk1CC[] is player-only data) */
+typedef struct {
+    UCHAR pad[0x1D0];
+    SHORT Unk1D0;                      /* 0x1D0 */
+    UCHAR pad1D2[2];
+    SHORT Unk1D4;                      /* 0x1D4 */
+    UCHAR pad1D6;
+    UCHAR Unk1D7;                      /* 0x1D7 */
+    SHORT Unk1D8;                      /* 0x1D8 */
+    UCHAR pad1DA[4];
+    UCHAR Unk1DE;                      /* 0x1DE */
+} SPL_WORK;
+#define SPL(pEm) ((SPL_WORK *)(pEm))
+/* PARTS_W free work (RE2 PARTS_W.Free[]) */
+typedef struct {
+    UCHAR pad0[0x74];
+    SHORT Free[6];                     /* 0x74 */
+    UCHAR pad80[0xBC - 0x80];
+} PARTS_FREE;
+#define FREE_W(p) (((PARTS_FREE *)(p))->Free)
+#define PLAYER ((ENEMY_WORK *)((UCHAR *)&G + 0x248C))
+
+void Spl_Init(ENEMY_WORK *pEm)
+{
+    USHORT Neck_dir[26] = {
+        0x1000, 0x1000, 0x1052, 0x1000, 0x1000, 0x1141, 0x1052, 0x1117, 0x1000, 0x1000, 0x107B, 0x1000, 0x1000,
+        0x1000, 0x1052, 0x1000, 0x1052, 0x107B, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000, 0x1000,
+    };
+    COL_OBJ *pCol;
+    ULONG *pTmd;
+    PARTS_W *pP;                       /* clear loop, neck free work, then the weapon part */
+    PARTS_W *pHand;
+    LONG i;
+    USHORT *pSize;
+
+    *(ULONG *)&pEm->Routine_0 = 1;
+    pEm->Unk12A = Neck_dir[pEm->Id - 0x50];
+    pEm->pEnemy_ptr = pEm;
+    pEm->pUnk114 = pEm;
+    *(LONG *)&pEm->Move_no = 2;
+    Joint_move(pEm, (ULONG)pEm->pSub0_kan_t_ptr, (ULONG)pEm->pSub0_seq_t_ptr, 0x100);
+    Kage_work9_set((ULONG *)&pEm->pKage_work, 0, 0x22601C2, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    pCol = (COL_OBJ *)&pEm->Col_id;
+    pCol->pEm = pEm;
+    pSize = D_8009E374[pEm->Id];
+    pCol->W0 = pCol->D0 = pSize[1];
+    pCol->H = 3000;
+    pCol->Unk28 = 0;
+    pCol->Unk24 = 0;
+    pCol->Unk26 = pSize[0];
+    pCol->Flg = 0;
+    if (pEm == G.pUnk2660) {
+        pCol->Type = 1;
+    } else {
+        pCol->Type = 2;
+    }
+    func_80033580((COL_OBJ *)&pEm->Col_id, 0);
+    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pP = &pEm->pSin_parts_ptr[1];
+    pEm->Unk134 = 1500;
+    pEm->Unk136 = -1000;
+    pEm->Unk138 = 0x54;
+    pEm->Unk139 = 0xA0;
+    pEm->Unk13A = 450;
+    pEm->Unk140 = 0;
+    pEm->Unk120 = 0;
+    pEm->Neck_no = 1;
+    FREE_W(pP)[2] = 0x40;
+    FREE_W(pP)[3] = 0x40;
+    FREE_W(pP)[4] = 0x200;
+    FREE_W(pP)[5] = 0x138;
+    FREE_W(pP)[0] = 0;
+    FREE_W(pP)[1] = 0;
+    if (G.Status_flg & 0x80000000) {
+        pEm->Life = G.Unk7852 + 50;
+        if (pEm->Life > 200) {
+            pEm->Life = 200;
+        }
+        pEm->Status_flg = G.Unk7850;
+    } else {
+        pEm->Life = G.Unk7852 = 200;
+        pEm->Status_flg = G.Unk7850 = 0;
+    }
+    if (pEm->Type & 0x400) {
+        pEm->Type &= ~0x1000;
+        G.Status_flg |= 0x80000000;
+        pEm->Max_life = 200;
+        pEm->pUnk114 = PLAYER;
+        pEm->Unk120 = 0;
+        pEm->Routine_0 = 1;
+        pEm->Routine_1 = 0;
+    } else {
+        pEm->Type |= 0x5000;
+        pEm->Life = pEm->Max_life = -1;
+        pEm->Routine_0 = 4;
+        pEm->Routine_1 = 6;
+    }
+    SPL(pEm)->Unk1D7 = 0;
+    SPL(pEm)->Unk1DE = 0;
+    D_8009E70C[0] = 0;
+    SPL(pEm)->Unk1D0 = 0;
+    SPL(pEm)->Unk1D8 = 0;
+    SPL(pEm)->Unk1D4 = 0;
+    i = pEm->Parts_num;
+    while (i >= 16) {
+        i--;
+        pP = &pEm->pSin_parts_ptr[i];
+        pP->UnkA2 = 0;
+    }
+    if ((pEm->Unk4B & 1) && pEm->Id != 0x5B && pEm->Id != 0x5F && pEm->Id < 0x62) {
+        pP = &pEm->pSin_parts_ptr[15];
+        pHand = &pEm->pSin_parts_ptr[4];
+        pTmd = pHand->pTmd;
+        pHand->pTmd = pP->pTmd;
+        pP->pTmd = pTmd;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/spl", func_80059310);
 

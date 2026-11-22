@@ -88,6 +88,14 @@ typedef struct tagEM36_G_WORKS {
 } EM36_G_WORKS;
 
 #define PW_NECK(p) ((PARTS_NECK_FREE_WORK *)&(p)->Unk74)
+/* PARTS_W free work of the morphing body parts (func_8004A934 blends keys Key_no - 1 and Key_no) */
+typedef struct tagEM36_PARTS_FREE {
+    UCHAR Key_no;                      /* 0x74 */
+    UCHAR Unk01;                       /* 0x75 */
+    SHORT Unk02;                       /* 0x76 */
+    SHORT Unk04;                       /* 0x78 */
+} EM36_PARTS_FREE;
+#define EM36_PF(p) ((EM36_PARTS_FREE *)&(p)->Unk74)
 #define EM36_W(p) ((EM36_FREE *)(p)->Unk1CC)
 /* Flg read as a word together with the bytes after it */
 #define EM36_FLGW(p) (*(ULONG *)&EM36_W(p)->Flg)
