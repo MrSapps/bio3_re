@@ -1,6 +1,4 @@
-#include "common.h"
 #include "ovl/gearbox.h"
-#include "line_scr.h"
 #include "snd.h"
 
 /* main task: move gears until the lever is pulled, then check and turn them */
@@ -15,7 +13,7 @@ void func_801C2008(void)
         if (Gear_wk.Exit)
             break;
         func_80037C38();
-        pG->Unk208C = (ULONG)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
+        pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
     }
@@ -242,7 +240,7 @@ void func_801C2888(void)
     for (t = 0; t < 10; ) {
         t++;
         func_80037C38();
-        G.Unk208C = (ULONG)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+        G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
     }
@@ -279,7 +277,7 @@ void func_801C2888(void)
         }
         t++;
         func_80037C38();
-        G.Unk208C = (ULONG)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+        G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
     }

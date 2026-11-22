@@ -1,19 +1,4 @@
-#include "common.h"
-#include "main.h"
-#include "mojidisp.h"
-#include "monitor.h"
-#include "pad.h"
-#include "trans.h"
 #include "line_scr.h"
-#include "em_sub.h"
-#include "pl_wep.h"
-#include "sub.h"
-#include "joint.h"
-#include "sca.h"
-#include "cd.h"
-#include "sce0.h"
-#include "md_sub.h"
-#include "esp.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))

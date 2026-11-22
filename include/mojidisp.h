@@ -10,7 +10,7 @@ typedef struct tagMOJIDISP {
     SPRT Prim_sprt[2][640];            /* 0x1100 */
     SPRT_8 *pPrim8_cur;                /* 0x7500 */
     SPRT *pPrim14_cur;                 /* 0x7504 */
-    UCHAR pad7508[0x75C8 - 0x7508];
+    LINE_F3 Cursor_line[2][4];         /* 0x7508 message cursor triangle, index G.Cbuf_id (only [0] drawn) */
     UCHAR Mess_flg;                    /* 0x75C8 */
     UCHAR Unk75C9;                     /* 0x75C9 set with the print attr (Print_color) */
     UCHAR Mess_r_no0;                  /* 0x75CA RE2 Mess_r_no0 */

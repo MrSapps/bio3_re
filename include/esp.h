@@ -94,7 +94,7 @@ void Esp_init_C(void);
 LONG Esp_init_R(void);
 ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
 void Esp_data_set1(ULONG *pTim);
-ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5);
+ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
 ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd); /* RE2 Esp_call */
 void func_8001BA48();
 void Esp_task_main(void);
@@ -106,7 +106,7 @@ UCHAR *func_8001C254(void);
 ESP_WORK *func_8001C2DC(USHORT Id);
 void func_8001C384(void);
 void func_8001C38C(ESP_WORK *pEw);
-void func_8001C46C(UCHAR *p);
+void func_8001C46C(ESP_WORK *pEw);
 void func_8001C49C(ESP_WORK *pEw);
 void func_8001C5BC(ESP_WORK *pEw);
 void func_8001C98C(ESP_WORK *pEw);
@@ -120,7 +120,7 @@ void func_8001CD84(void);
 void func_8001CD8C(void);
 void func_8001CD94(void);
 void func_8001CD9C(void);
-void func_8001CDA4(UCHAR *p, ULONG n);
+void func_8001CDA4(ESP_WORK *pEw, ULONG n); /* random start frame of the sequence */
 void func_8001CE24(ESP_WORK *pEw, ULONG a1, ULONG a2); /* random byte table, indexed by Rnd() */
 void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2);
 void func_8001CFF4(ESP_WORK *pEw, ULONG n);

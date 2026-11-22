@@ -1,13 +1,9 @@
-#include "cd.h"
-#include "door.h"
+#include "esp.h"
 #include "em_sub.h"
-#include "main.h"
-#include "monitor.h"
-#include "sce0.h"
+#include "cd.h"
 #include "sub.h"
 #include "joint.h"
 #include "snd.h"
-#include "esp.h"
 #include "pl_wep.h"
 #include "sca.h"
 #include "sce_at.h"
@@ -18,7 +14,7 @@
 /* Add_speedXZ is called with a third (unused) argument in RE3 */
 #define ADD_SPEED_XZ3(pEm) ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)((pEm), 0, 0)
 /* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
-#define PW_FREE(p) ((SHORT *)((UCHAR *)(p) + 0x74))
+#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw)
 {
@@ -268,14 +264,14 @@ ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi)
     return 0;
 }
 
-void Set_base_pos(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
+void Set_base_pos(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     MATRIX m;
     SVECTOR sv;
     ENEMY_WORK *pPm;
 
     pPm = G.pEm;
-    get_null_pos(&sv, R_flg, Kan, Seq);
+    get_null_pos(&sv, R_flg, pKan, pSeq_t);
     m = GsIDMATRIX;
     RotMatrixY(pPm->Cdir_y, &m);
     ApplyMatrixSV(&m, &sv, &sv);
@@ -287,12 +283,12 @@ void Set_base_pos(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
     pEm->Base_pos_z = pPm->Base_pos_z;
 }
 
-void Null_pos_set(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
+void Null_pos_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     MATRIX m;
     SVECTOR sv;
 
-    get_null_pos(&sv, R_flg, Kan, Seq);
+    get_null_pos(&sv, R_flg, pKan, pSeq_t);
     m = GsIDMATRIX;
     RotMatrixY(pEm->Cdir_y, &m);
     ApplyMatrixSV(&m, &sv, &sv);
@@ -301,7 +297,7 @@ void Null_pos_set(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
     pEm->Pos_z = pEm->Base_pos_z + sv.vz;
 }
 
-void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
+void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
 {
     ENEMY_WORK *pEm;
     USHORT *pSeq;
@@ -311,17 +307,17 @@ void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
     UCHAR *Bone_adr;
 
     pEm = G.pEm;
-    pSeq = (USHORT *)(Seq + pEm->Move_no * 8);
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
     f_num = pSeq[0];
     f_base = pSeq[2];
     pSeq++;
     if (R_flg != 0) {
-        pSeq = (USHORT *)(Seq + *pSeq) + (f_num - pEm->Move_cnt - 1);
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
     } else {
-        pSeq = (USHORT *)(Seq + *pSeq) + pEm->Move_cnt;
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
     }
-    Bone_adr = (UCHAR *)Kan + ((KAN_HEAD *)Kan)->Bone_ofs;
-    Rec_sz = ((KAN_HEAD *)Kan)->Rec_sz >> 18;
+    Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+    Rec_sz = ((KAN_HEAD *)pKan)->Rec_sz >> 18;
     while (*pSeq & 0x100) {
         pSeq++;
     }
@@ -331,12 +327,12 @@ void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
     pSv->vz = ((SVECTOR *)Bone_adr)->vz;
 }
 
-void Null_pos_set2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
+void Null_pos_set2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     MATRIX m;
     SVECTOR sv;
 
-    get_null_pos2(&sv, R_flg, Kan, Seq);
+    get_null_pos2(&sv, R_flg, pKan, pSeq_t);
     m = GsIDMATRIX;
     RotMatrixY(pEm->Cdir_y, &m);
     ApplyMatrixSV(&m, &sv, &sv);
@@ -345,7 +341,7 @@ void Null_pos_set2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
     pEm->Pos_z = pEm->Base_pos_z + sv.vz;
 }
 
-void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
+void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
 {
     ENEMY_WORK *pEm;
     USHORT *pSeq;
@@ -358,14 +354,14 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
     UCHAR *Bone_adr;
 
     pEm = G.pEm;
-    pSeq = (USHORT *)(Seq + pEm->Move_no * 8);
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
     f_num = pSeq[0];
     f_base = pSeq[2];
     pSeq++;
     if (R_flg != 0) {
-        pSeq = (USHORT *)(Seq + *pSeq) + (f_num - pEm->Move_cnt - 1);
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
     } else {
-        pSeq = (USHORT *)(Seq + *pSeq) + pEm->Move_cnt;
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
     }
     w = *pSeq;
     if (w & 0x100) {
@@ -373,12 +369,12 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
         rr = r;
         if (R_flg != 0) {
             if (!(pSeq[1] & 0x100)) {
-                func_8002B2BC(Kan, Seq, pSeq + 1, R_flg);
+                func_8002B2BC(pKan, pSeq_t, pSeq + 1, R_flg);
             }
             rr = 0x100 - r;
         } else {
             if (!(pSeq[-1] & 0x100)) {
-                func_8002B2BC(Kan, Seq, pSeq - 1, 0);
+                func_8002B2BC(pKan, pSeq_t, pSeq - 1, 0);
             }
         }
         pP = pEm->pSin_parts_ptr;
@@ -386,7 +382,7 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq)
         pSv->vy = 0;
         pSv->vz = (USHORT)pP->UnkB0 + ((pP->UnkB2 * rr) >> 8);
     } else {
-        Bone_adr = (UCHAR *)Kan + ((KAN_HEAD *)Kan)->Bone_ofs + (((KAN_HEAD *)Kan)->Rec_sz >> 18) * (f_base + (w & 0xFF)) * 4;
+        Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs + (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (f_base + (w & 0xFF)) * 4;
         pSv->vx = ((SVECTOR *)Bone_adr)->vx;
         pSv->vy = 0;
         pSv->vz = ((SVECTOR *)Bone_adr)->vz;
@@ -487,7 +483,7 @@ void Kage_work9_init(void)
     } while (i != 0);
 }
 
-void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
+void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
 {
     KAGE_WORK *pKw;
     LONG Left_cnt;
@@ -502,9 +498,9 @@ void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
         pKw++;
     }
     if (Left_cnt == 0) {
-        *pK = 0;
+        *ppK = NULL;
     } else {
-        *pK = (ULONG)pKw;
+        *ppK = pKw;
         pKw->Be_flg = 5;
         pKw->pPos = pPos;
         if (Color != 0) {
@@ -524,7 +520,7 @@ void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
 #define KAGE9_UV2(w, A, B, C, D, E, F, G_, H) \
     p = &(w)->Prim[0]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); \
     p = &(w)->Prim[1]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); (w)++
-void Kage_work9_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
+void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
 {
     KAGE_WORK9 *pK9;
     KAGE_WORK *pKw;
@@ -555,10 +551,10 @@ void Kage_work9_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
     }
     if (i == 0) {
         pK9->Be_flg = 0;
-        *pK = 0;
+        *ppK = NULL;
         return;
     }
-    *pK = (ULONG)pK9;
+    *ppK = pK9;
     pK9->pKw_top = pKw;
     *(ULONG *)&pK9->Off_x = Off;
     *(ULONG *)&pK9->Half_x = Half;
@@ -629,7 +625,7 @@ void Kage_work_sort(void)
     KAGE_WORK *pKw;
     POLY_FT4 *pTag;
     ULONG *pOt;
-    ULONG Ot_base;
+    ULONG *Ot_base;
     LONG Unit;
     LONG i;
     LONG Hx;
@@ -691,9 +687,9 @@ void Kage_work_sort(void)
                 }
                 if (pKw->Be_flg & 0x40) {
                     Otz = 0x1FFF;
-                    Ot_base = (ULONG)G.pOt_sub[G.Cbuf_id][2];
+                    Ot_base = G.pOt_sub[G.Cbuf_id][2];
                 }
-                pOt = (ULONG *)((Otz >> 3) * 4 + Ot_base);
+                pOt = (ULONG *)((Otz >> 3) * 4 + (ULONG)Ot_base); /* integer add: operand order */
                 addPrim(pOt, pTag);
             }
         }
@@ -705,19 +701,19 @@ void Kage_work_sort(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work9_sort);
 
-void Kage_work_color_set(ULONG *pK, ULONG Color)
+void Kage_work_color_set(KAGE_WORK *pK, ULONG Color)
 {
-    *(ULONG *)&((KAGE_WORK *)pK)->Prim[0].r0 = (*(ULONG *)&((KAGE_WORK *)pK)->Prim[0].r0 & 0xFF000000) | Color;
-    *(ULONG *)&((KAGE_WORK *)pK)->Prim[1].r0 = (*(ULONG *)&((KAGE_WORK *)pK)->Prim[1].r0 & 0xFF000000) | Color;
+    *(ULONG *)&pK->Prim[0].r0 = (*(ULONG *)&pK->Prim[0].r0 & 0xFF000000) | Color;
+    *(ULONG *)&pK->Prim[1].r0 = (*(ULONG *)&pK->Prim[1].r0 & 0xFF000000) | Color;
 }
 
-void Kage_work9_color_set(ULONG *pK, ULONG Color)
+void Kage_work9_color_set(KAGE_WORK9 *pK, ULONG Color)
 {
     KAGE_WORK *pPrim;
     UCHAR cnt;
 
     cnt = 9;
-    pPrim = ((KAGE_WORK9 *)pK)->pKw_top;
+    pPrim = pK->pKw_top;
     do {
         cnt--;
         *(ULONG *)&pPrim->Prim[0].r0 = (*(ULONG *)&pPrim->Prim[0].r0 & 0xFF000000) | Color;
@@ -889,18 +885,18 @@ void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
     }
 }
 
-void func_8001AD78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg)
+void func_8001AD78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     USHORT *pSeq;
     ULONG f_num;
 
-    pSeq = (USHORT *)(Seq + pEm->Move_no * 8);
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
     f_num = pSeq[0];
     pSeq++;
     if (R_flg != 0) {
-        pSeq = (USHORT *)(Seq + *pSeq) + (f_num - pEm->Move_cnt - 1);
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
     } else {
-        pSeq = (USHORT *)(Seq + *pSeq) + pEm->Move_cnt;
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
     }
     if (*pSeq & 0x100) {
         if (R_flg != 0) {
@@ -953,7 +949,7 @@ ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc)
     pG->pEm_mem++;
     *pG->pEnemy[i] = *pSrc;
     pG->pEm_mem = (ENEMY_WORK *)func_800261AC(pG->pEnemy[i], PartsWork_set(pG->pEnemy[i], (ULONG)pG->pEm_mem),
-                                              (ULONG)pG->pEnemy[i]->pUnk10C);
+                                              pG->pEnemy[i]->pUnk10C);
     return pG->pEnemy[i];
 }
 
@@ -1017,10 +1013,10 @@ LONG Esp_init_R(void)
         pT->pData = NULL;
         pT->pData2 = NULL;
     } while (pT > (TBL12 *)D_800BA8A8 - 16);
-    pData = *(LONG **)((UCHAR *)G.pRoom + 0x4C);
+    pData = G.pRoom->pUnk4C;
     if (pData != NULL && *pData != -1) {
-        Esp_data_set0((UCHAR *)pData, *(ULONG **)((UCHAR *)G.pRoom + 0x50), 1);
-        Esp_data_set1(*(ULONG **)((UCHAR *)G.pRoom + 0x54));
+        Esp_data_set0((UCHAR *)pData, G.pRoom->pUnk50, 1);
+        Esp_data_set1(G.pRoom->pUnk54);
     }
 }
 
@@ -1074,17 +1070,17 @@ void Esp_data_set1(ULONG *pTim)
     DrawSync(0);
 }
 
-ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5)
+ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd)
 {
     SVECTOR sv;
     ESP_WORK *pEw;
 
     if (pPos != NULL) {
-        if (a5 != 0) {
+        if (pSpd != NULL) {
             sv.vx = pPos[0];
             sv.vy = pPos[1];
             sv.vz = pPos[2];
-            pEw = func_8001B484(a1, a2, pM, &sv, a5);
+            pEw = func_8001B484(a1, a2, pM, &sv, pSpd);
         } else {
             sv.vx = pPos[0];
             sv.vy = pPos[1];
@@ -1092,8 +1088,8 @@ ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG 
             pEw = func_8001B484(a1, a2, pM, &sv, 0);
         }
     } else {
-        if (a5 != 0) {
-            pEw = func_8001B484(a1, a2, pM, NULL, a5);
+        if (pSpd != NULL) {
+            pEw = func_8001B484(a1, a2, pM, NULL, pSpd);
         } else {
             pEw = func_8001B484(a1, a2, pM, NULL, 0);
         }
@@ -1292,10 +1288,10 @@ void func_8001C38C(ESP_WORK *pEw)
     }
 }
 
-void func_8001C46C(UCHAR *p)
+void func_8001C46C(ESP_WORK *pEw)
 {
-    func_8001CDA4(p, p[0x18]);
-    p[0] = 0;
+    func_8001CDA4(pEw, pEw->Unk18);
+    pEw->Routine_0 = 0;
 }
 
 void func_8001C49C(ESP_WORK *pEw)
@@ -1362,7 +1358,7 @@ void func_8001C5BC(ESP_WORK *pEw)
                 p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
                                   ((pEw->Unk2E + D_80098728[r] * 4 - d) << 16) |
                                       (USHORT)(pEw->Unk2C + ((D_80098728[func_800102E8()] - 0x80) >> pEw->Unk1B)),
-                                  pEw->pMat, pEw->Unk38, (ULONG)&Rot);
+                                  pEw->pMat, pEw->Unk38, &Rot);
             }
             if (pEw->Routine_1 == 5) {
                 Snd_se_stad((pEw->Unk22 + (func_800102E8() & 1)) | 0x10200, &pEw->Pos, 0, 0);
@@ -1530,16 +1526,16 @@ void func_8001CD94(void) {
 void func_8001CD9C(void) {
 }
 
-void func_8001CDA4(UCHAR *p, ULONG n)
+void func_8001CDA4(ESP_WORK *pEw, ULONG n)
 {
     SSEQUENCE *pSeq;
 
     n &= 0xFF;
     if (n != 0) {
-        p[0x6F] = p[0xF] + D_80098728[func_800102E8()] % n;
-        pSeq = *(SSEQUENCE **)(p + 0xC4);
-        pSeq += p[0x6F];
-        p[0x2B] = pSeq->Time;
+        pEw->Seq_no = pEw->Unk0F + D_80098728[func_800102E8()] % n;
+        pSeq = pEw->pSeq;
+        pSeq += pEw->Seq_no;
+        pEw->Timer = pSeq->Time;
     }
 }
 
@@ -1618,7 +1614,7 @@ void func_8001D210(ESP_WORK *pEw)
 
     switch (pEw->Routine_1) {
     case 0:
-        func_8001CDA4((UCHAR *)pEw, 3);
+        func_8001CDA4(pEw, 3);
         pEw->Spd_x += D_80098728[func_800102E8()] & 0xF;
         pEw->Spd_y += D_80098728[func_800102E8()] & 0xF;
         pEw->Routine_1++;
@@ -1740,8 +1736,7 @@ void func_8001D7C0(void) {
 void func_8001D7C8(void) {
 }
 
-LONG func_80044804_(MATRIX *pM, ULONG a1, ULONG a2) __asm__("func_80044804"); /* returns long here (canonical ENEMY_WORK*); arg 2 unsigned long (canonical PL_WEP_DATA*) */
-extern ULONG D_8009DBB4_ __asm__("D_8009DBB4"); /* type differs from the canonical extern */
+LONG func_80044804_(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type) __asm__("func_80044804"); /* result or-ed into a hit mask: long here (canonical ENEMY_WORK *) */
 
 void func_8001D7D0(ESP_WORK *pEw)
 {
@@ -1757,8 +1752,8 @@ void func_8001D7D0(ESP_WORK *pEw)
         pEw->Unk2C = 0;
     }
     Ret = pEw->Flg2 & 0x30;
-    Ret |= func_80044804_(&pEw->Workm2, D_8009DBB4_, pEw->Routine_1 + 6);
-    Ret |= func_80047860(&pEw->Workm2, D_8009DBB4_, pEw->Routine_1 + 6);
+    Ret |= func_80044804_(&pEw->Workm2, D_8009DBB4[0], pEw->Routine_1 + 6);
+    Ret |= func_80047860(&pEw->Workm2, D_8009DBB4[0], pEw->Routine_1 + 6);
     if (++pEw->UnkB4 >= 15) {
         Ret |= 1;
     }
@@ -1784,11 +1779,11 @@ void func_8001D7D0(ESP_WORK *pEw)
             Rot.vx = 0x400;
             Rot.vy = 0;
             Rot.vz = 0;
-            func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+            func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, &Rot);
             Rot.vx = 0x400;
             Rot.vy = 0;
             Rot.vz = 0x400;
-            func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+            func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, &Rot);
             Avg.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
             Avg.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
             Avg.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
@@ -1814,11 +1809,11 @@ void func_8001D7D0(ESP_WORK *pEw)
         Rot.vx = 0x400;
         Rot.vy = 0;
         Rot.vz = 0;
-        func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+        func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, &Rot);
         Rot.vx = 0x400;
         Rot.vy = 0;
         Rot.vz = 0x400;
-        func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, (ULONG)&Rot);
+        func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, &Rot);
     }
     Avg.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
     Avg.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
@@ -1918,11 +1913,11 @@ void func_8001E0F4(ESP_WORK *pEw)
             Rot.vx = 0;
             Rot.vy = 0;
             Rot.vz = 0x400;
-            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, (ULONG)&Rot);
+            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
             Rot.vx = 0;
             Rot.vy = 0x400;
             Rot.vz = 0x400;
-            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, (ULONG)&Rot);
+            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
         }
         pEw->Routine_2++;
     case 1:
@@ -1961,8 +1956,8 @@ void func_8001E0F4(ESP_WORK *pEw)
         Pos.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
         Pos.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
         Pos.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
-        Hit |= func_80044804_(&pEw->Workm2, D_8009DBB4_, 10);
-        Hit |= func_80047860(&pEw->Workm2, D_8009DBB4_, 10);
+        Hit |= func_80044804_(&pEw->Workm2, D_8009DBB4[0], 10);
+        Hit |= func_80047860(&pEw->Workm2, D_8009DBB4[0], 10);
         Spd.vx = (signed char)D_80098728[func_800102E8()] >> 1;
         Spd.vy = 500;
         Spd.vz = (signed char)D_80098728[func_800102E8()] >> 1;
@@ -1994,11 +1989,11 @@ void func_8001F208(ESP_WORK *pEw)
         Rot.vx = 0;
         Rot.vy = 0;
         Rot.vz = 0;
-        func_8001B35C(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, (ULONG)&Rot);
+        func_8001B35C(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, &Rot);
         Rot.vx = 0;
         Rot.vy = 0x400;
         Rot.vz = 0;
-        func_8001B35C(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, (ULONG)&Rot);
+        func_8001B35C(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, &Rot);
         pEw->Routine_1++;
         break;
     default:
@@ -2117,7 +2112,7 @@ void func_8001F824(ESP_WORK *pEw)
 
     switch (pEw->Routine_1) {
     case 0:
-        func_8001CDA4((UCHAR *)pEw, pEw->Unk18);
+        func_8001CDA4(pEw, pEw->Unk18);
         func_8001CE24(pEw, pEw->Unk1A, 0);
         pEw->Routine_1++;
         break;

@@ -1,22 +1,11 @@
 #include "sce0.h"
-#include "em_sub.h"
-#include "main.h"
-#include "sca.h"
-#include "line_scr.h"
-#include "sub.h"
 #include "player.h"
-#include "om.h"
-#include "oba.h"
-#include "esp.h"
-#include "cd.h"
-#include "status.h"
 #include "joint.h"
 #include "pad.h"
 #include "sld.h"
 #include "spl.h"
 #include "spl_auto.h"
 
-ULONG Joint_move2_(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg) __asm__("Joint_move2"); /* returns unsigned long here (canonical void); arg 2 unsigned long* (canonical unsigned long); arg 3 unsigned long* (canonical unsigned long) */
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
@@ -55,7 +44,7 @@ void Spl(ENEMY_WORK *pEm)
         Sv1.vz = 0;
         if ((pEm->Move_cnt & 3) == 2 && (USHORT)(pEm->Spd_x + 0x14) >= 0x29) {
             func_8001B484(0x20E, (((((LONG (*)(void))func_800102E8)() << 3) + 0x2000) << 16) | (USHORT)pEm->Cdir_y,
-                          (LONG)&GsIDMATRIX, &Sv0, (ULONG)&Sv1);
+                          &GsIDMATRIX, &Sv0, &Sv1);
         }
     }
     Rot_neck(pEm, pEm->Cdir_y);
@@ -74,7 +63,7 @@ typedef struct {
     UCHAR Unk1DE;                      /* 0x1DE */
 } SPL_WORK;
 #define SPL(pEm) ((SPL_WORK *)(pEm))
-#define PLAYER ((ENEMY_WORK *)((UCHAR *)&G + 0x248C))
+#define PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 void Spl_Init(ENEMY_WORK *pEm)
 {
@@ -94,8 +83,8 @@ void Spl_Init(ENEMY_WORK *pEm)
     pEm->pEnemy_ptr = pEm;
     pEm->pUnk114 = pEm;
     *(LONG *)&pEm->Move_no = 2;
-    Joint_move(pEm, (ULONG)pEm->pSub0_kan_t_ptr, (ULONG)pEm->pSub0_seq_t_ptr, 0x100);
-    Kage_work9_set((ULONG *)&pEm->pKage_work, 0, 0x22601C2, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    Joint_move(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x100);
+    Kage_work9_set(&pEm->Kage.pKw9, 0, 0x22601C2, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
     pCol = (COL_OBJ *)&pEm->Col_id;
     pCol->pEm = pEm;
     pSize = D_8009E374[pEm->Id];
@@ -225,9 +214,9 @@ void func_800594D4(ENEMY_WORK *pEm)
         Goto01(pEm, pTg->Cdir_y + 0x800, 0x800);
         Dir = pEm->Cdir_y;
         pEm->Cdir_y = Dir + 0x800;
-        Null_pos_set(pEm, (ULONG)pKan, (ULONG)pSeq, 0);
+        Null_pos_set(pEm, pKan, pSeq, 0);
         pEm->Cdir_y = Dir;
-        if (Joint_move2_(pEm, pKan, pSeq, 0x200)) {
+        if (Joint_move2(pEm, pKan, pSeq, 0x200)) {
             pEm->Routine_2 = 2;
             pEm->UnkE3 = 4;
             pEm->Move_no++;
@@ -237,9 +226,9 @@ void func_800594D4(ENEMY_WORK *pEm)
     case 2:
         pEm->Cdir_y += 0x800;
         Spd_get(pEm, pKan, pSeq, 0);
-        Null_pos_set(pEm, (ULONG)pKan, (ULONG)pSeq, 0);
+        Null_pos_set(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= 0x800;
-        if (Joint_move2_(pEm, pKan, pSeq, 0x200) && --pEm->UnkE3 == 0) {
+        if (Joint_move2(pEm, pKan, pSeq, 0x200) && --pEm->UnkE3 == 0) {
             pEm->Routine_2 = 3;
             pEm->Move_no++;
             Pad_vib_set0(2, 0);
@@ -263,7 +252,7 @@ void func_800594D4(ENEMY_WORK *pEm)
             pEm->Spd_x -= Base_x;
             pEm->Spd_z -= Base_z;
         }
-        if (Joint_move2_(pEm, pKan, pSeq, 0x200)) {
+        if (Joint_move2(pEm, pKan, pSeq, 0x200)) {
             pEm->Routine_2 = 4;
         }
         Add_speedXZ(pEm, 0x800);

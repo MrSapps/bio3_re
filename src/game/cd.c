@@ -1,10 +1,6 @@
 #include "cd.h"
 #include "door.h"
-#include "em_sub.h"
-#include "main.h"
 #include "monitor.h"
-#include "sce0.h"
-#include "sub.h"
 #include "joint.h"
 #include "snd.h"
 #include "pcstr.h"
@@ -224,7 +220,7 @@ void Xa_control_end(void)
 }
 
 /* RE2 Cd_read_s: streams a file through the ring buffer to SPU memory (RE3: libspu, no libsnd VAB) */
-ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, char *Mess)
+ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, const char *Mess)
 {
     tagCD *pCd = &CD;
     ULONG Mode_org = Mode;
@@ -265,7 +261,7 @@ retry:
     while (DsCommand(DslSetmode, &Cd_read_s_cdmode, NULL, -1) == 0);
     while (DsCommand(DslSeekL, &CD.Fpos.minute, NULL, -1) == 0);
 
-    DsReadyCallback((DslRCB)func_80013C1C);
+    DsReadyCallback(func_80013C1C);
 
     while (DsCommand(DslReadN, &CD.Fpos.minute, NULL, -1) == 0);
 
@@ -320,7 +316,7 @@ retry:
 
 /* RE2 Cd_read. Mode 0/1: floc[File_no], 2/3: CD.Fsize etc. preset (0/2 wait with VSync, 1/3 with Task_sleep);
  * 4/5: room sound pack (Type 3/4) streamed to the SPU through the ring */
-ULONG Cd_read(ULONG File_no, ULONG *Address, ULONG Mode, char *Mess)
+ULONG Cd_read(ULONG File_no, ULONG *Address, ULONG Mode, const char *Mess)
 {
     tagCD *pCd = &CD;
     ULONG Mode_org = Mode;
@@ -406,14 +402,14 @@ retry2:
 
     switch (pCd->Type) {
     case 3:
-        DsReadyCallback((DslRCB)func_80013EF8);
+        DsReadyCallback(func_80013EF8);
         break;
     case 4:
         func_800150E4();
-        DsReadyCallback((DslRCB)func_80014300);
+        DsReadyCallback(func_80014300);
         break;
     default:
-        DsReadyCallback((DslRCB)func_80013C1C);
+        DsReadyCallback(func_80013C1C);
         break;
     }
 
@@ -1306,10 +1302,10 @@ copy:
             pEm->Tpage = pSrc->Tpage;
             pEm->Clut = pSrc->Clut;
             pEm->pUnk1B4 = Sce.pUnk1460->pUnk1B4;
-            pEm->Unk180[0] = Sce.pUnk1460->Unk180[0];
-            pEm->Unk180[1] = Sce.pUnk1460->Unk180[1];
-            pEm->Unk180[2] = Sce.pUnk1460->Unk180[2];
-            pEm->Unk180[3] = Sce.pUnk1460->Unk180[3];
+            pEm->pUnk180_seq_t_ptr = Sce.pUnk1460->pUnk180_seq_t_ptr;
+            pEm->pUnk184_kan_t_ptr = Sce.pUnk1460->pUnk184_kan_t_ptr;
+            pEm->pUnk188_seq_t_ptr = Sce.pUnk1460->pUnk188_seq_t_ptr;
+            pEm->pUnk18C_kan_t_ptr = Sce.pUnk1460->pUnk18C_kan_t_ptr;
             Work = PartsWork_set(pEm, Work);
             Work = func_800261AC(pEm, Work, pEm->pUnk10C);
             Sa_dat_set(pEm, pEm->pUnk118);

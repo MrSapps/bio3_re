@@ -1,15 +1,6 @@
-#include "sce0.h"
-#include "em_sub.h"
-#include "main.h"
-#include "sca.h"
-#include "line_scr.h"
 #include "sub.h"
 #include "player.h"
-#include "om.h"
-#include "esp.h"
-#include "cd.h"
 #include "status.h"
-#include "game.h"
 #include "joint.h"
 #include "pl_wep.h"
 #include "sce2.h"
@@ -252,7 +243,7 @@ ULONG Sce_espr3d_on(SCE_TASK *pSce)
     Svec2.vy = ((SHORT *)pData)[8];
     Svec2.vz = ((SHORT *)pData)[9];
     func_8001B484((((D0 >> 8) & 0xF) << 24) | ((D0 & 0xFF) << 8) | pData[1],
-                  (Dir << 16) | ((USHORT *)pData)[10], Mat, &Svec, (ULONG)&Svec2);
+                  (Dir << 16) | ((USHORT *)pData)[10], Mat, &Svec, &Svec2);
     pSce->Data = pData + 0x16;
     return 1;
 }
@@ -279,7 +270,7 @@ ULONG Sce_espr3d_on2(SCE_TASK *pSce)
     Svec2.vy = ((SHORT *)pData)[9];
     Svec2.vz = ((SHORT *)pData)[10];
     func_8001B484((((D0 >> 8) & 0xF) << 24) | (pData[2] << 16) | ((D0 & 0xFF) << 8) | pData[3],
-                  (Dir << 16) | ((USHORT *)pData)[11], Mat, &Svec, (ULONG)&Svec2);
+                  (Dir << 16) | ((USHORT *)pData)[11], Mat, &Svec, &Svec2);
     pSce->Data = pData + 0x18;
     return 1;
 }
@@ -582,7 +573,7 @@ ULONG Plc_ret(SCE_TASK *pSce)
     pW->Damage_cnt = 0;
     pW->Type &= 0xAEFF;
     pSce->Data++;
-    func_80034124((UCHAR *)pW + 0x80);
+    func_80034124((COL_OBJ *)&pW->Col_id);
     return 1;
 }
 
@@ -650,14 +641,14 @@ ULONG Splc_ret(SCE_TASK *pSce)
 
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 1;
-    pW->pUnk114 = (ENEMY_WORK *)((UCHAR *)&G + 0x248C);
+    pW->pUnk114 = (ENEMY_WORK *)&G.Pl_be_flg;
     pW->Unk120 = 0;
     pW->Type = (pW->Type & 0xAEFF) | 0x400;
     G.Status_flg |= 0x80000000;
     pW->Life = G.Unk7852;
     pW->Max_life = 200;
     pSce->Data++;
-    func_80034124((UCHAR *)pW + 0x80);
+    func_80034124((COL_OBJ *)&pW->Col_id);
     return 1;
 }
 
@@ -851,13 +842,13 @@ ULONG Kage_set(SCE_TASK *pSce)
     pData = pSce->Data;
     switch (pData[1]) {
     case 1:
-        pK = G.pEnemy[0]->pKage_work;
+        pK = G.pEnemy[0]->Kage.pKw9;
         break;
     case 2:
-        pK = G.pEnemy[1]->pKage_work;
+        pK = G.pEnemy[1]->Kage.pKw9;
         break;
     case 3:
-        pK = G.pEnemy[(s8)pData[2] + 2]->pKage_work;
+        pK = G.pEnemy[(s8)pData[2] + 2]->Kage.pKw9;
         break;
     }
     r = pSce->Data[3];
@@ -900,14 +891,14 @@ ULONG Super_set(SCE_TASK *pSce)
         if (Sup_no & 0x80) {
             pEm->pSuper = &pG->Pl_pSin_parts_ptr[Sup_no & 0x7F].Workm;
         } else {
-            pEm->pSuper = (MATRIX *)((UCHAR *)pG + 0x24AC);
+            pEm->pSuper = (MATRIX *)pG->Pl_workm_m;
         }
         break;
     case 0x80:
         if (Sup_no & 0x80) {
             pEm->pSuper = &pG->pEnemy[Sup_val - 0x80]->pSin_parts_ptr[Sup_no & 0x7F].Workm;
         } else {
-            pEm->pSuper = (MATRIX *)((UCHAR *)pG->pEnemy[Sup_val - 0x80] + 0x20);
+            pEm->pSuper = (MATRIX *)pG->pEnemy[Sup_val - 0x80]->Workm_m;
         }
         break;
     case 0xC0:
@@ -942,7 +933,7 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     ULONG Flg;
 
     Wep = pSce->Data[1];
-    pPl = (ENEMY_WORK *)((UCHAR *)&G + 0x248C);
+    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
     Flg = Wep & 0x80;
     if (Wep == 0xFF) {
         G.pUnk7C7C->Unk128 = 0xFF;
@@ -981,7 +972,7 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     ENEMY_WORK *pPl;
     ULONG Wep;
 
-    pPl = (ENEMY_WORK *)((UCHAR *)&G + 0x248C);
+    pPl = (ENEMY_WORK *)&G.Pl_be_flg;
     Wep = D_800E01E8;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
@@ -1170,7 +1161,7 @@ ULONG Parts_set(SCE_TASK *pSce)
     No = (s8)pData[2];
     Val = ((USHORT *)pData)[2];
     if ((ULONG)Kind >= 10) {
-        pParts = (*(PARTS_W **)((UCHAR *)pSce->pWork + 0xC4)) + No;
+        pParts = ((OBJ_MODEL_WORK *)pSce->pWork)->pParts + No;
     } else {
         pParts = pSce->pWork->pSin_parts_ptr + No;
     }
@@ -1231,10 +1222,10 @@ ULONG func_800589FC(SCE_TASK *pSce)
     pW->UnkE2 = 0;
     pW->UnkE3 = 0;
     pW->Unk122 = -(nFloor * 1800);
-    if (pW->pKage_work != NULL) {
-        pW->pKage_work->Be_flg = 0;
+    if (pW->Kage.pKw != NULL) {
+        pW->Kage.pKw->Be_flg = 0;
     }
-    pW->pKage_work = NULL;
+    pW->Kage.pKw = NULL;
     pW->Add_dir = 0;
     pW->Unk14A = 0;
     pW->Unk14C = 0;
@@ -1242,7 +1233,7 @@ ULONG func_800589FC(SCE_TASK *pSce)
     pW->Water = 0;
     pW->Unk1C2 = 0;
     pW->Unk1C1 = 0;
-    pW->pad1C0 = 0;
+    pW->Unk1C0 = 0;
     pW->Unk1BC[1] = 0;
     pW->Unk1BC[0] = 0;
     pW->Unk1BA = 0;

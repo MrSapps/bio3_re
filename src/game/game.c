@@ -1,19 +1,7 @@
-#include "common.h"
-#include "main.h"
-#include "mojidisp.h"
 #include "monitor.h"
 #include "pad.h"
 #include "trans.h"
-#include "line_scr.h"
-#include "em_sub.h"
-#include "pl_wep.h"
 #include "sub.h"
-#include "joint.h"
-#include "sca.h"
-#include "cd.h"
-#include "sce0.h"
-#include "md_sub.h"
-#include "esp.h"
 #include "game.h"
 #include "door.h"
 #include "player.h"
@@ -24,7 +12,7 @@
 #include "status.h"
 
 /* player work (RE2 G.Player; tagGLOBAL only has individual Pl_* fields) */
-#define PLAYER ((ENEMY_WORK *)((UCHAR *)&G + 0x248C))
+#define PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -176,7 +164,7 @@ void func_800245A0(void)
     }
 set:
     pPl->Be_flg = 1;
-    ((ENEMY_WORK *)pG->pad2708)->Col_id = 0;
+    ((ENEMY_WORK *)pG->Sub_work)->Col_id = 0;
     Esp_init_C();
     Trans_work_init();
     func_8006D720();
@@ -292,9 +280,9 @@ void func_80024B34(void)
     pG = &G;
     pMain = &Main;
     pGame = &Game;
-    pPl = (ENEMY_WORK *)((UCHAR *)pG + 0x248C);
+    pPl = (ENEMY_WORK *)&pG->Pl_be_flg;
     pSave = pGame->pSave;
-    func_800100A4((UCHAR *)pG + 0x77F0, pSave, 0x708);
+    func_800100A4(&pG->Game_time, pSave, 0x708);
     pPl->Pos_x = pPl->Unk40[0] = pSave->Pos_x;
     pPl->Pos_y = pPl->Unk40[1] = pSave->Pos_y;
     pPl->Pos_z = pPl->Unk40[2] = pPl->Unk122 = pSave->Pos_z;

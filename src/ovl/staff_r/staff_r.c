@@ -1,6 +1,4 @@
-#include "common.h"
 #include "ovl/staff_r.h"
-#include "line_scr.h"
 #include "mojidisp.h"
 #include "sld.h"
 #include "sub.h"
@@ -194,7 +192,7 @@ void func_801C2604(void)
         break;
     }
     if (pW->Mess_no == 0)
-        Mess_set(Staff_mess[0].X | (Staff_mess[0].Y << 16), 0x3200, &Staff_mess_data[Staff_mess_ofs[0]], 0);
+        Mess_set(Staff_mess[0].X | (Staff_mess[0].Y << 16), 0x3200, (ULONG)&Staff_mess_data[Staff_mess_ofs[0]], 0);
     AddPrim(G.pOt0 + pW->Ot0, &pW->Page[0].L[G.Cbuf_id]);
     AddPrim(G.pOt0 + pW->Ot0, &pW->Page[0].Tl[G.Cbuf_id]);
     AddPrim(G.pOt0 + pW->Ot0, &pW->Page[0].R[G.Cbuf_id]);

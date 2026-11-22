@@ -1,12 +1,5 @@
 #include "sub.h"
 #include "pcstr.h"
-#include "snd.h"
-#include "em_sub.h"
-#include "cd.h"
-#include "status.h"
-#include "spl_sce.h"
-
-#define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
@@ -118,18 +111,18 @@ void Pcstr_read_frame(ULONG *pBuf)
     }
 }
 
-void func_8007A2D4(UCHAR *pW, UCHAR *pD)
+void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pD)
 {
-    ULONG *pA = (ULONG *)(pD + 8);
+    ULONG *pA = pD + 2;
     LONG i = 0;
     ULONG f;
     ULONG n;
     PARTS_W *pP;
 
-    pP = FLD(pW, 0x108, PARTS_W *);
-    FLD(pW, 0x11C, UCHAR *) = pD + *(USHORT *)(pD + 4);
-    f = *(ULONG *)pD;
-    n = *(USHORT *)(pD + 6);
+    pP = pEm->pSin_parts_ptr;
+    pEm->pUnk11C = (ULONG *)((UCHAR *)pD + ((USHORT *)pD)[2]);
+    f = *pD;
+    n = ((USHORT *)pD)[3];
 loop:
     do {
         if (f & 1) {

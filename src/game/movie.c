@@ -1,4 +1,3 @@
-#include "common.h"
 #include "movie.h"
 #include "pad.h"
 #include "cd.h"

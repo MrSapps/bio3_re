@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/em3e.h"
 #include "md_sub.h"
 #include "joint.h"

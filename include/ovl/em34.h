@@ -63,12 +63,6 @@ typedef struct tagPARTS_FREE_VIEW {
 /* the player's ENEMY_WORK inside G (RE2 G.Player); same address as Pl_work, but G-relative */
 #define G_PL ((ENEMY_WORK *)&G.Pl_be_flg)
 
-/* attack point handed to func_80047F70 (pl_wep.c): hits other enemies */
-typedef struct tagEM34_AT_POINT {
-    LONG *pPos;                        /* 0x00 part position (VECTOR) */
-    SVECTOR Ofs;                       /* 0x04 */
-    USHORT Dir;                        /* 0x0C */
-} EM34_AT_POINT;
 
 /* morph (sabun) data at PARTS_W.pUnk98 (sabun.c), same as em38 */
 typedef struct tagEM34_SABUN {
@@ -102,7 +96,7 @@ extern void (*Em34_mv_br_type01h[20])() __asm__("D_8010C0B4");
 extern void (*Em34_mv_br_type02[20])() __asm__("D_8010C104");
 extern void (*Em34_mv_br_type03[20])() __asm__("D_8010C154");
 extern SHORT Em34_at_box[4] __asm__("D_8010C1A4");
-extern SHORT Em34_at_data[10] __asm__("D_8010C1AC");
+extern HIT_ATTR Em34_at_data __asm__("D_8010C1AC");
 extern SHORT Em34_at_box2[4] __asm__("D_8010C1C0");
 extern SHORT Em34_at_box3[4] __asm__("D_8010C1C8");
 extern UCHAR Em34_morph_tbl[8] __asm__("D_8010C1D0");

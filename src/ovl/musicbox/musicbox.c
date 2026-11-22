@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/musicbox.h"
 #include "psp.h"
 #include "sce1.h"
@@ -37,7 +36,7 @@ void func_801C2030(void)
     while (pMw->Run) {
         func_801C2228();
         func_80037C38();
-        pG->Unk208C = (ULONG)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
+        pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
         if ((LONG)G.System_flg >= 0)
             Psp_trans();
@@ -89,7 +88,7 @@ void func_801C2228(void)
         G.Status_flg |= 0x400000;
         break;
     case 1:
-        Mess_set(0xB90022, 0x3400, &Mbox_mess[Mbox_mess_ofs[pMw->Mess]], 0);
+        Mess_set(0xB90022, 0x3400, (ULONG)&Mbox_mess[Mbox_mess_ofs[pMw->Mess]], 0);
         pMw->Routine = 2;
         break;
     case 2:

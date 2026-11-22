@@ -99,7 +99,7 @@ void func_8007906C(void);
 void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ);
 void Copy_rot_matrix(MATRIX *m0, MATRIX *m1);
 void Copy_matrix(MATRIX *m0, MATRIX *m1);
-LONG func_80079690(ENEMY_WORK *pEm, UCHAR *pKan, UCHAR *pSeq, ULONG Flg);
+LONG func_80079690(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
 void func_80079868(ENEMY_WORK *pEm, LONG rate);
 void func_80079C70(UCHAR *p);
 void func_80079CC0(ENEMY_WORK *pEm, LONG h);

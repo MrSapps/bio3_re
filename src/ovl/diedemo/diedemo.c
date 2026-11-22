@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/diedemo.h"
 #include "sld.h"
 #include "status.h"

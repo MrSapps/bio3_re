@@ -1,15 +1,6 @@
-#include "common.h"
-#include "monitor.h"
-#include "mojidisp.h"
-#include "pad.h"
-#include "em_sub.h"
-#include "om.h"
-#include "pl_wep.h"
-#include "movie.h"
-#include "player.h"
-#include "cd.h"
-#include "sca.h"
 #include "oba.h"
+#include "player.h"
+#include "sca.h"
 #include "sabun.h"
 #include "sub.h"
 
@@ -296,7 +287,7 @@ void func_80033B88(COL_OBJ *pTop)
         D_800DEB58.Unk8 = 0;
         p->Unk39 &= ~8;
         if (p->Hit_flg & 0x80) {
-            func_8004B7E8(pEm, p, func_8004D720(pV, W, Tbl, 9));
+            func_8004B7E8(pEm, p, func_8004D720(&pV->vx, W, Tbl, 9));
         }
         if (D_800DEB58.Unk8 == 0) {
             p->Unk39 |= 8;
@@ -387,7 +378,7 @@ void func_80034124(COL_OBJ *pObj)
     V.vy = pObj->Old_y = pObj->Pos_y = pEm->Pos_y + V.vy;
     V.vz = pObj->Old_z = pObj->Pos_z = pEm->Pos_z + V.vz;
     if (pObj->Type < 3) {
-        pEm->Unk122 = func_8004D720(&V, pObj->W0, D_8009CBC8[pObj->Type], 9);
+        pEm->Unk122 = func_8004D720(&V.vx, pObj->W0, D_8009CBC8[pObj->Type], 9);
     }
 }
 

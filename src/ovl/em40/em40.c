@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/em40.h"
 #include "joint.h"
 
@@ -9,13 +8,13 @@ void func_80100004(ENEMY_WORK *pEm)
 }
 
 /* Em40_init */
-void func_80100048(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
     EM_MOVE(pEm) = 0x70000;
     EM_RTN(pEm) = 1;
-    Joint_move(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     pEm->Neck_no = 3;
     pEm->Unk120 = 0;
     pP = &pEm->pSin_parts_ptr[3];

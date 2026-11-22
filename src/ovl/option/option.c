@@ -1,6 +1,4 @@
-#include "common.h"
 #include "ovl/option.h"
-#include "line_scr.h"
 #include "sld.h"
 #include "sub.h"
 

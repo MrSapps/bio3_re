@@ -1,16 +1,12 @@
-#include "common.h"
 #include "ovl/em20.h"
 #include "door.h"
 #include "joint.h"
 #include "root_ck.h"
 #include "snd.h"
-#include "sld.h"
 
 LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
-LONG Joint_move_(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg) __asm__("Joint_move"); /* returns long here (canonical void) */
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
-LONG Joint_move2_(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg) __asm__("Joint_move2"); /* returns long here (canonical void) */
 void Add_speedXZ3(ENEMY_WORK *pEm, LONG muki, LONG a2) __asm__("Add_speedXZ"); /* 3 args here (canonical 2) */
 
 /* RE2 EM_MAIN */
@@ -32,7 +28,7 @@ void EM_MAIN(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em20_Init */
-void Em20_Init(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     EM20_FREE *pFp;
@@ -50,7 +46,7 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Max_life = pEm->Life = Em20_life[(Rnd() >> (Rnd() & 3)) & 0xF];
     pEm->Max_life += 10;
     pEm->Life += 10;
-    Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0x25804B0, 0, (VECTOR *)&pEm->Pos_x);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x25804B0, 0, (VECTOR *)&pEm->Pos_x);
     pCol = (COL_OBJ *)&pEm->Col_id;
     pCol->pEm = pEm;
     pCol->W0 = pCol->D0 = 600;
@@ -130,7 +126,7 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     default:
         pEm->Unk132 &= 0x3FFF;
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     if ((pEm->Type & 0x80) && (pEm->Type & 0x7F) != 10)
         Em20_Esp_set(pEm);
     G.pPldie_Em[16] = PLDIE_EM;
@@ -155,14 +151,14 @@ void Em20_Esp_set(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em20_Move */
-void Em20_Move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    em20_move_tbl[pEm->Routine_1](pEm, Kan, Seq);
+    em20_move_tbl[pEm->Routine_1](pEm, pKan, pSeq);
     Em_seq_sound(pEm);
 }
 
 /* RE2 Em20_rndwalk */
-LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
     LONG ck = 0;
@@ -211,7 +207,7 @@ LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         if ((EM20_SCA_INFO(pEm) & 0x600000) == 0x200000)
             pEm->Routine_2 = 1;
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     Dog_rot_neck(pEm);
     if (!pFp->Blood && !(Rnd() & 0x3F))
         pFp->Blood = em20_time_tbl00[Rnd() & 7];
@@ -220,11 +216,11 @@ LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_walk */
-void Em20_Move_walk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG ck;
 
-    ck = Em20_rndwalk(pEm, Kan, Seq);
+    ck = Em20_rndwalk(pEm, pKan, pSeq);
     if (__builtin_abs(G.Pl_nFloor - pEm->nFloor) < 2 || (pEm->Status_flg & 0x2000)) {
         if ((LONG)pEm->Unk154 < 4000 || ck == 1 || (G.Unk75EA & 0x20)) {
             pEm->Routine_1 = 1;
@@ -238,7 +234,7 @@ void Em20_Move_walk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_yori */
-void Em20_Move_yori(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_yori(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
     VECTOR targ;
@@ -283,7 +279,7 @@ void Em20_Move_yori(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         EM_RTN23(pEm) = 0;
         pEm->UnkE2 = 0;
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     Dog_rot_neck(pEm);
     if (!EM20_W(pEm)->Blood && !(Rnd() & 0x3F))
         EM20_W(pEm)->Blood = em20_time_tbl00[Rnd() & 7];
@@ -293,17 +289,17 @@ void Em20_Move_yori(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_run */
-void Em20_Move_run(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    move_run_tbl[pEm->Routine_2](pEm, Kan, Seq);
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    move_run_tbl[pEm->Routine_2](pEm, pKan, pSeq);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     Dog_rot_neck(pEm);
     Ck_Floor(pEm);
     Ck_Died(pEm);
 }
 
 /* RE2 Em20_Mv_run00 */
-void Em20_Mv_run00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_run00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -329,7 +325,7 @@ void Em20_Mv_run00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_run10 */
-void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
     ENEMY_WORK *pTg;
@@ -385,7 +381,7 @@ void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_run20 */
-void Em20_Mv_run20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_run20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     USHORT dir;
 
@@ -410,7 +406,7 @@ void Em20_Mv_run20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_run30 (RE3 always chases the player) */
-void Em20_Mv_run30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_run30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
     ENEMY_WORK *pTg;
@@ -453,15 +449,15 @@ void Em20_Mv_run30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_atck */
-void Em20_Move_atck(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_atck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    move_atck_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    move_atck_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Dog_rot_neck(pEm);
     Set_blood(pEm, 4, 13);
 }
 
 /* RE2 Em20_Mv_atck00 (RE3 adds hit boxes in front of the dog while it leaps) */
-void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     HIT_AREA Hit0;
     HIT_AREA Hit1;
@@ -509,7 +505,7 @@ void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Cdir_y += 0x20;
     }
     Add_speedXZ(pEm, 0);
-    Joint_move_(pEm, Kan, Seq, 0x200);
+    Joint_move(pEm, pKan, pSeq, 0x200);
     if (!--pEm->Timer0) {
         EM_RTN23(pEm) = 1;
         pEm->Spd_x = 0x118;
@@ -536,13 +532,13 @@ void Jump_set(ENEMY_WORK *pEm, LONG spd_x, LONG spd_y)
 }
 
 /* RE2 Em20_Mv_atck10 */
-void Em20_Mv_atck10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_atck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
     LONG ck;
 
     pFp = EM20_W(pEm);
-    ck = Em20_Mv_jump10(pEm, Kan, Seq);
+    ck = Em20_Mv_jump10(pEm, pKan, pSeq);
     if (ck > 0) {
         Pad_vib_set0(5, 0);
         Pad_vib_set1(5, 200, 0);
@@ -554,14 +550,14 @@ void Em20_Mv_atck10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         }
         EM_RTN23(pEm) = 2;
         EM_MOVE(pEm) = 0xF0015;
-        Joint_move_(pEm, Kan, Seq, 0x100);
+        Joint_move(pEm, pKan, pSeq, 0x100);
         pFp->Bang_ok = 0;
         pFp->Stress += 20;
     }
 }
 
 /* RE2 Em20_Mv_jump10 */
-LONG Em20_Mv_jump10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+LONG Em20_Mv_jump10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG d0;
 
@@ -571,14 +567,14 @@ LONG Em20_Mv_jump10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     if (pEm->Spd_y >= 0 && !d0)
         d0 = -1;
     else if (pEm->Move_cnt)
-        Joint_move_(pEm, Kan, Seq, 0x200);
+        Joint_move(pEm, pKan, pSeq, 0x200);
     return d0;
 }
 
 /* RE2 Em20_Mv_atck20 */
-void Em20_Mv_atck20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_atck20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (Em20_Mv_jump20(pEm, Kan, Seq)) {
+    if (Em20_Mv_jump20(pEm, pKan, pSeq)) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
         EM20_W(pEm)->Fix_cnt = 0;
@@ -587,7 +583,7 @@ void Em20_Mv_atck20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_jump20 */
-LONG Em20_Mv_jump20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+LONG Em20_Mv_jump20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
         Add_speedXYZ(pEm, 0, 0);
@@ -599,18 +595,18 @@ LONG Em20_Mv_jump20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Snd_se_enem(9, pEm);
         }
         if (pEm->Move_cnt != 8)
-            Joint_move_(pEm, Kan, Seq, 0x100);
+            Joint_move(pEm, pKan, pSeq, 0x100);
     } else {
         Add_speedXZ(pEm, 0);
         Rate_speed_down(pEm, 0x40, 240);
-        if (Joint_move_(pEm, Kan, Seq, 0x100))
+        if (Joint_move(pEm, pKan, pSeq, 0x100))
             return 1;
     }
     return 0;
 }
 
 /* RE2 Em20_Mv_atck30 */
-void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -633,13 +629,13 @@ void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Snd_se_enem(9, pEm);
         }
         if (pEm->Move_cnt <= 16) {
-            Joint_move_(pEm, Kan, Seq, 0x100);
+            Joint_move(pEm, pKan, pSeq, 0x100);
             break;
         }
         pEm->Spd_x = 0;
         break;
     case 2:
-        if (Joint_move_(pEm, Kan, Seq, 0x100)) {
+        if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             pEm->Routine_1 = 2;
             EM_RTN23(pEm) = 0;
             pFp->Fix_cnt = em20_time_tbl00[Rnd() & 7];
@@ -652,13 +648,13 @@ void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_sleep */
-void Em20_Move_sleep(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_sleep(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    move_sleep_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    move_sleep_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Mv_sleep00 */
-void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
     ULONG range;
@@ -678,30 +674,30 @@ void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Routine_2 = 1;
         }
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
 }
 
 /* RE2 Em20_Mv_sleep10 */
-void Em20_Mv_sleep10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_sleep10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!--pEm->Timer0) {
         pEm->Routine_2 = 2;
         EM_MOVE(pEm) = 0xF0008;
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
 }
 
 /* RE2 Em20_Mv_sleep20 */
-void Em20_Mv_sleep20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_sleep20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (Joint_move_(pEm, Kan, Seq, 0x100)) {
+    if (Joint_move(pEm, pKan, pSeq, 0x100)) {
         pEm->Type &= 0xDFFF;
         EM_RTN23(pEm) = 3;
     }
 }
 
 /* RE2 Em20_Mv_sleep30 */
-void Em20_Mv_sleep30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_sleep30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
         pEm->Routine_3 = 1;
@@ -713,12 +709,12 @@ void Em20_Mv_sleep30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Routine_1 = 1;
         EM_RTN23(pEm) = 0;
     }
-    Joint_move_(pEm, Kan, Seq, 0x80);
+    Joint_move(pEm, pKan, pSeq, 0x80);
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_Move_ikaku */
-void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
@@ -726,7 +722,7 @@ void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         EM20_W(pEm)->Blood = 0x20;
         pEm->Unk120 &= 0xFD;
     }
-    if (Joint_move_(pEm, Kan, Seq, 0x400)) {
+    if (Joint_move(pEm, pKan, pSeq, 0x400)) {
         if (pEm->Move_no != 4) {
             EM_MOVE(pEm) = pEm->Move_no + 0x30001;
             if (pEm->Move_no == 4)
@@ -739,7 +735,7 @@ void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_back */
-void Em20_Move_back(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
 
@@ -756,22 +752,22 @@ void Em20_Move_back(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         Add_speedXZ(pEm, 0x800);
         Goto00(pEm, pTg->Pos_x, pTg->Pos_z, 0x40);
     }
-    if (Joint_move_(pEm, Kan, Seq, 0x400))
+    if (Joint_move(pEm, pKan, pSeq, 0x400))
         EM_RTN(pEm) = 0x201;
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_Move_critical */
-void Em20_Move_critical(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_critical(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
-        Em20_Mv_critical00(pEm, Kan, Seq);
+        Em20_Mv_critical00(pEm, pKan, pSeq);
     else
-        Em20_Mv_critical10(pEm, Kan, Seq);
+        Em20_Mv_critical10(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Mv_critical00: the bite that kills the player */
-void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
     EM20_FREE *pFp;
@@ -784,10 +780,10 @@ void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Spd_x = 0;
         pEm->UnkE2 = 12;
         EM_MOVE(pEm) = 0x1F0017;
-        Joint_move_(pEm, Kan, Seq, 0x80);
+        Joint_move(pEm, pKan, pSeq, 0x80);
         pFp->Blood = 0;
         pPl->pEnemy_ptr = pEm;
-        Set_base_pos(pPl, Kan, Seq, 0);
+        Set_base_pos(pPl, pKan, pSeq, 0);
         pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
         pPl->pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
         pPl->Damage_cnt |= 0x80;
@@ -803,13 +799,13 @@ void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         Pad_vib_fade_set(8, 0x64, 0xFA, 0x71);
         Pad_vib_fade_set(0x3C, 0xFA, 0, 0x79);
     } else {
-        Set_base_pos(pPl, Kan, Seq, 0);
-        Null_pos_set(pEm, Kan, Seq, 0);
-        if (Joint_move_(pEm, Kan, Seq, 0x80)) {
+        Set_base_pos(pPl, pKan, pSeq, 0);
+        Null_pos_set(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             EM_RTN23(pEm) = 1;
             EM_MOVE(pEm) = 0x1F0018;
-            Spd_get(pEm, Kan, Seq, 0);
-            Joint_move_(pEm, Kan, Seq, 0x80);
+            Spd_get(pEm, pKan, pSeq, 0);
+            Joint_move(pEm, pKan, pSeq, 0x80);
             EM20_W(pEm)->Blood = 0;
             return;
         }
@@ -839,24 +835,24 @@ void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_critical10 */
-void Em20_Mv_critical10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_critical10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG eos;
 
     if (!pEm->Routine_3) {
-        Spd_get(pEm, Kan, Seq, 0);
-        eos = Joint_move_(pEm, Kan, Seq, 0x80);
+        Spd_get(pEm, pKan, pSeq, 0);
+        eos = Joint_move(pEm, pKan, pSeq, 0x80);
         Add_speedXZ(pEm, 0);
         if (eos) {
             pEm->Routine_3 = 1;
             pEm->Timer0 = 2;
             EM_MOVE(pEm) = 0x1F0019;
-            Spd_get(pEm, Kan, Seq, 0);
-            Joint_move_(pEm, Kan, Seq, 0x80);
+            Spd_get(pEm, pKan, pSeq, 0);
+            Joint_move(pEm, pKan, pSeq, 0x80);
         }
     } else {
-        Spd_get(pEm, Kan, Seq, 0);
-        if (Joint_move_(pEm, Kan, Seq, 0x80) && !--pEm->Timer0) {
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x80) && !--pEm->Timer0) {
             pEm->Routine_1 = 12;
             EM_RTN23(pEm) = 0;
         }
@@ -864,7 +860,7 @@ void Em20_Mv_critical10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_escape */
-void Em20_Move_escape(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_escape(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
     SHORT d_tmp;
@@ -887,13 +883,13 @@ void Em20_Move_escape(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pFp->Fix_cnt = 0;
     }
     Set_run_motion(pEm, d_tmp);
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     Dog_rot_neck(pEm);
     Ck_Floor(pEm);
 }
 
 /* RE2 Em20_Move_floorout */
-void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
@@ -905,14 +901,14 @@ void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         EM_RTN23(pEm) = 0;
         EM_MOVE(pEm) = 0xF0001;
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_Move_walk2 */
-void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Em20_rndwalk(pEm, Kan, Seq);
+    Em20_rndwalk(pEm, pKan, pSeq);
     if ((G.Pl_nFloor == pEm->nFloor || (pEm->Status_flg & 0x2000))
         && ((LONG)pEm->Unk154 < 4000 || (G.Unk75EA & 0x20) || ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)))) {
         pEm->Routine_1 = 2;
@@ -921,7 +917,7 @@ void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_died: walks up to the dead player */
-void Em20_Move_died(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_died(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
 
@@ -948,21 +944,21 @@ void Em20_Move_died(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     case 2:
         break;
     }
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_Move_eat */
-void Em20_Move_eat(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_eat(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
-        Em20_mv_eat00(pEm, Kan, Seq);
+        Em20_mv_eat00(pEm, pKan, pSeq);
     else
-        Em20_Mv_sleep30(pEm, Kan, Seq);
+        Em20_Mv_sleep30(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_mv_eat00 */
-void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
     ULONG range;
@@ -974,8 +970,8 @@ void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         EM20_W(pEm)->Jump_flg = 0;
         EM20_W(pEm)->House_flg = 0;
         EM_MOVE(pEm) = ((Rnd() & 0x3F) << 8) + 0x1F000E;
-        Spd_get(pEm, Kan, Seq, 0);
-        Joint_move_(pEm, Kan, Seq, 0x80);
+        Spd_get(pEm, pKan, pSeq, 0);
+        Joint_move(pEm, pKan, pSeq, 0x80);
         break;
     case 1:
         if (G.Pl_life >= 0) {
@@ -1006,35 +1002,35 @@ void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         }
         Snd_se_enem(6, pEm);
     }
-    Spd_get(pEm, Kan, Seq, 0);
-    Joint_move_(pEm, Kan, Seq, 0x80);
+    Spd_get(pEm, pKan, pSeq, 0);
+    Joint_move(pEm, pKan, pSeq, 0x80);
     Add_speedXZ(pEm, 0);
 }
 
 /* RE2 Em20_Move_house */
-void Em20_Move_house(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_house(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
-        Em20_mv_house00(pEm, Kan, Seq);
+        Em20_mv_house00(pEm, pKan, pSeq);
     else
-        Em20_mv_house10(pEm, Kan, Seq);
+        Em20_mv_house10(pEm, pKan, pSeq);
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_mv_house00 */
-void Em20_mv_house00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_mv_house00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
         pEm->Unk120 &= 0xFD;
         EM_MOVE(pEm) = house_mot_rnd[Rnd() & 7] + 0xF0000;
-        Spd_get(pEm, Kan, Seq, 0);
-        Joint_move_(pEm, Kan, Seq, 0x100);
+        Spd_get(pEm, pKan, pSeq, 0);
+        Joint_move(pEm, pKan, pSeq, 0x100);
         pEm->UnkE2 = (Rnd() & 3) + 1;
     case 1:
-        Spd_get(pEm, Kan, Seq, 0);
-        if (Joint_move_(pEm, Kan, Seq, 0x100)) {
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             if (!--pEm->UnkE2)
                 EM_RTN23(pEm) = 1;
             else
@@ -1046,7 +1042,7 @@ void Em20_mv_house00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_mv_house10 */
-void Em20_mv_house10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_mv_house10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
     case 0:
@@ -1081,18 +1077,18 @@ void Em20_mv_house10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     }
     Add_speedXZ(pEm, 0);
     Set_run_motion(pEm, pEm->UnkDA);
-    Joint_move_(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
 }
 
 /* RE2 Em20_Move_rush */
-void Em20_Move_rush(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    move_rush_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    move_rush_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_Mv_rush00 */
-void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
     case 0:
@@ -1107,7 +1103,7 @@ void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Unk120 &= 0xFD;
     case 2:
         Add_speedXZ(pEm, 0);
-        Joint_move_(pEm, Kan, Seq, 0x200);
+        Joint_move(pEm, pKan, pSeq, 0x200);
         if (!--pEm->Timer0) {
             EM_RTN23(pEm) = 1;
             pEm->Spd_x = 0x118;
@@ -1118,21 +1114,21 @@ void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_rush10 */
-void Em20_Mv_rush10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_rush10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_W(pEm)->No_hit = 1;
-    if (Em20_Mv_jump10(pEm, Kan, Seq) < 0) {
+    if (Em20_Mv_jump10(pEm, pKan, pSeq) < 0) {
         EM_RTN23(pEm) = 2;
         EM_MOVE(pEm) = 0xF0015;
-        Joint_move_(pEm, Kan, Seq, 0x100);
+        Joint_move(pEm, pKan, pSeq, 0x100);
     }
 }
 
 /* RE2 Em20_Mv_rush20 */
-void Em20_Mv_rush20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_rush20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Damage_cnt &= 0x7F;
-    if (Em20_Mv_jump20(pEm, Kan, Seq)) {
+    if (Em20_Mv_jump20(pEm, pKan, pSeq)) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
         EM20_W(pEm)->Fix_cnt = 0;
@@ -1141,25 +1137,25 @@ void Em20_Mv_rush20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_bodyatck */
-void Em20_Move_bodyatck(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_bodyatck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    move_bodyatck_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    move_bodyatck_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Dog_rot_neck(pEm);
 }
 
 /* RE2 Em20_Mv_bodyatck10 */
-void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_W(pEm)->No_hit = 1;
-    if (Em20_Mv_jump10(pEm, Kan, Seq) < 0) {
+    if (Em20_Mv_jump10(pEm, pKan, pSeq) < 0) {
         EM_RTN23(pEm) = 2;
         EM_MOVE(pEm) = 0xF0015;
-        Joint_move_(pEm, Kan, Seq, 0x100);
+        Joint_move(pEm, pKan, pSeq, 0x100);
     }
     if (pEm->UnkAE & 0x20) {
         EM_RTN23(pEm) = 3;
         EM_MOVE(pEm) = 0xF0016;
-        Joint_move_(pEm, Kan, Seq, 0x100);
+        Joint_move(pEm, pKan, pSeq, 0x100);
         pEm->Spd_x = -(pEm->Spd_x >> 1);
         pEm->Timer0 = 0;
         pEm->Add_dir = 1;
@@ -1167,9 +1163,9 @@ void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_bodyatck20 */
-void Em20_Mv_bodyatck20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_bodyatck20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (Em20_Mv_jump20(pEm, Kan, Seq)) {
+    if (Em20_Mv_jump20(pEm, pKan, pSeq)) {
         pEm->Routine_1 = 13;
         EM_RTN23(pEm) = 1;
         pEm->Damage_cnt &= 0x7F;
@@ -1177,7 +1173,7 @@ void Em20_Mv_bodyatck20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_bodyatck30 */
-void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
         Add_speedXYZ(pEm, 0x800, 0);
@@ -1189,10 +1185,10 @@ void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Snd_se_enem(9, pEm);
         }
         if (pEm->Move_cnt <= 16)
-            Joint_move_(pEm, Kan, Seq, 0x100);
+            Joint_move(pEm, pKan, pSeq, 0x100);
         else
             pEm->Spd_x = 0;
-    } else if (Joint_move_(pEm, Kan, Seq, 0x100)) {
+    } else if (Joint_move(pEm, pKan, pSeq, 0x100)) {
         pEm->Routine_1 = 13;
         EM_RTN23(pEm) = 1;
         pEm->Damage_cnt &= 0x7F;
@@ -1204,13 +1200,13 @@ void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Move_jumpin */
-void Em20_Move_jumpin(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Move_jumpin(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    move_jumpin_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    move_jumpin_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Mv_jumpin00 */
-void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!(pEm->Routine_3 & 0xF)) {
         pEm->Routine_3 = 1;
@@ -1221,7 +1217,7 @@ void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Be_flg |= 0x2000;
     }
     Add_speedXZ(pEm, 0);
-    Joint_move_(pEm, Kan, Seq, 0x200);
+    Joint_move(pEm, pKan, pSeq, 0x200);
     if (!--pEm->Timer0) {
         EM_RTN23(pEm) = 1;
         pEm->Spd_x = 0x118;
@@ -1231,11 +1227,11 @@ void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Mv_jumpin20 */
-void Em20_Mv_jumpin20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Mv_jumpin20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Pos_y >= pEm->Unk122)
         pEm->Be_flg &= ~0x2000;
-    if (Em20_Mv_jump20(pEm, Kan, Seq)) {
+    if (Em20_Mv_jump20(pEm, pKan, pSeq)) {
         EM_RTN(pEm) = 0x201;
         EM20_W(pEm)->Fix_cnt = 0;
         EM20_W(pEm)->No_hit = 0;
@@ -1266,22 +1262,22 @@ LONG Ck_em_id(ENEMY_WORK *pEm, ENEMY_WORK **ppList, LONG Id, LONG Num)
 }
 
 /* RE2 Em20_Damage (RE3 indexes the damage tables by the damage kind Unk12C) */
-void Em20_Damage(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!(EM20_W(pEm)->Combo_flg & 0x80))
-        em20_dmg_tbl[pEm->Unk12C - 1](pEm, Kan, Seq);
+        em20_dmg_tbl[pEm->Unk12C - 1](pEm, pKan, pSeq);
     else
-        Em20_Dmg_combo(pEm, Kan, Seq);
+        Em20_Dmg_combo(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_nml */
-void Em20_Dmg_nml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    dmg_nml_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    dmg_nml_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_nml00 */
-void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -1294,7 +1290,7 @@ void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         Snd_se_enem(1, pEm);
     if (pFp->Combo_flg && !pFp->House_flg) {
         pFp->Combo_flg |= 0x80;
-        Em20_Dmg_combo00(pEm, Kan, Seq);
+        Em20_Dmg_combo00(pEm, pKan, pSeq);
         return;
     }
     if (pFp->Jump_flg) {
@@ -1309,13 +1305,13 @@ void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     EM_MOVE(pEm) = 0x70011;
     EM20_W(pEm)->Combo_flg = 1;
     pEm->UnkDA = 0x200;
-    Joint_move_(pEm, Kan, Seq, 0x200);
+    Joint_move(pEm, pKan, pSeq, 0x200);
     pFp->Blood = 1;
     Set_blood(pEm, 0, 0);
 }
 
 /* RE2 Em20_Dmg_nml10 */
-void Em20_Dmg_nml10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -1337,11 +1333,11 @@ void Em20_Dmg_nml10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         }
     }
     if (pEm->Move_cnt != 3)
-        Joint_move_(pEm, Kan, Seq, 0x200);
+        Joint_move(pEm, pKan, pSeq, 0x200);
 }
 
 /* RE2 Em20_Dmg_nml20 */
-void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
 
@@ -1350,7 +1346,7 @@ void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         Add_speedXZ(pEm, pEm->Timer0);
         Rate_speed_down(pEm, 10, 0);
     }
-    if (Joint_move_(pEm, Kan, Seq, pEm->UnkDA)) {
+    if (Joint_move(pEm, pKan, pSeq, pEm->UnkDA)) {
         switch (pEm->Routine_3) {
         case 0:
             pEm->Routine_3 = 1;
@@ -1379,14 +1375,14 @@ void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Dmg_nml30 */
-void Em20_Dmg_nml30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
         pEm->Routine_3 = 1;
         EM_MOVE(pEm) = 0x30F16;
         pEm->Damage_cnt &= 0x7F;
     }
-    if (Joint_move_(pEm, Kan, Seq, 0x400)) {
+    if (Joint_move(pEm, pKan, pSeq, 0x400)) {
         Set_dmghit(pEm, 1);
         EM20_W(pEm)->Combo_flg = 0;
         EM_RTN(pEm) = 0x201;
@@ -1394,7 +1390,7 @@ void Em20_Dmg_nml30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Dmg_nml40 */
-void Em20_Dmg_nml40(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
         pEm->Routine_3 = 1;
@@ -1404,16 +1400,16 @@ void Em20_Dmg_nml40(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Dmg_combo */
-void Em20_Dmg_combo(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_combo(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    dmg_combo_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    dmg_combo_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Set_blood(pEm, Rnd() & 0xF, 0);
     Set_blood(pEm, Rnd() & 0xF, 0);
     Set_blood(pEm, Rnd() & 0xF, 5);
 }
 
 /* RE2 Em20_Dmg_combo00 */
-void Em20_Dmg_combo00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_combo00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -1448,18 +1444,18 @@ void Em20_Dmg_combo00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Dmg_combo10 */
-void Em20_Dmg_combo10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_combo10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
         pEm->Routine_3 = 1;
         Add_speedXZ3(pEm, pEm->Timer0 + (Rnd() << 1) - 0x100, 0);
         pEm->Cdir_y += (Rnd() & 0xFF) - 0x80;
     }
-    Em20_Dmg_nml10(pEm, Kan, Seq);
+    Em20_Dmg_nml10(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_combo20 */
-void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -1472,7 +1468,7 @@ void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Cdir_y += (Rnd() & 0xFF) - 0x80;
         }
     }
-    if (Joint_move_(pEm, Kan, Seq, pEm->UnkDA)) {
+    if (Joint_move(pEm, pKan, pSeq, pEm->UnkDA)) {
         EM_RTN23(pEm) = 3;
         pFp->Combo_flg &= 0xC0;
         pFp->Combo_flg |= 2;
@@ -1482,7 +1478,7 @@ void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Dmg_combo30 */
-void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->UnkE2) {
         pEm->UnkE2 = 1;
@@ -1490,13 +1486,13 @@ void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         Add_speedXZ(pEm, pEm->Timer0);
         pEm->Cdir_y += (Rnd() & 0xFF) - 0x80;
     }
-    Em20_Dmg_nml20(pEm, Kan, Seq);
+    Em20_Dmg_nml20(pEm, pKan, pSeq);
     if (pEm->Routine_3 >= 2)
         EM20_W(pEm)->Combo_flg &= 0xBF;
 }
 
 /* RE2 Em20_Dmg_gnml */
-void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG i;
 
@@ -1504,11 +1500,11 @@ void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     for (i = 0; i < EM20_W(pEm)->Blood; i++)
         Set_blood(pEm, Rnd() & 0xF, 8);
     pEm->Unk12C = 1;
-    Em20_Dmg_nml(pEm, Kan, Seq);
+    Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_fire */
-void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     ULONG i;
@@ -1525,11 +1521,11 @@ void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pP->UnkA2 &= ~0x40;
     }
     pEm->Unk12C = 1;
-    Em20_Dmg_nml(pEm, Kan, Seq);
+    Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_H2SO4 */
-void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG d0;
 
@@ -1538,11 +1534,11 @@ void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     EM20_W(pEm)->Blood = 1;
     Set_blood(pEm, d0, 9);
     pEm->Unk12C = 1;
-    Em20_Dmg_nml(pEm, Kan, Seq);
+    Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
 /* RE3 only: damage kind 5, marks seven parts (UnkA2 0x40) and spins the light colour (Unk178) */
-void func_80103F54(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80103F54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
@@ -1579,20 +1575,20 @@ void func_80103F54(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Status_flg |= 2;
     }
     pEm->Unk12C = 1;
-    Em20_Dmg_nml(pEm, Kan, Seq);
+    Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_spark (no table refers to it in RE3) */
-void Em20_Dmg_spark(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
-        Em20_Dmg_nml00(pEm, Kan, Seq);
+        Em20_Dmg_nml00(pEm, pKan, pSeq);
         EM20_W(pEm)->Blood = 8;
         Set_blood(pEm, Rnd() & 0xF, 11);
         pEm->UnkE3 = 0;
     }
     pEm->Unk12C = 1;
-    Em20_Dmg_nml(pEm, Kan, Seq);
+    Em20_Dmg_nml(pEm, pKan, pSeq);
     if (!(++pEm->UnkE3 % 3)) {
         Set_blood(pEm, Rnd() & 0xF, 11);
         Set_blood(pEm, Rnd() & 0xF, 11);
@@ -1600,20 +1596,20 @@ void Em20_Dmg_spark(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Dmg_nml2 */
-void Em20_Dmg_nml2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    dmg_nml2_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    dmg_nml2_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Dmg_nml2_00 */
-void Em20_Dmg_nml2_00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dmg_nml2_00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!(pEm->Unk132 & 0x8000) && !EM20_W(pEm)->Jump_flg) {
         EM20_W(pEm)->Jump_flg = 1;
         pEm->Spd_y = -0x8C;
         pEm->Spd_x = 0xF0;
     }
-    Em20_Dmg_nml00(pEm, Kan, Seq);
+    Em20_Dmg_nml00(pEm, pKan, pSeq);
 }
 
 /* RE2 Set_dmghit: hit box height while down / standing */
@@ -1633,29 +1629,29 @@ void Set_dmghit(ENEMY_WORK *pEm, ULONG Type)
 }
 
 /* RE2 Em20_Die */
-void Em20_Die(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    em20_die_tbl[pEm->Unk12C - 1](pEm, Kan, Seq);
+    em20_die_tbl[pEm->Unk12C - 1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Die_nml */
-void Em20_Die_nml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
-        die_nml_init[pEm->Unk12C - 1](pEm, Kan, Seq);
+        die_nml_init[pEm->Unk12C - 1](pEm, pKan, pSeq);
     else
-        die_nml_tbl[pEm->Routine_2](pEm, Kan, Seq);
+        die_nml_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
 /* RE2 Em20_Die_nml00 */
-void Em20_Die_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG tmp;
 
     Em_dead_flg_on_cand(pEm);
     tmp = EM20_W(pEm)->Combo_flg & 0x3F;
     EM20_W(pEm)->Combo_flg = 0;
-    Em20_Dmg_nml00(pEm, Kan, Seq);
+    Em20_Dmg_nml00(pEm, pKan, pSeq);
     if (!EM20_W(pEm)->No_voice)
         Snd_se_enem(7, pEm);
     if (tmp == 2)
@@ -1663,13 +1659,13 @@ void Em20_Die_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_nml20 */
-void Em20_Die_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!EM20_W(pEm)->Em_next) {
         Add_speedXZ(pEm, pEm->Timer0);
         Rate_speed_down(pEm, 10, 0);
     }
-    if (Joint_move_(pEm, Kan, Seq, pEm->UnkDA)) {
+    if (Joint_move(pEm, pKan, pSeq, pEm->UnkDA)) {
         if (!pEm->Routine_3) {
             pEm->Routine_3 = 1;
             EM_MOVE(pEm) = (pEm->UnkCA << 16) + 0x12;
@@ -1679,9 +1675,9 @@ void Em20_Die_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_bang */
-void Em20_Die_bang(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_bang(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    die_bang_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    die_bang_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Set_blood(pEm, 3, 0);
     Set_blood(pEm, 2, 0);
     if (!(G.Status_flg & 0x8000))
@@ -1689,14 +1685,14 @@ void Em20_Die_bang(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_bang00 */
-void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
     pFp = EM20_W(pEm);
     if (!pFp->Jump_flg || !pFp->Bang_ok || !(Rnd() & 5) || (pEm->Unk132 & 0xC)) {
         pEm->Unk12C = 1;
-        Em20_Die_nml00(pEm, Kan, Seq);
+        Em20_Die_nml00(pEm, pKan, pSeq);
     } else {
         Em_dead_flg_on_cand(pEm);
         EM_RTN23(pEm) = 1;
@@ -1706,7 +1702,7 @@ void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             Em20_Pl_to_dmg(0, Cdir_ck(pEm, (ENEMY_WORK *)&G.Pl_be_flg));
         EM20_W(pEm)->Blood = 0x12;
         EM_MOVE(pEm) = 0x70011;
-        Joint_move_(pEm, Kan, Seq, 0x200);
+        Joint_move(pEm, pKan, pSeq, 0x200);
     }
 }
 
@@ -1755,7 +1751,7 @@ void Set_tail_bomb(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em20_Die_bang10 */
-void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
 
@@ -1774,8 +1770,8 @@ void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Routine_3 = 0;
         }
         if (pEm->Move_cnt != 3)
-            Joint_move_(pEm, Kan, Seq, 0x200);
-    } else if (Joint_move_(pEm, Kan, Seq, 0x200)) {
+            Joint_move(pEm, pKan, pSeq, 0x200);
+    } else if (Joint_move(pEm, pKan, pSeq, 0x200)) {
         if (!pEm->Routine_3) {
             pEm->Routine_3 = 1;
             EM_MOVE(pEm) = (pEm->UnkCA << 16) + 0x12;
@@ -1785,26 +1781,26 @@ void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_gnml */
-void Em20_Die_gnml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    die_gnml_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    die_gnml_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Set_blood(pEm, 3, 0);
     Set_blood(pEm, 2, 0);
     Set_blood(pEm, 2, (Rnd() & 1) + 1);
 }
 
 /* RE2 Em20_Die_gnml00 */
-void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     ULONG d0;
 
     if (pEm->Unk12C == 6 && (pEm->Unk132 & 0xC)) {
-        Em20_Die_nml00(pEm, Kan, Seq);
+        Em20_Die_nml00(pEm, pKan, pSeq);
         return;
     }
     EM20_W(pEm)->No_voice = 1;
-    Em20_Die_nml00(pEm, Kan, Seq);
+    Em20_Die_nml00(pEm, pKan, pSeq);
     Set_head_bomb(pEm);
     if (pEm->Unk12C == 6) {
         EM20_W(pEm)->Blood = 1;
@@ -1817,12 +1813,12 @@ void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_fire */
-void Em20_Die_fire(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     ULONG i;
 
-    Em20_Die_nml00(pEm, Kan, Seq);
+    Em20_Die_nml00(pEm, pKan, pSeq);
     EM20_W(pEm)->Blood = 6;
     for (i = 0; i < 6; i++)
         Set_blood(pEm, Rnd() & 0xF, 7);
@@ -1834,12 +1830,12 @@ void Em20_Die_fire(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_H2SO4 */
-void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     ULONG i;
 
-    Em20_Die_nml00(pEm, Kan, Seq);
+    Em20_Die_nml00(pEm, pKan, pSeq);
     if (pEm->Unk132 & 0xC)
         return;
     for (i = 0; i < 17; i++) {
@@ -1852,11 +1848,11 @@ void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE3 only: death of damage kind 9 (cf. func_80103F54) */
-void func_80104B78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80104B78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
-    Em20_Die_nml00(pEm, Kan, Seq);
+    Em20_Die_nml00(pEm, pKan, pSeq);
     pEm->Unk17E = 0x40;
     pEm->Be_flg |= 8;
     pP = pEm->pSin_parts_ptr;
@@ -1875,9 +1871,9 @@ void func_80104B78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_spark */
-void Em20_Die_spark(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    die_spark_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    die_spark_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     if (++pEm->UnkE3 & 1) {
         Set_blood(pEm, Rnd() & 0xF, 11);
         Set_blood(pEm, Rnd() & 0xF, 11);
@@ -1885,12 +1881,12 @@ void Em20_Die_spark(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em20_Die_spark00 */
-void Em20_Die_spark00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_spark00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     ULONG i;
 
-    Em20_Die_nml00(pEm, Kan, Seq);
+    Em20_Die_nml00(pEm, pKan, pSeq);
     for (i = 0; i < 17; i++) {
         pP = &pEm->pSin_parts_ptr[i];
         pP->Poly_rgb = 0x3F203F;
@@ -1903,46 +1899,46 @@ void Em20_Die_spark00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE3 only: like Em20_Die_gnml with the tail parts flying off (die_bang2_tbl) */
-void Em20_Die_bang2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_bang2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    die_bang2_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    die_bang2_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Set_blood(pEm, 3, 0);
     Set_blood(pEm, 2, 0);
     Set_blood(pEm, 2, (Rnd() & 1) + 1);
 }
 
 /* RE3 only: Em20_Die_gnml00 variant for Em20_Die_bang2 */
-void Em20_Die_bang2_00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Die_bang2_00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Unk12C == 6 && (pEm->Unk132 & 0xC)) {
-        Em20_Die_nml00(pEm, Kan, Seq);
+        Em20_Die_nml00(pEm, pKan, pSeq);
         return;
     }
     EM20_W(pEm)->No_voice = 1;
-    Em20_Die_nml00(pEm, Kan, Seq);
+    Em20_Die_nml00(pEm, pKan, pSeq);
     Set_head_bomb(pEm);
     Set_tail_bomb(pEm);
     EM20_W(pEm)->Blood = 0x12;
 }
 
 /* RE2 Em20_Scenario */
-void Em20_Scenario(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100)
-        func_80016600(pEm, Kan, Seq);
+        func_80016600(pEm, pKan, pSeq);
     else
-        Em20_sce_tbl[pEm->Routine_1](pEm, Kan, Seq);
+        Em20_sce_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* RE3 only: scenario 0, fades in and jumps in (move_jumpin_tbl) */
-void Em20_sce00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!(pEm->Type & 0x8000)) {
         if (!pEm->UnkDA && (pEm->Type & 0x80))
             Em20_Esp_set(pEm);
         Em20_Col_set(pEm, ++pEm->UnkDA);
         pEm->Be_flg &= ~0x4030;
-        move_jumpin_tbl[pEm->Routine_2](pEm, Kan, Seq);
+        move_jumpin_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     }
 }
 
@@ -1963,7 +1959,7 @@ void Em20_Col_set(ENEMY_WORK *pEm, LONG n)
 }
 
 /* RE2 Em20_Dead */
-void Em20_Dead(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void Em20_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_1) {
         pEm->Routine_1 = 1;
@@ -1979,7 +1975,7 @@ void Em20_Blood_move(ENEMY_WORK *pEm)
     KAGE_WORK *pKage;
 
     pFp = EM20_W(pEm);
-    pKage = (KAGE_WORK *)pEm->pKage_work;
+    pKage = pEm->Kage.pKw;
     switch (pFp->Kage_routine) {
     case 0:
         pFp->Kage_routine = 1;
@@ -1998,7 +1994,7 @@ void Em20_Blood_move(ENEMY_WORK *pEm)
 }
 
 /* RE2 PLDIE_EM: the player's death routine while bitten (G.pPldie_Em[16]) */
-void PLDIE_EM(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     USHORT i;
@@ -2012,10 +2008,10 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         break;
     case 1:
         pEm->Cdir_y += 0x800;
-        Null_pos_set(pEm, Kan, Seq, 0);
+        Null_pos_set(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= 0x800;
         pEm->Pos_y = pEm->Unk122;
-        if (Joint_move2_(pEm, Kan, Seq, 0x80))
+        if (Joint_move2(pEm, pKan, pSeq, 0x80))
             pEm->Routine_1 = 2;
         if (pEm->Move_cnt == 0x62) {
             Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);

@@ -1,11 +1,6 @@
-#include "pl_wep.h"
 #include "sca.h"
-#include "monitor.h"
-#include "pad.h"
-#include "esp.h"
 #include "root_ck.h"
 #include "sld.h"
-#include "status.h"
 
 #define RND() ((signed char)func_800102E8())
 
@@ -19,8 +14,6 @@ typedef struct {
     SHORT Floor;                       /* 0x2E 0 = any floor, else floor + 0x11 */
 } BLOCK;
 
-/* pEm->pad12E[0] is RE2 Root_ck_cnt (em33.c still uses the pad name) */
-#define ROOT_CK_CNT(pEm) ((pEm)->pad12E[0])
 
 LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
 {
@@ -34,7 +27,7 @@ LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
     USHORT *pStatus;
     UCHAR *pCnt;
 
-    pCnt = &ROOT_CK_CNT(pEm);
+    pCnt = &pEm->Root_ck_cnt;
     pStatus = &pEm->Status_flg;
 
     if (pG->pRoom->pBlock == NULL || pEm->Routine_0 == 0) {

@@ -1,19 +1,6 @@
-#include "common.h"
 #include "monitor.h"
 #include "mojidisp.h"
-#include "pad.h"
-#include "em_sub.h"
-#include "om.h"
-#include "pl_wep.h"
-#include "movie.h"
-#include "player.h"
 #include "cd.h"
-#include "oba.h"
-#include "sld.h"
-
-/* ENEMY_WORK fields not in em_sub.h yet */
-#define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
-#define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {

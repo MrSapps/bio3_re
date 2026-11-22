@@ -60,7 +60,9 @@ typedef struct tagOBJ_MODEL_WORK {
     UCHAR Routine_3;                   /* 0x07 */
     UCHAR Parts_num;                   /* 0x08 */
     signed char nFloor;                /* 0x09 */
-    UCHAR padA[0x10 - 0xA];
+    UCHAR padA[0xD - 0xA];
+    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (func_80037C38) */
+    UCHAR padE[0x10 - 0xE];
     ULONG Attribute;                   /* 0x10 RE2 Attribute (func_8003589C) */
     struct tagMD_OBJ *pTmd;            /* 0x14 RE2 pTmd (an MD object in RE3) */
     UCHAR pad18[0x20 - 0x18];
@@ -77,7 +79,8 @@ typedef struct tagOBJ_MODEL_WORK {
     SVECTOR Cdir;                      /* 0x6C */
     ULONG Poly_rgb;                    /* 0x74 */
     MATRIX *pSuper;                    /* 0x78 */
-    UCHAR pad7C[0xAE - 0x7C];
+    ULONG *pUnk7C;                     /* 0x7C ordering table (func_80037C38) */
+    UCHAR pad80[0xAE - 0x80];
     USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (func_80036570) */
     UCHAR padB0[0xBA - 0xB0];
     USHORT UnkBA;                      /* 0xBA */
@@ -133,7 +136,7 @@ typedef struct tagGLOBAL {
     ULONG *pOt1;                       /* 0x2044 */
     ULONG Ot2[2][8];                   /* 0x2048 RE2 Ot2, index Cbuf_id (main) */
     ULONG *pOt2;                       /* 0x2088 */
-    ULONG Unk208C;                     /* 0x208C packet pointer (func_80025FB0) */
+    POLY_GT4 *pUnk208C;                /* 0x208C packet pointer of the model sorters (func_80025FB0) */
     ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (Psp_trans) */
     UCHAR Padd_data[2][0x24];          /* 0x20B0 RE2 Padd_data (PadInitDirect buffers) */
     LONG Unk20F8;                      /* 0x20F8 set to -1 on soft reset */
@@ -201,7 +204,9 @@ typedef struct tagGLOBAL {
     UCHAR pad2494;
     signed char Pl_nFloor;             /* 0x2495 Player.nFloor (Player at 0x248C?) */
     SHORT Pl_water;                    /* 0x2496 Player.Water */
-    UCHAR pad2498[0x24C0 - 0x2498];
+    UCHAR pad2498[0x24AC - 0x2498];
+    SHORT Pl_workm_m[3][3];            /* 0x24AC Player.Workm_m (rotation of the player matrix) */
+    UCHAR pad24BE[0x24C0 - 0x24BE];
     LONG Pl_pos_x;                     /* 0x24C0 Player.Pos_x (VECTOR Pos) */
     LONG Pl_pos_y;                     /* 0x24C4 Player.Pos_y */
     LONG Pl_pos_z;                     /* 0x24C8 Player.Pos_z */
@@ -237,7 +242,10 @@ typedef struct tagGLOBAL {
     UCHAR pad25B0[0x25B9 - 0x25B0];
     UCHAR Pl_damage_cnt;               /* 0x25B9 Player.Damage_cnt */
     UCHAR pad25BA[0x260C - 0x25BA];
-    ULONG Pl_unk180[4];                /* 0x260C Player.Unk180 (kan/seq args of func_80079690 / Joint_move) */
+    ULONG *Pl_pUnk180_seq_t_ptr;       /* 0x260C Player.pUnk180_seq_t_ptr (func_80079690) */
+    ULONG *Pl_pUnk184_kan_t_ptr;       /* 0x2610 Player.pUnk184_kan_t_ptr */
+    ULONG *Pl_pUnk188_seq_t_ptr;       /* 0x2614 Player.pUnk188_seq_t_ptr (Joint_move) */
+    ULONG *Pl_pUnk18C_kan_t_ptr;       /* 0x2618 Player.pUnk18C_kan_t_ptr */
     ULONG *Pl_pUnk190_seq_t_ptr;       /* 0x261C Player.pUnk190_seq_t_ptr */
     ULONG *Pl_pUnk194_kan_t_ptr;       /* 0x2620 Player.pUnk194_kan_t_ptr */
     ULONG *Pl_pUnk198_seq_t_ptr;       /* 0x2624 Player.pUnk198_seq_t_ptr */
@@ -249,7 +257,7 @@ typedef struct tagGLOBAL {
     UCHAR pad265A[0x265C - 0x265A];
     struct tagENEMY_WORK *pEnemy[42];  /* 0x265C RE2 pEnemy: [0] player, [1] sub player, [2..] enemies */
     struct tagENEMY_WORK **ppEnemy_end; /* 0x2704 RE2 ppEnemy_end (end of used pEnemy[]) */
-    UCHAR pad2708[0x2904 - 0x2708];
+    ULONG Sub_work[0x1FC / 4];         /* 0x2708 spare ENEMY_WORK: every free pEnemy[] slot points here (Enemy_work_set) */
     struct tagKAGE_WORK9 Kage9[5];     /* 0x2904 */
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
     void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
@@ -373,7 +381,7 @@ extern tagGLOBAL G;                    /* 0x800CA738 */
 typedef struct tagPARTS_W {
     ULONG Be_flg;                      /* 0x00 */
     ULONG Attribute;                   /* 0x04 */
-    ULONG *pTmd;                       /* 0x08 */
+    ULONG *pTmd;                       /* 0x08 model object (md_sub.h MD_OBJ) */
     ULONG *pPacket;                    /* 0x0C */
     ULONG Unk10;                       /* 0x10 */
     SHORT M[3][3];                     /* 0x14 */

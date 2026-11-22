@@ -1,14 +1,7 @@
 #include "pl_wep.h"
-#include "sca.h"
-#include "monitor.h"
-#include "pl_wep.h"
-#include "pad.h"
-#include "esp.h"
 #include "80048520.h"
 #include "mojidisp.h"
-#include "sld.h"
 #include "snd.h"
-#include "status.h"
 
 int Print14_col_() __asm__("Print14_col"); /* returns int here (canonical void); unprototyped call */
 

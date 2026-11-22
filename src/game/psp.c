@@ -1,13 +1,6 @@
-#include "pl_wep.h"
-#include "sca.h"
-#include "monitor.h"
-#include "pl_wep.h"
-#include "pad.h"
 #include "sub.h"
-#include "esp.h"
 #include "psp.h"
 #include "sld.h"
-#include "status.h"
 
 #define RND() ((signed char)func_800102E8())
 LONG Rnd_l(void) __asm__("func_800102E8"); /* returns long here (canonical unsigned long) */

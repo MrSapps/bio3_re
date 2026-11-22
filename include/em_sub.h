@@ -51,7 +51,7 @@ typedef struct tagENEMY_WORK {
     USHORT dummy01;                    /* 0x072 */
     ULONG Poly_rgb;                    /* 0x074 */
     MATRIX *pSuper;                    /* 0x078 */
-    ULONG Unk7C;                       /* 0x07C */
+    ULONG *pUnk7C;                     /* 0x07C ordering table of the work (func_80037C38) */
     UCHAR Col_id;                      /* 0x080 collision object node (COL_OBJ, oba.h) at 0x80: Id */
     UCHAR Col_flg;                     /* 0x081 COL_OBJ.Flg */
     UCHAR Col_type;                    /* 0x082 COL_OBJ.Type */
@@ -108,7 +108,7 @@ typedef struct tagENEMY_WORK {
     ULONG *pUnk100_kan_t_ptr;          /* 0x100 */
     ULONG *pUnk104_seq_t_ptr;          /* 0x104 */
     struct tagPARTS_W *pSin_parts_ptr; /* 0x108 */
-    void *pUnk10C;                     /* 0x10C */
+    ULONG *pUnk10C;                    /* 0x10C base kan of the part tree (func_800261AC) */
     struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */
     ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */
@@ -122,7 +122,8 @@ typedef struct tagENEMY_WORK {
     SHORT Unk12A;                      /* 0x12A */
     UCHAR Unk12C;                      /* 0x12C */
     UCHAR Damage_cnt;                  /* 0x12D player: |= 0x80 on game over (Pl_life_down) */
-    UCHAR pad12E[0x130 - 0x12E];
+    UCHAR Root_ck_cnt;                 /* 0x12E RE2 Root_ck_cnt */
+    UCHAR Unk12F;                      /* 0x12F compared with the room sound table (Snd_se_enem) */
     SHORT Unk130;                      /* 0x130 direction */
     USHORT Unk132;                     /* 0x132 bits 8-12 cleared by Pl_life_down */
     SHORT Unk134;                      /* 0x134 */
@@ -139,23 +140,29 @@ typedef struct tagENEMY_WORK {
     SHORT Unk14A;                      /* 0x14A */
     SHORT Unk14C;                      /* 0x14C */
     SHORT Unk14E;                      /* 0x14E */
-    SHORT Unk150;                      /* 0x150 */
+    USHORT Unk150;                     /* 0x150 0x80: scenario move request, low bits its kind (Spl_sce) */
     SHORT Unk152;                      /* 0x152 */
     ULONG Unk154;                      /* 0x154 */
     LONG Unk158;                       /* 0x158 distance to target? (masked 0x3FFFFFFF) */
     LONG *pUnk15C;                     /* 0x15C target position (func_8003CEA0) */
-    struct tagKAGE_WORK9 *pKage_work;  /* 0x160 */
+    union {
+        struct tagKAGE_WORK *pKw;      /* 0x160 RE2 pKage_work: enemies (Kage_work_set) */
+        struct tagKAGE_WORK9 *pKw9;    /* 0x160 player (Kage_work9_set) */
+    } Kage;
     SHORT Unk164;                      /* 0x164 */
     SHORT Unk166;                      /* 0x166 */
     SHORT Unk168;                      /* 0x168 */
     UCHAR Unk16A;                      /* 0x16A em22: set on a seq flag 0x800 (id 0x24) */
     UCHAR Unk16B;                      /* 0x16B */
-    ULONG Unk16C;                      /* 0x16C (func_800445C8 arg 0) */
-    ULONG Unk170;                      /* 0x170 (func_800445C8 arg 1) */
+    LONG *pUnk16C;                     /* 0x16C hit position (func_800445C8 arg 0) */
+    LONG *pUnk170;                     /* 0x170 hitter position (func_800445C8 arg 1) */
     ULONG (*pUnk174)[6];               /* 0x174 0x18-byte model data records, part pTmd = pUnk174[n] (em10 Init) */
     SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */
     USHORT Unk17E;                     /* 0x17E */
-    ULONG Unk180[4];                   /* 0x180 args of func_80079690 / Joint_move */
+    ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */
+    ULONG *pUnk184_kan_t_ptr;          /* 0x184 */
+    ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */
+    ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */
     ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (func_800498F0) */
     ULONG *pUnk194_kan_t_ptr;          /* 0x194 */
     ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */
@@ -172,12 +179,12 @@ typedef struct tagENEMY_WORK {
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */
     SHORT Unk1BA;                      /* 0x1BA func_8002646C */
     SHORT Unk1BC[2];                   /* 0x1BC decayed by Unk1C2 (func_80026648) */
-    UCHAR pad1C0;
+    UCHAR Unk1C0;                      /* 0x1C0 */
     UCHAR Unk1C1;                      /* 0x1C1 func_8002646C */
     SHORT Unk1C2;                      /* 0x1C2 func_8002646C */
     ULONG Unk1C4;                      /* 0x1C4 em23: Routine_0..3 of the last frame */
     SHORT Unk1C8;                      /* 0x1C8 */
-    SHORT Unk1CA;                      /* 0x1CA */
+    USHORT Unk1CA;                     /* 0x1CA */
     ULONG Unk1CC[12];                  /* 0x1CC copied to G.Unk7D90 (func_80024C58) */
 } ENEMY_WORK;
 
@@ -210,16 +217,16 @@ UCHAR Cdir_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 UCHAR Cdir_ck_pos(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT);
 UCHAR Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT);
 UCHAR Dir_ck(LONG Dir0, LONG Dir1);
-void Set_base_pos(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
-void Null_pos_set(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
-void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
-void Null_pos_set2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
-void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
+void Set_base_pos(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
+void Null_pos_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
+void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq);
+void Null_pos_set2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
+void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq);
 void Em_seq_sound(ENEMY_WORK *pEm);
-void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
 
 extern EFF_PROC D_80097BD4[];
-extern ULONG D_80097FCC[];
+extern struct tagHIT_ATTR *D_80097FCC[]; /* attack data per effect (pl_wep.h HIT_ATTR) */
 extern ESP_WORK *D_80098084; /* pool start */
 extern ESP_WORK *D_80098088; /* pool end */
 extern ESP_WORK *D_8009808C; /* pool 2 start */
@@ -238,17 +245,17 @@ void func_80019178(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
 void Kage_work_init(void);
 void Kage_work9_init(void);
-void Kage_work9_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
 void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg);
 void Kage_work_sort(void);
 void Kage_work9_sort(void);
-void Kage_work_color_set(ULONG *pK, ULONG Color);
-void Kage_work9_color_set(ULONG *pK, ULONG Color); /* RE2 Kage_work9_color_set */
+void Kage_work_color_set(KAGE_WORK *pK, ULONG Color);
+void Kage_work9_color_set(KAGE_WORK9 *pK, ULONG Color); /* RE2 Kage_work9_color_set */
 void Rot_neck(ENEMY_WORK *pEm, SHORT Dir);
 void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y);
 void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir);
 void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
-void func_8001AD78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
+void func_8001AD78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
 void Em_dead_flg_on_cand(ENEMY_WORK *pEm);
 void func_8001AECC(ENEMY_WORK *pEm, ULONG a1, ULONG a2);
 ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc);

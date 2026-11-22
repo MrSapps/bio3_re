@@ -1,13 +1,9 @@
 #include "cd.h"
 #include "door.h"
-#include "em_sub.h"
-#include "main.h"
 #include "monitor.h"
-#include "sce0.h"
 #include "sub.h"
 #include "joint.h"
 #include "snd.h"
-#include "esp.h"
 #include "pl_wep.h"
 #include "root_ck.h"
 #include "sld.h"
@@ -16,38 +12,6 @@
 /* local declarations (80011CF8.c) */
 /* Add_speedXZ is called with a third (unused) argument in RE3 */
 #define ADD_SPEED_XZ3(pEm) ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)((pEm), 0, 0)
-LONG Joint_move_(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3) __asm__("Joint_move"); /* returns long here (canonical void); arg 2 long (canonical unsigned long); arg 3 long (canonical unsigned long); arg 4 long (canonical unsigned long) */
-
-/* RE3 door model work (pDwork[] slot, 0xC8 bytes); 0x10.. is laid out like MODEL_WORK */
-typedef struct {
-    ULONG Be_flg;                      /* 0x00 */
-    UCHAR pad04[0x10 - 0x4];
-    LONG Attribute;                    /* 0x10 */
-    ULONG *pTmd;                       /* 0x14 */
-    POLY_GT3 *pPacket;                 /* 0x18 two buffers per door, index G.Cbuf_id */
-    UCHAR pad1C[0x20 - 0x1C];
-    SHORT M[3][3];                     /* 0x20 rotation part of a MATRIX whose t[] is Pos_x..Pos_z */
-    UCHAR pad32[0x34 - 0x32];
-    LONG Pos_x;                        /* 0x34 */
-    LONG Pos_y;                        /* 0x38 */
-    LONG Pos_z;                        /* 0x3C */
-    UCHAR pad40[0x4A - 0x40];
-    UCHAR Id;                          /* 0x4A */
-    UCHAR pad4B;
-    MATRIX Workm;                      /* 0x4C */
-    SHORT Cdir_x;                      /* 0x6C */
-    SHORT Cdir_y;                      /* 0x6E */
-    SHORT Cdir_z;                      /* 0x70 */
-    UCHAR pad72[0x74 - 0x72];
-    ULONG Poly_rgb;                    /* 0x74 */
-    MATRIX *pSuper;                    /* 0x78 */
-    UCHAR pad7C[0xC0 - 0x7C];
-    USHORT Attribute2;                 /* 0xC0 */
-    UCHAR Model_no;                    /* 0xC2 */
-    UCHAR Type;                        /* 0xC3 */
-    USHORT Free;                       /* 0xC4 brightness ramp counter (Attribute2 & 0x1000) */
-    USHORT Free2;                      /* 0xC6 current brightness */
-} DOOR_WORK;
 
 void Door_main(void)
 {
@@ -68,7 +32,7 @@ void Door_move(void)
     while (G.System_flg & 0x800000) {
         Task_sleep(1);
     }
-    if (!(*(USHORT *)(D_800BA700[0] + 0xC0) & 0x4000)) {
+    if (!(D_800BA700[0]->Attribute2 & 0x4000)) {
         Main.Vloop = 1;
     }
     if (Sce.Sce_task[10].Status != 0) {
@@ -80,7 +44,7 @@ loop:
         }
         Door_scheduler_main();
         Door_Trans();
-        (*(USHORT *)((UCHAR *)D_800BA6F8 + 0x226))++;
+        D_800BA6F8->Unk226++;
         Task_sleep(1);
         if (pSce->Sce_task[10].Status != 0) {
             goto loop;
@@ -134,7 +98,7 @@ Door_exit_wait:
         goto Door_exit_wait;
     }
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x10);
-    if (*(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) != 0) {
+    if (D_800BA6F8->Sound_flg != 0) {
         Snd_se_stad(0x401, NULL, 0, 0);
     }
     Main.Vloop = 2;
@@ -162,16 +126,16 @@ void Door_texture_load(void)
     Cd_read(File_no, (ULONG *)0x8019D000, 3, "DOOR TEXTURE");
 }
 
-void Door_model_init(UCHAR *pDw)
+void Door_model_init(DOOR_WORK *pDw)
 {
-    ULONG *pDoor_cur;
+    DOOR *pDoor_cur;
     ULONG *Tmd_adr;
 
     pDoor_cur = D_800BA6F8;
-    Tmd_adr = (ULONG *)D_800BA6F8[1];
-    *(ULONG *)(pDw + 0x74) = 0x808080;
-    *(ULONG **)(pDw + 0x14) = Tmd_adr + pDw[0xC2] * 6;
-    *D_800BA6F8 = PresetObjectGT3_neo(pDw + 0x10, pDoor_cur[0]);
+    Tmd_adr = D_800BA6F8->pTmd_adr;
+    pDw->Poly_rgb = 0x808080;
+    pDw->pTmd = Tmd_adr + pDw->Model_no * 6;
+    D_800BA6F8->pPrepacket = PresetObjectGT3_neo((MD_WORK *)&pDw->Attribute, pDoor_cur->pPrepacket);
 }
 
 /* Door_model_set script record (22 bytes) */
@@ -200,7 +164,7 @@ ULONG Door_model_set(SCE_TASK *pSce)
     DOOR_MODEL_SET_REC *pData;
 
     pData = (DOOR_MODEL_SET_REC *)pSce->Data;
-    pDw = (DOOR_WORK *)D_800BA700[pData->Unk_01];
+    pDw = D_800BA700[pData->Unk_01];
     pDw->Id = pData->Id;
     pDw->Type = pData->Type;
     pDw->Be_flg = pData->Be_flg;
@@ -214,16 +178,16 @@ ULONG Door_model_set(SCE_TASK *pSce)
     pDw->Cdir_y = pData->Cdir_y;
     pDw->Cdir_z = pData->Cdir_z;
     if (Free_flg & 0x100) {
-        pMat = &((DOOR_WORK *)D_800BA700[Free_flg & 0xF])->Workm;
+        pMat = &D_800BA700[Free_flg & 0xF]->Workm;
     } else {
         pMat = &GsWSMATRIX;
     }
     pDw->pSuper = pMat;
     if (Free_flg & 0x2000) {
-        *(USHORT *)((UCHAR *)D_800BA6F8 + 0x240) = 1;
+        D_800BA6F8->Sound_flg = 1;
     }
     pSce->Data = (UCHAR *)(pData + 1);
-    Door_model_init((UCHAR *)pDw);
+    Door_model_init(pDw);
     return 1;
 }
 
@@ -263,7 +227,7 @@ void Door_snd_trans(void)
     G.Status_flg &= ~0x800;
 }
 
-void func_80016600(ENEMY_WORK *pEm, LONG a1, LONG a2)
+void func_80016600(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     VECTOR v;
     ULONG Flg;
@@ -280,14 +244,14 @@ void func_80016600(ENEMY_WORK *pEm, LONG a1, LONG a2)
     }
     Flg = pEm->Unk144;
     if (!(Flg & 0x10)) {
-        D_80097AA0[pEm->Routine_1](pEm, a1, a2);
+        D_80097AA0[pEm->Routine_1](pEm, pKan, pSeq);
         pEm->Unk144 &= ~0x800;
     } else if (pEm->Routine_1 != 20) {
         if (!(Flg & 0x800)) {
-            D_80097AA0[pEm->Routine_1](pEm, a1, a2);
-            func_80060464(pEm, a1, a2);
+            D_80097AA0[pEm->Routine_1](pEm, pKan, pSeq);
+            func_80060464(pEm, pKan, pSeq);
         } else {
-            func_8006037C(pEm, a1, a2, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200);
+            func_8006037C(pEm, pKan, pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200);
         }
     }
     if (pEm->Unk144 & 1) {
@@ -358,14 +322,14 @@ void func_8001688C(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = Move + 0x70000;
         pEm->Routine_2 = 1;
     case 1:
-        if ((UCHAR)func_80017148(pEm, (LONG)pKan, (LONG)pSeq)) {
+        if ((UCHAR)func_80017148(pEm, pKan, pSeq)) {
             func_80018EC8(pEm, pKan, pSeq, 0);
             pEm->Routine_2 = 2;
         }
         break;
     case 2:
         func_80018EC8(pEm, pKan, pSeq, 0);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pKan, (LONG)pSeq, 0)) {
+        if ((UCHAR)func_800171DC(pEm, pKan, pSeq, 0)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
@@ -412,14 +376,14 @@ void func_80016A40(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = Move + 0x70000;
         pEm->Routine_2 = 1;
     case 1:
-        if ((UCHAR)func_80017148(pEm, (LONG)pKan, (LONG)pSeq)) {
+        if ((UCHAR)func_80017148(pEm, pKan, pSeq)) {
             func_80018EC8(pEm, pKan, pSeq, 0);
             pEm->Routine_2 = 2;
         }
         break;
     case 2:
         func_80018EC8(pEm, pKan, pSeq, 0);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pKan, (LONG)pSeq, 0)) {
+        if ((UCHAR)func_800171DC(pEm, pKan, pSeq, 0)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
@@ -441,9 +405,9 @@ void func_80016BF4(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if (D_80097A00[pEm->Id - 0x10] & 0x80) {
-            Joint_move_(pEm, (LONG)pEm->pSub0_kan_t_ptr, (LONG)pEm->pSub0_seq_t_ptr, 0x200);
+            Joint_move(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         } else {
-            Joint_move_(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0x200);
+            Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
         }
         break;
     }
@@ -457,7 +421,7 @@ void func_80016C9C(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
+        if ((UCHAR)func_800171DC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
@@ -480,7 +444,7 @@ void func_80016DA0(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
-        if ((UCHAR)func_800171DC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0)) {
+        if ((UCHAR)func_800171DC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
@@ -501,7 +465,7 @@ void func_80016E80(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A28[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
-        if ((UCHAR)func_80017148(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr)) {
+        if ((UCHAR)func_80017148(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
@@ -522,7 +486,7 @@ void func_80016F44(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A28[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
-        if ((UCHAR)func_800172AC(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr)) {
+        if ((UCHAR)func_800172AC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
@@ -536,7 +500,7 @@ void func_80016F44(ENEMY_WORK *pEm)
     func_80017540(pEm);
 }
 
-void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
+void func_80017008(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG Flg;
     ULONG R;
@@ -549,7 +513,7 @@ void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
             pEm->UnkCA = 0;
         }
     case 1:
-        if (Joint_move_(pEm, a1, a2, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
+        if (Joint_move(pEm, pKan, pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
             pEm->Routine_2 = 2;
             if (pEm->Unk144 & 4) {
                 pEm->Routine_2 = 1;
@@ -558,7 +522,7 @@ void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
         } else {
             Flg = pEm->Unk144;
             if (Flg & 8) {
-                if (Joint_move_(pEm, a1, a2, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
+                if (Joint_move(pEm, pKan, pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
                     pEm->Routine_2 = 2;
                     if (pEm->Unk144 & 4) {
                         pEm->Routine_2 = 1;
@@ -574,33 +538,33 @@ void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
     }
 }
 
-LONG func_80017148(ENEMY_WORK *pEm, LONG a1, LONG a2)
+LONG func_80017148(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x15E) == 0) {
-        Joint_move_(pEm, a1, a2, 0x200);
+        Joint_move(pEm, pKan, pSeq, 0x200);
         return 1;
     }
     Goto00(pEm, pEm->Dest_x, pEm->Dest_z, pEm->Add_dir);
-    Joint_move_(pEm, a1, a2, 0x200);
+    Joint_move(pEm, pKan, pSeq, 0x200);
     return 0;
 }
 
-LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3)
+LONG func_800171DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG a3)
 {
     LONG x, z;
 
     Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (1 - ((USHORT)pEm->Spd_x >> 15) * 2) * pEm->Add_dir);
-    Joint_move_(pEm, a1, a2, (a3 << 16) | 0x200);
+    Joint_move(pEm, pKan, pSeq, (a3 << 16) | 0x200);
     Add_speedXZ(pEm, 0);
     x = pEm->Pos_x - pEm->Dest_x;
     z = pEm->Pos_z - pEm->Dest_z;
     return SquareRoot0(x * x + z * z) < 100;
 }
 
-LONG func_800172AC(ENEMY_WORK *pEm, LONG a1, LONG a2)
+LONG func_800172AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Goto01(pEm, pEm->Dest_x, pEm->Dest_z);
-    Joint_move_(pEm, a1, a2, 0x200);
+    Joint_move(pEm, pKan, pSeq, 0x200);
     return pEm->Cdir_y == pEm->Dest_x;
 }
 
@@ -624,7 +588,7 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Spd_y = pEm->Spd_y >> 1;
             pEm->Spd_z = pEm->Spd_z >> 1;
         }
-        if (Joint_move_(pEm, (LONG)pKan, (LONG)pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
+        if (Joint_move(pEm, pKan, pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
             pEm->Routine_2 = 2;
             if (pEm->Unk144 & 4) {
                 pEm->Routine_2 = 1;
@@ -642,7 +606,7 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             Flg = pEm->Unk144;
             if (Flg & 8) {
-                if (Joint_move_(pEm, (LONG)pKan, (LONG)pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
+                if (Joint_move(pEm, pKan, pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
                     pEm->Routine_2 = 2;
                     if (pEm->Unk144 & 4) {
                         pEm->Routine_2 = 1;
@@ -680,12 +644,12 @@ void Enemy_work_set(void)
     ppEm = &pG->pEnemy[1];
     i = 41;
     do {
-        *ppEm = (ENEMY_WORK *)((UCHAR *)pG + 0x2708);
+        *ppEm = (ENEMY_WORK *)pG->Sub_work;
         i--;
         ppEm++;
     } while (i != 0);
     Em_num = pG->Em_num;
-    pG->pEnemy[0] = (ENEMY_WORK *)((UCHAR *)pG + 0x248C);
+    pG->pEnemy[0] = (ENEMY_WORK *)&pG->Pl_be_flg;
     pG->pEnemy[0]->Be_flg = 1;
     pG->ppEnemy_end = &pG->pEnemy[2];
     if (Em_num != 0) {
@@ -725,10 +689,10 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
     pEm->pSub1_seq_t_ptr = (ULONG *)(Mem_top + pChg[6]);
     pEm->pSub1_kan_t_ptr = (ULONG *)(Mem_top + pChg[7]);
     pEm->pUnk1B4 = (ULONG *)(Mem_top + pChg[8]);
-    pEm->Unk180[0] = Mem_top + pChg[9];
-    pEm->Unk180[1] = Mem_top + pChg[10];
-    pEm->Unk180[2] = Mem_top + pChg[11];
-    pEm->Unk180[3] = Mem_top + pChg[12];
+    pEm->pUnk180_seq_t_ptr = (ULONG *)(Mem_top + pChg[9]);
+    pEm->pUnk184_kan_t_ptr = (ULONG *)(Mem_top + pChg[10]);
+    pEm->pUnk188_seq_t_ptr = (ULONG *)(Mem_top + pChg[11]);
+    pEm->pUnk18C_kan_t_ptr = (ULONG *)(Mem_top + pChg[12]);
     pEm->pTmd = (ULONG *)(Mem_top + pChg[14]);
     pEm->Poly_rgb = 0x808080;
     pEm->pUnk174 = (void *)(Mem_top + pChg[13]);
@@ -770,10 +734,10 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
         pEm->pSub1_seq_t_ptr = pData->pSub1_seq_t_ptr;
         pEm->pSub1_kan_t_ptr = pData->pSub1_kan_t_ptr;
         pEm->pUnk1B4 = pData->pUnk1B4;
-        pEm->Unk180[0] = pData->Unk180[0];
-        pEm->Unk180[1] = pData->Unk180[1];
-        pEm->Unk180[2] = pData->Unk180[2];
-        pEm->Unk180[3] = pData->Unk180[3];
+        pEm->pUnk180_seq_t_ptr = pData->pUnk180_seq_t_ptr;
+        pEm->pUnk184_kan_t_ptr = pData->pUnk184_kan_t_ptr;
+        pEm->pUnk188_seq_t_ptr = pData->pUnk188_seq_t_ptr;
+        pEm->pUnk18C_kan_t_ptr = pData->pUnk18C_kan_t_ptr;
     }
     if (pEm->Id >= 0x50 && (pG->Status_flg & 0x20000000)) {
         pG->Status_flg &= ~0x20000000;
@@ -789,10 +753,10 @@ ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
         pEm->pSub1_seq_t_ptr -= Work;
         pEm->pSub1_kan_t_ptr -= Work;
         pEm->pUnk1B4 -= Work;
-        pEm->Unk180[0] -= Work * 4;
-        pEm->Unk180[1] -= Work * 4;
-        pEm->Unk180[2] -= Work * 4;
-        pEm->Unk180[3] -= Work * 4;
+        pEm->pUnk180_seq_t_ptr -= Work;
+        pEm->pUnk184_kan_t_ptr -= Work;
+        pEm->pUnk188_seq_t_ptr -= Work;
+        pEm->pUnk18C_kan_t_ptr -= Work;
     }
     func_8002AB34(pEm->pTmd, pEm->Tpage, pEm->Clut);
     pEm->pTmd += 2;

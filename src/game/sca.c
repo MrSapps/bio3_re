@@ -3,17 +3,14 @@
  * the collision object list of oba.c. RE3 shapes are two corners (see sca.h);
  * shapes with Type & 0x1000 are rotated by 45 degrees (181 / 256 = cos 45).
  */
-#include "em_sub.h"
-#include "main.h"
 #include "sca.h"
-#include "oba.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
 
-void func_8004B7E8(ENEMY_WORK *pEm, LONG Arg1, LONG Y)
+void func_8004B7E8(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
 {
     pEm->Unk122 = Y;
     pEm->nFloor = Y / -1800;

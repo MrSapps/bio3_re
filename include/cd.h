@@ -140,8 +140,8 @@ extern UCHAR D_800E06AC;
 extern SHORT D_800E0DD8;
 
 void Xa_play(ULONG mode, ULONG no);
-ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, char *Mess);
-ULONG Cd_read(ULONG File_no, ULONG *Address, ULONG Mode, char *Mess); /* RE2 Cd_read */
+ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, const char *Mess);
+ULONG Cd_read(ULONG File_no, ULONG *Address, ULONG Mode, const char *Mess); /* RE2 Cd_read */
 void func_80012ECC(tagCD *pCd);
 void func_800130A0(tagCD *pCd);
 void func_80013754(void);

@@ -17,7 +17,7 @@
 extern void (*Em2c_routine_0[])() __asm__("D_801004E4");
 
 void func_8010001C(ENEMY_WORK *pEm);
-void func_80100060(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801004B0(ENEMY_WORK *pEm);
 
 #endif /* OVL_EM2C_H */

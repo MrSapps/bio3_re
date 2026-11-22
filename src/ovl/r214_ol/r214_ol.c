@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/r214_ol.h"
 #include "psp.h"
 #include "sce1.h"
@@ -74,7 +73,7 @@ void func_801C2210(void)
 
     switch (pRw->Routine) {
     case 0:
-        Mess_set(0xB90022, 0x3400, &R214_mess[R214_mess_ofs[pRw->Num - 1]], 0);
+        Mess_set(0xB90022, 0x3400, (ULONG)&R214_mess[R214_mess_ofs[pRw->Num - 1]], 0);
         pRw->Routine++;
         break;
     case 1:

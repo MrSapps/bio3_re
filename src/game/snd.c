@@ -1,19 +1,11 @@
-#include "sub.h"
-#include "pcstr.h"
 #include "snd.h"
-#include "em_sub.h"
 #include "cd.h"
-#include "status.h"
 #include "pad.h"
 #include "player.h"
 #include "sca.h"
 #include "sld.h"
-#include "spl_sce.h"
 
 int func_800783BC_() __asm__("func_800783BC"); /* returns int here (canonical void); unprototyped call */
-
-#define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
-#define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
@@ -751,7 +743,7 @@ void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan)
 
 /* sequencer tick (SPU root counter event): advances the sequences, keys the voices
    they requested and applies the fades */
-void func_80075C30(void)
+LONG func_80075C30(void) /* event handler (OpenEvent); returns nothing */
 {
     SND_WORK *pW = &Snd_work;
     SND_SEQ *pSeq;
@@ -864,7 +856,7 @@ void func_80075C30(void)
     }
 }
 
-void func_80076114(UCHAR *pSeq, UCHAR *pTr)
+void func_80076114(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     SND_WORK *pW;
     VabHdr *pVh;
@@ -872,41 +864,41 @@ void func_80076114(UCHAR *pSeq, UCHAR *pTr)
     VagAtr *pVag;
     ProgAtr *pPa;
 
-    pTr[0xC] = **(UCHAR **)(pSeq + 4);
-    (*(UCHAR **)(pSeq + 4))++;
-    vel = **(UCHAR **)(pSeq + 4);
-    (*(UCHAR **)(pSeq + 4))++;
+    pTr->Note = *pSeq->pData;
+    pSeq->pData++;
+    vel = *pSeq->pData;
+    pSeq->pData++;
     pW = &Snd_work;
-    pVh = (VabHdr *)((SND_WORK *)pW)->Bank[pTr[0xF]].pHead;
-    pTr[0xB] = pW->Vol.Bgm * pVh->mvol / 127;
-    pTr[0xB] = pTr[0xB] * pTr[0xA] / 127;
-    pTr[0xB] = pTr[0xB] * pTr[7] / 127;
-    pTr[0xB] = pTr[0xB] * pW->Vol.Master / 127;
-    pTr[0xB] = pTr[0xB] * vel / 127;
-    pVag = (VagAtr *)((SND_WORK *)pW)->Bank[pTr[0xF]].Unk4 + pTr[6] * *(LONG *)((UCHAR *)pVh + 0xC);
-    pPa = (ProgAtr *)pVh + pTr[6] + 2;
-    func_800762C8(pSeq, pTr, Snd_tone_mask(pVag, (SND_TRACK *)pTr, pPa->tones));
-    *(LONG *)(pSeq + 0xC) = Snd_seq_get_vlq((UCHAR **)(pSeq + 4));
+    pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
+    pTr->UnkB = pW->Vol.Bgm * pVh->mvol / 127;
+    pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
+    pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
+    pTr->UnkB = pTr->UnkB * pW->Vol.Master / 127;
+    pTr->UnkB = pTr->UnkB * vel / 127;
+    pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * *(LONG *)&pVh->fsize;
+    pPa = (ProgAtr *)pVh + pTr->Prog + 2;
+    func_800762C8(pSeq, pTr, Snd_tone_mask(pVag, pTr, pPa->tones));
+    pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-void func_800762C8(UCHAR *pSeq, UCHAR *pTr, ULONG mask)
+void func_800762C8(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask)
 {
     UCHAR v;
     ULONG b;
 
-    pTr[0xD] = 0;
+    pTr->UnkD = 0;
     while (mask != 0) {
         if (mask & 1) {
-            v = func_80077220(FLD(pSeq, 0x26, SHORT), pTr[6], pTr[0xD], pTr[0xC]);
+            v = func_80077220(pSeq->No, pTr->Prog, pTr->UnkD, pTr->Note);
             if (v != 0xFF) {
                 b = 1 << v;
                 Snd_work.UnkB2C |= b;
                 Snd_work.UnkB34 |= b;
-                FLD(pTr, 0, ULONG) &= ~b;
+                pTr->Mask &= ~b;
             }
         }
         mask >>= 1;
-        pTr[0xD]++;
+        pTr->UnkD++;
     }
 }
 
@@ -997,7 +989,7 @@ void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
             pTr->UnkD++;
         }
     } else {
-        func_800762C8((UCHAR *)pSeq, (UCHAR *)pTr, mask);
+        func_800762C8(pSeq, pTr, mask);
     }
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
@@ -1364,7 +1356,7 @@ void Snd_se_enem(ULONG no, ENEMY_WORK *pEm)
     v.vx = pEm->Pos_x;
     v.vy = pEm->Pos_y;
     v.vz = pEm->Pos_z;
-    if (*((UCHAR *)pEm + 0x12F) == D_800BA6E8[3]) {
+    if (pEm->Unk12F == D_800BA6E8[3]) {
         no += 0x10;
     }
     Snd_se_stad(no | 0x10300, &v, 0, 0);
@@ -1378,7 +1370,7 @@ void func_80077618(LONG no, UCHAR parts, ENEMY_WORK *pEm)
     v.vx = p->Workm.t[0];
     v.vy = p->Workm.t[1];
     v.vz = p->Workm.t[2];
-    if (*((UCHAR *)pEm + 0x12F) == D_800BA6E8[3]) {
+    if (pEm->Unk12F == D_800BA6E8[3]) {
         no += 0x10;
     }
     Snd_se_stad(no | 0x10300, &v, 0, 0);
@@ -1394,10 +1386,10 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     LONG se;
 
     pP = &pEm->pSin_parts_ptr[parts];
-    se = func_80077B84(pP->Workm.t[0], pP->Workm.t[2], FLD(pEm, 9, signed char)) & 0x7F;
-    if (FLD(pEm, 0xA, SHORT) != 0) {
+    se = func_80077B84(pP->Workm.t[0], pP->Workm.t[2], pEm->nFloor) & 0x7F;
+    if (pEm->Water != 0) {
         se = 0x17;
-        if (FLD(pEm, 0xA, SHORT) == 1) {
+        if (pEm->Water == 1) {
             t.vx = 0x400;
             s.vx = 0;
             s.vy = 0;
@@ -1407,7 +1399,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
             func_8001B484(0xE, (USHORT)G.Pl_cdir_y | 0x10000000, &pP->Workm, &s, &t);
         } else {
             pP--;
-            s.vy = FLD(pEm, 0xA, SHORT) - pP->Workm.t[1];
+            s.vy = pEm->Water - pP->Workm.t[1];
             se = 0x1A;
             if (parts < 12) {
                 s.vz = -0xA0;
@@ -1470,7 +1462,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
         }
     }
     kind = se - -kind;
-    if (EM_P(pEm, 0x1CA, USHORT)) {
+    if (pEm->Unk1CA) {
         kind = 0x2D;
     }
     v.vx = pP->Workm.t[0];

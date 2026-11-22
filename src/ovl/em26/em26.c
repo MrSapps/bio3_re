@@ -1,7 +1,5 @@
-#include "common.h"
 #include "ovl/em26.h"
 #include "joint.h"
-#include "sca.h"
 #include "sce_at.h"
 #include "snd.h"
 #include "sld.h"
@@ -19,7 +17,7 @@ void func_8010001C(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em26_Init; Type 0 spawns a swarm of 16 copies */
-void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG i;
     ENEMY_WORK *pCp;
@@ -31,7 +29,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     for (i = 0; i < 12; i++)
         pEm->Unk1CC[i] = 0;
     EM_MOVE(pEm) = 0xF0000;
-    Joint_move(pEm, Kan, Seq, 0x400);
+    Joint_move(pEm, pKan, pSeq, 0x400);
     pEm->Unk120 = 0;
     pEm->Neck_no = 0;
     EM26_W(pEm)->Kasakasarot = 0x78;
@@ -72,7 +70,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         for (i = 0; i < 16; i++) {
             pCp = Em_work_add(pEm);
             EM_MOVE(pEm) = 0xF0000;
-            Joint_move(pCp, Kan, Seq, 0x400);
+            Joint_move(pCp, pKan, pSeq, 0x400);
             pCol = EM_COL(pCp);
             pCp->Unk136 = -300;
             pCp->Unk138 = 0x50;
@@ -90,7 +88,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pCol->Flg = 0;
             pCol->Type = 2;
             func_80033580(pCol, 0);
-            Kage_work_set((ULONG *)&pCp->pKage_work, 0, 0xC800C8, 0, (VECTOR *)&pCp->Pos_x);
+            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pCp->Pos_x);
         }
         break;
     case 1:
@@ -106,29 +104,29 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         break;
     }
     func_80033580(EM_COL(pEm), 0);
-    Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
 }
 
 /* RE2 Em26_Move */
-void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Em26_move_tbl[pEm->Routine_1](pEm, Kan, Seq);
+    Em26_move_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em26_Mv_dummy */
-void func_801003EC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_801003EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Joint_move(pEm, Kan, Seq, 0x400);
+    Joint_move(pEm, pKan, pSeq, 0x400);
 }
 
 /* RE2 Em26_Mv_walk */
-void func_8010040C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
     LONG Dir0;
     LONG Dist;
 
-    Em26_mv_walk_tbl[pEm->Routine_2](pEm, Kan, Seq);
+    Em26_mv_walk_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     pTg = EM26_W(pEm)->pTarget_pl;
     Dir0 = Goto00_ck(pEm, pTg->Pos_x, pTg->Pos_z, 0x100);
     if (EM26_W(pEm)->No_catch_cnt)
@@ -159,7 +157,7 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em26_Mv_walk00: wait */
-void func_80100614(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100614(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
     case 0:
@@ -184,7 +182,7 @@ void func_80100614(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em26_Mv_walk10: run at the target */
-void func_80100724(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
 
@@ -214,7 +212,7 @@ void func_80100724(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em26_Mv_fall */
-void func_80100848(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Hit;
     SHORT Ground;
@@ -253,7 +251,7 @@ void func_80100848(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em26_Mv_jump */
-void func_8010098C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Hit;
     EM26_FREE *pFp;
@@ -292,7 +290,7 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em26_Mv_swim */
-void func_80100AD4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
     LONG Dir0;
@@ -308,7 +306,7 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     Dir0 = Goto00_ck(pEm, pTg->Pos_x, pTg->Pos_z, 0x100);
     pEm->Cdir_y += EM26_W(pEm)->Kasakasarot + pEm->UnkDA;
     EM26_W(pEm)->Kasakasarot *= -1;
-    Joint_move(pEm, Kan, Seq, 0x400);
+    Joint_move(pEm, pKan, pSeq, 0x400);
     if (!(++pEm->UnkE2 & 0xF)) {
         func_8010100C(pEm, 0, 0x82);
         pEm->UnkE2 += func_800102E8() & 7;
@@ -333,7 +331,7 @@ void func_80100C94(void) {
 }
 
 /* RE2 Em26_dm00 */
-void func_80100C9C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100C9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -352,22 +350,22 @@ void func_80100CD0(void) {
 }
 
 /* RE2 Em26_Die */
-void func_80100CD8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (Water_ck(pEm->Pos_x, pEm->Pos_z) >= pEm->Unk122 || EM26_W(pEm)->Jump_flg)
-        func_80100D5C(pEm, Kan, Seq);
+        func_80100D5C(pEm, pKan, pSeq);
     else
-        func_80100E38(pEm, Kan, Seq);
+        func_80100E38(pEm, pKan, pSeq);
 }
 
 /* RE2 Em26_Die00 */
-void func_80100D5C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     KAGE_WORK *pKage;
 
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
-        pKage = (KAGE_WORK *)pEm->pKage_work;
+        pKage = pEm->Kage.pKw;
         if (!EM26_W(pEm)->Jump_flg) {
             *(ULONG *)&pKage->Prim[0].r0 &= 0xFF000000;
             *(ULONG *)&pKage->Prim[0].r0 |= 0xBF10BF;
@@ -386,13 +384,13 @@ void func_80100D5C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 }
 
 /* RE2 Em26_Die10: sink */
-void func_80100E38(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100E38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Be_flg |= 0x4000;
     pEm->Pos_y += 30;
     pEm->Cdir_y += 0x20;
     pEm->Cdir_z += 0x40;
-    Joint_move(pEm, Kan, Seq, 0x400);
+    Joint_move(pEm, pKan, pSeq, 0x400);
     if (pEm->Pos_y >= pEm->Unk122 || pEm->Pos_y < pEm->Water)
         KILL_ENEMY_WORK(pEm);
 }

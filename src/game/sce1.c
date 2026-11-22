@@ -1,20 +1,10 @@
-#include "sce0.h"
-#include "em_sub.h"
-#include "main.h"
 #include "sca.h"
 #include "line_scr.h"
 #include "sub.h"
-#include "player.h"
-#include "om.h"
 #include "snd.h"
-#include "esp.h"
-#include "cd.h"
 #include "status.h"
 #include "door.h"
 #include "movie.h"
-#include "pad.h"
-#include "psp.h"
-#include "room.h"
 #include "sce1.h"
 
 extern UCHAR D_800E017F_[] __asm__("D_800E017F"); /* type differs from the canonical extern */
@@ -1430,7 +1420,7 @@ ULONG Pos_set(SCE_TASK *pSce)
     pW->Pos_y = y;
     pW->Unk40[2] = z;
     pW->Pos_z = z;
-    func_80034124((UCHAR *)pW + 0x80);
+    func_80034124((COL_OBJ *)&pW->Col_id);
     pSce->Data = pData + 8;
     return 1;
 }

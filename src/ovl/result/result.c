@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/result.h"
 #include "sub.h"
 
@@ -394,7 +393,7 @@ void func_801C3724(RESULT_WORK *pWk)
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     func_800782F4(0, 0x3D, (ULONG *)0x801F7E00);
     func_800783BC_(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
-    func_8007809C(0, 0xD, 0x801FBC00, 0x80180000);
+    func_8007809C(0, 0xD, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
@@ -754,7 +753,7 @@ void func_801C49FC(RESULT_WORK *pWk)
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     func_800782F4(0, 0x3D, (ULONG *)0x801F7E00);
     func_800783BC_(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
-    func_8007809C(0, 0xD, 0x801FBC00, 0x80180000);
+    func_8007809C(0, 0xD, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;

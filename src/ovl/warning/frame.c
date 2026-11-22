@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/warning.h"
 
 /* red frame with rounded corners behind the message */

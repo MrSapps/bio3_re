@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/epilog.h"
 #include "pad.h"
 #include "sld.h"

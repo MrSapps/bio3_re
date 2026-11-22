@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/title.h"
 #include "cd.h"
 #include "game.h"
@@ -121,9 +120,9 @@ void func_80194444(TITLE_WORK *pTi)
     Main.Vloop = 1;
     Fade_set(1, 1, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
     if (!(G.System_flg & 0x80)) {
-        func_8007809C(0, 1, 0x801FBC00, 0x801C1814);
+        func_8007809C(0, 1, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
     } else {
-        func_8007809C(0, 11, 0x801FBC00, 0x801C1814);
+        func_8007809C(0, 11, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
     }
     Cd_read(0x121, (ULONG *)0x801F7E00, 1, "OPTION BGM");
     func_800782F4(0, 0x38, (ULONG *)0x801F7E00);
@@ -605,16 +604,16 @@ void func_801954D0(TITLE_WORK *pTi)
     case 5:
     case 6:
     case 7:
-        func_8007809C(0, 2, 0x801FBC00, 0x801C1814);
+        func_8007809C(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     case 8:
-        func_8007809C(0, 8, 0x801FBC00, 0x801C1814);
+        func_8007809C(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     case 9:
-        func_8007809C(0, 9, 0x801FBC00, 0x801C1814);
+        func_8007809C(0, 9, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     case 10:
-        func_8007809C(0, 10, 0x801FBC00, 0x801C1814);
+        func_8007809C(0, 10, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     }
     Task_chain(Game_loop);

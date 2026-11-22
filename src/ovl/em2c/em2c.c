@@ -1,4 +1,3 @@
-#include "common.h"
 #include "ovl/em2c.h"
 #include "joint.h"
 #include "md_sub.h"
@@ -10,7 +9,7 @@ void func_8010001C(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em2c_Init */
-void func_80100060(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
+void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     /* parts hidden for Type 3.. : -1 separated lists, list n hides for Type >= n + 3 */
     signed char Hide[23] = {
@@ -26,11 +25,11 @@ void func_80100060(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     } else {
         EM_MOVE(pEm) = 0;
     }
-    Joint_move(pEm, Kan, Seq, 0x100);
+    Joint_move(pEm, pKan, pSeq, 0x100);
     if (!(pEm->Type & 0xF)) {
-        Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0x2260226, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x2260226, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
     } else {
-        Kage_work_set((ULONG *)&pEm->pKage_work, 0, 0x44C044C, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x44C044C, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
     }
     pEm->Unk134 = 1500;
     pEm->Unk136 = -1000;
@@ -106,7 +105,7 @@ __asm__(".section .rodata\n\t.byte 0xFE\n\t.section .text");
 /* RE2 Em2c_Move: grow the shadow of Type 0 */
 void func_801004B0(ENEMY_WORK *pEm)
 {
-    KAGE_WORK9 *pK = pEm->pKage_work;
+    KAGE_WORK9 *pK = pEm->Kage.pKw9;
 
     if (!pEm->Type) {
         if (pK->Half_x < 1100) {

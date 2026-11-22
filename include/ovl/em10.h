@@ -27,7 +27,7 @@ typedef struct tagEM10_FREE {
     SHORT Unk08;                       /* 0x08 (0x1D4) */
     UCHAR Unk0A;                       /* 0x0A (0x1D6) RE2 FREE_UB(0xa) */
     signed char Unk0B;                 /* 0x0B (0x1D7) RE2 FREE_UB(0xb), (Rnd() & 0xF) + 0x10 */
-    ULONG Unk0C;                       /* 0x0C (0x1D8) */
+    KAGE_WORK *pKage;                  /* 0x0C (0x1D8) second shadow (Kage_work_set) */
     ULONG Routine;                     /* 0x10 (0x1DC) copy of Routine_0..3 (RE2 OVL_FREE[4]) */
     ULONG Unk14;                       /* 0x14 (0x1E0) */
     UCHAR Unk18;                       /* 0x18 (0x1E4) RE2 FREE_UB(0x18), G.Unk75EA bit 0 when it runs out */

@@ -40,7 +40,7 @@ typedef struct tagPARTS_RGB_FREE_WORK {
 } PARTS_RGB_FREE_WORK;
 #define PW_RGB(p) ((PARTS_RGB_FREE_WORK *)&(p)->Unk74)
 
-ULONG func_80028308(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg); /* RE2 Joint_move_p */
+ULONG func_80028308(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg); /* RE2 Joint_move_p */
 ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top); /* PartsWork_set */
 void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan); /* part positions from kan data */
 
@@ -61,15 +61,15 @@ void func_80026498(ENEMY_WORK *pEm);
 void func_80026648(ENEMY_WORK *pEm);
 void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate);
 void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate);
-void Joint_move(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg);
-void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg);
+ULONG J_seq(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate);
-ULONG func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg);
+ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg);
 void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
 void func_8002783C(PARTS_W *pP_ptr);
-void Joint_move2(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg); /* RE2 JOINT.C Joint_move */
-ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-ULONG func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg);
+ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg); /* RE2 JOINT.C Joint_move */
+ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg);
 void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
 void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
 

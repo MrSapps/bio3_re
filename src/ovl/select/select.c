@@ -1,9 +1,7 @@
-#include "common.h"
 #include "ovl/select.h"
 #include "cd.h"
 
 void func_800251FC_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC"); /* 4 args here (canonical 3) */
-ULONG Joint_move2_(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg) __asm__("Joint_move2"); /* returns unsigned long here (canonical void); arg 2 unsigned long* (canonical unsigned long); arg 3 unsigned long* (canonical unsigned long) */
 
 /* RE2 Select_main */
 void func_801C2094(void)
@@ -58,11 +56,11 @@ void func_801C20FC(void)
         Select_obj[3].Y += 10;
     }
     pG->pEm = pG->pEnemy[0];
-    pG->Unk208C = (ULONG)((ULONG *)pSel->pHeap + pG->Cbuf_id * 13);
+    pG->pUnk208C = (POLY_GT4 *)((ULONG *)pSel->pHeap + pG->Cbuf_id * 13);
     for (n = 3, i = 0; n != 0; i++, n--) {
         pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
-        pEm->Unk7C = (ULONG)pG->pOt1;
+        pEm->pUnk7C = pG->pOt1;
         func_801C28D0(pEm);
         func_800251FC_(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
         func_801C39A4(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
@@ -87,7 +85,7 @@ void func_801C235C(void)
     Main.Vloop = 2;
     Main.Unk191 = 1;
     func_801C4774();
-    func_8007809C(0, 0xC, 0x801FBC00, 0x80180000);
+    func_8007809C(0, 0xC, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Bg_set_mode(2, 0);
     func_801C2DE0();
     Set_view(pView->Eye, pView->Ref);
@@ -331,7 +329,7 @@ void func_801C2E1C(void)
                 pEm->Timer0 = 0;
                 pEm->Routine_2 = 1;
             case 1:
-                Joint_move2_(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
+                Joint_move2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
                 break;
             case 2:
                 *(ULONG *)&pEm->Move_no = 0x70002;
@@ -351,7 +349,7 @@ void func_801C2E1C(void)
                 if (pEm->Move_cnt == 0x1C) {
                     Snd_se_stad(5, NULL, 0, 0);
                 }
-                if (Joint_move2_(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200) != 0) {
+                if (Joint_move2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200) != 0) {
                     pEm->Routine_2 = 4;
                 }
                 break;
@@ -366,7 +364,7 @@ void func_801C2E1C(void)
                 pEm->Timer0 = 0;
                 pEm->Routine_2 = 1;
             case 1:
-                Joint_move2_(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
+                Joint_move2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
                 break;
             case 2:
                 *(ULONG *)&pEm->Move_no = 0x70001;
@@ -390,7 +388,7 @@ void func_801C2E1C(void)
                 if (pEm->Move_cnt == 0x14) {
                     Snd_se_stad(6, NULL, 0, 0);
                 }
-                if (Joint_move2_(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200) != 0) {
+                if (Joint_move2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200) != 0) {
                     pEm->Routine_2 = 4;
                 }
                 break;
@@ -405,7 +403,7 @@ void func_801C2E1C(void)
                 pEm->Timer0 = 0;
                 pEm->Routine_2 = 1;
             case 1:
-                Joint_move2_(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
+                Joint_move2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
                 break;
             case 2:
                 *(ULONG *)&pEm->Move_no = 0x70001;
@@ -421,7 +419,7 @@ void func_801C2E1C(void)
                 if (pEm->Move_cnt == 0x20) {
                     Snd_se_stad(7, NULL, 0, 0);
                 }
-                if (Joint_move2_(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200) != 0) {
+                if (Joint_move2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200) != 0) {
                     pEm->Routine_2 = 4;
                 }
                 break;

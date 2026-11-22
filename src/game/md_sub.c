@@ -1,16 +1,5 @@
-#include "common.h"
-#include "main.h"
-#include "mojidisp.h"
-#include "monitor.h"
-#include "pad.h"
-#include "trans.h"
-#include "line_scr.h"
-#include "em_sub.h"
-#include "pl_wep.h"
 #include "sub.h"
 #include "joint.h"
-#include "sca.h"
-#include "cd.h"
 #include "sce0.h"
 #include "md_sub.h"
 #include "sld.h"
@@ -282,7 +271,7 @@ typedef struct tagKAN_FRAME3 {
 /* target rotation x/y (Unk90/Unk92) written as one word */
 #define ROT_XY(p) (*(ULONG *)&(p)->Unk90)
 
-void func_8002B2BC(KAN_HEAD *pKan, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late)
+void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -298,9 +287,9 @@ void func_8002B2BC(KAN_HEAD *pKan, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late)
         return;
     }
     pEm->Be_flg |= 0x4000000;
-    Base = *(USHORT *)(Seq_t_ptr + pEm->Move_no * 8 + 4);
-    pFrame = (ULONG *)((UCHAR *)pKan + pKan->Bone_ofs);
-    pF0 = (KAN_FRAME3 *)(pFrame + (pKan->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq));
+    Base = *(USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8 + 4);
+    pFrame = (ULONG *)((UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs);
+    pF0 = (KAN_FRAME3 *)(pFrame + (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq));
     pP = pEm->pSin_parts_ptr;
     pP->UnkAE = (pF0->Pos_y * pEm->Unk12A) >> 12;
     pP->UnkAC = pF0->Pos_x;
@@ -314,12 +303,12 @@ void func_8002B2BC(KAN_HEAD *pKan, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late)
             pSeq++;
         } while (*pSeq & 0x100);
     }
-    pFrame += (pKan->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq);
+    pFrame += (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq);
     pF = (KAN_FRAME3 *)pFrame;
     pP->UnkB6 = ((pF->Pos_y * pEm->Unk12A) >> 12) - pP->UnkAE;
     pP->UnkB4 = pF->Pos_x - pP->UnkAC;
     pP->UnkB2 = pF->Pos_z - pP->UnkB0;
-    Parts_cnt = *(USHORT *)&pKan->Rec_sz;
+    Parts_cnt = *(USHORT *)&((KAN_HEAD *)pKan)->Rec_sz;
     pFrame = pF->Rot;
     n = Parts_cnt;
 loop:
@@ -454,7 +443,7 @@ POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     if (cnt0 == 0) {
         return pPacket;
     }
-    ot = (ULONG *)G.pEm->Unk7C;
+    ot = G.pEm->pUnk7C;
     p_prim = pObj->pPrim3;
     np = (SVECTOR *)pObj->pNorm;
     sp = (SVECTOR *)pObj->pVert;
@@ -574,7 +563,7 @@ POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     sp = (SVECTOR *)pObj->pVert;
     np = (SVECTOR *)pObj->pNorm;
     p_prim = pObj->pPrim4;
-    ot = (ULONG *)G.pEm->Unk7C;
+    ot = G.pEm->pUnk7C;
     Tb_no = (USHORT)pP->Unk7C;
     Tb_lo = Tb_no & 0x7FFF;
     Tb_hi = Tb_no >> 15;
@@ -751,7 +740,7 @@ POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
         return pPacket;
     }
     ReadLightMatrix(&D_800D4550);
-    SetLightMatrix(&D_80098B08);
+    SetLightMatrix((MATRIX *)&D_80098B08); /* the light matrix starts with the MODEL_COL fields */
     ot = pPrm->pOt;
     np = (SVECTOR *)pPrm->pObj->pNorm;
     p = (LONG *)pPrm->pObj->pPrim3;
@@ -1006,7 +995,7 @@ next:
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002CF90);
 
 /* project the vertices flattened onto the floor (y clamped to <= 0) into screen xy / z tables */
-void func_8002D184(ULONG *pXy, SHORT *pZ, MD_OBJ *pObj, MATRIX *pM)
+void func_8002D184(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM)
 {
     LONG Z[3];
     SVECTOR Sv[3];
@@ -1190,11 +1179,11 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
     pMd = (MODEL_HEAD *)&pEm->Attribute;
     Dir = pEm->Cdir_y;
     Prm.pObj = pMd->pObj;
-    Prm.pOt = (ULONG *)pEm->Unk7C;
+    Prm.pOt = pEm->pUnk7C;
     Prm.u.Rgb = pMd->Poly_rgb;
     func_8002D5D8(Sxy, Sz, pMd->pObj);
     Prm.u.c.Code = (Abr << 1) | 0x3C;
-    func_8002AF9C(&Prm, (POLY_GT4 *)pEm->Unk180[2] + G.Cbuf_id, Sxy, Sz);
+    func_8002AF9C(&Prm, (POLY_GT4 *)pEm->pUnk188_seq_t_ptr + G.Cbuf_id, Sxy, Sz);
     Dir = (Dir & 0xFFF) >> 10;
     switch (Dir) {
     case 0:
@@ -1222,7 +1211,7 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
         Pos.vz = pEm->Pos_z + 0x384;
         break;
     }
-    pPrim = (POLY_GT4 *)pEm->Unk180[2];
+    pPrim = (POLY_GT4 *)pEm->pUnk188_seq_t_ptr;
     pPrim += G.Cbuf_id;
     pBits = &D_80098BA8[D_80098B8C[pEm->Type]];
     W = D_80098B58[pEm->Type][0];
@@ -1267,20 +1256,20 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
         }
         break;
     }
-    Draw_list_all((ULONG)pEm, W, H);
+    Draw_list_all(pEm, W, H);
 }
 
-void Draw_list_all(ULONG Arg0, ULONG Arg1, ULONG Arg2)
+void Draw_list_all(ENEMY_WORK *pFloor, ULONG W, ULONG H)
 {
     ENEMY_WORK **ppEm;
 
-    func_8002EB9C(Arg0, Arg1, Arg2, G.pEnemy[0]);
+    func_8002EB9C(pFloor, W, H, G.pEnemy[0]);
     if (G.pEnemy[1]->Be_flg & 1) {
-        func_8002EB9C(Arg0, Arg1, Arg2, G.pEnemy[1]);
+        func_8002EB9C(pFloor, W, H, G.pEnemy[1]);
     }
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         if ((*ppEm)->Be_flg & 1) {
-            func_8002EB9C(Arg0, Arg1, Arg2, *ppEm);
+            func_8002EB9C(pFloor, W, H, *ppEm);
         }
     }
 }
@@ -1347,7 +1336,7 @@ found:
     }
     Cnt--;
     pG = &G;
-    pPrim = (POLY_GT4 *)pFloor->Unk180[2];
+    pPrim = (POLY_GT4 *)pFloor->pUnk188_seq_t_ptr;
     pPrim += pG->Cbuf_id;
     pPrim += Cnt * 2;
     Tag = pPrim->tag;

@@ -37,18 +37,18 @@ extern void (*Em39_mv_br_unk[])() __asm__("D_80101448"); /* unused routine; poin
 extern UCHAR Em39_move_rnd[8] __asm__("D_80101448"); /* random idle motions */
 
 void func_80100004(ENEMY_WORK *pEm);
-void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void func_80100588(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void func_801005C4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void func_80100648(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80100588(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801005C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80100648(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801006CC(ENEMY_WORK *pEm);
-void func_8010079C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_8010079C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801008E0(void);
-void func_801008E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100DB8(void);
 void func_80100DC0(void);
 void func_80100DC8(void);
-void func_80100DD0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80101094(void);
 void func_8010109C(void);
 void func_801010A4(void);

@@ -51,10 +51,9 @@ void Om_trans(void);
 void func_80037C38(void); /* set the OT pointer of every enemy and object model */
 
 extern OM_BREAK_TBL D_8009CBEC[];
-extern ULONG D_8009CC54[];
+extern struct tagHIT_ATTR *D_8009CC54[]; /* attack data per object type */
 extern void (*D_8009CC64[])(OBJ_MODEL_WORK *pOm);
 extern UCHAR D_800CC84B;
-extern ULONG D_800CC87C;
 extern ULONG D_800D20D4[];
 extern SHORT D_800DD492;
 extern SHORT D_800DD494;
@@ -74,7 +73,7 @@ extern SHORT D_800DE61E;
 void func_80035790(ENEMY_WORK *pEm, ULONG *pData);
 PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
 void func_8003589C(OBJ_MODEL_WORK *pOm, ULONG *pKan);
-void func_80035B84(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Arg2, ULONG Arg3);
+void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos);
 void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
 void Col_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr);
 void Om_move(void);
@@ -87,9 +86,9 @@ void func_80036D94(OBJ_MODEL_WORK *pOm);
 void func_80036F78(OBJ_MODEL_WORK *pOm);
 void func_8003749C(OBJ_MODEL_WORK *pOm);
 void func_80037680(OBJ_MODEL_WORK *pOm);
-void func_8003783C(ENEMY_WORK *pEm);
-void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1); /* takes an OBJ_MODEL_WORK */
-ULONG func_80037D50(VECTOR *pPos);
+void func_8003783C(OBJ_MODEL_WORK *pOm);
+void func_80037A90(ENEMY_WORK *pEm, ULONG Arg1);
+ULONG *func_80037D50(VECTOR *pPos); /* ordering table for a position */
 void func_80037E80(void);
 
 #endif /* OM_H */

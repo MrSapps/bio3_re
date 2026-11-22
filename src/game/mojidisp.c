@@ -1,26 +1,9 @@
 /* ---- from 80020298.c ---- */
-#include "common.h"
-#include "main.h"
 #include "mojidisp.h"
 #include "monitor.h"
-#include "pad.h"
-#include "trans.h"
-#include "line_scr.h"
-#include "em_sub.h"
-#include "pl_wep.h"
 #include "sub.h"
-#include "joint.h"
-#include "sca.h"
-#include "cd.h"
 #include "sce0.h"
-#include "md_sub.h"
-#include "esp.h"
 #include "game.h"
-#include "oba.h"
-#include "om.h"
-#include "movie.h"
-#include "player.h"
-#include "sld.h"
 #include "snd.h"
 #include "status.h"
 
@@ -235,10 +218,6 @@ void Moji_trans_main(void)
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Mess_disp);
 /* ---- from 800303CC.c ---- */
 
-/* ENEMY_WORK fields not in em_sub.h yet */
-#define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
-#define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
-
 ULONG func_800303CC(ULONG Val)
 {
     if (Val == 0) {
@@ -389,7 +368,7 @@ void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
         break;
     }
     if (pMoji->Mess_time & ((Main.Vloop == 1) ? 0x30 : 0x18)) {
-        pL = &((LINE_F3 *)((UCHAR *)pMoji + 0x7508))[G.Cbuf_id * 4];
+        pL = pMoji->Cursor_line[G.Cbuf_id];
         SetLineF3(pL);
         *(ULONG *)&pL->r0 = Col0;
         pL->x0 = X - 5;

@@ -1,22 +1,9 @@
-#include "common.h"
-#include "monitor.h"
-#include "mojidisp.h"
-#include "pad.h"
-#include "em_sub.h"
 #include "om.h"
-#include "movie.h"
-#include "player.h"
-#include "cd.h"
+#include "mojidisp.h"
 #include "pl_wep.h"
-#include "oba.h"
 #include "joint.h"
-#include "sca.h"
 #include "sld.h"
 #include "sub.h"
-
-/* ENEMY_WORK fields not in em_sub.h yet */
-#define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
-#define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
@@ -28,21 +15,21 @@ static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
 {
     if (pEm->Id != 1) {
-        *(ULONG **)((UCHAR *)pEm + 0x184) = pData + 1;
+        pEm->pUnk184_kan_t_ptr = pData + 1;
         pData = (ULONG *)((UCHAR *)pData + *pData);
     }
     if (G.pOld_tmd != pData) {
         G.pOld_tmd = pData;
-        func_8002AB34(pData, EM_UCHAR(pEm, 0x48), EM_UCHAR(pEm, 0x49));
+        func_8002AB34(pData, pEm->Tpage, pEm->Clut);
     }
     *(ULONG *)&pEm->Routine_0 = 0;
     pEm->pTmd = pData + 2;
     pEm->Poly_rgb = 0x808080;
     if (pEm->Id == 1) {
-        G.pEm_mem = (ENEMY_WORK *)func_8002E61C(pEm, (PARTS_W *)G.pEm_mem);
+        G.pEm_mem = (ENEMY_WORK *)func_8002E61C((MD_WORK2 *)pEm, (POLY_GT4 *)G.pEm_mem); /* MD_WORK2: the model view of the work */
     } else {
         G.pEm_mem = (ENEMY_WORK *)func_80035868(pEm, (PARTS_W *)G.pEm_mem);
-        func_8003589C((OBJ_MODEL_WORK *)pEm, *(ULONG **)((UCHAR *)pEm + 0x184));
+        func_8003589C((OBJ_MODEL_WORK *)pEm, pEm->pUnk184_kan_t_ptr);
     }
 }
 
@@ -55,15 +42,15 @@ PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts)
 
 INCLUDE_ASM("asm/nonmatchings/game/om", func_8003589C);
 
-void func_80035B84(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Arg2, ULONG Arg3)
+void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
 {
     ULONG n;
 
-    if ((pEm->Be_flg & 0x40) || func_8001020C(Arg3, D_800CC87C)) {
-        n = pEm->Parts_num;
+    if ((pOm->Be_flg & 0x40) || func_8001020C(pPos, G.Cccut)) {
+        n = pOm->Parts_num;
     loop:
         if (pParts->Be_flg & 1) {
-            func_800288C8(pEm, pParts, (SHORT)pParts->UnkA2, &pParts->Workm);
+            func_800288C8((ENEMY_WORK *)pOm, pParts, (SHORT)pParts->UnkA2, &pParts->Workm);
         }
         pParts++;
         if (--n != 0) {
@@ -316,7 +303,7 @@ void Om_move(void)
 {
     OBJ_MODEL_WORK *pOm;
 
-    if (EM_UCHAR(G.pRoom, 2) == 0) {
+    if (G.pRoom->nOmodel == 0) {
         return;
     }
     if (G.Unk2468 & 0x8000000) {
@@ -597,19 +584,19 @@ void func_80037680(OBJ_MODEL_WORK *pOm)
     }
 }
 
-void func_8003783C(ENEMY_WORK *pEm)
+void func_8003783C(OBJ_MODEL_WORK *pOm)
 {
-    switch (pEm->Routine_1) {
+    switch (pOm->Routine_1) {
     case 0:
-        *G.pUnk75AC[EM_UCHAR(pEm, 0xC1)] = 0xFF;
-        pEm->Routine_1 = 1;
+        *G.pUnk75AC[pOm->UnkC1] = 0xFF;
+        pOm->Routine_1 = 1;
         break;
     case 1:
         break;
     case 2:
-        *G.pUnk75AC[EM_UCHAR(pEm, 0xC1)] = 0;
-        pEm->Routine_0 = 0;
-        pEm->Routine_1 = 0;
+        *G.pUnk75AC[pOm->UnkC1] = 0;
+        pOm->Routine_0 = 0;
+        pOm->Routine_1 = 0;
         break;
     }
 }
@@ -648,7 +635,7 @@ void Om_trans(void)
             func_8002D4B0(&GsWSMATRIX, &pOm->Workm, &M);
             SetRotMatrix(&M);
             SetTransMatrix(&M);
-            func_8002E74C(pOm, 1);
+            func_8002E74C((ENEMY_WORK *)pOm, 1); /* the model work shares the ENEMY_WORK head */
         } else {
             Joint_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
             func_80035B84(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
@@ -660,7 +647,7 @@ void Om_trans(void)
     }
 }
 
-void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
+void func_80037A90(ENEMY_WORK *pEm, ULONG Arg1)
 {
     ENEMY_WORK **pp;
     OBJ_MODEL_WORK *p;
@@ -671,7 +658,7 @@ void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
     pG->Status_flg &= ~0x2000;
     pAot = (UCHAR *)G.Sce_aot[31];
     for (pp = &pG->pEnemy[2]; pp != pG->ppEnemy_end; pp++) {
-        if ((*pp)->Id == pOm->Unk4A)
+        if ((*pp)->Id == pEm->Id)
             break;
     }
     i = 0;
@@ -683,9 +670,9 @@ void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
     G.Unk7DC0[G.Unk7E20].Unk0 = 1;
     G.Unk7DC0[G.Unk7E20].Unk1 = pAot[0xC];
     G.Unk7DC0[G.Unk7E20].Unk4 = G.Unk7840 | ((G.Unk783E + 1) << 8);
-    G.Unk7DC0[G.Unk7E20].Pos_x = pOm->M.t[0];
-    G.Unk7DC0[G.Unk7E20].Pos_y = pOm->M.t[1];
-    G.Unk7DC0[G.Unk7E20].Pos_z = pOm->M.t[2];
+    G.Unk7DC0[G.Unk7E20].Pos_x = pEm->Pos_x;
+    G.Unk7DC0[G.Unk7E20].Pos_y = pEm->Pos_y;
+    G.Unk7DC0[G.Unk7E20].Pos_z = pEm->Pos_z;
     p->Routine_0 = 4;
     p->Routine_1 = 0;
     p->Routine_2 = Arg1;
@@ -706,24 +693,24 @@ void func_80037C38(void)
         pEm = *pp;
         if (pEm->Be_flg & 1) {
             if (pEm->Be_flg & 0x80) {
-                *(ULONG *)((UCHAR *)pEm + 0x7C) = (ULONG)pG->pOt_sub[pG->Cbuf_id][EM_UCHAR(pEm, 0xD)];
+                pEm->pUnk7C = pG->pOt_sub[pG->Cbuf_id][pEm->UnkD];
             } else {
-                *(ULONG *)((UCHAR *)pEm + 0x7C) = func_80037D50((VECTOR *)&pEm->Pos_x);
+                pEm->pUnk7C = func_80037D50((VECTOR *)&pEm->Pos_x);
             }
         }
     }
     for (pOm = pG->Ob_model; pOm != pG->pObj_work_end; pOm++) {
         if (pOm->Be_flg & 1) {
             if (pOm->Be_flg & 0x80) {
-                *(ULONG *)((UCHAR *)pOm + 0x7C) = (ULONG)pG->pOt_sub[pG->Cbuf_id][EM_UCHAR(pOm, 0xD)];
+                pOm->pUnk7C = pG->pOt_sub[pG->Cbuf_id][pOm->UnkD];
             } else {
-                *(ULONG *)((UCHAR *)pOm + 0x7C) = func_80037D50((VECTOR *)((UCHAR *)pOm + 0x34));
+                pOm->pUnk7C = func_80037D50((VECTOR *)pOm->M.t);
             }
         }
     }
 }
 
-ULONG func_80037D50(VECTOR *pPos)
+ULONG *func_80037D50(VECTOR *pPos)
 {
     tagGLOBAL *pG;
     USHORT *pHead;
@@ -735,32 +722,32 @@ ULONG func_80037D50(VECTOR *pPos)
     if (pG->Unk2470 == 0) {
         goto end;
     }
-    pHead = *(USHORT **)((UCHAR *)pG->pRoom + 0x40);
+    pHead = (USHORT *)pG->pRoom->pUnk40;
     if (pG->Cut_no < pHead[1]) {
         goto start;
     }
     goto end;
 found:
-    return (ULONG)pG->pOt_sub[pG->Cbuf_id][((USHORT *)p)[1]];
+    return pG->pOt_sub[pG->Cbuf_id][((USHORT *)p)[1]];
 start:
     pBlk = (USHORT *)((UCHAR *)pHead + ((ULONG *)pHead)[pG->Cut_no + 1]);
     n = *pBlk;
     p = (UCHAR *)(pBlk + 2);
     for (; n != 0; n--) {
         if (p[1] == 0) {
-            if (!(p[0] & 2) && func_800101C8(pPos, p + 4)) {
+            if (!(p[0] & 2) && func_800101C8(&pPos->vx, (SHORT *)(p + 4))) {
                 goto found;
             }
             p += 12;
         } else {
-            if (!(p[0] & 2) && func_8001020C((ULONG)pPos, (ULONG)p)) {
+            if (!(p[0] & 2) && func_8001020C(&pPos->vx, (VCUT *)p)) {
                 goto found;
             }
             p += 20;
         }
     }
 end:
-    return (ULONG)pG->pOt1;
+    return pG->pOt1;
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/om", func_80037E80);

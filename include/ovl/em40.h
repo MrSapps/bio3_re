@@ -16,7 +16,7 @@
 extern void (*Em40_routine_0[])() __asm__("D_801000D4");
 
 void func_80100004(ENEMY_WORK *pEm);
-void func_80100048(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801000CC(void);
 
 #endif /* OVL_EM40_H */

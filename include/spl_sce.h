@@ -4,7 +4,6 @@
 #include "bio3.h"
 #include "em_sub.h"
 
-extern LONG D_8009DBD4;
 extern UCHAR D_8009ED88[]; /* move offset by func_80063690 result */
 extern SHORT D_8009EDA4[];
 extern SHORT D_8009EDCC[];

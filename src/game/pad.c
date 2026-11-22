@@ -1,4 +1,3 @@
-#include "common.h"
 #include "main.h"
 #include "mojidisp.h"
 #include "pad.h"

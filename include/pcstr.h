@@ -77,7 +77,7 @@ void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), vo
 void Pcstr_close(void);
 LONG Pcstr_next(void);
 LONG Pcstr_get(ULONG **ppBuf, PCSTR_HEADER **ppHead);
-void func_8007A2D4(UCHAR *pW, UCHAR *pD);
+void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pD);
 void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
 void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
 void func_8007A600(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);

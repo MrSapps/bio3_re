@@ -1,19 +1,10 @@
-#include "common.h"
 #include "main.h"
-#include "mojidisp.h"
 #include "monitor.h"
 #include "pad.h"
-#include "trans.h"
 #include "line_scr.h"
-#include "em_sub.h"
-#include "pl_wep.h"
 #include "sub.h"
-#include "joint.h"
-#include "sca.h"
 #include "cd.h"
 #include "sce0.h"
-#include "md_sub.h"
-#include "esp.h"
 #include "game.h"
 #include "psp.h"
 #include "room.h"
@@ -49,7 +40,7 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
-void main(void)
+int main(void)
 {
     tagMAIN *pMain;
     tagGLOBAL *pG;
@@ -301,7 +292,7 @@ void Init_main(void)
     SetDispMask(1);
     Bg_set_mode(1, 0);
     Main.Unk193 = 0;
-    Task_lexecute(1, (void *)1);
+    Task_lexecute(1, 1);
     while (Main.Unk193 == 0) {
         Task_sleep(1);
     }
@@ -380,7 +371,7 @@ void Bg_draw(void)
         Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;
         if (*(ULONG *)(0x80193FFC + Size) != 0) {
-            func_80010000((ULONG *)(*(ULONG *)(0x80193FF8 + Size) + 0x80194000), (ULONG *)0x801AC000);
+            func_80010000(*(ULONG *)(0x80193FF8 + Size) + 0x80194000, (ULONG *)0x801AC000);
             pG->Ctp.Tpage_clut = 0x15;
             Mapping_tim((ULONG *)0x801AC000);
             pG->Ctp.Tpage_clut = Ctpage_save;
@@ -438,7 +429,7 @@ void Soft_reset(void)
     Init_global();
     VSync(0);
     G.Unk20F8 = -1;
-    Task_lexecute(0, NULL);
+    Task_lexecute(0, 0);
 }
 
 void func_8002A2B8(void)

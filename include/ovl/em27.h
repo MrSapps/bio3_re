@@ -36,28 +36,28 @@ void func_80100378(ENEMY_WORK *pEm); /* parts reset (live) */
 void func_80100518(ENEMY_WORK *pEm); /* hide (parts reset) */
 void func_8010158C(ENEMY_WORK *pEm); /* part 2 pop-up */
 void func_801014B0(ENEMY_WORK *pEm, SHORT Dist, SHORT Dir, VECTOR *pPos); /* place relative to pPos */
-void func_801018D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq); /* player damage routine */
+void func_801018D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* player damage routine */
 LONG func_801019BC(ENEMY_WORK *pEm); /* other id 0x23/0x28 enemies */
 
 void func_8010001C(ENEMY_WORK *pEm);
 void func_80100060(ENEMY_WORK *pEm);
-void func_801000E0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void func_801005F8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801000E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801005F8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100688(ENEMY_WORK *pEm);
-void func_801006E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801006E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801008EC(ENEMY_WORK *pEm);
-void func_80100A50(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100A50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100BAC(ENEMY_WORK *pEm);
-void func_80100CD8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100DDC(void);
-void func_80100DE4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100DE4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100FFC(ENEMY_WORK *pEm);
-void func_801010D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801010D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_8010131C(void);
-void func_80101324(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void func_80101344(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80101324(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80101344(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80101660(void);
-void func_80101668(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void func_801017FC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80101668(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801017FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 
 #endif /* OVL_EM27_H */

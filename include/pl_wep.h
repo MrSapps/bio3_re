@@ -47,7 +47,7 @@ extern PARTS_W *Pl_wep_parts;           /* 0x800DE8F0 weapon part (pSin_parts_pt
 extern PARTS_W *Pl_wep_oya;             /* 0x800DE8F4 part the weapon hangs from (pSin_parts_ptr[4]) */
 typedef void (*PL_WEP_FN)(PLAYER_WORK *pEm);
 extern PL_WEP_FN Pl_weapon_init[];      /* 0x8009DCD4 index Type */
-typedef void (*PL_MV05_FN)(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
+typedef void (*PL_MV05_FN)(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 extern PL_MV05_FN pl_mv05_t2_spr[];     /* 0x8009CED8 index Type - 1: pl_wXX_t2_move */
 extern PL_MV05_FN pl_mv05_w_tbl[];      /* 0x8009CE88 index Type - 1 */
 extern PL_MV05_FN pl_mv05_w0b_tbl[];    /* 0x8009D088 index Routine_2 */
@@ -142,36 +142,36 @@ void Pl_neck(ENEMY_WORK *pEm, ULONG LL, SHORT Dir);
 void Pl_water(ENEMY_WORK *pEm);
 void Pl_weapon_vib(ENEMY_WORK *pEm); /* RE2 PL_WEP.C Pl_weapon_vib */
 void pl_mv05_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg);
-void pl_mv05(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
-void pl_mv05_w0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
+void pl_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void pl_mv05_w0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void pl_mv05_w0_t6(ENEMY_WORK *pEm);
-void pl_mv05_w1(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w1_t4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
+void pl_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w1_t4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void pl_mv05_w1_t5(ENEMY_WORK *pEm);
 void func_8003F79C(ENEMY_WORK *pEm);
-void func_8003FA38(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void func_8003FB78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w0_t9(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w0_t10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void func_8003FEFC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w2_t2(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
+void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w0_t9(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w0_t10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void func_8003FEFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w2_t2(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void pl_mv05_w2_t4(PLAYER_WORK *pEm);
-void pl_mv05_w0b(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
-void pl_mv05_w0b_t2(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
+void pl_mv05_w0b(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
+void pl_mv05_w0b_t2(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void Pl_wep_ready_reset(PLAYER_WORK *pEm);
 void Pl_wep_recoil_6(PLAYER_WORK *pEm);
 void Pl_wep_recoil_10(PLAYER_WORK *pEm);
 void Pl_wep_flag_set(PLAYER_WORK *pEm);
 void Pl_wep_spin_0b(PLAYER_WORK *pEm);
 void pl_w01_t2_move(PLAYER_WORK *pEm);
-void pl_w02_t2_move(PLAYER_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Key);
+void pl_w02_t2_move(PLAYER_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key);
 void func_800410F8(PLAYER_WORK *pEm);
 void func_80041594(PLAYER_WORK *pEm);
 void func_800418CC(PLAYER_WORK *pEm);
@@ -202,7 +202,7 @@ void Plw_init_44134(PLAYER_WORK *pEm);
 void Plw_init_4417C(PLAYER_WORK *pEm);
 ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL);
 LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);
-LONG func_800445C8(ULONG A0, ULONG A1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pEm inside the box */
+LONG func_800445C8(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pEm inside the box */
 LONG func_8004470C(ULONG A, ULONG B, VECTOR *pV, LONG W);
 LONG func_8004479C(ULONG A, ULONG B, VECTOR *pV);
 ENEMY_WORK *func_80044804(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type);

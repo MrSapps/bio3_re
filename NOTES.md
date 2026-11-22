@@ -110,6 +110,9 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
 - main.h: VCUT, ROOM_WORK, FADE, DBUF, tagMAIN, tagGAME, SAVE_POS (Game.pSave). game.h: FLASH_WORK.
 - em_sub.h: ENEMY_WORK, KAN_HEAD. joint.h: JOINT_P and the PARTS_W free-work layouts at +0x74
   (PARTS_NECK_FREE_WORK / PW_NECK, PARTS_RGB_FREE_WORK / PW_RGB).
+  ENEMY_WORK.Kage is a union (pKw: enemies, Kage_work_set; pKw9: player, Kage_work9_set) = RE2 pKage_work.
+  ENEMY_WORK 0x180..0x19C are 8 kan/seq pointers (pUnk180_seq_t_ptr .. pUnk19C_kan_t_ptr; G.Pl_* likewise).
+- door.h: DOOR_WORK (pDwork[] slots, D_800BA700) and DOOR (RE2 tagDOOR, pDoor[0] = D_800BA6F8).
 - esp.h: the effect pool (ESP_WORK D_800BA8A8[96], RE2 Esp[]; RE3 layout), SSEQUENCE, SPR_GP.
 - md_sub.h: MD_OBJ/MD_HEAD (RE3 model files) and the sorter works MD_WORK, MD_WORK2, RGB_BLEND_WORK,
   SORT_PARAM. om.h: CC_PARTS_WORK, CC_WORK (OBJ_MODEL_WORK itself is in bio3.h).
@@ -133,7 +136,10 @@ data are in include/ovl/<n>.h (naming aliases `T Name(..) __asm__("func_X")` liv
 are in the owning module's header. PsyQ functions come from the SDK (psyq.h also pulls libpad.h and
 libpress.h); InitGeom/PadStartCom/InitCARD/StartCARD/DecDCToutSync were identified and added to syms/game.txt.
 A .c keeps a local `T f_(..) __asm__("f")` alias only where its codegen needs a different prototype
-(comment says what differs). snd.c calls Task_sleep with no declaration on purpose: any declaration,
+(comment says what differs). Animation tables are passed as `ULONG *pKan, ULONG *pSeq` everywhere (the type of
+the ENEMY_WORK *_kan_t_ptr / *_seq_t_ptr fields, RE2 ULONG*); functions that walk them byte-wise cast to
+UCHAR* / KAN_HEAD* inside. Joint_move/Joint_move2 return the J_seq result (ULONG). The tree compiles with
+no warnings (cc1 without -Wall); keep it that way. snd.c calls Task_sleep with no declaration on purpose: any declaration,
 even `int Task_sleep();`, changes the loop in func_80077ED4, so snd.c must not include monitor.h.
 
 ## Module map (src/game, one file per original object)

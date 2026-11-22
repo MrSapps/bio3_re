@@ -1,9 +1,7 @@
-#include "common.h"
 #include "ovl/opening.h"
 #include "mojidisp.h"
 #include "status.h"
 #include "sub.h"
-#include "sld.h"
 
 void *Memcpy_r(void *pDst, void *pSrc, ULONG Size) __asm__("func_800100A4"); /* returns void* here (canonical void) */
 

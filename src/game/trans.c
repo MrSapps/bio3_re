@@ -1,19 +1,6 @@
-#include "common.h"
-#include "main.h"
-#include "mojidisp.h"
-#include "monitor.h"
-#include "pad.h"
 #include "trans.h"
-#include "line_scr.h"
-#include "em_sub.h"
 #include "pl_wep.h"
 #include "sub.h"
-#include "joint.h"
-#include "sca.h"
-#include "cd.h"
-#include "sce0.h"
-#include "md_sub.h"
-#include "esp.h"
 #include "sld.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
@@ -97,7 +84,7 @@ loop:
     pAseq = pEff->pSeq + pEff->Seq_no;
     nSpr = pAseq->nSpr;
     if ((Be_flg & 0xA000) == 0xA000 && func_8001020C(workm.t, pCcut) != 0 && nSpr != 0) {
-        pOt = (ULONG *)func_80037D50((VECTOR *)workm.t);
+        pOt = func_80037D50((VECTOR *)workm.t);
         D2 = 0x2C;
         if (Be_flg & 0x1000) {
             D2 = 0x2E;

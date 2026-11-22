@@ -1,6 +1,4 @@
-#include "common.h"
 #include "ovl/pc_sys.h"
-#include "line_scr.h"
 #include "pad.h"
 #include "sld.h"
 #include "snd.h"
@@ -761,7 +759,7 @@ void func_801C3A0C(void)
             G.Next_cut_no = 4;
             Main.Unk18E = 1;
             for (i = 0; i < 30; i++) {
-                G.Unk208C = (ULONG)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+                G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
                 func_80037C38();
                 Om_move();
                 Esp_task_main();
@@ -773,7 +771,7 @@ void func_801C3A0C(void)
             func_8001B484(0x1010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x204, NULL, 0, 0);
             for (i = 0; i < 40; i++) {
-                G.Unk208C = (ULONG)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+                G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
                 func_80037C38();
                 Om_move();
                 Esp_task_main();
@@ -785,7 +783,7 @@ void func_801C3A0C(void)
             func_8001B484(0x2010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x225, NULL, 0, 0);
             for (i = 0; i < 60; i++) {
-                G.Unk208C = (ULONG)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+                G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
                 func_80037C38();
                 Om_move();
                 Esp_task_main();

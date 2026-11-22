@@ -84,7 +84,7 @@ POLY_GT4 *PresetObjectGT4_neo(MD_WORK *pW, POLY_GT4 *pPrim);
 void MulLMatrix(MATRIX *lwm, MATRIX *klwm, MATRIX *nlm); /* libgte (not in libgte.h) */
 void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-void func_8002B2BC(KAN_HEAD *pKan, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
+void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
 POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
@@ -95,7 +95,7 @@ POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
 POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
 POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void func_8002D184(ULONG *pXy, SHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
+void func_8002D184(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
 void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
 void func_8002D4B0(MATRIX *m0, MATRIX *m1, MATRIX *m2); /* RE2 CompM */
 void func_8002D5D8(ULONG *pSxy, USHORT *pSz, MD_OBJ *pObj);
@@ -109,7 +109,7 @@ POLY_GT4 *func_8002E160(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
 void func_8002E318(LONG Arg0, LONG Arg1, ULONG *Arg2, LONG Arg3); /* args from the asm */
 POLY_GT4 *func_8002E61C(MD_WORK2 *pW, POLY_GT4 *pPrim);
 void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr);
-void Draw_list_all(ULONG Arg0, ULONG Arg1, ULONG Arg2);
+void Draw_list_all(ENEMY_WORK *pFloor, ULONG W, ULONG H);
 void func_8002EB9C(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm);
 
 #endif /* MD_SUB_H */

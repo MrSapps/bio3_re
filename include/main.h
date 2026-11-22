@@ -36,7 +36,10 @@ typedef struct tagROOM_WORK {
     UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
     ULONG *pUnk44;                     /* 0x44 second bg image (Swap_Cbuff) */
     UCHAR *pScd;                       /* 0x48 scenario data (Sce.pCScd) */
-    UCHAR pad4C[0x5C - 0x4C];
+    LONG *pUnk4C;                      /* 0x4C effect data (Esp_init_R -> Esp_data_set0) */
+    ULONG *pUnk50;                     /* 0x50 its offset table */
+    ULONG *pUnk54;                     /* 0x54 second effect data (Esp_data_set1) */
+    UCHAR pad58[0x5C - 0x58];
     UCHAR *pEdd;                       /* 0x5C enemy sub animation data: offset table at [0], count at [4] (func_800498F0) */
     RCUT Cut[1];                       /* 0x60 RE2 Cut[] */
 } ROOM_WORK;
@@ -168,7 +171,7 @@ VCUT *Ccut_search(ULONG Fc);
 extern LONG D_800CA720;
 extern volatile ULONG D_800D454C; /* right after Main.Fade[]: vsync counter */
 
-void main(void);
+int main(void);
 void Swap_Cbuff(void);
 void func_80029700(void);
 void Init_system(void);

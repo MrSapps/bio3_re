@@ -1,10 +1,7 @@
-#include "common.h"
 #include "ovl/ltsout.h"
 #include "psp.h"
-#include "sce1.h"
 #include "snd.h"
 #include "trans.h"
-#include "sld.h"
 
 LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
 

@@ -1,7 +1,5 @@
 #include "sub.h"
-#include "pcstr.h"
 #include "snd.h"
-#include "em_sub.h"
 #include "cd.h"
 #include "monitor.h"
 #include "status.h"
@@ -211,7 +209,6 @@ void func_80063CAC(ST_WORK *pSt)
     UCHAR *pA = pG->pAot_data;
     UCHAR *pD = (UCHAR *)pG->pUnk21DC;
     UCHAR n;
-    LONG ofs;
     ULONG f;
     ULONG *p;
 
@@ -239,11 +236,10 @@ void func_80063CAC(ST_WORK *pSt)
             } else {
                 Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
-            ofs = (n & 0xFF) * 0x194;
-            func_8001B894(0x705, D_800CEA80 + ofs);
+            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
             func_8001B894(0x905, 0);
             if (!(n & 0x80)) {
-                *(LONG *)(D_800CEA80 + ofs - 0x20) = 0;
+                G.Ob_model[n & 0xFF].Be_flg = 0;
             }
             D_800DBB5B = pD[0];
             Mess_set(0, 0x1000, 6, 0);
@@ -340,7 +336,6 @@ void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b)
     Mapping_tim(p);
 }
 
-/* ST_WORK: DR_TPAGE Tpage[2][2] at 0x3E4; prototype: void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f); */
 void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
 {
     ULONG i;
@@ -1428,7 +1423,7 @@ void func_80067C14(ST_WORK *pSt)
                             pSt->Flg &= ~0x20000000;
                             return;
                         }
-                        Pl_wep_eff_parts_init(&pG->Pl_be_flg);
+                        Pl_wep_eff_parts_init((PLAYER_WORK *)&pG->Pl_be_flg);
                         func_80046C90();
                     } else {
                         Mess_set(0, 0x1000, 10, 0);
@@ -1494,7 +1489,7 @@ void func_80068AB4(ST_WORK *pSt)
     if (!(D_800DBB58 & 0x80)) {
         switch (G.Unk7848) {
         case 0:
-            Pl_wep_eff_parts_init(&G.Save_slot + 3);
+            Pl_wep_eff_parts_init((PLAYER_WORK *)&G.Pl_be_flg);
             func_80046C90();
             func_80068024(pSt);
             break;
@@ -2520,7 +2515,8 @@ void func_8006B66C(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     SPRT *p;
-    UCHAR *pT;
+    USHORT *pT;
+    POLY_FT4 *pFt;
     ITEM_WORK *pI;
     UCHAR *pInfo;
     ULONG i;
@@ -2650,34 +2646,34 @@ void func_8006B66C(ST_WORK *pSt)
         }
     }
     pT = D_8009FE6C;
-    p = (SPRT *)0x801AEAA8;
+    pFt = (POLY_FT4 *)0x801AEAA8;
     if ((signed char)pSt->Unk1E == 0) {
-        pT += 0x18;
-        p = (SPRT *)0x801AEB48;
+        pT += 12;
+        pFt = (POLY_FT4 *)0x801AEB48;
     }
-    func_8006E9D4(pSt, p, pT, 0x50402);
+    func_8006E9D4(pSt, pFt, pT, 0x50402);
     pT = D_8009FE9C;
-    p = (SPRT *)0x801AEBE8;
+    pFt = (POLY_FT4 *)0x801AEBE8;
     if ((signed char)pSt->Unk1E == 1) {
-        pT += 0x18;
-        p = (SPRT *)0x801AEC88;
+        pT += 12;
+        pFt = (POLY_FT4 *)0x801AEC88;
     }
-    func_8006E9D4(pSt, p, pT, 0x50502);
+    func_8006E9D4(pSt, pFt, pT, 0x50502);
     pT = D_8009FECC;
-    p = (SPRT *)0x801AED28;
+    pFt = (POLY_FT4 *)0x801AED28;
     if ((signed char)pSt->Unk1E == 2) {
-        pT += 0x18;
-        p = (SPRT *)0x801AEDC8;
+        pT += 12;
+        pFt = (POLY_FT4 *)0x801AEDC8;
     }
-    func_8006E9D4(pSt, p, pT, 0x50602);
+    func_8006E9D4(pSt, pFt, pT, 0x50602);
     if (pSt->Unk42.Flg & 0x10) {
         pT = D_8009FEFC;
-        p = (SPRT *)0x801AEE68;
+        pFt = (POLY_FT4 *)0x801AEE68;
         if ((signed char)pSt->Unk1E == 3) {
-            pT += 0x18;
-            p = (SPRT *)0x801AEF08;
+            pT += 12;
+            pFt = (POLY_FT4 *)0x801AEF08;
         }
-        func_8006E9D4(pSt, p, pT, 0x50702);
+        func_8006E9D4(pSt, pFt, pT, 0x50702);
     }
     p = (SPRT *)0x801ACD70;
     if (G.Cbuf_id) {
@@ -2702,26 +2698,26 @@ void func_8006B66C(ST_WORK *pSt)
         func_8006C6D0(p, pI->Num, x | (y << 16), c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
     }
     pT = D_8009FDDC;
-    p = (SPRT *)0x801AE698;
+    pFt = (POLY_FT4 *)0x801AE698;
     if (pSt->Unk1C == -2) {
-        pT += 0x18;
-        p = (SPRT *)0x801AE738;
+        pT += 12;
+        pFt = (POLY_FT4 *)0x801AE738;
     }
-    func_8006E9D4(pSt, p, pT, 0x40102);
+    func_8006E9D4(pSt, pFt, pT, 0x40102);
     pT = D_8009FE0C;
-    p = (SPRT *)0x801AE7D8;
+    pFt = (POLY_FT4 *)0x801AE7D8;
     if (pSt->Unk1C == -1) {
-        pT += 0x18;
-        p = (SPRT *)0x801AE878;
+        pT += 12;
+        pFt = (POLY_FT4 *)0x801AE878;
     }
-    func_8006E9D4(pSt, p, pT, 0x40102);
+    func_8006E9D4(pSt, pFt, pT, 0x40102);
     pT = D_8009FE3C;
-    p = (SPRT *)0x801AE918;
+    pFt = (POLY_FT4 *)0x801AE918;
     if (pSt->Unk1C < -2) {
-        pT += 0x18;
-        p = (SPRT *)0x801AE9B8;
+        pT += 12;
+        pFt = (POLY_FT4 *)0x801AE9B8;
     }
-    func_8006E9D4(pSt, p, pT, 0x40102);
+    func_8006E9D4(pSt, pFt, pT, 0x40102);
     if ((pSt->Flg & 0x4000000) && pSt->Unk1C >= 0) {
         func_8006E8BC(pSt, (SPRT *)0x801ACA00, D_8009FF68, ((n * 2 + 1) << 16) | 0xC01);
     }
@@ -3254,7 +3250,7 @@ void func_8006D720(void)
     } else {
         Cd_read(0x58, (ULONG *)0x801B1500, 0, "STMAIN0.TIM");
     }
-    FLD(&G, 0x2484, SHORT) = 0x41A;
+    FLD(&G, 0x2484, SHORT) = 0x41A; /* G.Ctp.Tpage_clut through a raw address: G+0x2484 becomes the CSE base of the G loads below */
     Mapping_tim((ULONG *)0x801B1500);
     Cd_read(0x60, (ULONG *)0x801B1500, 0, "STMOJI.TIM");
     FLD(&G, 0x2484, SHORT) = 0x1A;
@@ -3809,7 +3805,7 @@ void func_8006E9D4(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
     }
 }
 
-void func_8006EAF0(ST_WORK *pSt, TILE *p, UCHAR *src, ULONG prm)
+void func_8006EAF0(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
@@ -3822,9 +3818,9 @@ void func_8006EAF0(ST_WORK *pSt, TILE *p, UCHAR *src, ULONG prm)
     }
     ox = pSt->Pos[ofs].X;
     oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, src += 12) {
-        p->x0 = *(SHORT *)(src + 8) + ox;
-        p->y0 = *(SHORT *)(src + 10) + oy;
+    for (i = 0; i < (UCHAR)n; i++, p += 2, src += 6) {
+        p->x0 = src[4] + ox;
+        p->y0 = src[5] + oy;
         AddPrim(G.pOt0 + ot, p);
     }
 }
@@ -4276,7 +4272,6 @@ void func_80070024(ST_WORK *pSt)
     UCHAR *pA = pG->pAot_data;
     UCHAR *pD = (UCHAR *)pG->pUnk21DC;
     UCHAR n;
-    LONG ofs;
 
     switch (pSt->Rtn1) {
     case 0:
@@ -4307,11 +4302,10 @@ void func_80070024(ST_WORK *pSt)
             } else {
                 Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
-            ofs = (n & 0xFF) * 0x194;
-            func_8001B894(0x705, D_800CEA80 + ofs);
+            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
             func_8001B894(0x905, 0);
             if (!(n & 0x80)) {
-                *(LONG *)(D_800CEA80 + ofs - 0x20) = 0;
+                G.Ob_model[n & 0xFF].Be_flg = 0;
             }
             D_800DBB5B = pD[0];
             Mess_set(0, 0x1000, 6, 0);

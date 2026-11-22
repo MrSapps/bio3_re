@@ -1,19 +1,7 @@
-#include "common.h"
-#include "main.h"
-#include "mojidisp.h"
-#include "monitor.h"
-#include "pad.h"
-#include "trans.h"
-#include "line_scr.h"
-#include "em_sub.h"
 #include "pl_wep.h"
 #include "sub.h"
 #include "joint.h"
 #include "sca.h"
-#include "cd.h"
-#include "sce0.h"
-#include "md_sub.h"
-#include "esp.h"
 #include "pcstr.h"
 #include "sld.h"
 
@@ -213,8 +201,8 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
         gte_SetTransMatrix(&M);
     }
     if (Flg & 0x20) {
-        pG->Unk208C = func_8002BA3C(pP->pTmd, pG->Unk208C, pP);
-        pG->Unk208C = func_8002C068(pP->pTmd, pG->Unk208C, pP);
+        pG->pUnk208C = func_8002BA3C((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = func_8002C068((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
         func_8002783C(pP);
     } else if (Flg & 0x10) {
         D_800C79F0 = &M;
@@ -246,57 +234,57 @@ void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
 
 void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
-    UCHAR Work0[0x1C0];
-    UCHAR Work1[0xE0];
+    ULONG Work0[0x70];
+    USHORT Work1[0x70];
     SORT_PARAM Prm;
     tagGLOBAL *pG;
     ULONG Abr;
-    ULONG Top;
+    POLY_GT4 *Top;
 
     pG = &G;
     Prm.pObj = (MD_OBJ *)pObj[1];
-    Prm.pOt = (ULONG *)pG->pEm->Unk7C;
+    Prm.pOt = pG->pEm->pUnk7C;
     Abr = (Flg & 0x100) >> 7;
     if (Flg & 0x2000) {
-        Prm.pOt = (ULONG *)func_80037D50((VECTOR *)pP->Workm.t);
+        Prm.pOt = func_80037D50((VECTOR *)pP->Workm.t);
     }
     if (Flg & 0x400) {
-        func_8002D184(Work0, Work1, pObj[1], &pP->Workm);
+        func_8002D184(Work0, Work1, (MD_OBJ *)pObj[1], &pP->Workm);
     } else {
-        func_8002D5D8(Work0, Work1, pObj[1]);
+        func_8002D5D8(Work0, Work1, (MD_OBJ *)pObj[1]);
     }
     if (Flg & 0x40) {
         Prm.u.Rgb = D_80098B08.Unk6 << 24;
-        pG->Unk208C = func_8002C824(&Prm, pG->Unk208C, Work0, Work1);
-        pG->Unk208C = func_8002CABC(&Prm, pG->Unk208C, Work0, Work1);
+        pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);
+        pG->pUnk208C = func_8002CABC(&Prm, pG->pUnk208C, Work0, (SHORT *)Work1);
     }
     if (Flg & 0x80) {
         Prm.u.Rgb = *(ULONG *)((UCHAR *)&D_80098B08 + 8) | (*(SHORT *)((UCHAR *)&D_80098B08 + 6) << 24);
-        pG->Unk208C = func_8002CE08(&Prm, pG->Unk208C, Work0, Work1);
-        pG->Unk208C = func_8002CF90(&Prm, pG->Unk208C, Work0, Work1);
+        pG->pUnk208C = func_8002CE08(&Prm, pG->pUnk208C, Work0, Work1);
+        pG->pUnk208C = func_8002CF90(&Prm, pG->pUnk208C, Work0, Work1);
     }
     Prm.u.Rgb = pObj[25];
-    Top = pG->Unk208C;
+    Top = pG->pUnk208C;
     Prm.u.c.Code = Abr | 0x34;
-    pG->Unk208C = func_8002D6D8(&Prm, pG->Unk208C, Work0, Work1);
+    pG->pUnk208C = func_8002D6D8(&Prm, pG->pUnk208C, Work0, Work1);
     Prm.u.c.Code = Abr | 0x3C;
-    pG->Unk208C = func_8002D898(&Prm, pG->Unk208C, Work0, Work1);
+    pG->pUnk208C = func_8002D898(&Prm, pG->pUnk208C, Work0, Work1);
     if (Flg & 4) {
-        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->Unk208C, PW_FREEL(pP)[0], PW_FREEL(pP)[1]);
+        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_FREEL(pP)[0], PW_FREEL(pP)[1]);
     }
 }
 
 void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
-    UCHAR Work0[0x1C0];
-    UCHAR Work1[0xE0];
+    ULONG Work0[0x70];
+    USHORT Work1[0x70];
     SORT_PARAM Prm;
     tagGLOBAL *pG;
-    ULONG Top;
+    POLY_GT4 *Top;
 
     pG = &G;
     Prm.pObj = (MD_OBJ *)pObj[1];
-    Prm.pOt = (ULONG *)pG->pEm->Unk7C;
+    Prm.pOt = pG->pEm->pUnk7C;
     if (Flg & 0x400) {
         func_8007A490(Work0, Work1, pObj[1], pP);
     } else {
@@ -305,63 +293,63 @@ void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.UnkC = (ULONG)&D_800E1388;
     if (Flg & 0x40) {
         Prm.u.Rgb = D_80098B08.Unk6 << 24;
-        pG->Unk208C = func_8002C824(&Prm, pG->Unk208C, Work0, Work1);
-        pG->Unk208C = func_8002CABC(&Prm, pG->Unk208C, Work0, Work1);
+        pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);
+        pG->pUnk208C = func_8002CABC(&Prm, pG->pUnk208C, Work0, (SHORT *)Work1);
     }
     if (Flg & 0x80) {
         Prm.u.Rgb = *(ULONG *)((UCHAR *)&D_80098B08 + 8) | (*(SHORT *)((UCHAR *)&D_80098B08 + 6) << 24);
-        pG->Unk208C = func_8002CE08(&Prm, pG->Unk208C, Work0, Work1);
-        pG->Unk208C = func_8002CF90(&Prm, pG->Unk208C, Work0, Work1);
+        pG->pUnk208C = func_8002CE08(&Prm, pG->pUnk208C, Work0, Work1);
+        pG->pUnk208C = func_8002CF90(&Prm, pG->pUnk208C, Work0, Work1);
     }
-    Top = pG->Unk208C;
+    Top = pG->pUnk208C;
     Prm.u.Rgb = pObj[25];
-    pG->Unk208C = func_8002DFE0(&Prm, Top, Work0, Work1);
-    pG->Unk208C = func_8002E160(&Prm, pG->Unk208C, Work0, Work1);
+    pG->pUnk208C = func_8002DFE0(&Prm, Top, Work0, Work1);
+    pG->pUnk208C = func_8002E160(&Prm, pG->pUnk208C, Work0, Work1);
     if (Flg & 4) {
-        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->Unk208C, PW_FREEL(pP)[0], PW_FREEL(pP)[1]);
+        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_FREEL(pP)[0], PW_FREEL(pP)[1]);
     }
 }
 
 void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2)
 {
-    UCHAR Work0[0x1C8];
-    UCHAR Work1[0xE8];
+    ULONG Work0[0x72];
+    USHORT Work1[0x74];
     SORT_PARAM Prm;
-    ULONG D0;
+    MD_OBJ *D0;
 
-    Prm.pObj = (MD_OBJ *)(D0 = pObj[1]);
+    Prm.pObj = D0 = (MD_OBJ *)pObj[1];
     Prm.u.Rgb = pObj[25];
-    Prm.pOt = (ULONG *)G.pEm->Unk7C;
+    Prm.pOt = G.pEm->pUnk7C;
     func_8002D5D8(Work0, Work1, D0);
     Prm.u.c.Code = 0x34;
     Prm.UnkC = pObj2[46];
-    G.Unk208C = func_8002DC98(&Prm, G.Unk208C, Work0, Work1);
+    G.pUnk208C = func_8002DC98(&Prm, G.pUnk208C, Work0, Work1);
     Prm.u.c.Code = 0x3C;
-    G.Unk208C = func_8002DE0C(&Prm, G.Unk208C, Work0, Work1);
+    G.pUnk208C = func_8002DE0C(&Prm, G.pUnk208C, Work0, Work1);
 }
 
 void func_8002606C(ULONG *pObj, ULONG Flg)
 {
-    UCHAR Work0[0x1C0];
-    UCHAR Work1[0xE0];
+    ULONG Work0[0x70];
+    USHORT Work1[0x70];
     SORT_PARAM Prm;
     ULONG Abr;
 
     Prm.pObj = (MD_OBJ *)pObj[1];
-    Prm.pOt = (ULONG *)G.pEm->Unk7C;
+    Prm.pOt = G.pEm->pUnk7C;
     Prm.u.Rgb = pObj[25];
     Abr = (Flg & 0x100) >> 7;
-    func_8002D5D8(Work0, Work1, pObj[1]);
+    func_8002D5D8(Work0, Work1, (MD_OBJ *)pObj[1]);
     if (Flg & 8) {
         Prm.u.c.Code = Abr | 0x34;
-        G.Unk208C = func_8002D6D8(&Prm, G.Unk208C, Work0, Work1);
+        G.pUnk208C = func_8002D6D8(&Prm, G.pUnk208C, Work0, Work1);
         Prm.u.c.Code = Abr | 0x3C;
-        G.Unk208C = func_8002D898(&Prm, G.Unk208C, Work0, Work1);
+        G.pUnk208C = func_8002D898(&Prm, G.pUnk208C, Work0, Work1);
     } else {
         Prm.u.c.Code = Abr | 0x34;
-        G.Unk208C = func_8002B6FC(&Prm, G.Unk208C, Work0, Work1);
+        G.pUnk208C = func_8002B6FC(&Prm, G.pUnk208C, Work0, Work1);
         Prm.u.c.Code = Abr | 0x3C;
-        G.Unk208C = func_8002B86C(&Prm, G.Unk208C, Work0, Work1);
+        G.pUnk208C = func_8002B86C(&Prm, G.pUnk208C, Work0, Work1);
     }
 }
 
@@ -660,27 +648,27 @@ void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
     pM2->t[2] = Sv.vz;
 }
 
-void Joint_move(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
+ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     USHORT *p;
     ULONG f_num;
 
-    p = (USHORT *)(Seq_t_ptr + pEm->Move_no * 8);
+    p = (USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8);
     f_num = *p++;
     if (Late_flg & 0xFFFF0000) {
-        p = (USHORT *)(Seq_t_ptr + *p) + (f_num - pEm->Move_cnt - 1);
+        p = (USHORT *)((UCHAR *)Seq_t_ptr + *p) + (f_num - pEm->Move_cnt - 1);
     } else {
-        p = (USHORT *)(Seq_t_ptr + *p) + pEm->Move_cnt;
+        p = (USHORT *)((UCHAR *)Seq_t_ptr + *p) + pEm->Move_cnt;
     }
     if (*p & 0x100) {
         if (!(*pEm->pNow_seq & 0x100)) {
             func_8002B2BC(Kan_t_ptr, Seq_t_ptr, pEm->pNow_seq, Late_flg >> 16);
         }
         pEm->pNow_seq = p;
-        func_80027338(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
+        return func_80027338(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
     } else {
         pEm->pNow_seq = p;
-        J_seq(Kan_t_ptr, Seq_t_ptr, p, Late_flg);
+        return J_seq(Kan_t_ptr, Seq_t_ptr, p, Late_flg);
     }
 }
 
@@ -717,7 +705,7 @@ void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
 
 void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190"); /* arg 3 long (canonical unsigned long); arg 4 unsigned long (canonical short) */
 
-ULONG func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
+ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -728,14 +716,14 @@ ULONG func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
     VECTOR V;
 
     pEm = G.pEm;
-    Max = *(USHORT *)(Seq_t_ptr + pEm->Move_no * 8);
+    Max = *(USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8);
     if (Late_flg & 0xFFFF0000) {
         No = ~No;
         No &= 0xFF;
     }
     pP = pEm->pSin_parts_ptr;
     pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
-    n = *(USHORT *)(Kan_t_ptr + 4);
+    n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
     pP_walk = pP;
     if (pEm->UnkCA == 0) {
         do {
@@ -861,31 +849,31 @@ void func_8002783C(PARTS_W *pP_ptr)
     pP_ptr->Workm.t[2] += Sv1.vz;
 }
 
-void Joint_move2(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
+ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     USHORT *p;
     ULONG f_num;
 
-    p = (USHORT *)(Seq_t_ptr + pEm->Move_no * 8);
+    p = (USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8);
     f_num = *p++;
     if (Late_flg & 0xFFFF0000) {
-        p = (USHORT *)(Seq_t_ptr + *p) + (f_num - pEm->Move_cnt - 1);
+        p = (USHORT *)((UCHAR *)Seq_t_ptr + *p) + (f_num - pEm->Move_cnt - 1);
     } else {
-        p = (USHORT *)(Seq_t_ptr + *p) + pEm->Move_cnt;
+        p = (USHORT *)((UCHAR *)Seq_t_ptr + *p) + pEm->Move_cnt;
     }
     if (*p & 0x100) {
         if (!(*pEm->pNow_seq & 0x100)) {
             func_8002B2BC(Kan_t_ptr, Seq_t_ptr, pEm->pNow_seq, Late_flg >> 16);
         }
         pEm->pNow_seq = p;
-        func_80027F8C(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
+        return func_80027F8C(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
     } else {
         pEm->pNow_seq = p;
-        J_seq2(Kan_t_ptr, Seq_t_ptr, p, (Late_flg & 0xFFFF) | (f_num << 16));
+        return J_seq2(Kan_t_ptr, Seq_t_ptr, p, (Late_flg & 0xFFFF) | (f_num << 16));
     }
 }
 
-ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
+ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     ULONG *pRot;
@@ -898,14 +886,14 @@ ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     MATRIX M;
 
     pEm = G.pEm;
-    pRot = (ULONG *)(Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
-    pRot = (ULONG *)((UCHAR *)pRot + (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (((USHORT *)(Seq_t_ptr + pEm->Move_no * 8))[2] + *(UCHAR *)pSeq) * 4);
+    pRot = (ULONG *)((UCHAR *)Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
+    pRot = (ULONG *)((UCHAR *)pRot + (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (((USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8))[2] + *(UCHAR *)pSeq) * 4);
     pP = pEm->pSin_parts_ptr;
     w = ((SHORT *)pRot)[3];
     w *= pEm->Unk12A;
     pP->Pos_y = w >> 12;
     Hokan = pEm->UnkCA;
-    n = *(USHORT *)(Kan_t_ptr + 4);
+    n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
     Max = Late_flg >> 16;
     if (Hokan != 0) {
         V.vx = pP->Old_x;
@@ -980,7 +968,7 @@ ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     return 0;
 }
 
-ULONG func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
+ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -991,7 +979,7 @@ ULONG func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
     VECTOR V;
 
     pEm = G.pEm;
-    Max = *(USHORT *)(Seq_t_ptr + pEm->Move_no * 8);
+    Max = *(USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8);
     if (Late_flg & 0xFFFF0000) {
         No = ~No;
         No &= 0xFF;
@@ -1057,7 +1045,7 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     } while (--n != 0);
 }
 
-ULONG func_80028308(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
+ULONG func_80028308(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     ULONG *pRot;
     USHORT *pSeq;
@@ -1076,10 +1064,10 @@ ULONG func_80028308(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_f
     LONG dz;
     SVECTOR Unused[2];                 /* frame space only */
 
-    pSeq = (USHORT *)(Seq_t_ptr + pJp->Move_no * 8);
-    pSeq = (USHORT *)(Seq_t_ptr + pSeq[1]) + pJp->Move_cnt;
-    f_base = ((USHORT *)(Seq_t_ptr + pJp->Move_no * 8))[2];
-    pRot = (ULONG *)(Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
+    pSeq = (USHORT *)((UCHAR *)Seq_t_ptr + pJp->Move_no * 8);
+    pSeq = (USHORT *)((UCHAR *)Seq_t_ptr + pSeq[1]) + pJp->Move_cnt;
+    f_base = ((USHORT *)((UCHAR *)Seq_t_ptr + pJp->Move_no * 8))[2];
+    pRot = (ULONG *)((UCHAR *)Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
     pRot += (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (f_base + *(UCHAR *)pSeq);
     w = ((SHORT *)pRot)[3];
     w *= G.pEm->Unk12A;
@@ -1088,10 +1076,10 @@ ULONG func_80028308(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_f
     P0_no = pJp->P0_parts_no;
     pP = G.pEm->pSin_parts_ptr;
     On_flg = pJp->On_parts_flg;
-    Max = *(USHORT *)(Seq_t_ptr + pJp->Move_no * 8);
+    Max = *(USHORT *)((UCHAR *)Seq_t_ptr + pJp->Move_no * 8);
     pP_walk = pP;
     pJp->P0_m.t[1] = w >> 12;
-    Cnt = *(USHORT *)(Kan_t_ptr + 4);
+    Cnt = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
     w = Late_flg & 0xFFFF;
     n = Cnt;
 unpack:
@@ -1228,8 +1216,8 @@ void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     gte_SetRotMatrix(&M);
     gte_SetTransMatrix(&M);
     if (Flg & 0x20) {
-        pG->Unk208C = func_8002BA3C(pP->pTmd, pG->Unk208C, pP);
-        pG->Unk208C = func_8002C068(pP->pTmd, pG->Unk208C, pP);
+        pG->pUnk208C = func_8002BA3C((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
+        pG->pUnk208C = func_8002C068((MD_OBJ *)pP->pTmd, pG->pUnk208C, pP);
         func_8002783C(pP);
     } else if (Flg & 2) {
         func_8002606C_(&pP->Attribute, Flg, pP);

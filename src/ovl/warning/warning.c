@@ -1,5 +1,4 @@
 /* not Capcom code: built with a gcc 2.7.2 and plain GNU as (see Makefile WARNING_CC1) */
-#include "common.h"
 #include "ovl/warning.h"
 #include <stdlib.h>
 #include <strings.h>

@@ -1,19 +1,19 @@
 #include "sub.h"
-#include "pcstr.h"
 #include "snd.h"
-#include "em_sub.h"
 #include "cd.h"
 #include "joint.h"
 #include "md_sub.h"
 #include "monitor.h"
 #include "sca.h"
-#include "sce1.h"
 #include "sld.h"
 #include <memory.h>
 
-
-#define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
-#define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
+/* packed 0x20-byte kan frame record (func_80079690): 12-bit rotations straddle the halfwords */
+typedef union {
+    UCHAR B[0x20];
+    USHORT H[0x10];
+    ULONG W[8];
+} KAN_REC;
 
 void func_800783BC_(ULONG no, ULONG size, ULONG *a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
@@ -25,7 +25,7 @@ void Mapping_tim(ULONG *pAdr)
     RECT *r;
 
     OpenTIM(pAdr);
-    p = (TIM_IMAGE *)ReadTIM((u_long *)&tim);
+    p = ReadTIM(&tim);
     r = p->prect;
     x = G.Ctp.u.Ctpage << 6;
     if (G.Ctp.u.Ctpage >= 16) {
@@ -329,7 +329,7 @@ void func_800791F0(void)
     func_800792FC();
     func_800790F0((ULONG *)0x80100000);
     G.System_flg |= 0x4000;
-    Task_lexecute(1, (void *)2);
+    Task_lexecute(1, 2);
     Task_sleep(1);
     G.System_flg &= ~0x4000;
     G.System_flg &= ~0x40000;
@@ -467,50 +467,52 @@ void Copy_matrix(MATRIX *m0, MATRIX *m1)
     ((LONG *)m1)[7] = r7;
 }
 
-LONG func_80079690(ENEMY_WORK *pEm, UCHAR *pKan, UCHAR *pSeq, ULONG Flg)
+LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Flg)
 {
+    UCHAR *pKan = (UCHAR *)Kan_t_ptr;
+    UCHAR *pSeq = (UCHAR *)Seq_t_ptr;
     UCHAR pad[0x50];
     UCHAR *pS;
     ULONG w;
     USHORT base;
     ULONG n;
-    UCHAR *pF;
+    KAN_REC *pF;
     PARTS_W *pP;
     ULONG w2;
     MATRIX *pM;
 
-    pS = (UCHAR *)(EM_P(pEm, 0x1A0, UCHAR) * 8 + (ULONG)pSeq);
+    pS = (UCHAR *)(pEm->Unk1A0 * 8 + (ULONG)pSeq);
     n = *(ULONG *)pS;
     base = *(USHORT *)(pS + 4);
     pSeq += (n >> 17) * 2;
     pM = D_800E1200;
     n &= 0xFFFF;
     if (Flg & 0xFFFF0000) {
-        pSeq += (n - EM_P(pEm, 0x1A1, UCHAR)) * 2 - 2;
+        pSeq += (n - pEm->Unk1A1) * 2 - 2;
     } else {
-        pSeq += EM_P(pEm, 0x1A1, UCHAR) * 2;
+        pSeq += pEm->Unk1A1 * 2;
     }
     pKan += ((USHORT *)pKan)[1] & 0xFFFC;
     pKan += (*pSeq + (SHORT)base) * 32;
-    pF = pKan;
-    EM_P(pEm, 0x1A4, LONG) = FLD(pF, 0x14, LONG);
-    EM_P(pEm, 0x1A8, USHORT) = FLD(pF, 0x18, USHORT);
-    EM_P(pEm, 0x1AC, ULONG) = FLD(pF, 0x1A, USHORT) | (FLD(pF, 0x1C, ULONG) << 16);
-    EM_P(pEm, 0x1B0, USHORT) = FLD(pF, 0x1E, USHORT);
-    pEm->pSin_parts_ptr[9].Cdir_y = FLD(pF, 8, USHORT) & 0xFFF;
-    pEm->pSin_parts_ptr[12].Cdir_y = FLD(pF, 0xE, USHORT) & 0xFFF;
+    pF = (KAN_REC *)pKan;
+    *(LONG *)pEm->Unk1A4 = pF->W[5];
+    pEm->Unk1A4[2] = pF->H[0xC];
+    *(ULONG *)pEm->Unk1AC = pF->H[0xD] | (pF->W[7] << 16);
+    pEm->Unk1AC[2] = pF->H[0xF];
+    pEm->pSin_parts_ptr[9].Cdir_y = pF->H[4] & 0xFFF;
+    pEm->pSin_parts_ptr[12].Cdir_y = pF->H[7] & 0xFFF;
     pP = &pEm->pSin_parts_ptr[11];
-    w2 = FLD(pF, 8, ULONG);
-    *(ULONG *)&pP->Cdir_x = ((w2 >> 12) & 0xFFF) | (((w2 >> 24) | ((FLD(pF, 0xC, USHORT) & 0xF) << 8)) << 16);
-    pP->Cdir_z = (FLD(pF, 0xC, ULONG) & 0xFFF0) >> 4;
+    w2 = pF->W[2];
+    *(ULONG *)&pP->Cdir_x = ((w2 >> 12) & 0xFFF) | (((w2 >> 24) | ((pF->H[6] & 0xF) << 8)) << 16);
+    pP->Cdir_z = (pF->W[3] & 0xFFF0) >> 4;
     RotMatrixZYX_gte((SVECTOR *)&pP->Cdir_x, &pM[2]);
     pP = &pEm->pSin_parts_ptr[14];
-    *(ULONG *)&pP->Cdir_x = (FLD(pF, 0xC, ULONG) >> 28) | (FLD(pF, 0x10, UCHAR) << 4) | (((FLD(pF, 0x10, ULONG) >> 8) & 0xFFF) << 16);
-    pP->Cdir_z = FLD(pF, 0x10, ULONG) >> 20;
+    *(ULONG *)&pP->Cdir_x = (pF->W[3] >> 28) | (pF->B[0x10] << 4) | (((pF->W[4] >> 8) & 0xFFF) << 16);
+    pP->Cdir_z = pF->W[4] >> 20;
     RotMatrixZYX_gte((SVECTOR *)&pP->Cdir_x, &pM[5]);
-    EM_P(pEm, 0x1A1, UCHAR)++;
-    if (EM_P(pEm, 0x1A1, UCHAR) >= n) {
-        EM_P(pEm, 0x1A1, UCHAR) = 0;
+    pEm->Unk1A1++;
+    if (pEm->Unk1A1 >= n) {
+        pEm->Unk1A1 = 0;
         return 1;
     }
     return 0;
@@ -535,9 +537,9 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     LONG w;
     ULONG n;
 
-    pW = (MATRIX *)((UCHAR *)pEm + 0x20);
+    pW = (MATRIX *)pEm->Workm_m;
     pP0 = pEm->pSin_parts_ptr;
-    cnt = EM_P(pEm, 0x1A2, UCHAR);
+    cnt = pEm->Unk1A2;
     pM = D_800E1200;
     RotMatrix((SVECTOR *)&pEm->Cdir_x, pW);
     func_8002D4B0(pW, (MATRIX *)pP0->M, &m4);
@@ -547,7 +549,7 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     m0.t[0] = (pP0->Workm.t[0] - pEm->Pos_x) << 3;
     m0.t[1] = (pP0->Workm.t[1] - pEm->Pos_y) << 3;
     m0.t[2] = (pP0->Workm.t[2] - pEm->Pos_z) << 3;
-    j = *EM_P(pEm, 0x1B4, MY_JNT *);
+    j = *(MY_JNT *)pEm->pUnk1B4;
     pP = pEm->pSin_parts_ptr;
     RotMatrix_gte((SVECTOR *)&pP[9].Cdir_x, pM);
     RotMatrix_gte((SVECTOR *)&pP[12].Cdir_x, &D_800E1260);
@@ -567,8 +569,8 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     if (pEm->UnkAE & 0x40) {
         func_80079CC0(pEm, pEm->pSin_parts_ptr->Pos_y);
     }
-    ApplyMatrix(&m3, (SVECTOR *)((UCHAR *)pEm + 0x1A4), (VECTOR *)m3.t);
-    ApplyRotMatrix((SVECTOR *)((UCHAR *)pEm + 0x1AC), &v);
+    ApplyMatrix(&m3, (SVECTOR *)pEm->Unk1A4, (VECTOR *)m3.t);
+    ApplyRotMatrix((SVECTOR *)pEm->Unk1AC, &v);
     MulLMatrix(&m1, &m3, &m4);
     m3.t[0] = v.vx;
     m3.t[1] = v.vy;
@@ -593,7 +595,7 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
         HMatrix((MATRIX *)pP[12].M, &D_800E1260, (MATRIX *)pP[12].M, w);
         HMatrix((MATRIX *)pP[13].M, &D_800E1280, (MATRIX *)pP[13].M, w);
         HMatrix((MATRIX *)pP[14].M, &pM[5], (MATRIX *)pP[14].M, 0xFFF - r);
-        EM_P(pEm, 0x1A2, UCHAR)--;
+        pEm->Unk1A2--;
     }
 }
 
@@ -617,47 +619,47 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
     SHORT y;
 
     memset(&s1, 0, 8);
-    EM_P(pEm, 0x1B8, SHORT) = 0;
+    pEm->Unk1B8 = 0;
     s1.vy = pEm->Cdir_y;
     RotMatrix(&s1, &m);
-    ApplyMatrixSV(&m, (SVECTOR *)((UCHAR *)pEm + 0x1A4), &s0);
-    ApplyMatrixSV(&m, (SVECTOR *)((UCHAR *)pEm + 0x1AC), &s1);
+    ApplyMatrixSV(&m, (SVECTOR *)pEm->Unk1A4, &s0);
+    ApplyMatrixSV(&m, (SVECTOR *)pEm->Unk1AC, &s1);
     v.vx = pEm->Pos_x + ((SHORT)s0.vx >> 3);
     v.vz = pEm->Pos_z + ((SHORT)s0.vz >> 3);
     v.vy = pEm->Pos_y;
-    d = func_8004D720(&v, 0x320, 0x8000, 0x69) - EM_P(pEm, 0x122, SHORT);
+    d = func_8004D720(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
     n = 0;
     if (h < d) {
-        y = EM_P(pEm, 0x1A6, SHORT);
+        y = pEm->Unk1A4[1];
         d <<= 3;
         if (d < y) {
-            EM_P(pEm, 0x1A6, SHORT) = d;
+            pEm->Unk1A4[1] = d;
         } else {
             n = 1;
-            EM_P(pEm, 0x1B8, SHORT) += (d - y) >> 6;
+            pEm->Unk1B8 += (d - y) >> 6;
         }
     }
     v.vx = pEm->Pos_x + ((SHORT)s1.vx >> 3);
     v.vz = pEm->Pos_z + ((SHORT)s1.vz >> 3);
     v.vy = pEm->Pos_y;
-    d = func_8004D720(&v, 0x320, 0x8000, 0x69) - EM_P(pEm, 0x122, SHORT);
+    d = func_8004D720(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
     if (h < d) {
-        y = EM_P(pEm, 0x1AE, SHORT);
+        y = pEm->Unk1AC[1];
         d <<= 3;
         if (d < y) {
             if (pEm != G.pEnemy[0] && pEm->Type != 1) {
-                EM_P(pEm, 0x1AE, SHORT) = d;
+                pEm->Unk1AC[1] = d;
             }
         } else {
             n++;
-            EM_P(pEm, 0x1B8, SHORT) += (d - y) >> 6;
+            pEm->Unk1B8 += (d - y) >> 6;
         }
     }
     if (n != 0) {
-        EM_P(pEm, 0x1B8, SHORT) >>= n - 1;
+        pEm->Unk1B8 >>= n - 1;
     }
     if (*(SHORT *)&pEm->Routine_0 != 0x501) {
-        EM_P(pEm, 0x1B8, SHORT) = 0;
+        pEm->Unk1B8 = 0;
     }
 }
 

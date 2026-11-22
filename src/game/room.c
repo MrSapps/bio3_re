@@ -1,9 +1,6 @@
 #include "pl_wep.h"
-#include "sca.h"
 #include "monitor.h"
-#include "pad.h"
 #include "sce0.h"
-#include "esp.h"
 #include "cd.h"
 #include "game.h"
 #include "player.h"
@@ -15,7 +12,7 @@
 
 #define RND() ((signed char)func_800102E8())
 
-#define PLAYER ((ENEMY_WORK *)((UCHAR *)&G + 0x248C))
+#define PLAYER ((ENEMY_WORK *)&G.Pl_be_flg)
 
 void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
 
@@ -45,12 +42,12 @@ void Set_room(void)
     pRoom = pG->pRoom;
     Kage_work_init();
     Kage_work9_init();
-    func_80010150(pG->pad2708, 0x1FC);
+    func_80010150(pG->Sub_work, 0x1FC);
     ppEm = &pG->pEnemy[1];
     pG->ppEnemy_end = &pG->pEnemy[2];
     pG->Em_num = 0;
     for (i = 41; i > 0; i--) {
-        *ppEm++ = (ENEMY_WORK *)pG->pad2708;
+        *ppEm++ = (ENEMY_WORK *)pG->Sub_work;
     }
     pG->Em_bin_info[0].Id = 0xFF;
     pG->Em_bin_info[1].Id = 0xFF;
@@ -68,7 +65,7 @@ void Set_room(void)
                 pG->Unk7864 = pPl->Id;
             }
             G.Status_flg |= 0x8000000;
-            func_8007809C(0, 8, 0x801FBC00, 0x801C1814);
+            func_8007809C(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         } else {
             if (pPl->Id >= 8) {
                 pPl->Life = 200;
@@ -87,7 +84,7 @@ void Set_room(void)
                 }
             }
             G.Status_flg &= ~0x8000000;
-            func_8007809C(0, 2, 0x801FBC00, 0x801C1814);
+            func_8007809C(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         }
         pPl->Max_life = 200;
         pPl->Id = pG->Unk784E;
@@ -142,7 +139,7 @@ void Set_room(void)
 
 void Set_stage(void)
 {
-    ULONG Size = ((ULONG (*)(ULONG, ULONG))Task_lexecute)(2, G.Unk783E + 0x11);
+    ULONG Size = Task_lexecute(2, G.Unk783E + 0x11);
 
     G.Unk2138 = ((Size + 3) & ~3) + 0x8011A000;
     Task_sleep(1);

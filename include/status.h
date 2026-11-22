@@ -290,7 +290,6 @@ extern UCHAR D_800A0BC4[];
 extern LONG D_800C79CC; /* extra game character (func_8006D0D8) */
 extern ULONG D_800CC840;
 extern SHORT D_800CCBBC;
-extern UCHAR D_800CEA80[];
 extern ULONG D_800D1FA0[];
 extern ULONG D_800D20DC[];
 extern ULONG D_800D2124[];
@@ -389,7 +388,7 @@ void func_8006E7D4(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n);
 void func_8006E84C(ST_WORK *pSt);
 void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
 void func_8006E9D4(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void func_8006EAF0(ST_WORK *pSt, TILE *p, UCHAR *src, ULONG prm);
+void func_8006EAF0(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm);
 void func_8006EBEC(void);
 void func_8006ECB0(ULONG no);
 void func_8006ED28(ST_WORK *pSt);

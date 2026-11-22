@@ -1,11 +1,4 @@
-#include "pl_wep.h"
-#include "sca.h"
-#include "monitor.h"
-#include "pad.h"
-#include "esp.h"
 #include "sabun.h"
-#include "sld.h"
-#include "status.h"
 
 #define RND() ((signed char)func_800102E8())
 
