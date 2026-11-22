@@ -1,3 +1,5 @@
 // WARNING.BIN symbols (loaded at 0x80184000)
-D_80185618 = 0x80185618; // type:u8 size:0x1  Warn_min: BCD minute of the seek target
-D_80185619 = 0x80185619; // type:u8 size:0x3  Warn_sec: BCD second (separate symbol: accessed as `lbu $x,sym`, not sym+1)
+// D_80185618 is Warn_min (BCD minute of the seek target); D_80185619 is Warn_sec (BCD second) - separate
+// symbols because the code reads each with its own `lbu $x,sym` macro, not sym+1
+D_80185618 = 0x80185618; // type:u8 size:0x1
+D_80185619 = 0x80185619; // type:u8 size:0x3
