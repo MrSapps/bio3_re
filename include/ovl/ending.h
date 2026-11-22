@@ -12,9 +12,11 @@
 #include "movie.h"
 #include "sub.h"
 
-extern UCHAR D_800DBB58;               /* status flags (0x80 tested by the status screen code) */
-
-/* RE3 passes an overlay task number instead of a function */
-void Task_lexecute_no(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
+void func_80194004(void);
+void func_80194080(void);
+void func_8019409C(void);
+void func_801942DC(void);
+void func_801943A4(void);
+void func_801943E4(void);
 
 #endif /* OVL_ENDING_H */

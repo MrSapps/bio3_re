@@ -13,6 +13,7 @@
 #include "cd.h"
 #include "sce0.h"
 #include "md_sub.h"
+#include "sld.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -63,26 +64,6 @@
 #define gte_rtv1tr() __asm__ volatile("nop; nop; .word 0x4A488012")
 #define gte_rtv2tr() __asm__ volatile("nop; nop; .word 0x4A490012")
 #define gte_llv0() __asm__ volatile("nop; nop; .word 0x4A4A6412") /* mvmva 1,1,0,3,1: light matrix * v0, lm */
-
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D184(ULONG *pXy, SHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
-POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
-POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002DFE0(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002E160(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-
-void func_8002D5D8(ULONG *pSxy, USHORT *pSz, MD_OBJ *pObj);
-POLY_GT4 *func_8002DC98(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002DE0C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002D6D8(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002D898(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
-void func_8002B2BC(KAN_HEAD *pKan, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
-POLY_GT4 *func_8002C068(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
 
 /* 7 diffs (draft in scratchpad): giv base must be &n_prim3, gcc picks the last pObj field read (pPrim4) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002AB34);
@@ -269,8 +250,6 @@ next:
     }
 }
 
-void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
-
 void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
 {
     SVECTOR Sv;
@@ -439,10 +418,6 @@ void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B6FC);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B86C);
-
-extern SHORT D_80098A88[2][30];        /* RE2 Bomb_tbl: push-out distance per frame */
-extern SVECTOR D_80098B00;             /* spin of the exploding parts, +0x80 per call */
-extern MATRIX D_800D4570;              /* rotation of D_80098B00, translation = polygon centre */
 
 /* RE2 Bomb_Parts_SortGT3: every polygon is pushed out along its normal */
 POLY_GT4 *func_8002BA3C(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
@@ -744,10 +719,6 @@ void Md_set_abr(MD_OBJ *pObj, ULONG Abr)
         p += 4;
     }
 }
-
-extern MATRIX D_800D4550;              /* light matrix saved by func_8002C824, restored by func_8002CABC */
-extern MATRIX D_80098B08;              /* light matrix of the lit sorts */
-extern ULONG D_80098B28[][4];          /* uv words per primitive code */
 
 /* lit GT3 sort: flat-ish light from the normals, back faces and unlit faces skipped */
 POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
@@ -1199,13 +1170,6 @@ typedef struct tagMODEL_HEAD {
 } MODEL_HEAD;
 #define EM_MD(p) ((MODEL_HEAD *)&(p)->Attribute)
 
-/* floor panel tables, indexed by ENEMY_WORK.Type */
-extern UCHAR D_80098B58[][2];          /* panel columns, rows */
-extern UCHAR D_80098B8C[];             /* first row bitmask in D_80098BA8 */
-extern USHORT D_80098BA8[];            /* one bit per panel, MSB first */
-
-void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-
 void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
 {
     ULONG Sxy[0x3C];
@@ -1321,12 +1285,7 @@ void Draw_list_all(ULONG Arg0, ULONG Arg1, ULONG Arg2)
     }
 }
 
-/* water ripple quads, 13 per panel: u0 v0 .. u3 v3 in 1/18 panel units */
-extern UCHAR D_80098D68[13][8];
-
-void func_8002EB9C_(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm) __asm__("func_8002EB9C");
-
-void func_8002EB9C_(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm)
+void func_8002EB9C(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm)
 {
     SHORT Area[4];
     VECTOR Pos;

@@ -45,7 +45,7 @@ typedef struct tagEPI_WORK {
 extern EPI_FILE D_801C2B4C[];          /* epilogue pictures in OMBG.TIM */
 extern UCHAR D_801C2B9C[];             /* their check sums */
 extern USHORT D_801C2BA8[][2];         /* page positions on the 3x3 menu */
-extern void (*D_801C2BCC[])(void);     /* routines, index Rno0 */
+extern void (*D_801C2BCC[])(void); /* routines, index Rno0 */
 extern EPI_WORK Epi_work __asm__("D_801C2BE0");
 
 void func_801C2380(void);
@@ -55,14 +55,6 @@ void func_801C2888(void);
 void func_801C2958(void);
 void func_801C2AB4(ULONG *pAdr, UCHAR No);
 
-/* exe prototypes not in a shared header yet (game .c files disagree on some of them) */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG Mode, char *pName);
-LONG Cd_read_s(LONG Fno, LONG a1, ULONG *pAdr, LONG a3, char *pName);
-void Mapping_tim(ULONG *pTim);
-void func_800783BC(ULONG no, ULONG size, ULONG a2);
-void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
-void func_80038634(ULONG Flg, SHORT Val);          /* pad.c */
-void Flg_on(ULONG *pFlg, ULONG Id);
-void Flg_off(ULONG *pFlg, ULONG Id);
+void func_801C204C(void);
 
 #endif /* OVL_EPILOG_H */

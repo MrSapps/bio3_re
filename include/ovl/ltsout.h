@@ -47,21 +47,13 @@ typedef struct tagLTS_EVT {
 } LTS_EVT;
 
 /* overlay .data (still in asm) */
-extern UCHAR Lts_mess[] __asm__("D_801C2AD8");          /* switch labels */
-extern USHORT Lts_mess_ofs[] __asm__("D_801C2AEC");     /* offset of each label in Lts_mess */
-extern UCHAR Lts_tbl[10][8] __asm__("D_801C2AF8");      /* random patterns: lamps 1..4, answer lamp */
+extern UCHAR Lts_mess[] __asm__("D_801C2AD8"); /* switch labels */
+extern USHORT Lts_mess_ofs[] __asm__("D_801C2AEC"); /* offset of each label in Lts_mess */
+extern UCHAR Lts_tbl[10][8] __asm__("D_801C2AF8"); /* random patterns: lamps 1..4, answer lamp */
 extern LTS_WORK Lts_wk __asm__("D_801C2B48");
 
-/* exe functions without a shared prototype */
-LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
-void Esp_task_main(void);
-void Eff_sprt_trans(void);
-void Psp_trans(void);                  /* psp.c */
-void Flg_off(ULONG *pFlg, ULONG Id);   /* sub.c */
-
-void func_801C2018(void);              /* main task */
-void func_801C2370(void);              /* puzzle state machine */
-void func_801C28BC(void);              /* draw */
+void func_801C2018(void); /* main task */
+void func_801C2370(void); /* puzzle state machine */
+void func_801C28BC(void); /* draw */
 
 #endif /* OVL_LTSOUT_H */

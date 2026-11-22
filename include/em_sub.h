@@ -5,6 +5,17 @@
  * shadows, neck rotation, ...). RE3 layouts were taken from the RE3 code.
  */
 #include "bio3.h"
+#include "esp.h"
+
+typedef void (*EFF_PROC)(ESP_WORK *pEw);
+
+/* 0xC-byte table entry, 16 entries at D_800BA728 / D_800BA7E8 (filled by Esp_data_set0) */
+typedef struct {
+    ULONG *pData;                      /* 0x0 */
+    ULONG *pData2;                     /* 0x4 */
+    UCHAR Id;                          /* 0x8 */
+    UCHAR pad9[3];
+} TBL12;
 
 /* enemy work (RE2 struct tagENEMY_WORK; RE3 layout differs: no pTmd2/pPacket2, no dummy00) */
 typedef struct tagENEMY_WORK {
@@ -182,12 +193,6 @@ extern MATRIX GsIDMATRIX;              /* 0x80098970 */
 /* Be_flg bits */
 #define BE_FLG_400 0x400
 
-void func_8002D4B0(MATRIX *m0, MATRIX *m1, MATRIX *m2); /* RE2 CompM */
-void Snd_se_enem(ULONG No, ENEMY_WORK *pEm);          /* RE2 Snd_se_enem */
-void func_800100A4(void *pDst, void *pSrc, ULONG Size); /* RE2 Memcpy */
-void func_8001012C(void *pDst, void *pSrc, ULONG Size); /* sld.s byte copy */
-void func_80010150(void *p, ULONG Size);             /* RE2 Memclr */
-
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw);
 void Add_speedXZ(ENEMY_WORK *pEm, LONG muki);
 void Add_speedXYZ(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z);
@@ -212,5 +217,41 @@ void Null_pos_set2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
 void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG Kan, ULONG Seq);
 void Em_seq_sound(ENEMY_WORK *pEm);
 void Kage_work_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+
+extern EFF_PROC D_80097BD4[];
+extern ULONG D_80097FCC[];
+extern ESP_WORK *D_80098084; /* pool start */
+extern ESP_WORK *D_80098088; /* pool end */
+extern ESP_WORK *D_8009808C; /* pool 2 start */
+extern ESP_WORK *D_80098090; /* pool 2 end */
+extern UCHAR D_80098728[]; /* random offsets (Sce_rnd_set) */
+extern signed char D_80098828[]; /* 0x80098828 sine, 256 steps, +-127 */
+extern TBL12 D_800BA728[16];
+extern TBL12 D_800BA7E8[16];
+extern UCHAR D_800BF754[];
+
+ULONG Gacha_ch(void);
+ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi);
+void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
+void func_80019178(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
+void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
+void Kage_work_init(void);
+void Kage_work9_init(void);
+void Kage_work9_set(ULONG *pK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg);
+void Kage_work_sort(void);
+void Kage_work9_sort(void);
+void Kage_work_color_set(ULONG *pK, ULONG Color);
+void Kage_work9_color_set(ULONG *pK, ULONG Color); /* RE2 Kage_work9_color_set */
+void Rot_neck(ENEMY_WORK *pEm, SHORT Dir);
+void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y);
+void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir);
+void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
+void func_8001AD78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG R_flg);
+void Em_dead_flg_on_cand(ENEMY_WORK *pEm);
+void func_8001AECC(ENEMY_WORK *pEm, ULONG a1, ULONG a2);
+ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc);
+ENEMY_WORK *func_8001B048(ULONG Id);
 
 #endif /* EM_SUB_H */

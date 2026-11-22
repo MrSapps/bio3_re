@@ -4,188 +4,24 @@
 #include "em_sub.h"
 #include "cd.h"
 #include "status.h"
+#include "pad.h"
+#include "player.h"
+#include "sca.h"
+#include "sld.h"
+#include "spl_sce.h"
+
+int func_800783BC_() __asm__("func_800783BC"); /* returns int here (canonical void); unprototyped call */
 
 #define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
-extern UCHAR D_800CC848;
-void func_800642D4(ST_WORK *pSt, void *p, UCHAR *pXy, ULONG f);
-void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
-void func_80060E90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern SHORT D_8009EDA4[];
-extern SHORT D_8009EDCC[];
-extern SHORT D_8009EDF4[];
-extern SHORT D_8009EE1C[];
-void Spl_sce05(ENEMY_WORK *pEm);
-LONG func_800634F4(ENEMY_WORK *pEm, LONG f);
-void func_8001B484(LONG no, ULONG dir, void *p, SVECTOR *pSv, LONG a4);
-LONG func_80044804(void *p, LONG a1, LONG a2);
-extern LONG D_8009DBD4;
-void FA_Add_speedXZ3(ENEMY_WORK *pEm, LONG a, LONG b) __asm__("Add_speedXZ");
-void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG f);
-LONG func_80063198(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-void Spl_sce04(ENEMY_WORK *pEm);
-LONG func_800632B8(ENEMY_WORK *pEm, LONG f);
-void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b);
-extern UCHAR D_8009F2EC[];
-extern UCHAR D_8009F2F8[];
-extern UCHAR D_8009F304[];
-extern UCHAR D_8009F310[];
-extern UCHAR D_8009F31C[];
-void func_8006E600(ST_WORK *pSt, void *p, UCHAR *pTbl, ULONG f);
-void FA_func_8006EBEC(ULONG *p) __asm__("func_8006EBEC");
-void func_80063E9C(ST_WORK *pSt);
-LONG func_80062B68(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern USHORT D_8009F26C[];
-extern ULONG D_8009EF90[];
-extern UCHAR D_8009EED8[];
-extern char D_80010DCC[];
-extern SHORT D_800CCBBC;
-void Mapping_tim(ULONG *p);
-void func_8006ED28(ST_WORK *pSt);
-void FB_OpenTIM(void) __asm__("OpenTIM");
-UCHAR FB_func_8006E598(void) __asm__("func_8006E598");
-extern UCHAR D_800A04F8[];
-extern UCHAR D_800A07C4[];
-extern UCHAR D_800A0514[][4];
-extern SpuReverbAttr D_800A1108[];
-extern UCHAR D_800A10F4[][0x14];
-
-void func_80078FE8(void);
-void func_8007906C(void);
-void func_800792FC(void);
-void func_800790F0(ULONG *pAdr);
-
-extern LONG D_800E0608;
-void func_80075C30(void);
 
 #define FC_SQ(x) ((x) * (x))
 
-LONG func_8004D720(VECTOR *pV, LONG a1, LONG a2, LONG a3);
-extern MATRIX D_800E1200[];
-extern MATRIX D_800E1220;
-extern MATRIX D_800E1260;
-extern MATRIX D_800E1280;
-void HMatrix(MATRIX *a, MATRIX *b, MATRIX *c, LONG r);
-void MulLMatrix(MATRIX *a, MATRIX *b, MATRIX *c);
-void func_80079CC0(ENEMY_WORK *pEm, LONG h);
-void MY_func_800611E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("Spl_sce07");
-LONG func_80062BFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-LONG MY_func_80077B84(LONG x, LONG z, LONG a) __asm__("func_80077B84");
-void Pad_vib_fade_set(LONG a0, LONG a1, LONG a2, LONG a3);
-void MY_func_8001B484(LONG id, ULONG code, MATRIX *pM, SVECTOR *pOfs, SVECTOR *p5) __asm__("func_8001B484");
-
-/* ---- merged helpers (forks + parent) ---- */
-
 /* local prototypes (this module) */
-LONG Snd_seq_get_vlq(UCHAR **pp);
-UCHAR func_80077220_u(LONG a0, LONG a1, LONG a2, LONG a3) __asm__("func_80077220");
-extern ULONG D_800D1FC0[];
-extern LONG D_800A1140[];
-extern LONG D_800A1170[];
-extern ULONG D_800CC858;
-void func_800749A0(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank);
-LONG func_80075AE4(UCHAR *pVag, SND_VOICE *pV);
-LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq);
-void func_80074CD0(SND_VOICE *pV, signed char v);
-void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice);
-extern void (*D_800A11A0[])(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG Status);
-extern void (*D_800A1130[])(SND_REQ *pReq);   /* func_80074770 (SE), func_80074820 (sequence) */
-extern void (*D_800A1138[])(SND_SEQ *pSeq);   /* Snd_seq_fade_in, Snd_seq_fade_out */
-void func_800740AC(void);
-void func_800772A0(LONG no, UCHAR *pData, LONG bank, LONG loop); /* MIDI event handlers, status 0x80..0xF0 */
-void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist);
-LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg);
-LONG func_8007592C(LONG x0, LONG z0, LONG x1, LONG z1);
-extern UCHAR D_800A1008[];              /* pan curve, 0x80 entries */
-extern UCHAR D_800A1088[];              /* attenuation by distance / 250 */
-UCHAR func_80062CD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern ULONG D_800A0FEC[];
-extern ULONG D_800A1000;
-void Pl_wep_eff_parts_init(void *p);
-void func_80046C90(void);
-extern ULONG D_8009F678[];
-void func_80010000(ULONG a0, ULONG *pDst);
-LONG Joint_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-LONG func_80079690(ENEMY_WORK *pEm, UCHAR *pKan, UCHAR *pSeq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, LONG rate);
-extern void (*D_8009EEA4[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern UCHAR D_8009F568[];
-extern char D_80010F84[];
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-extern USHORT D_8009F4F8[][2];
-extern LONG D_800D23B8;
-extern UCHAR *D_800BA6E8;
-void func_80073CCC(UCHAR *a, UCHAR *b);
-extern SpuCommonAttr D_800E10F8;
-LONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-extern UCHAR D_800DBB58;
-extern SHORT D_800D1F80;
-extern ULONG *D_800E01C8;
-extern USHORT D_800A004C[][2];
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
-void func_80068024(ST_WORK *pSt);
-void func_8006CD68(UCHAR no);
-LONG func_800759D8(LONG x);
-LONG func_80075A80(LONG x, LONG frac);
-LONG func_800770DC_l(LONG lo, ULONG hi) __asm__("func_800770DC");
-ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones);
-void func_800762C8(UCHAR *pSeq, UCHAR *pTr, ULONG mask);
-void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan);
-void func_8007836C(LONG no, ULONG *pAdr);
-extern UCHAR D_800A0FE4[];
-extern UCHAR D_800A0FDC[];
-extern UCHAR D_800CCBBF;
-extern SHORT D_800E067C;
-extern UCHAR D_800A0BB4[];
-extern UCHAR D_800A0BC4[];
-void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern void (*D_8009F4E4[])(ST_WORK *pSt);
-extern void (*D_800A0100[])(ST_WORK *pSt);
-extern void (*D_800A0138[])(ST_WORK *pSt);
-extern void (*D_800A0500[])(ST_WORK *pSt);
-extern ULONG D_800D20DC[];
-UCHAR func_80069614(ST_WORK *pSt, LONG a1);
-void func_80027338(ULONG *pKan, ULONG *pSeq, ULONG a2, ULONG Flg);
-void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
-void Foot_set_pl(ENEMY_WORK *pEm, LONG a1, LONG a2);
-void func_80060464(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_8006037C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-extern void (*D_8009EE44[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm);
-void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8006055C(ENEMY_WORK *pEm);
-void func_8002B2BC(ULONG *pKan, ULONG *pSeq, USHORT *pNow_seq, ULONG R_flg);
-
-/* declarations from earlier parts of the original address-split file */
-signed char func_800102E8(void);
-LONG FF_func_8001B484(LONG no, ULONG dir, void *p, SVECTOR *pSv, LONG a4) __asm__("func_8001B484");
-
-extern UCHAR D_800DBB5B;
-extern UCHAR D_800CEA80[];
-LONG func_8001B894();
-void Mess_set(LONG a0, LONG a1, LONG a2, LONG a3);
-
-extern ULONG D_800CC840;
-void func_8006AC88(UCHAR no);
-
-extern UCHAR D_8009F5F0[];
-
-extern char D_80010FEC[];
-
-extern void (*D_800A02F0[])(ST_WORK *pSt);
-void func_8006D948(ST_WORK *pSt);
-void func_8006E0A4(ST_WORK *pSt);
-void func_8006E268(ST_WORK *pSt);
-void func_8006E34C(ST_WORK *pSt);
-void FC_func_80073E7C(ST_WORK *pSt) __asm__("func_80073E7C");
-
-void func_800654A8(ST_WORK *pSt);
-void func_8006B66C(ST_WORK *pSt);
-void func_80070244(ST_WORK *pSt);
+LONG func_800770DC_l(LONG lo, ULONG hi) __asm__("func_800770DC"); /* returns long here (canonical signed char) */
 
 void func_80073E84(void)
 {
@@ -1061,7 +897,7 @@ void func_800762C8(UCHAR *pSeq, UCHAR *pTr, ULONG mask)
     pTr[0xD] = 0;
     while (mask != 0) {
         if (mask & 1) {
-            v = func_80077220_u(FLD(pSeq, 0x26, SHORT), pTr[6], pTr[0xD], pTr[0xC]);
+            v = func_80077220(FLD(pSeq, 0x26, SHORT), pTr[6], pTr[0xD], pTr[0xC]);
             if (v != 0xFF) {
                 b = 1 << v;
                 Snd_work.UnkB2C |= b;
@@ -1558,7 +1394,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     LONG se;
 
     pP = &pEm->pSin_parts_ptr[parts];
-    se = MY_func_80077B84(pP->Workm.t[0], pP->Workm.t[2], FLD(pEm, 9, signed char)) & 0x7F;
+    se = func_80077B84(pP->Workm.t[0], pP->Workm.t[2], FLD(pEm, 9, signed char)) & 0x7F;
     if (FLD(pEm, 0xA, SHORT) != 0) {
         se = 0x17;
         if (FLD(pEm, 0xA, SHORT) == 1) {
@@ -1568,7 +1404,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
             s.vz = 0;
             t.vy = 0;
             t.vz = 0;
-            MY_func_8001B484(0xE, (USHORT)G.Pl_cdir_y | 0x10000000, &pP->Workm, &s, &t);
+            func_8001B484(0xE, (USHORT)G.Pl_cdir_y | 0x10000000, &pP->Workm, &s, &t);
         } else {
             pP--;
             s.vy = FLD(pEm, 0xA, SHORT) - pP->Workm.t[1];
@@ -1593,17 +1429,17 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
                 s.vy += 100;
                 if (kind == 0) {
                     s.vx = -100;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
                 }
                 if (kind == 1) {
                     s.vx = -300;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0x15000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0x15000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0x10000000, &pP->Workm, &s, 0);
                 }
             } else {
                 if (s.vy < 1200 && pEm->Id < 0x10) {
@@ -1618,17 +1454,17 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
                 }
                 if (kind == 0) {
                     s.vx = -200;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0xE000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0xC000000, &pP->Workm, &s, 0);
                 }
                 if (kind == 1) {
                     s.vx = -600;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0x17000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x800) & 0xFFFF) | 0x17000000, &pP->Workm, &s, 0);
                     s.vx = 0;
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
-                    MY_func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y - 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
+                    func_8001B484(0x61C, (((USHORT)G.Pl_cdir_y + 0x400) & 0xFFFF) | 0x14000000, &pP->Workm, &s, 0);
                 }
             }
         }
@@ -1742,16 +1578,14 @@ void func_80077ED4(void)
         if ((signed char)i++ < 0) {
             break;
         }
-        Task_sleep(1);
+        Task_sleep(1); /* undeclared on purpose (monitor.h not included): any prototype, even int Task_sleep(), changes this loop */
     } while (n);
     Snd_se_stad(0xE, 0, 0, 0);
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/snd", func_80077F60);
 
-LONG Cd_read_s(LONG Fno, LONG a1, ULONG *pAdr, LONG a3, char *pName);
-LONG FE_func_80012818(LONG Fno, ULONG *pAdr, LONG a2, char *pName) __asm__("Cd_read");
-void FE_func_800783BC(ULONG no, ULONG size, ULONG *a2) __asm__("func_800783BC");
+void FE_func_800783BC(ULONG no, ULONG size, ULONG *a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 LONG func_8007809C(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
 {
@@ -1769,7 +1603,7 @@ LONG func_8007809C(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
         *p++ = -1;
         n--;
     }
-    r = FE_func_80012818(idx * 2 + tbl[no * 2], pAdr, 0, "Vab Header");
+    r = Cd_read(idx * 2 + tbl[no * 2], pAdr, 0, "Vab Header");
     func_8007836C(no, pAdr);
     FE_func_800783BC(no, Cd_read_s(idx * 2 + tbl[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
     if (r < 0) {
@@ -1799,7 +1633,7 @@ void func_80078204(void)
     if (G.pRoom->pEdt0 != NULL) {
         G.pEm_mem = (ENEMY_WORK *)(((ULONG)pW->Bank[2].pHead + pW->Bank[2].pHead[1] + 3) & ~3);
     }
-    func_800783BC(2, p[0x30], 0);
+    func_800783BC_(2, p[0x30], 0);
 }
 
 /* registers a sequence pack (and its VAB) loaded for enemy slot no */

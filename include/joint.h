@@ -3,6 +3,13 @@
 /* RE2 JOINT.C: model parts setup / joint animation */
 #include "em_sub.h"
 
+/* model colour parameters set from ENEMY_WORK+0x178 (func_800254AC) */
+typedef struct tagMODEL_COL {
+    USHORT Unk0[3];                    /* 0x0 */
+    SHORT Unk6;                        /* 0x6 */
+    ULONG Rgb;                         /* 0x8 */
+} MODEL_COL;
+
 /* joint state of a separately animated model piece (RE2 struct tagJOINT_P, JOINT.H; 0x30 bytes) */
 typedef struct tagJOINT_P {
     UCHAR Move_no;                     /* 0x00 */
@@ -33,8 +40,37 @@ typedef struct tagPARTS_RGB_FREE_WORK {
 } PARTS_RGB_FREE_WORK;
 #define PW_RGB(p) ((PARTS_RGB_FREE_WORK *)&(p)->Unk74)
 
-ULONG func_80028308(JOINT_P *pJp, ULONG *pKan, ULONG *pSeq, ULONG Late_flg); /* RE2 Joint_move_p */
-ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top);  /* PartsWork_set */
-void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan);      /* part positions from kan data */
+ULONG func_80028308(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg); /* RE2 Joint_move_p */
+ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top); /* PartsWork_set */
+void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan); /* part positions from kan data */
+
+extern MODEL_COL D_80098B08; /* light matrix of the lit sorts */
+
+void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg); /* RE2 Joint_trans */
+void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
+void func_800254AC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos);
+void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
+void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
+void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
+void func_8002606C(ULONG *pObj, ULONG Flg);
+ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan);
+void func_8002646C(ENEMY_WORK *pEm, SHORT A, SHORT B, UCHAR C);
+void func_80026498(ENEMY_WORK *pEm);
+void func_80026648(ENEMY_WORK *pEm);
+void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate);
+void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate);
+void Joint_move(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg);
+void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate);
+ULONG func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg);
+void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
+void func_8002783C(PARTS_W *pP_ptr);
+void Joint_move2(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg); /* RE2 JOINT.C Joint_move */
+ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
+ULONG func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg);
+void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
+void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
 
 #endif /* JOINT_H */

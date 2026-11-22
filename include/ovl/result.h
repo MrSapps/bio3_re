@@ -118,17 +118,82 @@ typedef struct tagGLOBAL_RESULT {
 extern GLOBAL_RESULT Gr __asm__("G");
 
 /* exe functions not in a shared header yet (game .c files declare some with other types) */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG Mode, char *pName);
-LONG Cd_read_s(LONG Fno, LONG a1, ULONG *pAdr, LONG a3, char *pName);
-ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
-void Flg_on(ULONG *pFlg, ULONG Bit);
-void Mapping_tim(ULONG *pTim);
-void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
-LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data);
-/* Print14 with signed coordinates (the overlay passes them sign-extended) */
-void Print14_s(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14");
-void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
-void func_800783BC(ULONG no, ULONG size, ULONG a2);
-void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
+
+extern char D_801C2010[]; /* "CARLOS" */
+extern char D_801C2018[]; /* "NICHOLAI" */
+extern char D_801C2024[]; /* "MIKHAIL" */
+extern char D_801C202C[]; /* "]]:]]:]]" no time */
+extern char D_801C2038[]; /* "%1d%1d:%1d%1d:%1d%1d" */
+extern char D_801C2054[]; /* "%c" */
+extern char D_801C2058[]; /* "@]]]]]]" no money */
+extern char D_801C2060[]; /* "@%6d" */
+extern char D_801C2068[]; /* "BUY" */
+extern char D_801C206C[]; /* "EXIT" */
+extern RESULT_BG D_801C6800[]; /* OMBG.TIM pieces */
+extern UCHAR D_801C6850[]; /* OMBG.TIM piece check sums */
+extern UCHAR D_801C685C[]; /* shop messages */
+extern USHORT D_801C69A0[]; /* shop message offsets into D_801C685C */
+extern UCHAR D_801C69B4[]; /* grade letters "FEDCBA" */
+extern void (*D_801C69BC[])(void); /* task routines, index G.Unk2115 */
+extern void (*D_801C69D4[])(RESULT_WORK *pWk); /* Mercenaries result routines */
+extern RESULT_POS D_801C69E0[]; /* Mercenaries result text positions */
+extern RESULT_SPR_DATA D_801C6A1C[]; /* Mercenaries result sprites */
+extern void (*D_801C6BB4[])(RESULT_WORK *pWk); /* Mercenaries shop routines */
+extern RESULT_POS D_801C6BC0[]; /* shop text positions */
+extern RESULT_SPR_DATA D_801C6BD4[]; /* shop sprites */
+extern SHORT D_801C6D08[]; /* shop item prices */
+extern signed char D_801C6D10[]; /* shop item flag bits (G.Unk77F8) */
+extern void (*D_801C6D14[])(RESULT_WORK *pWk); /* routine 2 routines */
+extern void (*D_801C6D20[])(RESULT_WORK *pWk); /* routine 3 routines */
+extern RESULT_POS D_801C6D2C[]; /* main game result text positions */
+extern void (*D_801C6D48[])(RESULT_WORK *pWk); /* routine 4 routines */
+extern void (*D_801C6D54[])(RESULT_WORK *pWk); /* routine 5 routines */
+extern RESULT_SPR D_801C6D60[]; /* sprite objects (30) */
+extern RESULT_WORK D_801C76C0; /* result screen work */
+
+void func_801C2154(ULONG *pAdr, UCHAR No);
+void func_801C21EC(void);
+void func_801C224C(void);
+LONG func_801C229C(RESULT_WORK *pWk);
+void func_801C2ABC(RESULT_WORK *pWk);
+void func_801C2FD0(RESULT_WORK *pWk);
+void func_801C31FC(RESULT_WORK *pWk);
+void func_801C3294(void);
+void func_801C32F4(void);
+LONG func_801C3344(RESULT_WORK *pWk);
+void func_801C3724(RESULT_WORK *pWk);
+void func_801C3C50(RESULT_WORK *pWk);
+void func_801C4070(RESULT_WORK *pWk);
+void func_801C4128(void);
+void func_801C4188(RESULT_WORK *pWk);
+void func_801C46EC(void);
+void func_801C473C(RESULT_WORK *pWk);
+void func_801C49FC(RESULT_WORK *pWk);
+void func_801C4F0C(RESULT_WORK *pWk);
+void func_801C526C(RESULT_WORK *pWk);
+void func_801C5324(void);
+void func_801C5384(void);
+LONG func_801C53D4(RESULT_WORK *pWk);
+void func_801C567C(RESULT_WORK *pWk);
+void func_801C577C(RESULT_WORK *pWk);
+void func_801C57BC(RESULT_WORK *pWk);
+void func_801C5854(void);
+void func_801C58CC(void);
+void func_801C591C(RESULT_WORK *pWk);
+void func_801C5944(RESULT_WORK *pWk);
+void func_801C5A1C(RESULT_WORK *pWk);
+void func_801C5A5C(RESULT_WORK *pWk);
+void func_801C5AF4(void);
+void func_801C5B54(void);
+void func_801C5BA4(RESULT_WORK *pWk);
+void func_801C5BCC(RESULT_WORK *pWk);
+void func_801C5CD8(RESULT_WORK *pWk);
+void func_801C605C(RESULT_WORK *pWk);
+void func_801C6114(void);
+void func_801C6140(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb);
+void func_801C62B0(RESULT_SPR *pSpr, ULONG Pri);
+void func_801C64E4(RESULT_SPR *pSpr, ULONG Rgb);
+void func_801C650C(RESULT_WORK *pWk);
+void func_801C678C(RESULT_WORK *pWk);
 
 #endif /* OVL_RESULT_H */

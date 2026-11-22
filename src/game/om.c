@@ -4,88 +4,26 @@
 #include "pad.h"
 #include "em_sub.h"
 #include "om.h"
-#include "pl_wep2.h"
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
 #include "pl_wep.h"
 #include "oba.h"
-
-extern COL_WORK D_800DCED0;
-extern COL_OBJ *D_800DCDD0[];
+#include "joint.h"
+#include "sca.h"
+#include "sld.h"
+#include "sub.h"
 
 /* ENEMY_WORK fields not in em_sub.h yet */
 #define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
 #define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
-
-extern ULONG D_8009CBC8[];
-extern SHORT D_800DEB58[];
-extern COL_ENT D_800DEB48;
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
-void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
-
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-
-extern ULONG D_800CC87C;
-extern ULONG D_800D1F2C;
-extern UCHAR D_8009CD3C;
-ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
-LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
-LONG func_800336B4(ENEMY_WORK *pEm);
-void func_80034124(COL_OBJ *pObj);
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_80033FBC(COL_OBJ *pTop);
-void func_80033B88(COL_OBJ *pTop);
-COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
-
-/* declarations from earlier parts of the original address-split file */
-extern UCHAR D_800A0514[][4];
-extern ULONG D_800D2048[];
-extern UCHAR D_8009BEE4[];
-extern USHORT D_8009C7C0[];
-
-extern USHORT D_80099654[];
-extern UCHAR D_80098E88[];
-extern UCHAR D_800CC84D;
-extern UCHAR D_800D4433;
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
     return D_80098E88 + D_80099654[No];
 }
 
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-extern LOADTASK D_8009C944[];
-ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
-
-void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
-
-extern void (*D_8009CBB4[])(void);
-
-LONG func_800346AC(COL_OBJ *pObj, ENEMY_WORK *pEm, ENEMY_WORK *pT);
-
-LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
-LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
-
-PARTS_W *func_8002E61C(ENEMY_WORK *pEm, PARTS_W *pParts);
-PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
-void func_8003589C(OBJ_MODEL_WORK *pOm, ULONG *pKan);
 #define PW_FREE(p) ((USHORT *)&(p)->Unk74)  /* PARTS_W 0x74..0x7F */
-/* per object-model type (ENEMY_WORK.Type & 0x1F) */
-typedef struct {
-    UCHAR Unk0;                        /* 0x0 non-zero: part Unk1 starts hidden (func_8003589C) */
-    UCHAR Unk1;                        /* 0x1 */
-    UCHAR Num;                         /* 0x2 */
-    UCHAR Idx;                         /* 0x3 */
-} OM_BREAK_TBL;
-extern OM_BREAK_TBL D_8009CBEC[];
 
 void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
 {
@@ -121,7 +59,7 @@ void func_80035B84(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Arg2, ULONG Arg3)
 {
     ULONG n;
 
-    if ((pEm->Be_flg & 0x40) || Hit_ck_point4_l(Arg3, D_800CC87C)) {
+    if ((pEm->Be_flg & 0x40) || func_8001020C(Arg3, D_800CC87C)) {
         n = pEm->Parts_num;
     loop:
         if (pParts->Be_flg & 1) {
@@ -133,8 +71,6 @@ void func_80035B84(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Arg2, ULONG Arg3)
         }
     }
 }
-
-extern UCHAR D_800CC84B;
 
 void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
 {
@@ -247,8 +183,7 @@ void Tex_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     }
 }
 
-ULONG Tex_chg_(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr) __asm__("Tex_chg");
-ULONG Tex_chg_(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
+ULONG Tex_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
 {
     switch (Ctr)
     {
@@ -377,11 +312,6 @@ void Tex_ctr(void)
     } while (i < D1);
 }
 
-extern void (*D_8009CC64[])(OBJ_MODEL_WORK *pOm);
-extern LONG D_800DD4AC;                /* number of pushable object models touched this frame */
-extern OBJ_MODEL_WORK *D_800DD4B0;     /* the one on the player's floor */
-void func_80036570(void);
-
 void Om_move(void)
 {
     OBJ_MODEL_WORK *pOm;
@@ -439,11 +369,6 @@ void Em_routine0_set1_80036640(OBJ_MODEL_WORK *pOm)
     pOm->Routine_0 = 1;
 }
 
-extern SHORT D_800DE614;
-extern SHORT D_800DE618;
-extern SHORT D_800DE61A;
-extern SHORT D_800DE61E;
-
 void Om_set_fall_dir(ENEMY_WORK *pEm)
 {
     SHORT dx;
@@ -464,10 +389,6 @@ void Om_set_fall_dir(ENEMY_WORK *pEm)
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/om", func_800366EC);
-
-extern ULONG D_800D20D4[];
-void Flg_on(ULONG *pFlg, ULONG Id);
-void func_800366EC(OBJ_MODEL_WORK *pOm, ULONG Arg1, ULONG Arg2);
 
 void func_80036C60(OBJ_MODEL_WORK *pOm)
 {
@@ -501,7 +422,7 @@ void func_80036C60(OBJ_MODEL_WORK *pOm)
     }
 }
 
-LONG func_8004D720_3(VECTOR *pV, ULONG W, ULONG Arg2) __asm__("func_8004D720");
+LONG func_8004D720_3(VECTOR *pV, ULONG W, ULONG Arg2) __asm__("func_8004D720"); /* 3 args here (canonical 4) */
 
 void func_80036D94(OBJ_MODEL_WORK *pOm)
 {
@@ -552,16 +473,6 @@ void func_80036D94(OBJ_MODEL_WORK *pOm)
 
 INCLUDE_ASM("asm/nonmatchings/game/om", func_80036F78);
 
-extern SHORT D_800DD492;
-extern SHORT D_800DD494;
-extern SHORT D_800DD496;
-extern SHORT D_800DD498;
-extern SHORT D_800DD49A;
-extern SHORT D_800DD49C;
-extern SVECTOR D_800DD4A0;
-extern UCHAR D_800DD4A8;
-void Rot_add_matrix(LONG *pPos, SHORT *pDir, MATRIX *pM, SVECTOR *Add_dir);
-
 void func_8003749C(OBJ_MODEL_WORK *pOm)
 {
     SHORT n;
@@ -607,9 +518,6 @@ void func_8003749C(OBJ_MODEL_WORK *pOm)
     Rot_add_matrix(pOm->M.t, &pOm->Cdir.vx, &pOm->M, &D_800DD4A0);
 }
 
-LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
-LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
-
 typedef struct {                       /* object model part, 0xBC bytes (func_80037680) */
     ULONG Be_flg;                      /* 0x00 */
     UCHAR pad4[0x74 - 0x4];
@@ -624,8 +532,6 @@ typedef struct {                       /* object model part, 0xBC bytes (func_80
     USHORT UnkA2;                      /* 0xA2 */
     UCHAR padA4[0xBC - 0xA4];
 } OM_PARTS;
-
-extern ULONG D_8009CC54[];
 
 void func_80037680(OBJ_MODEL_WORK *pOm)
 {
@@ -708,13 +614,7 @@ void func_8003783C(ENEMY_WORK *pEm)
     }
 }
 
-void Set_light_pos(VECTOR *pPos);
-void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC");
-void Parts_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_80035B84");
-void Om_sort_om(OBJ_MODEL_WORK *pOm, ULONG Abr) __asm__("func_8002E74C");
-extern MATRIX GsWSMATRIX;              /* 0x80098990 */
-extern MATRIX LIGHTMATRIX;             /* 0x80098950 */
-extern MATRIX COLORMATRIX;             /* 0x80098930 */
+void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC"); /* 4 args here (canonical 3) */
 
 void Om_trans(void)
 {
@@ -748,10 +648,10 @@ void Om_trans(void)
             func_8002D4B0(&GsWSMATRIX, &pOm->Workm, &M);
             SetRotMatrix(&M);
             SetTransMatrix(&M);
-            Om_sort_om(pOm, 1);
+            func_8002E74C(pOm, 1);
         } else {
             Joint_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
-            Parts_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
+            func_80035B84(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
             pOm->Be_flg &= 0xF0FFFFFF;
         }
         pOm->Old_x = pOm->M.t[0];
@@ -792,8 +692,6 @@ void func_80037A90(OBJ_MODEL_WORK *pOm, ULONG Arg1)
     G.Unk7E20++;
 }
 
-ULONG func_80037D50(VECTOR *pPos);
-
 void func_80037C38(void)
 {
     tagGLOBAL *pG;
@@ -825,8 +723,6 @@ void func_80037C38(void)
     }
 }
 
-LONG func_800101C8(VECTOR *pPos, UCHAR *pArea);
-
 ULONG func_80037D50(VECTOR *pPos)
 {
     tagGLOBAL *pG;
@@ -857,7 +753,7 @@ start:
             }
             p += 12;
         } else {
-            if (!(p[0] & 2) && Hit_ck_point4_l((ULONG)pPos, (ULONG)p)) {
+            if (!(p[0] & 2) && func_8001020C((ULONG)pPos, (ULONG)p)) {
                 goto found;
             }
             p += 20;

@@ -3,7 +3,6 @@
 #include "pad.h"
 #include "cd.h"
 #include "snd.h"
-#include <libpress.h>
 
 /* MOVIE.C: STR movie playback (DS streaming + MDEC), RE2 MOVIE.C reworked for RE3 */
 
@@ -74,8 +73,6 @@ LONG Init_movie_work(ULONG Id)
     G.System_flg |= 0x18000;
     return Pad_vib_init_l();
 }
-
-extern void (*D_8009CBB4[])(void);          /* RE2 pMovie_proc_tbl: Movie_init, Movie_main, Movie_exit */
 
 void Movie(void)
 {

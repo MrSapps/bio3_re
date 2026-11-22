@@ -98,29 +98,21 @@ typedef struct tagPC_WORK {
 
 /* overlay .data (still in asm) */
 extern PC_SPR Pc_spr_def[PC_SPR_NUM] __asm__("D_801C46E4");
-extern UCHAR Pc_voice_data[] __asm__("D_801C5DA4");  /* byte streams per message, purpose unknown (only stored in Pc0/Pc1_voice) */
-extern USHORT Pc_voice_ofs[20] __asm__("D_801C5F78");  /* offsets into Pc_voice_data */
-extern LONG Pc0_skip __asm__("D_801C5FA0");          /* terminal 0: page key pressed */
-extern LONG Pc0_done __asm__("D_801C5FA4");          /* terminal 0: current string printed */
-extern UCHAR Pc0_mode __asm__("D_801C5FA8");         /* 0: page with button 0x1000, 1: any button */
+extern UCHAR Pc_voice_data[] __asm__("D_801C5DA4"); /* byte streams per message, purpose unknown (only stored in Pc0/Pc1_voice) */
+extern USHORT Pc_voice_ofs[20] __asm__("D_801C5F78"); /* offsets into Pc_voice_data */
+extern LONG Pc0_skip __asm__("D_801C5FA0"); /* terminal 0: page key pressed */
+extern LONG Pc0_done __asm__("D_801C5FA4"); /* terminal 0: current string printed */
+extern UCHAR Pc0_mode __asm__("D_801C5FA8"); /* 0: page with button 0x1000, 1: any button */
 extern LONG Pc1_skip __asm__("D_801C5FAC");
 extern LONG Pc1_done __asm__("D_801C5FB0");
 extern UCHAR Pc1_mode __asm__("D_801C5FB4");
 extern PC_WORK *Pc_wk __asm__("D_801C5FB8");
-extern ULONG Pc0_pass_no __asm__("D_801C5FC0");      /* which safe password is shown (0..3) */
+extern ULONG Pc0_pass_no __asm__("D_801C5FC0"); /* which safe password is shown (0..3) */
 extern UCHAR *Pc0_voice2 __asm__("D_801C5FC4");
 extern UCHAR *Pc0_voice __asm__("D_801C5FC8");
-extern ULONG Pc1_pass_no __asm__("D_801C5FD0");      /* which password is accepted (0..2) */
+extern ULONG Pc1_pass_no __asm__("D_801C5FD0"); /* which password is accepted (0..2) */
 extern UCHAR *Pc1_voice2 __asm__("D_801C5FD4");
 extern UCHAR *Pc1_voice __asm__("D_801C5FD8");
-
-/* exe functions without a shared prototype */
-void func_80038634(ULONG Flg, SHORT Val);           /* pad key repeat set */
-void Flg_off(ULONG *pFlg, ULONG Id);
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSv2); /* RE2 Esp_call */
-void Om_move(void);
-void Esp_task_main(void);
-void Eff_sprt_trans(void);
 
 void func_801C2354(void);
 ULONG func_801C23D0(void);

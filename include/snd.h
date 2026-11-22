@@ -1,6 +1,7 @@
 #ifndef SND_H
 #define SND_H
 #include "bio3.h"
+#include "em_sub.h"
 
 /* RE3 sound driver (custom sequencer on libspu; RE2 SND.C used libsnd, little carries over) */
 
@@ -176,5 +177,75 @@ LONG func_800759D8(LONG x);
 void Snd_seq_stop(SHORT no);
 void Snd_work_init(void);
 void Snd_seq_stop_all(void);
+
+extern UCHAR D_800A0FDC[];
+extern UCHAR D_800A0FE4[];
+extern ULONG D_800A1000;
+extern UCHAR D_800A1008[]; /* pan curve, 0x80 entries */
+extern UCHAR D_800A1088[]; /* attenuation by distance / 250 */
+extern UCHAR D_800A10F4[][0x14];
+extern SpuReverbAttr D_800A1108[];
+extern void (*D_800A1130[])(SND_REQ *pReq); /* func_80074770 (SE), func_80074820 (sequence) */
+extern void (*D_800A1138[])(SND_SEQ *pSeq); /* Snd_seq_fade_in, Snd_seq_fade_out */
+extern LONG D_800A1140[];
+extern LONG D_800A1170[];
+extern void (*D_800A11A0[])(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG Status);
+extern UCHAR *D_800BA6E8; /* [3]: sound bank id of the room */
+extern ULONG D_800CC858;
+extern LONG D_800E0608;
+extern SHORT D_800E067C;
+extern SpuCommonAttr D_800E10F8;
+
+void func_80073E84(void);
+void Snd_reset(void);
+void func_800740AC(void);
+void func_800741A0(void);
+void func_80074658(LONG on); /* RE2 Close_movie: SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SOFF) */
+void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
+void func_80074770(SND_REQ *pReq);
+void func_80074820(SND_REQ *pReq);
+void Snd_seq_fade_in(SND_SEQ *pSeq);
+void Snd_seq_fade_out(SND_SEQ *pSeq);
+void func_800749A0(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank);
+void func_80074CD0(SND_VOICE *pV, signed char v);
+LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq);
+LONG Snd_bank_search(LONG id);
+void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice);
+void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist);
+LONG func_8007592C(LONG x0, LONG z0, LONG x1, LONG z1);
+UCHAR *Snd_bank_get_tone(LONG no, SHORT idx);
+LONG func_80075A80(LONG x, LONG frac);
+LONG func_80075AE4(UCHAR *pVag, SND_VOICE *pV);
+void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan);
+void func_80075C30(void);
+void func_80076114(UCHAR *pSeq, UCHAR *pTr);
+void func_800762C8(UCHAR *pSeq, UCHAR *pTr, ULONG mask);
+void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr);
+void func_8007688C(SND_SEQ *pSeq, SND_TRACK *pTr);
+void func_80076BAC(UCHAR *pSeq, UCHAR *pTr);
+void func_80076C64(SND_SEQ *pSeq, SND_TRACK *pTr);
+void func_80076E7C(SND_SEQ *pSeq);
+void func_80077030(LONG *p);
+LONG Snd_seq_get_vlq(UCHAR **pp);
+ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones);
+signed char func_800770DC(LONG lo, ULONG hi);
+LONG func_80077220(LONG a0, LONG a1, LONG a2, LONG a3);
+void func_800772A0(LONG no, UCHAR *pData, LONG a2, LONG a3); /* MIDI event handlers, status 0x80..0xF0 */
+void func_8007745C(LONG no);
+void Snd_seq_play_ck(LONG no);
+void Snd_se_enem(ULONG no, ENEMY_WORK *pEm); /* RE2 Snd_se_enem */
+void func_80077618(LONG no, UCHAR parts, ENEMY_WORK *pEm);
+void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm);
+UCHAR func_80077B84(LONG x, LONG z, LONG id);
+void func_80077C4C(void);
+void func_80077ED4(void);
+void func_80077F60(void);
+LONG func_8007809C(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf);
+void func_80078204(void);
+void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
+void func_8007836C(LONG no, ULONG *pAdr);
+void func_800783BC(ULONG no, ULONG size);
+void func_80078450(void);
+void func_80078498(UCHAR a, UCHAR b, SHORT c);
 
 #endif /* SND_H */

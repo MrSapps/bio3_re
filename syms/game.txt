@@ -425,3 +425,10 @@ Em38_b1 = 0x8010D154;
 Em34_b1 = 0x8010D180;
 Em16_b1 = 0x8010D1EC;
 Em10_b1 = 0x8010D254;
+// PsyQ library functions identified by their callees (InitGeom: _patch_gte; PadStartCom: _padStartCom;
+// InitCARD/StartCARD: InitCARD2/StartCARD2; DecDCToutSync: libpress)
+InitGeom = 0x80087F6C;
+PadStartCom = 0x800912C4;
+InitCARD = 0x80094374;
+StartCARD = 0x800943C8;
+DecDCToutSync = 0x8008FAD4;

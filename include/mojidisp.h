@@ -53,4 +53,29 @@ void Mess_disp(MOJIDISP *pMoji);
 void mess_trans(MOJIDISP *pMoji);
 void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
+extern UCHAR D_80098E80[];
+extern UCHAR D_80098E88[];
+extern USHORT D_80099654[];
+extern UCHAR D_800996E4[]; /* message text banks (Mess_set) */
+extern USHORT D_8009BDB4[];
+extern UCHAR D_8009BEE4[];
+extern USHORT D_8009C7C0[];
+extern UCHAR D_800C703F;
+extern UCHAR D_800CC84D;
+extern ULONG D_800D2048[];
+extern UCHAR D_800D4433;
+
+void func_8002F98C(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);
+void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);
+LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data);
+ULONG func_800303CC(ULONG Val);
+void Branch_disp(ULONG Arg0, UCHAR *pStr); /* RE2 has 4 args, RE3 reads only a0/a1 */
+void func_80030764(MOJIDISP *pMoji, UCHAR *pData);
+void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item);
+UCHAR *name_ptr_set(UCHAR No);
+LONG func_80031970(ULONG Mode, ULONG Code, LONG *pPos);
+LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos);
+void D_80031BDC(void); /* game task entry (Task_execute) */
+void func_80031BDC(void);
+
 #endif /* MOJIDISP_H */

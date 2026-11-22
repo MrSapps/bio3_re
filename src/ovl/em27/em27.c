@@ -1,5 +1,14 @@
 #include "common.h"
 #include "ovl/em27.h"
+#include "sca.h"
+#include "snd.h"
+#include "sld.h"
+#include "sub.h"
+
+LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
+LONG Joint_move_(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg) __asm__("Joint_move"); /* returns long here (canonical void) */
+LONG Joint_move2_(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg) __asm__("Joint_move2"); /* returns long here (canonical void) */
+void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector");  /* main.c, called with an int angle */
 
 /* RE2 EM_MAIN */
 void func_8010001C(ENEMY_WORK *pEm)
@@ -137,7 +146,7 @@ void func_801006E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Dest_z = pEm->Pos_z + (Rnd() - 0x7F) * 2;
         }
     case 1:
-        pEm->Routine_2 += Joint_move(pEm, Kan, Seq, 0x200);
+        pEm->Routine_2 += Joint_move_(pEm, Kan, Seq, 0x200);
         pEm->Spd_z = 0;
         pEm->Spd_x -= 4;
         Add_speedXZ(pEm, 0);
@@ -202,7 +211,7 @@ void func_80100A50(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Routine_2++;
     case 1:
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (Rnd() & 0xF) | 0x40);
-        Joint_move(pEm, Kan, Seq, 0x200);
+        Joint_move_(pEm, Kan, Seq, 0x200);
         pEm->Cdir_y += (Rnd() & 3) * 32 - (40 - (Rnd() & 0xF));
         pEm->Spd_x = 150;
         pEm->Spd_z = 0;
@@ -251,7 +260,7 @@ void func_80100CD8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Routine_2++;
     case 1:
         Spd_get(pEm, Kan, Seq, 0);
-        if (Joint_move(pEm, Kan, Seq, 0x200))
+        if (Joint_move_(pEm, Kan, Seq, 0x200))
             EM_RTN(pEm) = ((Rnd() & 1) << 8) + 1;
         if (pEm->Move_cnt < 15)
             Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x20);
@@ -295,7 +304,7 @@ void func_80100DE4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Be_flg |= 0x400;
     case 1:
         Spd_get(pEm, Kan, Seq, 0);
-        if (Joint_move(pEm, Kan, Seq, 0x200) && pEm->UnkE2)
+        if (Joint_move_(pEm, Kan, Seq, 0x200) && pEm->UnkE2)
             EM_RTN(pEm) = 0x401;
         if (Gacha_ch())
             pEm->UnkE2 = 1;
@@ -330,7 +339,7 @@ void func_801010D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Timer0 = 5;
         pEm->Routine_2++;
     case 1:
-        Joint_move(pEm, Kan, Seq, 0x200);
+        Joint_move_(pEm, Kan, Seq, 0x200);
         pEm->Spd_x = -100;
         pEm->Spd_z = 0;
         Add_speedXZ(pEm, 0);
@@ -357,7 +366,7 @@ void func_801010D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Spd_z = 0;
             pEm->Spd_x = 0;
         }
-        if (Joint_move(pEm, Kan, Seq, 0x200)) {
+        if (Joint_move_(pEm, Kan, Seq, 0x200)) {
             if (pEm->UnkE3 == 0)
                 pEm->Routine_2++;
             else
@@ -374,7 +383,7 @@ void func_801010D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
             pEm->Spd_z = 0;
             pEm->Spd_x = 0;
         }
-        if (Joint_move(pEm, Kan, Seq, 0x200))
+        if (Joint_move_(pEm, Kan, Seq, 0x200))
             EM_RTN(pEm) = 0x101;
         Add_speedXZ(pEm, 0);
         break;
@@ -386,7 +395,7 @@ void func_8010131C(void) {
 
 void func_80101324(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
 {
-    Joint_move(pEm, Kan, Seq, 0x400);
+    Joint_move_(pEm, Kan, Seq, 0x400);
 }
 
 /* hidden: wait for the player, then pop up (parts 0 and 1 grow) and come alive */
@@ -499,7 +508,7 @@ void func_80101668(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         Em_dead_flg_on_cand(pEm);
         EM_MOVE(pEm) = 0x70005;
     case 1:
-        if (Joint_move(pEm, Kan, Seq, 0x200))
+        if (Joint_move_(pEm, Kan, Seq, 0x200))
             EM_RTN(pEm) = 7;
         break;
     case 2:
@@ -535,7 +544,7 @@ void func_801017FC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         *(ULONG *)&pKage->Prim[0].r0 = (*(ULONG *)&pKage->Prim[0].r0 & 0xFF000000) | 0xEF409F;
         *(ULONG *)&pKage->Prim[1].r0 = (*(ULONG *)&pKage->Prim[1].r0 & 0xFF000000) | 0xEF409F;
     case 1:
-        pEm->Routine_2 += Joint_move(pEm, Kan, Seq, 0x200);
+        pEm->Routine_2 += Joint_move_(pEm, Kan, Seq, 0x200);
         break;
     case 2:
         break;
@@ -558,7 +567,7 @@ void func_801018D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Unk120 |= 0x12;
     case 1:
         Spd_get(pEm, Kan, Seq, 0);
-        if (Joint_move2(pEm, Kan, Seq, 0x200)) {
+        if (Joint_move2_(pEm, Kan, Seq, 0x200)) {
             EM_RTN(pEm) = 1;
             pEm->Unk120 &= ~0x12;
             pEm->Damage_cnt &= 0x7F;

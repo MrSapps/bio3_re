@@ -174,8 +174,8 @@ typedef struct tagGLOBAL {
     void *pUnk21DC;                    /* 0x21DC data of the AOT being handled (sce_at, status item pickup) */
     ULONG Game_time_offset;            /* 0x21E0 RE2 Game_time_offset: VSync(-1) at the last play time update (mem_card Save_push) */
     USHORT *pXa_sector;                /* 0x21E4 RE2 G.pXa_sector (Xa_play table for the stage) */
-    void (*pPldamage_Em[64])();        /* 0x21E8 RE2 pPldamage_Em, index enemy Id - 0x10 (Pl_Em_damage) */
-    void (*pPldie_Em[64])();           /* 0x22E8 RE2 pPldie_Em (Pl_Em_die) */
+    void (*pPldamage_Em[64])(); /* 0x21E8 RE2 pPldamage_Em, index enemy Id - 0x10 (Pl_Em_damage) */
+    void (*pPldie_Em[64])(); /* 0x22E8 RE2 pPldie_Em (Pl_Em_die) */
     struct tagSCA_DATA *Sca_list[32];  /* 0x23E8 SCA shapes matching the last search (NULL terminated) */
     ULONG Unk2468;                     /* 0x2468 flags; 0x1000000 tested by pl_mv06_pad / Pl_move */
     LONG Unk246C;                      /* 0x246C flags, cleared by Init_global; < 0 blocks the pause (main) */
@@ -253,7 +253,7 @@ typedef struct tagGLOBAL {
     struct tagKAGE_WORK9 Kage9[5];     /* 0x2904 */
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
     void (*Em_routine[64])(struct tagENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
-    void (*Unk3EE0[24])();             /* 0x3EE0 all set to Spl by Spl_set */
+    void (*Unk3EE0[24])(); /* 0x3EE0 all set to Spl by Spl_set */
     UCHAR pad3F40[0x3FA0 - 0x3F40];
     void (*Em_ov_mtbl[2][112])(struct tagENEMY_WORK *); /* 0x3FA0 RE2 Em_ov_mtbl: move routine by Id - 0x10 inside each enemy overlay bank (Em_move_tbl_set) */
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
@@ -265,8 +265,8 @@ typedef struct tagGLOBAL {
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
     UCHAR Front_func_rtn;              /* 0x75DA RE2 Front_func_rtn */
     UCHAR Back_func_rtn;               /* 0x75DB RE2 Back_func_rtn */
-    void (*Front_func)();              /* 0x75DC RE2 Front_func */
-    void (*Back_func)();               /* 0x75E0 RE2 Back_func */
+    void (*Front_func)(); /* 0x75DC RE2 Front_func */
+    void (*Back_func)(); /* 0x75E0 RE2 Back_func */
     SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp func_80049218) */
     SHORT Unk75E6;                     /* 0x75E6 screen shake y? */
     USHORT Unk75E8;                   /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */

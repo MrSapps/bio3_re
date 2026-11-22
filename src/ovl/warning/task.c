@@ -1,5 +1,6 @@
 #include "common.h"
 #include "ovl/warning.h"
+#include "cd.h"
 
 /* task: load the warning screen picture, fade in, wait for the check, fade out */
 void func_80185418(void)

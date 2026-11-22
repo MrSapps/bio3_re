@@ -9,87 +9,14 @@
 #include "snd.h"
 #include "esp.h"
 #include "pl_wep.h"
+#include "root_ck.h"
+#include "sld.h"
+#include "spl_sce.h"
 
 /* local declarations (80011CF8.c) */
-void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80017540(ENEMY_WORK *pEm);
-void func_8001CDA4(UCHAR *p, ULONG n);
-extern ULONG *D_800BA6F8;
-ULONG PresetObjectGT3_neo(void *pMw, ULONG pPacket);
-ULONG func_800102E8(void);
-void func_80010150(void *p, ULONG size);
-extern UCHAR D_80098728[];
-extern UCHAR D_800BF754[];
-void Flg_on(ULONG *pFlg, ULONG Id);
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-void func_8004834C(ULONG Id, ULONG a1);
-extern ULONG D_800D1FC8[];
-void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
-ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
-void Esp_data_set1(ULONG *pTim);
-LONG func_80017148(ENEMY_WORK *pEm, LONG a1, LONG a2);
-LONG func_800172AC(ENEMY_WORK *pEm, LONG a1, LONG a2);
-extern UCHAR D_80097A00[];
-extern UCHAR D_80097A28[];
-extern ULONG D_800D1FC0[];
-LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
-extern UCHAR D_80097A78[];
-extern UCHAR D_80097A50[];
-ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5);
-void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2);
-extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] (door work slots) */
-void Door_scheduler_main(void);
-void Door_Trans(void);              /* RE2 Door_Trans */
-void Door_model_init(UCHAR *pDw);
-void func_8001CE24(ESP_WORK *pEw, ULONG a1, ULONG a2);
-ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG a2);
-ESP_WORK *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4);
-void func_8001BCFC(ESP_WORK *pEw);
-void func_8001BFCC(ESP_WORK *pEw);
-extern UCHAR D_800E017F;
-void func_800139D8(void);
-LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
-extern ULONG D_80097FCC[];
-LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
-LONG Water_ck(LONG x, LONG z);
-LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3);
-typedef void (*EM_PROC)(ENEMY_WORK *pEm, LONG a1, LONG a2);
-extern EM_PROC D_80097AA0[];
-void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
-void func_80060464(ENEMY_WORK *pEm, LONG a1, LONG a2);
-void func_8006037C(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
-void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
-extern ESP_WORK *D_80098084;           /* pool start */
-extern ESP_WORK *D_80098088;           /* pool end */
-typedef void (*EFF_PROC)(ESP_WORK *pEw);
-void func_8001BC80(ESP_WORK *pEw);
-void func_8001C168(ESP_WORK *pEw);
-void func_8002B2BC(ULONG Kan, ULONG Seq, USHORT *pSeq, ULONG R_flg);
-extern UCHAR D_800E06AC;
 /* Add_speedXZ is called with a third (unused) argument in RE3 */
 #define ADD_SPEED_XZ3(pEm) ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)((pEm), 0, 0)
-extern ULONG D_800BA6F0;               /* RE2 pDoor[1] */
-extern ULONG D_800BA6F4;               /* door work slot size */
-void Door_texture_load(void);              /* RE2 Door_texture_load */
-void Mapping_tim(ULONG *pTim);       /* RE2 Mapping_tim */
-void Set_view(VECTOR *pView_p, VECTOR *pView_r);
-extern ESP_WORK *D_8009808C;           /* pool 2 start */
-extern ESP_WORK *D_80098090;           /* pool 2 end */
-LONG Joint_move(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
-void func_8001CFF4(ESP_WORK *pEw, ULONG n);
-void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
-
-/* declarations from earlier parts of the original address-split file */
-extern USHORT D_800970DC[];
-extern USHORT D_800970E8[];
-extern SHORT D_800E0DD8;
-
-extern LONG D_800A0FEC[];
-void func_800783BC(ULONG no, ULONG size, ULONG a2);
-void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
+LONG Joint_move_(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3) __asm__("Joint_move"); /* returns long here (canonical void); arg 2 long (canonical unsigned long); arg 3 long (canonical unsigned long); arg 4 long (canonical unsigned long) */
 
 /* RE3 door model work (pDwork[] slot, 0xC8 bytes); 0x10.. is laid out like MODEL_WORK */
 typedef struct {
@@ -299,9 +226,6 @@ ULONG Door_model_set(SCE_TASK *pSce)
     Door_model_init((UCHAR *)pDw);
     return 1;
 }
-
-extern ULONG D_800BA6F0;
-void func_8007836C(LONG no, ULONG *pAdr);
 
 void Door_snd_trans(void)
 {
@@ -517,9 +441,9 @@ void func_80016BF4(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if (D_80097A00[pEm->Id - 0x10] & 0x80) {
-            Joint_move(pEm, (LONG)pEm->pSub0_kan_t_ptr, (LONG)pEm->pSub0_seq_t_ptr, 0x200);
+            Joint_move_(pEm, (LONG)pEm->pSub0_kan_t_ptr, (LONG)pEm->pSub0_seq_t_ptr, 0x200);
         } else {
-            Joint_move(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0x200);
+            Joint_move_(pEm, (LONG)pEm->pKan_t_ptr, (LONG)pEm->pSeq_t_ptr, 0x200);
         }
         break;
     }
@@ -625,7 +549,7 @@ void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
             pEm->UnkCA = 0;
         }
     case 1:
-        if (Joint_move(pEm, a1, a2, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
+        if (Joint_move_(pEm, a1, a2, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
             pEm->Routine_2 = 2;
             if (pEm->Unk144 & 4) {
                 pEm->Routine_2 = 1;
@@ -634,7 +558,7 @@ void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
         } else {
             Flg = pEm->Unk144;
             if (Flg & 8) {
-                if (Joint_move(pEm, a1, a2, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
+                if (Joint_move_(pEm, a1, a2, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
                     pEm->Routine_2 = 2;
                     if (pEm->Unk144 & 4) {
                         pEm->Routine_2 = 1;
@@ -653,11 +577,11 @@ void func_80017008(ENEMY_WORK *pEm, LONG a1, LONG a2)
 LONG func_80017148(ENEMY_WORK *pEm, LONG a1, LONG a2)
 {
     if (Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x15E) == 0) {
-        Joint_move(pEm, a1, a2, 0x200);
+        Joint_move_(pEm, a1, a2, 0x200);
         return 1;
     }
     Goto00(pEm, pEm->Dest_x, pEm->Dest_z, pEm->Add_dir);
-    Joint_move(pEm, a1, a2, 0x200);
+    Joint_move_(pEm, a1, a2, 0x200);
     return 0;
 }
 
@@ -666,7 +590,7 @@ LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3)
     LONG x, z;
 
     Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (1 - ((USHORT)pEm->Spd_x >> 15) * 2) * pEm->Add_dir);
-    Joint_move(pEm, a1, a2, (a3 << 16) | 0x200);
+    Joint_move_(pEm, a1, a2, (a3 << 16) | 0x200);
     Add_speedXZ(pEm, 0);
     x = pEm->Pos_x - pEm->Dest_x;
     z = pEm->Pos_z - pEm->Dest_z;
@@ -676,7 +600,7 @@ LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3)
 LONG func_800172AC(ENEMY_WORK *pEm, LONG a1, LONG a2)
 {
     Goto01(pEm, pEm->Dest_x, pEm->Dest_z);
-    Joint_move(pEm, a1, a2, 0x200);
+    Joint_move_(pEm, a1, a2, 0x200);
     return pEm->Cdir_y == pEm->Dest_x;
 }
 
@@ -700,7 +624,7 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Spd_y = pEm->Spd_y >> 1;
             pEm->Spd_z = pEm->Spd_z >> 1;
         }
-        if (Joint_move(pEm, (LONG)pKan, (LONG)pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
+        if (Joint_move_(pEm, (LONG)pKan, (LONG)pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
             pEm->Routine_2 = 2;
             if (pEm->Unk144 & 4) {
                 pEm->Routine_2 = 1;
@@ -718,7 +642,7 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             Flg = pEm->Unk144;
             if (Flg & 8) {
-                if (Joint_move(pEm, (LONG)pKan, (LONG)pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
+                if (Joint_move_(pEm, (LONG)pKan, (LONG)pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200)) {
                     pEm->Routine_2 = 2;
                     if (pEm->Unk144 & 4) {
                         pEm->Routine_2 = 1;

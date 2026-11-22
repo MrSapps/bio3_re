@@ -1,5 +1,7 @@
 #include "common.h"
 #include "ovl/gearbox.h"
+#include "line_scr.h"
+#include "snd.h"
 
 /* main task: move gears until the lever is pulled, then check and turn them */
 void func_801C2008(void)

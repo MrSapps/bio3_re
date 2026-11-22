@@ -1,5 +1,9 @@
 #include "common.h"
 #include "ovl/staff_r.h"
+#include "line_scr.h"
+#include "mojidisp.h"
+#include "sld.h"
+#include "sub.h"
 
 /* main task */
 void func_801C206C(void)

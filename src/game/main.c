@@ -14,6 +14,12 @@
 #include "sce0.h"
 #include "md_sub.h"
 #include "esp.h"
+#include "game.h"
+#include "psp.h"
+#include "room.h"
+#include "sld.h"
+#include "snd.h"
+#include "status.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -42,117 +48,6 @@
 #define gte_MulMatrix0(r1, r2, r3) { gte_SetRotMatrix(r1); gte_ldclmv(r2); gte_rtir(); gte_stclmv(r3); gte_ldclmv((char *)(r2) + 2); gte_rtir(); gte_stclmv((char *)(r3) + 2); gte_ldclmv((char *)(r2) + 4); gte_rtir(); gte_stclmv((char *)(r3) + 4); }
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
-
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, SHORT Flg, MATRIX *pM);
-
-/* Init_system callees owned by other modules */
-void func_80087F6C(void);
-void func_80073E84(void);
-void func_800101AC(void);
-void func_80094374(LONG Arg);
-void func_800943C8(void);
-void _bu_init(void);
-void func_800912C4(void);
-void Init_main(void);
-void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
-extern volatile ULONG D_800D454C;      /* right after Main.Fade[]: vsync counter */
-extern UCHAR D_800DBB58;
-extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
-extern USHORT D_8009BDB4[];
-extern UCHAR D_80098E88[];
-extern USHORT D_80099654[];
-extern ULONG D_80098700;
-void func_80078FE8(void);
-void func_8007906C(void);
-void func_80010150(void *p, ULONG Size);    /* RE2 Memclr */
-
-ULONG func_80037D50(VECTOR *pPos);
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D184(void *pWork0, void *pWork1, ULONG Arg2, MATRIX *pM);
-void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-ULONG func_8002C824(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CABC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CE08(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CF90(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DFE0(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002E160(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-extern UCHAR D_800E1388[];
-
-void func_8002D5D8(void *pWork0, void *pWork1, ULONG Arg2);
-ULONG func_8002DC98(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DE0C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D6D8(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D898(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B6FC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B86C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
-void func_8002783C(PARTS_W *pP_ptr);
-void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
-void func_80026648(ENEMY_WORK *pEm);
-void func_80026498(ENEMY_WORK *pEm);
-void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
-void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
-void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
-void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-ULONG func_800102E8(void);   /* Rnd */
-ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
-void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void Set_light_pos(VECTOR *pPos);
-extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
-extern VECTOR *D_800C79F4;
-LONG Water_ck(LONG Pos_x, LONG Pos_z);
-extern LONG D_800CA720;
-extern UCHAR D_80098728[];
-extern ULONG D_800986C4[];             /* scale curve (func_80021D58) */
-void func_8001CDA4(ESP_WORK *pEsp, ULONG n);
-void func_8001CE24(ESP_WORK *pEsp, ULONG a1, ULONG a2);             /* random byte table, indexed by Rnd() */
-ESP_WORK *func_8001B35C(ESP_WORK *pEsp, ULONG Attr, ULONG Ofs, MATRIX *pMat, VECTOR *pPos, SVECTOR *pDir);
-
-extern ULONG D_80097FCC[];
-LONG func_800472EC(HIT_REQ *pHit, ULONG Arg);
-
-void func_80024C58(void);
-void Door_main(void);
-void Door_snd_trans(void);
-void Set_stage(void);
-void func_80077C4C(void);
-void Set_room(void);
-void func_80077F60(void);
-extern UCHAR D_800E0186;
-
-void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM) __asm__("func_80025610");
-
-void MatrixNormal_0(MATRIX *m, MATRIX *n);
-void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate) __asm__("HMatrix");
-
-void MatrixNormal_2(MATRIX *m, MATRIX *n);
-
-void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate) __asm__("hokan_svec");
-
-void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190");
-ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027338");
-
-void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027F8C");
-
-void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
-
-void Pad_set(void);
-void func_8007745C(ULONG No);
-void Snd_seq_play_ck(ULONG No);
-void func_800741A0(void);
-void Swap_Cbuff(void);
-void func_80029700(void);
-void Movie(void);
-void Bg_draw(void);
-void func_8002A2B8(void);
 
 void main(void)
 {
@@ -289,7 +184,7 @@ void Init_system(void)
     pG = &G;
     ResetCallback();
     SetGraphDebug(0);
-    func_80087F6C();
+    InitGeom();
     Cd_init();
     func_80073E84();
     Init_scheduler();
@@ -308,11 +203,11 @@ void Init_system(void)
     pM->Rect.y = 0;
     pM->Rect.w = 320;
     pM->Rect.h = 240;
-    func_80094374(0);
-    func_800943C8();
+    InitCARD(0);
+    StartCARD();
     _bu_init();
     PadInitDirect(pG->Padd_data[0], pG->Padd_data[1]);
-    func_800912C4();
+    PadStartCom();
     Game.Unk4F = 0;
     Init_global();
     Moji_init();
@@ -377,13 +272,6 @@ void Init_global(void)
         SetDrawTPage(&Main.Db[i].Pause_Dm, 0, 0, 0);
     }
 }
-
-extern SHORT D_800CCBBC;
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-void Mapping_tim(ULONG *p);
-void Task_lchain(ULONG Task_no);
-int PadGetState(int port);
-int PadSetMainMode(int socket, int offs, int lock);
 
 void Init_main(void)
 {
@@ -456,15 +344,6 @@ void Curtain_trans(void)
     }
 }
 
-void Psp_set(void);
-void func_80048FF4(void);
-void Set_light_default(void);
-void Set_view(LONG *pView_p, LONG *pView_r);
-void func_80010000(ULONG *pSrc, ULONG *pDst);
-void func_8008F8A4(LONG mode);
-void func_8008FAD4(LONG mode);
-extern USHORT *D_8009DFD0[];           /* per stage room file numbers */
-
 void Bg_draw(void)
 {
     RECT Rect;
@@ -507,11 +386,11 @@ void Bg_draw(void)
             pG->Ctp.Tpage_clut = Ctpage_save;
         }
     }
-    func_8008F8A4(0);
-    func_8008FB34(0);
+    DecDCTReset(0);
+    DecDCToutCallback(0);
     DecDCTvlc((ULONG *)0x80194000, (ULONG *)0x801AA000);
-    func_8008F9FC((ULONG *)0x801AA000, 0);
-    func_8008FA78((ULONG *)0x8019C000, 0x780);
+    DecDCTin((ULONG *)0x801AA000, 0);
+    DecDCTout((ULONG *)0x8019C000, 0x780);
     Rect.x = 0;
     Rect.y = Main.Rect.y = Main.pDb->Draw.ofs[1];
     Rect.w = 16;
@@ -523,13 +402,13 @@ void Bg_draw(void)
         func_80048FF4();
     }
     Set_light_default();
-    func_8008FAD4(0);
+    DecDCToutSync(0);
     for (i = 1; i < 20;) {
-        func_8008FA78((ULONG *)0x8019C000 + (i % 2) * 0x780, 0x780);
+        DecDCTout((ULONG *)0x8019C000 + (i % 2) * 0x780, 0x780);
         LoadImage(&Rect, (ULONG *)0x8019C000 + ((i - 1) % 2) * 0x780);
         i++;
         Rect.x += 16;
-        func_8008FAD4(0);
+        DecDCToutSync(0);
     }
     LoadImage(&Rect, (ULONG *)0x8019DE00);
     StoreImage(&Main.Rect, (ULONG *)0x8019C000);

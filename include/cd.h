@@ -67,11 +67,13 @@ typedef struct tagCD {
     UCHAR pad8D6[0x8D8 - 0x8D6];
     struct tagCD_LINK *pLink;          /* 0x8D8 room link list being scanned (func_800139D8) */
 } tagCD;
+
 /* room sound link record (ROOM_WORK +0x08 list, 0xFFFF terminated) */
 typedef struct tagCD_LINK {
     USHORT Id;                         /* 0x0 0xFFFF ends the list */
     UCHAR Room[2];                     /* 0x2 */
 } CD_LINK;
+
 /* packed file directory entry (8 bytes) */
 typedef struct tagCD_ENTRY {
     ULONG Size;                        /* 0x0 */
@@ -118,7 +120,6 @@ void Cd_system_control(void);
 void Xa_control(void);
 void Set_volume(ULONG vol);
 void Change_volume(ULONG mode);
-void func_80074658(LONG on);
 void Xa_error(void);
 void Xa_control_stop(void);
 void Xa_control_init(void);
@@ -129,5 +130,29 @@ void Xa_control_end(void);
 void Xa_fade_set(ULONG frames);
 void Cd_seek(ULONG File_no, ULONG Mode);
 void Cd_set_read_pos(ULONG size);
+
+extern USHORT D_800970DC[];
+extern USHORT D_800970E8[];
+extern UCHAR Cd_read_s_cdmode; /* 0x800971E1 RE2 static cdread_s_cdmode */
+extern UCHAR Cd_read_cdmode; /* 0x800971E2 RE2 static cdread_cdmode */
+extern LONG D_800A0FEC[]; /* SPU transfer address per bank type */
+extern UCHAR D_800E06AC;
+extern SHORT D_800E0DD8;
+
+void Xa_play(ULONG mode, ULONG no);
+ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, char *Mess);
+ULONG Cd_read(ULONG File_no, ULONG *Address, ULONG Mode, char *Mess); /* RE2 Cd_read */
+void func_80012ECC(tagCD *pCd);
+void func_800130A0(tagCD *pCd);
+void func_80013754(void);
+void func_800138B0(void);
+void func_800139D8(void);
+void func_80013C1C(UCHAR intr, UCHAR *result);
+void func_80013EF8(UCHAR intr, UCHAR *result);
+void func_80014300(UCHAR intr, UCHAR *result);
+void func_8001480C(tagCD *pCd);
+void func_80014968(tagCD *pCd);
+void func_80014D10(void);
+void func_800150E4(void);
 
 #endif /* CD_H */

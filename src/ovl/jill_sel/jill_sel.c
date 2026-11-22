@@ -1,5 +1,9 @@
 #include "common.h"
 #include "ovl/jill_sel.h"
+#include "cd.h"
+#include "mojidisp.h"
+#include "pcstr.h"
+#include "status.h"
 
 /* main task */
 void func_801C2050(void)
@@ -133,7 +137,7 @@ void func_801C21C8(JILL_WORK *pW)
             Jill_obj[4].Flg &= ~1;
             break;
         }
-        Mess_set_p(0xB90000, 0x3403, &Jill_mess[Jill_mess_ofs[pW->Open_num - 1]], 0);
+        Mess_set(0xB90000, 0x3403, &Jill_mess[Jill_mess_ofs[pW->Open_num - 1]], 0);
     } else {
         func_801C2E54(&Jill_obj[1], &Jill_sprt_def[1], 0x1F00016, 0x808080);
         func_801C2E54(&Jill_obj[2], &Jill_sprt_def[1], 0x1F00016, 0x808080);
@@ -163,7 +167,7 @@ void func_801C21C8(JILL_WORK *pW)
             Jill_obj[4].Flg &= ~1;
             break;
         }
-        Mess_set_p(0xB90000, 0x3403, &Jill_mess[Jill_mess_ofs[pW->Open_num + 4]], 0);
+        Mess_set(0xB90000, 0x3403, &Jill_mess[Jill_mess_ofs[pW->Open_num + 4]], 0);
     }
     Flg_on(G.Unk77F8, 10);
     Size = sizeof(ENEMY_WORK);         /* a variable: the step is kept in a register */

@@ -13,4 +13,21 @@ typedef struct tagFLASH_WORK {
 } FLASH_WORK;
 extern FLASH_WORK D_800C703C;
 
+extern ULONG D_80098700;
+extern UCHAR D_800D442C;
+extern UCHAR D_800E0186[]; /* an array: stores to it stay after loads of struct fields */
+
+void Game_loop(void);
+void Gun_light_set(void); /* Gun_light_set */
+void Gun_light_reset(void); /* Gun_light_reset */
+void func_800245A0(void);
+void Set_door(void);
+void func_80024B34(void);
+void func_80024C50(void);
+void func_80024C58(void);
+void func_80024CE8(void);
+ULONG func_80024F74(void);
+void Flash_fade_in(void);
+void Flash_fade_out(void);
+
 #endif /* GAME_H */

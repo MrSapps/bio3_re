@@ -6,7 +6,7 @@
 typedef struct tagTASK {
     USHORT Tcb_status;                 /* 0x00 0 free, 1 sleep, 2 start, 4 resume, 0x7F run, |0x40 suspended */
     SHORT Tcb_sleep_ctr;               /* 0x02 */
-    long (*pTcb_pc)();                 /* 0x04 */
+    long (*pTcb_pc)(); /* 0x04 */
     ULONG Tcb_th;                      /* 0x08 */
     struct TCB *pTcb;                  /* 0x0C */
     ULONG Tcb_init_sp;                 /* 0x10 */
@@ -45,5 +45,10 @@ void Task_chain(void *pFuncall);
 void Task_suspend(ULONG Level);
 void Task_signal(ULONG Level);
 ULONG Task_status(ULONG Level);
+
+extern LOADTASK D_8009C944[];
+
+ULONG Task_lexecute(ULONG Level, ULONG Task_no); /* RE2 Task_lexecute? */
+void Task_lchain(ULONG Task_no);
 
 #endif /* MONITOR_H */

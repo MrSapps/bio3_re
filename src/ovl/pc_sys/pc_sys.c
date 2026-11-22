@@ -1,5 +1,13 @@
 #include "common.h"
 #include "ovl/pc_sys.h"
+#include "line_scr.h"
+#include "pad.h"
+#include "sld.h"
+#include "snd.h"
+#include "trans.h"
+#include <memory.h>
+#include <strings.h>
+
 
 /* main task: run the terminal picked by the AOT */
 void func_801C2354(void)

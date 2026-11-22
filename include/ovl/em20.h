@@ -73,23 +73,151 @@ typedef struct tagEM20_ESP_TBL {
 } EM20_ESP_TBL;
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
-LONG Rnd(void) __asm__("func_800102E8");                                /* RE2 Rnd (sld.s) */
-LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG Area, LONG Flg);         /* root_ck.c */
-LONG Rnd_area(void);                                                    /* root_ck.c */
-void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y);                        /* em_sub.c */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);      /* joint.c */
-void Spd_get(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);         /* em_sub.c */
-void func_8002646C(ENEMY_WORK *pEm, LONG A, LONG B, LONG C);            /* joint.c (SHORT, SHORT, UCHAR) */
-void Em_dead_flg_on_cand(ENEMY_WORK *pEm);                              /* em_sub.c */
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);                           /* oba.c */
-LONG func_800445C8(void *pA0, void *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c: pEm inside the box */
-LONG SquareRoot0(LONG a);
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
-LONG Joint_move2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);     /* joint.c */
-void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);          /* snd.c */
-void func_80016600(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);              /* door.c */
-void func_8001B894(ULONG Id, MATRIX *pM);                               /* em_sub.c (pl_wep.h) */
-void Add_speedXZ3(ENEMY_WORK *pEm, LONG muki, LONG a2) __asm__("Add_speedXZ"); /* em_sub.c, called with RE2's extra 0 */                                               /* libgte */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
+
+extern USHORT Em20_life[16] __asm__("D_80105AD0");
+extern USHORT Em20_life_easy[16] __asm__("D_80105AF0");
+extern UCHAR em20_time_tbl00[8] __asm__("D_80105B10");
+extern UCHAR em20_time_tbl01[8] __asm__("D_80105B18");
+extern UCHAR em20_time_tbl02[8] __asm__("D_80105B20");
+extern void (*Em20_routine_0[])() __asm__("D_80105B28");
+extern UCHAR em20_routine_tbl[12] __asm__("D_80105B48");
+extern EM20_ESP_TBL em20_esp_tbl[4] __asm__("D_80105B54");
+extern void (*em20_move_tbl[])() __asm__("D_80105B84");
+extern LONG yori_ofs[8] __asm__("D_80105BC8");
+extern void (*move_run_tbl[])() __asm__("D_80105BE8");
+extern USHORT dash_turn_rnd[8] __asm__("D_80105BF8");
+extern void (*move_atck_tbl[])() __asm__("D_80105C08");
+extern void (*move_sleep_tbl[])() __asm__("D_80105C18");
+extern UCHAR house_mot_rnd[8] __asm__("D_80105C28");
+extern void (*move_rush_tbl[])() __asm__("D_80105C30");
+extern void (*move_bodyatck_tbl[])() __asm__("D_80105C3C");
+extern void (*move_jumpin_tbl[])() __asm__("D_80105C4C");
+extern void (*em20_dmg_tbl[])() __asm__("D_80105C58");
+extern void (*dmg_nml_tbl[])() __asm__("D_80105CD4");
+extern SHORT dir_hosei[8] __asm__("D_80105CE8");
+extern void (*dmg_combo_tbl[])() __asm__("D_80105CF8");
+extern void (*dmg_nml2_tbl[])() __asm__("D_80105D08");
+extern void (*em20_die_tbl[])() __asm__("D_80105D1C");
+extern void (*die_nml_init[])() __asm__("D_80105D98");
+extern void (*die_nml_tbl[])() __asm__("D_80105E14");
+extern void (*die_bang_tbl[])() __asm__("D_80105E24");
+extern UCHAR bang_parts_no[8] __asm__("D_80105E2C");
+extern UCHAR tail_parts_no[8] __asm__("D_80105E34");
+extern void (*die_gnml_tbl[])() __asm__("D_80105E3C");
+extern void (*die_spark_tbl[])() __asm__("D_80105E4C");
+extern void (*die_bang2_tbl[])() __asm__("D_80105E5C");
+extern void (*Em20_sce_tbl[])() __asm__("D_80105E6C");
+extern UCHAR pl_chi_parts[4] __asm__("D_80105E70");
+extern UCHAR mot_tbl[4] __asm__("D_80105E74");
+extern EM20_BLOOD_TBL blood_id_tbl[16] __asm__("D_80105E78");
+
+void EM_MAIN(ENEMY_WORK *pEm) __asm__("func_80100030");
+void Em20_Init(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100144");
+void Em20_Esp_set(ENEMY_WORK *pEm) __asm__("func_80100544");
+void Em20_Move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801005FC");
+LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100648");
+void Em20_Move_walk(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801008B4");
+void Em20_Move_yori(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100988");
+void Em20_Move_run(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100C88");
+void Em20_Mv_run00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100D0C");
+void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100DF4");
+void Em20_Mv_run20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80100FD4");
+void Em20_Mv_run30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101100");
+void Em20_Move_atck(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101338");
+void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101394");
+void Jump_set(ENEMY_WORK *pEm, LONG spd_x, LONG spd_y) __asm__("func_801015E8");
+void Em20_Mv_atck10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101610");
+LONG Em20_Mv_jump10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801016D8");
+void Em20_Mv_atck20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101780");
+LONG Em20_Mv_jump20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801017BC");
+void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801018B0");
+void Em20_Move_sleep(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101A4C");
+void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101A88");
+void Em20_Mv_sleep10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101BBC");
+void Em20_Mv_sleep20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101C08");
+void Em20_Mv_sleep30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101C48");
+void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101D04");
+void Em20_Move_back(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101DCC");
+void Em20_Move_critical(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101EB8");
+void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80101EF8");
+void Em20_Mv_critical10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801021EC");
+void Em20_Move_escape(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102308");
+void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010244C");
+void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801024D0");
+void Em20_Move_died(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010257C");
+void Em20_Move_eat(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801026E0");
+void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102720");
+void Em20_Move_house(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010296C");
+void Em20_mv_house00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801029BC");
+void Em20_mv_house10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102B1C");
+void Em20_Move_rush(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102CD8");
+void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102D24");
+void Em20_Mv_rush10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102E3C");
+void Em20_Mv_rush20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102EAC");
+void Em20_Move_bodyatck(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102EF8");
+void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80102F44");
+void Em20_Mv_bodyatck20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010300C");
+void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103050");
+void Em20_Move_jumpin(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103170");
+void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801031AC");
+void Em20_Mv_jumpin20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103288");
+LONG Ck_em_id(ENEMY_WORK *pEm, ENEMY_WORK **ppList, LONG Id, LONG Num) __asm__("func_80103314");
+void Em20_Damage(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010339C");
+void Em20_Dmg_nml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801033FC");
+void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103438");
+void Em20_Dmg_nml10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801035BC");
+void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801036E4");
+void Em20_Dmg_nml30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103850");
+void Em20_Dmg_nml40(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801038C8");
+void Em20_Dmg_combo(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801038FC");
+void Em20_Dmg_combo00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103988");
+void Em20_Dmg_combo10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103ACC");
+void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103B64");
+void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103C48");
+void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103CF4");
+void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103DAC");
+void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80103EC0");
+void func_80103F54(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void Em20_Dmg_spark(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801040FC");
+void Em20_Dmg_nml2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801041F4");
+void Em20_Dmg_nml2_00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104230");
+void Set_dmghit(ENEMY_WORK *pEm, ULONG Type) __asm__("func_80104288");
+void Em20_Die(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801042D0");
+void Em20_Die_nml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104310");
+void Em20_Die_nml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010436C");
+void Em20_Die_nml20(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801043F0");
+void Em20_Die_bang(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010449C");
+void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104534");
+void Set_head_bomb(ENEMY_WORK *pEm) __asm__("func_80104660");
+void Set_tail_bomb(ENEMY_WORK *pEm) __asm__("func_8010473C");
+void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801047D4");
+void Em20_Die_gnml(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801048FC");
+void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_8010497C");
+void Em20_Die_fire(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104A50");
+void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104AE4");
+void func_80104B78(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void Em20_Die_spark(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104C6C");
+void Em20_Die_spark00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104CFC");
+void Em20_Die_bang2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104D94");
+void Em20_Die_bang2_00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104E14");
+void Em20_Scenario(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104E90");
+void Em20_sce00(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104EEC");
+void Em20_Col_set(ENEMY_WORK *pEm, LONG n) __asm__("func_80104FAC");
+void Em20_Dead(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_80104FEC");
+void Em20_Blood_move(ENEMY_WORK *pEm) __asm__("func_8010502C");
+void PLDIE_EM(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq) __asm__("func_801050CC");
+void Dog_rot_neck(ENEMY_WORK *pEm) __asm__("func_8010524C");
+void Rate_speed_up(ENEMY_WORK *pEm, LONG g, LONG limit) __asm__("func_8010529C");
+void Rate_speed_down(ENEMY_WORK *pEm, LONG g, LONG limit) __asm__("func_801052D4");
+void Set_run_motion(ENEMY_WORK *pEm, SHORT d_tmp) __asm__("func_8010530C");
+LONG Atck_range_ck(ENEMY_WORK *pEm) __asm__("func_8010536C");
+ULONG hit_ck_main(ENEMY_WORK *pEm, LONG pl) __asm__("func_80105498");
+ULONG Atck_hit_ck(ENEMY_WORK *pEm) __asm__("func_80105738");
+void Set_blood(ENEMY_WORK *pEm, UCHAR parts, ULONG type) __asm__("func_801057A4");
+void Em20_Pl_to_dmg(ULONG pl, UCHAR dir) __asm__("func_8010597C");
+void Em20_Pl_to_die(ULONG pl) __asm__("func_801059C0");
+void Ck_Floor(ENEMY_WORK *pEm) __asm__("func_801059F4");
+void Ck_Died(ENEMY_WORK *pEm) __asm__("func_80105A58");
+ENEMY_WORK *Get_target_pl(ENEMY_WORK *pEm) __asm__("func_80105A80");
 
 #endif /* OVL_EM20_H */

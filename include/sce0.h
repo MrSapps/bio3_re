@@ -80,15 +80,36 @@ extern SCENARIO Sce;                   /* 0x800DECE8 */
 typedef ULONG (*SCE_JMP_FUNC)(SCE_TASK *);
 extern SCE_JMP_FUNC Sce_jmp_tbl[];      /* 0x8009E0F8, SCE opcode handlers */
 
-void Event_init(SCE_TASK *pSce, ULONG Evt_no);  /* RE2 Event_init */
+void Event_init(SCE_TASK *pSce, ULONG Evt_no); /* RE2 Event_init */
 void Event_exec(ULONG Task_level, ULONG Evt_no); /* RE2 Event_exec */
 
-ULONG While_main(SCE_TASK *pSce, UCHAR *pData, UCHAR Ofs); /* RE2 While_main */
+extern UCHAR D_8009E340[];
+extern UCHAR D_8009E6BC[];
+extern SHORT D_8009E6D4[];
+extern SHORT D_8009E6DC[];
+extern SHORT D_8009E6E4[];
+extern UCHAR D_800B9E21;
+extern SHORT D_800D1F82; /* RE2 G.SaveData.Sce_random */
+extern UCHAR D_800E017E[];
 
-void Calc_branch(ULONG Exp, SHORT *Ans, ULONG Num); /* RE2 Calc_branch */
-
-void Member_set_branch(struct tagENEMY_WORK *pW, ULONG Member, LONG D0); /* RE2 Member_set_branch */
-LONG Load_member_branch(struct tagENEMY_WORK *pW, ULONG Member);         /* RE2 Load_member_branch */
-SHORT *Load_member_addr_branch(struct tagENEMY_WORK *pW, ULONG Member);       /* RE2 Load_member_addr_branch */
+void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
+UCHAR Em_kind_search(ULONG Id);
+UCHAR func_800520D8(ULONG Id);
+void *func_8005211C(ULONG Id);
+void Sce_aot_init(void);
+void Sce_model_init(void);
+void Sce_work_clr(void);
+void Sce_work_clr_at(void);
+void Sce_work_clr_set(void);
+void Sce_rnd_set(void);
+void Sce_kirakira_set(void);
+void func_80052644(void);
+void func_8005283C(void);
+void func_800528D4(void);
+void func_8005290C(void);
+void func_80052968(void);
+void Sce_scheduler_set(void);
+void Sce_scheduler(void);
+void Sce_scheduler_main(void);
 
 #endif /* SCE0_H */

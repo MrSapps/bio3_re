@@ -7,17 +7,14 @@
 #include "sub.h"
 #include "joint.h"
 #include "snd.h"
+#include "pcstr.h"
+#include "room.h"
+#include "sabun.h"
+#include "sld.h"
 
 /* room sound directory at 0x801C181C (CD_ENTRY list, Id bit 7 = more entries follow) */
 #define CD_DIR ((CD_ENTRY *)0x801C181C)
 #define CD_DIR_HEAD ((ULONG *)0x801C1814)
-
-void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData);
-void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pData);
-extern UCHAR D_800E017F;               /* room sound pack id */
-extern UCHAR D_800E06AC;
-void func_800139D8(void);
-ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan);
 
 void Cd_init(void)
 {
@@ -56,10 +53,6 @@ void Cd_system_control(void)
 }
 
 INCLUDE_RODATA("asm/nonmatchings/game/cd", D_8001031C);
-
-extern USHORT D_800970DC[];
-extern USHORT D_800970E8[];
-extern SHORT D_800E0DD8;
 
 void Xa_play(ULONG mode, ULONG no)
 {
@@ -230,11 +223,6 @@ void Xa_control_end(void)
     Change_volume(0);
 }
 
-extern UCHAR Cd_read_s_cdmode;          /* 0x800971E1 RE2 static cdread_s_cdmode */
-extern UCHAR Cd_read_cdmode;            /* 0x800971E2 RE2 static cdread_cdmode */
-extern LONG D_800A0FEC[];              /* SPU transfer address per bank type */
-void func_80013C1C(UCHAR intr, UCHAR *result);
-
 /* RE2 Cd_read_s: streams a file through the ring buffer to SPU memory (RE3: libspu, no libsnd VAB) */
 ULONG Cd_read_s(ULONG File_no, ULONG Mode, ULONG *Address, ULONG Type, char *Mess)
 {
@@ -329,13 +317,6 @@ retry:
         }
     }
 }
-
-void func_80012ECC(tagCD *pCd);
-void func_800130A0(tagCD *pCd);
-void func_80013EF8(UCHAR intr, UCHAR *result);
-void func_80014300(UCHAR intr, UCHAR *result);
-void func_800150E4(void);
-void func_80014D10(void);
 
 /* RE2 Cd_read. Mode 0/1: floc[File_no], 2/3: CD.Fsize etc. preset (0/2 wait with VSync, 1/3 with Task_sleep);
  * 4/5: room sound pack (Type 3/4) streamed to the SPU through the ring */
@@ -532,8 +513,7 @@ retry2:
     }
 }
 
-void func_800783BC(ULONG no, ULONG size, ULONG a2);
-void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
+void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 void func_80012ECC(tagCD *pCd)
 {
@@ -567,7 +547,7 @@ void func_80012ECC(tagCD *pCd)
         pCd->First_flg = 0;
         SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), adr);
         while (SpuIsTransferCompleted(0) == 0);
-        func_800783BC(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
+        func_800783BC_(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
         if (pCd->pEntry[no].Type >= 5) {
             func_800782F4(pCd->pEntry[no].Type - 5, pCd->pEntry[no].Id,
                           pCd->pEntry[no].Type < 6 ? (ULONG *)0x801F7E00 : (ULONG *)0x801F2600);
@@ -575,10 +555,7 @@ void func_80012ECC(tagCD *pCd)
     }
 }
 
-ULONG Em_kind_search(ULONG Id);
-UCHAR func_800520D8(ULONG Id);
-void *func_8005211C(ULONG Id);
-ULONG func_8001760C(ULONG Id, ENEMY_WORK *pEm, ULONG Work, void *pData);
+ULONG Em_kind_search_(ULONG Id) __asm__("Em_kind_search"); /* returns unsigned long here (canonical UC) */
 
 /* copies one ring sector of the room pack entry being streamed to its load address; finished enemy
  * texture (TIM) and model entries are uploaded / linked to the enemy works of that kind */
@@ -680,7 +657,7 @@ void func_800130A0(tagCD *pCd)
         pEm->Unk4B &= 0xF;
         Sce.Unk148F = pEm->Unk4B;
         Sce.pUnk1460 = pEm;
-        Kind = Em_kind_search(pEm->Id);
+        Kind = Em_kind_search_(pEm->Id);
         pData = func_8005211C(Kind);
         if (pData == NULL) {
             pDat->pEm = pEm;

@@ -1,83 +1,23 @@
 #include "pl_wep.h"
 #include "sca.h"
 #include "monitor.h"
-#include "pl_wep2.h"
 #include "pad.h"
 #include "sce0.h"
 #include "esp.h"
-
-ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv);
-SHORT func_8006D030(ULONG Arg0);
-void func_80044804(MATRIX *pM, ULONG Arg1, ULONG Type);
-void func_80047860(MATRIX *pM, ULONG Arg1, ULONG Type);
-extern ULONG D_8009DBB4[];
-ULONG func_800102E8(void);                 /* rand */
-SHORT Get_dir_xz(LONG X, LONG Z);
-LONG func_800455B4();
-LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);
-
-extern UCHAR D_8009CD3D;
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
-signed char func_8006CF0C_r(ULONG Arg0) __asm__("func_8006CF0C");
-void Pl_water(ENEMY_WORK *pEm);
-
-/* declarations from earlier parts of the original address-split file */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
-void func_8006CF0C(ULONG Arg0);
-void Mag_set(PLAYER_WORK *pEm);
-
-void Pl_wep_flag_set(PLAYER_WORK *pEm);
+#include "cd.h"
+#include "game.h"
+#include "player.h"
+#include "psp.h"
+#include "room.h"
+#include "sld.h"
+#include "snd.h"
+#include "status.h"
 
 #define RND() ((signed char)func_800102E8())
 
-extern PARTS_W *D_8009CD30;
-extern USHORT D_8009DCB4[];
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
-
-extern ENEMY_WORK Pl_work;
-extern UCHAR D_8009DDC4[][2];
-extern UCHAR D_8009DE10;
-extern UCHAR D_8009DE24;
-
-extern UCHAR D_8009DE24;
-extern USHORT D_8009DE26;
-extern signed char D_8009DE28;
-
-extern LONG D_800D204C[];
-
-void func_80010150(void *p, ULONG Size);
-void func_80048FF4(void);
-
 #define PLAYER ((ENEMY_WORK *)((UCHAR *)&G + 0x248C))
 
-extern UCHAR D_800D225E;
-extern UCHAR D_800E017F;
-extern UCHAR D_800E0186[];
-extern ULONG D_80098700;
-extern USHORT *D_8009DFD0[];           /* per stage room file numbers */
-LONG Cd_read_l(LONG Fno, ULONG *pAdr, LONG a2, char *pName) __asm__("Cd_read");
-void Kage_work_init(void);
-void Kage_work9_init(void);
-void func_80077ED4(void);
-void Esp_init_R(void);
-void func_80078204(void);
-void func_80033508(void);
-void func_800486C8(void);
-void Sce_model_init(void);
-void func_80037E80(void);
-void Sce_scheduler_set(void);
-void func_800498F0(void);
-void func_80048630(void);
-void func_80078450(void);
-void Em_init_move(void);
-void func_80071510(LONG Stage, LONG Room);
-void func_8006ECB0(LONG Id);
-void Player_set(ENEMY_WORK *pEm);
+void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
 
 /* load and set up the room (RE2 Set_room) */
 void Set_room(void)
@@ -156,7 +96,7 @@ void Set_room(void)
         *(ULONG *)&pPl->Routine_0 = 0;
     }
     func_80077ED4();
-    Size = Cd_read_l(D_8009DFD0[Stage][Room], NULL, 4, "ARD");
+    Size = Cd_read(D_8009DFD0[Stage][Room], NULL, 4, "ARD");
     ppAdr = &pRoom->pEdt0;
     do {
         if (*ppAdr) {
@@ -186,7 +126,7 @@ void Set_room(void)
     }
     Sce_scheduler_set();
     if (G.Em_num != 0 || D_800E017F != 0xFF || G.pEnemy[1]->Be_flg != 0) {
-        Cd_read_l(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
+        Cd_read(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
     func_80048630();
@@ -197,7 +137,7 @@ void Set_room(void)
         D_800E0186[0] = 0;
     }
     Em_init_move();
-    func_80071510(Stage, Room);
+    func_80071510_(Stage, Room);
 }
 
 void Set_stage(void)
@@ -254,8 +194,6 @@ void func_800498F0(void)
         No = 0;
     } while (--Cnt);
 }
-
-void func_80038F98(ENEMY_WORK *pEm);
 
 /* run every enemy's routine once at room start (RE2 Em_init_move) */
 void Em_init_move(void)

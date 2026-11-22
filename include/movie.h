@@ -78,7 +78,6 @@ extern UCHAR *pMovie_result;           /* 0x800DCDBC */
 extern UCHAR Ret_Value[8];             /* 0x800DCDC0 */
 extern DslLOC Loc;                     /* 0x800DCDB8 */
 extern DslFILTER Channel;              /* 0x800DCD18 */
-extern UCHAR Stereo_flg;               /* 0x800E1185 RE2 G.Stereo_flg: 0 stereo, else mono */
 
 void Close_movie(void);
 void Movie_xa_start(void);
@@ -89,8 +88,15 @@ void Mdec_callback(void);
 void Movie_end(void);
 ULONG Open_movie(ULONG Movie_id);
 ULONG Play_movie(void);
-void func_80074658(LONG Arg);          /* RE2 Close_movie: SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SOFF) */
 
-LONG Init_movie_work(ULONG Id);        /* start Movie_tbl[Id]; G.System_flg 0x10000 while it plays */
+LONG Init_movie_work(ULONG Id); /* start Movie_tbl[Id]; G.System_flg 0x10000 while it plays */
+
+extern void (*D_8009CBB4[])(void); /* RE2 pMovie_proc_tbl: Movie_init, Movie_main, Movie_exit */
+
+void Movie(void);
+void Movie_init(void);
+void Movie_main(void);
+void Movie_exit(void);
+LONG CdReset2(LONG Mode);
 
 #endif /* MOVIE_H */

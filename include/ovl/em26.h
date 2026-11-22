@@ -50,24 +50,34 @@ typedef struct tagEM26_BLOOD_TBL {
 extern void (*Em26_routine_0[])() __asm__("D_80101160");
 extern void (*Em26_move_tbl[])() __asm__("D_80101188");
 extern void (*Em26_mv_walk_tbl[])() __asm__("D_8010119C");
-extern UCHAR Em26_routine_tbl[] __asm__("D_80101180");     /* Routine_1 by Type */
+extern UCHAR Em26_routine_tbl[] __asm__("D_80101180"); /* Routine_1 by Type */
 extern UCHAR Em26_dieblood_type_tbl[] __asm__("D_801011A4");
 extern EM26_BLOOD_TBL Em26_blood_id_tbl[] __asm__("D_801011C4");
 
-/* exe functions without a shared prototype */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);      /* joint.c, result used as int */
-LONG Water_ck(LONG Pos_x, LONG Pos_z);
-ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc);                              /* em_sub.c */
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);                           /* oba.c */
-LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
-LONG func_8004D720(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y); /* ground height under pPos */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
-
-void func_80100D5C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);              /* RE2 Em26_Die00 */
-void func_80100E38(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);              /* RE2 Em26_Die10 */
-void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type);          /* RE2 Set_blood */
+void func_80100D5C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq); /* RE2 Em26_Die00 */
+void func_80100E38(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq); /* RE2 Em26_Die10 */
+void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type); /* RE2 Set_blood */
 ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl);
-void func_801010E8(ENEMY_WORK *pPl, UCHAR Dir);                         /* RE2 Em26_Pl_to_dmg */                         /* RE2 Em26_atck_ck */
-LONG func_80101100(ENEMY_WORK *pEm);                                    /* RE2 Get_sc_hit */
+void func_801010E8(ENEMY_WORK *pPl, UCHAR Dir); /* RE2 Em26_Pl_to_dmg */                         /* RE2 Em26_atck_ck */
+LONG func_80101100(ENEMY_WORK *pEm); /* RE2 Get_sc_hit */
+
+void func_8010001C(ENEMY_WORK *pEm);
+void func_8010008C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801003EC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_8010040C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100614(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100724(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100848(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_8010098C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100AD4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100C94(void);
+void func_80100C9C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100CC8(void);
+void func_80100CD0(void);
+void func_80100CD8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100EDC(void);
+void func_80100EE4(void);
+void func_80100EEC(void);
 
 #endif /* OVL_EM26_H */

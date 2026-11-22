@@ -14,6 +14,8 @@
 #include "sce0.h"
 #include "md_sub.h"
 #include "esp.h"
+#include "pcstr.h"
+#include "sld.h"
 
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((USHORT *)&(p)->Unk74)
@@ -48,97 +50,6 @@
 #define gte_MulMatrix0(r1, r2, r3) { gte_SetRotMatrix(r1); gte_ldclmv(r2); gte_rtir(); gte_stclmv(r3); gte_ldclmv((char *)(r2) + 2); gte_rtir(); gte_stclmv((char *)(r3) + 2); gte_ldclmv((char *)(r2) + 4); gte_rtir(); gte_stclmv((char *)(r3) + 4); }
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
-
-/* model colour parameters set from ENEMY_WORK+0x178 (func_800254AC) */
-typedef struct tagMODEL_COL {
-    USHORT Unk0[3];                    /* 0x0 */
-    SHORT Unk6;                        /* 0x6 */
-    ULONG Rgb;                         /* 0x8 */
-} MODEL_COL;
-extern MODEL_COL D_80098B08;
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, SHORT Flg, MATRIX *pM);
-
-/* Init_system callees owned by other modules */
-void func_80087F6C(void);
-void func_80073E84(void);
-void func_800101AC(void);
-void func_80094374(LONG Arg);
-void func_800943C8(void);
-void _bu_init(void);
-void func_800912C4(void);
-void Init_main(void);
-void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
-extern LONG D_800D454C;                /* right after Main.Fade[] */
-extern UCHAR D_800DBB58;
-extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
-extern USHORT D_8009BDB4[];
-extern UCHAR D_80098E88[];
-extern USHORT D_80099654[];
-extern ULONG D_80098700;
-void func_80078FE8(ULONG *p);
-void func_8007906C(void);
-void func_80010150(void *p, ULONG Size);    /* RE2 Memclr */
-
-ULONG func_80037D50(VECTOR *pPos);
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D184(void *pWork0, void *pWork1, ULONG Arg2, MATRIX *pM);
-void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-ULONG func_8002C824(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CABC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CE08(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CF90(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DFE0(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002E160(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-extern UCHAR D_800E1388[];
-
-void func_8002D5D8(void *pWork0, void *pWork1, ULONG Arg2);
-ULONG func_8002DC98(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DE0C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D6D8(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D898(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B6FC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B86C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
-void func_8002783C(PARTS_W *pP_ptr);
-void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
-void func_80026648(ENEMY_WORK *pEm);
-void func_80026498(ENEMY_WORK *pEm);
-void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
-void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
-void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
-void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-ULONG func_800102E8(void);   /* Rnd */
-ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
-void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void Set_light_pos(VECTOR *pPos);
-extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
-extern VECTOR *D_800C79F4;
-LONG Water_ck(LONG Pos_x, LONG Pos_z);
-extern LONG D_800CA720;
-extern UCHAR D_80098728[];
-extern ULONG D_800986C4[];             /* scale curve (func_80021D58) */
-void func_8001CDA4(ESP_WORK *pEsp, ULONG n);
-void func_8001CE24(ESP_WORK *pEsp, ULONG a1, ULONG a2);             /* random byte table, indexed by Rnd() */
-ESP_WORK *func_8001B35C(ESP_WORK *pEsp, ULONG Attr, ULONG Ofs, MATRIX *pMat, VECTOR *pPos, SVECTOR *pDir);
-
-extern ULONG D_80097FCC[];
-LONG func_800472EC(HIT_REQ *pHit, ULONG Arg);
-
-void func_80024C58(void);
-void Door_main(void);
-void Door_snd_trans(void);
-void Set_stage(void);
-void func_80077C4C(void);
-void Set_room(void);
-void func_80077F60(void);
-extern UCHAR D_800E0186;
 
 void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg)
 {
@@ -264,9 +175,7 @@ loop1:
     }
 }
 
-void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM) __asm__("func_80025610");
-
-void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
 {
     MATRIX M;
     VECTOR Scale;
@@ -657,10 +566,7 @@ void func_80026648(ENEMY_WORK *pEm)
     }
 }
 
-void MatrixNormal_0(MATRIX *m, MATRIX *n);
-void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate) __asm__("HMatrix");
-
-void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
+void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
 {
     SVECTOR Sv;
     LONG Rate0;
@@ -698,8 +604,6 @@ void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
     pM2->m[2][2] = Sv.vz;
     MatrixNormal_0(pM2, pM2);
 }
-
-void MatrixNormal_2(MATRIX *m, MATRIX *n);
 
 void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
 {
@@ -782,9 +686,7 @@ void Joint_move(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_fl
 
 INCLUDE_ASM("asm/nonmatchings/game/joint", J_seq);
 
-void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate) __asm__("hokan_svec");
-
-void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
+void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
 {
     LONG dx;
     LONG dy;
@@ -813,10 +715,9 @@ void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
     gte_stsv(pOut);
 }
 
-void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190");
-ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027338");
+void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190"); /* arg 3 long (canonical unsigned long); arg 4 unsigned long (canonical short) */
 
-ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
+ULONG func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -872,9 +773,6 @@ ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
     return 1;
 }
 
-LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3); /* RE2 Sca_get_ground */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4); /* RE2 Esp_call */
-
 void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
 {
     MATRIX M;
@@ -925,7 +823,7 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
         Sv.vy = pP_ptr->Unk92;
         Sv.vz = pP_ptr->Unk8E;
         RotMatrix(&Sv, &M);
-        func_80026728_(&pP_ptr->Workm, &M, &pP_ptr->Workm, 0x1000 - pP_ptr->Unk86 * 0x100);
+        HMatrix(&pP_ptr->Workm, &M, &pP_ptr->Workm, 0x1000 - pP_ptr->Unk86 * 0x100);
         pP_ptr->Unk86--;
     }
 }
@@ -1063,11 +961,11 @@ ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
         pEm->UnkCA--;
     hokan:
         if (n >= 7) {
-            func_8002720C_((SVECTOR *)&pP->Unk88, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
+            hokan_svec((SVECTOR *)&pP->Unk88, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
             RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
         } else {
             RotMatrix_gte((SVECTOR *)&pP->Unk88, &M);
-            func_80026728_((MATRIX *)pP->M, &M, (MATRIX *)pP->M, 0xFFF - w);
+            HMatrix((MATRIX *)pP->M, &M, (MATRIX *)pP->M, 0xFFF - w);
         }
         pP++;
         n--;
@@ -1082,10 +980,7 @@ ULONG J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     return 0;
 }
 
-void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027F8C");
-
-ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
+ULONG func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -1162,10 +1057,7 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     } while (--n != 0);
 }
 
-/* RE2 Joint_move_p; the header prototype takes the tables as pointers */
-ULONG func_80028308_(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg) __asm__("func_80028308");
-
-ULONG func_80028308_(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
+ULONG func_80028308(JOINT_P *pJp, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg)
 {
     ULONG *pRot;
     USHORT *pSeq;
@@ -1311,7 +1203,7 @@ unpacked:
     return 0;
 }
 
-void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
+void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C"); /* 3 args here (canonical 2) */
 
 void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
 {

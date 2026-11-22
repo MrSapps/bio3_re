@@ -3,37 +3,19 @@
 #include "snd.h"
 #include "em_sub.h"
 #include "cd.h"
+#include "joint.h"
+#include "md_sub.h"
+#include "monitor.h"
+#include "sca.h"
+#include "sce1.h"
+#include "sld.h"
+#include <memory.h>
+
 
 #define EM_P(pEm, ofs, type) (*(type *)((UCHAR *)(pEm) + (ofs)))  /* ENEMY_WORK fields past the named ones */
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
-/* two-bone joint lengths (func_80079374) */
-typedef struct tagMY_JNT {
-    SVECTOR a;
-    SVECTOR b;
-    SHORT c[2];
-} MY_JNT;
-
-extern MATRIX D_800E1200[];
-extern MATRIX D_800E1220;
-extern MATRIX D_800E1260;
-extern MATRIX D_800E1280;
-
-void func_80078FE8(void);
-void func_8007906C(void);
-void func_800792FC(void);
-void func_800790F0(ULONG *pAdr);
-LONG func_8004D720(VECTOR *pV, LONG a1, LONG a2, LONG a3);
-void HMatrix(MATRIX *a, MATRIX *b, MATRIX *c, LONG r);
-void MulLMatrix(MATRIX *a, MATRIX *b, MATRIX *c);
-void func_80079374(MATRIX *a, MATRIX *b, LONG *t, MY_JNT *j);
-void func_80079CC0(ENEMY_WORK *pEm, LONG h);
-LONG func_80079690(ENEMY_WORK *pEm, UCHAR *pKan, UCHAR *pSeq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, LONG rate);
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-LONG Cd_read_s(LONG Fno, LONG a1, ULONG *pAdr, LONG a3, char *pName);
-void func_8007836C(LONG no, ULONG *pAdr);
-void func_800783BC(ULONG no, ULONG size, ULONG *a2);
+void func_800783BC_(ULONG no, ULONG size, ULONG *a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 void Mapping_tim(ULONG *pAdr)
 {
@@ -285,18 +267,6 @@ void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight)
 
 INCLUDE_ASM("asm/nonmatchings/game/sub", Get_light_cut);
 
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Unk1;
-    USHORT Unk2;
-    LONG Unk4;
-    LONG Unk8[3];
-    UCHAR Unk14[4];
-    LONG Unk18[3];
-} FI_SAVE;
-extern FI_SAVE D_800E11D0;
-extern LONG D_800E11F4;
-
 void func_80078FE8(void)
 {
     ULONG i;
@@ -367,7 +337,7 @@ void func_800791F0(void)
 
 void func_800792FC(void)
 {
-    func_800783BC(2, Cd_read_s(0x128, 0, (ULONG *)0x80101000, 2, "INIT_SUB"), 0);
+    func_800783BC_(2, Cd_read_s(0x128, 0, (ULONG *)0x80101000, 2, "INIT_SUB"), 0);
     Cd_read(0x127, (ULONG *)0x80101000, 0, "INIT_SUB");
     func_8007836C(2, (ULONG *)0x80101000);
 }

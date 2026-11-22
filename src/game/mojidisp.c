@@ -17,6 +17,12 @@
 #include "esp.h"
 #include "game.h"
 #include "oba.h"
+#include "om.h"
+#include "movie.h"
+#include "player.h"
+#include "sld.h"
+#include "snd.h"
+#include "status.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -45,123 +51,6 @@
 #define gte_MulMatrix0(r1, r2, r3) { gte_SetRotMatrix(r1); gte_ldclmv(r2); gte_rtir(); gte_stclmv(r3); gte_ldclmv((char *)(r2) + 2); gte_rtir(); gte_stclmv((char *)(r3) + 2); gte_ldclmv((char *)(r2) + 4); gte_rtir(); gte_stclmv((char *)(r3) + 4); }
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
-
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, SHORT Flg, MATRIX *pM);
-
-/* Init_system callees owned by other modules */
-void func_80087F6C(void);
-void func_80073E84(void);
-void func_800101AC(void);
-void func_80094374(LONG Arg);
-void func_800943C8(void);
-void _bu_init(void);
-void func_800912C4(void);
-void Init_main(void);
-void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
-extern LONG D_800D454C;                /* right after Main.Fade[] */
-extern UCHAR D_800DBB58;
-extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
-extern USHORT D_8009BDB4[];
-extern UCHAR D_80098E88[];
-extern USHORT D_80099654[];
-extern ULONG D_80098700;
-void func_80078FE8(ULONG *p);
-void func_8007906C(void);
-void func_80010150(void *p, ULONG Size);    /* RE2 Memclr */
-
-ULONG func_80037D50(VECTOR *pPos);
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D184(void *pWork0, void *pWork1, ULONG Arg2, MATRIX *pM);
-void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-ULONG func_8002C824(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CABC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CE08(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CF90(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DFE0(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002E160(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-extern UCHAR D_800E1388[];
-
-void func_8002D5D8(void *pWork0, void *pWork1, ULONG Arg2);
-ULONG func_8002DC98(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DE0C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D6D8(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D898(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B6FC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B86C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
-void func_8002783C(PARTS_W *pP_ptr);
-void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
-void func_80026648(ENEMY_WORK *pEm);
-void func_80026498(ENEMY_WORK *pEm);
-void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
-void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
-void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
-void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-ULONG func_800102E8(void);   /* Rnd */
-ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
-void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void Set_light_pos(VECTOR *pPos);
-extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
-extern VECTOR *D_800C79F4;
-LONG Water_ck(LONG Pos_x, LONG Pos_z);
-extern LONG D_800CA720;
-extern UCHAR D_80098728[];
-extern ULONG D_800986C4[];             /* scale curve (func_80021D58) */
-void func_8001CDA4(ESP_WORK *pEsp, ULONG n);
-void func_8001CE24(ESP_WORK *pEsp, ULONG a1, ULONG a2);             /* random byte table, indexed by Rnd() */
-ESP_WORK *func_8001B35C(ESP_WORK *pEsp, ULONG Attr, ULONG Ofs, MATRIX *pMat, VECTOR *pPos, SVECTOR *pDir);
-
-extern ULONG D_80097FCC[];
-LONG func_800472EC(HIT_REQ *pHit, ULONG Arg);
-
-void func_80024C58(void);
-void Door_main(void);
-void Door_snd_trans(void);
-void Set_stage(void);
-void func_80077C4C(void);
-void Set_room(void);
-void func_80077F60(void);
-extern UCHAR D_800E0186;
-
-void func_80025610_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM) __asm__("func_80025610");
-
-void MatrixNormal_0(MATRIX *m, MATRIX *n);
-void func_80026728_(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate) __asm__("HMatrix");
-
-void MatrixNormal_2(MATRIX *m, MATRIX *n);
-
-void func_8002720C_(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate) __asm__("hokan_svec");
-
-void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190");
-ULONG func_80027338_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027338");
-
-void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-ULONG func_80027F8C_(ULONG Kan_t_ptr, ULONG Seq_t_ptr, LONG No, ULONG Late_flg) __asm__("func_80027F8C");
-
-void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C");
-
-extern SHORT D_800CCBBC;
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-void Mapping_tim(ULONG *p);
-void Task_lchain(ULONG Task_no);
-int PadGetState(int port);
-int PadSetMainMode(int socket, int offs, int lock);
-
-void Psp_set(void);
-void func_80048FF4(void);
-void Set_light_default(void);
-void Set_view(LONG *pView_p, LONG *pView_r);
-void func_80010000(ULONG *pSrc, ULONG *pDst);
-void func_8008F8A4(LONG mode);
-void func_8008FAD4(LONG mode);
-extern USHORT *D_8009DFD0[];           /* per stage room file numbers */
 
 void Print_color(UCHAR A0, UCHAR Col, USHORT Attr)
 {
@@ -232,8 +121,6 @@ void func_8002F98C(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
     *pPrev = (*pPrev & 0xFF000000) | (Tag & 0xFFFFFF);
     pMoji->pPrim8_cur = pPrim;
 }
-
-LONG func_80031970(ULONG Mode, ULONG Code, LONG *pPos);
 
 void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
 {
@@ -347,48 +234,10 @@ void Moji_trans_main(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Mess_disp);
 /* ---- from 800303CC.c ---- */
-#include "common.h"
-#include "monitor.h"
-#include "mojidisp.h"
-#include "pad.h"
-#include "em_sub.h"
-#include "om.h"
-#include "pl_wep2.h"
-#include "movie.h"
-#include "player.h"
-#include "cd.h"
-
-extern COL_WORK D_800DCED0;
-extern COL_OBJ *D_800DCDD0[];
 
 /* ENEMY_WORK fields not in em_sub.h yet */
 #define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
 #define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
-
-extern ULONG D_8009CBC8[];
-extern COL_ENT D_800DEB48;
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
-void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
-
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-
-extern ULONG D_800CC87C;
-extern ULONG D_800D1F2C;
-extern UCHAR D_8009CD3C;
-ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
-LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
-LONG func_800336B4(ENEMY_WORK *pEm);
-void func_80034124(COL_OBJ *pObj);
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_80033FBC(COL_OBJ *pTop);
-void func_80033B88(COL_OBJ *pTop);
-COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
 
 ULONG func_800303CC(ULONG Val)
 {
@@ -398,14 +247,8 @@ ULONG func_800303CC(ULONG Val)
     return 0x10000 / Val + 1;
 }
 
-extern UCHAR D_80098E80[];
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
-LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos);
-UCHAR *name_ptr_set(UCHAR No);
-
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Branch_disp);
 
-extern UCHAR D_800C703F;
 void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
 {
     UCHAR *pStr;
@@ -817,11 +660,6 @@ void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr)
     Moji.pPrim14_cur = pP;
 }
 
-extern UCHAR D_800A0514[][4];
-extern ULONG D_800D2048[];
-extern UCHAR D_8009BEE4[];
-extern USHORT D_8009C7C0[];
-
 UCHAR *name_ptr_set(UCHAR No)
 {
     ULONG Flg;
@@ -924,12 +762,6 @@ void Moji_mode_init(void)
     Moji.pPrim14_cur = Moji.Prim_sprt[Cbuf];
     Moji.pPrim8_cur = Moji.Prim_sprt_8[Cbuf];
 }
-
-extern USHORT D_80099654[];
-extern UCHAR D_80098E88[];
-extern UCHAR D_800CC84D;
-extern UCHAR D_800D4433;
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {

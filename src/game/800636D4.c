@@ -5,6 +5,13 @@
 #include "cd.h"
 #include "monitor.h"
 #include "status.h"
+#include "game.h"
+#include "pad.h"
+#include "pl_wep.h"
+#include "player.h"
+#include "room.h"
+#include "sce2.h"
+#include "sld.h"
 
 /* item AOT record at G+0x21DC */
 typedef struct tagST_AOT_ITEM {
@@ -28,18 +35,6 @@ typedef struct tagST_MAP_ROOM {
     SHORT Z1;                          /* 0x6 */
 } ST_MAP_ROOM;
 
-/* MAP.MAP (St.UnkCC) */
-typedef struct tagST_MAP_PART {
-    UCHAR U0;                          /* 0x0 */
-    UCHAR V0;                          /* 0x1 */
-    UCHAR U1;                          /* 0x2 */
-    UCHAR V1;                          /* 0x3 */
-    SHORT X;                           /* 0x4 */
-    SHORT Y;                           /* 0x6 */
-    UCHAR Clut;                        /* 0x8 */
-    UCHAR Tpage;                       /* 0x9 */
-    UCHAR padA[2];
-} ST_MAP_PART;
 /* MAP.MAP header: room count, then per room the part list offset and part counts */
 typedef struct tagST_MAP_PARTS {
     ULONG Ofs;                         /* 0x0 */
@@ -50,78 +45,13 @@ typedef struct tagST_MAP_HDR {
     ULONG Num;                         /* 0x0 */
     ST_MAP_PARTS Room[1];               /* 0x4 */
 } ST_MAP_HDR;
-typedef struct tagST_MAP_ARROW {
-    SHORT U0;                          /* 0x0 */
-    SHORT V0;                          /* 0x2 */
-    SHORT U1;                          /* 0x4 */
-    SHORT V1;                          /* 0x6 */
-    SHORT X;                           /* 0x8 */
-    SHORT Y;                           /* 0xA */
-} ST_MAP_ARROW;
 
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
-void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
-void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *pXy, ULONG f);
-void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b);
-extern UCHAR D_8009F2EC[];
-extern UCHAR D_8009F2F8[];
-extern UCHAR D_8009F304[];
-extern UCHAR D_8009F310[];
-extern UCHAR D_8009F31C[];
-void func_8006E600(ST_WORK *pSt, SPRT *p, UCHAR *pTbl, ULONG f);
-void func_8006EBEC_p(ULONG *p) __asm__("func_8006EBEC");
-void func_80063E9C(ST_WORK *pSt);
-extern USHORT D_8009F26C[];
-extern ULONG D_8009EF90[];
-extern UCHAR D_8009EED8[];
-extern char D_80010DCC[];
-extern SHORT D_800CCBBC;
-void Mapping_tim(ULONG *p);
-void func_8006ED28(ST_WORK *pSt);
-void OpenTIM_v(void) __asm__("OpenTIM");
-UCHAR func_8006E598_u(void) __asm__("func_8006E598");
-extern UCHAR D_800A04F8[];
-extern UCHAR D_800A07C4[];
-extern UCHAR D_800A0514[][4];
-
-typedef struct { UCHAR A0; UCHAR B0; UCHAR A1; UCHAR B1; } ST_ROOM_MAP;
-extern ST_ROOM_MAP D_800A0430[];
+void func_8006EBEC_p(ULONG *p) __asm__("func_8006EBEC"); /* arg 1 unsigned long* (canonical void) */
+void OpenTIM_v(void) __asm__("OpenTIM"); /* differs from the canonical prototype */
 
 /* local prototypes (this module) */
-UCHAR *func_8006A898(ST_WORK *pSt, UCHAR a, UCHAR b);
-void func_8006A9AC(UCHAR no, UCHAR idx);
-void func_8006AC88(UCHAR no);
-void func_8006AE20(UCHAR dst, UCHAR src);
-void Cd_seek_s(ULONG File_no, ULONG Mode, char *pName) __asm__("Cd_seek");
-LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch(ENEMY_WORK *pEm);
-extern UCHAR D_800D442C;
-extern UCHAR D_800D442D;
-extern UCHAR D_800D442E;
-extern ULONG D_800D258C[];
-void Pl_wep_eff_parts_init(void *p);
-void func_80046C90(void);
-extern ULONG D_8009F678[];
-void func_80010000(ULONG a0, ULONG *pDst);
-extern UCHAR D_8009F568[];
-extern char D_80010F84[];
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-extern USHORT D_8009F4F8[][2];
-extern LONG D_800D23B8;
-void func_80073CCC(UCHAR *a, UCHAR *b);
-extern UCHAR D_800DBB58;
-extern USHORT D_800A004C[][2];
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
-void func_80068024(ST_WORK *pSt);
-void func_8006CD68(UCHAR no);
-extern UCHAR D_800A0BB4[];
-extern UCHAR D_800A0BC4[];
-extern void (*D_8009F4E4[])(ST_WORK *pSt);
-extern void (*D_800A0100[])(ST_WORK *pSt);
-extern void (*D_800A0138[])(ST_WORK *pSt);
-extern void (*D_800A0500[])(ST_WORK *pSt);
-extern ULONG D_800D20DC[];
-UCHAR func_80069614(ST_WORK *pSt, LONG a1);
+void Cd_seek_s(ULONG File_no, ULONG Mode, char *pName) __asm__("Cd_seek"); /* 3 args here (canonical 2) */
 void func_800636D4(ST_WORK *pSt)
 {
     ULONG i, sum, n;
@@ -160,8 +90,6 @@ void func_800636D4(ST_WORK *pSt)
 }
 
 INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010DCC);
-
-extern USHORT D_8009F2AC[];
 
 void func_80063850(ST_WORK *pSt)
 {
@@ -276,11 +204,6 @@ void func_80063850(ST_WORK *pSt)
         break;
     }
 }
-
-extern UCHAR D_800DBB5B;
-extern UCHAR D_800CEA80[];
-LONG func_8001B894();
-void Mess_set(LONG a0, LONG a1, LONG a2, LONG a3);
 
 void func_80063CAC(ST_WORK *pSt)
 {
@@ -460,9 +383,6 @@ void func_80064460(ST_WORK *pSt)
     pSt->Rtn0 = 0xD;
 }
 
-/* needs G.Unk2100 (bio3.h, added) */
-extern UCHAR D_8009F564[];
-
 void func_8006446C(ST_WORK *pSt)
 {
     ULONG i;
@@ -531,11 +451,6 @@ void func_8006446C(ST_WORK *pSt)
         }
     }
 }
-
-extern ITEM_WORK *D_800D23B4;
-void func_80065BA4(UCHAR a, UCHAR b);
-void func_80065C8C(UCHAR dst, UCHAR src);
-void func_8006ABF8(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
 
 void func_800646F0(ST_WORK *pSt)
 {
@@ -723,8 +638,6 @@ void func_800646F0(ST_WORK *pSt)
     }
 }
 
-void func_8006AD38(UCHAR a, UCHAR b);
-
 void func_80064E80(ST_WORK *pSt)
 {
     UCHAR no;
@@ -791,24 +704,6 @@ void func_800650BC(ST_WORK *pSt)
         pSt->Flg |= 0x20000000;
     }
 }
-
-extern UCHAR D_8009F328[];
-extern UCHAR D_8009F34C[];
-extern USHORT D_8009F388[];
-extern USHORT D_8009F3E8[];
-extern UCHAR D_8009F3F4[];
-extern UCHAR D_8009F418[];
-extern USHORT D_8009F424[];
-extern UCHAR D_8009F448[];
-extern SHORT D_8009F49C[];
-extern UCHAR D_8009F4A8[];
-extern UCHAR D_8009F4B4[];
-extern SHORT D_8009F4C0[];
-extern UCHAR D_8009F4CC[];
-extern UCHAR D_8009F4D8[];
-void func_8006E6D8(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void func_8006E7D4(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n);
-void func_80065EE0(ST_WORK *pSt);
 
 void func_8006511C(ST_WORK *pSt)
 {
@@ -1470,7 +1365,6 @@ void func_80067BAC(ST_WORK *pSt)
     pSt->Pos[13].Y = ((signed char)pSt->Unk1D >> 1) * 30;
 }
 
-extern signed char D_800A00EC[][2];
 LONG Pl_wep_eff_parts_cnt_l(void) __asm__("Pl_wep_eff_parts_cnt"); /* UCHAR result used as int */
 
 void func_80067C14(ST_WORK *pSt)
@@ -1625,9 +1519,6 @@ void func_80068B5C(ST_WORK *pSt)
         }
     }
 }
-
-extern ENEMY_WORK Pl_work;
-void func_8006AB08(UCHAR no);
 
 void func_80068BC0(ST_WORK *pSt)
 {
@@ -1805,8 +1696,6 @@ void func_80068BC0(ST_WORK *pSt)
     }
     pA->Flg |= f;
 }
-
-UCHAR *func_8006A918(ST_WORK *pSt, UCHAR id);
 
 void func_80069280(ST_WORK *pSt)
 {
@@ -2070,7 +1959,7 @@ void func_80069A6C(ST_WORK *pSt)
 }
 #undef IT
 
-signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id");
+signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id"); /* arg 2 UC (canonical signed char) */
 
 void func_80069C3C(ST_WORK *pSt)
 {
@@ -2223,8 +2112,6 @@ void func_80069C3C(ST_WORK *pSt)
     }
 }
 
-extern ULONG D_800CC840;
-
 void func_8006A234(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
@@ -2306,8 +2193,6 @@ void func_8006A234(ST_WORK *pSt)
         pSt->Unk13++;
     }
 }
-
-extern USHORT D_800A00B0[];
 
 void func_8006A59C(ST_WORK *pSt)
 {
@@ -2486,8 +2371,6 @@ void func_8006ABF8(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
 
 INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010F84);
 
-extern UCHAR D_8009F5F0[];
-
 void func_8006AC88(UCHAR no)
 {
     ST_WORK *pSt = &St;
@@ -2539,56 +2422,6 @@ void func_8006AE20(UCHAR dst, UCHAR src)
     MoveImage(&r, D_800A004C[dst][0], D_800A004C[dst][1]);
     DrawSync(0);
 }
-
-extern UCHAR D_8009F890[];
-extern UCHAR D_8009F8CC[];
-extern UCHAR D_8009F95C[];
-extern UCHAR D_8009F908[];
-extern UCHAR D_8009FBCC[];
-extern UCHAR D_8009FBFC[];
-extern UCHAR D_8009FC2C[];
-extern UCHAR D_8009FC38[];
-extern UCHAR D_8009FC44[];
-extern UCHAR D_8009FC50[];
-extern UCHAR D_8009F9D4[];
-extern UCHAR D_8009FBC0[];
-extern UCHAR D_8009F8A8[];
-extern UCHAR D_8009F8B4[];
-extern UCHAR D_8009F8C0[];
-extern UCHAR D_8009FF74[];
-extern UCHAR D_8009FB78[];
-extern UCHAR D_8009FB84[];
-extern UCHAR D_8009FF68[];
-extern UCHAR D_8009FF80[];
-extern UCHAR D_8009FF8C[];
-extern UCHAR D_8009FFB0[];
-extern UCHAR D_8009FFBC[];
-extern UCHAR D_8009FFC8[];
-extern UCHAR D_8009FFD4[];
-extern UCHAR D_8009FFE0[];
-extern UCHAR D_8009FFEC[];
-extern UCHAR D_8009FFF8[];
-extern UCHAR D_800A0004[];
-extern UCHAR D_8009FBA8[];
-extern USHORT D_8009FC5C[];
-extern USHORT D_8009FCBC[];
-extern USHORT D_8009FD1C[];
-extern USHORT D_8009FD7C[];
-extern USHORT D_8009F9B0[];
-extern USHORT D_8009FDDC[];
-extern USHORT D_8009FE0C[];
-extern USHORT D_8009FE3C[];
-extern USHORT D_8009FE6C[];
-extern USHORT D_8009FE9C[];
-extern USHORT D_8009FECC[];
-extern USHORT D_8009FEFC[];
-extern USHORT D_8009FF2C[];
-extern USHORT D_8009FF38[];
-extern USHORT D_8009FF44[];
-extern USHORT D_8009FF50[];
-extern SHORT D_8009FF5C[];
-extern SHORT D_8009FB90[];
-void func_8006E84C(ST_WORK *pSt);
 
 void func_8006AE90(ST_WORK *pSt)
 {
@@ -2681,12 +2514,7 @@ void func_8006AE90(ST_WORK *pSt)
     func_8006E84C(pSt);
 }
 
-extern UCHAR D_800D225E;               /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
-extern UCHAR D_800A0004_t[][12] __asm__("D_800A0004");
-extern USHORT D_800A0080[][2];
-void func_8006CA10(ST_WORK *pSt);
-void Name_disp(LONG x, LONG y, ULONG Attr, ULONG No);
-SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm);
+extern UCHAR D_800A0004_t[][12] __asm__("D_800A0004"); /* view of D_800A0004 with another type (canonical: extern UCHAR D_800A0004[];) */
 
 void func_8006B66C(ST_WORK *pSt)
 {
@@ -2944,13 +2772,6 @@ void func_8006C370(ST_WORK *pSt)
     AddPrim(G.pOt0 + 1, p);
 }
 
-typedef struct tagST_RGB_STEP {
-    UCHAR R, G, B;                     /* 0x0 */
-    UCHAR Dr, Dg, Db;                  /* 0x3 */
-} ST_RGB_STEP;
-extern UCHAR *D_800A0174[];
-extern ST_RGB_STEP D_800A0150[];
-
 void func_8006C484(ST_WORK *pSt)
 {
     LINE_F2 *p;
@@ -3063,17 +2884,6 @@ SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm)
     }
     return p;
 }
-
-typedef struct tagST_ICON {
-    UCHAR U;                           /* 0x0 */
-    UCHAR pad1;
-    UCHAR V;                           /* 0x2 */
-    UCHAR pad3;
-    USHORT W;                          /* 0x4 */
-    USHORT H;                          /* 0x6 */
-    UCHAR pad8[4];
-} ST_ICON;
-extern ST_ICON D_8009F9F8[];
 
 void func_8006CA10(ST_WORK *pSt)
 {
@@ -3263,18 +3073,6 @@ LONG func_8006D030(UCHAR f)
     return p->Num;
 }
 
-/* fdiff: 2 false diffs on jtbl_80010F9C (switch jump table) -> verify with linkcheck. Needs: ITEM_SET as { ITEM_WORK Item[10]; ITEM_WORK Box[64]; ... SHORT Unk12C[4] at 0x12C }, GLOBAL_X fields System_flg(0x2120) Unk24D6 Unk77F8[3] Unk79A4[14] Unk79EC Unk79F0 Unk79F4 Unk79F8 */
-extern LONG D_800C79CC;
-extern ITEM_WORK D_800A018C[2][5];
-extern ITEM_WORK D_800A01B4[2][6];
-extern ITEM_WORK D_800A01E4[];
-extern ITEM_WORK D_800A0200[];
-extern ITEM_WORK D_800A021C[];
-extern ITEM_WORK D_800A0238[];
-extern ITEM_WORK D_800A0258[];
-extern ITEM_WORK D_800A0278[2][4];
-extern ITEM_WORK D_800A0298[2][11];
-
 void func_8006D0D8(void)
 {
     tagGLOBAL *pG = &G;
@@ -3433,8 +3231,6 @@ void func_8006D0D8(void)
     }
 }
 
-extern char D_80010FEC[];
-
 void func_8006D720(void)
 {
     ST_WORK *pSt = &St;
@@ -3490,11 +3286,6 @@ void func_8006D720(void)
 }
 
 INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010FEC);
-
-/* needs file-level: Cd_seek_s alias, D_800D442C/D/E, Weapon_cls, Pl_weapon_ch, func_8006AE90(ST_WORK*) decls (see func_8006E0A4 draft) */
-void func_80038634(ULONG Flg, SHORT Val);
-void func_8006511C(ST_WORK *pSt);
-LONG Cd_read_l(LONG Fno, ULONG *pAdr, LONG a2, char *pName) __asm__("Cd_read");
 
 void func_8006D948(ST_WORK *pSt)
 {
@@ -3628,7 +3419,7 @@ void func_8006D948(ST_WORK *pSt)
         StoreImage(&r, (ULONG *)0x80194000);
         DrawSync(0);
         func_8006511C(pSt);
-        i = Cd_read_l(0x32, pSt->pBuf, 0, D_80010FEC);
+        i = Cd_read(0x32, pSt->pBuf, 0, D_80010FEC);
         pSt->Unk1F = 0x20;
         pSt->pBuf = (ULONG *)((UCHAR *)pSt->pBuf + i);
         p = (UCHAR *)&G.pUnk7C7C->Item[40];
@@ -3684,12 +3475,7 @@ void func_8006D948(ST_WORK *pSt)
     Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 6);
 }
 
-extern void (*D_800A02F0[])(ST_WORK *pSt);
-void func_8006D948(ST_WORK *pSt);
-void func_8006E0A4(ST_WORK *pSt);
-void func_8006E268(ST_WORK *pSt);
-void func_8006E34C(ST_WORK *pSt);
-void func_80073E7C_p(ST_WORK *pSt) __asm__("func_80073E7C");
+void func_80073E7C_p(ST_WORK *pSt) __asm__("func_80073E7C"); /* arg 1 ST_WORK* (canonical void) */
 
 void func_8006DFDC(void)
 {
@@ -3708,8 +3494,6 @@ void func_8006DFDC(void)
     func_8006E0A4(pSt);
     Task_exit();
 }
-
-extern USHORT *D_8009DFD0[];
 
 void func_8006E0A4(ST_WORK *pSt)
 {
@@ -3765,7 +3549,7 @@ void func_8006E0A4(ST_WORK *pSt)
 
 void func_8006E268(ST_WORK *pSt)
 {
-    pSt->Unk34 = func_8006E598_u();
+    pSt->Unk34 = func_8006E598();
     if (*(USHORT *)&pSt->Rtn0 == 0x205) {
         return;
     }
@@ -3788,10 +3572,6 @@ void func_8006E268(ST_WORK *pSt)
         pSt->Unk32 = -0x20;
     }
 }
-
-void func_800654A8(ST_WORK *pSt);
-void func_8006B66C(ST_WORK *pSt);
-void func_80070244(ST_WORK *pSt);
 
 void func_8006E34C(ST_WORK *pSt)
 {
@@ -4105,9 +3885,6 @@ void func_8006ED28(ST_WORK *pSt)
     c = (UCHAR)G.Unk7840;
     func_80073CCC(&pSt->UnkAA, &c);
 }
-
-void func_800713DC(ST_WORK *pSt, UCHAR no);
-LONG func_80073BC8(ST_WORK *pSt, UCHAR st, UCHAR rm);
 
 void func_8006ED98(ST_WORK *pSt)
 {
@@ -4493,8 +4270,6 @@ void func_8006FF48(ST_WORK *pSt)
     }
 }
 
-void func_8006AE90(ST_WORK *pSt);
-
 void func_80070024(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
@@ -4553,23 +4328,6 @@ void func_80070024(ST_WORK *pSt)
         break;
     }
 }
-
-/* MAP.MAP room part: texture rect, position, clut/tpage (0xC bytes) */
-
-extern ULONG D_800D2124[];
-extern ULONG D_800D2128[];
-extern ST_MAP_ARROW D_800A03D0[][4];
-extern UCHAR D_800A0328[];
-extern USHORT D_800A038C[];
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
-ULONG func_80071668(UCHAR a, UCHAR b);
-LONG func_800716A4(UCHAR st, UCHAR rm);
-LONG func_80071878(UCHAR st, UCHAR rm, UCHAR no);
-LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR no);
-LONG func_80072AEC(UCHAR st, UCHAR rm, UCHAR no);
-LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR no);
-LONG func_800738CC(UCHAR st, UCHAR rm, UCHAR no);
-void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut);
 
 void func_80070244(ST_WORK *pSt)
 {
@@ -4844,10 +4602,6 @@ void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut)
     p->clut = ((pPt->Clut + ((pPt->Tpage & 1) * 8 + 0x1EA) + clut) << 6) | 0x13;
 }
 
-/* MATCH (fdiff shows 2 false %hi/%lo diffs for the "MAP.MAP" string; check with linkcheck) */
-extern UCHAR D_800A03A0[];
-extern ULONG D_800A03AC[];
-
 void func_800713DC(ST_WORK *pSt, UCHAR no)
 {
     ULONG i, sum;
@@ -4900,8 +4654,7 @@ ULONG func_80071668(UCHAR a, UCHAR b)
     return *p & (0x80000000U >> (b & 0x1F));
 }
 
-extern ULONG D_800D1FA0[];
-UCHAR func_80073BC8_u(ST_WORK *pSt, UCHAR st, UCHAR rm) __asm__("func_80073BC8");
+UCHAR func_80073BC8_u(ST_WORK *pSt, UCHAR st, UCHAR rm) __asm__("func_80073BC8"); /* returns UC here (canonical long) */
 
 LONG func_800716A4(UCHAR st, UCHAR rm)
 {

@@ -22,11 +22,11 @@ extern LINE_SCR Line;                  /* 0x800C79F8 */
 extern UCHAR quake_tbl1[32];           /* 0x800989B0 */
 extern UCHAR quake_tbl2[32];           /* 0x800989D0 */
 
-void Scr_effect(void);              /* Scr_effect */
-void Scr_quake(ULONG Amp);         /* Scr_quake */
+void Scr_effect(void); /* Scr_effect */
+void Scr_quake(ULONG Amp); /* Scr_quake */
 void line_trans(LONG Line_no, LONG Slide_ofs, LONG Copy_ofs, LONG Draw_ofs); /* line_trans */
-void line_scr_end(void);              /* line_scr_end */
+void line_scr_end(void); /* line_scr_end */
 void line_mode_set(ULONG Ot_no, ULONG Prio); /* line_mode_set */
-void Line_work_init(void);              /* Line_work_init */
+void Line_work_init(void); /* Line_work_init */
 
 #endif /* LINE_SCR_H */

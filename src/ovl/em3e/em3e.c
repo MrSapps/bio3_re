@@ -1,29 +1,10 @@
 #include "common.h"
 #include "ovl/em3e.h"
 #include "md_sub.h"
-
-/* routine tables (module .data), unprototyped: routines take (pEm, Kan, Seq) */
-extern void (*Em3e_routine_0[8])() __asm__("D_80101754");
-extern void (*Em3e_move_tbl[2])() __asm__("D_80101774");
-extern void (*Em3e_fly_tbl[2])() __asm__("D_8010177C");
-extern void (*Em3e_damage_tbl[31])() __asm__("D_80101784"); /* index weapon Unk12C - 1 */
-extern void (*Em3e_sce_tbl[2])() __asm__("D_80101800");
-
-void func_80100E0C(ENEMY_WORK *pEm); /* Em3e_rotor */
-void func_80101210(ENEMY_WORK *pEm); /* Em3e_hover */
-void func_80100D24(ENEMY_WORK *pEm); /* Em3e_parts_trans */
-void func_80100D70(ENEMY_WORK *pEm); /* Em3e_parts_trans_off */
-void func_80100DC0(ENEMY_WORK *pEm, ULONG No); /* Em3e_parts_abr */
-void func_80100EAC(ENEMY_WORK *pEm, LONG Mode); /* Em3e_shot_check */
-void func_80100F94(ENEMY_WORK *pEm); /* Em3e_shot_r */
-void func_80101008(ENEMY_WORK *pEm); /* Em3e_shot_l */
-void func_8010107C(ENEMY_WORK *pEm); /* Em3e_explode */
-void func_80100C0C(ENEMY_WORK *pEm); /* Em3e_parts_hide */
-void func_80100C80(ENEMY_WORK *pEm, ULONG No, LONG Size); /* Em3e_parts_size */
-void func_80100CAC(ENEMY_WORK *pEm); /* Em3e_parts_show */
-void func_80101580(ENEMY_WORK *pEm, LONG Rtn1); /* Em3e_rtn1_set */
-void func_8010158C(ENEMY_WORK *pEm); /* Em3e_add_speed */
-void func_801015C0(ENEMY_WORK *pEm); /* Em3e_retarget */
+#include "joint.h"
+#include "root_ck.h"
+#include "sld.h"
+#include "snd.h"
 
 /* EM_MAIN */
 void func_80100020(ENEMY_WORK *pEm)
@@ -127,10 +108,10 @@ void func_80100360(ENEMY_WORK *pEm)
 {
     if (pEm->Pos_x > 20000) {
         pEm->Dest_x = 10000;
-        pEm->Dest_z = Rnd() * -25;
+        pEm->Dest_z = func_800102E8() * -25;
     } else {
         pEm->Dest_x = 27000;
-        pEm->Dest_z = Rnd() * -25;
+        pEm->Dest_z = func_800102E8() * -25;
     }
     func_80101580(pEm, 1);
 }
@@ -183,8 +164,8 @@ void func_80100674(ENEMY_WORK *pEm)
     EM3E_W(pEm)->Time += 60;
     pEm->Life = EM3E_W(pEm)->Old_life;
     Ofs.vx = 0x141E;
-    Ofs.vy = (signed char)Rnd() << 2;
-    Ofs.vz = (signed char)Rnd() << 2;
+    Ofs.vy = (signed char)func_800102E8() << 2;
+    Ofs.vz = (signed char)func_800102E8() << 2;
     func_8001B484(1, 0x14000000, &pP->Workm, &Ofs, NULL);
     EM_RTN(pEm) = pEm->Unk1C4;
 }
@@ -197,8 +178,8 @@ void func_80100704(ENEMY_WORK *pEm)
 
     EM3E_W(pEm)->Time += 60;
     Ofs.vx = 0x141E;
-    Ofs.vy = (signed char)Rnd() << 2;
-    Ofs.vz = (signed char)Rnd() << 2;
+    Ofs.vy = (signed char)func_800102E8() << 2;
+    Ofs.vz = (signed char)func_800102E8() << 2;
     func_8001B484(1, 0x1C000000, &pP->Workm, &Ofs, NULL);
     EM_RTN(pEm) = pEm->Unk1C4;
 }
@@ -453,7 +434,7 @@ void func_80100EAC(ENEMY_WORK *pEm, LONG Mode)
             if (Mode == 2) {
                 func_80101008(pEm);
                 func_80100F94(pEm);
-            } else if (Rnd() & 0x80)
+            } else if (func_800102E8() & 0x80)
                 func_80101008(pEm);
             else
                 func_80100F94(pEm);
@@ -544,7 +525,7 @@ void func_80101210(ENEMY_WORK *pEm)
 
     switch (EM3E_W(pEm)->Sway_rtn) {
     case 0:
-        EM3E_W(pEm)->Sway_cnt = EM3E_W(pEm)->Sway_time = (Rnd() & 0x1F) + 15;
+        EM3E_W(pEm)->Sway_cnt = EM3E_W(pEm)->Sway_time = (func_800102E8() & 0x1F) + 15;
         EM3E_W(pEm)->Sway_rtn++;
     case 1:
         pP->Cdir_x += 2;
@@ -568,7 +549,7 @@ void func_80101210(ENEMY_WORK *pEm)
     }
     switch (EM3E_W(pEm)->Bob_rtn) {
     case 0:
-        EM3E_W(pEm)->Bob_cnt = EM3E_W(pEm)->Bob_time = (Rnd() & 0x1F) + 25;
+        EM3E_W(pEm)->Bob_cnt = EM3E_W(pEm)->Bob_time = (func_800102E8() & 0x1F) + 25;
         EM3E_W(pEm)->Bob_rtn++;
     case 1:
         pEm->Pos_y += 4;
@@ -656,10 +637,10 @@ void func_801015C0(ENEMY_WORK *pEm)
             pEm->Timer0 = 30;
             if (pEm->Pos_x > 20000) {
                 pEm->Dest_x = 10000;
-                pEm->Dest_z = Rnd() * -25;
+                pEm->Dest_z = func_800102E8() * -25;
             } else {
                 pEm->Dest_x = 27000;
-                pEm->Dest_z = Rnd() * -25;
+                pEm->Dest_z = func_800102E8() * -25;
             }
             EM3E_W(pEm)->Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, pEm->Dest_x, pEm->Dest_z);
             pEm->Spd_x = Rsin_tbl[(EM3E_W(pEm)->Dir / 16 + 0x40) & 0xFF] * 240 / 256;

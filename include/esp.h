@@ -88,6 +88,58 @@ typedef struct tagESP_WORK {
 } ESP_WORK;
 extern ESP_WORK D_800BA8A8[96];        /* RE2 Esp[96] */
 
-void func_8001B894(ULONG Id, MATRIX *pM);  /* kill the effects of Id attached to pM */
+void func_8001B894(ULONG Id, MATRIX *pM); /* kill the effects of Id attached to pM */
+
+void Esp_init_C(void);
+LONG Esp_init_R(void);
+ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
+void Esp_data_set1(ULONG *pTim);
+ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5);
+ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd); /* RE2 Esp_call */
+void func_8001BA48();
+void Esp_task_main(void);
+void func_8001BC80(ESP_WORK *pEw);
+void func_8001BCFC(ESP_WORK *pEw);
+void func_8001BFCC(ESP_WORK *pEw);
+void func_8001C168(ESP_WORK *pEw);
+UCHAR *func_8001C254(void);
+ESP_WORK *func_8001C2DC(USHORT Id);
+void func_8001C384(void);
+void func_8001C38C(ESP_WORK *pEw);
+void func_8001C46C(UCHAR *p);
+void func_8001C49C(ESP_WORK *pEw);
+void func_8001C5BC(ESP_WORK *pEw);
+void func_8001C98C(ESP_WORK *pEw);
+void func_8001CB04(ESP_WORK *pEw);
+void func_8001CC60(ESP_WORK *pEw);
+void func_8001CD64(void);
+void func_8001CD6C(void);
+void func_8001CD74(void);
+void func_8001CD7C(void);
+void func_8001CD84(void);
+void func_8001CD8C(void);
+void func_8001CD94(void);
+void func_8001CD9C(void);
+void func_8001CDA4(UCHAR *p, ULONG n);
+void func_8001CE24(ESP_WORK *pEw, ULONG a1, ULONG a2); /* random byte table, indexed by Rnd() */
+void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2);
+void func_8001CFF4(ESP_WORK *pEw, ULONG n);
+void func_8001D210(ESP_WORK *pEw);
+void func_8001D480(UCHAR *p);
+void func_8001D534(ESP_WORK *pEw);
+void func_8001D7C0(void);
+void func_8001D7C8(void);
+void func_8001D7D0(ESP_WORK *pEw);
+void func_8001E0F4(ESP_WORK *pEw);
+void func_8001E444(ESP_WORK *pEsp);
+void func_8001F208(ESP_WORK *pEw);
+void func_8001F378(ESP_WORK *pEw);
+void func_8001F4A8(UCHAR *p);
+void func_8001F4F4(ESP_WORK *pEw);
+void func_8001F674(ESP_WORK *pEw);
+void func_8001F824(ESP_WORK *pEw);
+void func_8001FA90(ESP_WORK *pEw);
+void func_8001FDD0(ESP_WORK *pEw);
+void func_8001FF6C(ESP_WORK *pEw);
 
 #endif /* ESP_H */

@@ -1,8 +1,14 @@
 #include "common.h"
 #include "ovl/em39.h"
+#include "joint.h"
+#include "sca.h"
+#include "snd.h"
+#include "sld.h"
 
-SHORT func_801012A4(ENEMY_WORK *pEm, PARTS_W *pP);
-void func_8010133C(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size);
+LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* em_sub.c, called with int args */
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
+LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
+LONG Joint_move_(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg) __asm__("Joint_move"); /* returns long here (canonical void) */
 
 /* RE2 EM_MAIN: follow the parent part, then grow/shrink with the ground under parts 3..5 */
 void func_80100004(ENEMY_WORK *pEm)
@@ -109,7 +115,7 @@ void func_801003B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
     pEm->Neck_no = 0;
     EM_MOVE(pEm) = 0;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
-    Joint_move(pEm, Kan, Seq, 0x400);
+    Joint_move_(pEm, Kan, Seq, 0x400);
     EM39_W(pEm)->pParent = NULL;
     ppEm = &pG->pEnemy[2];
     do {
@@ -192,7 +198,7 @@ void func_8010079C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Spd_x = 0x400;
         pEm->Spd_y = 0;
     case 1:
-        Joint_move(pEm, Kan, Seq, 0x40);
+        Joint_move_(pEm, Kan, Seq, 0x40);
         if (--pEm->Timer0 == -1) {
             EM_MOVE(pEm) = 0x3F0000 + ((Rnd() & 0xF) << 8) + Em39_move_rnd[(Rnd() >> (Rnd() & 3)) & 7];
             pEm->Timer0 = (Rnd() & 0x3F) + 60;
@@ -232,7 +238,7 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->Spd_y = 0x50;
         pEm->UnkE3 = 0;
     case 1:
-        if (Joint_move(pEm, Kan, Seq, 0x80)) {
+        if (Joint_move_(pEm, Kan, Seq, 0x80)) {
             EM_RTN(pEm) = 1;
             EM39_W(pEm)->Wait = (Rnd() & 0x3F) + 90;
             if (pPl->Life < 100)
@@ -357,7 +363,7 @@ void func_80100DD0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq)
         pEm->UnkDA = 0;
         EM39_W(pEm)->Flg |= 1;
     case 1:
-        Joint_move(pEm, Kan, Seq, 0x40);
+        Joint_move_(pEm, Kan, Seq, 0x40);
         pP = pEm->pSin_parts_ptr;
         Size = pP->Size_y;
         Size += 0x80;

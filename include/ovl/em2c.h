@@ -14,7 +14,10 @@
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
-/* exe functions without a shared prototype (joint.c's declarations differ between its users) */
-void Joint_move(ENEMY_WORK *pEm, ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG Late_flg); /* RE2 Joint_move */
+extern void (*Em2c_routine_0[])() __asm__("D_801004E4");
+
+void func_8010001C(ENEMY_WORK *pEm);
+void func_80100060(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801004B0(ENEMY_WORK *pEm);
 
 #endif /* OVL_EM2C_H */

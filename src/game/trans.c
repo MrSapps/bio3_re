@@ -14,6 +14,7 @@
 #include "sce0.h"
 #include "md_sub.h"
 #include "esp.h"
+#include "sld.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -43,81 +44,6 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, SHORT Flg, MATRIX *pM);
-
-/* Init_system callees owned by other modules */
-void func_80087F6C(void);
-void func_80073E84(void);
-void func_800101AC(void);
-void func_80094374(LONG Arg);
-void func_800943C8(void);
-void _bu_init(void);
-void func_800912C4(void);
-void Init_main(void);
-void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h);
-extern LONG D_800D454C;                /* right after Main.Fade[] */
-extern UCHAR D_800DBB58;
-extern UCHAR D_800996E4[];             /* message text banks (Mess_set) */
-extern USHORT D_8009BDB4[];
-extern UCHAR D_80098E88[];
-extern USHORT D_80099654[];
-extern ULONG D_80098700;
-void func_80078FE8(ULONG *p);
-void func_8007906C(void);
-void func_80010150(void *p, ULONG Size);    /* RE2 Memclr */
-
-ULONG func_80037D50(VECTOR *pPos);
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
-void func_8002D184(void *pWork0, void *pWork1, ULONG Arg2, MATRIX *pM);
-void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-ULONG func_8002C824(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CABC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CE08(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002CF90(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DFE0(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002E160(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-extern UCHAR D_800E1388[];
-
-void func_8002D5D8(void *pWork0, void *pWork1, ULONG Arg2);
-ULONG func_8002DC98(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002DE0C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D6D8(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002D898(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B6FC(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-ULONG func_8002B86C(SORT_PARAM *pPrm, ULONG Packet, void *pWork0, void *pWork1);
-void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
-void func_8002783C(PARTS_W *pP_ptr);
-void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
-void func_80026648(ENEMY_WORK *pEm);
-void func_80026498(ENEMY_WORK *pEm);
-void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, SHORT Rate);
-void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, SHORT Rate);
-void func_80027338(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-void func_8002B2BC(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late);
-void func_80027F8C(ULONG Kan_t_ptr, ULONG Seq_t_ptr, ULONG No, ULONG Late_flg);
-void J_seq2(ULONG Kan_t_ptr, ULONG Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-ULONG func_800102E8(void);   /* Rnd */
-ULONG func_8002BA3C(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-ULONG func_8002C068(ULONG *pTmd, ULONG Packet, PARTS_W *pP);
-void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
-void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void Set_light_pos(VECTOR *pPos);
-extern MATRIX *D_800C79F0;            /* current work matrices (func_80025A28) */
-extern VECTOR *D_800C79F4;
-LONG Water_ck(LONG Pos_x, LONG Pos_z);
-extern LONG D_800CA720;
-extern UCHAR D_80098728[];
-extern ULONG D_800986C4[];             /* scale curve (func_80021D58) */
-void func_8001CDA4(ESP_WORK *pEsp, ULONG n);
-void func_8001CE24(ESP_WORK *pEsp, ULONG a1, ULONG a2);             /* random byte table, indexed by Rnd() */
-ESP_WORK *func_8001B35C(ESP_WORK *pEsp, ULONG Attr, ULONG Ofs, MATRIX *pMat, VECTOR *pPos, SVECTOR *pDir);
-
-extern ULONG D_80097FCC[];
-LONG func_800472EC(HIT_REQ *pHit, ULONG Arg);
-
 #define gte_rtps_b() __asm__ volatile(".word 0x4A180001")
 #define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
 #define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
@@ -126,11 +52,6 @@ LONG func_800472EC(HIT_REQ *pHit, ULONG Arg);
 #define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
 #define gte_stsz(r0) __asm__ volatile("swc2 $19, 0(%0)" : : "r"(r0) : "memory")
 #define gte_stsz3(r0, r1, r2) __asm__ volatile("swc2 $17, 0(%0); swc2 $18, 0(%1); swc2 $19, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
-
-void Esp_trans_main(POLY_FT4 *pP, ESP_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity,
-                    ULONG pG_offset);
-void Esp_trans_3d(POLY_FT4 *pP, ESP_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity,
-                  ULONG pG_offset);
 
 /* RE2 Eff_sprt_trans: effect works to POLY_FT4 sprites (flat, or 3D with their own matrix) */
 void Eff_sprt_trans(void)

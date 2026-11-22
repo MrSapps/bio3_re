@@ -36,23 +36,23 @@ typedef struct tagGEAR_WORK {
 #define OM(n) (&G.Ob_model[n])
 
 /* overlay .data (still in asm) */
-extern signed char Gear_dir_tbl[6][4] __asm__("D_801C2AB0");   /* next cursor per pad direction (up, down, right, left) */
-extern UCHAR Gear_cursor_tbl[6][3] __asm__("D_801C2AC8");      /* cursor box x, y, half size */
-extern signed char Gear_link_tbl[5][5] __asm__("D_801C2ADC");  /* slots adjacent to each slot, -1 terminated */
-extern SHORT Gear_pos_tbl[5][3] __asm__("D_801C2AF8");         /* gear position of each slot */
-extern UCHAR Gear_answer_tbl[5][5] __asm__("D_801C2B18");      /* the five accepted gear layouts */
+extern signed char Gear_dir_tbl[6][4] __asm__("D_801C2AB0"); /* next cursor per pad direction (up, down, right, left) */
+extern UCHAR Gear_cursor_tbl[6][3] __asm__("D_801C2AC8"); /* cursor box x, y, half size */
+extern signed char Gear_link_tbl[5][5] __asm__("D_801C2ADC"); /* slots adjacent to each slot, -1 terminated */
+extern SHORT Gear_pos_tbl[5][3] __asm__("D_801C2AF8"); /* gear position of each slot */
+extern UCHAR Gear_answer_tbl[5][5] __asm__("D_801C2B18"); /* the five accepted gear layouts */
 extern GEAR_WORK Gear_wk __asm__("D_801C2B38");
 
-void func_801C2008(void);              /* main task */
-void func_801C20B8(void);              /* init */
-void func_801C21A4(void);              /* cursor line init (unused) */
-void func_801C2244(void);              /* exit */
-void func_801C22CC(void);              /* pad control */
-void func_801C2464(void);              /* cursor move */
-void func_801C2540(void);              /* place the gear models */
-void func_801C2660(void);              /* draw the cursor */
-void func_801C27A0(void);              /* print the moves left */
-void func_801C27E4(void);              /* check the layout */
-void func_801C2888(void);              /* turn the gears */
+void func_801C2008(void); /* main task */
+void func_801C20B8(void); /* init */
+void func_801C21A4(void); /* cursor line init (unused) */
+void func_801C2244(void); /* exit */
+void func_801C22CC(void); /* pad control */
+void func_801C2464(void); /* cursor move */
+void func_801C2540(void); /* place the gear models */
+void func_801C2660(void); /* draw the cursor */
+void func_801C27A0(void); /* print the moves left */
+void func_801C27E4(void); /* check the layout */
+void func_801C2888(void); /* turn the gears */
 
 #endif /* OVL_GEARBOX_H */

@@ -2,24 +2,7 @@
 #include "main.h"
 #include "mojidisp.h"
 #include "pad.h"
-
-/* key repeat / stop state (D_800DE628) */
-typedef struct tagPAD_WORK {
-    ULONG Stop_bak;                    /* 0x00 G.Unk2468 saved while the game is stopped (RE2 static Stp_bak) */
-    union {
-        SHORT Both;                    /* set with one sh by func_80038634 */
-        UCHAR Time[2];                 /* [0] first repeat delay, [1] repeat interval */
-    } Rep;                             /* 0x04 */
-    UCHAR Num;                         /* 0x06 */
-    UCHAR pad7;
-    UCHAR Tbl[8][2];                   /* 0x08 {Padd bit no, countdown} */
-} PAD_WORK;
-extern PAD_WORK Pad_work;              /* 0x800DE628 */
-extern UCHAR Pad_type_old;             /* 0x800DE640 */
-extern UCHAR Pad_act_set;              /* 0x800DE641 RE2 UnknownPadSetFlag: 1 PadSetAct done, 2 aligned */
-extern UCHAR Pad_act_align[];          /* 0x80098928 */
-extern USHORT Key_type[][16];          /* 0x8009CC9C RE2 Key_type, row Main.Unk195 */
-extern USHORT Key_type_demo[16];       /* 0x8009CC7C used while a demo plays back */
+#include "sce_at.h"
 
 /* RE2 Padd_trg / Padd_rep are ULONG; tagGLOBAL has USHORT views (lhu readers elsewhere) */
 #define PADD_TRG(pG) (*(ULONG *)&(pG)->Unk20FC)

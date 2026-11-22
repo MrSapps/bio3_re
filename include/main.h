@@ -147,30 +147,15 @@ extern long Ev13;                      /* 0x800D428C */
 #define SYS_DOOR_INIT  0x1000000       /* G.System_flg */
 
 /* owned by other modules, called from here */
-void Sce_work_clr_set(void);
-void Snd_reset(void);
-void Task_lexecute(ULONG Level, void *pFuncall);   /* RE2 Task_lexecute? */
-void func_8003884C(USHORT *pTbl, ULONG No);        /* pad: play vibration script No of pTbl */
-void Rot_vector(SHORT Dir, SVECTOR *p, SVECTOR *q);  /* RE2 Rot_vector */
 extern USHORT Vib_data_tbl[];          /* 0x800986D0 vibration scripts used by Flash_fade_in.. */
-
-void Draw_list_all(ULONG Arg0, ULONG Arg1, ULONG Arg2);
-void func_8002EB9C(ULONG Arg0, ULONG Arg1, ULONG Arg2, struct tagENEMY_WORK *pEm);
-
-/* GAME.C part of this chunk */
-void Gun_light_set(void);              /* Gun_light_set */
-void Gun_light_reset(void);              /* Gun_light_reset */
-void Flash_fade_in(void);
-void Flash_fade_out(void);
 
 void Init_global(void);
 void Soft_reset(void);
-void Card_event_set(void);              /* Card_event_set */
+void Card_event_set(void); /* Card_event_set */
 void System_trans_all(void);
 void Curtain_trans(void);
 void func_8002A49C(void);
 void Fade_out_reset(void);
-ULONG func_8001020C(LONG *p, VCUT *cp);  /* Hit_ck_point4 */
 void Bg_set_mode(ULONG Mode, ULONG Rgb);
 void Fade_set(ULONG No, UCHAR Pri, ULONG Flg, ULONG Abr, ULONG Rgb0, ULONG Rgb1, USHORT Cnt_max);
 void Fade_rect_set(ULONG No, RECT *Rect);
@@ -179,5 +164,17 @@ ULONG Fade_status(ULONG No);
 ULONG Cut_check(ULONG Flg);
 void Cut_change(ULONG Fc);
 VCUT *Ccut_search(ULONG Fc);
+
+extern LONG D_800CA720;
+extern volatile ULONG D_800D454C; /* right after Main.Fade[]: vsync counter */
+
+void main(void);
+void Swap_Cbuff(void);
+void func_80029700(void);
+void Init_system(void);
+void Init_main(void);
+void func_80029D00(void);
+void Bg_draw(void);
+void func_8002A2B8(void);
 
 #endif /* MAIN_H */

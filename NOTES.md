@@ -125,6 +125,16 @@ Views of G that remain on purpose (codegen needs a second declaration of the sym
 not share the &G base): result.h GLOBAL_RESULT `Gr`, em23.h G_PL_VIEW and em33.h EM33_GPL `G_pl`.
 The player is still split into G.Pl_* fields (RE2 has `PLAYER_WORK Player` at 0x248C); folding it
 into an ENEMY_WORK member would also let those two overlay views go.
+Prototypes: every function defined in src/game/<m>.c is declared once, in include/<m>.h (RE2 names:
+esp_r.h, psp.h, room.h, root_ck.h, sabun.h, sce1.h, sce2.h, sce_at.h, spl.h, spl_auto.h, spl_sce.h;
+800636D4.c -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
+0x8001B08C) -> esp.h, pl_wep2.h folded into pl_wep.h). SLD.S functions are in sld.h. Overlay functions and
+data are in include/ovl/<n>.h (naming aliases `T Name(..) __asm__("func_X")` live there too). Data externs
+are in the owning module's header. PsyQ functions come from the SDK (psyq.h also pulls libpad.h and
+libpress.h); InitGeom/PadStartCom/InitCARD/StartCARD/DecDCToutSync were identified and added to syms/game.txt.
+A .c keeps a local `T f_(..) __asm__("f")` alias only where its codegen needs a different prototype
+(comment says what differs). snd.c calls Task_sleep with no declaration on purpose: any declaration,
+even `int Task_sleep();`, changes the loop in func_80077ED4, so snd.c must not include monitor.h.
 
 ## Module map (src/game, one file per original object)
 Files are split where the original objects begin, so each file's .rodata starts where the original

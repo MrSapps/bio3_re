@@ -1,5 +1,9 @@
 #include "common.h"
 #include "ovl/diedemo.h"
+#include "sld.h"
+#include "status.h"
+
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* result used without the UCHAR mask */
 
 /* task entry */
 void func_80194010(void)

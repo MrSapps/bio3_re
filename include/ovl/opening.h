@@ -46,7 +46,7 @@ typedef struct tagOPN_WORK {
     USHORT Wait;                       /* 0x248 script wait counter */
 } OPN_WORK;
 
-typedef LONG (*OPN_OP)(OPN_WORK *pWk);  /* script op: 0 next frame, 1 next op, 2 end */
+typedef LONG (*OPN_OP)(OPN_WORK *pWk); /* script op: 0 next frame, 1 next op, 2 end */
 
 /* overlay data (asm/data/ovl/opening/data.data.s) */
 extern ULONG *D_801C2F0C[];            /* pictures in OPENING1_DAT (script op 6) */
@@ -68,12 +68,20 @@ void func_801C2618(OPN_WORK *pWk);
 void func_801C2788(OPN_WORK *pWk);
 
 /* exe prototypes not in a shared header yet (game .c files disagree on some of them) */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG Mode, char *pName);
-void Mapping_tim(ULONG *pTim);
-LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data);
-void Xa_play(ULONG Mode, ULONG No);
-/* func_800100A4 (RE2 Memcpy) with a return value: script op 6 needs it for the register allocation */
-void *Memcpy_r(void *pDst, void *pSrc, ULONG Size) __asm__("func_800100A4");
-extern UCHAR D_800DBB58;               /* status flags (0x80 tested by the status screen code) */
+
+void func_801C2024(void);
+LONG func_801C2B38(OPN_WORK *pWk);
+LONG func_801C2B50(OPN_WORK *pWk);
+LONG func_801C2B68(OPN_WORK *pWk);
+LONG func_801C2B80(OPN_WORK *pWk);
+LONG func_801C2BD4(OPN_WORK *pWk);
+LONG func_801C2C04(OPN_WORK *pWk);
+LONG func_801C2C4C(OPN_WORK *pWk);
+LONG func_801C2CBC(OPN_WORK *pWk);
+LONG func_801C2D0C(OPN_WORK *pWk);
+LONG func_801C2D8C(OPN_WORK *pWk);
+LONG func_801C2E0C(OPN_WORK *pWk);
+LONG func_801C2E70(OPN_WORK *pWk);
+LONG func_801C2EE0(OPN_WORK *pWk);
 
 #endif /* OVL_OPENING_H */

@@ -107,31 +107,24 @@ extern STAFF_SEQ Staff_seq __asm__("D_801C40D0");
 extern STAFF_WORK Staff_wk __asm__("D_801C40E8");
 extern STAFF_FADE Staff_fade __asm__("D_801C48F8");
 
-void func_801C206C(void);              /* main task */
-void func_801C2104(void);              /* init */
-void func_801C21E8(void);              /* roll */
-void func_801C2228(void);              /* exit */
-void func_801C22AC(void);              /* roll 0: first pages init */
-void func_801C256C(void);              /* roll 1: first pages */
+void func_801C206C(void); /* main task */
+void func_801C2104(void); /* init */
+void func_801C21E8(void); /* roll */
+void func_801C2228(void); /* exit */
+void func_801C22AC(void); /* roll 0: first pages init */
+void func_801C256C(void); /* roll 1: first pages */
 void func_801C25FC(void);
 void func_801C2604(void);
 void func_801C2974(void);
-void func_801C2984(void);              /* roll 2: backgrounds init */
-void func_801C2B30(void);              /* roll 3: backgrounds and credit pages */
+void func_801C2984(void); /* roll 2: backgrounds init */
+void func_801C2B30(void); /* roll 3: backgrounds and credit pages */
 void func_801C2BB8(void);
 void func_801C2CBC(void);
-void func_801C2CE4(void);              /* credit page sequencer */
-void func_801C2F8C(void);              /* background scroll */
-void func_801C32DC(void);              /* logo */
+void func_801C2CE4(void); /* credit page sequencer */
+void func_801C2F8C(void); /* background scroll */
+void func_801C32DC(void); /* logo */
 void func_801C36F4(void);
-void func_801C3704(void);              /* load and set up the credit pages */
-void func_801C3A98(void);              /* cross-fade of the first two pages */
-
-/* exe prototypes not in a shared header yet */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG Mode, char *pName);
-void Mapping_tim(ULONG *pTim);
-LONG Mess_set(ULONG Pos_xy, USHORT Attr, UCHAR *pMess, ULONG Stop_data);
-void Xa_play(ULONG Mode, ULONG No);
-void func_800100A4(void *pDst, void *pSrc, ULONG Size); /* RE2 Memcpy */
+void func_801C3704(void); /* load and set up the credit pages */
+void func_801C3A98(void); /* cross-fade of the first two pages */
 
 #endif /* OVL_STAFF_R_H */

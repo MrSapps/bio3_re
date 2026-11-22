@@ -9,114 +9,12 @@
 #include "esp.h"
 #include "cd.h"
 #include "status.h"
-
-extern UCHAR D_800D442C[];
-extern UCHAR D_800E017F[];
-extern ULONG Old_Fatari;               /* 0x800DECB4 RE2 Old_Fatari */
-extern ULONG Old_Uatari;               /* 0x800DECB8 RE2 Old_Uatari */
-extern ULONG *Flg_addr[];              /* 0x8009E3F8 RE2 Flg_addr */
-extern UCHAR D_800DBB58;
-LONG Mess_set(ULONG A0, ULONG Attr, ULONG No, ULONG Flg); /* 0x8002FD30 RE2 Mess_set */
-void Save_entrance();
-void func_80051D60();
-extern UCHAR D_800E01C4[];
-void Item_box_entrance();
-extern UCHAR *pCAot;                    /* 0x800DECB0 RE2 pCAot */
-void func_800511B0();
-extern LONG D_800DEC98;
-LONG func_8006CD68(UCHAR No);
-s8 func_8006CCF0(UCHAR No, ULONG A1, ULONG A2);
-extern UCHAR D_800E017E[];
-void Aida_move();
-s8 Search_item_id(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
-extern UCHAR D_800C703E[];
-extern UCHAR D_800D442E[];
-extern UCHAR D_800E0175[];
-LONG func_80048974();
-LONG Init_movie_work();
-LONG Quake_add();
-LONG Pad_vib_set0();
-LONG Pad_vib_set1();
-LONG Pad_vib_fade_set();
-void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
-extern UCHAR D_8009E340[];
-LONG Xa_play();
-typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
-typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern UCHAR D_800A0FDC[];
-extern SHORT D_800D1F8E[];
-extern SHORT D_800D1F82;
-extern s8 D_80098728[];
-UCHAR func_800102E8(void);             /* sld.s Rnd? */
-void func_80034124(void *p);
-LONG Get_matrix(s8 Work_kind, s8 Work_no);
-void Spl();
-extern ENEMY_WORK *D_800E01A8;
-extern USHORT D_800E01B4;
-void func_80052968(void);
-void Sce_scheduler_main(void);
-void Sce_kirakira_set(void);
-void func_8001BA48();
-void func_80052644(void);
-void func_8005283C(void);
-LONG Joint_move(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079868(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_800E01C6[];
-void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-LONG Set_view(LONG *pPos, LONG *pTgt);
-extern UCHAR D_8009E70C[];
-extern UCHAR D_8009E70D[];
-extern UCHAR D_8009EC3C[];
-extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
-void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
-extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
-extern ENEMY_WORK *D_800E01AC;
-extern USHORT D_800E01B6;
-ENEMY_WORK *Spl_em_cdir_ck();
-ENEMY_WORK *Spl_pllock_get();
-extern UCHAR D_800A0514[];
-extern UCHAR D_8009CDE0[];
-void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
-ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void Snd_se_walk(ULONG A0, ULONG No, ENEMY_WORK *pEm);
-void Flg_on(ULONG *pFlg, ULONG Bit);
-LONG Flg_off(ULONG *pFlg, ULONG Bit);
-LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch_init(ENEMY_WORK *pEm);
-extern UCHAR D_800E01E8;
-extern UCHAR D_8009E710[];
-extern void (*D_8009E720[])(ENEMY_WORK *pEm);
-ULONG func_800632B8(ENEMY_WORK *pEm, ULONG A1);
-LONG func_800261AC(ENEMY_WORK *pEm, ULONG A1, void *A2);
-extern USHORT D_800D1F94;
-extern ULONG D_800D258C[];
-ULONG func_800634F4(ENEMY_WORK *pEm, ULONG A1);
-LONG Weapon_parts_clr(ENEMY_WORK *pEm);
-extern UCHAR D_800E0171[];
-extern ULONG D_800E01D4[];
-extern ULONG D_8009DBB4;
-LONG func_80044804(void *p, ULONG A1, ULONG A2);
-extern ULONG D_800DECAC;
-ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
-extern UCHAR D_8009E6BC[];
-extern SHORT D_8009E6D4[];
-extern SHORT D_8009E6DC[];
-extern SHORT D_8009E6E4[];
-extern void (*D_8009E6EC[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Spl_Root_ck_sys(ENEMY_WORK *pEm);
-void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
-void Spl_enemy_ck();
-ULONG Spl_em_pos_ck(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_8009E7D8[];
-extern UCHAR D_8009E7C8[];
-extern void (*D_8009E788[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
-extern ULONG *D_8009E414;              /* Flg_addr[7] */
-extern ULONG *D_8009E418;              /* Flg_addr[8] */
-void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Cut_chg_main(ULONG Cut);
+#include "pad.h"
+#include "pl_wep.h"
+#include "sce1.h"
+#include "sce_at.h"
+#include "sld.h"
+#include "snd.h"
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H) */
 struct tagSCE_AOT {
@@ -142,17 +40,6 @@ typedef struct tagSCE_AOT4 {
     USHORT Data;                       /* 0x14 */
 } SCE_AOT4;
 
-/* item AOT data (RE2 struct tagSCE_ITEM_DATA, SCE_AT.H) */
-typedef struct tagSCE_ITEM_DATA {
-    SHORT Data0;                       /* 0x0 */
-    SHORT Data1;                       /* 0x2 */
-    USHORT Data2;                      /* 0x4 item flag bit */
-    UCHAR Om_no;                       /* 0x6 */
-    UCHAR Free;                        /* 0x7 */
-} SCE_ITEM_DATA;
-
-void Hikidashi_entrance(void);
-
 /* door AOT (RE2 IN_DOOR_WORK; RE3 layout) */
 typedef struct tagSCE_AOT_DOOR {
     UCHAR pad0[0xD];
@@ -162,10 +49,6 @@ typedef struct tagSCE_AOT_DOOR {
     UCHAR Key_type;                    /* 0x10 item id of the key, 0xFE/0xFF special */
     UCHAR Mess;                        /* 0x11 0x80: message in low 4 bits, 0x40: ask first */
 } SCE_AOT_DOOR;
-void Key_lost(void);
-void func_800510B0(void);
-extern void *Hiki_pAot;                /* 0x800DECA4 RE2 Hikidashi_entrance static pAot */
-extern SCE_ITEM_DATA *Hiki_pItem_dat;  /* 0x800DECA8 RE2 Hikidashi_entrance static pItem_dat */
 
 INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_at_check);
 
@@ -484,9 +367,6 @@ ULONG Sce_Itembox(void *pAot)
     return 0;
 }
 
-extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
-extern SHORT D_800DEC9E;               /* RE2 Item_box_entrance static Spd_add */
-extern OBJ_MODEL_WORK *D_800DECA0;     /* RE2 Item_box_entrance static pOwork */
 /* RE2 Item_box_entrance */
 void Item_box_entrance(void)
 {

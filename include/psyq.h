@@ -12,4 +12,6 @@
 #include <libds.h>
 #include <libsnd.h>
 #include <libspu.h>
+#include <libpad.h>
+#include <libpress.h>
 #endif

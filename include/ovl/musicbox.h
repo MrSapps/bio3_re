@@ -34,18 +34,12 @@ typedef struct tagMBOX_WORK {
 #define OM(n) (pG->Ob_model[n])
 
 /* overlay .data (still in asm) */
-extern UCHAR Mbox_mess[] __asm__("D_801C2A44");         /* message texts */
-extern USHORT Mbox_mess_ofs[] __asm__("D_801C2B50");    /* offset of each text in Mbox_mess */
+extern UCHAR Mbox_mess[] __asm__("D_801C2A44"); /* message texts */
+extern USHORT Mbox_mess_ofs[] __asm__("D_801C2B50"); /* offset of each text in Mbox_mess */
 extern LONG Mbox_pos[MBOX_NOTE_NUM * 4] __asm__("D_801C2B60"); /* per cylinder: x, z when its flag is set, x, z when clear */
 extern MBOX_WORK Mbox_wk __asm__("D_801C2BC0");
 
-/* exe functions/data without a shared prototype */
-LONG Mess_set_p(ULONG Pos_xy, USHORT Attr, UCHAR *pMess, ULONG Stop_data) __asm__("Mess_set"); /* mojidisp.c */
-void Flg_off(ULONG *pFlg, ULONG Id);   /* sub.c */
-void Psp_trans(void);                  /* psp.c */
-extern UCHAR D_800DBB58;               /* status flags (0x80 tested by the status screen code) */
-
-void func_801C2030(void);              /* main task */
-void func_801C2228(void);              /* puzzle state machine */
+void func_801C2030(void); /* main task */
+void func_801C2228(void); /* puzzle state machine */
 
 #endif /* OVL_MUSICBOX_H */

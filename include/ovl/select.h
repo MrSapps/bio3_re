@@ -13,7 +13,6 @@
 #include "monitor.h"
 #include "pad.h"
 #include "pl_wep.h"
-#include "pl_wep2.h"
 #include "snd.h"
 #include "sub.h"
 
@@ -148,75 +147,65 @@ typedef struct tagSELECT_VIEW {
 } SELECT_VIEW;
 
 /* overlay .data (still in asm) */
-extern USHORT Select_pl_cd[] __asm__("D_801C4C0C");                   /* 0x801C4C0C model file, index Id - 8 */
-extern USHORT Select_wep_cd[] __asm__("D_801C4C14");                  /* 0x801C4C14 weapon file base per player, + Type */
-extern SELECT_PL_INIT Select_pl_init[] __asm__("D_801C4C4C");          /* 0x801C4C4C */
-extern SELECT_MOJI_REC Select_moji_tbl[141] __asm__("D_801C4CD8");     /* 0x801C4CD8 glyph template per character */
-extern UCHAR Select_str[3][7][30] __asm__("D_801C56E8");               /* 0x801C56E8 7 message lines per player */
-extern LONG Select_dir_L[3][3] __asm__("D_801C5A30");                  /* 0x801C5A30 [cursor][pl] target angle */
-extern SHORT Select_dir_fpos[3][3] __asm__("D_801C5A54");              /* 0x801C5A54 [cursor][pl] target Cdir_y */
-extern MATRIX Select_light_mtx[4] __asm__("D_801C5A68");               /* 0x801C5A68 */
-extern MATRIX Select_light_col[4] __asm__("D_801C5AE8");               /* 0x801C5AE8 */
-extern SEL_SPRT_DEF Select_sprt_def[] __asm__("D_801C5B68");           /* 0x801C5B68 */
-extern SEL_SPRT_DEF Select_name_def[] __asm__("D_801C5BD8");           /* 0x801C5BD8 name glyphs */
-extern UCHAR Select_name_idx[3][6] __asm__("D_801C5CB8");              /* 0x801C5CB8 name glyph per player */
-extern void (*Select_main_proc_tbl[6])(void) __asm__("D_801C5CCC");    /* 0x801C5CCC */
+extern USHORT Select_pl_cd[] __asm__("D_801C4C0C"); /* 0x801C4C0C model file, index Id - 8 */
+extern USHORT Select_wep_cd[] __asm__("D_801C4C14"); /* 0x801C4C14 weapon file base per player, + Type */
+extern SELECT_PL_INIT Select_pl_init[] __asm__("D_801C4C4C"); /* 0x801C4C4C */
+extern SELECT_MOJI_REC Select_moji_tbl[141] __asm__("D_801C4CD8"); /* 0x801C4CD8 glyph template per character */
+extern UCHAR Select_str[3][7][30] __asm__("D_801C56E8"); /* 0x801C56E8 7 message lines per player */
+extern LONG Select_dir_L[3][3] __asm__("D_801C5A30"); /* 0x801C5A30 [cursor][pl] target angle */
+extern SHORT Select_dir_fpos[3][3] __asm__("D_801C5A54"); /* 0x801C5A54 [cursor][pl] target Cdir_y */
+extern MATRIX Select_light_mtx[4] __asm__("D_801C5A68"); /* 0x801C5A68 */
+extern MATRIX Select_light_col[4] __asm__("D_801C5AE8"); /* 0x801C5AE8 */
+extern SEL_SPRT_DEF Select_sprt_def[] __asm__("D_801C5B68"); /* 0x801C5B68 */
+extern SEL_SPRT_DEF Select_name_def[] __asm__("D_801C5BD8"); /* 0x801C5BD8 name glyphs */
+extern UCHAR Select_name_idx[3][6] __asm__("D_801C5CB8"); /* 0x801C5CB8 name glyph per player */
+extern void (*Select_main_proc_tbl[6])(void) __asm__("D_801C5CCC"); /* 0x801C5CCC */
 extern void (*Select_light_proc_tbl[4])(ENEMY_WORK *pEm, SELECT_LIGHT *pLt) __asm__("D_801C5CE4"); /* 0x801C5CE4 */
-extern ULONG Select_moji_end __asm__("D_801C5CF4");                    /* 0x801C5CF4 */
-extern SELECT_VIEW Select_view __asm__("D_801C5CF8");                  /* 0x801C5CF8 */
-extern SEL_OBJ Select_obj[30] __asm__("D_801C5D20");                   /* 0x801C5D20 */
-extern SELECT_WORK Select_wk __asm__("D_801C6680");                    /* 0x801C6680 */
+extern ULONG Select_moji_end __asm__("D_801C5CF4"); /* 0x801C5CF4 */
+extern SELECT_VIEW Select_view __asm__("D_801C5CF8"); /* 0x801C5CF8 */
+extern SEL_OBJ Select_obj[30] __asm__("D_801C5D20"); /* 0x801C5D20 */
+extern SELECT_WORK Select_wk __asm__("D_801C6680"); /* 0x801C6680 */
 extern const char Select_str_sel[8];                                       /* 0x801C208C (.rodata, defined in select.c) */
-extern SELECT_MOJI *Select_pMoji __asm__("D_801C6E10");                /* 0x801C6E10 message window work */
+extern SELECT_MOJI *Select_pMoji __asm__("D_801C6E10"); /* 0x801C6E10 message window work */
 
 /* overlay functions (RE2 names where the RE2 routine is recognisable) */
-void func_801C2094(void);                          /* Select_main */
-void func_801C20FC(void);                          /* Select_pl_main */
-void func_801C235C(void);                          /* Select_init */
-void func_801C28D0(ENEMY_WORK *pEm);               /* Select_light_ctrl */
+void func_801C2094(void); /* Select_main */
+void func_801C20FC(void); /* Select_pl_main */
+void func_801C235C(void); /* Select_init */
+void func_801C28D0(ENEMY_WORK *pEm); /* Select_light_ctrl */
 void func_801C2A34(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_wait */
 void func_801C2A58(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_up */
 void func_801C2AB8(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_on */
 void func_801C2ADC(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_down */
-void func_801C2B34(ENEMY_WORK *pEm);               /* Select_light_init */
-void func_801C2B94(LONG *pPos, ENEMY_WORK *pEm);   /* Select_light_calc */
+void func_801C2B34(ENEMY_WORK *pEm); /* Select_light_init */
+void func_801C2B94(LONG *pPos, ENEMY_WORK *pEm); /* Select_light_calc */
 void func_801C2CF4(ULONG No, VECTOR *pVec, UCHAR *pCol); /* Select_light_set */
-void func_801C2DE0(void);                          /* Select_view_init */
-void func_801C2E1C(void);                          /* Select_pl_move */
-void func_801C31C4(void);                          /* Select_fade_in */
-void func_801C31D4(void);                          /* Select_fade_out */
-void func_801C31E4(void);                          /* Select_cursor_move */
-void func_801C331C(void);                          /* Select_decide */
-void func_801C354C(void);                          /* Select_exit */
-void func_801C35C8(void);                          /* Select_pl_dir_set */
-void func_801C3660(void);                          /* Select_pl_rot */
+void func_801C2DE0(void); /* Select_view_init */
+void func_801C2E1C(void); /* Select_pl_move */
+void func_801C31C4(void); /* Select_fade_in */
+void func_801C31D4(void); /* Select_fade_out */
+void func_801C31E4(void); /* Select_cursor_move */
+void func_801C331C(void); /* Select_decide */
+void func_801C354C(void); /* Select_exit */
+void func_801C35C8(void); /* Select_pl_dir_set */
+void func_801C3660(void); /* Select_pl_rot */
 UCHAR *func_801C3830(ENEMY_WORK *pEm, ULONG TpClut, ULONG *pWork); /* Select_pl_load */
 void func_801C39A4(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
 void func_801C3A2C(ULONG No, VECTOR *pVec, ULONG Rgb);
 UCHAR *func_801C3AE4(ENEMY_WORK *pEm, ULONG *pWork, LONG No); /* weapon load */
 void func_801C3DB8(ULONG *pDst, SELECT_MOJI_REC *pSrc); /* Select_moji_set */
-void func_801C3E3C(void);                          /* Select_moji_dm_set */
-void func_801C3F00(void);                          /* Select_moji_init */
+void func_801C3E3C(void); /* Select_moji_dm_set */
+void func_801C3F00(void); /* Select_moji_init */
 ULONG func_801C3F74(LONG Wait, UCHAR *pStr, ULONG *pEnd); /* Select_moji_print */
-void func_801C41E0(void);                          /* Select_moji_ctrl */
-void func_801C44A4(void);                          /* Select_moji_clear */
-void func_801C44E8(LONG Disp);              /* Select_moji_update */
-void func_801C4644(LONG Num);                      /* Select_moji_trans */
-void func_801C4774(void);                          /* Select_bg_load */
+void func_801C41E0(void); /* Select_moji_ctrl */
+void func_801C44A4(void); /* Select_moji_clear */
+void func_801C44E8(LONG Disp); /* Select_moji_update */
+void func_801C4644(LONG Num); /* Select_moji_trans */
+void func_801C4774(void); /* Select_bg_load */
 void func_801C47D4(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
 void func_801C4944(SEL_OBJ *pObj, LONG Ot);
 void func_801C4B78(SEL_OBJ *pObj, ULONG Rgb);
 void func_801C4BA0(SEL_OBJ *pObj, SHORT X, SHORT Y);
 void func_801C4BAC(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut);
-
-/* exe prototypes not in a shared header yet (game .c files disagree on Cd_read's return type) */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG Mode, char *pName);
-void Mapping_tim(ULONG *pTim);
-void Set_view(LONG *pEye, LONG *pRef);
-LONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan);
-void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos); /* RE2 Joint_trans */
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, SHORT Flg, MATRIX *pM);
-void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pData);
-void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
 
 #endif /* OVL_SELECT_H */

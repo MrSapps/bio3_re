@@ -1,60 +1,11 @@
 #include "common.h"
 #include "ovl/result.h"
+#include "sub.h"
 
-/* overlay data (asm/data/ovl/result/data.data.s) */
-extern RESULT_BG D_801C6800[];          /* OMBG.TIM pieces */
-extern UCHAR D_801C6850[];              /* OMBG.TIM piece check sums */
-extern UCHAR D_801C685C[];              /* shop messages */
-extern USHORT D_801C69A0[];             /* shop message offsets into D_801C685C */
-extern UCHAR D_801C69B4[];              /* grade letters "FEDCBA" */
-extern void (*D_801C69BC[])(void);      /* task routines, index G.Unk2115 */
-extern void (*D_801C69D4[])(RESULT_WORK *pWk); /* Mercenaries result routines */
-extern RESULT_POS D_801C69E0[];         /* Mercenaries result text positions */
-extern RESULT_SPR_DATA D_801C6A1C[];    /* Mercenaries result sprites */
-extern void (*D_801C6BB4[])(RESULT_WORK *pWk); /* Mercenaries shop routines */
-extern RESULT_POS D_801C6BC0[];         /* shop text positions */
-extern RESULT_SPR_DATA D_801C6BD4[];    /* shop sprites */
-extern SHORT D_801C6D08[];              /* shop item prices */
-extern signed char D_801C6D10[];        /* shop item flag bits (G.Unk77F8) */
-extern void (*D_801C6D14[])(RESULT_WORK *pWk); /* routine 2 routines */
-extern void (*D_801C6D20[])(RESULT_WORK *pWk); /* routine 3 routines */
-extern RESULT_POS D_801C6D2C[];         /* main game result text positions */
-extern void (*D_801C6D48[])(RESULT_WORK *pWk); /* routine 4 routines */
-extern void (*D_801C6D54[])(RESULT_WORK *pWk); /* routine 5 routines */
-extern RESULT_SPR D_801C6D60[];         /* sprite objects (30) */
-extern RESULT_WORK D_801C76C0;          /* result screen work */
-
-/* strings emitted by INCLUDE_RODATA (also referenced by the functions still in asm) */
-extern char D_801C2010[];               /* "CARLOS" */
-extern char D_801C2018[];               /* "NICHOLAI" */
-extern char D_801C2024[];               /* "MIKHAIL" */
-extern char D_801C202C[];               /* "]]:]]:]]" no time */
-extern char D_801C2038[];               /* "%1d%1d:%1d%1d:%1d%1d" */
-extern char D_801C2054[];               /* "%c" */
-extern char D_801C2058[];               /* "@]]]]]]" no money */
-extern char D_801C2060[];               /* "@%6d" */
-extern char D_801C2068[];               /* "BUY" */
-extern char D_801C206C[];               /* "EXIT" */
+void Print14_s(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short); arg 3 char* (canonical UC*) */
+void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 LONG Print14_l(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* int-returning alias */
-LONG func_801C229C(RESULT_WORK *pWk);
-void func_801C3294(void);
-LONG func_801C3344(RESULT_WORK *pWk);
-void func_801C4128(void);
-void func_801C4188(RESULT_WORK *pWk);
-void func_801C473C(RESULT_WORK *pWk);
-void func_801C5324(void);
-LONG func_801C53D4(RESULT_WORK *pWk);
-void func_801C5854(void);
-void func_801C591C(RESULT_WORK *pWk);
-void func_801C5AF4(void);
-void func_801C5BA4(RESULT_WORK *pWk);
-void func_801C6114(void);
-void func_801C6140(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb);
-void func_801C62B0(RESULT_SPR *pSpr, ULONG Pri);
-void func_801C64E4(RESULT_SPR *pSpr, ULONG Rgb);
-void func_801C650C(RESULT_WORK *pWk);
-void func_801C678C(RESULT_WORK *pWk);
 
 void func_801C2154(ULONG *pAdr, UCHAR No)
 {
@@ -442,7 +393,7 @@ void func_801C3724(RESULT_WORK *pWk)
     Bg_set_mode(2, 0);
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     func_800782F4(0, 0x3D, (ULONG *)0x801F7E00);
-    func_800783BC(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
+    func_800783BC_(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
     func_8007809C(0, 0xD, 0x801FBC00, 0x80180000);
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
@@ -802,7 +753,7 @@ void func_801C49FC(RESULT_WORK *pWk)
     Bg_set_mode(2, 0);
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     func_800782F4(0, 0x3D, (ULONG *)0x801F7E00);
-    func_800783BC(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
+    func_800783BC_(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
     func_8007809C(0, 0xD, 0x801FBC00, 0x80180000);
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
@@ -1033,7 +984,7 @@ void func_801C567C(RESULT_WORK *pWk)
     pWk->Routine_0 = 1;
     Cd_read(0x129, (ULONG *)0x801F2600, 0, "RESULT BGM");
     func_800782F4(1, 0x2A, (ULONG *)0x801F2600);
-    func_800783BC(6, Cd_read_s(0x12A, 2, (ULONG *)0x80180000, 6, "RESULT VB"), 0);
+    func_800783BC_(6, Cd_read_s(0x12A, 2, (ULONG *)0x80180000, 6, "RESULT VB"), 0);
     func_801C5854();
     Bg_set_mode(2, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
@@ -1163,7 +1114,7 @@ void func_801C5BCC(RESULT_WORK *pWk)
     func_801C6114();
     Cd_read(0x11F, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     func_800782F4(0, 0x33, (ULONG *)0x801F7E00);
-    func_800783BC(5, Cd_read_s(0x120, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
+    func_800783BC_(5, Cd_read_s(0x120, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
     Snd_se_stad(0x500, 0, 0, 0);
     Bg_set_mode(2, 0);
     Fade_set(1, 5, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);

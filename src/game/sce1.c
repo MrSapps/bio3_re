@@ -10,129 +10,22 @@
 #include "esp.h"
 #include "cd.h"
 #include "status.h"
+#include "door.h"
+#include "movie.h"
+#include "pad.h"
+#include "psp.h"
+#include "room.h"
+#include "sce1.h"
 
-extern UCHAR D_800D442C[];
-extern UCHAR D_800E017F[];
-extern ULONG Old_Fatari;               /* 0x800DECB4 RE2 Old_Fatari */
-extern ULONG Old_Uatari;               /* 0x800DECB8 RE2 Old_Uatari */
-extern ULONG *Flg_addr[];              /* 0x8009E3F8 RE2 Flg_addr */
-extern UCHAR D_800DBB58;
-LONG Mess_set(ULONG A0, ULONG Attr, ULONG No, ULONG Flg); /* 0x8002FD30 RE2 Mess_set */
-void Save_entrance();
-void func_80051D60();
-extern UCHAR D_800E01C4[];
-void Item_box_entrance();
-extern UCHAR *pCAot;                    /* 0x800DECB0 RE2 pCAot */
-void func_800511B0();
-extern LONG D_800DEC98;
-LONG func_8006CD68(UCHAR No);
-s8 func_8006CCF0(UCHAR No, ULONG A1, ULONG A2);
-extern UCHAR D_800E017E[];
-void Aida_move();
-s8 Search_item_id(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
-extern UCHAR D_800C703E[];
-extern UCHAR D_800D442E[];
-extern UCHAR D_800E0175[];
-LONG func_80048974();
-LONG Init_movie_work();
-LONG Quake_add();
-LONG Pad_vib_set0();
-LONG Pad_vib_set1();
-LONG Pad_vib_fade_set();
-void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
-extern UCHAR D_8009E340[];
-LONG Xa_play();
-typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
-typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern UCHAR D_800A0FDC[];
-extern SHORT D_800D1F8E[];
-extern SHORT D_800D1F82;
-extern s8 D_80098728[];
-UCHAR func_800102E8(void);             /* sld.s Rnd? */
-void func_80034124(void *p);
-LONG Get_matrix(s8 Work_kind, s8 Work_no);
-void Spl();
-extern ENEMY_WORK *D_800E01A8;
-extern USHORT D_800E01B4;
-void func_80052968(void);
-void Sce_scheduler_main(void);
-void Sce_kirakira_set(void);
-void func_8001BA48();
-void func_80052644(void);
-void func_8005283C(void);
-LONG Joint_move(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079868(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_800E01C6[];
-void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-typedef struct {
-    LONG Unk0;                         /* 0x00 */
-    LONG Pos[3];                       /* 0x04 */
-    LONG Tgt[3];                       /* 0x10 */
-} SCE_CAMERA;
-extern SCE_CAMERA D_800E0150;
-LONG Set_view(LONG *pPos, LONG *pTgt);
-extern UCHAR D_8009E70C[];
-extern UCHAR D_8009E70D[];
-extern UCHAR D_8009EC3C[];
-extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
-void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
-extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
-extern ENEMY_WORK *D_800E01AC;
-extern USHORT D_800E01B6;
-ENEMY_WORK *Spl_em_cdir_ck();
-ENEMY_WORK *Spl_pllock_get();
-extern UCHAR D_800A0514[];
-extern UCHAR D_8009CDE0[];
-void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
-ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void Snd_se_walk(ULONG A0, ULONG No, ENEMY_WORK *pEm);
-void Flg_on(ULONG *pFlg, ULONG Bit);
-LONG Flg_off(ULONG *pFlg, ULONG Bit);
-LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch_init(ENEMY_WORK *pEm);
-extern UCHAR D_800E01E8;
-extern UCHAR D_8009E710[];
-extern void (*D_8009E720[])(ENEMY_WORK *pEm);
-ULONG func_800632B8(ENEMY_WORK *pEm, ULONG A1);
-LONG func_800261AC(ENEMY_WORK *pEm, ULONG A1, void *A2);
-extern USHORT D_800D1F94;
-extern ULONG D_800D258C[];
-ULONG func_800634F4(ENEMY_WORK *pEm, ULONG A1);
-LONG Weapon_parts_clr(ENEMY_WORK *pEm);
-extern UCHAR D_800E0171[];
-extern ULONG D_800E01D4[];
-extern ULONG D_8009DBB4;
-LONG func_80044804(void *p, ULONG A1, ULONG A2);
-extern ULONG D_800DECAC;
-ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
-extern UCHAR D_8009E6BC[];
-extern SHORT D_8009E6D4[];
-extern SHORT D_8009E6DC[];
-extern SHORT D_8009E6E4[];
-extern void (*D_8009E6EC[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Spl_Root_ck_sys(ENEMY_WORK *pEm);
-void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
-void Spl_enemy_ck();
-ULONG Spl_em_pos_ck(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_8009E7D8[];
-extern UCHAR D_8009E7C8[];
-extern void (*D_8009E788[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
-extern ULONG *D_8009E414;              /* Flg_addr[7] */
-extern ULONG *D_8009E418;              /* Flg_addr[8] */
-void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Cut_chg_main(ULONG Cut);
-
-/* declarations from earlier parts of the original address-split file */
-extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
-extern SHORT D_800DEC9E;               /* RE2 Item_box_entrance static Spd_add */
-extern OBJ_MODEL_WORK *D_800DECA0;     /* RE2 Item_box_entrance static pOwork */
-
-extern UCHAR D_800B9E21;
-void Xa_fade_set(ULONG frames);
-void Pad_vib_init(void);
+extern UCHAR D_800E017F_[] __asm__("D_800E017F"); /* type differs from the canonical extern */
+extern UCHAR D_800D442E_[] __asm__("D_800D442E"); /* type differs from the canonical extern */
+LONG func_80048974_() __asm__("func_80048974"); /* returns long here (canonical void); unprototyped call */
+LONG Pad_vib_set0_() __asm__("Pad_vib_set0"); /* returns long here (canonical void); unprototyped call */
+LONG Pad_vib_set1_() __asm__("Pad_vib_set1"); /* returns long here (canonical void); unprototyped call */
+LONG Pad_vib_fade_set_() __asm__("Pad_vib_fade_set"); /* returns long here (canonical void); unprototyped call */
+void func_80078498_(UCHAR A0, UCHAR A1, USHORT A2) __asm__("func_80078498"); /* arg 3 unsigned short (canonical short) */
+LONG Xa_play_() __asm__("Xa_play"); /* returns long here (canonical void); unprototyped call */
+LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* returns long here (canonical void) */
 
 /* RE2 Nop / Break_point */
 ULONG Nop(SCE_TASK *pSce)
@@ -1235,7 +1128,6 @@ ULONG func_80054384(SCE_TASK *pSce)
     return 1;
 }
 
-extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] */
 /* RE2 Work_set */
 ULONG Work_set(SCE_TASK *pSce)
 {
@@ -1351,7 +1243,7 @@ ULONG func_80054628(SCE_TASK *pSce)
     pCam->Tgt[0] += x;
     pCam->Tgt[1] += y;
     pCam->Tgt[2] += z;
-    Set_view(pCam->Pos, pCam->Tgt);
+    Set_view_(pCam->Pos, pCam->Tgt);
     pSce->Data++;
     return 1;
 }
@@ -1453,7 +1345,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
     Cut_chg_main(Cut & 0x7F);
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
-        D_800D442E[0] = 0;
+        D_800D442E_[0] = 0;
         D_800E01C6[0] = 1;
     }
     pSce->Data += 2;
@@ -1474,7 +1366,7 @@ void Cut_chg_main(ULONG Cut)
 
     Old = G.Cut_no;
     G.Cut_no = Cut;
-    D_800D442E[0] = 1;
+    D_800D442E_[0] = 1;
     D_800E0175[0] = Old;
     Cut_change(Cut);
 }
@@ -1564,7 +1456,7 @@ ULONG Dir_set(SCE_TASK *pSce)
 /* RE2 Vib_set0 */
 ULONG Vib_set0(SCE_TASK *pSce)
 {
-    Pad_vib_set0(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set0_(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
     return 1;
 }
@@ -1572,7 +1464,7 @@ ULONG Vib_set0(SCE_TASK *pSce)
 /* RE2 Vib_set1 */
 ULONG Vib_set1(SCE_TASK *pSce)
 {
-    Pad_vib_set1(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set1_(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
     return 1;
 }
@@ -1580,14 +1472,14 @@ ULONG Vib_set1(SCE_TASK *pSce)
 /* RE2 Vib_fade_set */
 ULONG Vib_fade_set(SCE_TASK *pSce)
 {
-    Pad_vib_fade_set(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
+    Pad_vib_fade_set_(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
     pSce->Data += 8;
     return 1;
 }
 
 ULONG func_80054D48(SCE_TASK *pSce)
 {
-    D_800E017F[0] = pSce->Data[1];
+    D_800E017F_[0] = pSce->Data[1];
     pSce->Data += 2;
     return 1;
 }
@@ -1614,7 +1506,7 @@ ULONG func_80054DEC(SCE_TASK *pSce)
 
 ULONG func_80054E28(SCE_TASK *pSce)
 {
-    func_80048974(pSce->Data[1]);
+    func_80048974_(pSce->Data[1]);
     pSce->Data += 2;
     return 1;
 }
@@ -1676,8 +1568,6 @@ ULONG Sce_line_end(SCE_TASK *pSce)
     return 1;
 }
 
-void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
-
 /* RE2 Se_on (SCE2.C); RE3 sound code is D0 low/D0 high/Type packed differently */
 ULONG Se_on(SCE_TASK *pSce)
 {
@@ -1726,9 +1616,6 @@ offset_done:
     pSce->Data = pData + 12;
     return 1;
 }
-
-void func_8007745C(LONG no);
-void Snd_seq_play_ck(LONG no);
 
 /* VAB head: header and program attributes */
 typedef struct {
@@ -1835,7 +1722,7 @@ ULONG Xa_on(SCE_TASK *pSce)
     No = pSce->Data[1];
     Ofs = ((USHORT *)pSce->Data)[1];
     G.Status_flg |= STAT_XA_VOICE;
-    Xa_play(No, Ofs);
+    Xa_play_(No, Ofs);
     pSce->Data += 4;
     return 1;
 }
@@ -1853,7 +1740,7 @@ ULONG func_80055568(SCE_TASK *pSce)
     UCHAR *pData;
 
     pData = pSce->Data;
-    func_80078498(pData[2] - 1, pData[3], ((USHORT *)pData)[2]);
+    func_80078498_(pData[2] - 1, pData[3], ((USHORT *)pData)[2]);
     pSce->Data = pData + 6;
     return 1;
 }

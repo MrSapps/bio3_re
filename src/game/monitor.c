@@ -4,56 +4,16 @@
 #include "pad.h"
 #include "em_sub.h"
 #include "om.h"
-#include "pl_wep2.h"
+#include "pl_wep.h"
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
 #include "oba.h"
-
-extern COL_WORK D_800DCED0;
-extern COL_OBJ *D_800DCDD0[];
+#include "sld.h"
 
 /* ENEMY_WORK fields not in em_sub.h yet */
 #define EM_SHORT(p, ofs) (*(SHORT *)((UCHAR *)(p) + (ofs)))
 #define EM_UCHAR(p, ofs) (*(UCHAR *)((UCHAR *)(p) + (ofs)))
-
-extern ULONG D_8009CBC8[];
-extern SHORT D_800DEB58[];
-extern COL_ENT D_800DEB48;
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
-void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
-
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-
-extern ULONG D_800CC87C;
-extern ULONG D_800D1F2C;
-extern UCHAR D_8009CD3C;
-ULONG func_8003C390(ENEMY_WORK *pEm, ULONG Arg1);
-LONG Hit_ck_point4_l(ULONG Arg0, ULONG Arg1) __asm__("func_8001020C");
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pParts, LONG Arg2, MATRIX *pM);
-
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
-LONG func_800336B4(ENEMY_WORK *pEm);
-void func_80034124(COL_OBJ *pObj);
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_80033FBC(COL_OBJ *pTop);
-void func_80033B88(COL_OBJ *pTop);
-COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
-
-/* declarations from earlier parts of the original address-split file */
-extern UCHAR D_800A0514[][4];
-extern ULONG D_800D2048[];
-extern UCHAR D_8009BEE4[];
-extern USHORT D_8009C7C0[];
-
-extern USHORT D_80099654[];
-extern UCHAR D_80098E88[];
-extern UCHAR D_800CC84D;
-extern UCHAR D_800D4433;
-void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr);
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
@@ -105,10 +65,6 @@ void Scheduler(void)
     } while (++pCt < &Monitor.Task[3]);
 }
 
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-extern LOADTASK D_8009C944[];
-ULONG Task_lexecute_(ULONG Level, ULONG Task_no) __asm__("Task_lexecute");
-
 ULONG Task_lexecute_(ULONG Level, ULONG Task_no)
 {
     ULONG Size;
@@ -117,8 +73,6 @@ ULONG Task_lexecute_(ULONG Level, ULONG Task_no)
     Task_execute(Level, D_8009C944[Task_no].Func);
     return Size;
 }
-
-void Task_lchain_(ULONG Task_no) __asm__("Task_lchain");
 
 void Task_lchain_(ULONG Task_no)
 {

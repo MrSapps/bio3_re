@@ -1,5 +1,13 @@
 #include "common.h"
 #include "ovl/title.h"
+#include "cd.h"
+#include "game.h"
+#include "mojidisp.h"
+#include "movie.h"
+#include "sld.h"
+#include "status.h"
+
+void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 /* main loop */
 void func_801940E8(void)
@@ -119,7 +127,7 @@ void func_80194444(TITLE_WORK *pTi)
     }
     Cd_read(0x121, (ULONG *)0x801F7E00, 1, "OPTION BGM");
     func_800782F4(0, 0x38, (ULONG *)0x801F7E00);
-    func_800783BC(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
+    func_800783BC_(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
     Main.Unk191 = 1;
     Bg_set_mode(1, 0);
     pTi->Timer = 900;
@@ -744,10 +752,10 @@ void func_80195988(TITLE_WORK *pTi)
     }
     G.Unk2115 = 0;
     G.System_flg |= 0x40000;
-    Task_lexecute_no(1, 2);
+    Task_lexecute(1, 2);
     Task_sleep(1);
     if (G.Unk2115 != 0) {
-        Task_lexecute_no(1, 10);
+        Task_lexecute(1, 10);
         Task_sleep(1);
         pTi->Main_rtn = 1;
         Fade_set(1, 7, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
@@ -863,11 +871,11 @@ void func_80195C68(TITLE_WORK *pTi)
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
         func_800782F4(0, 0x39, (ULONG *)0x801F7E00);
-        func_800783BC(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
         func_8007906C();
         G.Pl_poison_timer = 0;
         G.Pl_status_flg &= ~0x200;
-        Task_lexecute_no(1, 6);
+        Task_lexecute(1, 6);
         Task_sleep(1);
     } else {
     init_tbl:
@@ -883,7 +891,7 @@ void func_80195C68(TITLE_WORK *pTi)
             }
         }
         G.Next_cut_no = G.Cut_no;
-        Task_lexecute_no(1, 5);
+        Task_lexecute(1, 5);
         Task_sleep(1);
         Init_movie_work(0);
         while (G.System_flg & 0x10000) {
@@ -959,7 +967,7 @@ void func_80196378(TITLE_WORK *pTi)
         Task_sleep(1);
     }
     G.Unk2115 = 1;
-    Task_lexecute_no(1, 4);
+    Task_lexecute(1, 4);
     Task_sleep(1);
     Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
     Main.Unk191 = 1;
@@ -994,7 +1002,7 @@ void func_80196528(TITLE_WORK *pTi)
     }
     Flg = G.Unk77F8[0];
     G.Unk2115 = 0;
-    Task_lexecute_no(1, 8);
+    Task_lexecute(1, 8);
     Task_sleep(1);
     if (Flg != G.Unk77F8[0]) {
         func_800791F0();
@@ -1163,7 +1171,7 @@ start:
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
         func_800782F4(0, 0x39, (ULONG *)0x801F7E00);
-        func_800783BC(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
         G.System_flg |= 0x80;
     } else {
         Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);
@@ -1182,7 +1190,7 @@ start:
     pPl = (ENEMY_WORK *)&G.Pl_be_flg;
     switch (pTi->Cur) {
     case 0:
-        Task_lexecute_no(1, 5);
+        Task_lexecute(1, 5);
         Task_sleep(1);
         Init_movie_work(0);
         while (G.System_flg & 0x10000) {

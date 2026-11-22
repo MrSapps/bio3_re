@@ -1,5 +1,8 @@
 #include "common.h"
 #include "ovl/option.h"
+#include "line_scr.h"
+#include "sld.h"
+#include "sub.h"
 
 /* text drawn with func_801C4A70 is fullwidth Shift-JIS; identical literals are shared by cc1 */
 #define S_TYPE            "\x82\x73\x82\x78\x82\x6F\x82\x64" /* ＴＹＰＥ */
@@ -17,22 +20,6 @@
 #define S_EXIT            "\x82\x64\x82\x77\x82\x68\x82\x73" /* ＥＸＩＴ */
 #define S_SLASH           "\x81\x5E" /* ／ */
 
-extern signed char D_80098828[];         /* exe sine table, 256 entries */
-extern void (*D_801C5554[6])(void);      /* page main routines by Opt.Routine */
-extern void (*D_801C556C[6])(void);      /* page draw routines by Opt.Routine */
-extern OPT_FILE D_801C53FC[4];          /* Option.dat pieces */
-extern UCHAR D_801C541C[4];             /* their check sums */
-extern ULONG D_801C558C;               /* SE volume arrow right lit */
-extern ULONG D_801C5590;               /* SE volume arrow left lit */
-extern ULONG D_801C5594;               /* pad type arrow right lit */
-extern ULONG D_801C5598;               /* pad type arrow left lit */
-extern UCHAR D_801C54F8[4];             /* button icon per pad type */
-extern UCHAR D_801C5500[9][4];          /* piece shapes: size, ?, u, v */
-extern SHORT D_801C54FC[2];             /* pad type icon position */
-extern UCHAR *D_801C5548[3];            /* piece animation scripts by type */
-extern signed char D_801C5420[];       /* glyph left/right spacing, 2 per glyph */
-extern char D_801C5474[][3];           /* glyph table: fullwidth chars in font order */
-
 /* cursor glow and per-frame primitive buffers (the task does this twice) */
 #define OPT_FRAME_SET()                                                   \
     {                                                                     \
@@ -41,21 +28,6 @@ extern char D_801C5474[][3];           /* glyph table: fullwidth chars in font o
         Opt.pMoji = (SPRT *)Opt.Moji_prim[G.Cbuf_id];                     \
         Opt.pIcon = Opt.Icon[G.Cbuf_id];                                  \
     }
-
-void func_801C2AC4(void);
-void func_801C2C58(void);
-void func_801C30E8(void);
-void func_801C31C8(void);
-void func_801C3278(void);
-void func_801C3904(void);
-void func_801C4A70(LONG X, LONG Y, char *pStr, LONG Dark, LONG Mode);
-void func_801C4C94(LONG X, LONG Y, ULONG Num);
-LONG func_801C4DAC(char *pA, char *pB);
-void func_801C4DE0(LONG X, LONG Y, ULONG Pad, ULONG On);
-void func_801C4E9C(void);
-void func_801C4EB8(void);
-void func_801C50B4(void);
-void func_801C5348(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y);
 
 /* option screen task: fades between pages, runs the page routine of Opt.Routine every frame */
 void func_801C21B0(void)

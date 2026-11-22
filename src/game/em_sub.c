@@ -9,101 +9,16 @@
 #include "snd.h"
 #include "esp.h"
 #include "pl_wep.h"
+#include "sca.h"
+#include "sce_at.h"
+#include "sld.h"
+#include "spl_sce.h"
 
 /* local declarations (80011CF8.c) */
-void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80017540(ENEMY_WORK *pEm);
-void func_8001CDA4(UCHAR *p, ULONG n);
-extern ULONG *D_800BA6F8;
-ULONG PresetObjectGT3_neo(void *pMw, ULONG pPacket);
-ULONG func_800102E8(void);
-void func_80010150(void *p, ULONG size);
-extern UCHAR D_80098728[];
-extern UCHAR D_800BF754[];
-void Flg_on(ULONG *pFlg, ULONG Id);
-ULONG Flg_ck(ULONG *pFlg, ULONG Id);
-void func_8004834C(ULONG Id, ULONG a1);
-extern ULONG D_800D1FC8[];
-void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);
-ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
-void Esp_data_set1(ULONG *pTim);
-/* 0xC-byte table entry, 16 entries at D_800BA728 / D_800BA7E8 (filled by Esp_data_set0) */
-typedef struct {
-    ULONG *pData;                      /* 0x0 */
-    ULONG *pData2;                     /* 0x4 */
-    UCHAR Id;                          /* 0x8 */
-    UCHAR pad9[3];
-} TBL12;
-extern TBL12 D_800BA728[16];
-extern TBL12 D_800BA7E8[16];
-LONG func_80017148(ENEMY_WORK *pEm, LONG a1, LONG a2);
-LONG func_800172AC(ENEMY_WORK *pEm, LONG a1, LONG a2);
-extern UCHAR D_80097A00[];
-extern UCHAR D_80097A28[];
-extern ULONG D_800D1FC0[];
-LONG func_800171DC(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
-extern UCHAR D_80097A78[];
-extern UCHAR D_80097A50[];
-ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, ULONG a5);
-void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2);
-extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] (door work slots) */
-void Door_scheduler_main(void);
-void Door_Trans(void);              /* RE2 Door_Trans */
-void Door_model_init(UCHAR *pDw);
-void func_8001CE24(ESP_WORK *pEw, ULONG a1, ULONG a2);
-ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG a2);
-ESP_WORK *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4);
-void func_8001BCFC(ESP_WORK *pEw);
-void func_8001BFCC(ESP_WORK *pEw);
-extern UCHAR D_800E017F;
-void func_800139D8(void);
-LONG func_800472EC(HIT_REQ *pReq, ULONG a1);
-extern ULONG D_80097FCC[];
-LONG func_80047BD0(HIT_REQ *pReq, ULONG a1);
-LONG Water_ck(LONG x, LONG z);
-LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3);
-typedef void (*EM_PROC)(ENEMY_WORK *pEm, LONG a1, LONG a2);
-void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
-void func_80060464(ENEMY_WORK *pEm, LONG a1, LONG a2);
-void func_8006037C(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
-void Rot_neck(ENEMY_WORK *pEm, SHORT Dir);
-extern ESP_WORK *D_80098084;           /* pool start */
-extern ESP_WORK *D_80098088;           /* pool end */
-typedef void (*EFF_PROC)(ESP_WORK *pEw);
-extern EFF_PROC D_80097BD4[];
-void func_8001BC80(ESP_WORK *pEw);
-void func_8001C168(ESP_WORK *pEw);
-void func_8002B2BC(ULONG Kan, ULONG Seq, USHORT *pSeq, ULONG R_flg);
-extern UCHAR D_800E06AC;
 /* Add_speedXZ is called with a third (unused) argument in RE3 */
 #define ADD_SPEED_XZ3(pEm) ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)((pEm), 0, 0)
-extern ULONG D_800BA6F0;               /* RE2 pDoor[1] */
-extern ULONG D_800BA6F4;               /* door work slot size */
-void Door_texture_load(void);              /* RE2 Door_texture_load */
-void Mapping_tim(ULONG *pTim);       /* RE2 Mapping_tim */
-void Set_view(VECTOR *pView_p, VECTOR *pView_r);
-extern ESP_WORK *D_8009808C;           /* pool 2 start */
-extern ESP_WORK *D_80098090;           /* pool 2 end */
-LONG Joint_move(ENEMY_WORK *pEm, LONG a1, LONG a2, LONG a3);
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName); /* RE2 Cd_read */
-void func_8001CFF4(ESP_WORK *pEw, ULONG n);
-void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
 /* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
 #define PW_FREE(p) ((SHORT *)((UCHAR *)(p) + 0x74))
-
-/* declarations from earlier parts of the original address-split file */
-extern USHORT D_800970DC[];
-extern USHORT D_800970E8[];
-extern SHORT D_800E0DD8;
-
-extern LONG D_800A0FEC[];
-void func_800783BC(ULONG no, ULONG size, ULONG a2);
-void func_800782F4(ULONG no, ULONG id, ULONG *pAdr);
-
-extern ULONG D_800BA6F0;
-void func_8007836C(LONG no, ULONG *pAdr);
 
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw)
 {
@@ -1825,9 +1740,8 @@ void func_8001D7C0(void) {
 void func_8001D7C8(void) {
 }
 
-LONG func_80044804(MATRIX *pM, ULONG a1, ULONG a2);
-LONG func_80047860(MATRIX *pM, ULONG a1, ULONG a2);
-extern ULONG D_8009DBB4;
+LONG func_80044804_(MATRIX *pM, ULONG a1, ULONG a2) __asm__("func_80044804"); /* returns long here (canonical ENEMY_WORK*); arg 2 unsigned long (canonical PL_WEP_DATA*) */
+extern ULONG D_8009DBB4_ __asm__("D_8009DBB4"); /* type differs from the canonical extern */
 
 void func_8001D7D0(ESP_WORK *pEw)
 {
@@ -1843,8 +1757,8 @@ void func_8001D7D0(ESP_WORK *pEw)
         pEw->Unk2C = 0;
     }
     Ret = pEw->Flg2 & 0x30;
-    Ret |= func_80044804(&pEw->Workm2, D_8009DBB4, pEw->Routine_1 + 6);
-    Ret |= func_80047860(&pEw->Workm2, D_8009DBB4, pEw->Routine_1 + 6);
+    Ret |= func_80044804_(&pEw->Workm2, D_8009DBB4_, pEw->Routine_1 + 6);
+    Ret |= func_80047860(&pEw->Workm2, D_8009DBB4_, pEw->Routine_1 + 6);
     if (++pEw->UnkB4 >= 15) {
         Ret |= 1;
     }
@@ -2047,8 +1961,8 @@ void func_8001E0F4(ESP_WORK *pEw)
         Pos.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
         Pos.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
         Pos.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
-        Hit |= func_80044804(&pEw->Workm2, D_8009DBB4, 10);
-        Hit |= func_80047860(&pEw->Workm2, D_8009DBB4, 10);
+        Hit |= func_80044804_(&pEw->Workm2, D_8009DBB4_, 10);
+        Hit |= func_80047860(&pEw->Workm2, D_8009DBB4_, 10);
         Spd.vx = (signed char)D_80098728[func_800102E8()] >> 1;
         Spd.vy = 500;
         Spd.vz = (signed char)D_80098728[func_800102E8()] >> 1;

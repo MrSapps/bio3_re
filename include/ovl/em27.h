@@ -32,25 +32,32 @@ extern void (*Em27_routine_0[])() __asm__("D_80101A34");
 extern void (*Em27_mv_br[])() __asm__("D_80101A54");
 extern void (*Em27_mv[])() __asm__("D_80101A6C");
 
-/* exe functions without a shared prototype */
-LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);      /* joint.c, result used as int */
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);        /* ground height under pV */
-void Spd_get(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);         /* em_sub.c */
-LONG Joint_move2(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);     /* joint.c */
-void Snd_se_stad(ULONG No, VECTOR *pPos, LONG Arg2, LONG Arg3);          /* snd.c */
-void Em_dead_flg_on_cand(ENEMY_WORK *pEm);                              /* em_sub.c */
-ULONG Gacha_ch(void);                                                   /* em_sub.c */
-ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc);                              /* em_sub.c */
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);                           /* oba.c */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
-void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector");  /* main.c, called with an int angle */
-
-void func_80100378(ENEMY_WORK *pEm);                                    /* parts reset (live) */
-void func_80100518(ENEMY_WORK *pEm);                                    /* hide (parts reset) */
-void func_8010158C(ENEMY_WORK *pEm);                                    /* part 2 pop-up */
+void func_80100378(ENEMY_WORK *pEm); /* parts reset (live) */
+void func_80100518(ENEMY_WORK *pEm); /* hide (parts reset) */
+void func_8010158C(ENEMY_WORK *pEm); /* part 2 pop-up */
 void func_801014B0(ENEMY_WORK *pEm, SHORT Dist, SHORT Dir, VECTOR *pPos); /* place relative to pPos */
-void func_801018D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);              /* player damage routine */
-LONG func_801019BC(ENEMY_WORK *pEm);                                    /* other id 0x23/0x28 enemies */
+void func_801018D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq); /* player damage routine */
+LONG func_801019BC(ENEMY_WORK *pEm); /* other id 0x23/0x28 enemies */
+
+void func_8010001C(ENEMY_WORK *pEm);
+void func_80100060(ENEMY_WORK *pEm);
+void func_801000E0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801005F8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100688(ENEMY_WORK *pEm);
+void func_801006E8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801008EC(ENEMY_WORK *pEm);
+void func_80100A50(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100BAC(ENEMY_WORK *pEm);
+void func_80100CD8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100DDC(void);
+void func_80100DE4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100FFC(ENEMY_WORK *pEm);
+void func_801010D8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_8010131C(void);
+void func_80101324(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80101344(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80101660(void);
+void func_80101668(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801017FC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
 
 #endif /* OVL_EM27_H */

@@ -73,12 +73,48 @@ typedef struct tagOPT_WORK {
 /* the overlay .data is still asm, so data names are bound to its labels */
 extern OPT_WORK Opt __asm__("D_801C55A0");
 
-/* exe functions without a shared prototype (game .c files declare these locally, some with other types) */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG Mode, char *pName);
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
-ULONG func_800102E8(void);             /* Rnd */
-void func_80038634(ULONG Flg, SHORT Val); /* pad key repeat set */
-void Mapping_tim(ULONG *pTim);
-extern MATRIX GsIDMATRIX;              /* 0x80098970 libgs unit matrix */
+extern OPT_FILE D_801C53FC[4]; /* Option.dat pieces */
+extern UCHAR D_801C541C[4]; /* their check sums */
+extern signed char D_801C5420[]; /* glyph left/right spacing, 2 per glyph */
+extern char D_801C5474[][3]; /* glyph table: fullwidth chars in font order */
+extern UCHAR D_801C54F8[4]; /* button icon per pad type */
+extern SHORT D_801C54FC[2]; /* pad type icon position */
+extern UCHAR D_801C5500[9][4]; /* piece shapes: size, ?, u, v */
+extern UCHAR *D_801C5548[3]; /* piece animation scripts by type */
+extern void (*D_801C5554[6])(void); /* page main routines by Opt.Routine */
+extern void (*D_801C556C[6])(void); /* page draw routines by Opt.Routine */
+extern ULONG D_801C558C; /* SE volume arrow right lit */
+extern ULONG D_801C5590; /* SE volume arrow left lit */
+extern ULONG D_801C5594; /* pad type arrow right lit */
+extern ULONG D_801C5598; /* pad type arrow left lit */
+
+void func_801C21B0(void);
+void func_801C2688(void);
+void func_801C2850(void);
+void func_801C2AC4(void);
+void func_801C2C58(void);
+void func_801C30E8(void);
+void func_801C31C8(void);
+void func_801C3278(void);
+void func_801C336C(void);
+void func_801C3460(void);
+void func_801C3780(void);
+void func_801C3904(void);
+void func_801C3A58(void);
+void func_801C3BDC(void);
+void func_801C3C90(void);
+void func_801C435C(void);
+void func_801C45DC(void);
+void func_801C46F4(void);
+void func_801C4748(void);
+void func_801C4940(void);
+void func_801C4A70(LONG X, LONG Y, char *pStr, LONG Dark, LONG Mode);
+void func_801C4C94(LONG X, LONG Y, ULONG Num);
+LONG func_801C4DAC(char *pA, char *pB);
+void func_801C4DE0(LONG X, LONG Y, ULONG Pad, ULONG On);
+void func_801C4E9C(void);
+void func_801C4EB8(void);
+void func_801C50B4(void);
+void func_801C5348(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y);
 
 #endif /* OVL_OPTION_H */

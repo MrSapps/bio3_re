@@ -8,25 +8,10 @@
 #include "sca.h"
 #include "oba.h"
 
-void func_80034E78(COL_OBJ *pObj, SCA_DATA *pT);  /* oba.c: shape of an object as SCA_DATA */
-extern LONG (*D_8009E088[])(ULONG P0, ULONG P1, SCA_DATA *pT); /* line test per shape (Id & 0xF) */
-LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
-LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
-
-extern SCA_DATA D_800DEB48;            /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
-
-ULONG func_8004B874(COL_OBJ *pObj, LONG R, ULONG Arg2);
-ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
-ULONG func_8004C960(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
-ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT);
-ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT);
-
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
-
-LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);  /* do segments P0-P1 and P2-P3 cross (GTE nclip) */
 
 void func_8004B7E8(ENEMY_WORK *pEm, LONG Arg1, LONG Y)
 {
@@ -404,8 +389,6 @@ ULONG Sca_ck_circle2(VECTOR *pPos, LONG R, SCA_DATA *pT)
     return SquareRoot0(Dx * Dx + Dz * Dz) < Lim;
 }
 
-LONG func_8004DEA8(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High);
-
 LONG func_8004DEA8(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 {
     return High;
@@ -428,11 +411,6 @@ LONG Sca_high_circle(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     }
     return High;
 }
-
-LONG Sca_high_naname_a(SCA_DATA *pT, VECTOR *pPos, LONG High);
-LONG Sca_high_naname_b(SCA_DATA *pT, VECTOR *pPos, LONG High);
-LONG Sca_high_naname_c(SCA_DATA *pT, VECTOR *pPos, LONG High);
-LONG Sca_high_naname_d(SCA_DATA *pT, VECTOR *pPos, LONG High);
 
 LONG func_8004DF24(SCA_DATA *pT, VECTOR *pPos, LONG Unused, LONG High)
 {
@@ -1055,8 +1033,6 @@ LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     }
     return 1;
 }
-
-USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT);
 
 LONG func_8005003C(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
 {

@@ -1,5 +1,9 @@
 #include "common.h"
 #include "ovl/musicbox.h"
+#include "psp.h"
+#include "sce1.h"
+#include "snd.h"
+#include "status.h"
 
 /* main task */
 void func_801C2030(void)
@@ -85,7 +89,7 @@ void func_801C2228(void)
         G.Status_flg |= 0x400000;
         break;
     case 1:
-        Mess_set_p(0xB90022, 0x3400, &Mbox_mess[Mbox_mess_ofs[pMw->Mess]], 0);
+        Mess_set(0xB90022, 0x3400, &Mbox_mess[Mbox_mess_ofs[pMw->Mess]], 0);
         pMw->Routine = 2;
         break;
     case 2:

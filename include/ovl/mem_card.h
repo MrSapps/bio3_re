@@ -90,39 +90,86 @@ typedef struct tagMWORK {
 } MWORK;
 
 /* overlay functions (RE2 names where the code matches) */
-void func_801C20AC(void);                       /* Mem_card */
-void func_801C20F8(void);                       /* Card_access */
-LONG func_801C227C(MWORK *pMw);                 /* Card_cursor */
-void func_801C2504(MWORK *pMw);                 /* Cardaccess_init */
-void func_801C25FC(MWORK *pMw);                 /* Cardaccess_exit */
-void func_801C4E3C(ULONG X, ULONG Y);           /* Cursor_disp */
-void func_801C4EA4(LONG Port);                  /* Slot_disp */
-LONG func_801C4F1C(LONG Port);                  /* Card_check */
-void func_801C4FC0(void);                       /* Clear_event_wait */
-void func_801C5018(void);                       /* Clear_event_wait2 */
-LONG func_801C5060(void);                       /* Get_card_event */
-LONG func_801C50F4(void);                       /* Get_card_event2 */
-LONG func_801C5184(LONG Port);                  /* Card_clear */
-LONG func_801C51F0(LONG Port);                  /* Card_format_check */
-LONG func_801C5260(UCHAR *F_num);               /* Check_card */
+void func_801C20AC(void); /* Mem_card */
+void func_801C20F8(void); /* Card_access */
+LONG func_801C227C(MWORK *pMw); /* Card_cursor */
+void func_801C2504(MWORK *pMw); /* Cardaccess_init */
+void func_801C25FC(MWORK *pMw); /* Cardaccess_exit */
+void func_801C4E3C(ULONG X, ULONG Y); /* Cursor_disp */
+void func_801C4EA4(LONG Port); /* Slot_disp */
+LONG func_801C4F1C(LONG Port); /* Card_check */
+void func_801C4FC0(void); /* Clear_event_wait */
+void func_801C5018(void); /* Clear_event_wait2 */
+LONG func_801C5060(void); /* Get_card_event */
+LONG func_801C50F4(void); /* Get_card_event2 */
+LONG func_801C5184(LONG Port); /* Card_clear */
+LONG func_801C51F0(LONG Port); /* Card_format_check */
+LONG func_801C5260(UCHAR *F_num); /* Check_card */
 void func_801C5384(LONG Port, CFILE_INFO *pInfo, char *pPattern); /* Card_search */
-void func_801C5478(UCHAR *F_num);               /* Search_f_num */
+void func_801C5478(UCHAR *F_num); /* Search_f_num */
 LONG func_801C55B0(void *pBuf, char *pName, LONG Size, LONG Offset); /* Card_read */
-LONG func_801C5698(LONG Port);                  /* Card_poll */
-void func_801C56E0(void);                       /* Save_push */
-void func_801C57E0(void);                       /* Load_pop */
+LONG func_801C5698(LONG Port); /* Card_poll */
+void func_801C56E0(void); /* Save_push */
+void func_801C57E0(void); /* Load_pop */
 void func_801C58FC(char *pTitle, void *pHead, UCHAR Slot); /* Card_mess_make */
 LONG func_801C5B20(void *pHead, LONG Port, char *pName, char *pTitle, ULONG Size); /* Card_write */
-LONG func_801C5C90(LONG Port);                  /* Card_format */
-SHORT func_801C5CC0(LONG Msg, LONG Mode);       /* Mess_center_x */
-SHORT func_801C5D98(LONG Msg);                  /* Mess_width */
-
-/* cd.c (main.c declares it void, so it is not in cd.h) */
-ULONG Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
+LONG func_801C5C90(LONG Port); /* Card_format */
+SHORT func_801C5CC0(LONG Msg, LONG Mode); /* Mess_center_x */
+SHORT func_801C5D98(LONG Msg); /* Mess_width */
 
 /* 800636D4.c (no module header yet). It defines them with char types; the overlay calls
  * them as taking and returning int (no andi / sign extension at the call). */
-LONG Search_item_id(LONG Id, LONG i);
-LONG func_8006CCF0(LONG No, LONG N, LONG F);
+
+extern char D_801C5EDC[][29]; /* Mc_area_name: save area names (Shift-JIS) */
+extern UCHAR D_801C6244[]; /* Mess_text: message pool */
+extern USHORT D_801C6760[]; /* Mess_offs: message offsets into Mess_text */
+extern MWORK *D_801C6834; /* pMwork (-> D_801C69F8) */
+extern char D_801C6838[]; /* Mc_fname_tmpl: "bu?0:" + file name */
+extern UCHAR D_801C6858[]; /* Mc_wait_tbl: frames per step of the "saved" animation */
+extern UCHAR D_801C6870[6]; /* Mess_ctrl: control codes; [0] ends a message, the others take one operand */
+extern void (*D_801C6878[])(MWORK *); /* Card_rno_tbl: state routines */
+extern void (*D_801C68C8[])(MWORK *); /* Card_disp_tbl: state displays */
+extern LONG D_801C6918; /* sound already played for the revealed character */
+extern UCHAR D_801C6920[0x28]; /* item work backup while saving */
+extern char D_801C6948[]; /* name of the file being overwritten */
+extern char D_801C6960[0x48]; /* card file title (Shift-JIS) */
+extern UCHAR D_801C69A8[0x50]; /* slot line: area name */
+extern MWORK D_801C69F8; /* the card work itself */
+extern UCHAR D_801C7CB8[16]; /* slot line: save count / clear count */
+extern CFILE_INFO D_801C7CC8; /* directory of the RE3 files on the card */
+
+void func_801C26A0(MWORK *pMw);
+void func_801C2788(MWORK *pMw);
+void func_801C2820(MWORK *pMw);
+void func_801C28D4(MWORK *pMw);
+void func_801C294C(MWORK *pMw);
+void func_801C29EC(MWORK *pMw);
+void func_801C2BE0(MWORK *pMw);
+void func_801C2D54(MWORK *pMw);
+void func_801C2FA8(MWORK *pMw);
+void func_801C3340(MWORK *pMw);
+void func_801C3414(MWORK *pMw);
+void func_801C34E8(MWORK *pMw);
+void func_801C3754(MWORK *pMw);
+void func_801C389C(MWORK *pMw);
+void func_801C39AC(MWORK *pMw);
+void func_801C3A9C(MWORK *pMw);
+void func_801C3B50(MWORK *pMw);
+void func_801C3C64(MWORK *pMw);
+void func_801C3D88(MWORK *pMw);
+void func_801C3E48(MWORK *pMw);
+void func_801C3E90(MWORK *pMw);
+void func_801C3E98(MWORK *pMw);
+void func_801C3EE4(MWORK *pMw);
+void func_801C4580(MWORK *pMw);
+void func_801C47AC(MWORK *pMw);
+void func_801C4884(MWORK *pMw);
+void func_801C4944(MWORK *pMw);
+void func_801C49CC(MWORK *pMw);
+void func_801C4ADC(MWORK *pMw);
+void func_801C4D84(MWORK *pMw);
+long func_801C5E64(long chan); /* _card_info */
+long func_801C5E74(long chan); /* _card_load */
+long func_801C5E84(long chan); /* _card_clear */
 
 #endif /* OVL_MEM_CARD_H */

@@ -1,8 +1,7 @@
 #include "common.h"
 #include "ovl/em2c.h"
-
-/* routine table (module .data), unprototyped like RE2's: routines take (pEm, Kan, Seq) */
-extern void (*Em2c_routine_0[])() __asm__("D_801004E4");
+#include "joint.h"
+#include "md_sub.h"
 
 /* RE2 EM_MAIN */
 void func_8010001C(ENEMY_WORK *pEm)

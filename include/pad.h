@@ -1,7 +1,18 @@
 #ifndef PAD_H
 #define PAD_H
 #include "bio3.h"
-#include <libpad.h>
+
+/* key repeat / stop state (D_800DE628) */
+typedef struct tagPAD_WORK {
+    ULONG Stop_bak;                    /* 0x00 G.Unk2468 saved while the game is stopped (RE2 static Stp_bak) */
+    union {
+        SHORT Both;                    /* set with one sh by func_80038634 */
+        UCHAR Time[2];                 /* [0] first repeat delay, [1] repeat interval */
+    } Rep;                             /* 0x04 */
+    UCHAR Num;                         /* 0x06 */
+    UCHAR pad7;
+    UCHAR Tbl[8][2];                   /* 0x08 {Padd bit no, countdown} */
+} PAD_WORK;
 
 /* 10-byte vibration request record (RE2 VIB_REQ, same layout in RE3) */
 typedef struct VIB_REQ {
@@ -27,6 +38,16 @@ void Pad_vib_init(void);
 VIB_REQ *Pad_vib_get_free(VIB_REQ *pReq);
 LONG Pad_vib_count(VIB_REQ *pReq);
 UCHAR SetPadActData(VIB_REQ *pReq);
-void func_80038634(ULONG Flg, SHORT Val);           /* pad key repeat set */
+void func_80038634(ULONG Flg, SHORT Val); /* pad key repeat set */
+
+extern UCHAR Pad_act_align[]; /* 0x80098928 */
+extern USHORT Key_type_demo[16]; /* 0x8009CC7C used while a demo plays back */
+extern LONG D_800C79C0; /* status screen state, cleared before the extra game */
+extern PAD_WORK Pad_work; /* 0x800DE628 */
+extern UCHAR Pad_type_old; /* 0x800DE640 */
+extern UCHAR Pad_act_set; /* 0x800DE641 RE2 UnknownPadSetFlag: 1 PadSetAct done, 2 aligned */
+
+void Pad_set(void);
+void func_8003884C(USHORT *pTbl, ULONG No); /* pad: play vibration script No of pTbl */
 
 #endif /* PAD_H */

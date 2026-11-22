@@ -9,143 +9,22 @@
 #include "esp.h"
 #include "cd.h"
 #include "status.h"
+#include "joint.h"
+#include "pl_wep.h"
+#include "root_ck.h"
+#include "sld.h"
+#include "snd.h"
+#include "spl_auto.h"
+#include "spl_sce.h"
 
-extern UCHAR D_800D442C[];
-extern UCHAR D_800E017F[];
-extern ULONG Old_Fatari;               /* 0x800DECB4 RE2 Old_Fatari */
-extern ULONG Old_Uatari;               /* 0x800DECB8 RE2 Old_Uatari */
-extern ULONG *Flg_addr[];              /* 0x8009E3F8 RE2 Flg_addr */
-extern UCHAR D_800DBB58;
-LONG Mess_set(ULONG A0, ULONG Attr, ULONG No, ULONG Flg); /* 0x8002FD30 RE2 Mess_set */
-void Save_entrance();
-void func_80051D60();
-extern UCHAR D_800E01C4[];
-void Item_box_entrance();
-extern UCHAR *pCAot;                    /* 0x800DECB0 RE2 pCAot */
-void func_800511B0();
-extern LONG D_800DEC98;
-LONG func_8006CD68(UCHAR No);
-s8 func_8006CCF0(UCHAR No, ULONG A1, ULONG A2);
-extern UCHAR D_800E017E[];
-void Aida_move();
-s8 Search_item_id(UCHAR Id, UCHAR A1);  /* RE2 Search_item_id */
-extern UCHAR D_800C703E[];
-extern UCHAR D_800D442E[];
-extern UCHAR D_800E0175[];
-LONG func_80048974();
-LONG Init_movie_work();
-LONG Quake_add();
-LONG Pad_vib_set0();
-LONG Pad_vib_set1();
-LONG Pad_vib_fade_set();
-void func_80078498(UCHAR A0, UCHAR A1, USHORT A2);
-extern UCHAR D_8009E340[];
-LONG Xa_play();
-typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
-typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern EM_FUNC D_8009ECDC[];
-extern EM_FUNC D_8009ECF8[];
-extern EM_FUNC3 D_8009ED24[];
-extern EM_FUNC3 D_8009ED84[];
-extern EM_FUNC3 D_8009E7DC[];
-extern EM_FUNC3 D_8009E82C[];
-extern EM_FUNC3 D_8009E87C[];
-extern EM_FUNC3 D_8009E8CC[];
-extern EM_FUNC3 D_8009E91C[];
-extern EM_FUNC3 D_8009E96C[];
-extern EM_FUNC3 D_8009E9BC[];
-extern EM_FUNC3 D_8009EA0C[];
-extern EM_FUNC3 D_8009EA5C[];
-extern EM_FUNC3 D_8009EAAC[];
-extern EM_FUNC3 D_8009EAFC[];
-extern EM_FUNC3 D_8009EB4C[];
-extern EM_FUNC3 D_8009EB9C[];
-extern EM_FUNC3 D_8009EBEC[];
-extern UCHAR D_800A0FDC[];
-extern SHORT D_800D1F8E[];
-extern SHORT D_800D1F82;
-extern s8 D_80098728[];
-UCHAR func_800102E8(void);             /* sld.s Rnd? */
-void func_80034124(void *p);
-LONG Get_matrix(s8 Work_kind, s8 Work_no);
-void Spl();
-extern ENEMY_WORK *D_800E01A8;
-extern USHORT D_800E01B4;
-void func_80052968(void);
-void Sce_scheduler_main(void);
-void Sce_kirakira_set(void);
-void func_8001BA48();
-void func_80052644(void);
-void func_8005283C(void);
-LONG Joint_move(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079690(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3);
-void func_80079868(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_800E01C6[];
-void Foot_set_pl(ENEMY_WORK *pEm, ULONG A1, ULONG A2);
-LONG Set_view(LONG *pPos, LONG *pTgt);
-extern UCHAR D_8009E70C[];
-extern UCHAR D_8009E70D[];
-extern UCHAR D_8009EC3C[];
-extern void (*D_8009ECAC[])(ENEMY_WORK *pEm, ULONG Type);
-void func_8001B484(ULONG A0, ULONG A1, LONG A2, SVECTOR *pSv, ULONG A4);
-extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
-extern ENEMY_WORK *D_800E01AC;
-extern USHORT D_800E01B6;
-ENEMY_WORK *Spl_em_cdir_ck();
-ENEMY_WORK *Spl_pllock_get();
-extern UCHAR D_800A0514[];
-extern UCHAR D_8009CDE0[];
-void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG A3);
-ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void Snd_se_walk(ULONG A0, ULONG No, ENEMY_WORK *pEm);
-void Flg_on(ULONG *pFlg, ULONG Bit);
-LONG Flg_off(ULONG *pFlg, ULONG Bit);
-LONG Weapon_cls(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch(ENEMY_WORK *pEm);
-LONG Pl_weapon_ch_init(ENEMY_WORK *pEm);
-extern UCHAR D_800E01E8;
-extern UCHAR D_8009E710[];
-extern void (*D_8009E720[])(ENEMY_WORK *pEm);
-ULONG func_800632B8(ENEMY_WORK *pEm, ULONG A1);
-LONG func_800261AC(ENEMY_WORK *pEm, ULONG A1, void *A2);
-extern USHORT D_800D1F94;
-extern ULONG D_800D258C[];
-ULONG func_800634F4(ENEMY_WORK *pEm, ULONG A1);
-LONG Weapon_parts_clr(ENEMY_WORK *pEm);
-extern UCHAR D_800E0171[];
-extern ULONG D_800E01D4[];
-extern ULONG D_8009DBB4;
-LONG func_80044804(void *p, ULONG A1, ULONG A2);
-extern ULONG D_800DECAC;
-ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
-extern UCHAR D_8009E6BC[];
-extern SHORT D_8009E6D4[];
-extern SHORT D_8009E6DC[];
-extern SHORT D_8009E6E4[];
-extern void (*D_8009E6EC[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Spl_Root_ck_sys(ENEMY_WORK *pEm);
-void Rot_neck(ENEMY_WORK *pEm, LONG Dir);
-void Spl_enemy_ck();
-ULONG Spl_em_pos_ck(ENEMY_WORK *pEm, ULONG A1);
-extern UCHAR D_8009E7D8[];
-extern UCHAR D_8009E7C8[];
-extern void (*D_8009E788[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-ULONG Flg_ck(ULONG *pFlg, ULONG Bit);
-extern ULONG *D_8009E414;              /* Flg_addr[7] */
-extern ULONG *D_8009E418;              /* Flg_addr[8] */
-void Aida_mv05_w1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Cut_chg_main(ULONG Cut);
+#include <memory.h>
 
-/* declarations from earlier parts of the original address-split file */
-extern SHORT D_800DEC9C;               /* RE2 Item_box_entrance static Dir_spd */
-extern SHORT D_800DEC9E;               /* RE2 Item_box_entrance static Spd_add */
-extern OBJ_MODEL_WORK *D_800DECA0;     /* RE2 Item_box_entrance static pOwork */
-
-extern UCHAR D_800B9E21;
-void Xa_fade_set(ULONG frames);
-void Pad_vib_init(void);
-
-extern UCHAR *D_800BA700[10];          /* RE2 pDwork[] */
+void Aida_move_() __asm__("Aida_move"); /* unprototyped call */
+LONG Joint_move_(ENEMY_WORK *pEm, ULONG A1, ULONG A2, ULONG A3) __asm__("Joint_move"); /* returns long here (canonical void) */
+ENEMY_WORK *Spl_em_cdir_ck_() __asm__("Spl_em_cdir_ck"); /* unprototyped call */
+ULONG Joint_move2_(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg) __asm__("Joint_move2"); /* returns unsigned long here (canonical void); arg 2 unsigned long* (canonical unsigned long); arg 3 unsigned long* (canonical unsigned long) */
+extern ULONG D_8009DBB4_ __asm__("D_8009DBB4"); /* type differs from the canonical extern */
+void Spl_enemy_ck_() __asm__("Spl_enemy_ck"); /* unprototyped call */
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
@@ -153,26 +32,15 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
     return 1;
 }
 
-extern UCHAR D_8009E52C[][2];          /* RE2 Subpl_walk */
-extern UCHAR D_8009E5CC[][2];          /* RE2 Subpl_run */
-extern UCHAR D_8009E554[][2];          /* RE2 Subpl_back */
-extern UCHAR D_8009E5A4[][2];          /* RE2 Subpl_ato */
-extern UCHAR D_8009E57C[][2];          /* RE2 Subpl_dir */
-
-extern UCHAR D_800C7961;
-
 void Spl_Auto(UCHAR *p)
 {
     if (p[0x1DE] != 0) {
         p[0x1DE]--;
     }
-    Aida_move(p);
+    Aida_move_(p);
 }
 
-void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);
-LONG Guide_check(LONG X, LONG Z, LONG Floor);
-LONG Spl_soba_pos_set(LONG Len, LONG Dir1, LONG Dir2, SVECTOR *pOut);
-extern SHORT D_8009E770[6];
+LONG Guide_check_(LONG X, LONG Z, LONG Floor) __asm__("Guide_check"); /* arg 1 long (canonical short); arg 2 long (canonical short); arg 3 long (canonical UC) */
 void Spl_Root_ck_sys(ENEMY_WORK *pEm)
 {
     VECTOR Vec;
@@ -207,7 +75,7 @@ void Spl_Root_ck_sys(ENEMY_WORK *pEm)
         ((SHORT *)pEm->Unk1CC)[1] = Vec.vz = Sv.vz;
         break;
     }
-    if (Guide_check(Vec.vx, Vec.vz, Vec.vy / -1800) == 0xFF) {
+    if (Guide_check_(Vec.vx, Vec.vz, Vec.vy / -1800) == 0xFF) {
         ((SHORT *)pEm->Unk1CC)[0] = pPl->Pos_x;
         ((SHORT *)pEm->Unk1CC)[1] = pPl->Pos_z;
         Vec.vx = pPl->Pos_x;
@@ -227,7 +95,7 @@ void Aida_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ULONG Old;
     ULONG F;
 
-    Spl_enemy_ck(pEm, pKan, pSeq);
+    Spl_enemy_ck_(pEm, pKan, pSeq);
     if (D_8009E7D8[0] == 0 && (pEm->Type & 0xF) < 0xB) {
         Old = (UCHAR)pEm->Type & 0xF;
         pEm->Type &= 0xFF00;
@@ -342,7 +210,7 @@ void Aida_em10_at00_pl(ENEMY_WORK *pEm, ULONG Type)
         return;
     }
     if ((Type & 0xF) == 0xA) {
-        pT = Spl_em_cdir_ck(pEm);
+        pT = Spl_em_cdir_ck_(pEm);
         if (pT == NULL) {
             return;
         }
@@ -405,7 +273,7 @@ void Aida_em25_at00_pl(ENEMY_WORK *pEm, ULONG Type)
     pT = D_800E01A8;
     Dist = D_800E01B4;
     if ((Type & 0xF) == 0xA) {
-        pT = Spl_em_cdir_ck();
+        pT = Spl_em_cdir_ck_();
         if (pT == NULL) {
             return;
         }
@@ -472,8 +340,6 @@ void func_8005A5BC(void) {
 
 void func_8005A5C4(void) {
 }
-
-extern void (*D_8009EC9C[])(ENEMY_WORK *pEm, ULONG Type);
 
 void Aida_mv00_br(ENEMY_WORK *pEm)
 {
@@ -688,7 +554,7 @@ void Aida_mv00(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = v + 0x70000;
     case 1:
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         if (pEm->UnkBA & 0x8000) {
             if (--pEm->Timer0 == 0) {
                 *(ULONG *)&pEm->Routine_0 = 0xE01;
@@ -749,8 +615,6 @@ void func_8005ADBC(void) {
 
 void func_8005ADC4(void) {
 }
-
-extern void (*D_8009ECCC[])(ENEMY_WORK *pEm, ULONG Type);
 
 void Aida_mv01_br(ENEMY_WORK *pEm)
 {
@@ -924,7 +788,7 @@ void Aida_mv01(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = v + 0x70000;
     case 1:
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         if (*pEm->pNow_seq & 0x200) {
             b = 0;
             if (*pEm->pNow_seq & 0x400) {
@@ -1083,7 +947,7 @@ void Aida_mv02(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = v + 0x70000;
     case 1:
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         if (*pEm->pNow_seq & 0x200) {
             b = 0;
             if (*pEm->pNow_seq & 0x400) {
@@ -1152,7 +1016,7 @@ void Aida_mv03(ENEMY_WORK *pEm)
         pEm->Timer0 = 0x3C;
     case 1:
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         if (*pEm->pNow_seq & 0x200) {
             b = 0;
             if (*pEm->pNow_seq & 0x400) {
@@ -1192,7 +1056,7 @@ void Aida_mv04(ENEMY_WORK *pEm)
         pEm->Spd_z = 0;
         *(ULONG *)&pEm->Move_no = v + 0x70000;
     case 1:
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         if (*pEm->pNow_seq & 0x200) {
             b = 0;
             if (*pEm->pNow_seq & 0x400) {
@@ -1250,7 +1114,7 @@ void Aida_mv05_w1_t0(ENEMY_WORK *pEm)
             return;
         }
         if ((pEm->Type & 0xF) == 9) {
-            pEm->pEnemy_ptr = Spl_em_cdir_ck(pEm);
+            pEm->pEnemy_ptr = Spl_em_cdir_ck_(pEm);
         }
         pEm->Unk120 |= 0x12;
         ((USHORT *)pEm->Unk1CC)[2] |= 0x4000;
@@ -1260,7 +1124,7 @@ void Aida_mv05_w1_t0(ENEMY_WORK *pEm)
         if (pT != pEm) {
             Goto00(pEm, pT->Pos_x, pT->Pos_z, 0xC4);
         }
-        if (Joint_move(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200) != 0) {
+        if (Joint_move_(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200) != 0) {
             *(USHORT *)&pEm->Routine_2 = 1;
             pEm->UnkCA = 7;
         }
@@ -1329,8 +1193,6 @@ void func_8005C2F8(ENEMY_WORK *pEm)
         *(USHORT *)&pEm->Routine_2 = 3;
     }
 }
-
-extern void (*D_8009ED14[])(ENEMY_WORK *pEm, ULONG Type);
 
 void Aida_mv05_w1_t1_br(ENEMY_WORK *pEm)
 {
@@ -1418,7 +1280,7 @@ void Aida_mv05_w1_t1(ENEMY_WORK *pEm)
             pEm->UnkDA = 0x14;
         }
     }
-    Joint_move(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200);
+    Joint_move_(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200);
     pEm->Be_flg |= 0x2000000;
     func_80079690(pEm, pEm->Unk180[1], pEm->Unk180[0], 0x200);
     func_80079868(pEm, 0x200);
@@ -1443,7 +1305,7 @@ void func_8005C738(ENEMY_WORK *pEm)
         ((USHORT *)pEm->Unk1CC)[2] &= 0xBFFF;
     }
     D_8009E720[D_8009E710[pEm->Id - 0x50]](pEm);
-    if (Joint_move(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200) != 0) {
+    if (Joint_move_(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200) != 0) {
         *(USHORT *)&pEm->Routine_2 = 1;
     }
     pEm->Be_flg |= 0x2000000;
@@ -1461,7 +1323,7 @@ void func_8005C824(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = 0x70000;
         *(ULONG *)&pEm->Unk1A0 = 0x70000;
     }
-    if (Joint_move(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x10200) != 0) {
+    if (Joint_move_(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x10200) != 0) {
         *(ULONG *)&pEm->Routine_0 = 1;
         ((UCHAR *)pEm->Unk1CC)[0x12] = 0x1E;
         pEm->Unk120 &= 0xED;
@@ -1481,7 +1343,7 @@ void func_8005C8D8(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = 0x70007;
         *(ULONG *)&pEm->Unk1A0 = 0x70007;
     }
-    if (Joint_move(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200) != 0) {
+    if (Joint_move_(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200) != 0) {
         *(USHORT *)&pEm->Routine_2 = 1;
     }
     pEm->Be_flg |= 0x2000000;
@@ -1529,7 +1391,7 @@ void func_8005CA14(ENEMY_WORK *pEm)
         ((UCHAR *)pEm->Unk1CC)[0x13] = (func_800102E8() & 3) + 2;
     case 1:
         Goto00(pEm, pEm->pEnemy_ptr->Pos_x, pEm->pEnemy_ptr->Pos_z, 0xC4);
-        Joint_move(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200);
+        Joint_move_(pEm, pEm->Unk180[3], pEm->Unk180[2], 0x200);
         if (pEm->UnkCA == 0) {
             *(USHORT *)&pEm->Routine_2 = 1;
         }
@@ -1539,8 +1401,6 @@ void func_8005CA14(ENEMY_WORK *pEm)
         break;
     }
 }
-
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
 
 void Aida_mv06_br(void) {
 }
@@ -1553,7 +1413,7 @@ void Aida_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         *(ULONG *)&pEm->Spd_x = 0;
     case 1:
-        pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x200);
+        pEm->Routine_2 += Joint_move2_(pEm, pKan, pSeq, 0x200);
         break;
     case 2:
         pEm->Routine_2 = 4;
@@ -1562,7 +1422,7 @@ void Aida_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         *(ULONG *)&pEm->Move_no = 0x70005;
         pEm->Routine_2 = 5;
     case 5:
-        pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x10200);
+        pEm->Routine_2 += Joint_move2_(pEm, pKan, pSeq, 0x10200);
         break;
     case 6:
         *(ULONG *)&pEm->Routine_0 = 1;
@@ -1594,7 +1454,7 @@ void Aida_mv08(ENEMY_WORK *pEm)
         pEm->Spd_x = 0x32;
         pEm->Be_flg |= 0x8000;
     case 1:
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         if (pEm->Cdir_y & 0x200) {
             pEm->Cdir_y += (UCHAR)(pEm->Cdir_y >> 2);
         } else {
@@ -1641,7 +1501,7 @@ void Aida_mv08(ENEMY_WORK *pEm)
                 pEm->Be_flg &= ~0x8000;
             }
         }
-        pEm->Routine_3 += Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
+        pEm->Routine_3 += Joint_move2_(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
         break;
     case 4:
         if ((LONG)G.Status_flg < 0 && pEm == G.pEnemy[1]) {
@@ -1666,7 +1526,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         pEm->Move_cnt = 0;
         pEm->Be_flg |= 0x8000;
     case 1:
-        Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         if (pEm->Id == 0x45 || pEm->Id == 0x4F) {
             if (pEm->Move_cnt == 0x1D) {
                 pEm->Routine_3 = 2;
@@ -1693,7 +1553,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         pEm->Pos_y += pEm->Timer0++ * 30;
         pEm->Unk122 = func_8004D720((VECTOR *)&pEm->Pos_x, 0x190, 0x8000, 1);
         pEm->nFloor = pEm->Pos_y / -1800;
-        Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         if (pEm->Unk122 - 300 < pEm->Pos_y) {
             pEm->Routine_3 = 4;
         }
@@ -1712,7 +1572,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         G.Unk75E8 |= 4;
     case 5:
         pEm->nFloor = pEm->Pos_y / -1800;
-        pEm->Routine_3 += Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
+        pEm->Routine_3 += Joint_move2_(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         break;
     case 6:
         if ((LONG)G.Status_flg < 0 && pEm == G.pEnemy[1]) {
@@ -1919,8 +1779,6 @@ void func_8005D554(ENEMY_WORK *pEm)
 void func_8005D704(void) {
 }
 
-extern UCHAR D_8009DD34[];
-
 void func_8005D70C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Tbl[8] = {0x0F, 0x0F, 0x0E, 0x0E, 0x0E, 0x0E, 0x10, 0x10};
@@ -1992,7 +1850,7 @@ void func_8005D70C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_enem(0xB, pEm);
     case 1:
         Spd_get(pEm, pKan, pSeq, 0);
-        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x400)) {
             *(ULONG *)&pEm->Routine_0 = 0x60501;
             return;
         }
@@ -2064,7 +1922,7 @@ void func_8005DBCC(ENEMY_WORK *pEm)
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
             G.Unk75E8 |= 4;
         }
-        Joint_move(pEm, pEm->Unk180[7], pEm->Unk180[6], 0x200);
+        Joint_move_(pEm, pEm->Unk180[7], pEm->Unk180[6], 0x200);
         pEm->Be_flg |= 0x2000000;
         func_80079690(pEm, pEm->Unk180[5], pEm->Unk180[4], 0x200);
         func_80079868(pEm, 0x200);
@@ -2084,7 +1942,7 @@ void func_8005DBCC(ENEMY_WORK *pEm)
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
             G.Unk75E8 |= 4;
         }
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
     }
     if (pEm->UnkAE & 0x20) {
@@ -2150,7 +2008,7 @@ void func_8005DF4C(ENEMY_WORK *pEm)
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
             G.Unk75E8 |= 4;
         }
-        Joint_move(pEm, pEm->Unk180[7], pEm->Unk180[6], 0x200);
+        Joint_move_(pEm, pEm->Unk180[7], pEm->Unk180[6], 0x200);
         pEm->Be_flg |= 0x2000000;
         func_80079690(pEm, pEm->Unk180[5], pEm->Unk180[4], 0x200);
         func_80079868(pEm, 0x200);
@@ -2170,7 +2028,7 @@ void func_8005DF4C(ENEMY_WORK *pEm)
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
             G.Unk75E8 |= 4;
         }
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
     }
     if (pEm->UnkAE & 0x20) {
@@ -2264,7 +2122,7 @@ void func_8005E40C(ENEMY_WORK *pEm)
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
             G.Unk75E8 |= 4;
         }
-        Joint_move(pEm, pEm->Unk180[7], pEm->Unk180[6], 0x10200);
+        Joint_move_(pEm, pEm->Unk180[7], pEm->Unk180[6], 0x10200);
         pEm->Be_flg |= 0x2000000;
         func_80079690(pEm, pEm->Unk180[5], pEm->Unk180[4], 0x10200);
         func_80079868(pEm, 0x200);
@@ -2287,7 +2145,7 @@ void func_8005E40C(ENEMY_WORK *pEm)
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
             G.Unk75E8 |= 4;
         }
-        Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
+        Joint_move2_(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
     }
     if (pEm->UnkAE & 0x20) {
@@ -2316,7 +2174,7 @@ void Spl_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_enem(0, pEm);
         pEm->Be_flg &= ~0x8000;
     case 1:
-        pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x400);
+        pEm->Routine_2 += Joint_move2_(pEm, pKan, pSeq, 0x400);
         break;
     case 2:
         *(ULONG *)&pEm->Routine_0 = 1;
@@ -2342,7 +2200,7 @@ void Spl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->UnkCA != 0) {
             Add_speedXZ(pEm, 0);
         }
-        pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x400);
+        pEm->Routine_2 += Joint_move2_(pEm, pKan, pSeq, 0x400);
         break;
     case 2:
         *(ULONG *)&pEm->Routine_0 = 1;
@@ -2386,12 +2244,12 @@ void func_8005E90C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Routine_2 = 2;
         }
         Add_speedXZ(pEm, 0);
-        Joint_move2(pEm, pKan, pSeq, 0x400);
+        Joint_move2_(pEm, pKan, pSeq, 0x400);
         pEm->Spd_x += 0x96;
         break;
     case 2:
         Add_speedXZ(pEm, 0);
-        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x400)) {
             *(ULONG *)&pEm->Routine_0 = 1;
             pEm->Damage_cnt = 0;
             pEm->Unk120 &= 0xED;
@@ -2402,20 +2260,20 @@ void func_8005E90C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 3:
-        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x400)) {
             *(ULONG *)&pEm->Move_no = 0x30009;
             pEm->Routine_2 = 4;
             pEm->Damage_cnt = 0;
         }
         break;
     case 4:
-        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x400)) {
             pEm->Routine_2 = 5;
             *(ULONG *)&pEm->Move_no = 0x30005;
         }
         break;
     case 5:
-        if (Joint_move2(pEm, pKan, pSeq, 0x10400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x10400)) {
             *(ULONG *)&pEm->Routine_0 = 1;
             pEm->Damage_cnt = 0;
             pEm->Unk120 &= 0xED;
@@ -2454,7 +2312,7 @@ void func_8005EBC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
     case 1:
         Add_speedXZ(pEm, 0);
-        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x400)) {
             *(ULONG *)&pEm->Move_no = 0x30009;
             pEm->Routine_2 = 2;
             pEm->Damage_cnt = 0;
@@ -2469,13 +2327,13 @@ void func_8005EBC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 2:
-        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x400)) {
             pEm->Routine_2 = 3;
             *(ULONG *)&pEm->Move_no = 0x30005;
         }
         break;
     case 3:
-        if (Joint_move2(pEm, pKan, pSeq, 0x10400)) {
+        if (Joint_move2_(pEm, pKan, pSeq, 0x10400)) {
             *(ULONG *)&pEm->Routine_0 = 1;
             pEm->Damage_cnt = 0;
             pEm->Unk120 &= 0xED;
@@ -2518,7 +2376,7 @@ void Spl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                           (LONG)&pP3[13].Workm, NULL, 0);
         }
     case 1:
-        pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x200);
+        pEm->Routine_2 += Joint_move2_(pEm, pKan, pSeq, 0x200);
         break;
     case 2:
         *(ULONG *)&pEm->Routine_0 = 7;
@@ -2592,8 +2450,6 @@ LONG Spl_soba_pos_set(LONG Len, LONG Dir1, LONG Dir2, SVECTOR *pOut)
 }
 
 extern USHORT Em_l[3] __asm__("D_800E01B4");    /* RE2 Em_l */
-extern SHORT Em_dir[3] __asm__("D_800E01A0");   /* RE2 Em_dir */
-LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg);
 
 void Spl_enemy_ck(ENEMY_WORK *pEm)
 {
@@ -2872,7 +2728,7 @@ void func_8005FAEC(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         pP = (UCHAR *)pEm->pSin_parts_ptr + 0x330;
-        if (func_80044804(pP, D_8009DBB4, 3) != 0) {
+        if (func_80044804(pP, D_8009DBB4_, 3) != 0) {
             ((USHORT *)pEm->Unk1CC)[2] |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
@@ -2892,9 +2748,6 @@ void func_8005FAEC(ENEMY_WORK *pEm)
     }
 }
 
-SHORT *func_8001B484_spl(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv) __asm__("func_8001B484");
-ULONG func_800102E8_spl(void) __asm__("func_800102E8");
-
 void func_8005FC18(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
@@ -2911,52 +2764,52 @@ void func_8005FC18(ENEMY_WORK *pEm)
         Sv.vx = 0xBE;
         Sv.vy = 0x514;
         Sv.vz = 0x14;
-        func_8001B484_spl(1, 0x12000000, pM, &Sv, 0);
+        func_8001B484(1, 0x12000000, pM, &Sv, 0);
         Sv.vx = 0xBE;
         Sv.vy = 0x640;
         Sv.vz = 0x14;
         Dsv.vx = 0;
         Dsv.vy = 0;
         Dsv.vz = -0x400;
-        func_8001B484_spl(0x801, 0x12000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0x12000000, pM, &Sv, &Dsv);
         Sv.vx = 0x186;
         Sv.vy = 0x58C;
         Sv.vz = 0x14;
         Dsv.vx = -0x400;
         Dsv.vy = 0x600;
         Dsv.vz = 0;
-        func_8001B484_spl(0x801, 0xA000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0xA000000, pM, &Sv, &Dsv);
         Sv.vx = 0x64;
         Sv.vy = 0x58C;
         Sv.vz = -0x64;
         Dsv.vx = -0x200;
         Dsv.vy = 0x200;
         Dsv.vz = -0x300;
-        func_8001B484_spl(0x801, 0xA000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0xA000000, pM, &Sv, &Dsv);
         Sv.vx = 0x64;
         Sv.vy = 0x58C;
         Sv.vz = 0x8C;
         Dsv.vx = 0x200;
         Dsv.vy = -0x200;
         Dsv.vz = -0x300;
-        func_8001B484_spl(0x801, 0xA000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0xA000000, pM, &Sv, &Dsv);
         Sv.vx = 0xDA;
         Sv.vy = 0x185;
         Sv.vz = -0x26;
-        func_8001B484_spl(0x102, (USHORT)(pEm->Cdir_y + 0x400) | 0x8000000, pM, &Sv, 0);
+        func_8001B484(0x102, (USHORT)(pEm->Cdir_y + 0x400) | 0x8000000, pM, &Sv, 0);
         Sv.vx = 0xBE;
         Sv.vy = 0x514;
         Sv.vz = 0x14;
-        func_8001B484_spl(0x603, (USHORT)(signed char)func_800102E8_spl() | 0x10000000, pM, &Sv, 0);
+        func_8001B484(0x603, (USHORT)(signed char)func_800102E8() | 0x10000000, pM, &Sv, 0);
         Sv.vx = 0xDA;
         Sv.vy = 0x185;
         Sv.vz = -0x26;
-        pEsp = func_8001B484_spl(0x603, (USHORT)(signed char)func_800102E8_spl() | 0x10000000, pM, &Sv, 0);
+        pEsp = func_8001B484(0x603, (USHORT)(signed char)func_800102E8() | 0x10000000, pM, &Sv, 0);
         if (pEsp != (SHORT *)-1) {
             pEsp[8] = 0x14;
             pEsp[9] = -0x28;
         }
-        if (func_80044804(pM, D_8009DBB4, 0xE) != 0) {
+        if (func_80044804(pM, D_8009DBB4_, 0xE) != 0) {
             ((USHORT *)pEm->Unk1CC)[2] |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
@@ -2977,7 +2830,7 @@ void func_8005FEE0(ENEMY_WORK *pEm)
         pP = pEm->pSin_parts_ptr;
         pO = &pP[4];
         pM = &pP[4].Workm;
-        if (func_80044804(pM, D_8009DBB4, 0xF) != 0) {
+        if (func_80044804(pM, D_8009DBB4_, 0xF) != 0) {
             ((USHORT *)pEm->Unk1CC)[2] |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
@@ -2985,49 +2838,49 @@ void func_8005FEE0(ENEMY_WORK *pEm)
         Sv.vx = 0xBE;
         Sv.vy = 0x514;
         Sv.vz = 0x14;
-        func_8001B484_spl(1, 0x12000000, pM, &Sv, 0);
+        func_8001B484(1, 0x12000000, pM, &Sv, 0);
         Sv.vx = 0xBE;
         Sv.vy = 0x640;
         Sv.vz = 0x14;
         Dsv.vx = 0;
         Dsv.vy = 0;
         Dsv.vz = -0x400;
-        func_8001B484_spl(0x801, 0x12000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0x12000000, pM, &Sv, &Dsv);
         Sv.vx = 0x186;
         Sv.vy = 0x58C;
         Sv.vz = 0x14;
         Dsv.vx = -0x400;
         Dsv.vy = 0x600;
         Dsv.vz = 0;
-        func_8001B484_spl(0x801, 0xA000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0xA000000, pM, &Sv, &Dsv);
         Sv.vx = 0x64;
         Sv.vy = 0x58C;
         Sv.vz = -0x64;
         Dsv.vx = -0x200;
         Dsv.vy = 0x200;
         Dsv.vz = -0x300;
-        func_8001B484_spl(0x801, 0xA000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0xA000000, pM, &Sv, &Dsv);
         Sv.vx = 0x64;
         Sv.vy = 0x58C;
         Sv.vz = 0x8C;
         Dsv.vx = 0x200;
         Dsv.vy = -0x200;
         Dsv.vz = -0x300;
-        func_8001B484_spl(0x801, 0xA000000, pM, &Sv, &Dsv);
+        func_8001B484(0x801, 0xA000000, pM, &Sv, &Dsv);
         Sv.vx = 0xDA;
         Sv.vy = 0x185;
         Sv.vz = -0x26;
-        func_8001B484_spl(0x102, (USHORT)(pEm->Cdir_y + 0x400) | 0x8000000, pM, &Sv, 0);
+        func_8001B484(0x102, (USHORT)(pEm->Cdir_y + 0x400) | 0x8000000, pM, &Sv, 0);
     }
     if ((UCHAR)(pEm->Move_cnt % 6) == 0) {
         Sv.vx = 0xBE;
         Sv.vy = 0x514;
         Sv.vz = 0x14;
-        func_8001B484_spl(0x603, (USHORT)(signed char)func_800102E8_spl() | 0x10000000, &pO->Workm, &Sv, 0);
+        func_8001B484(0x603, (USHORT)(signed char)func_800102E8() | 0x10000000, &pO->Workm, &Sv, 0);
         Sv.vx = 0xDA;
         Sv.vy = 0x185;
         Sv.vz = -0x26;
-        pEsp = func_8001B484_spl(0x603, (USHORT)(signed char)func_800102E8_spl() | 0x10000000, &pO->Workm, &Sv, 0);
+        pEsp = func_8001B484(0x603, (USHORT)(signed char)func_800102E8() | 0x10000000, &pO->Workm, &Sv, 0);
         if (pEsp != (SHORT *)-1) {
             pEsp[8] = 0x14;
             pEsp[9] = -0x28;

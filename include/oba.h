@@ -86,4 +86,33 @@ extern COL_WORK D_800DCED0;
         COL_ENT_SET_C(pEnt, Y, Floor);         \
     } while (0)
 
+extern ULONG D_8009CBC8[];
+extern COL_OBJ *D_800DCDD0[]; /* objects collected this frame, NULL terminated */
+
+void func_80033508(void);
+UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
+LONG func_800336B4(ENEMY_WORK *pEm); /* collision index of a work */
+void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
+void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
+LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
+void func_80033B20(void);
+void func_80033B88(COL_OBJ *pTop);
+COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
+void func_80033F38(COL_OBJ *pObj, COL_ENT *pEnt, LONG n);
+void func_80033FBC(COL_OBJ *pTop);
+void func_80034124(COL_OBJ *pObj);
+void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
+LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
+LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm);
+LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT);
+void func_80034814(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
+void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type);
+struct tagSCA_DATA;                    /* SCA_DATA (sca.h includes this header) */
+void func_80034E78(COL_OBJ *pObj, struct tagSCA_DATA *pT); /* shape of an object as SCA_DATA */
+void func_80034F08(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT);
+LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT);
+ULONG func_80035678(COL_OBJ *pObj, LONG W, struct tagSCA_DATA *pSca, ULONG Old);
+
 #endif /* OBA_H */

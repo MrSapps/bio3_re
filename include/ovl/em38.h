@@ -17,7 +17,6 @@
 #include "pad.h"
 #include "player.h"
 #include "pl_wep.h"
-#include "pl_wep2.h"
 #include "sub.h"
 
 /* em38's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
@@ -88,24 +87,106 @@ typedef struct tagEM38_ROOT {
 #define EM38_ROOT_CUT(r) ((VCUT *)&(r)->Pos_z)
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
-LONG Rnd(void) __asm__("func_800102E8");
-LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* em_sub.c, called with int args */                                /* RE2 Rnd (sld.s) */
-void Root_ck(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3);            /* root_ck.c */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);  /* joint.c */
-void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);     /* em_sub.c */
-void Flg_off(ULONG *pFlg, ULONG Id);                                    /* sub.c */
-LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg);      /* sca.c */
-LONG func_8004D720(VECTOR *pPos, ULONG a1, ULONG a2, ULONG a3);         /* ground height */
-void MulKage(void *pKw, LONG Grand, LONG Dir_y, ULONG Flg);             /* em_sub.c */
-void func_8004A934(ENEMY_WORK *pEm, PARTS_W *pP);                       /* sabun.c */
-void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP);                       /* sabun.c */
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);                           /* oba.c */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
-LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);          /* pl_wep.c */
-LONG func_800445C8(void *pA0, void *pA1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pl_wep.c: pEm inside the box */
-void Copy_rot_matrix(MATRIX *m0, MATRIX *m1);                          /* sub.c */
-void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);   /* em_sub.c */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, ULONG a4); /* RE2 Esp_call */
-void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos); /* joint.c, RE2 Joint_trans */
+
+extern USHORT Em38_cnt __asm__("D_8010CA0C"); /* counter bumped by the head sway */
+extern EM38_ROOT Em38_root[] __asm__("D_8010CA10");
+extern SHORT Em38_box0[4] __asm__("D_8010CC10"); /* hit boxes of the attacks */
+extern SHORT Em38_box1[4] __asm__("D_8010CC18");
+extern SHORT Em38_box2[4] __asm__("D_8010CC20");
+extern SHORT Em38_box3[4] __asm__("D_8010CC28");
+extern SHORT Em38_box4[4] __asm__("D_8010CC30");
+extern SHORT Em38_box5[4] __asm__("D_8010CC38");
+extern SHORT Em38_box6[4] __asm__("D_8010CC40");
+extern SHORT Em38_box7[4] __asm__("D_8010CC48");
+extern SHORT Em38_box8[4] __asm__("D_8010CC50");
+extern SHORT Em38_box9[4] __asm__("D_8010CC58");
+extern VECTOR Em38_goal_pos __asm__("D_8010CC60");
+extern VECTOR Em38_goal_pos2 __asm__("D_8010CC70");
+extern VCUT Em38_cut __asm__("D_8010CC88"); /* zone that sets flag 0x1B */
+extern void (*Em38_routine_0[])() __asm__("D_8010CCA0");
+extern void (*Em38_Move_type[])() __asm__("D_8010CCC4");
+extern void (*Em38_mv_br_type00[])() __asm__("D_8010CCD4");
+extern void (*Em38_mv_type00[])() __asm__("D_8010CD14");
+extern void (*Em38_dm[])() __asm__("D_8010CD54");
+extern void (*Em38_sce[])() __asm__("D_8010CDD4");
+extern EM38_SWELL Em38_swell __asm__("D_8010CDEC");
+extern signed char Em38_pulse[64] __asm__("D_8010CDFC"); /* size pulse of the dying body */
+extern void (*Pldamage_Em38_tbl[])() __asm__("D_8010CE3C");
+extern void (*Pldie_Em38_tbl[])() __asm__("D_8010CE54");
+extern KAGE_WORK *Em38_kage[] __asm__("D_8010CE68"); /* shadow works of the parts */
+extern COL_OBJ Em38_col[5] __asm__("D_8010CE98"); /* extra collision objects */
+extern MATRIX Em38_spit_m __asm__("D_8010CFD8"); /* effect matrix of sce04 */
+extern UCHAR Em38_pulse_no __asm__("D_8010CFF8"); /* index into Em38_pulse (module BSS) */
+
+void func_80100154(ENEMY_WORK *pEm);
+void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801011D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80101214(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80101298(ENEMY_WORK *pEm);
+void func_80101364(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801013C0(ENEMY_WORK *pEm);
+void func_80101714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801018A8(ENEMY_WORK *pEm);
+void func_8010195C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80101AC4(void);
+void func_80101ACC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80101C4C(void);
+void func_80101C54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80102068(void);
+void func_80102070(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80102940(void);
+void func_80102948(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80102E94(void);
+void func_80102E9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80103468(void);
+void func_80103470(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801037E8(ENEMY_WORK *pEm);
+void func_801038E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80103FF0(void);
+void func_80103FF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80104718(ENEMY_WORK *pEm);
+void func_80104828(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80104D84(ENEMY_WORK *pEm);
+void func_80104F34(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801050C4(void);
+void func_801050CC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80105424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80105600(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80105784(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801059EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80105D8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80105F44(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801060EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80106128(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801064C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801075D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801081C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80108FD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80109394(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_8010955C(void);
+void func_80109564(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_801095A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80109948(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80109BD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80109DF0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80109F14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_80109F50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_8010A1C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void func_8010A480(ENEMY_WORK *pEm);
+void func_8010A574(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Lim);
+void func_8010A7D4(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
+void func_8010A924(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
+void func_8010AA3C(ENEMY_WORK *pEm);
+void func_8010B02C(ENEMY_WORK *pEm);
+void func_8010B1E8(ENEMY_WORK *pEm);
+void func_8010B550(ENEMY_WORK *pEm);
+void func_8010B6BC(void);
+void func_8010B6C4(ENEMY_WORK *pEm);
+void func_8010B848(ENEMY_WORK *pEm);
+void func_8010B94C(ENEMY_WORK *pEm);
+void func_8010BAD0(ENEMY_WORK *pEm);
+void func_8010C03C(ENEMY_WORK *pEm);
+void func_8010C3E8(ENEMY_WORK *pEm);
+void func_8010C9A4(ENEMY_WORK *pEm, PARTS_W *pP, LONG Rate);
 
 #endif /* OVL_EM38_H */

@@ -31,13 +31,44 @@ extern void (*Em37_move_type[])() __asm__("D_801019E4");
 extern void (*Em37_mv[])() __asm__("D_80101A20");
 extern void (*Em37_sce[])() __asm__("D_80101A50");
 
-/* exe functions without a shared prototype */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);      /* joint.c, result used as int */
-LONG Rnd(void) __asm__("func_800102E8");                                 /* RE2 Rnd (sld.s) */
-void *func_8001B484(ULONG a0, ULONG a1, MATRIX *pM, SVECTOR *pSv, SVECTOR *pSpd); /* RE2 Esp_call */
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);        /* ground height */
-void func_80016600(ENEMY_WORK *pEm, LONG Kan, LONG Seq);                /* door.c */
+LONG func_80101854(ENEMY_WORK *pEm); /* splash effects */
 
-LONG func_80101854(ENEMY_WORK *pEm);                                    /* splash effects */
+extern const EM37_MOTION Em37_motion __asm__("D_80100004");
+
+void func_8010003C(ENEMY_WORK *pEm);
+void func_80100370(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801005A0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801005DC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100618(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100654(void);
+void func_8010065C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100894(void);
+void func_8010089C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_8010094C(void);
+void func_80100954(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_801009E4(void);
+void func_801009EC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100AB4(void);
+void func_80100ABC(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100B8C(void);
+void func_80100B94(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100CBC(void);
+void func_80100CC4(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100D5C(void);
+void func_80100D64(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100DF0(void);
+void func_80100DF8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100EB0(void);
+void func_80100EB8(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100F58(void);
+void func_80100F60(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80100FD8(void);
+void func_80100FE0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80101598(void);
+void func_801015A8(void);
+void func_801015B0(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_8010160C(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq);
+void func_80101844(void);
+void func_8010184C(void);
 
 #endif /* OVL_EM37_H */

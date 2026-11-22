@@ -4,40 +4,14 @@
 #include "pad.h"
 #include "em_sub.h"
 #include "om.h"
-#include "pl_wep2.h"
+#include "pl_wep.h"
 #include "movie.h"
 #include "player.h"
 #include "cd.h"
 #include "sca.h"
 #include "oba.h"
-
-extern COL_OBJ *D_800DCDD0[];             /* objects collected this frame, NULL terminated */
-extern ULONG D_8009CBC8[];
-extern COL_ENT D_800DEB48;
-LONG func_8004D720(VECTOR *pV, ULONG W, ULONG Arg2, ULONG Arg3);
-void func_8004B7E8(ENEMY_WORK *pEm, COL_OBJ *pObj, LONG Arg2);
-
-extern ULONG D_800D1F2C;
-
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
-LONG func_800336B4(ENEMY_WORK *pEm);
-void func_80034124(COL_OBJ *pObj);
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_80033FBC(COL_OBJ *pTop);
-void func_80033B88(COL_OBJ *pTop);
-COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80034814(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
-void func_80034F08(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
-LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
-LONG func_8004AF04(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
-ULONG func_8004D6B8(LONG X, LONG Z);
-LONG func_8004D404(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old);
-ULONG func_80035678(COL_OBJ *pObj, LONG W, SCA_DATA *pSca, ULONG Old);
-void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type);
-LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT);
+#include "sabun.h"
+#include "sub.h"
 
 void func_80033508(void)
 {
@@ -509,8 +483,6 @@ LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     return !((ULONG)(dz + d) > (ULONG)(d * 2));
 }
 
-LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT);
-
 LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm)
 {
     ENEMY_WORK **pp;
@@ -591,10 +563,6 @@ LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034814);
-
-LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
-LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
-LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT);
 
 void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
 {

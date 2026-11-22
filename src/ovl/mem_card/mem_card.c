@@ -7,37 +7,19 @@
 #include "cd.h"
 #include "em_sub.h"
 #include "sub.h"
-#include <strings.h>
 #include "ovl/mem_card.h"
+#include "sce1.h"
+#include "sld.h"
+#include "status.h"
 
-/* Overlay .data (still asm; names in ovl/mem_card.syms.txt) */
-extern char D_801C5EDC[][29];           /* Mc_area_name: save area names (Shift-JIS) */
-extern UCHAR D_801C6244[];              /* Mess_text: message pool */
-extern USHORT D_801C6760[];             /* Mess_offs: message offsets into Mess_text */
-extern MWORK *D_801C6834;               /* pMwork (-> D_801C69F8) */
-extern char D_801C6838[];               /* Mc_fname_tmpl: "bu?0:" + file name */
-extern UCHAR D_801C6858[];              /* Mc_wait_tbl: frames per step of the "saved" animation */
-extern UCHAR D_801C6870[6];             /* Mess_ctrl: control codes; [0] ends a message, the others take one operand */
-extern void (*D_801C6878[])(MWORK *);   /* Card_rno_tbl: state routines */
-extern void (*D_801C68C8[])(MWORK *);   /* Card_disp_tbl: state displays */
-extern LONG D_801C6918;                 /* sound already played for the revealed character */
-extern UCHAR D_801C6920[0x28];          /* item work backup while saving */
-extern char D_801C6948[];               /* name of the file being overwritten */
-extern char D_801C6960[0x48];           /* card file title (Shift-JIS) */
-extern UCHAR D_801C69A8[0x50];          /* slot line: area name */
-extern MWORK D_801C69F8;                /* the card work itself */
-extern UCHAR D_801C7CB8[16];            /* slot line: save count / clear count */
-extern CFILE_INFO D_801C7CC8;           /* directory of the RE3 files on the card */
+LONG Search_item_id_(LONG Id, LONG i) __asm__("Search_item_id"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char) */
+LONG func_8006CCF0_(LONG No, LONG N, LONG F) __asm__("func_8006CCF0"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char); arg 3 long (canonical UC) */
+#include <strings.h>
 
 #define MESS(n) (&D_801C6244[D_801C6760[n]])
 
 /* Print14 called with int coordinates (no USHORT truncation in the caller) */
-void Print14_l(LONG X, LONG Y, UCHAR *pFmt, ...) __asm__("Print14");
-
-/* libapi BIOS stubs linked into the overlay (after the game code) */
-long func_801C5E64(long chan);          /* _card_info */
-long func_801C5E74(long chan);          /* _card_load */
-long func_801C5E84(long chan);          /* _card_clear */
+void Print14_l(LONG X, LONG Y, UCHAR *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short) */
 
 /* Mem_card: task entry */
 void func_801C20AC(void)
@@ -567,7 +549,7 @@ void func_801C34E8(MWORK *pMw)
     func_800100A4(D_801C6920, G.pUnk7C7C, sizeof(D_801C6920));
     pMw->Item_bak = G.pUnk7C7C->Unk128;
     if (!(G.System_flg & 0x4080)) {
-        func_8006CCF0(Search_item_id(0x81, 0), 1, 0);
+        func_8006CCF0_(Search_item_id_(0x81, 0), 1, 0);
     }
     Save_cnt = G.Save_cnt;
     if ((Save_cnt < 99 || (G.System_flg & 0x4000)) && !(G.System_flg & 0x80)) {

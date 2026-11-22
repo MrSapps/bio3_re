@@ -1,56 +1,13 @@
 #include "pl_wep.h"
 #include "sca.h"
 #include "monitor.h"
-#include "pl_wep2.h"
 #include "pad.h"
 #include "esp.h"
-
-ESP_WORK *func_8001B484(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pV, SVECTOR *pDsv);
-SHORT func_8006D030(ULONG Arg0);
-void func_80044804(MATRIX *pM, ULONG Arg1, ULONG Type);
-void func_80047860(MATRIX *pM, ULONG Arg1, ULONG Type);
-extern ULONG D_8009DBB4[];
-ULONG func_800102E8(void);                 /* rand */
-SHORT Get_dir_xz(LONG X, LONG Z);
-LONG func_800455B4();
-LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3);
-
-extern UCHAR D_8009CD3D;
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
-signed char func_8006CF0C_r(ULONG Arg0) __asm__("func_8006CF0C");
-void Pl_water(ENEMY_WORK *pEm);
-
-/* declarations from earlier parts of the original address-split file */
-LONG Joint_move(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079690(ENEMY_WORK *pEm, ULONG Kan, ULONG Seq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, ULONG Flg);
-void func_8006CF0C(ULONG Arg0);
-void Mag_set(PLAYER_WORK *pEm);
-
-void Pl_wep_flag_set(PLAYER_WORK *pEm);
+#include "root_ck.h"
+#include "sld.h"
+#include "status.h"
 
 #define RND() ((signed char)func_800102E8())
-
-extern PARTS_W *D_8009CD30;
-extern USHORT D_8009DCB4[];
-void Cd_read(LONG Fno, ULONG *pAdr, LONG a2, char *pName);
-void func_8007809C(LONG a0, LONG a1, ULONG a2, ULONG a3);
-
-extern ENEMY_WORK Pl_work;
-extern UCHAR D_8009DDC4[][2];
-extern UCHAR D_8009DE10;
-extern UCHAR D_8009DE24;
-
-extern UCHAR D_8009DE24;
-extern USHORT D_8009DE26;
-extern signed char D_8009DE28;
-
-extern LONG D_800D204C[];
-
-void func_80010150(void *p, ULONG Size);
-void func_80048FF4(void);
 
 /* floor block (pRoom->pBlock: count, then 0x30 byte records from +8) */
 typedef struct {
@@ -62,23 +19,8 @@ typedef struct {
     SHORT Floor;                       /* 0x2E 0 = any floor, else floor + 0x11 */
 } BLOCK;
 
-LONG Guide_check(SHORT X, SHORT Z, UCHAR Floor);
-
 /* pEm->pad12E[0] is RE2 Root_ck_cnt (em33.c still uses the pad name) */
 #define ROOT_CK_CNT(pEm) ((pEm)->pad12E[0])
-
-LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg);
-
-/* route request passed to kara_rootck2 */
-typedef struct {
-    UCHAR From_area;                   /* 0x00 */
-    UCHAR To_area;                     /* 0x01 */
-    UCHAR pad2[2];
-    SHORT Target_x;                    /* 0x04 */
-    SHORT Target_z;                    /* 0x06 */
-} ROOT_REQ;
-
-void kara_rootck2(ENEMY_WORK *pEm, USHORT *pBlock, ROOT_REQ *pReq, LONG *pPos);
 
 LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
 {
@@ -152,9 +94,6 @@ LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
         return 2;
     }
 }
-
-ULONG func_800102E8(void);
-extern USHORT **D_800CC86C;
 
 LONG Rnd_area(void)
 {
