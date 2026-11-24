@@ -79,6 +79,15 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   block and longer than A, so later uses of A are rewritten to B and local-alloc ties both to one hard reg (the copy
   vanishes). A surviving `move vX,aN` + in-place `sll/sra aN` means the copy was a different value to cse (e.g. a
   16-bit local copying the param) -- Goto00/Goto01 in em_sub show this pattern (still unmatched).
+- score.py candidates see the preprocessed base.c: header macros (NULL, Door_data, ...) are gone, so expand them.
+- Source tricks found while matching: `(&G.Ctp)->field = x` gives a struct-flagged store off a G+offset base that
+  the scheduler keeps in order (`*(USHORT *)&G.x` is scheduled freely); writing a value in two statements
+  (`x = a + C; x &= M;`) stops cse merging and-masks; constants rematerialised every iteration point to a goto loop;
+  one reused temp for several values (psp func_80048E34) is how several unrelated values share one register.
+- Near misses with drafts (2026-11-24): oba func_80034E78 (3 words), Jill_wep_load/select func_801C3AE4 (5),
+  oba func_80035678 (~9), om func_80037E80 (~10), Door_init (12, needs DOOR Divp fields at 0xC/0x10/0x14),
+  em27 func_801000E0 (12), em22 func_80103110 (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
+  option func_801C4C94 matches but shares the "\x81\x40" string with func_801C4A70 (must go in together).
 
 ## Compiler (confirmed)
 **PsyQ 4.4: CC1PSX = GNU C 2.8.1 SN32 (BUILD 4.0.0010), ASPSX 2.77**, `-O2 -G0`.
