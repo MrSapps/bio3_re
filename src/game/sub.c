@@ -203,7 +203,34 @@ void Set_light_pos(VECTOR *pV)
     Set_light(Get_light_cut((LONG *)pV), pV);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sub", Set_light_default);
+/* G.pRoom->pLight: offset of the LIGHT_CUT_DATA array, then one LIGHT_ZONE list word per cut (see sub.h) */
+typedef struct tagLIGHT_HEAD {
+    ULONG Ofs;                         /* 0x0 */
+    ULONG Zone[1];                     /* 0x4 (offset << 16) | count, index cut */
+} LIGHT_HEAD;
+
+/* light of the cut's default zone (its last entry), at the origin */
+void Set_light_default(void)
+{
+    LIGHT_HEAD *pLight;
+    LIGHT_CUT_DATA *pCut;
+    LIGHT_ZONE *pZone;
+    ULONG Zone;
+    ULONG n;
+    VECTOR V;
+
+    pLight = (LIGHT_HEAD *)G.pRoom->pLight;
+    Zone = pLight->Zone[G.Cut_no];
+    pCut = (LIGHT_CUT_DATA *)((UCHAR *)pLight + pLight->Ofs);
+    pLight = (LIGHT_HEAD *)((UCHAR *)pLight + (Zone >> 16));
+    n = (Zone & 0xFFFF) - 1;
+    pZone = (LIGHT_ZONE *)pLight + n;
+    pCut += pZone->No;
+    V.vx = 0;
+    V.vy = 0;
+    V.vz = 0;
+    Set_light(pCut, &V);
+}
 
 void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV)
 {

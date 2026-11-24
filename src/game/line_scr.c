@@ -1,4 +1,5 @@
 #include "line_scr.h"
+#include "main.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -64,7 +65,33 @@ void Scr_effect(void)
     line_scr_end();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/line_scr", Scr_quake);
+void Scr_quake(ULONG Amp)
+{
+    LINE_SCR *pLine;
+    LONG i;
+    LONG Ctr;
+    LONG X;
+    LONG Y;
+    LONG End;
+    LONG Draw_ofs;
+
+    pLine = &Line;
+    Ctr = (pLine->Quake_ctr0 = (pLine->Quake_ctr0 + 1) & 0xF);
+    Ctr *= 2;
+    if (Amp == 1) {
+        X = quake_tbl1[Ctr];
+        Y = quake_tbl1[Ctr + 1];
+    } else {
+        X = quake_tbl2[Ctr];
+        Y = quake_tbl2[Ctr + 1];
+    }
+    End = pLine->Rect.h + pLine->Rect.y;
+    i = pLine->Rect.y;
+    Draw_ofs = Main.pDb->Draw.ofs[1];
+    do {
+        line_trans(i, X, Y, Draw_ofs);
+    } while (++i != End);
+}
 
 void line_trans(LONG Line_no, LONG Slide_ofs, LONG Copy_ofs, LONG Draw_ofs)
 {

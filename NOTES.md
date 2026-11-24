@@ -73,8 +73,10 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   base.c with the function replaced by variant.c and counts differing words (relocated fields masked) in ~0.1 s, so
   type/order sweeps of hundreds of variants are cheap. Confirm a 0 with fdiff.py (it also checks relocation targets).
   Permuter: `cd ~/dev/decomp-permuter && tools/capped ~/dev/permvenv/bin/python permuter.py DIR -j3`.
-- ~/dev/gcc281/build-psx/cc1 is GCC 2.8.1 built from source with -g; its output is identical to the SN32 cc1 used
-  here, so `-da` RTL dumps (.cse/.lreg/.greg) and gdb breakpoints in cse.c/global.c explain register choices.
+- ~/dev/gcc281/build-psx/cc1 is GCC 2.8.1 built from source with -g, usable under gdb (cse.c/global.c breakpoints).
+  It is NOT identical to SN32: SN's cc1 splits `la` into separate %hi/%lo pseudos, the FSF build emits one `la`, so
+  for anything involving global addresses dump with SN's own cc1 instead (`tools/compilers/gcc-2.8.1-psx/cc1 -dS -dl
+  -dg ...` works). Several near misses come down to sched1 choosing which register a %hi gets.
 - cse.c make_regs_eqv: after `B = A` (both pseudos), B becomes the canonical register if it lives past the basic
   block and longer than A, so later uses of A are rewritten to B and local-alloc ties both to one hard reg (the copy
   vanishes). A surviving `move vX,aN` + in-place `sll/sra aN` means the copy was a different value to cse (e.g. a
@@ -87,6 +89,8 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
 - Near misses with drafts (2026-11-24): oba func_80034E78 (3 words), Jill_wep_load/select func_801C3AE4 (5),
   oba func_80035678 (~9), om func_80037E80 (~10), Door_init (12, needs DOOR Divp fields at 0xC/0x10/0x14),
   em27 func_801000E0 (12), em22 func_80103110 (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
+  Get_light_cut (4), snd func_80077F60 (5, 2 with an empty do/while after the decls), Pc_text_set (7),
+  Flr_set (2), em36 func_8010511C (10), Plc_gun_eff (11), Get_matrix (17). Drafts in that session's scratchpad.
   option func_801C4C94 matches but shares the "\x81\x40" string with func_801C4A70 (must go in together).
 
 ## Compiler (confirmed)
