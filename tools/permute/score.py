@@ -41,8 +41,8 @@ def score(d, src=None, verbose=False):
     func = func_name(d)
     base = open(d + "/base.c").read()
     if src is not None:
-        a, b = find_func(base, func)
-        base = base[:a] + src + base[b:]
+        ab = find_func(base, func)
+        base = base[:ab[0]] + src + base[ab[1]:] if ab else base + "\n" + src   # still INCLUDE_ASM: append
     with tempfile.TemporaryDirectory() as t:
         open(t + "/f.c", "w").write(base)
         subprocess.run([ROOT + "/tools/permute/compile.sh", t + "/f.c", "-o", t + "/f.o"], capture_output=True)
