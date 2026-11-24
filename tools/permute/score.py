@@ -45,6 +45,14 @@ def score(d, src=None, verbose=False):
         base = base[:ab[0]] + src + base[ab[1]:] if ab else base + "\n" + src   # still INCLUDE_ASM: append
     with tempfile.TemporaryDirectory() as t:
         open(t + "/f.c", "w").write(base)
+        # cc1 still writes code after errors (undeclared names become implicit ints): reject those candidates
+        err = subprocess.run("cpp -P -undef -D__GNUC__=2 -Dmips -D__psx__ -D_LANGUAGE_C %s/f.c | %s -quiet -O2 -G0 -mgas "
+                             "-msoft-float -fno-builtin -funsigned-char -o /dev/null" % (t, os.environ.get("PERM_CC1", ROOT + "/tools/compilers/gcc-2.8.1-psx/cc1")),
+                             shell=True, capture_output=True, text=True).stderr
+        bad = [l for l in err.splitlines() if re.search(r"error|undeclared|implicit declaration|parse", l, re.I)]
+        if bad:
+            if verbose: print("\n".join(bad[:5]))
+            return 9999, []
         subprocess.run([ROOT + "/tools/permute/compile.sh", t + "/f.c", "-o", t + "/f.o"], capture_output=True)
         if not os.path.exists(t + "/f.o"): return 9999, []
         got, gtxt = words(t + "/f.o", func)

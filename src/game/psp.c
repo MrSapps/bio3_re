@@ -178,7 +178,78 @@ void func_80048974(SHORT Arg)
 
 INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048A3C);
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048E34);
+#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_rtpt() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_stsz(r0) __asm__ volatile("swc2 $19, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy1(r0) __asm__ volatile("swc2 $13, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy2(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
+
+/* rain: each live drop is a line from its position to position + (Dx, 900, Dz), shaded by depth */
+void func_80048E34(void)
+{
+    SVECTOR Sv0;
+    SVECTOR Sv1;
+    SVECTOR Sv2;
+    ULONG Otz;
+    PSP_POS *pV;
+    UCHAR *pFlg;
+    PRIM_1C *pPr;
+    ULONG *pOt;
+    ULONG i;
+    LONG D0;
+    LONG y, z;
+    ULONG *pT;
+
+    pV = D_800DEB18.pPos;
+    pFlg = D_800DEB18.p0;
+    pPr = D_800DEB18.pPrim;
+    Sv2.vx = 0;
+    Sv2.vy = 0;
+    Sv2.vz = 0;
+    pOt = G.pOt1;
+    pPr += G.Cbuf_id;
+    SetRotMatrix(&GsWSMATRIX);
+    SetTransMatrix(&GsWSMATRIX);
+    i = 100;
+    do {
+        D0 = *pFlg;
+        i--;
+        pFlg++;
+        if (D0 & 1) {
+            D0 = pV->x;
+            y = pV->y;
+            z = pV->z;
+            Sv0.vx = D0;
+            Sv0.vy = y;
+            Sv0.vz = z;
+            D0 += D_800DEB18.Dx;
+            y += 900;
+            z += D_800DEB18.Dz;
+            Sv1.vx = D0;
+            Sv1.vy = y;
+            Sv1.vz = z;
+            gte_ldv3(&Sv2, &Sv1, &Sv0);
+            gte_rtpt();
+            gte_stsz(&Otz);
+            if (Otz >= 0x20) {
+                Otz = (Otz & 0x7FFF) >> 5;
+                D0 = Otz >> 5;
+                if (D0 >= 0x10) {
+                    D0 = 0x10;
+                }
+                pPr->Rgb1 = 0x181818 - D0 * 0x10101;
+                pT = &pOt[Otz];
+                D0 = *pT;
+                *pT = (ULONG)pPr & 0xFFFFFF;
+                pPr->Tag = D0 | 0x06000000;
+                gte_stsxy1(&pPr->Xy1);
+                gte_stsxy2(&pPr->Xy0);
+                pPr += 2; /* double buffered pairs */
+            }
+        }
+        pV++;
+    } while (i != 0);
+}
 
 void func_80048FF4(void)
 {

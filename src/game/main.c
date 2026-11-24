@@ -490,7 +490,55 @@ void Fade_rect_set(ULONG No, RECT *Rect)
     pF->Rect.h = Rect->h;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/main", func_8002A49C);
+/* RE2 Fade_trans: steps every active fade and adds its tile (Fade[3] goes to the second OT) */
+void func_8002A49C(void)
+{
+    FADE *pF;
+    TILE *pT;
+    UCHAR r, g, b;
+    ULONG *pOt;
+    FADE *pEnd;
+
+    pF = Main.Fade;
+    pEnd = &Main.Fade[4];
+    do {
+        if (pF->Flg & FADE_ON) {
+            pT = &pF->T[G.Cbuf_id];
+            if (pF->Cnt_max == pF->Cnt) {
+                if (!(pF->Flg & FADE_HOLD)) {
+                    pF->Flg = 0;
+                } else {
+                    pF->Flg |= FADE_END;
+                }
+                r = pF->Rgb1[0];
+                g = pF->Rgb1[1];
+                b = pF->Rgb1[2];
+            } else {
+                pF->Cnt++;
+                r = pF->Rgb0[0];
+                r += (pF->Rgb1[0] - r) * pF->Cnt / pF->Cnt_max;
+                g = pF->Rgb0[1];
+                g += (pF->Rgb1[1] - g) * pF->Cnt / pF->Cnt_max;
+                b = pF->Rgb0[2];
+                b += (pF->Rgb1[2] - b) * pF->Cnt / pF->Cnt_max;
+            }
+            *(ULONG *)&pT->r0 = 0x62000000 | (b << 16) | (g << 8) | r; /* semi-transparent tile */
+            *(ULONG *)pT = 0x03000000;
+            pT->x0 = pF->Rect.x;
+            pT->y0 = pF->Rect.y;
+            pT->w = pF->Rect.w;
+            pT->h = pF->Rect.h;
+            if (pF == &Main.Fade[3]) {
+                pOt = G.pOt2 + pF->Pri;
+            } else {
+                pOt = G.pOt0 + pF->Pri;
+            }
+            AddPrim(pOt, pT);
+            AddPrim(pOt, &pF->Tpage[G.Cbuf_id]);
+        }
+        pF++;
+    } while (pF < pEnd);
+}
 
 void Fade_off(ULONG No)
 {
