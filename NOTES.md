@@ -67,6 +67,19 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   breaks every other agent's linkcheck (which links against build/). Restore from a clean worktree build.
 - fdiff.py used to leak one /tmp dir per run (36k dirs, 3 GB, filled the disk); fixed.
 
+## Matching tools (tools/permute)
+- `tools/permute/setup.py SRC.c FUNC DIR` makes a decomp-permuter dir (target.o from the split asm, base.c = SRC.c
+  preprocessed with every other function body dropped). `tools/permute/score.py DIR [variant.c ...] [-v]` compiles
+  base.c with the function replaced by variant.c and counts differing words (relocated fields masked) in ~0.1 s, so
+  type/order sweeps of hundreds of variants are cheap. Confirm a 0 with fdiff.py (it also checks relocation targets).
+  Permuter: `cd ~/dev/decomp-permuter && tools/capped ~/dev/permvenv/bin/python permuter.py DIR -j3`.
+- ~/dev/gcc281/build-psx/cc1 is GCC 2.8.1 built from source with -g; its output is identical to the SN32 cc1 used
+  here, so `-da` RTL dumps (.cse/.lreg/.greg) and gdb breakpoints in cse.c/global.c explain register choices.
+- cse.c make_regs_eqv: after `B = A` (both pseudos), B becomes the canonical register if it lives past the basic
+  block and longer than A, so later uses of A are rewritten to B and local-alloc ties both to one hard reg (the copy
+  vanishes). A surviving `move vX,aN` + in-place `sll/sra aN` means the copy was a different value to cse (e.g. a
+  16-bit local copying the param) -- Goto00/Goto01 in em_sub show this pattern (still unmatched).
+
 ## Compiler (confirmed)
 **PsyQ 4.4: CC1PSX = GNU C 2.8.1 SN32 (BUILD 4.0.0010), ASPSX 2.77**, `-O2 -G0`.
 Cd_init / Cd_system_control match on gcc-2.8.0/2.8.1 and are far off on 2.6.3/2.7.2 (2.7.2 schedules the

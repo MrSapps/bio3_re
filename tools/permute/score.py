@@ -9,19 +9,21 @@ B = ROOT + "/tools/binutils/usr/bin/mipsel-linux-gnu-"
 ENV = dict(os.environ, LD_LIBRARY_PATH=ROOT + "/tools/binutils/usr/lib/x86_64-linux-gnu")
 
 def words(o, func):
-    out = subprocess.run([B + "objdump", "-dr", "--no-show-raw-insn", o], capture_output=True, text=True, env=ENV).stdout
-    raw = subprocess.run([B + "objdump", "-d", o], capture_output=True, text=True, env=ENV).stdout
+    """instruction words of FUNC with relocated fields masked (addends differ between D_ names and sym+off)"""
+    raw = subprocess.run([B + "objdump", "-dr", o], capture_output=True, text=True, env=ENV).stdout
     res, txt, on = [], [], False
     for l in raw.splitlines():
         if re.match(r"[0-9a-f]+ <(.+)>:", l):
             on = l.split("<")[1].rstrip(">:") == func
             continue
+        if not on: continue
         m = re.match(r"\s+[0-9a-f]+:\t([0-9a-f]{8}) \t(.*)", l)
-        if on and m:
-            w = int(m.group(1), 16); ins = m.group(2)
-            op = w >> 26
-            if op in (2, 3): w &= 0xFC000000                        # jal/j target: relocated
-            res.append(w); txt.append(ins)
+        if m:
+            res.append(int(m.group(1), 16)); txt.append(m.group(2)); continue
+        r = re.match(r"\s+[0-9a-f]+: (R_MIPS_\w+)\s+(\S+)", l)
+        if r and res:
+            res[-1] &= 0xFC000000 if r.group(1) == "R_MIPS_26" else 0xFFFF0000
+            txt[-1] += "  <" + r.group(2) + ">"
     return res, txt
 
 def find_func(text, func):
