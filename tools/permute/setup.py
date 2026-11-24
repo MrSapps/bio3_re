@@ -11,6 +11,8 @@ os.makedirs(out, exist_ok=True)
 # target object from the nonmatchings asm
 rel = os.path.relpath(os.path.abspath(src), os.path.join(ROOT, "src"))[:-2]
 asm = os.path.join(ROOT, "asm/nonmatchings", rel, func + ".s")
+if not os.path.exists(asm):
+    asm = os.path.join(ROOT, "asm/matchings", rel, func + ".s")
 B = os.path.join(ROOT, "tools/binutils/usr/bin/mipsel-linux-gnu-")
 env = dict(os.environ, LD_LIBRARY_PATH=os.path.join(ROOT, "tools/binutils/usr/lib/x86_64-linux-gnu"))
 open(out + "/target.s", "w").write('.include "macro.inc"\n.set noreorder\n.set noat\n' + open(asm).read())
