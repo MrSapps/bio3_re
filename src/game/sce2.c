@@ -364,7 +364,116 @@ ULONG Mizu_div_set(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Sce_em_set);
+/* SCE em_set operand (0x18 bytes) */
+typedef struct {
+    UCHAR Opcode;                      /* 0x00 */
+    UCHAR Unk1;                        /* 0x01 */
+    signed char Work_no;                     /* 0x02 G.pEnemy[Work_no + 2] */
+    UCHAR Id;                          /* 0x03 */
+    USHORT Type;                       /* 0x04 */
+    USHORT Status_flg;                 /* 0x06 */
+    UCHAR nFloor;                      /* 0x08 */
+    UCHAR Unk9;                        /* 0x09 */
+    UCHAR UnkA;                        /* 0x0A */
+    UCHAR Flg_no;                      /* 0x0B 0xFF: none */
+    SHORT Pos_x;                       /* 0x0C */
+    SHORT Pos_y;                       /* 0x0E */
+    SHORT Pos_z;                       /* 0x10 */
+    SHORT Cdir_y;                      /* 0x12 */
+    SHORT Timer0;                      /* 0x14 */
+    SHORT UnkDA;                       /* 0x16 */
+} SCE_EM_SET;
+extern SCE_EM_SET *D_800E0198;          /* operand of the em_set being run */
+
+ULONG Sce_em_set(SCE_TASK *pSce)
+{
+    tagGLOBAL *pG = &G;
+    ULONG *pFlg;
+    ENEMY_WORK *pEm;
+    LONG No;
+    ENEMY_WORK *pNext;
+
+    D_800E0198 = (SCE_EM_SET *)pSce->Data;
+    if (pG->Unk783E >= 2 && !(pG->System_flg & 0x80))
+        pFlg = pG->Unk78B0;
+    else
+        pFlg = pG->Unk7890;
+    if (D_800E0198->Flg_no == 0xFF || !Flg_ck(pFlg, D_800E0198->Flg_no)) {
+        if (G.Player.Id < 8) {
+            if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Player.Id >= 2)
+                D_800E0198->Id = G.Player.Id + 0x60;
+        } else {
+            if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Unk7864 >= 2)
+                D_800E0198->Id = G.Unk7864 + 0x60;
+        }
+        No = D_800E0198->Work_no + 2;
+        if (No != 1)
+            pG->Em_num++;
+        pEm = pG->pEnemy[No] = pG->pEm_mem;
+        pG->pEm_mem = (ENEMY_WORK *)((UCHAR *)pG->pEm_mem + 0x1FC);
+        if (pG->ppEnemy_end < &pG->pEnemy[No + 1])
+            pG->ppEnemy_end = &pG->pEnemy[No + 1];
+        pNext = pG->pEm_mem;
+        pEm->Be_flg = 1;
+        pEm->Unk12F = D_800E0198->Unk9;
+        if (Sce.Unk1498 != D_800E0198->Unk9) {
+            if (Sce.Unk1498)
+                Sce.Unk1499 = D_800E0198->Unk9;
+            else
+                Sce.Unk1498 = D_800E0198->Unk9;
+        }
+        *(ULONG *)&pEm->Routine_0 = 0;
+        pEm->Pos_x = pEm->Old_x = D_800E0198->Pos_x;
+        pEm->Pos_y = pEm->Old_y = D_800E0198->Pos_y;
+        pEm->Pos_z = pEm->Old_z = D_800E0198->Pos_z;
+        pEm->Cdir_x = 0;
+        pEm->Cdir_y = D_800E0198->Cdir_y;
+        pEm->Cdir_z = 0;
+        pEm->Dest_x = 0;
+        pEm->Dest_z = 0;
+        pEm->Id = D_800E0198->Id;
+        pEm->Type = D_800E0198->Type;
+        pEm->Status_flg = D_800E0198->Status_flg;
+        pEm->Unk147 = D_800E0198->Flg_no;
+        pEm->Unk4B = D_800E0198->UnkA;
+        pEm->nFloor = D_800E0198->nFloor;
+        pEm->Unk122 = -(D_800E0198->nFloor * 1800);
+        pEm->Damage_cnt = 0;
+        pEm->UnkC6 = 0;
+        pEm->Timer0 = D_800E0198->Timer0;
+        pEm->UnkDA = D_800E0198->UnkDA;
+        pEm->Unk12A = 0x1000;
+        pEm->pUnk114 = &Pl_work;
+        pEm->UnkE2 = 0;
+        pEm->UnkE3 = 0;
+        pEm->Kage.pKw = 0;
+        pEm->Unk144 = 0;
+        pEm->Add_dir = 0;
+        pEm->Unk14A = 0;
+        pEm->Unk14C = 0;
+        pEm->Unk14E = 0;
+        pEm->Unk150 = 0;
+        pEm->Unk152 = 0;
+        pEm->Water = 0;
+        pEm->Unk1B8 = 0;
+        pEm->Unk1BA = 0;
+        pEm->Unk1BC[0] = 0;
+        pEm->Unk1BC[1] = 0;
+        pEm->Unk1C0 = 0;
+        pEm->Unk1C1 = 0;
+        pEm->Unk1C2 = 0;
+        pEm->Unk1CA = 0;
+        pEm->Unk1C8 = 0;
+        pEm->Unk132 = 0;
+        pEm->Unk158 = 0;
+        pEm->Col.Id = 0;
+        pEm->UnkD = 0;
+        pEm->Root_ck_cnt = No & 7;
+        pG->pEm_mem = pNext;
+    }
+    pSce->Data += 0x18;
+    return 1;
+}
 
 ULONG Plc_motion(SCE_TASK *pSce)
 {
