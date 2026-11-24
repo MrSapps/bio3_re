@@ -13,7 +13,7 @@ rel = os.path.relpath(os.path.abspath(src), os.path.join(ROOT, "src"))[:-2]
 asm = os.path.join(ROOT, "asm/nonmatchings", rel, func + ".s")
 B = os.path.join(ROOT, "tools/binutils/usr/bin/mipsel-linux-gnu-")
 env = dict(os.environ, LD_LIBRARY_PATH=os.path.join(ROOT, "tools/binutils/usr/lib/x86_64-linux-gnu"))
-open(out + "/target.s", "w").write('.include "macro.inc"\n' + open(asm).read())
+open(out + "/target.s", "w").write('.include "macro.inc"\n.set noreorder\n.set noat\n' + open(asm).read())
 subprocess.run([B + "as", "-EL", "-march=r3000", "-msoft-float", "-no-pad-sections", "-G0", "-I" + ROOT + "/include",
                 "-o", out + "/target.o", out + "/target.s"], check=True, env=env)
 pre = subprocess.run(["cpp", "-P", "-undef", "-D__GNUC__=2", "-Dmips", "-D__psx__", "-D_LANGUAGE_C",
