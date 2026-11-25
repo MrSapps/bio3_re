@@ -454,3 +454,40 @@ text-identical functions into src/enemy/common/FAMILY (or src/ovl/common/FAMILY)
 - oba func_80034E78 (3): sll 8 / andi 0xff order. `((Fl << 8) & 0xFF00) | (Fl & 0xFF)` gives the order but
   swaps v0/v1: local-alloc gives the 6-ref shift chain priority over Fl (5 refs).
 - oba func_80035678 (9, agentC pm2.c still best).
+
+## Matching round agentF (drafts in the session scratchpad agentF/<dir>)
+Rules learnt:
+- "Parameters copied into t-regs at entry" is not proof of hand editing. The GT3/GT4 sort routines
+  (md_sub B6FC/B86C/CF90, 80079EC0 BC7C/BDF8) are C: a `goto` loop (no loop opt, constants not hoisted) whose
+  next vertex numbers are read ahead inside the body (`pZ0 = &pSz[v0]; ...; v0 = pPrim[1] >> 24; ...` before
+  gte_stopz). The block-local index temps take a0-a3 and the parameters move to t-regs. Vertex numbers are word
+  shifts of the uv words (`W[1] >> 24` gives lb 7, `(W[2] & 0xFF0000) >> 16` lbu 10), not byte fields.
+  `if (n == 0) return p;` vs `goto end` changes whether `move v0,t0` comes before the s-reg restores.
+- One local reused for two values fixes allocation more often than anything else: func_800503E8 (offset from
+  the corner, then the centre, in the same X/Z), CF90 (`Uv3` first holds the prim code), e5fc near miss (Dz holds
+  the half width first), Cut_be_set (index in the Cut variable).
+- `do { ... } while (0);` around a statement range raises the loop depth of its refs and so the global-alloc
+  priority (sca koban x/z, em_sub func_8001BA48, func_80018EC8). tools: agentF/dwgen.py FUNC.c OUTDIR wraps every
+  sibling statement range; feed the dir to tools/permute/score.py.
+- A plain copy that survives as `move` (Spd_get y): `ULONG Raw_y = (USHORT)p->vy; y = Raw_y;`.
+- A table pointer local (`pUv_tbl = D_80098B28;` then `pUv_tbl[i]`) orders lui/addiu before the index sll.
+- agentF/dscore.py DIR FILES: like score.py but counts difflib-unmatched words, so an extra/missing
+  instruction does not count every later word.
+Near misses:
+- md_sub func_8002DC98 (dc98/e.c, ~14 words incl. a 1-insn shift): GT3 sort with per-prim colours. Needs the
+  loads paired in temps (`W0 = ...; W1 = ...; store; store`), `Z0 = *pZ0` read before `if (Z > 0)`, separate
+  stsxy0/1/2 asms with the Otz read between the first two. Left: `sw s0` should sit in the lhu delay slot of
+  the prologue, and pZ0/pZ1/pZ2 get v1/a1/a0 instead of a1/a0/v1.
+- 80079EC0 func_8007B2FC (b2fc/b.c, 10 words): outer do-while (keeps &M+2/&M+4 and &LIGHTMATRIX hoisted, s0/s1),
+  inner read-ahead do-while. Left: gcc makes two givs for pData+2 (count read and inner loop), target one.
+- em_sub func_80019178 (s178/e.c): Spd_get twin on Unk1A0/Unk1A1 with 32-byte bone records; the target keeps
+  pSeq_t/pKan in the a-regs and copies them (t3/t5) for the second (Move_cnt == 0) part, and adds Bone_ofs to
+  the already advanced pKan there (a Capcom bug). Ours never produces the pSeq_t copy (one insn short).
+- sca func_8004C57C (koban_x hit, c57c/t1.c ~44 dscore): matches structurally only if pW (&D_800DEB58) and the
+  Tmp_Sca pointer are one variable (a2); rejected because that needs casts between SCA_WORK and SCA_DATA.
+- sca func_8004E5FC (e5fc/rr/g16.c): Dz reused for the half width gives the pT copy to t7; regs still off.
+- em_sub func_8001B894 (b894/e.c): Esp kill by Id; per-loop pointer from a top-level pTop gives the loop shape,
+  registers still differ everywhere.
+- em_sub func_8001BC80 (bc80): target loads all six halves first; no C form found (30).
+- sub func_800790F0 (s90f0/sw3/x1.c, 12): ICON_DATA icon select; cse reuses the All_a register for the
+  constant 1 in the second compare.

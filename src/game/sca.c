@@ -546,9 +546,82 @@ LONG func_8004E230(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     return H;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E38C);
+/* height of a koban (capsule) along X, RE2 Sca_ck_koban_x as a height routine: in the rounded ends the
+ * point must lie in the end circle (func_8004E38C = Sca_high_koban_x) */
+LONG func_8004E38C(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+{
+    SHORT D;
+    SHORT Half;
+    ULONG Zone;
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E4C4);
+    D = pT->Z1 - pT->Z0;
+    Half = D >> 1;
+    Zone = ((ULONG)(pPos->vx - (SHORT)(pT->X1 - Half)) >> 30) & 2;
+    Zone |= (ULONG)(pPos->vx - (SHORT)(pT->X0 + Half)) >> 31;
+    /* the loop is never repeated; the original has one (it changes register allocation) */
+    do {
+        switch (Zone) {
+        case 0:
+            Tmp_Sca.X1 = pT->X1;
+            Tmp_Sca.X0 = pT->X1 - D;
+            Tmp_Sca.Z1 = pT->Z1;
+            Tmp_Sca.Z0 = pT->Z0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        case 2:
+            return pT->High;
+        case 3:
+            Tmp_Sca.X1 = pT->X0 + D;
+            Tmp_Sca.X0 = pT->X0;
+            Tmp_Sca.Z1 = pT->Z1;
+            Tmp_Sca.Z0 = pT->Z0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        }
+    } while (0);
+}
+
+/* height of a koban (capsule) along Z, RE2 Sca_ck_koban_z as a height routine (func_8004E4C4 = Sca_high_koban_z) */
+LONG func_8004E4C4(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+{
+    SHORT W;
+    SHORT Half;
+    ULONG Zone;
+
+    W = pT->X1 - pT->X0;
+    Half = W >> 1;
+    Zone = ((ULONG)(pPos->vz - (SHORT)(pT->Z1 - Half)) >> 30) & 2;
+    Zone |= (ULONG)(pPos->vz - (SHORT)(pT->Z0 + Half)) >> 31;
+    /* the loop is never repeated; the original has one (it changes register allocation) */
+    do {
+        switch (Zone) {
+        case 0:
+            Tmp_Sca.Z1 = pT->Z1;
+            Tmp_Sca.Z0 = pT->Z1 - W;
+            Tmp_Sca.X1 = pT->X1;
+            Tmp_Sca.X0 = pT->X0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        case 2:
+            return pT->High;
+        case 3:
+            Tmp_Sca.Z1 = pT->Z0 + W;
+            Tmp_Sca.Z0 = pT->Z0;
+            Tmp_Sca.X1 = pT->X1;
+            Tmp_Sca.X0 = pT->X0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        }
+    } while (0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E5FC);
 
@@ -1142,7 +1215,50 @@ USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT)
     return Dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_800503E8);
+/* quadrant of the shape the point is in (45 degree shapes are rotated first): bit 0 left of the centre,
+ * bit 2 right, bit 3 in front, bit 1 behind (on a centre line both bits of that axis) */
+USHORT func_800503E8(VECTOR *pPos, SCA_DATA *pT)
+{
+    VECTOR Pos;
+    VECTOR *pP;
+    ULONG Dir;
+    LONG X; /* offset from the corner, then the centre */
+    LONG Z;
+
+    pP = &Pos;
+    if (pT->Type & 0x1000) {
+        X = pPos->vx - pT->X0;
+        Z = pPos->vz - pT->Z0;
+        Pos.vx = (X - Z) * 181 >> 8;
+        Pos.vz = (X + Z) * 181 >> 8;
+        Pos.vx += pT->X0;
+        Pos.vz += pT->Z0;
+    } else {
+        Pos.vx = pPos->vx;
+        Pos.vz = pPos->vz;
+    }
+    X = pT->X0 + ((pT->X1 - pT->X0) >> 1);
+    Z = pT->Z0 + ((pT->Z1 - pT->Z0) >> 1);
+    if (pP->vx >= X) {
+        if (pP->vx == X) {
+            Dir = 5;
+        } else {
+            Dir = 4;
+        }
+    } else {
+        Dir = 1;
+    }
+    if (pP->vz >= Z) {
+        if (pP->vz == Z) {
+            Dir |= 0xA;
+        } else {
+            Dir |= 2;
+        }
+    } else {
+        Dir |= 8;
+    }
+    return Dir;
+}
 
 /* is the object inside the extent of the wall it hit, along the wall's axis (func_800502B8 = RE2 Sca_get_dir) */
 LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT)

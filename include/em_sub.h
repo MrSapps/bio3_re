@@ -68,7 +68,7 @@ extern ESP_DATA Esp_data[32];
 
 ULONG Gacha_ch(void);
 ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi);
-void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG Flg);
 void Spd_get2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
 void Spd_get_sub(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);

@@ -414,9 +414,149 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get);
+/* RE2 Spd_get: Spd_x/y/z = root (bone 0) offset of this animation frame minus the last frame's (Spd_base);
+ * Flg & 1 plays the sequence backwards, Flg < 0 just reads the offset */
+void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, LONG Flg)
+{
+    USHORT *pSeq;
+    ULONG f_num;
+    SHORT f_base;
+    ULONG Rec_sz;
+    UCHAR *pTop;
+    UCHAR *Bone_adr;
+    SHORT x;
+    SHORT y;
+    SHORT z;
+    ULONG Raw_y;
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get2);
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
+    pTop = (UCHAR *)pSeq_t;
+    f_base = pSeq[2];
+    f_num = pSeq[0];
+    pSeq++;
+    if (Flg & 1) {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
+    } else {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
+    }
+    Rec_sz = ((KAN_HEAD *)pKan)->Rec_sz >> 18;
+    Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+    Bone_adr += Rec_sz * (f_base + *(UCHAR *)pSeq) * 4;
+    x = ((SVECTOR *)Bone_adr)->vx;
+    z = ((SVECTOR *)Bone_adr)->vz;
+    Raw_y = (USHORT)((SVECTOR *)Bone_adr)->vy;
+    y = Raw_y;
+    if (pEm->Move_cnt == 0 && Flg >= 0) {
+        /* first frame: the base is 0, or (backwards) the offsets of the last and the first frame */
+        *(ULONG *)&pEm->Spd_base_x = 0;
+        pEm->Spd_base_z = 0;
+        if (Flg & 1) {
+            pEm->Spd_base_x = x;
+            pEm->Spd_base_y = y;
+            pEm->Spd_base_z = z;
+            pSeq = (USHORT *)(pTop + pEm->Move_no * 8);
+            pSeq = (USHORT *)((UCHAR *)pSeq_t + pSeq[1]);
+            Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+            Bone_adr += Rec_sz * (f_base + *(UCHAR *)pSeq) * 4;
+            pEm->Spd_base_x += ((SVECTOR *)Bone_adr)->vx;
+            pEm->Spd_base_y += ((SVECTOR *)Bone_adr)->vy;
+            pEm->Spd_base_z += ((SVECTOR *)Bone_adr)->vz;
+        }
+    }
+    pEm->Spd_x = x;
+    pEm->Spd_y = y;
+    pEm->Spd_z = z;
+    if (Flg >= 0) {
+        pEm->Spd_x -= pEm->Spd_base_x;
+        pEm->Spd_y -= pEm->Spd_base_y;
+        pEm->Spd_z -= pEm->Spd_base_z;
+        /* Spd_base_x/y in one word store (x is not masked) */
+        *(ULONG *)&pEm->Spd_base_x = x | (y << 16);
+        pEm->Spd_base_z = z;
+    }
+}
+
+/* Spd_get for sequences with in-between frames (seq word bit 8, rate in the low byte):
+ * Spd_x/y/z = root offset of this frame minus the last frame's (Spd_base); R_flg plays it backwards */
+void Spd_get2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
+{
+    USHORT *pSeq;
+    ULONG f_num;
+    SHORT f_base;
+    ULONG Rec_sz;
+    UCHAR *pTop;
+    UCHAR *Bone_adr;
+    PARTS_W *pP;
+    ULONG w;
+    ULONG r;
+    USHORT rr;
+    SHORT x;
+    SHORT y;
+    SHORT z;
+
+    pTop = (UCHAR *)pSeq_t;
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
+    f_base = pSeq[2];
+    f_num = pSeq[0];
+    pSeq++;
+    if (R_flg != 0) {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
+    } else {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
+    }
+    w = *pSeq;
+    if (w & 0x100) {
+        /* in-between frame: interpolate the stored root offset (as get_null_pos2) */
+        r = w & 0xFF;
+        rr = r;
+        if (R_flg != 0) {
+            if (!(pSeq[1] & 0x100)) {
+                Hokan_key_set(pKan, pSeq_t, pSeq + 1, R_flg);
+            }
+            rr = 0x100 - r;
+        } else {
+            if (!(pSeq[-1] & 0x100)) {
+                Hokan_key_set(pKan, pSeq_t, pSeq - 1, 0);
+            }
+        }
+        pP = pEm->pSin_parts_ptr;
+        x = (USHORT)pP->Pos_base_x + ((pP->Pos_step_x * rr) >> 8);
+        y = (USHORT)pP->Pos_base_y + ((pP->Pos_step_y * rr) >> 8);
+        z = (USHORT)pP->Pos_base_z + ((pP->Pos_step_z * rr) >> 8);
+    } else {
+        Rec_sz = ((KAN_HEAD *)pKan)->Rec_sz >> 16;
+        Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+        Bone_adr += (Rec_sz >> 2) * (f_base + (w & 0xFF)) * 4;
+        /* the loop is never repeated; the original has one (it changes register allocation) */
+        do {
+            x = ((SVECTOR *)Bone_adr)->vx;
+            y = ((SVECTOR *)Bone_adr)->vy;
+            z = ((SVECTOR *)Bone_adr)->vz;
+        } while (0);
+    }
+    if (pEm->Move_cnt == 0) {
+        if (R_flg != 0) {
+            pEm->Spd_base_x = x;
+            pEm->Spd_base_y = y;
+            pEm->Spd_base_z = z;
+            pSeq = (USHORT *)(pTop + pEm->Move_no * 8);
+            pSeq = (USHORT *)((UCHAR *)pSeq_t + pSeq[1]);
+            Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+            Bone_adr += (Rec_sz >> 2) * (f_base + *(UCHAR *)pSeq) * 4;
+            pEm->Spd_base_x += ((SVECTOR *)Bone_adr)->vx;
+            pEm->Spd_base_y += ((SVECTOR *)Bone_adr)->vy;
+            pEm->Spd_base_z += ((SVECTOR *)Bone_adr)->vz;
+        } else {
+            *(ULONG *)&pEm->Spd_base_x = 0;
+            pEm->Spd_base_z = 0;
+        }
+    }
+    pEm->Spd_x = x - pEm->Spd_base_x;
+    pEm->Spd_y = y - pEm->Spd_base_y;
+    pEm->Spd_z = z - pEm->Spd_base_z;
+    *(ULONG *)&pEm->Spd_base_x = x | (y << 16);
+    pEm->Spd_base_z = z;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get_sub);
 
@@ -1161,7 +1301,40 @@ INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_call);
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_kill);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_ctrl);
+/* set the four routine bytes (Rtn01 = Routine_0 | Routine_1 << 16, Rtn23 = Routine_2 | Unk03 << 16) of the live
+ * effects of kind Id, only those attached to pM unless pM is NULL (RE2 Esp_ctrl sets Routine0 alone) */
+void Esp_ctrl(ULONG Id, MATRIX *pM, ULONG Rtn01, ULONG Rtn23)
+{
+    ULONG i;
+    ESP_WORK *pEw;
+    UCHAR Rtn1, Rtn3;
+
+    Rtn1 = Rtn01 >> 16;
+    Rtn3 = Rtn23 >> 16;
+    pEw = Esp;
+    /* the loop is never repeated; the original has one (it changes register allocation) */
+    do {
+        if (pM != NULL) {
+            for (i = 0; i < 96; i++, pEw++) {
+                if ((pEw->Be_flg & 0x8000) && pEw->Id.W == (USHORT)Id && pEw->pMat == pM) {
+                    pEw->Routine_0 = Rtn01;
+                    pEw->Routine_1 = Rtn1;
+                    pEw->Routine_2 = Rtn23;
+                    pEw->Unk03 = Rtn3;
+                }
+            }
+        } else {
+            for (i = 0; i < 96; i++, pEw++) {
+                if ((pEw->Be_flg & 0x8000) && pEw->Id.W == (USHORT)Id) {
+                    pEw->Routine_0 = Rtn01;
+                    pEw->Routine_1 = Rtn1;
+                    pEw->Routine_2 = Rtn23;
+                    pEw->Unk03 = Rtn3;
+                }
+            }
+        }
+    } while (0);
+}
 
 /* run every live effect: routine, movement, ground checks and sprite sequence (RE2 Esp_move) */
 void Esp_task_main(void)
@@ -1314,7 +1487,7 @@ ESP_WORK *Esp_search(USHORT Id)
         } while (pEw > &Esp[-1]); /* down to Esp[0] */
     } else {
         do {
-            if (pEw->Be_flg != 0 && pEw->Id.W == Id) {
+            if (pEw->Be_flg != 0 && pEw->Id.W == (USHORT)Id) {
                 return pEw;
             }
             pEw--;

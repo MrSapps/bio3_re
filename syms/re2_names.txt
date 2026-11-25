@@ -860,3 +860,5 @@ Weapon_at_ck = 0x80044804; // type:func
 Pos_em_at_ck = 0x800472EC; // type:func
 pDoor = 0x800BA6F8; // DOOR * RE2 pDoor[0]
 pDwork = 0x800BA700; // DOOR_WORK *[10] RE2 pDwork[]
+Sca_high_koban_x = 0x8004E38C; // type:func sca: height of a koban (capsule) along X, end zones tested with Sca_ck_circle2 on Tmp_Sca, RE2 SCA.C Sca_ck_koban_x as a height routine. C keeps func_8004E38C until the main split (D_8009E028 table in asm data)
+Sca_high_koban_z = 0x8004E4C4; // type:func sca: same along Z, RE2 SCA.C Sca_ck_koban_z. C keeps func_8004E4C4 until the main split (asm data table)

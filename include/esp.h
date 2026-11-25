@@ -98,7 +98,7 @@ void Esp_data_set1(ULONG *pTim);
 #define ESP_NONE ((ESP_WORK *)-1)
 ESP_WORK *Esp_call_child(ESP_WORK *pParent, ULONG Id, ULONG Dir_size, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
 ESP_WORK *Esp_call(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd);
-void Esp_ctrl();
+void Esp_ctrl(ULONG Id, MATRIX *pM, ULONG Rtn01, ULONG Rtn23); /* set the routines of the effects of Id on pM */
 void Esp_task_main(void);
 void Esp_speed_add(ESP_WORK *pEw);
 void Esp_pos_matrix(ESP_WORK *pEw);

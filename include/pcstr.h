@@ -86,8 +86,9 @@ void Skin_vtx2(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 void Skin_light0(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
 void Skin_light1(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
 void Skin_light2(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-LONG Skin_sort_gt3(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
-LONG Skin_sort_gt4(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
+struct tagSORT_PRM; /* sort list work (80079EC0.c) */
+POLY_GT3 *Skin_sort_gt3(struct tagSORT_PRM *pPrm, POLY_GT3 *pPrim, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *Skin_sort_gt4(struct tagSORT_PRM *pPrm, POLY_GT4 *pPrim, ULONG *pSxy, SHORT *pSz);
 void Skin_vtx0_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 void Skin_vtx2_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
