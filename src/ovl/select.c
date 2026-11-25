@@ -644,9 +644,9 @@ UCHAR *Select_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
 
 #include "ovl/common/jill_sel/Jill_light_set.inc.c"
 
-/* loads a model's weapon (Jill_wep_cd file), uploads its TIM and calls the weapon init routine; returns the
- * next free address */
-INCLUDE_ASM("asm/nonmatchings/ovl/select", Jill_wep_load);
+#include "ovl/common/jill_sel/Jill_wep_load.inc.c"
+/* unreferenced empty string after "WEP DATA" in the original .rodata */
+__asm__(".section .rodata\n\t.byte 0, 0, 0, 0\n\t.section .text");
 
 /* RE2 Select_moji_set */
 void Select_moji_set(ULONG *pDst, SELECT_MOJI_REC *pSrc)

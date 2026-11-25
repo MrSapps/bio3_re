@@ -239,7 +239,141 @@ ULONG Moji_recip(ULONG Val)
 }
 
 /* RE2 Branch_disp: yes/no choice of a message */
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Branch_disp);
+void Branch_disp(MOJIDISP *pMoji, UCHAR *pData)
+{
+    UCHAR *pStr;
+    LONG Num;
+    LONG Sel;
+    ULONG i;
+    USHORT Mode;
+    ULONG X;
+    ULONG Y;
+    SPRT *pP;
+    LONG Pos;
+    LONG Cur;
+    LONG W;
+    ULONG n;
+
+    n = (*pData++ >> 4) & 7;
+    if (n == 0) {
+        Num = 2;
+        pStr = Mess_sel_text;
+    } else {
+        Num = n;
+        pStr = pData;
+    }
+    Sel = G.Mess_sel;
+    if (pMoji->Timer != 0) {
+        pMoji->Timer--;
+    }
+    if (G.Key_trg & 0x1000) {
+        if (pMoji->Timer == 0) {
+            LONG Se;
+
+            G.Key = 0xFFFF;
+            pMoji->Mess_flg = (pMoji->Mess_flg & 0x7F) | 0x40;
+            G.Stop_flg = pMoji->Stop_keep;
+            if (!(pMoji->Mess_attr2 & 0x400)) {
+                Se = 6;
+                if (Sel != 0) {
+                    if (Sel == 1) {
+                        Se = 5;
+                    }
+                }
+                Snd_se_stad(Se, 0, 0, 0);
+            }
+        }
+    } else if (*(ULONG *)&G.Padd_trg & 0xA000) {
+        USHORT Key = G.Padd_trg;
+
+        if (Key & 0x2000) {
+            Sel++;
+        }
+        if (Key & 0x8000) {
+            Sel--;
+        }
+        if (Sel >= Num) {
+            Sel = 0;
+        }
+        if (Sel < 0) {
+            Sel = Num - 1;
+        }
+        Snd_se_stad(4, 0, 0, 0);
+        pMoji->Timer = 0;
+        pMoji->Mess_time = 0;
+    }
+    G.Mess_sel = Sel;
+    if ((pMoji->Mess_attr2 & 0x3000) == 0x1000) {
+        X = 0xD2;
+        Y = 0xCD;
+    } else {
+        X = 0x11E;
+        Y = 0xC9;
+    }
+    pP = Moji.pPrim14_cur;
+    Mode = pMoji->Mess_attr2 & 0x100;
+    Pos = 0;
+    for (i = 0; i < Num; i++) {
+        if (i == Sel) {
+            Cur = X + Pos - 0xB;
+        }
+        Mess_print(X + Pos, Y, pStr, pMoji->Mess_attr2);
+        while (1) {
+            W = 14;
+            switch (*pStr) {
+            case 0xEA:
+            case 0xEB:
+            case 0xEC:
+            case 0xED:
+            case 0xEE:
+            case 0xEF:
+            case 0xF0:
+                pStr++;
+                break;
+            case 0xF5:
+                break;
+            case 0xF6:
+                W = 7;
+                break;
+            case 0xF7:
+            case 0xFC:
+                pStr++;
+                continue;
+            case 0xF3:
+            case 0xF4:
+            case 0xF8:
+            case 0xF9:
+            case 0xFA:
+            case 0xFD:
+                pStr += 2;
+                continue;
+            case 0xFE:
+                pStr++;
+                goto next;
+            default:
+                W = Moji_char_width(Mode, *pStr, &Pos);
+                break;
+            }
+            Pos += W;
+            pStr++;
+        }
+    next:
+        Pos += 0x13;
+    }
+    Pos -= 0x13;
+    Cur -= Pos;
+    do {
+        while (pP < Moji.pPrim14_cur) {
+            pP->x0 -= Pos;
+            pP++;
+        }
+        pMoji->Mess_time--;
+        if (pMoji->Mess_time & ((Main.Vloop == 1) ? 0x30 : 0x18)) {
+            Print_color(0xFF, 0, 0);
+            Print14(Cur, Y, "&");
+        }
+    } while (0);
+}
 
 /* live selection choice: two lines and the blinking cursor (colour by Live_sel.Step) */
 void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
@@ -426,7 +560,147 @@ void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
 }
 
 /* RE2 mess_trans: interprets the message control codes */
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", mess_trans);
+void mess_trans(MOJIDISP *pMoji)
+{
+    SPRT *pP;
+    UCHAR *pStr;
+    UCHAR *pKeep;
+    DR_TPAGE *pOt;
+    DR_TPAGE *pDr_mode;
+    ULONG Col;
+    ULONG Clut;
+    ULONG Mode;
+    SPRT *pEnd;
+    LONG W;
+    LONG Xy;
+    ULONG Glyph_v;
+
+    pP = Moji.pPrim14_cur;
+    pEnd = Moji.Prim_sprt[G.Cbuf_id + 1];
+    if (pP >= pEnd) {
+        return;
+    }
+    Col = 0;
+    pStr = pMoji->Mess_top;
+    pMoji->Mess_pos_y = pMoji->Pos_y_def;
+    Xy = pMoji->Pos_x_def | (pMoji->Mess_pos_y << 16);
+    W = (pMoji->Mess_attr2 & 7) * 2;
+    pDr_mode = &pMoji->Moji_mode[G.Cbuf_id][W];
+    Mode = (USHORT)(pMoji->Mess_attr2 & 0x100);
+    if (pStr != pMoji->Mess_end) {
+        do {
+            W = 14;
+            if (*pStr == 0) {
+                goto zero;
+            }
+            switch (*pStr) {
+            case 0xEA:
+                pStr++;
+                Clut = GetClut(0x100, Col * 2 | 0x1E0);
+                Glyph_v = (UCHAR)(*pStr / 18) * 14 - 0x2E;
+                goto mode;
+            case 0xEB:
+                pStr++;
+                pOt = pDr_mode + 1;
+                Clut = GetClut(0x100, Col * 2 | 0x1E0);
+                pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                goto glyph;
+            case 0xEC:
+                pStr++;
+                pOt = pDr_mode + 1;
+                Clut = GetClut(0x100, Col * 2 | 0x1E0);
+                pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                goto glyph;
+            case 0xED:
+                pStr++;
+                Clut = GetClut(0x100, Col * 2 + 0x1EA);
+                Glyph_v = (UCHAR)(*pStr / 18) * 14;
+                goto mode;
+            case 0xEE:
+                pStr++;
+                Clut = GetClut(0x100, Col * 2 + 0x1EA);
+                Glyph_v = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                goto mode;
+            case 0xEF:
+                pStr++;
+                pOt = pDr_mode + 1;
+                Clut = GetClut(0x100, Col * 2 + 0x1EA);
+                pP->v0 = (UCHAR)(*pStr / 18) * 14;
+                goto glyph;
+            case 0xF0:
+                pStr++;
+                pOt = pDr_mode + 1;
+                Clut = GetClut(0x100, Col * 2 + 0x1EA);
+                pP->v0 = (UCHAR)(*pStr / 18) * 14 - 0x3C;
+                goto glyph;
+            case 0xF5:
+                W = Moji_char_width(Mode, 0, &Xy);
+                goto adv;
+            case 0xF6:
+                W = 7;
+                goto adv;
+            case 0xF7:
+                pStr = pKeep + 2;
+                continue;
+            case 0xF8:
+                pKeep = pStr;
+                pStr++;
+                pStr = name_ptr_set(*pStr == 0 ? pMoji->Mess_item : *pStr);
+                continue;
+            case 0xF9:
+                pStr++;
+                Col = *pStr++ & 0xF;
+                continue;
+            case 0xF3:
+            case 0xF4:
+            case 0xFA:
+                pStr += 2;
+                continue;
+            case 0xFC:
+                pStr++;
+                pMoji->Mess_pos_y += 0x10;
+                Xy = pMoji->Pos_x_def | (pMoji->Mess_pos_y << 16);
+                continue;
+            case 0xFD:
+                pMoji->Mess_pos_y = pMoji->Pos_y_def;
+                pStr += 2;
+                continue;
+            case 0xFE:
+                pMoji->Mess_pos_y = pMoji->Pos_y_def;
+                pStr++;
+                continue;
+            default:
+                W = Moji_char_width(Mode, *pStr, &Xy);
+                Clut = GetClut(0x100, Col * 2 | 0x1E0);
+                Glyph_v = (UCHAR)(*pStr / 18) * 14 + 0x1C;
+            mode:
+                pP->v0 = Glyph_v;
+                pOt = pDr_mode;
+            glyph:
+            *(ULONG *)&pP->x0 = Xy;
+            *(ULONG *)&pP->r0 = 0x64808080;
+            pP->u0 = (UCHAR)(*pStr % 18) * 14;
+            pP->clut = Clut;
+            *(ULONG *)&pP->w = 0xE000E;
+            AddPrim(pOt, pP);
+                pP++;
+                if (pP >= pEnd) {
+                    goto exit;
+                }
+                goto adv;
+            zero:
+                W = Moji_char_width(Mode, *pStr, &Xy);
+            adv:
+                Xy += W;
+                pStr++;
+                break;
+            }
+        } while (pStr != pMoji->Mess_end);
+    }
+exit:
+    Moji.pPrim14_cur = pP;
+    pMoji->Mess_pos_x = Xy;
+}
 
 /* RE2 Name_disp: draws an item name */
 void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item)

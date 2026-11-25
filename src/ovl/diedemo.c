@@ -977,7 +977,97 @@ void Die_blood_move_init(void)
 }
 
 /* RE2 Die_spr_move_main: falling 16x16 grid of the death picture, GTE-projected and brightened by distance */
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo", Die_spr_move_main);
+void Die_spr_move_main(void)
+{
+    SVECTOR V[4];
+    SHORT Row;
+    SHORT Col;
+    SHORT Rgb;
+    SHORT Ofs;
+    LONG Dz0;
+    LONG Dz1;
+    POLY_GT4 *p;
+    POLY_GT4 *q;
+
+    if (++pDiespr->Free2 < pDiespr->Move_start) {
+        return;
+    }
+    for (Row = 0; Row < 17; Row++) {
+        for (Col = 0; Col < 17; Col++) {
+            if (pDiespr->Free4) {
+                pDiespr->Pos[Col][Row].vy += pDiespr->Free4;
+            }
+        }
+    }
+    if (--pDiespr->Free5 == 0) {
+        switch (pDiespr->Free4) {
+        case 4:
+            pDiespr->Free5 = 3;
+            break;
+        case 3:
+            pDiespr->Free5 = 5;
+            break;
+        case 2:
+            pDiespr->Free5 = 8;
+            break;
+        default:
+            pDiespr->Free5 = 1;
+            break;
+        }
+        pDiespr->Free4 -= (pDiespr->Free4 != 0);
+    }
+    p = pDiespr->Pgt4[G.Cbuf_id];
+    q = pDiespr->Pgt4[G.Cbuf_id ^ 1];
+    for (Row = 0; Row < 16; Row++) {
+        for (Col = 0; Col < 16; Col++) {
+            /* [17] is the next column */
+            V[0] = (&pDiespr->Pos[Col][Row])[0];
+            V[1] = (&pDiespr->Pos[Col][Row])[17];
+            V[2] = (&pDiespr->Pos[Col][Row + 1])[0];
+            V[3] = (&pDiespr->Pos[Col][Row + 1])[17];
+            RotTransPers3(&V[0], &V[1], &V[2], (long *)&p->x0, (long *)&p->x1, (long *)&p->x2, NULL, NULL);
+            RotTransPers(&V[3], (long *)&p->x3, NULL, NULL);
+            Ofs = pDiespr->Free2 - pDiespr->Move_start;
+            Dz0 = Ofs * Row >> 1;
+            Dz1 = Ofs * (Row + 1) >> 1;
+            V[0].vz += Dz0;
+            V[1].vz += Dz0;
+            V[2].vz += Dz1;
+            V[3].vz += Dz1;
+            Rgb = ((0xFF - pDiespr->Dist[Col][Row]) / 28);
+            Rgb += p->r0;
+            if (Rgb > 250) {
+                Rgb = 250;
+            }
+            q->r0 = p->r0 = Rgb;
+            Rgb = ((0xFF - pDiespr->Dist[Col + 1][Row]) / 28);
+            Rgb += p->r1;
+            if (Rgb > 250) {
+                Rgb = 250;
+            }
+            q->r1 = p->r1 = Rgb;
+            Rgb = ((0xFF - pDiespr->Dist[Col][Row + 1]) / 28);
+            Rgb += p->r2;
+            if (Rgb > 250) {
+                Rgb = 250;
+            }
+            q->r2 = p->r2 = Rgb;
+            Rgb = ((0xFF - pDiespr->Dist[Col + 1][Row + 1]) / 28);
+            Rgb += p->r3;
+            if (Rgb > 250) {
+                Rgb = 250;
+            }
+            q->r3 = p->r3 = Rgb;
+            AddPrim(G.pOt0 + 5, p);
+            p++;
+            q++;
+        }
+    }
+    if (pDiespr->Free2 > pDiespr->Move_start + 48) {
+        pDiespr->Free2 = 0;
+        pDiespr->Rno++;
+    }
+}
 
 /* RE2 Die_spr_move_hold: shake the lower rows, draw the grid */
 void Die_spr_move_hold(void)
@@ -1097,7 +1187,144 @@ void Die_spr_move_end(void)
 }
 
 /* RE2 Die_blood_move_main: projects and fades the blood quads, adds them to the OT */
-INCLUDE_ASM("asm/nonmatchings/ovl/diedemo", Die_blood_move_main);
+void Die_blood_move_main(void)
+{
+    SVECTOR V[4];
+    SHORT Pct;
+    SHORT Col;
+    SHORT Row;
+    SHORT Grp;
+    LONG Size;
+    LONG Amp;
+    SHORT t;
+    POLY_FT4 *p;
+
+    Pct = 100 - pDiespr->Ctr;
+    if (Pct < 0) {
+        return;
+    }
+    for (Grp = 0; Grp < 3; Grp++) {
+        p = pDiespr->Blood[Grp][G.Cbuf_id][0];
+        for (Row = 0; Row < 16; Row++) {
+            for (Col = 0; Col < 16; Col += 2) {
+                /* [34] is two columns on */
+                V[0] = (&pDiespr->Pos[Col][Row])[0];
+                V[1] = (&pDiespr->Pos[Col][Row])[34];
+                V[2] = (&pDiespr->Pos[Col][Row + 1])[0];
+                V[3] = (&pDiespr->Pos[Col][Row + 1])[34];
+                switch (Grp) {
+                case 0:
+                    if (pDiespr->Ctr < 5) {
+                        p->r0 = pDiespr->Ctr * 40;
+                        Size = pDiespr->Ctr * pDiespr->Ctr * 14 + 0x168;
+                    } else {
+                        p->r0 = 200;
+                        Size = 600;
+                    }
+                    V[0].vx += 0x5A;
+                    V[1].vx += 0x5A;
+                    V[2].vx += 0x5A;
+                    V[3].vx += 0x5A;
+                    break;
+                case 1:
+                    t = pDiespr->Ctr - 4;
+                    if (t >= 0) {
+                        if (t < 5) {
+                            p->r0 = t * 40;
+                            Size = t * t * 14 + 200;
+                        } else {
+                            p->r0 = 200;
+                            Size = 0x1B8;
+                        }
+                        V[0].vx += 0x104;
+                        V[1].vx += 0x104;
+                        V[2].vx += 0x104;
+                        V[3].vx += 0x104;
+                        V[0].vz += -0x70;
+                        V[1].vz += -0x70;
+                        V[2].vz += -0x70;
+                        V[3].vz += -0x70;
+                    }
+                    break;
+                case 2:
+                    t = pDiespr->Ctr - 9;
+                    if (t >= 0) {
+                        if (t < 3) {
+                            p->r0 = t * 40;
+                            Size = t * t * 10 + 0xA0;
+                        } else {
+                            p->r0 = 200;
+                            Size = 0x140;
+                        }
+                        V[0].vx += -0x10E;
+                        V[1].vx += -0x10E;
+                        V[2].vx += -0x10E;
+                        V[3].vx += -0x10E;
+                        V[0].vz += -0x54;
+                        V[1].vz += -0x54;
+                        V[2].vz += -0x54;
+                        V[3].vz += -0x54;
+                    }
+                    break;
+                }
+                if (p->r0 != 0) {
+                    V[0].vy = Size;
+                    V[1].vy = Size;
+                    V[2].vy = Size;
+                    V[3].vy = Size;
+                    V[0].vz *= 2;
+                    V[1].vz *= 2;
+                    V[2].vz *= 2;
+                    V[3].vz *= 2;
+                    if (pDiespr->Ctr > 20) {
+                        Amp = 0x1000 + rcos((Grp << 16) + (Col << 6)) + rcos((Grp * 7 + Col) << 8);
+                        Amp /= 320;
+                        Amp *= pDiespr->Ctr - 20;
+                        switch ((Col >> 1) & 3) {
+                        case 0:
+                        case 3:
+                            V[0].vz += Amp * (Row + 1) / 40 >> 4;
+                            V[1].vz += Amp * (Row + 1) / 40 >> 4;
+                            V[2].vz += Amp * (Row + 2) / 40 >> 4;
+                            V[3].vz += Amp * (Row + 2) / 40 >> 4;
+                            break;
+                        case 1:
+                            V[0].vz += Amp * (Row + 1) / 40 >> 4;
+                            V[1].vz += Amp * (Row + 1) / 40 >> 3;
+                            V[2].vz += Amp * (Row + 2) / 40 >> 4;
+                            V[3].vz += Amp * (Row + 2) / 40 >> 3;
+                            break;
+                        case 2:
+                            V[0].vz += Amp * (Row + 1) / 40 >> 3;
+                            V[1].vz += Amp * (Row + 1) / 40 >> 4;
+                            V[2].vz += Amp * (Row + 2) / 40 >> 3;
+                            V[3].vz += Amp * (Row + 2) / 40 >> 4;
+                            break;
+                        }
+                        if (Row == 15) {
+                            V[2].vz += Amp >> 4;
+                            V[3].vz += Amp >> 4;
+                        }
+                    }
+                    RotTransPers3(&V[0], &V[1], &V[2], (long *)&p->x0, (long *)&p->x1, (long *)&p->x2, NULL, NULL);
+                    RotTransPers(&V[3], (long *)&p->x3, NULL, NULL);
+                    if (Pct < 41) {
+                        SetSemiTrans(p, 1);
+                        p->r0 = Pct * 6;
+                        if (Pct < 20) {
+                            pDiespr->Blood_flg = 1;
+                            p->tpage = 0xB5;
+                            p->r0 = Pct * 3;
+                        }
+                    }
+                    AddPrim(G.pOt1 + 8, p);
+                }
+                p++;
+            }
+        }
+    }
+    pDiespr->Ctr++;
+}
 
 /* RE2 Die_spr_load: RE3 has one picture for every player */
 void Die_spr_load(void)

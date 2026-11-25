@@ -1,0 +1,91 @@
+/* shared by jill_sel, select */
+/* loads a model's weapon (Jill_wep_cd file), uploads its TIM and calls the weapon init routine; returns the
+ * address of the weapon TIM */
+UCHAR *Jill_wep_load(ENEMY_WORK *pEm, ULONG *pWork, LONG No)
+{
+    PARTS_W *pW;
+    PARTS_W *pTop;
+    UCHAR *pData;
+    LONG *pOfs;
+    ULONG Cnt;
+    UCHAR Parts_no;
+    MD_OBJ *pTmd;
+    TIM_IMAGE *pTim;
+    TIM_IMAGE Tim;
+    UCHAR *pTim_data;
+
+    pTop = (PARTS_W *)pWork;
+    pData = (UCHAR *)&pTop[4];
+    Cd_read(Jill_wep_cd[No] + (UCHAR)pEm->Type, (ULONG *)pData, 0, "WEP DATA");
+    pOfs = (LONG *)(pData + *(LONG *)&pTop[4]);
+    Parts_no = pEm->Parts_num;
+    Cnt = *(ULONG *)(pData + pOfs[7] + 4);
+    pEm->Parts_num = Parts_no + Cnt;
+    pEm->pSub0_seq_t_ptr = (ULONG *)(pData + pOfs[0]);
+    pEm->pSub0_kan_t_ptr = (ULONG *)(pData + pOfs[1]);
+    pTim_data = pData + pOfs[8];
+    OpenTIM((ULONG *)pTim_data);
+    pTim = ReadTIM(&Tim);
+    pTim->prect->x = pEm->Tpage * 0x40 + 100;
+    pTim->prect->y = 0xE0;
+    pTim->prect->w = 0x1C;
+    pTim->prect->h = 0x20;
+    LoadImage(pTim->prect, pTim->paddr);
+    DrawSync(0);
+    pTim->crect->x = 0xF0;
+    pTim->crect->y = pEm->Clut + 0x1E1;
+    pTim->crect->w = 0x10;
+    pW = pTop;
+    LoadImage(pTim->crect, pTim->caddr);
+    DrawSync(0);
+    Mapping_md((ULONG *)(pData + pOfs[7]), pEm->Tpage, pEm->Clut);
+    pEm->pUnk180_seq_t_ptr = (ULONG *)(pData + pOfs[2]);
+    pEm->pUnk184_kan_t_ptr = (ULONG *)(pData + pOfs[3]);
+    pEm->pUnk1B4 = (ULONG *)(pData + pOfs[4]);
+    pEm->pUnk188_seq_t_ptr = (ULONG *)(pData + pOfs[5]);
+    pEm->pUnk18C_kan_t_ptr = (ULONG *)(pData + pOfs[6]);
+    pTmd = (MD_OBJ *)(pData + pOfs[7] + 8);
+    do {
+        pW->UnkA2 = 0;
+        pW->pSuper = &GsIDMATRIX;
+        pW->Old_x = 0;
+        pW->Pos_x = 0;
+        pW->Old_y = 0;
+        pW->Pos_y = 0;
+        pW->Old_z = 0;
+        pW->Pos_z = 0;
+        pW->pTmd = pTmd;
+        *(ULONG *)&pW->Workm.m[0][0] = 0x1000;
+        *(ULONG *)&pW->Workm.m[0][2] = 0;
+        *(ULONG *)&pW->Workm.m[1][1] = 0x1000;
+        *(ULONG *)&pW->Workm.m[2][0] = 0;
+        *(ULONG *)&pW->Workm.m[2][2] = 0x1000;
+        pW->Workm.t[0] = 0;
+        pW->Workm.t[1] = 0;
+        pW->Workm.t[2] = 0;
+        *(ULONG *)&pW->M[0][0] = 0x1000;
+        *(ULONG *)&pW->M[0][2] = 0;
+        *(ULONG *)&pW->M[1][1] = 0x1000;
+        *(ULONG *)&pW->M[2][0] = 0;
+        *(ULONG *)&pW->M[2][2] = 0x1000;
+        pW->Attribute = 0;
+        pW->Poly_rgb = 0x808080;
+        *(ULONG *)&pW->Cdir_x = 0;
+        pW->Cdir_z = 0;
+        pW->Be_flg = 0;
+        pW->Parts_no = Parts_no;
+        *(SHORT *)&pW->Workm.t[0] = 0;
+        pW->Timer0 = 0;
+        pW->Timer1 = 0;
+        pW->Timer2 = 0;
+        pW->Timer3 = 0;
+        Parts_no++;
+        pW++;
+        pTmd++;
+    } while (--Cnt != 0);
+    pW = pTop;
+    pTop = &pEm->pSin_parts_ptr[4];
+    pTop->pTmd = pW->pTmd;
+    Pl_weapon_init[(UCHAR)pEm->Type](pEm);
+    return pTim_data;
+}

@@ -1,7 +1,7 @@
 // SELECT.BIN symbols (loaded at 0x801c2000)
 // names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
 Select_pl_cd = 0x801C4C0C;
-Select_wep_cd = 0x801C4C14;
+Jill_wep_cd = 0x801C4C14; // type:u16
 Select_pl_init = 0x801C4C4C;
 Select_moji_tbl = 0x801C4CD8;
 Select_str = 0x801C56E8;

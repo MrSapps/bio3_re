@@ -806,3 +806,60 @@ Near misses (agentxC/best):
   &Skin_nor[1..5] rematerialised into s4); none of pN[k] / Skin_nor[k] / six pointer locals reproduces it.
 - Not attempted this round: J_seq, Rain_move, Sca_hit_all, Pl_floor_ck, Sa_morph_step (C, ~200 insns), SortGT3_col
   (agentJ draft unchanged), Skin_vtx2_alt.
+## Matching round agentP (drafts in the session scratchpad agentP/best, subagent drafts agentP/sub{A,B,C,D}/best)
+Matched: pc_sys Pc_box_set, select+jill_sel Jill_wep_load (shared in src/ovl/common/jill_sel; select's Select_wep_cd
+renamed Jill_wep_cd), diedemo Die_spr_move_main + Die_blood_move_main, game Game_loop (G 0x785A named Unk785A, USHORT)
+and Unk785A), mojidisp Branch_disp + mess_trans (Branch_disp prototype now takes MOJIDISP *), status St_item_use +
+St_mix_exec (Mix_rate_tbl 0x800A0BF4 in syms/game.txt). Diedemo/Game_loop/mojidisp/status drafts were written by
+subagents from RE2 DIEDEMO.C/GAME.C/MOJIDISP.C/STATUS.C.
+Rules learnt:
+- A load the target issues earlier than ours across a block move (`movstrsi`, the lwl/lwr copy of a local initialised
+  aggregate) or across another independent chain is a sched1 decision; a `do { x = load; } while (0);` puts loop notes
+  around it and sched1 does not move insns across them (Swap_Cbuff pRoom load; then a do/while elsewhere to restore the
+  s-reg priorities it disturbed).
+- A copy `move sN,vX` in the delay slot of the branch that tests vX: the variable is assigned in both arms of an if/else
+  (`if (y < 0) { h = -y; ... } else { h = y; ... }`) and reorg pulled the else copy into the slot (Swap_Cbuff abs);
+  or the loop counter is set inside `if (n) { i = n; do ... while (--i); }`.
+- `G.Unk246C >= 0` gives bltz with no RTL to spare; `!(G.Unk246C & 0x80000000)` gives the same bltz after combine but
+  one more RTL insn in loop.c's count, which is what stopped the 0xFFFFFF constant from being hoisted in Swap_Cbuff
+  (threshold 29 with a call: 28 non-fixed regs + 1, minus 3 per moved invariant).
+- global.c expand_preferences: a pseudo that dies in `dst = src + x` inherits dst's hard-reg preferences unless the two
+  conflict (Get_light_cut: the pData copy took a1 because the zone pointer is passed in a1). local-alloc's
+  optimize_reg_copy_1 rewrites later uses of the copy source to the copy within a block, so "use the original after the
+  copy" does not create the conflict either.
+- `pData = (UCHAR *)(pLight + G.Cut_no + 1); Zone = *(ULONG *)pData;` gives `addu v0,base,idx` (base first); an array
+  index `pLight[G.Cut_no + 1]` gives `addu v0,idx,base`.
+- Match from a matched sibling: Jill_wep_load is pl_wep.c Pl_weapon_ch with the work pointer as `pTop` (the parameter)
+  and `pW = pTop` copied before the loop; `pW = pTop; pTop = &pEm->pSin_parts_ptr[4]; pTop->pTmd = pW->pTmd;` keeps
+  the copy alive (one variable reused for two pointers).
+- Mask constants kept in s-registers across a loop came from local variables (Game_loop Clr0/Clr1/Clr2); a plain
+  constant lets cse fold `(x & C) & 1`.
+- jump2 does not cross-jump jumps to a label it created itself (uid >= max_uid): mess_trans's EB/EF tails merge only
+  when the alt-page cases `goto` the original glyph label (base-page cases go through `mode:` which falls into it).
+- Spilled-local stack slots follow declaration order (Die_blood_move_main `SHORT Pct, Col, Row, Grp`; mess_trans pKeep,
+  Mode, pEnd). `v *= 2` on a SHORT field gives lh, `<<= 1` lhu.
+- A case-1 body wrapped in do/while(0) (St_item_use) and everything after a loop wrapped (Branch_disp) fixed s-reg swaps;
+  `if (c < 0) { if (c >= -2) { ...; goto next; } } ...; next:` stops gcc folding two compares into an unsigned range test.
+Proven hand-written (left as INCLUDE_ASM): mem_card _card_info/_card_load (BIOS A0 stubs `li t2,0xA0; jr t2; li t1,n`),
+_card_clear (`jr ra; nop` epilogue with the sp restore before it: older compiler, libcard).
+Near misses (agentP/best):
+- sub Get_light_cut (3, Get_light_cut_3.c): `pData = (UCHAR *)(pLight + G.Cut_no + 1)` fixed the addu order. Left: the
+  pData copy gets a1 (expand_preferences from the zone pointer passed in a1) because the Ofs load from the original
+  pointer comes before the copy; putting it after the copy is undone by optimize_reg_copy_1 / cse.
+- sub Retry_file_load (dw17 form, ~5 real words): `do { Flg = ...; Bit = Flg & 0x4000000; } while (0);` gives the
+  target's order (Bit computed first); left a0/a1 and constant-register choices in the All_a/All_b compares.
+- snd Snd_bgm_play_ck (2): unchanged; the CD lui must overlap Snd_work's (v1) and still issue after `addiu s0`.
+- main Swap_Cbuff (2, Swap_Cbuff_2.c; first attempt, needs main.c to include movie.h and player.h): whole function right
+  except sched2 issuing the pRoom lw before the rodata lui of the RECT copy (the do/while barrier puts it first).
+- epilog Epilog_draw (7): needs the Epilog_work hi before G's hi/lo and its lo after them in sched1 order.
+- pc_sys Pc_text_set (5): loop body scheduling (biv increment first in the target).
+- option Config_moji_disp (3, Config_moji_disp_3.c, was ~80): search loop `while (!Config_moji_cmp(pStr, *pTbl)) {
+  pTbl++; i++; }`, Opt.Kido direct, `X += space[2i+1]` before the y0 store, do/while on the pTbl block and on `pStr +=
+  2`. Left: the colour branches; the target cross-jumps only the g0 store of the 0x80 path into the 0x58 path. Still
+  blocks Config_suuji (shared "\x81\x40" literal).
+- cd Cd_link_search (31 ds): loop.c hoists the 0xFFFF compare; with 28 non-fixed regs the call-free threshold is 58,
+  three earlier movables bring it to 49, our loop has 41 insns, so the target loop must have 50-52 RTL insns.
+- status St_box_draw (5, agentP/subC/best): v0/v1 swap in the box-list St_num_disp arguments; needs
+  `St_box_list_draw(ST_WORK *, signed char Box_cursor, SHORT)` and two count-position tables (0x8009F518, 0x8009F548).
+- mojidisp Print_main (ds 217, agentP/subB/best): rough; needs a MOJIDISP print buffer field at 0x75F8 and the digit
+  table declared in a header. Mess_disp not attempted. status St_box_frame_draw, St_map_area_select unchanged.
