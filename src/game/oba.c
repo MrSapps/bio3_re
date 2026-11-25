@@ -744,4 +744,45 @@ LONG Oba_push_out(COL_OBJ *pObj, COL_OBJ *pT)
 }
 
 /* pushes pObj out of one box record (fills Sca_work pos/old, picks the side, calls Sca_hosei_box) */
-INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_box_push);
+ULONG Oba_box_push(COL_OBJ *pObj, LONG W, SCA_DATA *pT, ULONG Old)
+{
+    LONG X;
+    LONG Z;
+    LONG Dx;
+    LONG Dz;
+    ULONG Side;
+    LONG Hx;
+    LONG Near;
+    LONG Hz;
+    ULONG Zero;
+    ULONG Still; /* (matching: a copy of Zero) */
+
+    Sca_work.X = X = pObj->Pos_x;
+    Sca_work.Z = Z = pObj->Pos_z;
+    Sca_work.Old_x = Dx = pObj->Old_x;
+    Dx = X - Dx;
+    Sca_work.Old_z = Dz = pObj->Old_z;
+    Dz = Z - Dz;
+    Side = (Dx < 0) | ((ULONG)Dz >> 30 & 2);
+    Hx = pT->X1 + pObj->W0 - X + 1;
+    Near = pT->X0 - pObj->W0 - X - 1;
+    Zero = (Dx | Dz) == 0;
+    Still = Zero;
+    if (!Still) {
+        if (!(Side & 1)) {
+            Hx = Near;
+        }
+    } else if (-Near < Hx) {
+        Hx = Near;
+    }
+    Hz = pT->Z1 + pObj->D0 - Z + 1;
+    Near = pT->Z0 - pObj->D0 - Z - 1;
+    if (!Still) {
+        if (!(Side & 2)) {
+            Hz = Near;
+        }
+    } else if (-Near < Hz) {
+        Hz = Near;
+    }
+    return Sca_hosei_box(pObj, Hx, Hz, pT);
+}
