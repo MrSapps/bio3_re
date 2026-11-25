@@ -1859,3 +1859,4 @@ Line_cross_ck = 0x80049F80; // type:func
 Root_step = 0x8004A7F4; // type:func
 Task_ovl_tbl = 0x8009C944;
 Sca_hit_obj_circle = 0x8004D404; // type:func
+Sca_get_ground_obj = 0x8004DB10; // type:func

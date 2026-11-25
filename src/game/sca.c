@@ -380,7 +380,76 @@ ULONG func_8004D6B8(LONG X, LONG Z)
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004DB10);
+/* Sca_get_ground's pass over the collision object list: the highest top (lowest y) below Ground of the
+   objects under pPos; a character found there goes to pEm_hit/pEm_hit2 */
+LONG Sca_get_ground_obj(VECTOR *pPos, LONG R, ULONG Att, ULONG Flg, LONG Ground)
+{
+    SCA_WORK *pW;
+    COL_ENT *pEnt;
+    SCA_DATA *pT;
+    ULONG Area;
+    LONG High;
+
+    pW = &D_800DEB58;
+    pW->pEm_hit = NULL;
+    pW->pEm_hit2 = NULL;
+    High = Ground;
+    Area = func_8004D6B8((SHORT)pPos->vx, (SHORT)pPos->vz);
+    pT = (SCA_DATA *)Oba_work.Ent;
+    for (pEnt = (COL_ENT *)pT; ((COL_ENT *)pT)->C.All != -1; pEnt = (COL_ENT *)pT) {
+        if ((pT->Type & Area) && (pT->Id & Att)) {
+            switch (pT->Id & 0xF) {
+            case 1:
+            case 7:
+                if (pPos->vy > pT->Floor_lo * -1800) {
+                    goto next;
+                }
+                if (pT->High >= Ground) {
+                    goto next;
+                }
+                if ((ULONG)(pPos->vx - pT->X0) < (ULONG)(pT->X1 - pT->X0) && (ULONG)(pPos->vz - pT->Z0) < (ULONG)(pT->Z1 - pT->Z0)) {
+                    High = pT->High;
+                }
+                break;
+            case 0:
+                if (Flg & 0x14) {
+                    if ((Flg & 0x10) && pEnt->Type != 3) {
+                        break;
+                    }
+                    pT = &Tmp_Sca;
+                    func_80034E78(pEnt->pObj, pT);
+                    if (pPos->vy > pT->Floor_lo * -1800) {
+                        goto next;
+                    }
+                    if (pT->High >= Ground) {
+                        goto next;
+                    }
+                    if (Sca_ck_circle(pPos, 0, pT)) {
+                        High = pT->High;
+                    }
+                }
+                break;
+            }
+            if (High < Ground) {
+                Ground = High;
+                if (High < pPos->vy) {
+                    if (pEnt->Type < 3) {
+                        pW->pEm_hit = pEnt->pObj->pEm;
+                        pW->pEm_hit2 = NULL;
+                        pW->Unk24 = 0x1000;
+                    } else {
+                        pW->pEm_hit2 = pEnt->pObj->pEm;
+                        pW->pEm_hit = NULL;
+                        pW->Unk24 = 0x1000;
+                    }
+                }
+            }
+        }
+    next:
+        pT = (SCA_DATA *)(pEnt + 1);
+    }
+    return Ground;
+}
 
 ULONG func_8004DDC4(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut)
 {
