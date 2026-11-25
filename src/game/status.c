@@ -87,7 +87,7 @@ void St_file_load(ST_WORK *pSt)
     St_file_prim_init(pSt);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010DCC);
+INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010DCC);
 
 void St_file_read(ST_WORK *pSt)
 {
@@ -749,7 +749,7 @@ void St_box_prim_set(ST_WORK *pSt)
     St_box_prim_init(pSt);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", St_box_draw);
+INCLUDE_ASM("asm/nonmatchings/game/status", St_box_draw);
 
 void St_icon_swap(UCHAR a, UCHAR b)
 {
@@ -890,7 +890,7 @@ void St_box_prim_init(ST_WORK *pSt)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", St_box_frame_draw);
+INCLUDE_ASM("asm/nonmatchings/game/status", St_box_frame_draw);
 
 void St_status_init(ST_WORK *pSt)
 {
@@ -1339,7 +1339,7 @@ void St_file_list(ST_WORK *pSt)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", St_item_use);
+INCLUDE_ASM("asm/nonmatchings/game/status", St_item_use);
 
 void St_mix_main(ST_WORK *pSt)
 {
@@ -1473,7 +1473,7 @@ void St_mix_select(ST_WORK *pSt)
     pSt->Pos[13].Y = ((signed char)pSt->Unk1D >> 1) * 30;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", St_mix_exec);
+INCLUDE_ASM("asm/nonmatchings/game/status", St_mix_exec);
 
 void St_mix_mess_wait(ST_WORK *pSt)
 {
@@ -2364,7 +2364,7 @@ void Pix_unpack_box(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
     LoadImage(&r, pBuf);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010F84);
+INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010F84);
 
 void Itemg_load(UCHAR no)
 {
@@ -3281,7 +3281,7 @@ void St_tex_load(void)
     pSt->Unk28 = n;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/800636D4", D_80010FEC);
+INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010FEC);
 
 void St_init(ST_WORK *pSt)
 {
@@ -4227,7 +4227,7 @@ void St_map_zoom(ST_WORK *pSt)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/800636D4", St_map_area_select);
+INCLUDE_ASM("asm/nonmatchings/game/status", St_map_area_select);
 
 void St_map_fade_in(ST_WORK *pSt)
 {

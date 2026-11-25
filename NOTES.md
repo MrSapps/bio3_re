@@ -159,7 +159,7 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
   EM_HIT_AREA, OM_TARGET, PL_WEP_*.
 - cd.h: tagCD, CD_LINK, CD_ENTRY, FLOC, EM_DAT (Em_dat, filled by the room streamer).
 - sce0.h: SCE_TASK, MODEL_LINK_INFO, SCENARIO (Sce). The SCE opcode records stay private in sce1.c.
-- status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in 800636D4.c.
+- status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in status.c.
 - snd.h: SND_* incl. SND_VOL embedded at SND_WORK.Vol (0x7C0) and the listener Cam_x/y/z, Cattr.
 - sub.h: LIGHT_CUT_DATA, LIGHT_ZONE, PL_SAVE (D_800C7048). sca.h: SCA_HEAD, SCA_DATA, SCA_WORK.
   oba.h: COL_ENT, COL_WORK. Overlay-only types live in include/enemy/<name>.h (enemies) or include/ovl/<name>.h.
@@ -168,7 +168,7 @@ not share the &G base): result.h GLOBAL_RESULT `Gr`. em33.h EM33_PL reaches G.pE
 pPl = &Pl_work (one base register).
 Prototypes: every function defined in src/game/<m>.c is declared once, in include/<m>.h (RE2 names:
 esp_r.h, psp.h, room.h, root_ck.h, sabun.h, sce1.h, sce2.h, sce_at.h, spl.h, spl_auto.h, spl_sce.h;
-800636D4.c -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
+status.c (was 800636D4.c) -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
 0x8001B08C) -> esp.h, pl_wep2.h folded into pl_wep.h). SLD.S functions are in sld.h. Overlay functions and
 data are in include/enemy/<n>.h or include/ovl/<n>.h (their names come from ovl/<n>.syms.txt via the split, no naming aliases). Data externs
 are in the owning module's header. PsyQ functions come from the SDK (psyq.h also pulls libpad.h and
@@ -218,7 +218,7 @@ Boundaries marked ~ are only pinned to a range (any function in the range gives 
 | 80058DD4 | spl.c | SPL.C: Spl, Spl_Init, Spl_set; routine table D_8009E6EC = RE2 Spl_routine_0 slots |
 | ~800597F0 | spl_auto.c | SPL_AUTO.C: Spl_Auto, Aida_*; RE3 moved Spl_Damage/Die/Dead here. Start pinned to 800594D8..8005CB2C (.rdata 80010D0C) |
 | ~800601F0 | spl_sce.c | SPL_SCE.C (reworked): Spl_Scenario, Spl_sce00-09. Start pinned to 8005F29C..80061DF4 (.rdata 80010D90) |
-| 800636D4 | 800636D4.c | RE3's own status/inventory code (barely RE2 STATUS/ST_SUB*); .rdata 80010DCC |
+| 800636D4 | status.c | RE3's own status screen (barely RE2 STATUS/ST_SUB*), one object (.rdata 80010DCC). Modules in order: file viewer St_file_* (800636D4), item box St_box_* (800643E4), inventory/command menu St_item_*/St_cmd_* and combine St_mix_* (80066530), icon VRAM Pix_* (8006A9AC), screen setup/draw St_prim_init..St_file_icon_disp (8006AE90), item/ammo helpers Item_*/Tama_* (8006CCF0), task St_init/Status/St_exit and prim helpers (8006D948), map St_map_*/Map_* (8006ED28). Was 800636D4.c |
 | ~80073E84 | snd.c | RE3 sound driver (custom libspu sequencer, Snd_work 800E0610) |
 | ~800784E0 | sub.c | SetSpadStack, Vram_clr, Rot_*, Flg_*, Set_view, Set_light* |
 | 80079EC0 | 80079EC0.c | PC-host STR streaming (Pcstr_*) and handwritten asm from 8007C434 |
@@ -267,7 +267,7 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   Makefile (and linkcheck.py) append `.section .rodata; .align 2` to every C object. The old per-file
   `__asm__(".section .rodata\n.align 2...")` pads are now redundant.
 - With the split, func_8003B080 and func_8005CB2C (switch tables) match, and the computed-goto
-  workarounds in 800636D4.c (8006A234, 8006E34C, 8006E424) are plain switches again.
+  workarounds in 800636D4.c (now status.c; 8006A234, 8006E34C, 8006E424) are plain switches again.
 - The six address files were re-cut into 32 with a top-level C splitter; where one object had been split
   across two old files (mojidisp, pl_wep, sca) the second half's conflicting prototypes became
   `__asm__` aliases with an `_<oldfile>` suffix.

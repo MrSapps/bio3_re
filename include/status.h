@@ -1,6 +1,6 @@
 #ifndef STATUS_H
 #define STATUS_H
-/* RE2 STATUS.C / ST_SUB*.C: status screen, inventory, item box, files and map (RE3 0x800636D4..) */
+/* status.c (RE2 STATUS.C / ST_SUB*.C role): status screen, inventory, item box, files and map (RE3 0x800636D4..) */
 #include "bio3.h"
 
 typedef struct tagST_ICON {
