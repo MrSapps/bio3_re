@@ -623,4 +623,4 @@ Near misses (agentJ/best):
   stack layout match. The target saves s2 but never uses it (the mult products were allocated to s2 and later moved
   to v1 by reload); ours keeps them in s2.
 - em_sub Spd_get_sub (Spd_get_sub.c): the pKan copy (t5) comes out right, the pSeq_t copy (t3) never does.
-- Kage_work9_sort is compiled C with -fcaller-saves (t0/t3/t4 saved around jal), not hand-written.
+- Kage_work9_sort (not attempted) saves t0/t3/t4 around its jals; probably gcc caller-saves (on at -O2), so C, not hand-written (unverified).
