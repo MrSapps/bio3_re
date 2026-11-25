@@ -408,6 +408,18 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   struct fields); each says so in its comment. Calls through a void prototype matched for Pad_vib_*, Xa_play and
   the rain setter, so those aliases were dropped; Set_view, Quake_add, Kage_work_color_set, Flg_off and the
   LINE_SCR functions really need the int return.
+- tagGLOBAL fields named (clean/gfield). Anchors: RE3's Flg_addr table (sce1, 0x8009E3F8) lists the flag words in
+  order: System_flg, Status_flg (0x77F4), Stop_flg (0x2468), Scenario_flg, Room_flg[2], Enemy_flg, Enemy_flg2,
+  Item_flg, Item_flg2, Key_flg, Pri_be_flg[32] (one word per cut, not RE2's [16][4]), ..., Use_flg, Om_flg,
+  Item_chk_flg, Chaser_flg, Game_flg. The save block from 0x75F0 is RE2's SAVE_DATA reordered (no Bgm_tbl before
+  Sce_work; Stage_no/Room_no at 0x783E/0x7840, Sce_random 0x784A, Change_player 0x784E), kept flat in tagGLOBAL
+  (comments give the RE2 G.SaveData name). Em_routine[64] + Unk3EE0[24] were one RE2 Em_move_tbl[112] (sub player
+  slots 0x40..0x57 = Spl). Nemesis state lives in G (Chaser_*: life, type, free work, room, state, drops, flags).
+  C users of D_ aliases of G (Status_flg, Room_flg, Sce_random, Chaser_life/no, Pri_be_flg, Om_flg, pRoom,
+  Ovl_mode, Esp_clut_num) and of Scenario_flg/Item_chk_flg/Chaser_flg/Map_get_flg/Map_area_flg/St_pl_kind now read
+  G with identical code; Map_visit_set keeps the Map_visit_flg symbol (G changes its code). Left unnamed:
+  Unk2111, Unk2114, Unk246C (bit 31 blocks pause and the sub-OT draw, bit 30 the tilt), Unk75D9, and the
+  pads 0x211C (Flg_addr[42]), 0x7E34..0x7E54, 0x7E64..0x7E94 (0x7E74 is Flg_addr[48]).
 
 ## Code shared between overlays (src/enemy/common, src/ovl/common)
 
