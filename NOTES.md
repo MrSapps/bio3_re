@@ -712,3 +712,63 @@ Near misses (agentI/best):
 - sca Sca_hit_line (13, agentG z6): unchanged.
 - oba Oba_ent_box_set (new draft, ~90 dscore): four values are reload spills (sw then lhu from 0x10..0x1C(sp)),
   Type kept in fp; ours spills one more.
+## Matching round agentM (drafts in the session scratchpad agentM/, forks in agentM/fork{A..G})
+Matched: om Om_parts_link, Om_explosion, Om_rtn_fall; sce2 Chaser_item_set, Get_matrix; sce1 Cut_be_set; oba Oba_tmp_sca_set;
+pl_wep Weapon_at_ck, Pos_em_at_ck; player Player_set; oba Oba_em_hit_ck. Type fix: Pl_wep_poly_ck(PL_WEP_POLY *, ENEMY_WORK *).
+Rules learnt:
+- flow.c counts REG_N_REFS weighted by loop depth (`+= loop_depth`), and `do { } while (0)` creates a loop level, so wrapping
+  (or nesting) a statement in do/while(0) raises the refs of every pseudo it touches. That is the knob for BOTH local-alloc
+  (qty priority floor_log2(refs)*refs/(death-birth), block_alloc local-alloc.c:1668) and global-alloc (allocno priority).
+  Find the pseudo that must win with gdb on the FSF cc1 when it reproduces our allocation (`break local-alloc.c:1668`, print
+  qty_order/qty_n_refs/qty_birth/qty_death; global.c find_reg prints regs_someone_prefers/regs_used_so_far), then sweep
+  wrap depths per statement (itertools, depth 0..3, small sum). Oba_tmp_sca_set: `Lo = Fl & 0xFF` at depth 2 puts Fl's qty
+  above the shift chain; Cut_be_set: the pCmd reload at depth 3 puts pCmd above Cut; Player_set: one do/while around
+  `Cd_top = ...; pTbl = Work + *Work;` puts Work above pEm (s3/s4) and Cd_top above &G (s5/s6).
+- Loop notes are scheduling barriers (sched_analyze makes the insn after a loop note depend on everything before), so wrap
+  statement groups that may interleave in one do/while, or wrap statements next to calls.
+- update_equiv_regs (local-alloc.c) doubles REG_LIVE_LENGTH of a pseudo set once to a REG_EQUIV constant (`p = &G;`,
+  `Cd_top = (UCHAR *)0x801D5C00;`, a parameter copy with a stack-slot REG_EQUIV), halving its global-alloc priority.
+- global.c find_reg pass 0 never takes a hard reg that a lower-priority conflicting allocno prefers (regs_someone_prefers),
+  and only takes regs already "used" (call-used or used by local-alloc). A variable that takes a1 where the target has a2
+  needs a1 blocked by a conflict or a preference (Spl_wep_set, pl_mv07 both stuck on this).
+- sched1 can not move a pseudo set across a call unless the pseudo crosses a call anyway (sched_analyze adds a dependence
+  on last_function_call for REG_N_CALLS_CROSSED == 0). A `lui %hi(G)` before a jal means &G was computed before the call in
+  the RTL: `pG = &G;` as the first statement (Player_set).
+- Reading a field into a local before stores (RE2's `kan_ofs = pTbl->Kan_ofs;` ahead of the Clut/Tpage stores) is what
+  orders a load above stores: gcc 2.8 has no type-based alias analysis, so a load never moves above a store to another struct.
+- When a tail must stay duplicated in two branches, write it in both: reload's round-robin spill registers make the copies
+  differ and cross-jumping then only merges the identical part (fork C, Weapon_at_ck / Pos_em_at_ck).
+- `pP = &...pParts[k]; return &pP->Workm;` with pP set in two blocks makes pP global, so local-alloc cannot tie the add
+  result to the loaded base (Get_matrix's v0/v1 swap). Get_matrix kinds 5 and >= 7 fall off the end (as RE2).
+- Om_parts_link: the else branch must store pSuper before pOya_parts (decides loop.c's giv base, +0xA4 not +0x6C); increments
+  `pCur++; Part_no++; pTmd_cur++;`.
+- Chaser_item_set: early exit as a full `{ pSce->Data += 3; return 1; }` (cross-jumped), USHORT room locals for lhu,
+  `goto` inside the Nemesis scan.
+- set_preference (global.c) also takes the FIRST operand of an expression source: `(set X (op R ...))` gives R a
+  preference for X's hard reg when X was allocated by local-alloc -- a way to plant an a1/a2 preference (untested).
+- To stop loop.c hoisting a small invariant: lifetime 2 and a larger loop insn count (narrow SHORT/USHORT locals add insns
+  that combine deletes only later). -dL prints "Insn N: regno R (life L), savings S moved / not desirable"; threshold starts
+  at 1 + non-fixed regs (29 with a call in the loop) and drops by 3 per moved insn; hoisted when thr*savings*life >= insns.
+- A subtraction stays `subu` + `beqz` only if computed in the block before the first `||` test (Oba_em_hit_ck Diff_z).
+- Oba_em_hit_ck: Oba_push_obj_ck gets the spilled walker pE (shortens pEnt's life); declaration order sets spill slot order.
+- Weapon_at_ck/Pos_em_at_ck (fork C): declaration order sets reload spill-slot order; `(a & 0xFFFC) | 3` stops cse folding
+  `(a|1)|3`; a `Mode = Attr & 0x20; f(.., Mode != 0)` variable keeps andi+sltu in the loop.
+Near misses (paths under the agentM scratchpad):
+- pl_wep Pl_wep_eff_move (3 words, forkF/best/Pl_wep_eff_move_3.c, needs md_sub.h and the PL_WEP_EFF_FREE view at Unk74):
+  the preheader `addiu s6,sp,0x68` (&Req hoisted by loop.c) must come before `pWp = Pl_wep_poly`; sched1 LUID tie.
+  Wants names for D_8009DD9C / D_8009DDB0 (HIT_ATTR blasts) and D_8009DBF4 (Parts_near_get list).
+- pl_wep Pl_wep_parts_drop (2, forkF/best/Pl_wep_parts_drop_2.c): sched1 priority-1 class-3 tie between the multi-set
+  `pPos = PW_M(pP)` and `a0 = CDIR`, LUID puts the pPos set first; single-set pPos makes loop.c merge the givs.
+- pl_wep Mag_down (12, forkF/best/Mag_down_12.c): Timer3 must load before the Timer0 store (`andi a0,a0,2` in place).
+- player pl_mv07 (4 real, forkD/best.c; needs spl_auto.h): loop counter i takes a1 in pass 0 (no a1 preference anywhere),
+  target a2 with the hoisted m+8 in a1.
+- spl Spl_wep_set (12, sw/b3.c): pP takes a1 in pass 0, target gives the pHand copy a1; every pHand statement also touches
+  pP, so loop weighting raises both.
+- oba Oba_em_overlap_ck (11, best/Oba_em_overlap_ck_11.c): W*2 hoist fixed; Shape/Z t1/t0 and X0/X1 v1/a0 swaps left
+  (do/while fixes each but rotates s-regs / moves loads).
+- oba Oba_ent_box_set (dscore 45, best/Oba_ent_box_set_45.c): W/D s4/s7 swap, Z delta load order, spill-slot frame layout.
+- sce_at Sce_at_check (dscore 96, forkG/sa/v/both.c; fork B best/Sce_at_check_draft.c): target hoists %hi(D_800DECAC)
+  (s7) and 0x10 (fp) and not the jump table; ours (298-insn loop, threshold ~23) rejects both (207 / 92 < 298), so their
+  pseudos need a longer summed life (cse sharing across the UNDER/FRONT blocks?).
+- om.c keeps private copies of struct tagSCE_AOT and PW_FREE (sce_at.c / joint.c have the same); sce0.c's SCE_AOT view
+  differs (signed nFloor, Data[4], pParts), so they were not unified.
