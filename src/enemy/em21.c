@@ -1262,13 +1262,13 @@ void func_801032A4(PARTS_W *pP, LONG D_y)
 {
     pP->Be_flg |= 0xA;
     pP->Old_x = D_y + (Rnd_l() << 2);
-    pP->Unk96 = 0;
+    pP->Timer3 = 0;
     pP->Old_z = (Rnd_l() & 0x7F) + 100;
     pP->Old_y = 0;
-    pP->Unk85 = 20;
-    pP->Unk90 = 0;
-    pP->Unk92 = Rnd_l() << 4;
-    pP->Unk8E = 0;
+    pP->Timer1 = 20;
+    pP->Rot_spd_x = 0;
+    pP->Rot_spd_y = Rnd_l() << 4;
+    pP->Rot_spd_z = 0;
 }
 
 /* RE2 Em21_dm03 (RE3 dm02: knocked away along the player's facing) */

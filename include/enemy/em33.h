@@ -78,7 +78,7 @@ typedef struct tagEM33_SABUN {
         USHORT pad;
     } Key[3];
 } EM33_SABUN;
-#define EM33_SABUN_P(pP) ((EM33_SABUN *)(pP)->pUnk98)
+#define EM33_SABUN_P(pP) ((EM33_SABUN *)(pP)->pSa_dat_head)
 
 /* the player work as G lays it out, followed by the work list: em33 reaches G.pEnemy[] from
    pPl = &Pl_work (one base register; G.pEnemy itself is a second address) */

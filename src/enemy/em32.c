@@ -576,7 +576,7 @@ void func_80101928(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 7, 0, 7);
         pEm->Routine_2++;
-        pEm->pSin_parts_ptr->UnkAE = 0;
+        pEm->pSin_parts_ptr->Pos_base_y = 0;
     case 1:
         if (pEm->Col.W0 < 750)
             pEm->Col.D0 = pEm->Col.W0 += 50;
@@ -611,7 +611,7 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 8, 0, 7);
         pEm->Routine_2++;
-        pEm->pSin_parts_ptr->UnkAE = 0;
+        pEm->pSin_parts_ptr->Pos_base_y = 0;
     case 1:
         if (pEm->Col.W0 < 750)
             pEm->Col.D0 = pEm->Col.W0 += 50;

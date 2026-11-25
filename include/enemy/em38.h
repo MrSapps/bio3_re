@@ -56,7 +56,7 @@ typedef struct tagEM38_SABUN {
         SHORT pad;
     } Key[7];                          /* 0x0C */
 } EM38_SABUN;
-#define EM38_SA(p) ((EM38_SABUN *)(p)->pUnk98)
+#define EM38_SA(p) ((EM38_SABUN *)(p)->pSa_dat_head)
 
 #define EM38_W(p) ((EM38_FREE *)(p)->Unk1CC)
 /* Spd_x/Spd_y cleared as one word */

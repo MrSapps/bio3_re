@@ -2644,13 +2644,13 @@ void func_80107E30(ENEMY_WORK *pEm)
             pP->Be_flg |= 0xA;
             pP->Poly_rgb = 0x2F2F2F;
             pP->Old_x = pEm->Cdir_y + 0x800;
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 100;
             pP->Old_y = 0;
-            pP->Unk85 = 30;
-            pP->Unk90 = 0;
-            pP->Unk92 = pEm->Cdir_y;
-            pP->Unk8E = 0x400;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0;
+            pP->Rot_spd_y = pEm->Cdir_y;
+            pP->Rot_spd_z = 0x400;
         }
         EM22_W(pEm)->Unk0F |= 1;
     case 1:
@@ -2668,13 +2668,13 @@ void func_80107E30(ENEMY_WORK *pEm)
             pP->Be_flg |= 0xA;
             pP->Poly_rgb = 0x2F2F2F;
             pP->Old_x = pEm->Cdir_y + 0x800;
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 100;
             pP->Old_y = 0;
-            pP->Unk85 = 30;
-            pP->Unk90 = 0;
-            pP->Unk92 = pEm->Cdir_y;
-            pP->Unk8E = 0x400;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0;
+            pP->Rot_spd_y = pEm->Cdir_y;
+            pP->Rot_spd_z = 0x400;
         }
         EM22_W(pEm)->Unk0F |= 2;
     case 2:
@@ -2692,12 +2692,12 @@ void func_80107E30(ENEMY_WORK *pEm)
         pP->Poly_rgb = 0x2F2F2F;
         pP->Old_x = pEm->Cdir_y + 0x800;
         pP->Old_z = 100;
-        pP->Unk96 = 0;
+        pP->Timer3 = 0;
         pP->Old_y = 0;
-        pP->Unk85 = 30;
-        pP->Unk90 = 0;
-        pP->Unk92 = pEm->Cdir_y;
-        pP->Unk8E = 0x400;
+        pP->Timer1 = 30;
+        pP->Rot_spd_x = 0;
+        pP->Rot_spd_y = pEm->Cdir_y;
+        pP->Rot_spd_z = 0x400;
         EM22_W(pEm)->Unk0F |= 4;
     }
     for (i = 0; i < 20; i++) {

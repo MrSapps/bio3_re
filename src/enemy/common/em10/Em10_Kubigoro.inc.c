@@ -18,7 +18,7 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
         M = GsIDMATRIX;
         RotMatrixY(pEm->Cdir_y + 0x800, &M);
         ApplyMatrixSV(&M, &Tmp_sv, (SVECTOR *)&pP->Old_x);
-        pP->Unk85 = 2;
+        pP->Timer1 = 2;
     }
     M = GsIDMATRIX;
     RotMatrixZ(0x80, &M);
@@ -36,7 +36,7 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
         pP->Old_x *= -1;
         pP->Old_z *= -1;
         Esp_call(0, (USHORT)(Rnd_l() << 4) | 0x3E80000, &pP->Workm, 0, 0);
-        if (pP->Unk85-- == 0) {
+        if (pP->Timer1-- == 0) {
             EM10_W(pEm)->Flg &= 0xFEFF;
             pP->Be_flg = 0;
             Esp_kill(0x305, &pP->Workm);
@@ -51,7 +51,7 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
         pP->Old_y = -(pP->Old_y >> 2);
         Esp_call(0, (USHORT)(Rnd_l() << 4) | 0x3E80000, &pP->Workm, 0, 0);
         Snd_se_enem(9, pEm);
-        if (pP->Unk85-- == 0) {
+        if (pP->Timer1-- == 0) {
             EM10_W(pEm)->Flg &= 0xFEFF;
             pP->Be_flg = 0;
             Esp_kill(0x305, &pP->Workm);

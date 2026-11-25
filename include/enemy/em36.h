@@ -63,7 +63,7 @@ typedef struct tagEM36_SABUN {
         SHORT pad;
     } Key[7];
 } EM36_SABUN;
-#define EM36_SABUN_P(pP) ((EM36_SABUN *)(pP)->pUnk98)
+#define EM36_SABUN_P(pP) ((EM36_SABUN *)(pP)->pSa_dat_head)
 
 /* PARTS_W free work of the morphing body parts (func_8004A934 blends keys Key_no - 1 and Key_no) */
 typedef struct tagEM36_PARTS_FREE {

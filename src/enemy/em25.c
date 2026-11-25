@@ -1406,10 +1406,10 @@ void func_801039E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP_ptr = &pEm->pSin_parts_ptr[base] + 1;
         pP_ptr->Poly_rgb = 0x101F3F;
         pP_ptr->Old_x = pEm->Cdir_y + 0x800;
-        pP_ptr->Unk96 = 0;
+        pP_ptr->Timer3 = 0;
         pP_ptr->Old_z = 100;
         pP_ptr->Old_y = 0;
-        pP_ptr->Unk85 = 30;
+        pP_ptr->Timer1 = 30;
     }
     pP_ptr = &pEm->pSin_parts_ptr[base];
     pP_ptr->Poly_rgb = 0x102F4F;

@@ -526,7 +526,7 @@ void func_8010133C(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size)
     SHORT *pPos;
 
     pPos = (SHORT *)(pEm->pKan_t_ptr + 2);
-    pPos += pP->Unk84 * 3;
+    pPos += pP->Parts_no * 3;
     pP->Pos_x = pPos[0] * Size >> 12;
     pP->Pos_y = pPos[1] * Size >> 12;
     pP->Pos_z = pPos[2] * Size >> 12;

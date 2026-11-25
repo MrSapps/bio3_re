@@ -3259,13 +3259,13 @@ void func_8010A3AC(ENEMY_WORK *pEm)
                     pP->Poly_rgb = 0x2F2F2F;
                     pP->Be_flg |= 0xA;
                     pP->Old_x = pEm->Cdir_y + 0x800;
-                    pP->Unk96 = 0;
+                    pP->Timer3 = 0;
                     pP->Old_z = 100;
                     pP->Old_y = 0;
-                    pP->Unk85 = 30;
-                    pP->Unk90 = 0;
-                    pP->Unk92 = pEm->Cdir_y;
-                    pP->Unk8E = 0x400;
+                    pP->Timer1 = 30;
+                    pP->Rot_spd_x = 0;
+                    pP->Rot_spd_y = pEm->Cdir_y;
+                    pP->Rot_spd_z = 0x400;
                 }
                 EF(pEm)->Unk2C |= 1;
             }
@@ -3285,13 +3285,13 @@ void func_8010A3AC(ENEMY_WORK *pEm)
                 pP->Poly_rgb = 0x2F2F2F;
                 pP->Be_flg |= 0xA;
                 pP->Old_x = pEm->Cdir_y + 0x800;
-                pP->Unk96 = 0;
+                pP->Timer3 = 0;
                 pP->Old_z = 100;
                 pP->Old_y = 0;
-                pP->Unk85 = 30;
-                pP->Unk90 = 0;
-                pP->Unk92 = pEm->Cdir_y;
-                pP->Unk8E = 0x400;
+                pP->Timer1 = 30;
+                pP->Rot_spd_x = 0;
+                pP->Rot_spd_y = pEm->Cdir_y;
+                pP->Rot_spd_z = 0x400;
             }
             EF(pEm)->Unk2C |= 2;
         }
@@ -3313,26 +3313,26 @@ void func_8010A5F4(ENEMY_WORK *pEm)
                 pP = &pEm->pSin_parts_ptr[2];
                 pEm->pSin_parts_ptr[2].Be_flg |= 0xA;
                 pP->Old_x = pEm->Cdir_y + 0x800;
-                pP->Unk96 = 0;
+                pP->Timer3 = 0;
                 pP->Old_z = 100;
                 pP->Old_y = -300;
-                pP->Unk85 = 30;
-                pP->Unk90 = 0;
-                pP->Unk92 = pEm->Cdir_y;
-                pP->Unk8E = 0x400;
+                pP->Timer1 = 30;
+                pP->Rot_spd_x = 0;
+                pP->Rot_spd_y = pEm->Cdir_y;
+                pP->Rot_spd_z = 0x400;
                 EF(pEm)->Unk2C |= 1;
             }
         } else if (!(EF(pEm)->Unk2C & 2)) {
             pP = &pEm->pSin_parts_ptr[5];
             pEm->pSin_parts_ptr[5].Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + 0x800;
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 100;
             pP->Old_y = -300;
-            pP->Unk85 = 30;
-            pP->Unk90 = 0;
-            pP->Unk92 = pEm->Cdir_y;
-            pP->Unk8E = 0x400;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0;
+            pP->Rot_spd_y = pEm->Cdir_y;
+            pP->Rot_spd_z = 0x400;
             EF(pEm)->Unk2C |= 2;
         }
     }
@@ -3627,13 +3627,13 @@ void func_8010B154(ENEMY_WORK *pEm)
                 pP->Poly_rgb = 0x2F2F2F;
                 pP->Be_flg |= 0xA;
                 pP->Old_x = pEm->Cdir_y + 0x800;
-                pP->Unk96 = 0;
+                pP->Timer3 = 0;
                 pP->Old_z = 100;
                 pP->Old_y = 0;
-                pP->Unk85 = 30;
-                pP->Unk90 = 0;
-                pP->Unk92 = pEm->Cdir_y;
-                pP->Unk8E = 0x400;
+                pP->Timer1 = 30;
+                pP->Rot_spd_x = 0;
+                pP->Rot_spd_y = pEm->Cdir_y;
+                pP->Rot_spd_z = 0x400;
             }
             EF(pEm)->Unk2C |= 1;
         }
@@ -3654,13 +3654,13 @@ void func_8010B154(ENEMY_WORK *pEm)
                 pP->Poly_rgb = 0x2F2F2F;
                 pP->Be_flg |= 0xA;
                 pP->Old_x = pEm->Cdir_y + 0x800;
-                pP->Unk96 = 0;
+                pP->Timer3 = 0;
                 pP->Old_z = 100;
                 pP->Old_y = 0;
-                pP->Unk85 = 30;
-                pP->Unk90 = 0;
-                pP->Unk92 = pEm->Cdir_y;
-                pP->Unk8E = 0x400;
+                pP->Timer1 = 30;
+                pP->Rot_spd_x = 0;
+                pP->Rot_spd_y = pEm->Cdir_y;
+                pP->Rot_spd_z = 0x400;
             }
             EF(pEm)->Unk2C |= 4;
         }
@@ -3680,13 +3680,13 @@ void func_8010B154(ENEMY_WORK *pEm)
                 pP->Poly_rgb = 0x2F2F2F;
                 pP->Be_flg |= 0xA;
                 pP->Old_x = pEm->Cdir_y + 0x800;
-                pP->Unk96 = 0;
+                pP->Timer3 = 0;
                 pP->Old_z = 100;
                 pP->Old_y = 0;
-                pP->Unk85 = 30;
-                pP->Unk90 = 0;
-                pP->Unk92 = pEm->Cdir_y;
-                pP->Unk8E = 0x400;
+                pP->Timer1 = 30;
+                pP->Rot_spd_x = 0;
+                pP->Rot_spd_y = pEm->Cdir_y;
+                pP->Rot_spd_z = 0x400;
             }
             EF(pEm)->Unk2C |= 8;
         }

@@ -63,7 +63,7 @@ typedef struct tagEM32_SABUN {
         SHORT pad;
     } Key[2];
 } EM32_SABUN;
-#define EM32_SABUN_P(pP) ((EM32_SABUN *)(pP)->pUnk98)
+#define EM32_SABUN_P(pP) ((EM32_SABUN *)(pP)->pSa_dat_head)
 
 extern void (*Em32_routine_0[])();
 extern void (*Em32_mv_br[])();

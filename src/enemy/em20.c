@@ -1722,13 +1722,13 @@ void Set_tail_bomb(ENEMY_WORK *pEm)
         pP->Poly_rgb = 0x101040;
         pP->Be_flg |= 0xA;
         pP->Old_x = pEm->Cdir_y;
-        pP->Unk96 = 0;
+        pP->Timer3 = 0;
         pP->Old_z = 50;
         pP->Old_y = 0;
-        pP->Unk85 = 20;
-        pP->Unk90 = 0;
-        pP->Unk92 = pEm->Cdir_y;
-        pP->Unk8E = 0x100;
+        pP->Timer1 = 20;
+        pP->Rot_spd_x = 0;
+        pP->Rot_spd_y = pEm->Cdir_y;
+        pP->Rot_spd_z = 0x100;
     }
 }
 

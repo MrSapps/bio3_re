@@ -248,9 +248,9 @@ void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     pSv = &Sv;
     Hokan = 0x1000 - G.pEm->Hokan_flg * Rate;
     do {
-        pSv->vx = pP->Unk88 + ((ULONG)(pP->Unk90 * Late) >> 8);
-        pSv->vy = pP->Unk8A + ((ULONG)(pP->Unk92 * Late) >> 8);
-        pSv->vz = pP->Unk8C + ((ULONG)(pP->Unk8E * Late) >> 8);
+        pSv->vx = pP->Rot_x + ((ULONG)(pP->Rot_spd_x * Late) >> 8);
+        pSv->vy = pP->Rot_y + ((ULONG)(pP->Rot_spd_y * Late) >> 8);
+        pSv->vz = pP->Rot_z + ((ULONG)(pP->Rot_spd_z * Late) >> 8);
         hokan_svec((SVECTOR *)&pP->Cdir_x, pSv, (SVECTOR *)&pP->Cdir_x, Hokan);
         if (!(pP->Be_flg & 0x10)) {
             RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
@@ -268,8 +268,8 @@ typedef struct tagKAN_FRAME3 {
     ULONG Rot[1];                      /* 0x8 12 bit x/y/z per part, packed */
 } KAN_FRAME3;
 
-/* target rotation x/y (Unk90/Unk92) written as one word */
-#define ROT_XY(p) (*(ULONG *)&(p)->Unk90)
+/* Rot_spd_x/Rot_spd_y written as one word */
+#define ROT_XY(p) (*(ULONG *)&(p)->Rot_spd_x)
 
 void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
 {
@@ -291,9 +291,9 @@ void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
     pFrame = (ULONG *)((UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs);
     pF0 = (KAN_FRAME3 *)(pFrame + (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq));
     pP = pEm->pSin_parts_ptr;
-    pP->UnkAE = (pF0->Pos_y * pEm->Unk12A) >> 12;
-    pP->UnkAC = pF0->Pos_x;
-    pP->UnkB0 = pF0->Pos_z;
+    pP->Pos_base_y = (pF0->Pos_y * pEm->Unk12A) >> 12;
+    pP->Pos_base_x = pF0->Pos_x;
+    pP->Pos_base_z = pF0->Pos_z;
     if (Late != 0) {
         do {
             pSeq--;
@@ -305,58 +305,58 @@ void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
     }
     pFrame += (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq);
     pF = (KAN_FRAME3 *)pFrame;
-    pP->UnkB6 = ((pF->Pos_y * pEm->Unk12A) >> 12) - pP->UnkAE;
-    pP->UnkB4 = pF->Pos_x - pP->UnkAC;
-    pP->UnkB2 = pF->Pos_z - pP->UnkB0;
+    pP->Pos_step_y = ((pF->Pos_y * pEm->Unk12A) >> 12) - pP->Pos_base_y;
+    pP->Pos_step_x = pF->Pos_x - pP->Pos_base_x;
+    pP->Pos_step_z = pF->Pos_z - pP->Pos_base_z;
     Parts_cnt = *(USHORT *)&((KAN_HEAD *)pKan)->Rec_sz;
     pFrame = pF->Rot;
     n = Parts_cnt;
 loop:
     ROT_XY(&pP[0]) = (pFrame[0] & 0xFFF) | ((pFrame[0] & 0xFFF000) << 4);
     n--;
-    pP[0].Unk8E = ((UCHAR *)pFrame)[3] | (*(USHORT *)&pFrame[1] << 8);
+    pP[0].Rot_spd_z = ((UCHAR *)pFrame)[3] | (*(USHORT *)&pFrame[1] << 8);
     if (n == 0) {
         goto end;
     }
     n--;
     ROT_XY(&pP[1]) = ((pFrame[1] & 0xFFF0) >> 4) | (pFrame[1] & 0xFFF0000);
-    pP[1].Unk8E = (pFrame[1] >> 28) | (*(USHORT *)&pFrame[2] << 4);
+    pP[1].Rot_spd_z = (pFrame[1] >> 28) | (*(USHORT *)&pFrame[2] << 4);
     if (n == 0) {
         goto end;
     }
     ROT_XY(&pP[2]) = ((pFrame[2] & 0xFFF00) >> 8) | ((pFrame[2] & 0xFFF00000) >> 4);
     n--;
-    pP[2].Unk8E = *(USHORT *)&pFrame[3];
+    pP[2].Rot_spd_z = *(USHORT *)&pFrame[3];
     if (n == 0) {
         goto end;
     }
     ROT_XY(&pP[3]) = ((pFrame[3] & 0xFFF000) >> 12) | (((pFrame[3] & 0xFF000000) >> 8) | (pFrame[4] << 24));
     n--;
-    pP[3].Unk8E = pFrame[4] >> 4;
+    pP[3].Rot_spd_z = pFrame[4] >> 4;
     if (n == 0) {
         goto end;
     }
     ROT_XY(&pP[4]) = (pFrame[4] >> 16) | (((pFrame[4] & 0xF0000000) >> 12) | (pFrame[5] << 20));
     n--;
-    pP[4].Unk8E = pFrame[5] >> 8;
+    pP[4].Rot_spd_z = pFrame[5] >> 8;
     if (n == 0) {
         goto end;
     }
     ROT_XY(&pP[5]) = (pFrame[5] >> 20) | (pFrame[6] << 16);
     n--;
-    pP[5].Unk8E = pFrame[6] >> 12;
+    pP[5].Rot_spd_z = pFrame[6] >> 12;
     if (n == 0) {
         goto end;
     }
     ROT_XY(&pP[6]) = ((UCHAR *)pFrame)[0x1B] | ((pFrame[7] & 0xF) << 8) | ((pFrame[7] & 0xFFF0) << 12);
     n--;
-    pP[6].Unk8E = ((USHORT *)pFrame)[0xF];
+    pP[6].Rot_spd_z = ((USHORT *)pFrame)[0xF];
     if (n == 0) {
         goto end;
     }
     n--;
     ROT_XY(&pP[7]) = (pFrame[7] >> 28) | ((pFrame[8] & 0xFFF) << 4) | ((pFrame[8] & 0xFFF00) << 8);
-    pP[7].Unk8E = pFrame[8] >> 20;
+    pP[7].Rot_spd_z = pFrame[8] >> 20;
     pFrame += 9;
     pP += 8;
     if (n != 0) {
@@ -372,25 +372,25 @@ void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
     LONG w2;
 
     do {
-        *(ULONG *)&pP->Unk90 &= 0xFFF0FFF;
-        pP->Unk90 -= pP->Unk88;
-        w = pP->Unk90;
+        *(ULONG *)&pP->Rot_spd_x &= 0xFFF0FFF;
+        pP->Rot_spd_x -= pP->Rot_x;
+        w = pP->Rot_spd_x;
         w += 0x800;
         if ((ULONG)w > 0x1000) {
-            pP->Unk90 += !(w & 0x80000000) ? -0x1000 : 0x1000;
+            pP->Rot_spd_x += !(w & 0x80000000) ? -0x1000 : 0x1000;
         }
-        pP->Unk92 -= pP->Unk8A;
-        w2 = pP->Unk92;
+        pP->Rot_spd_y -= pP->Rot_y;
+        w2 = pP->Rot_spd_y;
         w2 += 0x800;
         if ((ULONG)w2 > 0x1000) {
-            pP->Unk92 += !(w2 & 0x80000000) ? -0x1000 : 0x1000;
+            pP->Rot_spd_y += !(w2 & 0x80000000) ? -0x1000 : 0x1000;
         }
-        pP->Unk8E &= 0xFFF;
-        pP->Unk8E -= pP->Unk8C;
-        w = pP->Unk8E;
+        pP->Rot_spd_z &= 0xFFF;
+        pP->Rot_spd_z -= pP->Rot_z;
+        w = pP->Rot_spd_z;
         w += 0x800;
         if ((ULONG)w > 0x1000) {
-            pP->Unk8E += !(w & 0x80000000) ? -0x1000 : 0x1000;
+            pP->Rot_spd_z += !(w & 0x80000000) ? -0x1000 : 0x1000;
         }
         pP++;
     } while (--Cnt);

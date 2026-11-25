@@ -71,7 +71,7 @@ typedef struct tagEM34_SABUN {
         SHORT pad;
     } Key[7];                          /* 0x0C */
 } EM34_SABUN;
-#define EM34_SA(p) ((EM34_SABUN *)(p)->pUnk98)
+#define EM34_SA(p) ((EM34_SABUN *)(p)->pSa_dat_head)
 
 /* motion numbers of the three catch/throw variants, copied to the stack by the catch motions */
 typedef struct tagEM34_MOVE3 {

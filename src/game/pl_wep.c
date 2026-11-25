@@ -1067,8 +1067,8 @@ void Pl_wep_ready_reset(ENEMY_WORK *pEm)
     PARTS_W *pParts = &pEm->pSin_parts_ptr[22];
 
     pParts->Unk94 = 0;
-    pParts->Unk86 = 0;
-    pParts->Unk96 = 0;
+    pParts->Timer2 = 0;
+    pParts->Timer3 = 0;
 }
 
 void Pl_wep_recoil_6(ENEMY_WORK *pEm)
@@ -1079,14 +1079,14 @@ void Pl_wep_recoil_6(ENEMY_WORK *pEm)
     if ((UCHAR)((UCHAR)pEm->Type - 6) < 4) {
         pParts = pEm->pSin_parts_ptr;
         pWep = &pParts[22];
-        if (pWep->Unk96 != 0xFF) {
-            pWep->Cdir_z = Pl_wep_rot_tbl0[pWep->Unk86];
+        if (pWep->Timer3 != 0xFF) {
+            pWep->Cdir_z = Pl_wep_rot_tbl0[pWep->Timer2];
             if ((USHORT)pWep->Cdir_z == 0x8000) {
                 pWep->Cdir_z = 0;
-                pWep->Unk96 = 0xFF;
+                pWep->Timer3 = 0xFF;
                 return;
             }
-            pWep->Unk86++;
+            pWep->Timer2++;
             RotMatrix_gte((SVECTOR *)&pParts[22].Cdir_x, (MATRIX *)pParts[22].M);
         }
     }
@@ -1100,14 +1100,14 @@ void Pl_wep_recoil_10(ENEMY_WORK *pEm)
     if ((UCHAR)pEm->Type == 0x10) {
         pParts = pEm->pSin_parts_ptr;
         pWep = &pParts[22];
-        if (pWep->Unk96 != 0xFF) {
-            pWep->Cdir_z = Pl_wep_rot_tbl1[pWep->Unk86];
+        if (pWep->Timer3 != 0xFF) {
+            pWep->Cdir_z = Pl_wep_rot_tbl1[pWep->Timer2];
             if ((USHORT)pWep->Cdir_z == 0x8000) {
                 pWep->Cdir_z = 0;
-                pWep->Unk96 = 0xFF;
+                pWep->Timer3 = 0xFF;
                 return;
             }
-            pWep->Unk86++;
+            pWep->Timer2++;
             RotMatrix_gte((SVECTOR *)&pParts[22].Cdir_x, (MATRIX *)pParts[22].M);
         }
     }
@@ -1115,7 +1115,7 @@ void Pl_wep_recoil_10(ENEMY_WORK *pEm)
 
 void Pl_wep_flag_set(ENEMY_WORK *pEm)
 {
-    pEm->pSin_parts_ptr[22].Unk86 = 1;
+    pEm->pSin_parts_ptr[22].Timer2 = 1;
 }
 
 void Pl_wep_spin_0b(ENEMY_WORK *pEm)
@@ -1124,20 +1124,20 @@ void Pl_wep_spin_0b(ENEMY_WORK *pEm)
 
     if ((UCHAR)pEm->Type == 0xB) {
         pWep = &pEm->pSin_parts_ptr[22];
-        if (pWep->Unk86 == 0) {
-            pWep->Unk96 -= 8;
-            if (pWep->Unk96 < 0) {
-                pWep->Unk96 = 0;
+        if (pWep->Timer2 == 0) {
+            pWep->Timer3 -= 8;
+            if (pWep->Timer3 < 0) {
+                pWep->Timer3 = 0;
             }
         } else {
-            pWep->Unk96 += 0x20;
-            if (pWep->Unk96 > 0x200) {
-                pWep->Unk96 = 0x200;
+            pWep->Timer3 += 0x20;
+            if (pWep->Timer3 > 0x200) {
+                pWep->Timer3 = 0x200;
             }
         }
-        pWep->Cdir_y += pWep->Unk96;
+        pWep->Cdir_y += pWep->Timer3;
         RotMatrix((SVECTOR *)&pWep->Cdir_x, (MATRIX *)pWep->M);
-        pWep->Unk86 = 0;
+        pWep->Timer2 = 0;
     }
 }
 
@@ -2267,12 +2267,12 @@ void Pl_weapon_ch(ENEMY_WORK *pEm)
         *(ULONG *)&pW->Cdir_x = 0;
         pW->Cdir_z = 0;
         pW->Be_flg = 0;
-        pW->Unk84 = No;
+        pW->Parts_no = No;
         *(SHORT *)&pW->Workm.t[0] = 0;
         pW->Unk94 = 0;
-        pW->Unk85 = 0;
-        pW->Unk86 = 0;
-        pW->Unk96 = 0;
+        pW->Timer1 = 0;
+        pW->Timer2 = 0;
+        pW->Timer3 = 0;
         No++;
         pW++;
         pTmd++;
@@ -2352,7 +2352,7 @@ void Plw_init_43FF0(ENEMY_WORK *pEm)
     pO->pSuper = &pP[4].Workm;
     pO->Pos_z = 0x37;
     pO->pOya_parts = &pP[4];
-    pO->Unk96 = 0xFF;
+    pO->Timer3 = 0xFF;
     pO->UnkA2 |= 0xB;
 }
 
@@ -2427,7 +2427,7 @@ void Plw_init_4417C(ENEMY_WORK *pEm)
     pO->Pos_x = -0x1D;
     pO->Pos_y = 0x7E;
     pO->Pos_z = 0xD;
-    pO->Unk96 = 0xFF;
+    pO->Timer3 = 0xFF;
     pO->UnkA2 |= 0xB;
 }
 
@@ -2643,14 +2643,14 @@ void Mag_set(ENEMY_WORK *pEm)
             pP = &pP_ptr[Pl_mag[Type].Parts_no];
             pP->Be_flg |= 3;
             Spd_y = Pl_mag[Type].V_y;
-            pP->Unk85 = 1;
-            pP->Unk86 = 0;
+            pP->Timer1 = 1;
+            pP->Timer2 = 0;
             pP->Unk94 = Spd_y;
             Flg = Pl_mag[Type].Flg;
             pP->Cdir_x = 0;
             pP->Cdir_y = 0;
             pP->Cdir_z = 0;
-            pP->Unk96 = Flg;
+            pP->Timer3 = Flg;
             RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
             CompM(&pP_ptr[4].Workm, (MATRIX *)pP->M, &pP->Workm);
             pP->Old_x = pEm->Unk122;
@@ -2693,7 +2693,7 @@ LONG Pl_wep_eff_parts_init(ENEMY_WORK *pEm)
     do {
         pP->Unk74 = 0xFF;
         pP->Be_flg = 0;
-        pP->Unk90 = 0;
+        pP->Rot_spd_x = 0;
         Esp_kill(0x103, &pP->Workm);
         Esp_kill(0xC03, &pP->Workm);
         Esp_kill(0x105, &pP->Workm);
@@ -2713,9 +2713,9 @@ LONG func_800455B4(ENEMY_WORK *pEm)
     SVECTOR V;
 
     pW = &pEm->pSin_parts_ptr[15];
-    pW->Unk90 = 12;
+    pW->Rot_spd_x = 12;
     if ((UCHAR)pEm->Type == 0x14) {
-        pW->Unk90 = 0x14;
+        pW->Rot_spd_x = 0x14;
     }
     i = 6;
     do {
@@ -2732,7 +2732,7 @@ LONG func_800455B4(ENEMY_WORK *pEm)
             *(ULONG *)&pW->M[2][0] = 0;
             *(ULONG *)&pW->M[2][2] = 0x1000;
             pW->UnkA2 |= 0x200B;
-            pW->Unk8A = pEm->Cdir_y;
+            pW->Rot_y = pEm->Cdir_y;
             if ((UCHAR)pEm->Type == 0x14) {
                 Dsv.vx = 0;
                 Dsv.vy = 0;

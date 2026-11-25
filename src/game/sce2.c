@@ -1221,15 +1221,15 @@ ULONG Sce_parts_down(SCE_TASK *pSce)
 
     pData = pSce->Data;
     pP = &pSce->pWork->pSin_parts_ptr[pData[1]];
-    pP->Unk96 = 0;
+    pP->Timer3 = 0;
     pP->Be_flg |= 0xA;
     pP->Old_x = ((USHORT *)pData)[1];
     pP->Old_z = ((USHORT *)pData)[2];
     pP->Old_y = ((USHORT *)pData)[3];
-    pP->Unk85 = pData[8];
-    pP->Unk90 = ((USHORT *)pData)[5];
-    pP->Unk92 = ((USHORT *)pData)[6];
-    pP->Unk8E = ((USHORT *)pData)[7];
+    pP->Timer1 = pData[8];
+    pP->Rot_spd_x = ((USHORT *)pData)[5];
+    pP->Rot_spd_y = ((USHORT *)pData)[6];
+    pP->Rot_spd_z = ((USHORT *)pData)[7];
     pSce->Data += 16;
     return 1;
 }
@@ -1331,13 +1331,13 @@ ULONG Parts_set(SCE_TASK *pSce)
         pParts->Cdir_z = Val;
         break;
     case 7:
-        pParts->Unk90 = Val;
+        pParts->Rot_spd_x = Val;
         break;
     case 8:
-        pParts->Unk92 = Val;
+        pParts->Rot_spd_y = Val;
         break;
     case 9:
-        pParts->Unk8E = Val;
+        pParts->Rot_spd_z = Val;
         break;
     case 0:
     case 10:

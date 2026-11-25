@@ -1049,13 +1049,13 @@ void Em10_ude_down(ENEMY_WORK *pEm)
     case 3:
         pP->Be_flg |= 0xA;
         pP->Old_x = pEm->Cdir_y + 0x800;
-        pP->Unk96 = 0;
+        pP->Timer3 = 0;
         pP->Old_z = 0;
         pP->Old_y = -20;
-        pP->Unk85 = 30;
-        pP->Unk90 = 0;
-        pP->Unk92 = G.Player.Cdir_y + ((~EM10_W(pEm)->Unk25 & 1) << 11);
-        pP->Unk8E = -0x400;
+        pP->Timer1 = 30;
+        pP->Rot_spd_x = 0;
+        pP->Rot_spd_y = G.Player.Cdir_y + ((~EM10_W(pEm)->Unk25 & 1) << 11);
+        pP->Rot_spd_z = -0x400;
         EM10_W(pEm)->Ude_down = 4;
         break;
     case 0:
@@ -2650,13 +2650,13 @@ void Em10_die02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(EM10_W(pEm)->Flg & 0x20)) {
             pP->Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + 0x800;
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 100;
             pP->Old_y = 0;
-            pP->Unk85 = 30;
-            pP->Unk90 = 0;
-            pP->Unk92 = pEm->Cdir_y;
-            pP->Unk8E = 0x400;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0;
+            pP->Rot_spd_y = pEm->Cdir_y;
+            pP->Rot_spd_z = 0x400;
         } else {
             pP[0].Be_flg = 0;
             pP[1].Be_flg = 0;
@@ -2665,13 +2665,13 @@ void Em10_die02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(EM10_W(pEm)->Flg & 0x40) && !(Rnd_l() & 1)) {
             pP->Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + 0x800;
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 100;
             pP->Old_y = 0;
-            pP->Unk85 = 30;
-            pP->Unk90 = 0;
-            pP->Unk92 = pEm->Cdir_y;
-            pP->Unk8E = 0x400;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0;
+            pP->Rot_spd_y = pEm->Cdir_y;
+            pP->Rot_spd_z = 0x400;
         }
         pP = pEm->pSin_parts_ptr;
         PW_FREEL(pP)[0] = 0x40;
@@ -3012,11 +3012,11 @@ void func_8010BD60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP->Old_x = R << 4;
             pP->Old_z = 100;
             pP->Old_y = -300 - (R & 0x1F);
-            pP->Unk85 = 25;
-            pP->Unk96 = 0;
-            pP->Unk90 = 0xFF;
-            pP->Unk92 = 0;
-            pP->Unk8E = 0;
+            pP->Timer1 = 25;
+            pP->Timer3 = 0;
+            pP->Rot_spd_x = 0xFF;
+            pP->Rot_spd_y = 0;
+            pP->Rot_spd_z = 0;
             Esp_call(0, 0x20000000, &pP->Workm, 0, 0);
             Esp_call(0x1B03, 0x8000000, &pP->Workm, 0, 0);
         }
@@ -3025,26 +3025,26 @@ void func_8010BD60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP = &pEm->pSin_parts_ptr[5];
             pP->Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + (SHORT)(R - 0x480);
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 130;
             pP->Old_y = -200 - (R & 0x1F);
-            pP->Unk85 = 25;
-            pP->Unk90 = 0xFF;
-            pP->Unk92 = 0;
-            pP->Unk8E = 0;
+            pP->Timer1 = 25;
+            pP->Rot_spd_x = 0xFF;
+            pP->Rot_spd_y = 0;
+            pP->Rot_spd_z = 0;
             Esp_call(0, 0x20000000, &pP->Workm, 0, 0);
             Esp_call(0x1B03, 0x8000000, &pP->Workm, 0, 0);
         }
         pP = &pEm->pSin_parts_ptr[3];
         pP->Be_flg |= 0xA;
         pP->Old_x = pEm->Cdir_y + (R + 0x380);
-        pP->Unk96 = 0;
+        pP->Timer3 = 0;
         pP->Old_z = 150;
         pP->Old_y = -350 - (R & 0x1F);
-        pP->Unk85 = 30;
-        pP->Unk90 = 0xFF;
-        pP->Unk92 = 0;
-        pP->Unk8E = 0;
+        pP->Timer1 = 30;
+        pP->Rot_spd_x = 0xFF;
+        pP->Rot_spd_y = 0;
+        pP->Rot_spd_z = 0;
         Esp_call(0, 0x20000000, &pP->Workm, 0, 0);
         Esp_call(0x1B03, 0x8000000, &pP->Workm, 0, 0);
         R = Rnd_l();
@@ -3052,26 +3052,26 @@ void func_8010BD60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP = &pEm->pSin_parts_ptr[10];
             pP->Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + (R + 0x380);
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 150;
             pP->Old_y = -400 - (R & 0x1F);
-            pP->Unk85 = 30;
-            pP->Unk90 = 0xFF;
-            pP->Unk92 = 0;
-            pP->Unk8E = 0;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0xFF;
+            pP->Rot_spd_y = 0;
+            pP->Rot_spd_z = 0;
             Esp_call(0, 0x20000000, &pP->Workm, 0, 0);
             Esp_call(0x1B03, 0x8000000, &pP->Workm, 0, 0);
         }
         pP = &pEm->pSin_parts_ptr[13];
         pP->Be_flg |= 0xA;
         pP->Old_x = pEm->Cdir_y + (R + 0x380);
-        pP->Unk96 = 0;
+        pP->Timer3 = 0;
         pP->Old_z = 150;
         pP->Old_y = -400 - (R & 0x1F);
-        pP->Unk85 = 30;
-        pP->Unk90 = 0xFF;
-        pP->Unk92 = 0;
-        pP->Unk8E = 0;
+        pP->Timer1 = 30;
+        pP->Rot_spd_x = 0xFF;
+        pP->Rot_spd_y = 0;
+        pP->Rot_spd_z = 0;
         Esp_call(0, 0x20000000, &pP->Workm, 0, 0);
         Esp_call(0x1B03, 0x8000000, &pP->Workm, 0, 0);
         R = Rnd_l();
@@ -3079,13 +3079,13 @@ void func_8010BD60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP = &pEm->pSin_parts_ptr[8];
             pP->Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + (SHORT)((R << 2) + 0x600);
-            pP->Unk96 = 0;
+            pP->Timer3 = 0;
             pP->Old_z = 100;
             pP->Old_y = -400;
-            pP->Unk85 = 30;
-            pP->Unk90 = 0xFF;
-            pP->Unk92 = 0;
-            pP->Unk8E = 0;
+            pP->Timer1 = 30;
+            pP->Rot_spd_x = 0xFF;
+            pP->Rot_spd_y = 0;
+            pP->Rot_spd_z = 0;
             Esp_call(0, 0x20000000, &pP->Workm, 0, 0);
             Esp_call(0x1B03, 0x8000000, &pP->Workm, 0, 0);
         }

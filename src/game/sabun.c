@@ -18,9 +18,9 @@ void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
         pP = pEm->pSin_parts_ptr;
         n = pEm->pTmd[-1];
         do {
-            pP->pUnk98 = NULL;
+            pP->pSa_dat_head = NULL;
             if (*pHead & (1 << i)) {
-                pP->pUnk98 = pData;
+                pP->pSa_dat_head = pData;
                 pData += pData[2] + 3;
             }
             pP++;
@@ -31,7 +31,7 @@ void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
 
 INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004A934);
 
-/* morph (sabun) data at PARTS_W.pUnk98 */
+/* morph (sabun) data at PARTS_W.pSa_dat_head */
 typedef struct {
     ULONG Ofs;                         /* 0x00 offset of the shapes from ENEMY_WORK.pUnk118 */
     ULONG Size;                        /* 0x04 bytes per shape */
@@ -59,7 +59,7 @@ void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP)
 
     Head = (ULONG)pEm->pUnk118;
     i = 1;
-    pSa = (SA_DATA *)pP->pUnk98;
+    pSa = (SA_DATA *)pP->pSa_dat_head;
     n = (USHORT)pP->pTmd->n_vert;
     pV = (SVECTOR *)pP->pTmd->pVert;
     nVert = n;

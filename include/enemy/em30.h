@@ -79,7 +79,7 @@ typedef struct tagEM30_SABUN {
         USHORT pad;
     } Key[3];
 } EM30_SABUN;
-#define EM30_SABUN_P(pP) ((EM30_SABUN *)(pP)->pUnk98)
+#define EM30_SABUN_P(pP) ((EM30_SABUN *)(pP)->pSa_dat_head)
 
 /* exe functions without a shared prototype (signatures as defined in src/game) */
 

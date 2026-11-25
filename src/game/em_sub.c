@@ -403,9 +403,9 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
             }
         }
         pP = pEm->pSin_parts_ptr;
-        pSv->vx = (USHORT)pP->UnkAC + ((pP->UnkB4 * rr) >> 8);
+        pSv->vx = (USHORT)pP->Pos_base_x + ((pP->Pos_step_x * rr) >> 8);
         pSv->vy = 0;
-        pSv->vz = (USHORT)pP->UnkB0 + ((pP->UnkB2 * rr) >> 8);
+        pSv->vz = (USHORT)pP->Pos_base_z + ((pP->Pos_step_z * rr) >> 8);
     } else {
         Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs + (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (f_base + (w & 0xFF)) * 4;
         pSv->vx = ((SVECTOR *)Bone_adr)->vx;

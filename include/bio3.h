@@ -574,31 +574,31 @@ typedef struct tagPARTS_W {
     SHORT Unk7C;                       /* 0x7C (func_800455B4) */
     UCHAR pad7E[0x82 - 0x7E];
     SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (func_800336B4) */
-    UCHAR Unk84;                       /* 0x84 part number (Pl_weapon_ch) */
-    signed char Unk85;                 /* 0x85 RE2 Timer1 (signed counter) */
-    signed char Unk86;                 /* 0x86 */
+    UCHAR Parts_no;                    /* 0x84 RE2 Parts_no: index in pSin_parts_ptr[] */
+    signed char Timer1;                /* 0x85 RE2 Timer1: fall speed added to Old_y (Parts_down) */
+    signed char Timer2;                /* 0x86 RE2 Timer2: frames left to blend into the fall rotation (Parts_down) */
     UCHAR pad87;
-    SHORT Unk88;                       /* 0x88 rotation x (func_8002B190) */
-    SHORT Unk8A;                       /* 0x8A rotation y */
-    SHORT Unk8C;                       /* 0x8C rotation z */
-    SHORT Unk8E;                       /* 0x8E rotation speed z */
-    SHORT Unk90;                       /* 0x90 */
-    SHORT Unk92;                       /* 0x92 rotation speed y */
+    SHORT Rot_x;                       /* 0x88 RE2 Rot_x: rotation of the current key frame */
+    SHORT Rot_y;                       /* 0x8A */
+    SHORT Rot_z;                       /* 0x8C */
+    SHORT Rot_spd_z;                   /* 0x8E rotation step to the next key frame, * rate >> 8 */
+    SHORT Rot_spd_x;                   /* 0x90 */
+    SHORT Rot_spd_y;                   /* 0x92 */
     SHORT Unk94;                       /* 0x94 */
-    SHORT Unk96;                       /* 0x96 */
-    ULONG *pUnk98;                     /* 0x98 per-part animation data (Sa_dat_set) */
+    SHORT Timer3;                      /* 0x96 RE2 Timer3: bounces left (Parts_down) */
+    ULONG *pSa_dat_head;               /* 0x98 RE2 pSa_dat_head: per-part animation data (Sa_dat_set) */
     SHORT Size_x;                      /* 0x9C RE2 Size_x */
     SHORT Size_y;                      /* 0x9E RE2 Size_y */
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */
     SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
     struct tagPARTS_W *pOya_parts;     /* 0xA4 */
     ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (func_8007A2D4, func_8007A350) */
-    SHORT UnkAC;                       /* 0xAC Pos_x base (get_null_pos2) */
-    SHORT UnkAE;                       /* 0xAE Pos_y base (func_80027338) */
-    SHORT UnkB0;                       /* 0xB0 Pos_z base */
-    SHORT UnkB2;                       /* 0xB2 Pos_z step, * rate >> 8 */
-    SHORT UnkB4;                       /* 0xB4 Pos_x step, * rate >> 8 */
-    SHORT UnkB6;                       /* 0xB6 Pos_y step, * rate >> 8 (func_80027338) */
+    SHORT Pos_base_x;                  /* 0xAC root position of the current key frame (get_null_pos2) */
+    SHORT Pos_base_y;                  /* 0xAE */
+    SHORT Pos_base_z;                  /* 0xB0 */
+    SHORT Pos_step_z;                  /* 0xB2 root step to the next key frame, * rate >> 8 */
+    SHORT Pos_step_x;                  /* 0xB4 */
+    SHORT Pos_step_y;                  /* 0xB6 */
     UCHAR padB8[0xBC - 0xB8];
 } PARTS_W;
 

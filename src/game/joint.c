@@ -401,7 +401,7 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
         PW_FREE(pCur)[5] = 0;
         pCur->Be_flg = 1;
         *(SHORT *)&pCur->Workm.t[0] = 0;
-        pCur->Unk84 = Part_no;
+        pCur->Parts_no = Part_no;
         pCur->UnkA2 = 0xB;
         pCur->pTmd = pTmd_cur;
         if ((USHORT)pTmd_cur->n_vert < 4) {
@@ -722,14 +722,14 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         No &= 0xFF;
     }
     pP = pEm->pSin_parts_ptr;
-    pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
+    pP->Pos_y = pP->Pos_base_y + ((pP->Pos_step_y * No) >> 8);
     n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
     pP_walk = pP;
     if (pEm->Hokan_flg == 0) {
         do {
-            pP_walk->Cdir_x = pP_walk->Unk88 + ((pP_walk->Unk90 * No) >> 8);
-            pP_walk->Cdir_y = pP_walk->Unk8A + ((pP_walk->Unk92 * No) >> 8);
-            pP_walk->Cdir_z = pP_walk->Unk8C + ((pP_walk->Unk8E * No) >> 8);
+            pP_walk->Cdir_x = pP_walk->Rot_x + ((pP_walk->Rot_spd_x * No) >> 8);
+            pP_walk->Cdir_y = pP_walk->Rot_y + ((pP_walk->Rot_spd_y * No) >> 8);
+            pP_walk->Cdir_z = pP_walk->Rot_z + ((pP_walk->Rot_spd_z * No) >> 8);
             if (!(pP_walk->Be_flg & 0x10)) {
                 RotMatrix_gte((SVECTOR *)&pP_walk->Cdir_x, (MATRIX *)pP_walk->M);
             }
@@ -768,7 +768,7 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
     VECTOR Pos;
     LONG Floor_y;
 
-    if (pP_ptr->Unk96 == 0) {
+    if (pP_ptr->Timer3 == 0) {
         Sv.vy = pP_ptr->Old_x;
         Sv.vz = 0;
         Sv.vx = 0;
@@ -776,14 +776,14 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
         Sv.vx = pP_ptr->Old_z;
         Sv.vy = pP_ptr->Old_y;
         ApplyMatrixSV(&M, &Sv, (SVECTOR *)&pP_ptr->Old_x);
-        pP_ptr->Unk96 = 3;
-        pP_ptr->Unk86 = 0xF;
+        pP_ptr->Timer3 = 3;
+        pP_ptr->Timer2 = 0xF;
     }
-    if (pP_ptr->Unk96 > 1) {
+    if (pP_ptr->Timer3 > 1) {
         Pos = *(VECTOR *)pP_ptr->Workm.t;
         Floor_y = func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1);
         wm->t[0] += pP_ptr->Old_x;
-        pP_ptr->Old_y += (signed char)pP_ptr->Unk85;
+        pP_ptr->Old_y += (signed char)pP_ptr->Timer1;
         wm->t[1] += pP_ptr->Old_y;
         wm->t[2] += pP_ptr->Old_z;
         if (func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1) < Floor_y) {
@@ -794,25 +794,25 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
             pP_ptr->Old_z *= -1;
         }
         if (Floor_y < wm->t[1]) {
-            pP_ptr->Unk96--;
+            pP_ptr->Timer3--;
             wm->t[1] -= pP_ptr->Old_y;
             pP_ptr->Old_y = (SHORT)(pP_ptr->Old_y * -1) >> 2;
             pP_ptr->Old_x >>= 2;
             pP_ptr->Old_z >>= 2;
             Esp_call(0x1900, 0x7D00000 | (USHORT)(Rnd() << 4), &pP_ptr->Workm, NULL, 0);
-            if (pP_ptr->Unk96 == 1) {
+            if (pP_ptr->Timer3 == 1) {
                 pP_ptr->Be_flg &= ~1;
                 Esp_kill(0xFF05, &pP_ptr->Workm);
             }
         }
     }
-    if (pP_ptr->Unk90 != 0xFF && pP_ptr->Unk86 >= 0) {
-        Sv.vx = pP_ptr->Unk90;
-        Sv.vy = pP_ptr->Unk92;
-        Sv.vz = pP_ptr->Unk8E;
+    if (pP_ptr->Rot_spd_x != 0xFF && pP_ptr->Timer2 >= 0) {
+        Sv.vx = pP_ptr->Rot_spd_x;
+        Sv.vy = pP_ptr->Rot_spd_y;
+        Sv.vz = pP_ptr->Rot_spd_z;
         RotMatrix(&Sv, &M);
-        HMatrix(&pP_ptr->Workm, &M, &pP_ptr->Workm, 0x1000 - pP_ptr->Unk86 * 0x100);
-        pP_ptr->Unk86--;
+        HMatrix(&pP_ptr->Workm, &M, &pP_ptr->Workm, 0x1000 - pP_ptr->Timer2 * 0x100);
+        pP_ptr->Timer2--;
     }
 }
 
@@ -906,40 +906,40 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     pP->Old_x = pP->Pos_x;
     pP->Old_y = pP->Pos_y;
     pP->Old_z = pP->Pos_z;
-    *(ULONG *)&pP[0].Unk88 = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
-    pP[0].Unk8C = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
-    *(ULONG *)&pP[1].Unk88 = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
-    pP[1].Unk8C = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
-    *(ULONG *)&pP[2].Unk88 = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
-    pP[2].Unk8C = ((USHORT *)pRot)[6] & 0xFFF;
-    *(ULONG *)&pP[3].Unk88 = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
-    pP[3].Unk8C = (pRot[4] & 0xFFF0) >> 4;
-    *(ULONG *)&pP[4].Unk88 = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
-    pP[4].Unk8C = (pRot[5] & 0xFFF00) >> 8;
-    *(ULONG *)&pP[5].Unk88 = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
-    pP[5].Unk8C = (pRot[6] & 0xFFF000) >> 12;
-    *(ULONG *)&pP[6].Unk88 = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
-    pP[6].Unk8C = (pRot[7] & 0xFFF0000) >> 16;
-    *(ULONG *)&pP[7].Unk88 = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
-    pP[7].Unk8C = pRot[8] >> 20;
-    *(ULONG *)&pP[8].Unk88 = (((USHORT *)pRot)[18] & 0xFFF) | ((pRot[9] & 0xFFF000) << 4);
-    pP[8].Unk8C = ((UCHAR *)pRot)[39] | ((((USHORT *)pRot)[20] & 0xF) << 8);
-    *(ULONG *)&pP[9].Unk88 = ((pRot[10] & 0xFFF0) >> 4) | (pRot[10] & 0xFFF0000);
-    pP[9].Unk8C = (pRot[10] >> 28) | (((UCHAR *)pRot)[44] << 4);
-    *(ULONG *)&pP[10].Unk88 = ((pRot[11] & 0xFFF00) >> 8) | ((pRot[11] & 0xFFF00000) >> 4);
-    pP[10].Unk8C = ((USHORT *)pRot)[24] & 0xFFF;
-    *(ULONG *)&pP[11].Unk88 = ((pRot[12] & 0xFFF000) >> 12) | (((pRot[12] & 0xFF000000) >> 8) | ((pRot[13] & 0xF) << 24));
-    pP[11].Unk8C = (pRot[13] & 0xFFF0) >> 4;
-    *(ULONG *)&pP[12].Unk88 = ((LONG)(pRot[13] & 0xFFF0000) >> 16) | (((pRot[13] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[56] << 20));
-    pP[12].Unk8C = (pRot[14] & 0xFFF00) >> 8;
-    *(ULONG *)&pP[13].Unk88 = (pRot[14] >> 20) | ((pRot[15] & 0xFFF) << 16);
-    pP[13].Unk8C = (pRot[15] & 0xFFF000) >> 12;
-    *(ULONG *)&pP[14].Unk88 = ((UCHAR *)pRot)[63] | ((((USHORT *)pRot)[32] & 0xF) << 8) | ((pRot[16] & 0xFFF0) << 12);
-    pP[14].Unk8C = (pRot[16] & 0xFFF0000) >> 16;
+    *(ULONG *)&pP[0].Rot_x = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
+    pP[0].Rot_z = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
+    *(ULONG *)&pP[1].Rot_x = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
+    pP[1].Rot_z = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
+    *(ULONG *)&pP[2].Rot_x = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
+    pP[2].Rot_z = ((USHORT *)pRot)[6] & 0xFFF;
+    *(ULONG *)&pP[3].Rot_x = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
+    pP[3].Rot_z = (pRot[4] & 0xFFF0) >> 4;
+    *(ULONG *)&pP[4].Rot_x = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
+    pP[4].Rot_z = (pRot[5] & 0xFFF00) >> 8;
+    *(ULONG *)&pP[5].Rot_x = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
+    pP[5].Rot_z = (pRot[6] & 0xFFF000) >> 12;
+    *(ULONG *)&pP[6].Rot_x = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
+    pP[6].Rot_z = (pRot[7] & 0xFFF0000) >> 16;
+    *(ULONG *)&pP[7].Rot_x = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
+    pP[7].Rot_z = pRot[8] >> 20;
+    *(ULONG *)&pP[8].Rot_x = (((USHORT *)pRot)[18] & 0xFFF) | ((pRot[9] & 0xFFF000) << 4);
+    pP[8].Rot_z = ((UCHAR *)pRot)[39] | ((((USHORT *)pRot)[20] & 0xF) << 8);
+    *(ULONG *)&pP[9].Rot_x = ((pRot[10] & 0xFFF0) >> 4) | (pRot[10] & 0xFFF0000);
+    pP[9].Rot_z = (pRot[10] >> 28) | (((UCHAR *)pRot)[44] << 4);
+    *(ULONG *)&pP[10].Rot_x = ((pRot[11] & 0xFFF00) >> 8) | ((pRot[11] & 0xFFF00000) >> 4);
+    pP[10].Rot_z = ((USHORT *)pRot)[24] & 0xFFF;
+    *(ULONG *)&pP[11].Rot_x = ((pRot[12] & 0xFFF000) >> 12) | (((pRot[12] & 0xFF000000) >> 8) | ((pRot[13] & 0xF) << 24));
+    pP[11].Rot_z = (pRot[13] & 0xFFF0) >> 4;
+    *(ULONG *)&pP[12].Rot_x = ((LONG)(pRot[13] & 0xFFF0000) >> 16) | (((pRot[13] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[56] << 20));
+    pP[12].Rot_z = (pRot[14] & 0xFFF00) >> 8;
+    *(ULONG *)&pP[13].Rot_x = (pRot[14] >> 20) | ((pRot[15] & 0xFFF) << 16);
+    pP[13].Rot_z = (pRot[15] & 0xFFF000) >> 12;
+    *(ULONG *)&pP[14].Rot_x = ((UCHAR *)pRot)[63] | ((((USHORT *)pRot)[32] & 0xF) << 8) | ((pRot[16] & 0xFFF0) << 12);
+    pP[14].Rot_z = (pRot[16] & 0xFFF0000) >> 16;
     if (Hokan == 0) {
     copy:
-        *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Unk88;
-        pP->Cdir_z = pP->Unk8C;
+        *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Rot_x;
+        pP->Cdir_z = pP->Rot_z;
         RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
         pP++;
         if (--n != 0) {
@@ -949,10 +949,10 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
         pEm->Hokan_flg--;
     hokan:
         if (n >= 7) {
-            hokan_svec((SVECTOR *)&pP->Unk88, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
+            hokan_svec((SVECTOR *)&pP->Rot_x, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
             RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
         } else {
-            RotMatrix_gte((SVECTOR *)&pP->Unk88, &M);
+            RotMatrix_gte((SVECTOR *)&pP->Rot_x, &M);
             HMatrix((MATRIX *)pP->M, &M, (MATRIX *)pP->M, 0xFFF - w);
         }
         pP++;
@@ -985,14 +985,14 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         No &= 0xFF;
     }
     pP = pEm->pSin_parts_ptr;
-    pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
+    pP->Pos_y = pP->Pos_base_y + ((pP->Pos_step_y * No) >> 8);
     n = 15;
     pP_walk = pP;
     if (pEm->Hokan_flg == 0) {
         do {
-            pP_walk->Cdir_x = pP_walk->Unk88 + ((pP_walk->Unk90 * No) >> 8);
-            pP_walk->Cdir_y = pP_walk->Unk8A + ((pP_walk->Unk92 * No) >> 8);
-            pP_walk->Cdir_z = pP_walk->Unk8C + ((pP_walk->Unk8E * No) >> 8);
+            pP_walk->Cdir_x = pP_walk->Rot_x + ((pP_walk->Rot_spd_x * No) >> 8);
+            pP_walk->Cdir_y = pP_walk->Rot_y + ((pP_walk->Rot_spd_y * No) >> 8);
+            pP_walk->Cdir_z = pP_walk->Rot_z + ((pP_walk->Rot_spd_z * No) >> 8);
             RotMatrix_gte((SVECTOR *)&pP_walk->Cdir_x, (MATRIX *)pP_walk->M);
             pP_walk++;
         } while (--n);
@@ -1032,9 +1032,9 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     pSv = &Sv;
     Hokan = 0x1000 - G.pEm->Hokan_flg * Rate;
     do {
-        pSv->vx = pP->Unk88 + ((ULONG)(pP->Unk90 * Late) >> 8);
-        pSv->vy = pP->Unk8A + ((ULONG)(pP->Unk92 * Late) >> 8);
-        pSv->vz = pP->Unk8C + ((ULONG)(pP->Unk8E * Late) >> 8);
+        pSv->vx = pP->Rot_x + ((ULONG)(pP->Rot_spd_x * Late) >> 8);
+        pSv->vy = pP->Rot_y + ((ULONG)(pP->Rot_spd_y * Late) >> 8);
+        pSv->vz = pP->Rot_z + ((ULONG)(pP->Rot_spd_z * Late) >> 8);
         if (n >= 7) {
             hokan_svec((SVECTOR *)&pP->Cdir_x, pSv, (SVECTOR *)&pP->Cdir_x, Hokan);
             RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
@@ -1084,8 +1084,8 @@ ULONG Joint_move_p(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_
     n = Cnt;
 unpack:
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[0].Unk88 = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
-        pP_walk[0].Unk8C = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
+        *(ULONG *)&pP_walk[0].Rot_x = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
+        pP_walk[0].Rot_z = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
     }
     if (P0_no == 0) {
         P0_no = -1;
@@ -1096,44 +1096,44 @@ unpack:
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[1].Unk88 = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
-        pP_walk[1].Unk8C = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
+        *(ULONG *)&pP_walk[1].Rot_x = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
+        pP_walk[1].Rot_z = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
     }
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[2].Unk88 = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
-        pP_walk[2].Unk8C = ((USHORT *)pRot)[6] & 0xFFF;
+        *(ULONG *)&pP_walk[2].Rot_x = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
+        pP_walk[2].Rot_z = ((USHORT *)pRot)[6] & 0xFFF;
     }
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[3].Unk88 = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
-        pP_walk[3].Unk8C = (pRot[4] & 0xFFF0) >> 4;
+        *(ULONG *)&pP_walk[3].Rot_x = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
+        pP_walk[3].Rot_z = (pRot[4] & 0xFFF0) >> 4;
     }
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[4].Unk88 = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
-        pP_walk[4].Unk8C = (pRot[5] & 0xFFF00) >> 8;
+        *(ULONG *)&pP_walk[4].Rot_x = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
+        pP_walk[4].Rot_z = (pRot[5] & 0xFFF00) >> 8;
     }
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[5].Unk88 = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
-        pP_walk[5].Unk8C = (pRot[6] & 0xFFF000) >> 12;
+        *(ULONG *)&pP_walk[5].Rot_x = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
+        pP_walk[5].Rot_z = (pRot[6] & 0xFFF000) >> 12;
     }
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[6].Unk88 = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
-        pP_walk[6].Unk8C = (pRot[7] & 0xFFF0000) >> 16;
+        *(ULONG *)&pP_walk[6].Rot_x = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
+        pP_walk[6].Rot_z = (pRot[7] & 0xFFF0000) >> 16;
     }
     On_flg >>= 1;
     if (--n == 0) goto unpacked;
     if (On_flg & 1) {
-        *(ULONG *)&pP_walk[7].Unk88 = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
-        pP_walk[7].Unk8C = pRot[8] >> 20;
+        *(ULONG *)&pP_walk[7].Rot_x = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
+        pP_walk[7].Rot_z = pRot[8] >> 20;
     }
     On_flg >>= 1;
     pRot += 9;
@@ -1146,9 +1146,9 @@ unpacked:
     if (Hokan == 0) {
         do {
             if (On_flg & 1) {
-                *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Unk88;
-                pP->Cdir_z = pP->Unk8C;
-                RotMatrix_gte((SVECTOR *)&pP->Unk88, (MATRIX *)pP->M);
+                *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Rot_x;
+                pP->Cdir_z = pP->Rot_z;
+                RotMatrix_gte((SVECTOR *)&pP->Rot_x, (MATRIX *)pP->M);
             }
             On_flg >>= 1;
             pP++;
@@ -1160,21 +1160,21 @@ unpacked:
                 pP->Cdir_z &= 0xFFF;
                 gte_lddp(w);
                 gte_ldsv(&pP->Cdir_x);
-                dx = pP->Unk88 - pP->Cdir_x + 0x800;
-                dy = pP->Unk8A - pP->Cdir_y + 0x800;
-                dz = pP->Unk8C - pP->Cdir_z + 0x800;
+                dx = pP->Rot_x - pP->Cdir_x + 0x800;
+                dy = pP->Rot_y - pP->Cdir_y + 0x800;
+                dz = pP->Rot_z - pP->Cdir_z + 0x800;
                 if ((ULONG)dx > 0x1000) {
-                    pP->Unk88 += (dx & 0x80000000) ? 0x1000 : -0x1000;
+                    pP->Rot_x += (dx & 0x80000000) ? 0x1000 : -0x1000;
                 }
                 if ((ULONG)dy > 0x1000) {
-                    pP->Unk8A += (dy & 0x80000000) ? 0x1000 : -0x1000;
+                    pP->Rot_y += (dy & 0x80000000) ? 0x1000 : -0x1000;
                 }
                 if ((ULONG)dz > 0x1000) {
-                    pP->Unk8C += (dz & 0x80000000) ? 0x1000 : -0x1000;
+                    pP->Rot_z += (dz & 0x80000000) ? 0x1000 : -0x1000;
                 }
                 gte_gpf12_b();
                 gte_lddp(0x1000 - w);
-                gte_ldsv(&pP->Unk88);
+                gte_ldsv(&pP->Rot_x);
                 gte_gpl12();
                 gte_stsv(&pP->Cdir_x);
                 RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
