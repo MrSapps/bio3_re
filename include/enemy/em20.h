@@ -46,7 +46,6 @@ typedef struct tagEM20_FREE {
 } EM20_FREE;
 
 #define EM20_W(p) ((EM20_FREE *)(p)->Unk1CC)
-#define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 /* RE2 Sca_info: the collision node's Unk2C/Hit_flg pair read as one word */
 #define EM20_SCA_INFO(p) (*(ULONG *)&(p)->Col.Unk2C)
 

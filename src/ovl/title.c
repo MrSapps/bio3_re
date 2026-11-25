@@ -131,7 +131,7 @@ void Title_init(TITLE_WORK *pTi)
     TITLE_RTN_SET(pTi, 2);
     Title_sprt_init(pTi);
     pTi->Kido_cnt = 0;
-    pTi->Kido = Title_sin_tbl[0] / 3 - 0x80;
+    pTi->Kido = Rsin_tbl[0] / 3 - 0x80;
     if (G.System_flg & 0x80) {
         pTi->Cur = 0;
         pTi->Cur_old = 0;
@@ -622,7 +622,7 @@ void Title_main_game(TITLE_WORK *pTi)
 void Title_main(TITLE_WORK *pTi)
 {
     pTi->Kido_cnt += 4;
-    pTi->Kido = Title_sin_tbl[pTi->Kido_cnt] / 3 - 0x80;
+    pTi->Kido = Rsin_tbl[pTi->Kido_cnt] / 3 - 0x80;
     Title_sub_tbl[pTi->Sub_rtn](pTi);
     Title_menu_disp(&Title_wk);
 }
@@ -1096,7 +1096,7 @@ void Title_ex_init(TITLE_WORK *pTi)
         SetDrawTPage(&pTi->Buf[i].Ex.Tpage, 0, 0, 0x46);
     }
     Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 15);
-    pTi->Kido = Title_sin_tbl[0] / 2 - 0x80;
+    pTi->Kido = Rsin_tbl[0] / 2 - 0x80;
     while (Fade_status(0) != 0) {
         Title_ex_disp(pTi);
         Task_sleep(1);
@@ -1106,7 +1106,7 @@ void Title_ex_init(TITLE_WORK *pTi)
     pTi->Cur = 0;
     while (1) {
         pTi->Kido_cnt += 4;
-        pTi->Kido = Title_sin_tbl[pTi->Kido_cnt] / 2 - 0x80;
+        pTi->Kido = Rsin_tbl[pTi->Kido_cnt] / 2 - 0x80;
         if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
             goto start;
         }

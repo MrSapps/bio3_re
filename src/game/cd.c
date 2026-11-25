@@ -57,7 +57,7 @@ void Cd_system_control(void)
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/cd", D_8001031C);
+INCLUDE_RODATA("asm/nonmatchings/game/cd", pTitle_adr);
 
 /* RE2 Xa_play: starts XA voice `no` (mode >= 2: system voices, else the room's G.pXa_sector table) */
 void Xa_play(ULONG mode, ULONG no)

@@ -114,16 +114,16 @@ typedef struct tagPL_WEP_DATA {
 LONG Pl_wep_eff_parts_init(ENEMY_WORK *pEm);
 void Pl_wep_poly_init(void);
 
-extern PARTS_W *D_8009CD30;
+extern PARTS_W *pPl_emd_top;
 extern UCHAR Pl_neck_timer; /* RE2 Pl_neck_timer */
-extern UCHAR D_8009CF28[][3];
-extern UCHAR D_8009CF64[];
+extern UCHAR Pl_wep_frame_tbl[][3];
+extern UCHAR Pl_wep_turn_tbl[];
 extern PL_WEP_DATA *Pl_wep_data[]; /* per-weapon hit data, index player Id */
-extern USHORT D_8009DCB4[];
+extern USHORT Plw_no[];
 extern UCHAR Em_score_tbl[][2];
-extern UCHAR D_8009DE10;
+extern UCHAR Chaser_kill_score;
 extern UCHAR Em_kill_combo;
-extern UCHAR D_800DE8E8;
+extern UCHAR Pl_aim_cnt;
 
 void Pl_neck(ENEMY_WORK *pEm, ULONG LL, SHORT Dir);
 void Pl_water(ENEMY_WORK *pEm);
@@ -181,12 +181,12 @@ void Weapon_parts_clr(ENEMY_WORK *pEm);
 void Pl_weapon_ch_init(ENEMY_WORK *pEm);
 void Non_init(ENEMY_WORK *pEm);
 void Plw02_init(ENEMY_WORK *pEm);
-void Plw_init_43FF0(ENEMY_WORK *pEm);
-void Plw_init_44054(ENEMY_WORK *pEm);
-void Plw_init_440AC(ENEMY_WORK *pEm);
-void Plw_init_440F4(ENEMY_WORK *pEm);
-void Plw_init_44134(ENEMY_WORK *pEm);
-void Plw_init_4417C(ENEMY_WORK *pEm);
+void Plw06_init(ENEMY_WORK *pEm);
+void Plw0b_init(ENEMY_WORK *pEm);
+void Plw0c_init(ENEMY_WORK *pEm);
+void Plw0d_init(ENEMY_WORK *pEm);
+void Plw0e_init(ENEMY_WORK *pEm);
+void Plw10_init(ENEMY_WORK *pEm);
 ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL);
 LONG Hit_area_ck(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);
 LONG Hit_area_em_ck(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pEm inside the box */
@@ -197,9 +197,9 @@ void Matrix_rel_pos(MATRIX *pM0, MATRIX *pM1, SVECTOR *pOut);
 void Mag_set(ENEMY_WORK *pEm);
 void Mag_down(ENEMY_WORK *pEm);
 void Pl_wep_eff_init(ENEMY_WORK *pEm);
-void func_800452E0(void);
+void Pl_wep_dummy(void);
 void Pl_wep_parts_drop(ENEMY_WORK *pEm);
-void func_80045514(void);
+void Pl_wep_dummy2(void);
 LONG Pl_wep_eff_parts_set(ENEMY_WORK *pEm);
 UCHAR Pl_wep_eff_parts_cnt(void);
 ENEMY_WORK *Em_near_dir_ck(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim);

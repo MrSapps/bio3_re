@@ -73,15 +73,16 @@ typedef struct tagDOOR {
 
 void Door_main(void);
 
-extern UCHAR D_80097A00[];
-extern UCHAR D_80097A28[];
-extern UCHAR D_80097A50[];
-extern UCHAR D_80097A78[];
+extern UCHAR Em_sce06_move_tbl[];
+extern UCHAR Em_sce04_move_tbl[];
+extern UCHAR Em_sce05_move_tbl[];
+extern UCHAR Em_sce07_move_tbl[];
 extern EM_PROC Em_sce[];
-extern ULONG D_800BA6F0; /* RE2 pDoor[1] */
+extern ULONG pDoor_tex_trans; /* RE2 pDoor[1] */
 extern ULONG D_800BA6F4; /* door work slot size */
 extern DOOR *pDoor;              /* RE2 pDoor[0] */
 extern DOOR_WORK *pDwork[10];      /* RE2 pDwork[] (door work slots) */
+extern ULONG Enemy_flg[];
 
 void Door_init(void);
 void Door_move(void);
@@ -114,6 +115,6 @@ void Em_sce_foot_se(ENEMY_WORK *pEm);
 void Enemy_work_set(void);
 ULONG Emd_load(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData);
 void Em_move_tbl_set(void);
-void func_80017D9C(void);
+void Door_dummy(void);
 
 #endif /* DOOR_H */

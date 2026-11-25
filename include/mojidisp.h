@@ -60,8 +60,10 @@ extern UCHAR Mess_st_text[]; /* message text banks (Mess_set) */
 extern USHORT Mess_st_ofs[];
 extern UCHAR Item_name_text[];
 extern USHORT Item_name_ofs[];
-extern UCHAR D_800C703F;
-extern UCHAR D_800D4433;
+extern UCHAR Live_sel_mess_y;
+extern UCHAR D_800CC84D;
+extern ULONG Item_chk_flg[];
+extern UCHAR Main_task_flg;
 
 void Print8_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);
 void Print14_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);

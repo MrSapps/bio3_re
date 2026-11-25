@@ -362,12 +362,12 @@ void Esp_29(ESP_WORK *pEsp)
         Esp_call_child(pEsp, ((pEsp->UnkB3 & 0xF) << 24) | (USHORT)(pEsp->Id.B[0] | 0x500),
                       (pEsp->Size + (signed char)Rnd()) << 16, &pEsp->Workm2, &Ofs.vx, 0);
         Area.pPos = &pEsp->Pos;
-        Area.pBox = D_80098074;
+        Area.pBox = Esp29_hit_box0;
         Area.Dir = Rot;
         Area.Id = 0x42;
         Hit_area_em_ck(&pEsp->Pos.vx, &pEsp->pEm->Pos_x, &Area, &Pl_work);
         Area.pPos = &pEsp->Pos;
-        Area.pBox = D_8009807C;
+        Area.pBox = Esp29_hit_box1;
         Area.Dir = Rot;
         Area.Id = 0x41;
         Hit_area_em_ck(&pEsp->Pos.vx, &pEsp->pEm->Pos_x, &Area, &Pl_work);
@@ -530,13 +530,13 @@ void Esp_34(ESP_WORK *pEsp)
 
     switch (pEsp->Unk18) {
     case 0:
-        pTbl = &D_80098094[pEsp->UnkB4];
+        pTbl = &Esp34_tbl0[pEsp->UnkB4];
         break;
     case 1:
-        pTbl = &D_800982C4[pEsp->UnkB4];
+        pTbl = &Esp34_tbl1[pEsp->UnkB4];
         break;
     case 2:
-        pTbl = &D_80098494[pEsp->UnkB4];
+        pTbl = &Esp34_tbl2[pEsp->UnkB4];
         break;
     }
     if (pEsp->Routine_1 < 11 && pEsp->Snd_no != 0xFF) {
@@ -582,7 +582,7 @@ void Esp_34(ESP_WORK *pEsp)
         case 0:
             Fade_set(0, 0, 0, 1, 0xFFFFFF, 0, 8);
             G.Status_flg |= 2;
-            func_8003884C(D_80097B78, 2);
+            Pad_vib_data_set(Esp_vib_data, 2);
             Snd_se_stad(0x10213, &pEsp->Pos, 0, 0);
             break;
         case 8:
@@ -610,13 +610,13 @@ void Esp_35(ESP_WORK *pEsp)
         pEsp->UnkB6 = pEsp->Size;
         pEsp->Routine_1++;
         Size = (USHORT)pEsp->UnkB6;
-        Size *= D_800986C4[pEsp->UnkB4];
+        Size *= Esp35_size_tbl[pEsp->UnkB4];
         pEsp->Size = Size >> 12;
         pEsp->UnkB4++;
         break;
     case 1:
         Size = (USHORT)pEsp->UnkB6;
-        Size *= D_800986C4[pEsp->UnkB4];
+        Size *= Esp35_size_tbl[pEsp->UnkB4];
         pEsp->Size = Size >> 12;
         if (++pEsp->UnkB4 >= 3) {
             pEsp->Routine_1++;
@@ -672,9 +672,9 @@ void Esp_37(ESP_WORK *pEsp)
         }
         if (pEsp->UnkB4 == 0 && Sca_ck_line(&pEsp->Pos, &pEsp->Old, 0x2000, 5)) {
             pEsp->UnkB4 = 1;
-            if (D_800DEB80 == &Pl_work) {
+            if (Sca_hit_em == &Pl_work) {
                 Hit = 1;
-                func_8003884C(D_80097B78, 3);
+                Pad_vib_data_set(Esp_vib_data, 3);
             } else {
                 Hit = 1;
             }

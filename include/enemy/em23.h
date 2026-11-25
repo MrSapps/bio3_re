@@ -55,10 +55,9 @@ typedef struct tagEM23_FREE {
 #define EF_W0(p) ((p)->Unk1CC[0])
 /* Size/Status_flg read as one word */
 #define EM_D0W(p) (*(ULONG *)&(p)->Size)
-#define EM_RTN01(p) (*(SHORT *)&(p)->Routine_0)
 /* SCA_HEAD +0xC (sca.h padC): floor height of the room */
 #define SCA_FLOOR_Y(p) (((SHORT *)(p))[6])
-/* x/z pair packed for the SCA line tests (sca.c func_8004F258) */
+/* x/z pair packed for the SCA line tests (sca.c Sca_line_wall) */
 #define SCA_XZ(x, z) ((((x) >> 1) << 16) | (((z) >> 1) & 0xFFFF))
 /* body direction on the wall from the base direction (Base_dir_x/Base_dir_y) and the wall direction Wall_dir;
    the _T form also clears Timer0 */

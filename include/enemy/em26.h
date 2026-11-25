@@ -38,7 +38,6 @@ typedef struct tagEM26_BLOOD_TBL {
 } EM26_BLOOD_TBL;
 
 /* *(USHORT *)&Routine_2 */
-#define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 /* Kill_enemy_work (RE2 macro): free the work */
 #define KILL_ENEMY_WORK(p) ((p)->Be_flg = 0, *(ULONG *)&(p)->Routine_0 = 0, G.Em_num--)
 

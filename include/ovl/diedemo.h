@@ -84,7 +84,7 @@ typedef struct tagDIESPR {
 /* overlay data (asm/data/ovl/diedemo/data.data.s) */
 extern USHORT Die_wait_tbl[];            /* wait count by cut info index */
 extern USHORT Die_wait_first[];
-extern USHORT Die_vib_tbl[];            /* vibration scripts (func_8003884C) */
+extern USHORT Die_vib_tbl[];            /* vibration scripts (Pad_vib_data_set) */
 extern CUTINFO Cutinfo[];           /* cut infos */
 extern CUTINFO Die_cut_c2;             /* cut info 9 for flag 0xC2 */
 extern DIE_WAIT Die_wait[];

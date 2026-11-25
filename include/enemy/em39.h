@@ -31,14 +31,14 @@ extern void (*Em39_routine_0[])();
 extern void (*Em39_move_type[])();
 extern void (*Em39_mv_br[])();
 extern void (*Em39_mv[])();
-extern void (*Em39_mv_br_unk[])() __asm__("Em39_move_rnd"); /* unused routine; points at Em39_move_rnd */
+extern void (*Em39_mv_br_type01[])() __asm__("Em39_move_rnd"); /* RE2-style Em39_mv_br_type01 slot: the unused Em39_Move_type01 reads its brain table from Em39_move_rnd's address */
 extern UCHAR Em39_move_rnd[8]; /* random idle motions */
 
 void Em39_main(ENEMY_WORK *pEm);
 void Em39_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em39_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em39_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void Em39_Move_type_unk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em39_wait_br(ENEMY_WORK *pEm);
 void Em39_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em39_lash_br(ENEMY_WORK *pEm);

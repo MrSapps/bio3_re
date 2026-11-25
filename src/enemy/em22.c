@@ -5,10 +5,10 @@
 #include "snd.h"
 
 /* Called the way an unprototyped call in Capcom's source compiles: int result, unnarrowed int
- * arguments (and func_8004D6B8 with four) */
+ * arguments (and Sca_get_area with four) */
 LONG Rnd_l(void) __asm__("Rnd");
 LONG Guide_check_(LONG X, LONG Z, LONG Floor) __asm__("Guide_check");
-ULONG func_8004D6B8_(LONG X, LONG Z, LONG a2, LONG a3) __asm__("func_8004D6B8");
+ULONG func_8004D6B8_(LONG X, LONG Z, LONG a2, LONG a3) __asm__("Sca_get_area");
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set");
 void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector");
 
@@ -863,7 +863,7 @@ void Em22_mv_jump_atck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE2++;
         Em22_water(pEm);
     }
-    if (EM_RTN01(pPl) != 0x701 && EM22_W(pEm)->Unk13)
+    if (EM_RTN01_S(pPl) != 0x701 && EM22_W(pEm)->Unk13)
         Goto00(pEm, EM22_W(pEm)->Way1_x, EM22_W(pEm)->Way1_z, 0x18);
     Add_speedXZ(pEm, 0);
 }
@@ -2988,7 +2988,7 @@ LONG Em22_rtn_free_ck(ENEMY_WORK *pEm, ULONG Rtn)
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pT = *ppEm;
         if (pT != pEm && (pT->Id == 0x22 || pT->Id == 0x24) && (pT->Be_flg & 1)
-            && (USHORT)EM_RTN01(pT) == (USHORT)Rtn)
+            && (USHORT)EM_RTN01_S(pT) == (USHORT)Rtn)
             return 0;
     }
     return 1;

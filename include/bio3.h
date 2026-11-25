@@ -286,11 +286,11 @@ typedef struct tagEM_HIT_AREA {
     USHORT Col_flg;                    /* 0x17E Model_col: bits 8-11 mode, low byte grey level */ \
     ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of Leg_ik_kan (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
-    ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
+    ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in Mizu_trans works */ \
     ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */                            \
-    ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (func_800498F0) */ \
+    ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (Rbj_set) */ \
     ULONG *pUnk194_kan_t_ptr;          /* 0x194 */                            \
-    ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */ \
+    ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (Rbj_set) */ \
     ULONG *pUnk19C_kan_t_ptr;          /* 0x19C */                            \
     UCHAR Sub_move_no;                 /* 0x1A0 second motion slot (slope walking; Spd_get_sub) */ \
     UCHAR Sub_move_cnt;                /* 0x1A1 */                            \
@@ -301,7 +301,7 @@ typedef struct tagEM_HIT_AREA {
     SHORT Unk1AC[3];                   /* 0x1AC em23 damage */                \
     UCHAR pad1B2[0x1B4 - 0x1B2];                                              \
     ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Player.pUnk1B4, select overlay) */ \
-    SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */ \
+    SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (Sca_set_ground) */ \
     SHORT Tilt_max;                    /* 0x1BA body tilt limit (Em_tilt_set) */ \
     SHORT Tilt[2];                     /* 0x1BC body tilt x, z (Joint_trans, Foot_set_pl) */ \
     UCHAR Unk1C0;                      /* 0x1C0 */                            \

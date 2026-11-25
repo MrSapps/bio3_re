@@ -7,29 +7,30 @@ int Print14_col_() __asm__("Print14_col"); /* Capcom called it undeclared (impli
 
 #define RND() ((signed char)Rnd())
 
-void func_80048520(void)
+/* Mercenaries "+N sec" bonus time display (G.Bonus_timer display timer, G.Bonus_time seconds; resets Em_kill_combo when it runs out); RE3-only */
+void Bonus_time_disp(void)
 {
     tagGLOBAL *pG = &G;
 
     if (pG->Bonus_timer != 0) {
         if ((USHORT)pG->Bonus_time != 0) {
             Print_color(0xFF, 0, 0x100);
-            D_8009DE28 *= -1;
-            Print14_col_(0xD6, D_8009DE28 + 0x20, 2, "[%dsec", (USHORT)pG->Bonus_time);
+            Bonus_time_shake *= -1;
+            Print14_col_(0xD6, Bonus_time_shake + 0x20, 2, "[%dsec", (USHORT)pG->Bonus_time);
         }
         pG->Bonus_timer--;
-        if (D_8009DE28 > 0) {
-            D_8009DE28--;
+        if (Bonus_time_shake > 0) {
+            Bonus_time_shake--;
         }
-        if (D_8009DE26 != (USHORT)pG->Bonus_time) {
+        if (Bonus_time_old != (USHORT)pG->Bonus_time) {
             Snd_se_stad(0xF, 0, 0, 0);
-            D_8009DE28 = 4;
+            Bonus_time_shake = 4;
         }
-        D_8009DE26 = pG->Bonus_time;
+        Bonus_time_old = pG->Bonus_time;
     } else {
         Em_kill_combo = 0;
-        D_8009DE26 = 0;
+        Bonus_time_old = 0;
         pG->Bonus_time = 0;
-        D_8009DE28 = 0;
+        Bonus_time_shake = 0;
     }
 }

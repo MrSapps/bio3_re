@@ -13,6 +13,7 @@ typedef struct {
     SHORT Target_z;                    /* 0x06 */
 } ROOT_REQ;
 
+extern USHORT **G_pRoom;
 
 LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode);
 LONG Rnd_area(void);

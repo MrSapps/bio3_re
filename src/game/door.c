@@ -212,7 +212,7 @@ void Door_snd_trans(void)
     G.Status_flg |= 0x800;
     pCd = &CD;
     pDoor_info = &Dinfo[((UCHAR *)G.pSce_aot_on)[0xC]];
-    while (D_800BA6F0 != 0) {
+    while (pDoor_tex_trans != 0) {
         Task_sleep(1);
     }
     Sound_size = pDoor_info->Sound_size;
@@ -310,7 +310,7 @@ void Em_sce04(ENEMY_WORK *pEm)
 
     pKan = pEm->pKan_t_ptr;
     pSeq = pEm->pSeq_t_ptr;
-    Move = D_80097A28[pEm->Id - 0x10];
+    Move = Em_sce04_move_tbl[pEm->Id - 0x10];
     if (pEm->Unk150 & 0x80) {
         switch (pEm->Unk150 & 0x7F) {
         case 0:
@@ -343,7 +343,7 @@ void Em_sce04(ENEMY_WORK *pEm)
     case 2:
         Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)Em_sce_mv02(pEm, pKan, pSeq, 0)) {
-            Flg_on(G.Room_flg, pEm->Set_flg_no);
+            Flg_on(Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -365,7 +365,7 @@ void Em_sce05(ENEMY_WORK *pEm)
 
     pKan = pEm->pKan_t_ptr;
     pSeq = pEm->pSeq_t_ptr;
-    Move = D_80097A50[pEm->Id - 0x10];
+    Move = Em_sce05_move_tbl[pEm->Id - 0x10];
     if (pEm->Unk150 & 0x80) {
         switch (pEm->Unk150 & 0x7F) {
         case 0:
@@ -398,7 +398,7 @@ void Em_sce05(ENEMY_WORK *pEm)
     case 2:
         Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)Em_sce_mv02(pEm, pKan, pSeq, 0)) {
-            Flg_on(G.Room_flg, pEm->Set_flg_no);
+            Flg_on(Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -416,10 +416,10 @@ void Em_sce06(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x70000 + (D_80097A00[pEm->Id - 0x10] & 0x3F);
+        EM_MOVE(pEm) = 0x70000 + (Em_sce06_move_tbl[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
-        if (D_80097A00[pEm->Id - 0x10] & 0x80) {
+        if (Em_sce06_move_tbl[pEm->Id - 0x10] & 0x80) {
             Joint_move(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         } else {
             Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
@@ -433,12 +433,12 @@ void Em_sce07(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x70000 + (D_80097A78[pEm->Id - 0x10] & 0x3F);
+        EM_MOVE(pEm) = 0x70000 + (Em_sce07_move_tbl[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
-        Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
-        if ((UCHAR)Em_sce_mv02(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
-            Flg_on(G.Room_flg, pEm->Set_flg_no);
+        Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, Em_sce07_move_tbl[pEm->Id - 0x10] & 0x40);
+        if ((UCHAR)Em_sce_mv02(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, Em_sce07_move_tbl[pEm->Id - 0x10] & 0x40)) {
+            Flg_on(Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -457,12 +457,12 @@ void Em_sce08(ENEMY_WORK *pEm)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Spd_z = 0;
-        EM_MOVE(pEm) = 0x70000 + (D_80097A78[pEm->Id - 0x10] & 0x3F);
+        EM_MOVE(pEm) = 0x70000 + (Em_sce07_move_tbl[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
         Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         if ((UCHAR)Em_sce_mv02(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0)) {
-            Flg_on(G.Room_flg, pEm->Set_flg_no);
+            Flg_on(Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -480,11 +480,11 @@ void Em_sce09(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x70000 + (D_80097A28[pEm->Id - 0x10] & 0x3F);
+        EM_MOVE(pEm) = 0x70000 + (Em_sce04_move_tbl[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)Em_sce_mv01(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
-            Flg_on(G.Room_flg, pEm->Set_flg_no);
+            Flg_on(Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -502,11 +502,11 @@ void Em_sce15(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x70000 + (D_80097A28[pEm->Id - 0x10] & 0x3F);
+        EM_MOVE(pEm) = 0x70000 + (Em_sce04_move_tbl[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)Em_sce_mv03(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
-            Flg_on(G.Room_flg, pEm->Set_flg_no);
+            Flg_on(Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -924,5 +924,6 @@ void Em_move_tbl_set(void)
     G.Em_ov_mtbl[1][0x30] = Em40_b1;
 }
 
-void func_80017D9C(void) {
+/* empty, unreferenced */
+void Door_dummy(void) {
 }

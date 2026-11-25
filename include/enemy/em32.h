@@ -49,7 +49,6 @@ typedef struct tagEM32_FREE {
 } EM32_FREE;
 
 #define EM32_W(p) ((EM32_FREE *)(p)->Unk1CC)
-#define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 
 /* shadow polygons: colour + code word of POLY_FT4 */
 #define PRIM_RGBC(p) (*(ULONG *)&(p).r0)

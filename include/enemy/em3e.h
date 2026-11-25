@@ -40,8 +40,6 @@ typedef struct tagEM3E_FREE {
 
 #define EM3E_W(p) ((EM3E_FREE *)(p)->Unk1CC)
 
-extern signed char Rsin_tbl[256] __asm__("Rsin_tbl"); /* 0x80098828 sine, 256 steps, +-127 */
-
 extern void (*Em3e_routine_0[8])();
 extern void (*Em3e_move_tbl[2])();
 extern void (*Em3e_fly_tbl[2])();

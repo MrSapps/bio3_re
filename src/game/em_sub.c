@@ -1678,7 +1678,7 @@ void Esp_06(ESP_WORK *pEw)
             if (Pos_em_at_ck(&Req, Esp_at_tbl[pEw->Unk18]) < 0) {
                 pEw->UnkB8 = 30;
                 if (pEw->Unk1A != 0xFF) {
-                    Flg_on(G.Room_flg, pEw->Unk1A);
+                    Flg_on(Room_flg, pEw->Unk1A);
                 }
             }
         } else {
@@ -1693,7 +1693,7 @@ void Esp_06(ESP_WORK *pEw)
         Req.R = pEw->Dir_y;
         if (Pos_em_at_ck(&Req, Esp_at_tbl[pEw->Snd_no]) & 0x20000000) {
             if (pEw->Unk1B != 0xFF) {
-                Flg_on(G.Room_flg, pEw->Unk1B);
+                Flg_on(Room_flg, pEw->Unk1B);
             }
         }
     }

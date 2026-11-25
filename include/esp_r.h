@@ -17,14 +17,14 @@ typedef struct tagESP_TBL16 {
     SHORT UnkE;                        /* 0xE */
 } ESP_TBL16;
 
-extern USHORT D_80097B78[];
-extern SHORT D_80098074[];
-extern SHORT D_8009807C[];
-extern ESP_TBL16 D_80098094[];
-extern ESP_TBL16 D_800982C4[];
-extern ESP_TBL16 D_80098494[];
-extern ULONG D_800986C4[]; /* scale curve (Esp_35) */
-extern ENEMY_WORK *D_800DEB80;
+extern USHORT Esp_vib_data[];
+extern SHORT Esp29_hit_box0[];
+extern SHORT Esp29_hit_box1[];
+extern ESP_TBL16 Esp34_tbl0[];
+extern ESP_TBL16 Esp34_tbl1[];
+extern ESP_TBL16 Esp34_tbl2[];
+extern ULONG Esp35_size_tbl[]; /* scale curve (Esp_35) */
+extern ENEMY_WORK *Sca_hit_em;
 
 void Esp_21(ESP_WORK *pEsp);
 void Esp_22(ESP_WORK *pEsp);

@@ -8,14 +8,14 @@ typedef void (*EM_FUNC)(ENEMY_WORK *pEm);
 
 typedef void (*EM_FUNC3)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 
-extern UCHAR D_8009DD34[];
+extern UCHAR Spl_esc_dir_tbl[];
 extern UCHAR Spl_life_u[];
-extern UCHAR D_8009E70D[];
-extern UCHAR D_8009E710[];
+extern UCHAR Spl_aim_dir[];
+extern UCHAR Spl_shot_eff_no[];
 extern void (*Spl_shot_eff_tbl[])(ENEMY_WORK *pEm);
 extern SHORT Spl_soba_ofs[6];
 extern void (*Aida_Move_type[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern UCHAR D_8009E7C8[];
+extern UCHAR Spl_pos_flg_tbl[];
 extern UCHAR Spl_ai_wait[];
 extern EM_FUNC3 Aida_mv_br_type00[];
 extern EM_FUNC3 Aida_mv_type00[];
@@ -121,7 +121,7 @@ void Aida_mv_nop_br(void);
 void Aida_mv0a(ENEMY_WORK *pEm);
 void Aida_mv0b_br(ENEMY_WORK *pEm);
 void Aida_mv0b_br_t0b(ENEMY_WORK *pEm);
-void func_8005D290(void);
+void Spl_auto_dummy(void);
 void Aida_mv0b_br_1(ENEMY_WORK *pEm);
 void Aida_mv0b(ENEMY_WORK *pEm);
 void Aida_mv0c_br(ENEMY_WORK *pEm);

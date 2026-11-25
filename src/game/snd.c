@@ -109,8 +109,8 @@ void Snd_reverb_set(void)
         Snd_work.Vol.Rv_cnt = 30;
         Snd_work.Vol.Rv_step++;
     } else if (--Snd_work.Vol.Rv_cnt == 0) {
-        SpuSetReverbModeParam((SpuReverbAttr *)D_800A10F4[Snd_work.Vol.Rv_mode]);
-        SpuSetReverbDepth((SpuReverbAttr *)D_800A10F4[Snd_work.Vol.Rv_mode]);
+        SpuSetReverbModeParam((SpuReverbAttr *)Snd_rv_attr_m1[Snd_work.Vol.Rv_mode]);
+        SpuSetReverbDepth((SpuReverbAttr *)Snd_rv_attr_m1[Snd_work.Vol.Rv_mode]);
         SpuSetReverb(1);
         Snd_work.Vol.Rv_step = 0;
         Snd_work.Vol.Rv_cur = Snd_work.Vol.Rv_mode;
@@ -232,18 +232,18 @@ void Snd_se_call(void)
 /* turns CD audio mixing into the SPU output on or off */
 void Snd_cd_mix_set(LONG on)
 {
-    SpuCommonAttr *p = &D_800E10F8;
+    SpuCommonAttr *p = &Snd_common_attr;
 
     if (on) {
         p->cd.volume.right = 0x7FFF;
         p->cd.volume.left = 0x7FFF;
         p->cd.mix = 1;
-        D_800E10F8.mask |= 0x2C0;
+        Snd_common_attr.mask |= 0x2C0;
     } else {
         p->cd.volume.left = 0;
         p->cd.volume.right = 0;
         p->cd.mix = 0;
-        D_800E10F8.mask &= ~0x2C0;
+        Snd_common_attr.mask &= ~0x2C0;
     }
     SpuSetCommonAttr(p);
 }
@@ -1510,7 +1510,7 @@ UCHAR Snd_floor_kind(LONG x, LONG z, LONG id)
     while (n--) {
         pFlr -= 0xC;
         Attr = ((SHORT *)pFlr)[5];
-        if (!(Attr & 0x100) && id == (Attr & 0x7F) && func_800101C8(pos, (SHORT *)pFlr)) {
+        if (!(Attr & 0x100) && id == (Attr & 0x7F) && Hit_ck_box(pos, (SHORT *)pFlr)) {
             return pFlr[8];
         }
     }

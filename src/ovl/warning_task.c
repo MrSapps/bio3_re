@@ -2,7 +2,7 @@
 #include "cd.h"
 
 /* task: load the warning screen picture, fade in, wait for the check, fade out */
-void func_80185418(void)
+void Warn_task(void)
 {
     RECT Unused;
     LONG Cnt;

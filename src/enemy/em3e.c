@@ -632,7 +632,7 @@ void Em3e_retarget(ENEMY_WORK *pEm)
         Area[1] = -25000;
         Area[2] = 17000;
         Area[3] = 25000;
-        if (func_800101C8(&pEm->Pos_x, Zone) || !func_800101C8(&pEm->Pos_x, Area)) {
+        if (Hit_ck_box(&pEm->Pos_x, Zone) || !Hit_ck_box(&pEm->Pos_x, Area)) {
             pEm->Timer0 = 30;
             if (pEm->Pos_x > 20000) {
                 pEm->Dest_x = 10000;

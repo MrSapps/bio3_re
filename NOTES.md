@@ -79,6 +79,16 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
 - Never run a full `make` while agents edit src/: it rebuilds build/ objects from half-edited files and
   breaks every other agent's linkcheck (which links against build/). Restore from a clean worktree build.
 - fdiff.py used to leak one /tmp dir per run (36k dirs, 3 GB, filled the disk); fixed.
+- Naming pass (clean/names, 2026-11-25): src/ has no func_/D_ address names left except D_800BA6F4,
+  D_800C79C0, D_800CA720, D_800CC84D (G+0x2115, used both as the hint page and the RESULT routine) and D_800DECAC
+  (unclear role). status.c sprite tables are named after what they draw (Item_frame_spr, Cmd_*_ft4, Box_*,
+  Btn_file/map/exit_ft4 = status menu buttons for Cursor -2/-1/<-2). sca shapes (index Id & 0xF, shared by
+  Sca_rtn_tbl / Sca_high_tbl / Sca_line_tbl): 0 circle, 1 box, 2 koban_x, 3 koban_z, 4 hishi, 5 box with one
+  diagonal line test, 6 naname (corner in Id >> 4), 7/8 box, 9 slope, 10 stairs, 11 none, 12 cone; RE3's order
+  differs from RE2. D_800E01xx views are Sce fields (Sce_cut, Sce_cut_old, ...), not St. EM_RTN01 lives in
+  em_common.h (USHORT); em22/em23 need EM_RTN01_S (lh). The Em*_mvNN / pl_mvNN / PlwNN_init names are Capcom's
+  own index convention (RE2 EM37.C has Em37_mv00..0e), so they were kept; Plw_init_<addr> became PlwNN_init.
+  Rename list for replaying on other branches: renamesN.txt in that session's scratchpad.
 
 ## Matching tools (tools/permute)
 - `tools/permute/setup.py SRC.c FUNC DIR` makes a decomp-permuter dir (target.o from the split asm, base.c = SRC.c

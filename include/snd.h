@@ -182,7 +182,7 @@ extern UCHAR Bgm_room_ofs[];
 extern UCHAR Vab_head_ofs[];
 extern UCHAR Snd_pan_tbl[]; /* pan curve, 0x80 entries */
 extern UCHAR Snd_dist_atten[]; /* attenuation by distance / 250 */
-extern UCHAR D_800A10F4[][0x14];
+extern UCHAR Snd_rv_attr_m1[][0x14];
 extern SpuReverbAttr Snd_rv_attr[];
 extern void (*Snd_req_tbl[])(SND_REQ *pReq); /* Snd_se_req (SE), Snd_seq_req (sequence) */
 extern void (*Snd_seq_fade_tbl[])(SND_SEQ *pSeq); /* Snd_seq_fade_in, Snd_seq_fade_out */
@@ -191,7 +191,7 @@ extern LONG Snd_pitch_down_tbl[];
 extern void (*Snd_midi_tbl[])(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG Status);
 extern UCHAR *Snd_edt; /* [3]: sound bank id of the room */
 extern LONG Snd_event;
-extern SpuCommonAttr D_800E10F8;
+extern SpuCommonAttr Snd_common_attr;
 
 void Snd_sys_init(void);
 void Snd_reset(void);

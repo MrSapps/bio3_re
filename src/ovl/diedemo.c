@@ -82,14 +82,14 @@ void Die_move_set(void)
         if (G.System_flg & 0x80) {
             Xa_play(3, 0x18);
             G.Status_flg |= STAT_XA_VOICE;
-            func_8003884C(Die_vib_tbl, 0);
+            Pad_vib_data_set(Die_vib_tbl, 0);
         } else {
             switch (G.Stage_no + 1) {
             case 4:
                 Snd_se_stad(0x208, NULL, 0, 0);
                 Xa_play(3, 0x19);
                 G.Status_flg |= STAT_XA_VOICE;
-                func_8003884C(Die_vib_tbl, 1);
+                Pad_vib_data_set(Die_vib_tbl, 1);
                 break;
             case 5:
                 if (G.Room_no == 9) {
@@ -98,7 +98,7 @@ void Die_move_set(void)
                 } else {
                     Xa_play(3, 0x1A);
                     G.Status_flg |= STAT_XA_VOICE;
-                    func_8003884C(Die_vib_tbl, 2);
+                    Pad_vib_data_set(Die_vib_tbl, 2);
                 }
                 break;
             }
@@ -437,7 +437,7 @@ void Die_enemy_set_em(void)
     }
 }
 
-/* Scenario_flg flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs D_80198228[Unk44] */
+/* Unk7868 flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs Die_sub_tbl[Unk44] */
 void Die_enemy_set_sub(void)
 {
     tagGLOBAL *pG = &G;

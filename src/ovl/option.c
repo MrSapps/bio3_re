@@ -895,7 +895,7 @@ void Config_res_disp(void)
 INCLUDE_ASM("asm/nonmatchings/ovl/option", Config_moji_disp);
 
 __asm__(".section .rodata\n.align 2\n.section .text"); /* literals are word aligned */
-INCLUDE_RODATA("asm/nonmatchings/ovl/option", D_801C21A4);
+INCLUDE_RODATA("asm/nonmatchings/ovl/option", Config_space_str);
 
 /* draws a number (RE2 Config_suuji role) */
 INCLUDE_ASM("asm/nonmatchings/ovl/option", Config_suuji);

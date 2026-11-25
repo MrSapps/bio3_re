@@ -7,6 +7,10 @@
  * (RE2 EM20.C: *(long *)&pEm->Move_no = 0xf0006;). The compiler emits a single sw for it, so the
  * word store has to stay; the SET forms only spell out the bytes and fold to the same constant. */
 #define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
+/* Routine_0 and Routine_1 as one halfword (compared against 0x0701-style codes) */
+#define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
+/* signed view: em22 / em23 load it with lh (unsigned gives lhu and the compare no longer matches) */
+#define EM_RTN01_S(p) (*(SHORT *)&(p)->Routine_0)
 #define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
 #define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 

@@ -187,9 +187,9 @@ void Init_system(void)
     Cd_init();
     Snd_sys_init();
     Init_scheduler();
-    VSyncCallback(func_800101AC);
+    VSyncCallback(Vsync_cb);
     pM->Vloop = 1;
-    D_800D454C = 0;
+    Vsync_cnt = 0;
     SetDefDrawEnv(&pM->Db[0].Draw, 0, 0, 320, 240);
     SetDefDrawEnv(&pM->Db[1].Draw, 0, 240, 320, 240);
     SetDefDispEnv(&pM->Db[0].Disp, 0, 240, 320, 240);
@@ -215,7 +215,7 @@ void Init_system(void)
     Task_execute(0, Init_main);
     ResetGraph(0);
     Vram_clr(0, 0, 0x400, 0x200);
-    D_800D454C = 0;
+    Vsync_cnt = 0;
 }
 
 /* RE2 Init_global: clears G (keeping Keep_data across a retry) and sets up the curtain tiles */
@@ -254,7 +254,7 @@ void Init_global(void)
     Moji.Mess_flg = 0;
     Main.Unk194 = 0;
     G.System_flg &= 0x80;
-    D_80098700 = 0xD2706CA4;
+    G_random = 0xD2706CA4;
     for (i = 0; i < 4; i++) {
         Fade_off(i);
     }
@@ -385,7 +385,7 @@ void Bg_draw(void)
         Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;
         if (*(ULONG *)(0x80193FFC + Size) != 0) {
-            func_80010000(*(ULONG *)(0x80193FF8 + Size) + 0x80194000, (ULONG *)0x801AC000);
+            Lz_unpack(*(ULONG *)(0x80193FF8 + Size) + 0x80194000, (ULONG *)0x801AC000);
             pG->Ctp.Tpage_clut = 0x15;
             Mapping_tim((ULONG *)0x801AC000);
             pG->Ctp.Tpage_clut = Ctpage_save;

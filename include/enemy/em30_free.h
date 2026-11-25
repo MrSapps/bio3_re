@@ -82,7 +82,6 @@ typedef struct tagEM30_SABUN {
 #define EM30_SABUN_P(pP) ((EM30_SABUN *)(pP)->pSa_dat_head)
 
 /* Routine_0 and Routine_1 as one halfword */
-#define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 
 extern void (*Em30_dm[][2])();         /* damage routines [Damage_no - 1][Routine_1] */
 

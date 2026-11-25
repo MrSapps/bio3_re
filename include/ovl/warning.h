@@ -31,7 +31,7 @@ typedef struct tagWARN_LANG {
     char *pMess;                       /* 0x8 */
 } WARN_LANG;
 
-/* text cursor (func_80184ECC / func_80185040) */
+/* text cursor (Warn_print / Warn_glyph_draw) */
 typedef struct tagWARN_POS {
     SHORT X;                           /* 0x0 */
     SHORT Y;                           /* 0x2 */
@@ -56,33 +56,33 @@ typedef struct tagWARN_POLY {
 } WARN_POLY;
 
 /* overlay .data (still in asm) */
-extern WARN_CD_CMD Cd_cmd_tbl[] __asm__("D_80185568");
-extern volatile UCHAR *pCd_reg0 __asm__("D_801855A0"); /* 0x1F801800 index/status */
-extern volatile UCHAR *pCd_reg1 __asm__("D_801855A4"); /* 0x1F801801 command / response */
-extern volatile UCHAR *pCd_reg2 __asm__("D_801855A8"); /* 0x1F801802 parameter / irq enable */
-extern volatile UCHAR *pCd_reg3 __asm__("D_801855AC"); /* 0x1F801803 request / irq flag */
-extern UCHAR Cd_param[8] __asm__("D_801855B0");
-extern UCHAR Cd_result[8] __asm__("D_801855B8");
-extern LONG Warn_state __asm__("D_801855C0");
-extern LONG Cd_irq_sum __asm__("D_801855C4");
-extern WARN_LANG Warn_lang[2] __asm__("D_801855C8");
-extern UCHAR Warn_circle[17][2] __asm__("D_801855E0"); /* quarter circle of the frame corners */
-extern LONG Warn_vsync __asm__("D_80185610");
-extern LONG Warn_last_track __asm__("D_80185614");
-extern UCHAR Warn_min __asm__("D_80185618"); /* seek target (half of the last track's start): BCD minute */
-extern UCHAR Warn_sec __asm__("D_80185619"); /* BCD second (see func_80184164) */
-extern LONG Warn_lang_no __asm__("D_8018561C");
-extern UCHAR Bios_region __asm__("D_BFC7FF52"); /* BIOS version string: 'I', 'A' or 'E' */
+extern WARN_CD_CMD Cd_cmd_tbl[];
+extern volatile UCHAR *pCd_reg0; /* 0x1F801800 index/status */
+extern volatile UCHAR *pCd_reg1; /* 0x1F801801 command / response */
+extern volatile UCHAR *pCd_reg2; /* 0x1F801802 parameter / irq enable */
+extern volatile UCHAR *pCd_reg3; /* 0x1F801803 request / irq flag */
+extern UCHAR Cd_param[8];
+extern UCHAR Cd_result[8];
+extern LONG Warn_state;
+extern LONG Cd_irq_sum;
+extern WARN_LANG Warn_lang[2];
+extern UCHAR Warn_circle[17][2]; /* quarter circle of the frame corners */
+extern LONG Warn_vsync;
+extern LONG Warn_last_track;
+extern UCHAR Warn_min; /* seek target (half of the last track's start): BCD minute */
+extern UCHAR Warn_sec; /* BCD second (see Warn_check) */
+extern LONG Warn_lang_no;
+extern UCHAR Bios_region; /* BIOS version string: 'I', 'A' or 'E' */
 
-void func_801840F8(void);
-LONG func_80184164(LONG Once);
-LONG func_80184A9C(LONG Cmd);
-void func_80184C70(LONG Cmd);
-void func_80184D60(void);
-void func_80184ECC(UCHAR *pStr, WARN_POS *pPos, ULONG Col);
-void func_80185040(WARN_POS *pPos, UCHAR *pFont, ULONG Col, ULONG Bits);
-ULONG func_801851F4(UCHAR *pFont);
-void func_80185288(void);
-void func_80185418(void);
+void Warn_region_set(void);
+LONG Warn_check(LONG Once);
+LONG Warn_cd_poll(LONG Cmd);
+void Warn_cd_cmd(LONG Cmd);
+void Warn_terminate(void);
+void Warn_print(UCHAR *pStr, WARN_POS *pPos, ULONG Col);
+void Warn_glyph_draw(WARN_POS *pPos, UCHAR *pFont, ULONG Col, ULONG Bits);
+ULONG Warn_glyph_width(UCHAR *pFont);
+void Warn_frame_draw(void);
+void Warn_task(void);
 
 #endif /* OVL_WARNING_H */

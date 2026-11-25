@@ -396,7 +396,7 @@ typedef struct {
     SHORT Timer0;                      /* 0x14 */
     SHORT UnkDA;                       /* 0x16 */
 } SCE_EM_SET;
-extern SCE_EM_SET *D_800E0198;          /* operand of the em_set being run */
+extern SCE_EM_SET *pSce_em_set;          /* operand of the em_set being run */
 
 /* RE2 Sce_em_set: creates enemy work Data Work_no + 2 from the Em_set record unless its flag is set */
 ULONG Sce_em_set(SCE_TASK *pSce)
@@ -407,20 +407,20 @@ ULONG Sce_em_set(SCE_TASK *pSce)
     LONG No;
     ENEMY_WORK *pNext;
 
-    D_800E0198 = (SCE_EM_SET *)pSce->Data;
+    pSce_em_set = (SCE_EM_SET *)pSce->Data;
     if (pG->Stage_no >= 2 && !(pG->System_flg & 0x80))
         pFlg = pG->Enemy_flg2;
     else
         pFlg = pG->Enemy_flg;
-    if (D_800E0198->Flg_no == 0xFF || !Flg_ck(pFlg, D_800E0198->Flg_no)) {
+    if (pSce_em_set->Flg_no == 0xFF || !Flg_ck(pFlg, pSce_em_set->Flg_no)) {
         if (G.Player.Id < 8) {
-            if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Player.Id >= 2)
-                D_800E0198->Id = G.Player.Id + 0x60;
+            if ((pSce_em_set->Id == 0x5B || pSce_em_set->Id == 0x5F) && G.Player.Id >= 2)
+                pSce_em_set->Id = G.Player.Id + 0x60;
         } else {
-            if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Pl_id_bak >= 2)
-                D_800E0198->Id = G.Pl_id_bak + 0x60;
+            if ((pSce_em_set->Id == 0x5B || pSce_em_set->Id == 0x5F) && G.Pl_id_bak >= 2)
+                pSce_em_set->Id = G.Pl_id_bak + 0x60;
         }
-        No = D_800E0198->Work_no + 2;
+        No = pSce_em_set->Work_no + 2;
         if (No != 1)
             pG->Em_num++;
         pEm = pG->pEnemy[No] = pG->pEm_mem;
@@ -429,33 +429,33 @@ ULONG Sce_em_set(SCE_TASK *pSce)
             pG->ppEnemy_end = &pG->pEnemy[No + 1];
         pNext = pG->pEm_mem;
         pEm->Be_flg = 1;
-        pEm->Unk12F = D_800E0198->Unk9;
-        if (Sce.Em_set_kind0 != D_800E0198->Unk9) {
+        pEm->Unk12F = pSce_em_set->Unk9;
+        if (Sce.Em_set_kind0 != pSce_em_set->Unk9) {
             if (Sce.Em_set_kind0)
-                Sce.Em_set_kind1 = D_800E0198->Unk9;
+                Sce.Em_set_kind1 = pSce_em_set->Unk9;
             else
-                Sce.Em_set_kind0 = D_800E0198->Unk9;
+                Sce.Em_set_kind0 = pSce_em_set->Unk9;
         }
         *(ULONG *)&pEm->Routine_0 = 0;
-        pEm->Pos_x = pEm->Old_x = D_800E0198->Pos_x;
-        pEm->Pos_y = pEm->Old_y = D_800E0198->Pos_y;
-        pEm->Pos_z = pEm->Old_z = D_800E0198->Pos_z;
+        pEm->Pos_x = pEm->Old_x = pSce_em_set->Pos_x;
+        pEm->Pos_y = pEm->Old_y = pSce_em_set->Pos_y;
+        pEm->Pos_z = pEm->Old_z = pSce_em_set->Pos_z;
         pEm->Cdir_x = 0;
-        pEm->Cdir_y = D_800E0198->Cdir_y;
+        pEm->Cdir_y = pSce_em_set->Cdir_y;
         pEm->Cdir_z = 0;
         pEm->Dest_x = 0;
         pEm->Dest_z = 0;
-        pEm->Id = D_800E0198->Id;
-        pEm->Type = D_800E0198->Type;
-        pEm->Status_flg = D_800E0198->Status_flg;
-        pEm->Em_set_flg = D_800E0198->Flg_no;
-        pEm->Unk4B = D_800E0198->UnkA;
-        pEm->nFloor = D_800E0198->nFloor;
-        pEm->Ground = -(D_800E0198->nFloor * 1800);
+        pEm->Id = pSce_em_set->Id;
+        pEm->Type = pSce_em_set->Type;
+        pEm->Status_flg = pSce_em_set->Status_flg;
+        pEm->Em_set_flg = pSce_em_set->Flg_no;
+        pEm->Unk4B = pSce_em_set->UnkA;
+        pEm->nFloor = pSce_em_set->nFloor;
+        pEm->Ground = -(pSce_em_set->nFloor * 1800);
         pEm->Damage_cnt = 0;
         pEm->UnkC6 = 0;
-        pEm->Timer0 = D_800E0198->Timer0;
-        pEm->UnkDA = D_800E0198->UnkDA;
+        pEm->Timer0 = pSce_em_set->Timer0;
+        pEm->UnkDA = pSce_em_set->UnkDA;
         pEm->Mot_scale_y = 0x1000;
         pEm->pUnk114 = &Pl_work;
         pEm->UnkE2 = 0;
@@ -876,9 +876,9 @@ ULONG Item_aot_set(SCE_TASK *pSce)
     }
     pG->Sce_aot[Aot] = (struct tagSCE_AOT *)&pData->Id;
     if (pG->Stage_no >= 2 && !(pG->System_flg & 0x80)) {
-        pFlg = D_8009E418;
+        pFlg = Flg_addr_item2;
     } else {
-        pFlg = D_8009E414;
+        pFlg = Flg_addr_item;
     }
     if (G.System_flg & 0x100) {
         Item = pData->iItem;
@@ -951,9 +951,9 @@ ULONG Item_aot_set_4p(SCE_TASK *pSce)
     }
     pG->Sce_aot[Aot] = (struct tagSCE_AOT *)&pData->Id;
     if (pG->Stage_no >= 2 && !(pG->System_flg & 0x80)) {
-        pFlg = D_8009E418;
+        pFlg = Flg_addr_item2;
     } else {
-        pFlg = D_8009E414;
+        pFlg = Flg_addr_item;
     }
     if (G.System_flg & 0x100) {
         Item = pData->iItem;
@@ -1101,7 +1101,7 @@ ULONG Weapon_chg(SCE_TASK *pSce)
             G.pItem_set->Equip_id = Wep;
             Weapon_cls(pPl);
             Pl_weapon_ch(pPl);
-            D_800E0171[0] = 1;
+            Sce_weapon_chg_flg[0] = 1;
         } else {
             G.pItem_set->Equip_no = 0xFF;
             G.pItem_set->Equip_id = 0;
@@ -1109,10 +1109,10 @@ ULONG Weapon_chg(SCE_TASK *pSce)
                 Weapon_cls(pPl);
                 Pl_weapon_ch(pPl);
                 Flg_on(St_flg14_a, 1);
-                D_800E0171[0] = 1;
+                Sce_weapon_chg_flg[0] = 1;
             } else {
                 Weapon_parts_clr(pPl);
-                D_800E0171[0] = 0;
+                Sce_weapon_chg_flg[0] = 0;
             }
         }
     }
@@ -1219,12 +1219,12 @@ ULONG Sel_evt_on(SCE_TASK *pSce)
 
     v = pSce->Data[1];
     G.Status_flg |= 0x10000000;
-    D_800C703E[0] = v;
+    Live_sel_mess_no[0] = v;
     pSce->Data += 2;
     return 1;
 }
 
-/* places Nemesis' item drops by room (G.Chaser_drop records, D_8009E4D0 room table) */
+/* places Nemesis' item drops by room (G+0x7DC0 records, Chaser_item_room_tbl room table) */
 INCLUDE_ASM("asm/nonmatchings/game/sce2", Chaser_item_set);
 
 /* RE2 Sce_parts_bomb: makes part Parts fly off (colour R, G, B and speeds W[]) */
@@ -1276,13 +1276,13 @@ ULONG Chaser_life_init(SCE_TASK *pSce)
 {
     switch (pSce->Data[1]) {
     case 0x34:
-        G.Chaser_life = 0x320;
+        Chaser_life[0] = 0x320;
         break;
     case 0x35:
-        G.Chaser_life = 0x320;
+        Chaser_life[0] = 0x320;
         break;
     case 0x36:
-        G.Chaser_life = 0x320;
+        Chaser_life[0] = 0x320;
         break;
     }
     pSce->Data += 2;
@@ -1471,7 +1471,7 @@ ULONG Sce_door_ck(SCE_TASK *pSce)
         if (!(Key & 0x100) || (UCHAR)pG->Player.Type == 0) {
             if (Key & 0x80) {
                 if (!(pG->Status_flg & 0x100)) {
-                    if (!(Moji.Mess_flg & 0xC0) && D_800C7961 == 0) {
+                    if (!(Moji.Mess_flg & 0xC0) && Game_st_flg == 0) {
                         return 1;
                     }
                 }
@@ -1509,7 +1509,7 @@ ULONG Chaser_evt_clr(SCE_TASK *pSce)
 {
     UCHAR i;
 
-    switch (G.Chaser_no) {
+    switch (Chaser_evt_state) {
     case 3:
     case 4:
         for (i = 0; i < 10; i++) {

@@ -115,25 +115,25 @@ void Set_room(void)
     Snd_sys_pset();
     Cut_change(pG->Cut_no);
     Oba_init();
-    func_800486C8();
+    Pri_be_flg_init();
     Sce_model_init();
     Ot_sub_init();
     if (G.System_flg & 0x10000000) {
-        D_80098700 = Game.pSave->Unk714;
+        G_random = Game.pSave->Unk714;
         G.Sce_random = Game.pSave->Unk718;
-        D_800E0186[0] = 0;
+        Sce_rnd_idx[0] = 0;
     }
     Sce_scheduler_set();
     if (G.Em_num != 0 || Rbj_id != 0xFF || G.pEnemy[1]->Be_flg != 0) {
         Cd_read(Room_file_tbl[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
-    func_800498F0();
+    Rbj_set();
     Psp_init();
     Snd_sys_enem_set();
     if (G.System_flg & 0x10000000) {
-        D_80098700 = Game.pSave->Unk714;
+        G_random = Game.pSave->Unk714;
         G.Sce_random = Game.pSave->Unk718;
-        D_800E0186[0] = 0;
+        Sce_rnd_idx[0] = 0;
     }
     Em_init_move();
     Map_visit_set_i(Stage, Room);
@@ -149,7 +149,7 @@ void Set_stage(void)
 }
 
 /* hand the room's sub animation sets (pRoom->pEdd) to the player and enemy works */
-void func_800498F0(void)
+void Rbj_set(void)
 {
     UCHAR *pEdd;
     ULONG *pOfs;

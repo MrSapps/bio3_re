@@ -162,10 +162,10 @@ void Em39_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em39_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* unused: as Em39_Move_type00 with brain table Em39_mv_br_unk */
-void Em39_Move_type_unk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* unused: as Em39_Move_type00 with brain table Em39_mv_br_type01 */
+void Em39_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Em39_mv_br_unk[pEm->Routine_1](pEm);
+    Em39_mv_br_type01[pEm->Routine_1](pEm);
     Em39_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 

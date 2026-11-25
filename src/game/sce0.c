@@ -177,7 +177,7 @@ void Sce_work_clr(void)
     G.Use_flg[1] = 0;
     G.Use_flg[2] = 0;
     G.Use_flg[3] = 0;
-    D_800E017E[0] = 0;
+    Sce_mizu_div_ctr[0] = 0;
 }
 
 /* empty (RE2 Sce_work_clr_at) */
@@ -230,7 +230,7 @@ void Sce_rnd_set(void)
 
     D0 = (s8)Rnd_uc() << 8;
     D0 += Rnd_uc() + (s8)Rnd_tbl[Sce.Rnd_idx++];
-    G.Sce_random = D0;
+    Sce_random = D0;
 }
 
 /* RE2 Event_init */
@@ -356,7 +356,7 @@ void Sce_skip_ck(void)
         }
         break;
     case 4:
-        if (D_800B9E21 == 0) {
+        if (CD_xa_rtn_no == 0) {
             G.Stop_flg = Game.Stop_bak;
             Pad_vib_init();
             Fade_off(1);

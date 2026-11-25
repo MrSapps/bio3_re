@@ -228,7 +228,7 @@ void Em37_mv01_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[1]: motion 1, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[1]: motion 1, started by Em36_punch / Em36_run_punch (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
@@ -253,7 +253,7 @@ void Em37_mv02_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[2]: motion 2, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[2]: motion 2, started by no parent routine found (unused?) (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
@@ -275,7 +275,7 @@ void Em37_mv03_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[3]: motion 3, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[3]: motion 3, started by Em36_lunge (stab) (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -304,7 +304,7 @@ void Em37_mv04_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[4]: motion 4, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[4]: motion 4, started by Em36_squeeze / Em36_sce_throw (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -336,7 +336,7 @@ void Em37_mv05_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[5]: motion 5, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[5]: motion 5, started by no parent routine found (unused?) (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -370,7 +370,7 @@ void Em37_mv06_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[6]: motion 6, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[6]: motion 6, started by Em36_grab (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -395,7 +395,7 @@ void Em37_mv07_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[7]: motion 7, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[7]: motion 7, started by Em34_club (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -419,7 +419,7 @@ void Em37_mv08_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[8]: motion 8, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[8]: motion 8, started by Em36_swing_arm, Em34_club / Em34_swing / Em34_sce07 (throw) (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -450,7 +450,7 @@ void Em37_mv09_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[9]: motion 9, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[9]: motion 9, started by Em36_sweep (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
@@ -477,7 +477,7 @@ void Em37_mv10_br(ENEMY_WORK *pEm)
 {
 }
 
-/* mv[10]: motion 10, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+/* mv[10]: motion 10, started by Em36_swing (the parent sets Routine_1, Timer0 = reach) */
 void Em37_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;

@@ -8,7 +8,7 @@
 #include "sce1.h"
 
 extern UCHAR Rbj_id_a[] __asm__("Rbj_id"); /* Sce_rbj_set stores through an array: pSce->Data is reloaded after it */
-extern UCHAR D_800D442E_a[] __asm__("D_800D442E"); /* stored through an array view here (see Rbj_id_a) */
+extern UCHAR Main_bg_chg_flg_a[] __asm__("Main_bg_chg_flg"); /* stored through an array view here (see Rbj_id_a) */
 LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* Capcom called it undeclared here (implicit int): Add_vspeed needs the int return */
 /* opcode records read by field (layouts as in the SCD data) */
 typedef struct { UCHAR Op; UCHAR pad1; USHORT Size; } SCE_ELSE_REC;          /* Else_ck: Size skips the else block */
@@ -886,22 +886,22 @@ void Member_set_branch(ENEMY_WORK *pW, ULONG Member, LONG D0)
         pW->Damage_cnt = D0;
         break;
     case 32:
-        D_800E0150.Pos[0] = D0;
+        Sce_cut.Pos[0] = D0;
         break;
     case 33:
-        D_800E0150.Pos[1] = D0;
+        Sce_cut.Pos[1] = D0;
         break;
     case 34:
-        D_800E0150.Pos[2] = D0;
+        Sce_cut.Pos[2] = D0;
         break;
     case 35:
-        D_800E0150.Tgt[0] = D0;
+        Sce_cut.Tgt[0] = D0;
         break;
     case 36:
-        D_800E0150.Tgt[1] = D0;
+        Sce_cut.Tgt[1] = D0;
         break;
     case 37:
-        D_800E0150.Tgt[2] = D0;
+        Sce_cut.Tgt[2] = D0;
         break;
     case 38:
         pW->Life = D0;
@@ -990,17 +990,17 @@ LONG Load_member_branch(ENEMY_WORK *pW, ULONG Member)
     case 31:
         return pW->Damage_cnt;
     case 32:
-        return D_800E0150.Pos[0];
+        return Sce_cut.Pos[0];
     case 33:
-        return D_800E0150.Pos[1];
+        return Sce_cut.Pos[1];
     case 34:
-        return D_800E0150.Pos[2];
+        return Sce_cut.Pos[2];
     case 35:
-        return D_800E0150.Tgt[0];
+        return Sce_cut.Tgt[0];
     case 36:
-        return D_800E0150.Tgt[1];
+        return Sce_cut.Tgt[1];
     case 37:
-        return D_800E0150.Tgt[2];
+        return Sce_cut.Tgt[2];
     case 38:
         return pW->Life;
     case 39:
@@ -1083,17 +1083,17 @@ SHORT *Load_member_addr_branch(ENEMY_WORK *pW, ULONG Member)
     case 31:
         return (SHORT *)&pW->Damage_cnt;
     case 32:
-        return (SHORT *)&D_800E0150.Pos[0];
+        return (SHORT *)&Sce_cut.Pos[0];
     case 33:
-        return (SHORT *)&D_800E0150.Pos[1];
+        return (SHORT *)&Sce_cut.Pos[1];
     case 34:
-        return (SHORT *)&D_800E0150.Pos[2];
+        return (SHORT *)&Sce_cut.Pos[2];
     case 35:
-        return (SHORT *)&D_800E0150.Tgt[0];
+        return (SHORT *)&Sce_cut.Tgt[0];
     case 36:
-        return (SHORT *)&D_800E0150.Tgt[1];
+        return (SHORT *)&Sce_cut.Tgt[1];
     case 37:
-        return (SHORT *)&D_800E0150.Tgt[2];
+        return (SHORT *)&Sce_cut.Tgt[2];
     case 38:
         return (SHORT *)&pW->Life;
     case 39:
@@ -1227,7 +1227,7 @@ ULONG Add_aspeed(SCE_TASK *pSce)
 /* moves the event camera eye/target by the task's Spd/Dspd and sets the view */
 ULONG Add_vspeed(SCE_TASK *pSce)
 {
-    SCE_CAMERA *pCam = &D_800E0150;
+    SCE_CAMERA *pCam = &Sce_cut;
     LONG x, y, z;
 
     x = pSce->Spd_x;
@@ -1346,7 +1346,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
     Cut_chg_main(Cut & 0x7F);
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
-        D_800D442E_a[0] = 0;
+        Main_bg_chg_flg_a[0] = 0;
         St_hiki_flg_a[0] = 1;
     }
     pSce->Data += 2;
@@ -1356,7 +1356,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
 /* RE2 Cut_old: switches back to the previous camera cut */
 ULONG Cut_old(SCE_TASK *pSce)
 {
-    Cut_chg_main(D_800E0175[0]);
+    Cut_chg_main(Sce_cut_old[0]);
     G.Status_flg = (G.Status_flg | 0x400000) & ~0x80;
     pSce->Data++;
     return 1;
@@ -1369,8 +1369,8 @@ void Cut_chg_main(ULONG Cut)
 
     Old = G.Cut_no;
     G.Cut_no = Cut;
-    D_800D442E_a[0] = 1;
-    D_800E0175[0] = Old;
+    Main_bg_chg_flg_a[0] = 1;
+    Sce_cut_old[0] = Old;
     Cut_change(Cut);
 }
 

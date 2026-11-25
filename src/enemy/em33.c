@@ -678,7 +678,7 @@ void Em33_swim_br(ENEMY_WORK *pEm)
     Zone[1] = -16000;
     Pos.vx = Pl_work.Pos_x;
     Pos.vz = Pl_work.Pos_z;
-    if (func_800101C8(&Pos.vx, Zone)) {
+    if (Hit_ck_box(&Pos.vx, Zone)) {
         if (!(EM30_W(pEm)->u10.Side & 1))
             pEm->Dest_x = -18500;
         else
@@ -687,7 +687,7 @@ void Em33_swim_br(ENEMY_WORK *pEm)
     }
     Zone[0] = -11100;
     Zone[1] = -25800;
-    if (func_800101C8(&Pos.vx, Zone)) {
+    if (Hit_ck_box(&Pos.vx, Zone)) {
         if (!(EM30_W(pEm)->u10.Side & 1))
             pEm->Dest_x = -6500;
         else
@@ -777,14 +777,14 @@ void Em33_mv04_br(ENEMY_WORK *pEm)
     Zone[1] = -16000;
     Pos.vx = Pl_work.Pos_x;
     Pos.vz = Pl_work.Pos_z;
-    if (func_800101C8(&Pos.vx, Zone)) {
+    if (Hit_ck_box(&Pos.vx, Zone)) {
         pEm->Dest_x = -22400;
         pEm->Dest_z = -16500;
         pEm->UnkDA = 0;
     }
     Zone[0] = -11100;
     Zone[1] = -25300;
-    if (func_800101C8(&Pos.vx, Zone)) {
+    if (Hit_ck_box(&Pos.vx, Zone)) {
         pEm->Dest_x = -10000;
         pEm->Dest_z = -21500;
         pEm->UnkDA = 1;
@@ -955,7 +955,7 @@ void Em33_mv07_br(ENEMY_WORK *pEm)
             Zone[3] = 4400;
             Pos.vx = pPl->Pos_x;
             Pos.vz = pPl->Pos_z;
-            if (func_800101C8(&Pos.vx, Zone)) {
+            if (Hit_ck_box(&Pos.vx, Zone)) {
                 EM30_W(pEm)->Spd = 150;
                 EM30_W(pEm)->Spd_lim = 150;
                 EM30_W(pEm)->Spd_add = 10;
@@ -980,11 +980,11 @@ void Em33_zone_set(ENEMY_WORK *pEm, LONG Flg)
     Zone[3] = 2770;
     Zone[0] = -27420;
     Zone[1] = -20300;
-    if (func_800101C8(&Pos.vx, Zone))
+    if (Hit_ck_box(&Pos.vx, Zone))
         EM30_W(pEm)->u10.Side = 0;
     Zone[0] = -12000;
     Zone[1] = -20090;
-    if (func_800101C8(&Pos.vx, Zone))
+    if (Hit_ck_box(&Pos.vx, Zone))
         EM30_W(pEm)->u10.Side = 1;
     if (Flg_ck(G.Room_flg, 0) && Flg_ck(G.Room_flg, 1)) {
         Zone[2] = 2400;
@@ -997,13 +997,13 @@ void Em33_zone_set(ENEMY_WORK *pEm, LONG Flg)
         Zone[0] = -23650;
         Zone[1] = -20300;
     }
-    if (func_800101C8(&Pos.vx, Zone))
+    if (Hit_ck_box(&Pos.vx, Zone))
         EM30_W(pEm)->u10.Side = 2;
     Zone[2] = 2400;
     Zone[3] = 7500;
     Zone[0] = -11100;
     Zone[1] = -24800;
-    if (func_800101C8(&Pos.vx, Zone))
+    if (Hit_ck_box(&Pos.vx, Zone))
         EM30_W(pEm)->u10.Side = 3;
     if (Flg) {
         EM30_W(pEm)->Dive_life = pEm->Life;
@@ -1035,25 +1035,25 @@ LONG Em33_zone_ck(ENEMY_WORK *pEm)
         Zone[3] = 2740;
         Zone[0] = -27420;
         Zone[1] = -20300;
-        return func_800101C8(&Pos.vx, Zone);
+        return Hit_ck_box(&Pos.vx, Zone);
     case 1:
         Zone[2] = 6500;
         Zone[3] = 2740;
         Zone[0] = -12000;
         Zone[1] = -20000;
-        return func_800101C8(&Pos.vx, Zone);
+        return Hit_ck_box(&Pos.vx, Zone);
     case 2:
         Zone[2] = 2400;
         Zone[3] = 4400;
         Zone[0] = -23650;
         Zone[1] = -17200;
-        return func_800101C8(&Pos.vx, Zone);
+        return Hit_ck_box(&Pos.vx, Zone);
     case 3:
         Zone[2] = 2400;
         Zone[3] = 4400;
         Zone[0] = -11100;
         Zone[1] = -24800;
-        return func_800101C8(&Pos.vx, Zone);
+        return Hit_ck_box(&Pos.vx, Zone);
     }
 }
 
@@ -1766,10 +1766,10 @@ void Em33_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* pad vibration scripts */
 void Em33_vib_rise(void)
 {
-    func_8003884C(Em33_vib_tbl, 3);
+    Pad_vib_data_set(Em33_vib_tbl, 3);
 }
 
 void Em33_vib_leap(void)
 {
-    func_8003884C(Em33_vib_tbl, 5);
+    Pad_vib_data_set(Em33_vib_tbl, 5);
 }

@@ -3,14 +3,6 @@
 #include "em_sub.h"
 #include "oba.h"
 
-typedef struct {
-    UCHAR pad0[4];
-    SHORT Unk4;                        /* 0x04 */
-    UCHAR Num;                         /* 0x06 */
-    UCHAR pad7;
-    UCHAR Tbl[16][2];                  /* 0x08 */
-} PAD_WORK_800DE628;
-
 /* RE2 PLAYER.C: player routines. The player work is an ENEMY_WORK (as in RE2). */
 typedef void (*PL_FUNC)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 typedef void (*PL_PAD_FUNC)(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg);
@@ -50,9 +42,10 @@ extern UCHAR Pl_rot_spd_run[];
 extern UCHAR Pl_rot_spd_back[];
 extern UCHAR Pl_rot_spd[];
 extern USHORT Slope_dir_tbl[];
-extern struct tagHIT_ATTR D_8009CE0C;
+extern struct tagHIT_ATTR Pl_mv0d_at;
 extern UCHAR Pl_wep_flg[];
-extern PAD_WORK_800DE628 D_800DE628;
+extern UCHAR G_em_num; /* = G.Em_num (snd.c) */
+extern ULONG G_status_flg; /* flags, < 0: hard-mode tables */
 
 void Player_set(ENEMY_WORK *pEm);
 void Player_move(ENEMY_WORK *pEm);

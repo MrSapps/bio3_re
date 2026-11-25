@@ -15,8 +15,8 @@ typedef struct tagSORT_ENV {
     ENEMY_WORK *pEm;                   /* 0x00 G.pEm */
     SORT_MDL *pMdl;                    /* 0x04 */
     MATRIX *pWs;                       /* 0x08 &GsWSMATRIX */
-    MATRIX *pM;                        /* 0x0C D_800C79F0 */
-    VECTOR *pV;                        /* 0x10 D_800C79F4 */
+    MATRIX *pM;                        /* 0x0C pSkin_m */
+    VECTOR *pV;                        /* 0x10 pSkin_v */
 } SORT_ENV;
 
 /* screen xy of a vertex, as one word or two halves */
@@ -60,9 +60,11 @@ extern PCSTR_WORK Pcstr;               /* 0x800E12C0 */
 
 void Pcstr_read_frame(ULONG *pBuf);
 
-extern MATRIX *D_800C79F0; /* current work matrices (ko_joint_trans3) */
-extern VECTOR *D_800C79F4;
-extern ULONG *D_800E01C8;
+extern MATRIX *pSkin_m; /* current work matrices (ko_joint_trans3) */
+extern VECTOR *pSkin_v;
+extern UCHAR G_cbuf_id;
+extern SHORT Mess_answer;
+extern ULONG *St_pBuf;
 extern ULONG Skin_rgb[]; /* per-vertex colours of the model being sorted */
 extern SVECTOR Skin_nor[6]; /* normals of the two bones being blended (Skin_light2) */
 extern ULONG Skin_ofs; /* its current offset word */

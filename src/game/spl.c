@@ -152,7 +152,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     }
 }
 
-/* gives the sub player the player's weapon type and its part/offset setup (D_8009E6BC..E4 tables) */
+/* gives the sub player the player's weapon type and its part/offset setup (Spl_wep_parts_tbl..E4 tables) */
 INCLUDE_ASM("asm/nonmatchings/game/spl", Spl_wep_set);
 
 /* RE2 Spl_set: installs Spl as the routine of the sub player work slots */

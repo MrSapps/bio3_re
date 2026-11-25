@@ -106,7 +106,7 @@ void Aida_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Old != (pEm->Type & 0xF)) {
             F &= 0x7FFC;
             SPL_W(pEm)->Unk1D0 = F;
-            F |= *(D_8009E7C8 + (pEm->Type & 0xF));
+            F |= *(Spl_pos_flg_tbl + (pEm->Type & 0xF));
             F |= 0x8000;
             SPL_W(pEm)->Unk1D0 = F;
         }
@@ -227,13 +227,13 @@ void Aida_em10_at00_pl(ENEMY_WORK *pEm, ULONG Type)
     if ((pT->Type & 0x2000) == 0) {
         EM_SET_RTN(pEm, 1, 5, 0, 0);
         pEm->pEnemy_ptr = pT;
-        D_8009E70D[0] = 0;
+        Spl_aim_dir[0] = 0;
         return;
     }
     if (pT->Type & 1) {
         EM_SET_RTN(pEm, 1, 5, 0, 0);
         pEm->pEnemy_ptr = pT;
-        D_8009E70D[0] = 2;
+        Spl_aim_dir[0] = 2;
     }
 }
 
@@ -253,7 +253,7 @@ void Aida_em10_at00_spl(ENEMY_WORK *pEm)
         if (pT->Type & 1) {
             EM_SET_RTN(pEm, 1, 5, 0, 0);
             pEm->pEnemy_ptr = pT;
-            D_8009E70D[0] = 2;
+            Spl_aim_dir[0] = 2;
         }
     }
     pT = pSpl_near_em[1];
@@ -264,7 +264,7 @@ void Aida_em10_at00_spl(ENEMY_WORK *pEm)
 set:
     EM_SET_RTN(pEm, 1, 5, 0, 0);
     pEm->pEnemy_ptr = pT;
-    D_8009E70D[0] = 0;
+    Spl_aim_dir[0] = 0;
 }
 
 void Aida_em25_at00_pl(ENEMY_WORK *pEm, ULONG Type)
@@ -512,7 +512,7 @@ void Aida_mv00_br_t0b(ENEMY_WORK *pEm)
         if (pT->Life >= 0 && (pT->Type & 0x2000) == 0) {
             EM_SET_RTN(pEm, 1, 5, 0, 0);
             pEm->pEnemy_ptr = pT;
-            D_8009E70D[0] = 0;
+            Spl_aim_dir[0] = 0;
             return;
         }
     }
@@ -588,13 +588,13 @@ void Aida_em10_at01(ENEMY_WORK *pEm)
     if ((pT->Type & 0x2000) == 0 && Dist < 0x9C4) {
         EM_SET_RTN(pEm, 1, 5, 0, 0);
         pEm->pEnemy_ptr = pT;
-        D_8009E70D[0] = 0;
+        Spl_aim_dir[0] = 0;
         return;
     }
     if (pT->Life >= 0 && (pT->Type & 1) && (pT->Type & 0x2000)) {
         EM_SET_RTN(pEm, 1, 5, 0, 0);
         pEm->pEnemy_ptr = pT;
-        D_8009E70D[0] = 2;
+        Spl_aim_dir[0] = 2;
     }
 }
 
@@ -763,7 +763,7 @@ void Aida_mv01_br_t0b(ENEMY_WORK *pEm)
         if (pT->Life >= 0 && (pT->Type & 0x2000) == 0) {
             EM_SET_RTN(pEm, 1, 5, 0, 0);
             pEm->pEnemy_ptr = pT;
-            D_8009E70D[0] = 0;
+            Spl_aim_dir[0] = 0;
             return;
         }
     }
@@ -1164,7 +1164,7 @@ void Aida_em10_at05(ENEMY_WORK *pEm)
             pEm->UnkE3 = 0xD;
             return;
         }
-        if ((pT->Type & 1) && D_8009E70D[0] == 2) {
+        if ((pT->Type & 1) && Spl_aim_dir[0] == 2) {
             if ((s8)--pEm->UnkE3 >= 0) {
                 *(USHORT *)&pEm->Routine_2 = 2;
                 return;
@@ -1227,7 +1227,7 @@ void Aida_mv05_w1_t1_br(ENEMY_WORK *pEm)
         pEm->UnkDA--;
         return;
     }
-    if (D_8009E70D[0] != pEm->Move_no - 2 && pEm->Hokan_flg != 0) {
+    if (Spl_aim_dir[0] != pEm->Move_no - 2 && pEm->Hokan_flg != 0) {
         return;
     }
     pT = pEm->pEnemy_ptr;
@@ -1238,7 +1238,7 @@ void Aida_mv05_w1_t1_br(ENEMY_WORK *pEm)
     if (pT->Id == 0x34) {
         return;
     }
-    if (pT->Life >= 0 && ((pT->Type & 0x2000) == 0 || D_8009E70D[0] == 2)) {
+    if (pT->Life >= 0 && ((pT->Type & 0x2000) == 0 || Spl_aim_dir[0] == 2)) {
         return;
     }
     *(USHORT *)&pEm->Routine_2 = 5;
@@ -1273,9 +1273,9 @@ void Aida_mv05_w1_t1_br(ENEMY_WORK *pEm)
     pN = pSpl_near_em[i];
     pEm->pEnemy_ptr = pN;
     n = pN->Type & 0x2000;
-    D_8009E70D[0] = 0;
+    Spl_aim_dir[0] = 0;
     if (n) {
-        D_8009E70D[0] = 2;
+        Spl_aim_dir[0] = 2;
     }
 }
 
@@ -1285,7 +1285,7 @@ void Aida_mv05_w1_t1(ENEMY_WORK *pEm)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        v = D_8009E70D[0] * 2 + 0x70002;
+        v = Spl_aim_dir[0] * 2 + 0x70002;
         EM_MOVE(pEm) = v;
         *(ULONG *)&pEm->Sub_move_no = v;
         G.Room_player_flg |= 0x18;
@@ -1316,12 +1316,12 @@ void Aida_mv05_w1_t2(ENEMY_WORK *pEm)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        v = D_8009E70D[0] * 2 + 0x30001;
+        v = Spl_aim_dir[0] * 2 + 0x30001;
         EM_MOVE(pEm) = v;
         *(ULONG *)&pEm->Sub_move_no = v;
         SPL_W(pEm)->Unk1D0 &= 0xBFFF;
     }
-    Spl_shot_eff_tbl[D_8009E710[pEm->Id - 0x50]](pEm);
+    Spl_shot_eff_tbl[Spl_shot_eff_no[pEm->Id - 0x50]](pEm);
     if (Joint_move(pEm, pEm->pUnk18C_kan_t_ptr, pEm->pUnk188_seq_t_ptr, 0x200) != 0) {
         *(USHORT *)&pEm->Routine_2 = 1;
     }
@@ -1410,7 +1410,7 @@ void Aida_mv05_w1_t6(ENEMY_WORK *pEm)
         EM_SET_MOVE(pEm, 0, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x70000;
         pEm->Neck_flg |= 0x12;
-        D_8009E70D[0] = 0;
+        Spl_aim_dir[0] = 0;
         SPL_W(pEm)->Unk1D0 |= 0x4000;
         pEm->Neck_flg |= 0x12;
         SPL_W(pEm)->Unk1DF = (Rnd() & 3) + 2;
@@ -1651,7 +1651,8 @@ void Aida_mv0b_br_t0b(ENEMY_WORK *pEm)
     }
 }
 
-void func_8005D290(void) {
+/* empty, unreferenced */
+void Spl_auto_dummy(void) {
 }
 
 void Aida_mv0b_br_1(ENEMY_WORK *pEm)
@@ -1846,7 +1847,7 @@ void Aida_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         C[1] = (d + 3) & 7;
         m = pEm->UnkC7 & 0xF;
         for (j = 0; j < 4; j++) {
-            switch (D_8009DD34[j + m * 4]) {
+            switch (Spl_esc_dir_tbl[j + m * 4]) {
             case 0:
                 break;
             case 1:
