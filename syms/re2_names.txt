@@ -321,3 +321,5 @@ Em_dir = 0x800E01A0; // SHORT[3] direction to the three nearest enemies (Spl_ene
 Em_l = 0x800E01B4; // USHORT[3] distance to the three nearest enemies (Spl_enemy_ck), RE2 SPL.H Em_l
 Pad_rep_set = 0x80038634; // type:func pad: (Mask, Val) right after Pad_set, stores the wait/repeat byte pair as one halfword like RE2 PAD.C Pad_rep_set(Mask, Data), RE3 expands Mask into a key table
 Sce_fade_set = 0x80054384; // type:func sce1: SCE opcode handler, pData[1] fade index and colours passed to Fade_set, RE2 SCE2.C Sce_fade_set. C keeps func_80054384 until the main split (Sce_jmp_tbl in asm data)
+Sca_high_koban_x = 0x8004E38C; // type:func sca: height of a koban (capsule) along X, end zones tested with Sca_ck_circle2 on Tmp_Sca, RE2 SCA.C Sca_ck_koban_x as a height routine. C keeps func_8004E38C until the main split (D_8009E028 table in asm data)
+Sca_high_koban_z = 0x8004E4C4; // type:func sca: same along Z, RE2 SCA.C Sca_ck_koban_z. C keeps func_8004E4C4 until the main split (asm data table)

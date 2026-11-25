@@ -546,9 +546,82 @@ LONG func_8004E230(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     return H;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E38C);
+/* height of a koban (capsule) along X, RE2 Sca_ck_koban_x as a height routine: in the rounded ends the
+ * point must lie in the end circle (func_8004E38C = Sca_high_koban_x) */
+LONG func_8004E38C(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+{
+    SHORT D;
+    SHORT Half;
+    ULONG Zone;
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E4C4);
+    D = pT->Z1 - pT->Z0;
+    Half = D >> 1;
+    Zone = ((ULONG)(pPos->vx - (SHORT)(pT->X1 - Half)) >> 30) & 2;
+    Zone |= (ULONG)(pPos->vx - (SHORT)(pT->X0 + Half)) >> 31;
+    /* the loop is never repeated; the original has one (it changes register allocation) */
+    do {
+        switch (Zone) {
+        case 0:
+            Tmp_Sca.X1 = pT->X1;
+            Tmp_Sca.X0 = pT->X1 - D;
+            Tmp_Sca.Z1 = pT->Z1;
+            Tmp_Sca.Z0 = pT->Z0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        case 2:
+            return pT->High;
+        case 3:
+            Tmp_Sca.X1 = pT->X0 + D;
+            Tmp_Sca.X0 = pT->X0;
+            Tmp_Sca.Z1 = pT->Z1;
+            Tmp_Sca.Z0 = pT->Z0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        }
+    } while (0);
+}
+
+/* height of a koban (capsule) along Z, RE2 Sca_ck_koban_z as a height routine (func_8004E4C4 = Sca_high_koban_z) */
+LONG func_8004E4C4(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+{
+    SHORT W;
+    SHORT Half;
+    ULONG Zone;
+
+    W = pT->X1 - pT->X0;
+    Half = W >> 1;
+    Zone = ((ULONG)(pPos->vz - (SHORT)(pT->Z1 - Half)) >> 30) & 2;
+    Zone |= (ULONG)(pPos->vz - (SHORT)(pT->Z0 + Half)) >> 31;
+    /* the loop is never repeated; the original has one (it changes register allocation) */
+    do {
+        switch (Zone) {
+        case 0:
+            Tmp_Sca.Z1 = pT->Z1;
+            Tmp_Sca.Z0 = pT->Z1 - W;
+            Tmp_Sca.X1 = pT->X1;
+            Tmp_Sca.X0 = pT->X0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        case 2:
+            return pT->High;
+        case 3:
+            Tmp_Sca.Z1 = pT->Z0 + W;
+            Tmp_Sca.Z0 = pT->Z0;
+            Tmp_Sca.X1 = pT->X1;
+            Tmp_Sca.X0 = pT->X0;
+            if (Sca_ck_circle2(pPos, 0, &Tmp_Sca)) {
+                return pT->High;
+            }
+            return High;
+        }
+    } while (0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E5FC);
 
