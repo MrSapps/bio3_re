@@ -594,7 +594,42 @@ void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
 }
 
 /* fills Tmp_Sca (SCA_DATA) with the box of a COL_OBJ (Id 0xFE40, all areas) for Sca_hit_all */
-INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_tmp_sca_set);
+void Oba_tmp_sca_set(COL_OBJ *pObj, SCA_DATA *pT)
+{
+    COL_ENT Unused; /* the frame has an unused 0x18-byte local */
+    COL_ENT *pEnt;
+    LONG X;
+    LONG Z;
+    LONG W;
+    LONG Y;
+    signed char Fl;
+    LONG Hi;
+    LONG Lo;
+
+    pEnt = (COL_ENT *)&Tmp_Sca;
+    pEnt->Id = 0xFE40;
+    pEnt->Area = 0xF00;
+    X = pObj->Pos_x;
+    W = pObj->W0;
+    Z = pObj->Pos_z;
+    pEnt->X0 = X - W;
+    pEnt->Z0 = Z - W;
+    pEnt->X1 = X + W;
+    pEnt->Z1 = Z + W;
+    Y = pObj->Pos_y;
+    Y -= pObj->H;
+    Y <<= 16;
+    Fl = pObj->pEm->nFloor;
+    Hi = (Fl << 8) & 0xFF00;
+    /* the nested do/while raises the refs of Fl's low byte above the shifted copy (local-alloc order) */
+    do {
+        do {
+            Lo = Fl & 0xFF;
+        } while (0);
+    } while (0);
+    pEnt->C.All = Y | (Hi | Lo);
+    Oba_ent_floor_set(pObj, pEnt);
+}
 
 /* after Sca_hit_all: still overlapping another character record -> Hit_flg |= 0x100 (move reverted in Oba_push_all) */
 INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_em_overlap_ck);
