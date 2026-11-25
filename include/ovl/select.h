@@ -108,7 +108,7 @@ typedef struct tagSELECT_VIEW {
 
 /* overlay .data (still in asm) */
 extern USHORT Select_pl_cd[]; /* 0x801C4C0C model file, index Id - 8 */
-extern USHORT Select_wep_cd[]; /* 0x801C4C14 weapon file base per player, + Type */
+extern USHORT Jill_wep_cd[]; /* 0x801C4C14 weapon file base per player, + Type (Jill_wep_load) */
 extern SELECT_PL_INIT Select_pl_init[]; /* 0x801C4C4C */
 extern SELECT_MOJI_REC Select_moji_tbl[141]; /* 0x801C4CD8 glyph template per character */
 extern UCHAR Select_str[3][7][30]; /* 0x801C56E8 7 message lines per player */
