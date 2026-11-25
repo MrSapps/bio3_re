@@ -389,7 +389,67 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get);
+/* RE2 Spd_get: Spd_x/y/z = root (bone 0) offset of this animation frame minus the last frame's (Spd_base);
+ * Flg & 1 plays the sequence backwards, Flg < 0 just reads the offset */
+void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, LONG Flg)
+{
+    USHORT *pSeq;
+    ULONG f_num;
+    SHORT f_base;
+    ULONG Rec_sz;
+    UCHAR *pTop;
+    UCHAR *Bone_adr;
+    SHORT x;
+    SHORT y;
+    SHORT z;
+    ULONG Raw_y;
+
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
+    pTop = (UCHAR *)pSeq_t;
+    f_base = pSeq[2];
+    f_num = pSeq[0];
+    pSeq++;
+    if (Flg & 1) {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
+    } else {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
+    }
+    Rec_sz = ((KAN_HEAD *)pKan)->Rec_sz >> 18;
+    Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+    Bone_adr += Rec_sz * (f_base + *(UCHAR *)pSeq) * 4;
+    x = ((SVECTOR *)Bone_adr)->vx;
+    z = ((SVECTOR *)Bone_adr)->vz;
+    Raw_y = (USHORT)((SVECTOR *)Bone_adr)->vy;
+    y = Raw_y;
+    if (pEm->Move_cnt == 0 && Flg >= 0) {
+        /* first frame: the base is 0, or (backwards) the offsets of the last and the first frame */
+        *(ULONG *)&pEm->Spd_base_x = 0;
+        pEm->Spd_base_z = 0;
+        if (Flg & 1) {
+            pEm->Spd_base_x = x;
+            pEm->Spd_base_y = y;
+            pEm->Spd_base_z = z;
+            pSeq = (USHORT *)(pTop + pEm->Move_no * 8);
+            pSeq = (USHORT *)((UCHAR *)pSeq_t + pSeq[1]);
+            Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+            Bone_adr += Rec_sz * (f_base + *(UCHAR *)pSeq) * 4;
+            pEm->Spd_base_x += ((SVECTOR *)Bone_adr)->vx;
+            pEm->Spd_base_y += ((SVECTOR *)Bone_adr)->vy;
+            pEm->Spd_base_z += ((SVECTOR *)Bone_adr)->vz;
+        }
+    }
+    pEm->Spd_x = x;
+    pEm->Spd_y = y;
+    pEm->Spd_z = z;
+    if (Flg >= 0) {
+        pEm->Spd_x -= pEm->Spd_base_x;
+        pEm->Spd_y -= pEm->Spd_base_y;
+        pEm->Spd_z -= pEm->Spd_base_z;
+        /* Spd_base_x/y in one word store (x is not masked) */
+        *(ULONG *)&pEm->Spd_base_x = x | (y << 16);
+        pEm->Spd_base_z = z;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80018EC8);
 
