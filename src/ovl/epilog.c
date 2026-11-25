@@ -2,7 +2,7 @@
 #include "pad.h"
 #include "sld.h"
 
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
+void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
 
 /* task entry */
 void Epilog_main(void)
@@ -17,7 +17,7 @@ void Epilog_main(void)
     Pad_rep_set(0xF000, 0x60A);
     Main.Vloop = 1;
     Cd_read(0x11F, (ULONG *)0x801F7E00, 0, "EPILOG BGM");
-    func_800782F4(0, 0x33, (ULONG *)0x801F7E00);
+    Snd_seq_data_set(0, 0x33, (ULONG *)0x801F7E00);
     func_800783BC_(5, Cd_read_s(0x120, 2, (ULONG *)0x80100000, 5, "EPILOG VB"), 0);
     Snd_se_stad(0x500, NULL, 0, 0);
     Cd_read(0x1A, (ULONG *)0x80100000, 0, "EPIS.TIM");

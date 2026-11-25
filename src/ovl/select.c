@@ -85,7 +85,7 @@ void func_801C235C(void)
     Main.Vloop = 2;
     Main.Unk191 = 1;
     func_801C4774();
-    func_8007809C(0, 0xC, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
+    Snd_vab_load(0, 0xC, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Bg_set_mode(2, 0);
     func_801C2DE0();
     Set_view(pView->Eye, pView->Ref);

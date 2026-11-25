@@ -481,7 +481,7 @@ typedef struct tagGLOBAL {
     ITEM_SET Item_work[2];             /* 0x79FC per character, pItem_set points to one (mem_card Load_pop) */
     ITEM_SET *pItem_set;               /* 0x7C7C items of the current character */
     ULONG Item_work_no;                /* 0x7C80 index into Item_work (mem_card Load_pop) */
-    USHORT Unk7C84[1];                 /* 0x7C84 index from D_800A0FDC table */
+    USHORT Unk7C84[1];                 /* 0x7C84 index from Bgm_room_ofs table */
     UCHAR pad7C86[0x7D8C - 0x7C86];
     UCHAR Save_vol;                    /* 0x7D8C Snd_work.Vol.Se (mem_card Save_push) */
     UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Vol.Bgm */

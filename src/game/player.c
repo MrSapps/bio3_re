@@ -1614,7 +1614,7 @@ void func_8003CEA0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (hit) {
             no = 3;
-            if ((ULONG)(D_800BA6E8[3] - 1) < 30) {
+            if ((ULONG)(Snd_edt[3] - 1) < 30) {
                 no = 0x13;
             }
             Snd_se_stad(no | 0x10300, (VECTOR *)&pEm->Pos_x, 0, 0);

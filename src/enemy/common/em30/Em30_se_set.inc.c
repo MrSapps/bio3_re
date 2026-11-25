@@ -7,7 +7,7 @@ void Em30_se_set(ULONG No, ENEMY_WORK *pEm, LONG *pPos)
     Pos.vx = pPos[0];
     Pos.vy = pPos[1];
     Pos.vz = pPos[2];
-    if (pEm->Unk12F == D_800BA6E8[3])
+    if (pEm->Unk12F == Snd_edt[3])
         No += 0x10;
     Snd_se_stad(No | 0x10300, &Pos, 0, 0);
 }

@@ -13,7 +13,7 @@ LONG func_80048974_() __asm__("func_80048974"); /* returns long here (canonical 
 LONG Pad_vib_set0_() __asm__("Pad_vib_set0"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_set1_() __asm__("Pad_vib_set1"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_fade_set_() __asm__("Pad_vib_fade_set"); /* returns long here (canonical void); unprototyped call */
-void func_80078498_(UCHAR A0, UCHAR A1, USHORT A2) __asm__("func_80078498"); /* arg 3 unsigned short (canonical short) */
+void func_80078498_(UCHAR A0, UCHAR A1, USHORT A2) __asm__("Snd_bgm_tbl_set"); /* arg 3 unsigned short (canonical short) */
 LONG Xa_play_() __asm__("Xa_play"); /* returns long here (canonical void); unprototyped call */
 LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* returns long here (canonical void) */
 
@@ -1684,7 +1684,7 @@ ULONG Sce_bgm_control(SCE_TASK *pSce)
         Snd_seq_stop(No);
         break;
     case 4:
-        func_8007745C(No);
+        Snd_seq_pause(No);
         break;
     case 3:
         Snd_seq_play_ck(No);
@@ -1750,7 +1750,7 @@ ULONG func_800555BC(SCE_TASK *pSce)
         a -= 5;
     }
     pSce->Data = pData + 6;
-    return G.Unk7C84[D_800A0FDC[a - 1] + b] == c;
+    return G.Unk7C84[Bgm_room_ofs[a - 1] + b] == c;
 }
 
 /* RE2 Keep_Item_ck */

@@ -94,9 +94,9 @@ int main(void)
             } else {
                 goto no_pause;
             }
-            func_8007745C(0);
-            func_8007745C(1);
-            func_8007745C(2);
+            Snd_seq_pause(0);
+            Snd_seq_pause(1);
+            Snd_seq_pause(2);
             G.Unk2488 = 1;
         }
     no_pause:
@@ -117,7 +117,7 @@ int main(void)
             Fade_out_reset();
             continue;
         }
-        func_800741A0();
+        Snd_se_call();
         Cd_system_control();
         System_trans_all();
         Swap_Cbuff();
@@ -177,7 +177,7 @@ void Init_system(void)
     SetGraphDebug(0);
     InitGeom();
     Cd_init();
-    func_80073E84();
+    Snd_sys_init();
     Init_scheduler();
     VSyncCallback(func_800101AC);
     pM->Vloop = 1;

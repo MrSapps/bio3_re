@@ -15,7 +15,7 @@ typedef union {
     ULONG W[8];
 } KAN_REC;
 
-void func_800783BC_(ULONG no, ULONG size, ULONG *a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
+void func_800783BC_(ULONG no, ULONG size, ULONG *a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
 
 void Mapping_tim(ULONG *pAdr)
 {
@@ -366,7 +366,7 @@ void func_800792FC(void)
 {
     func_800783BC_(2, Cd_read_s(0x128, 0, (ULONG *)0x80101000, 2, "INIT_SUB"), 0);
     Cd_read(0x127, (ULONG *)0x80101000, 0, "INIT_SUB");
-    func_8007836C(2, (ULONG *)0x80101000);
+    Snd_vab_head_set(2, (ULONG *)0x80101000);
 }
 
 void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)

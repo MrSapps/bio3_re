@@ -21,9 +21,9 @@ typedef struct tagROOM_WORK {
     UCHAR nCut;                        /* 0x01 RE2 nCut (Set_room) */
     UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
     UCHAR pad3[6 - 3];
-    UCHAR Unk6;                        /* 0x06 sound bank voice base / 4 (func_80078204) */
+    UCHAR Unk6;                        /* 0x06 sound bank voice base / 4 (Snd_sys_pset) */
     UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (func_80048630) */
-    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room; room sound table, -1 terminated (func_80078204) */
+    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room; room sound table, -1 terminated (Snd_sys_pset) */
     UCHAR padC[0x20 - 0xC];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */
     RCUT *pRcut;                       /* 0x24 RE2 pRcut */

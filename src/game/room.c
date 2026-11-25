@@ -64,7 +64,7 @@ void Set_room(void)
                 pG->Unk7864 = pPl->Id;
             }
             G.Status_flg |= 0x8000000;
-            func_8007809C(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+            Snd_vab_load(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         } else {
             if (pPl->Id >= 8) {
                 pPl->Life = 200;
@@ -83,7 +83,7 @@ void Set_room(void)
                 }
             }
             G.Status_flg &= ~0x8000000;
-            func_8007809C(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+            Snd_vab_load(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         }
         pPl->Max_life = 200;
         pPl->Id = pG->Unk784E;
@@ -91,7 +91,7 @@ void Set_room(void)
         Player_set(pPl);
         *(ULONG *)&pPl->Routine_0 = 0;
     }
-    func_80077ED4();
+    Snd_bgm_fade_wait();
     Size = Cd_read(D_8009DFD0[Stage][Room], NULL, 4, "ARD");
     ppAdr = &pRoom->pEdt0;
     do {
@@ -109,7 +109,7 @@ void Set_room(void)
         pRoom->pOmodel[i].Tmd_adr = (ULONG *)((UCHAR *)pRoom->pOmodel[i].Tmd_adr + (ULONG)pRoom);
     }
     Esp_init_R();
-    func_80078204();
+    Snd_sys_pset();
     Cut_change(pG->Cut_no);
     func_80033508();
     func_800486C8();
@@ -126,7 +126,7 @@ void Set_room(void)
     }
     func_800498F0();
     func_80048630();
-    func_80078450();
+    Snd_sys_enem_set();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;

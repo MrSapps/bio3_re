@@ -169,14 +169,14 @@ set:
     Em_move_tbl_set();
     Spl_set();
     Set_stage();
-    func_80077C4C();
+    Snd_bgm_ck();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
         D_800E0186[0] = 0;
     }
     Set_room();
-    func_80077F60();
+    Snd_bgm_play_ck();
     pG->pEm = PLAYER_EM(pG);
     Player_set(pG->pEm);
     SetBackColor(0x80, 0x80, 0x80);
@@ -246,7 +246,7 @@ void Set_door(void)
         pG->Unk783E = pAot->Next_stage % 9;
         Set_stage();
     }
-    func_80077C4C();
+    Snd_bgm_ck();
     while (pG->Status_flg & 0x800) {
         Task_sleep(1);
     }
@@ -254,7 +254,7 @@ void Set_door(void)
     while (G.System_flg & 0x400000) {
         Task_sleep(1);
     }
-    func_80077F60();
+    Snd_bgm_play_ck();
     Bg_set_mode(2, 0);
     Cut_check(1);
     Main.Unk18E = 1;

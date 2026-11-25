@@ -2284,7 +2284,7 @@ void Pl_weapon_ch(ENEMY_WORK *pEm)
     Pl_wep_tmd = pW->pTmd;
     pW->pTmd = p;
     Pl_weapon_init[(UCHAR)pEm->Type](pEm);
-    func_8007809C(1, (UCHAR)pEm->Type, (ULONG *)0x801FBF00, (ULONG *)0x801C1814);
+    Snd_vab_load(1, (UCHAR)pEm->Type, (ULONG *)0x801FBF00, (ULONG *)0x801C1814);
 }
 
 void Weapon_cls(ENEMY_WORK *pEm)

@@ -86,7 +86,7 @@ void Xa_play(ULONG mode, ULONG no)
     pCd->End_sector += (pwd[1] + pwd[2]) * sub + pwd[0] - 15;
     pCd->Current_sector = pCd->Start_sector;
     DsIntToPos(pCd->Start_sector, &pCd->Fpos);
-    func_80074658(1);
+    Snd_cd_mix_set(1);
     pCd->Vol = pCd->Vol * Snd_work.Vol.Se / 127;
     pCd->Xa_rtn_no = 1;
     pCd->Fade_flg = 0;
@@ -110,7 +110,7 @@ void Xa_play(ULONG mode, ULONG no)
 /* stops the XA player after a read error */
 void Xa_error(void)
 {
-    func_80074658(0);
+    Snd_cd_mix_set(0);
     Change_volume(0);
     CD.Xa_rtn_no = 3;
 }
@@ -233,7 +233,7 @@ void Xa_control_end(void)
     while (DsCommand(DslPause, NULL, NULL, -1) == 0);
 
     CD.Xa_rtn_no = 0;
-    func_80074658(0);
+    Snd_cd_mix_set(0);
     Change_volume(0);
 }
 
@@ -527,7 +527,7 @@ retry2:
     }
 }
 
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
+void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
 
 /* sends one ring sector of a VAB body entry of the room pack to SPU memory, registers the bank when done */
 void Cd_spu_trans(tagCD *pCd)
@@ -564,7 +564,7 @@ void Cd_spu_trans(tagCD *pCd)
         while (SpuIsTransferCompleted(0) == 0);
         func_800783BC_(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
         if (pCd->pEntry[no].Type >= 5) {
-            func_800782F4(pCd->pEntry[no].Type - 5, pCd->pEntry[no].Id,
+            Snd_seq_data_set(pCd->pEntry[no].Type - 5, pCd->pEntry[no].Id,
                           pCd->pEntry[no].Type < 6 ? (ULONG *)0x801F7E00 : (ULONG *)0x801F2600);
         }
     }

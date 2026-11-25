@@ -89,7 +89,7 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
 - Near misses with drafts (2026-11-24): oba func_80034E78 (3 words), Jill_wep_load/select func_801C3AE4 (5),
   oba func_80035678 (~9), om func_80037E80 (~10), Door_init (12, needs DOOR Divp fields at 0xC/0x10/0x14),
   em27 func_801000E0 (12), em22 func_80103110 (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
-  Get_light_cut (4), snd func_80077F60 (5, 2 with an empty do/while after the decls), Pc_text_set (7),
+  Get_light_cut (4), snd Snd_bgm_play_ck (5, 2 with an empty do/while after the decls), Pc_text_set (7),
   Flr_set (2), em36 func_8010511C (10), Plc_gun_eff (11), Get_matrix (17). Drafts in that session's scratchpad.
   option func_801C4C94 matches but shares the "\x81\x40" string with func_801C4A70 (must go in together).
 
@@ -178,7 +178,7 @@ A .c keeps a local `T f_(..) __asm__("f")` alias only where its codegen needs a 
 the ENEMY_WORK *_kan_t_ptr / *_seq_t_ptr fields, RE2 ULONG*); functions that walk them byte-wise cast to
 UCHAR* / KAN_HEAD* inside. Joint_move/Joint_move2 return the J_seq result (ULONG). The tree compiles with
 no warnings (cc1 without -Wall); keep it that way. snd.c calls Task_sleep with no declaration on purpose: any declaration,
-even `int Task_sleep();`, changes the loop in func_80077ED4, so snd.c must not include monitor.h.
+even `int Task_sleep();`, changes the loop in Snd_bgm_fade_wait, so snd.c must not include monitor.h.
 
 ## Module map (src/game, one file per original object)
 Files are split where the original objects begin, so each file's .rodata starts where the original
@@ -364,7 +364,7 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   func_80104F20, em33 func_80101454, movie Init_movie_work, result func_801C229C/C3344/C53D4; this
   also replaced an earlier dead `Min = Time / 60;` hack). (2) mfhi in a3 where the target reuses the
   quotient's reg (v1): the later `mult` must sit in the same block as the division — repeat it in both
-  branches and let cross-jumping merge the tails (snd func_800759D8: `v *= r;` in each branch).
+  branches and let cross-jumping merge the tails (snd Snd_pitch_scale: `v *= r;` in each branch).
   Read `.greg` (`-dg`): "Spilling reg 64" followed by " Register N now in R" shows the kick.
 - Handwritten asm left as INCLUDE_ASM: BIOS jump stubs (`li t2,0xA0; jr t2; li t1,n`), libcard
   `_card_clear` (older-compiler epilogue), md_sub func_8002E318/D5D8/D4B0 (t-reg saves around jal, s-regs
@@ -410,7 +410,7 @@ text-identical functions into src/enemy/common/FAMILY (or src/ovl/common/FAMILY)
 - Plc_gun_eff matched: dead stores into a local VECTOR; cse deletes the repeated vx = 145 (8 stores for 9 assignments).
 - Get_light_cut (3): reassign `pData = (UCHAR *)pLight` after the loop; assign pCut twice (REG_N_SETS > 1 stops
   sched1's birthing boost). Left: the copy goes to a1, not a0 (pData inherits pLight's a1 preference).
-- snd func_80077F60 (2): the CD `lui` gets v0. With temps (`t = &Snd_work; u = &CD;`) the registers are right
+- snd Snd_bgm_play_ck (2): the CD `lui` gets v0. With temps (`t = &Snd_work; u = &CD;`) the registers are right
   but sched2 puts both luis first (3).
 - oba func_80034E78 (3): sll 8 / andi 0xff order. `((Fl << 8) & 0xFF00) | (Fl & 0xFF)` gives the order but
   swaps v0/v1: local-alloc gives the 6-ref shift chain priority over Fl (5 refs).

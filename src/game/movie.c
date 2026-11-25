@@ -103,7 +103,7 @@ void Movie_init(void)
 
     if (pDisp->Attribute & 8) {
         Set_movie_volume2(pWork->Movie_volume);
-        func_80074658(1);
+        Snd_cd_mix_set(1);
         *(ULONG *)&Rect.w = 0x10000A0;
         StoreImage(&Rect, (ULONG *)(((ULONG)Vm_work.pFree_work + 15) & ~15));
         Vm_work.pFree_work += 0x14010;
@@ -124,7 +124,7 @@ void Movie_init(void)
         pWork->Rno += 2;
     } else {
         Set_movie_volume2(pWork->Movie_volume);
-        func_80074658(1);
+        Snd_cd_mix_set(1);
         if (Open_movie(pWork->Movie_id)) {
             Movie_end();
             pWork->Status = 1;
@@ -356,7 +356,7 @@ void Close_movie(void)
     DsReadyCallback(NULL);
     DsCommand(DslPause, NULL, NULL, -1);
     StUnSetRing();
-    func_80074658(0);
+    Snd_cd_mix_set(0);
 }
 
 void RuntoImage(void)

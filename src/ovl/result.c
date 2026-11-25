@@ -2,7 +2,7 @@
 #include "sub.h"
 
 void Print14_s(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short); arg 3 char* (canonical UC*) */
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
+void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
 
 LONG Print14_l(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* int-returning alias */
 
@@ -391,9 +391,9 @@ void func_801C3724(RESULT_WORK *pWk)
     func_801C4128();
     Bg_set_mode(2, 0);
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
-    func_800782F4(0, 0x3D, (ULONG *)0x801F7E00);
+    Snd_seq_data_set(0, 0x3D, (ULONG *)0x801F7E00);
     func_800783BC_(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
-    func_8007809C(0, 0xD, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
+    Snd_vab_load(0, 0xD, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
@@ -751,9 +751,9 @@ void func_801C49FC(RESULT_WORK *pWk)
     func_801C5324();
     Bg_set_mode(2, 0);
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
-    func_800782F4(0, 0x3D, (ULONG *)0x801F7E00);
+    Snd_seq_data_set(0, 0x3D, (ULONG *)0x801F7E00);
     func_800783BC_(5, Cd_read_s(0x126, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
-    func_8007809C(0, 0xD, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
+    Snd_vab_load(0, 0xD, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
@@ -982,7 +982,7 @@ void func_801C567C(RESULT_WORK *pWk)
     pWk->pBuf = (ULONG *)0x80100000;
     pWk->Routine_0 = 1;
     Cd_read(0x129, (ULONG *)0x801F2600, 0, "RESULT BGM");
-    func_800782F4(1, 0x2A, (ULONG *)0x801F2600);
+    Snd_seq_data_set(1, 0x2A, (ULONG *)0x801F2600);
     func_800783BC_(6, Cd_read_s(0x12A, 2, (ULONG *)0x80180000, 6, "RESULT VB"), 0);
     func_801C5854();
     Bg_set_mode(2, 0);
@@ -1112,7 +1112,7 @@ void func_801C5BCC(RESULT_WORK *pWk)
     pWk->Routine_0 = 1;
     func_801C6114();
     Cd_read(0x11F, (ULONG *)0x801F7E00, 0, "RESULT BGM");
-    func_800782F4(0, 0x33, (ULONG *)0x801F7E00);
+    Snd_seq_data_set(0, 0x33, (ULONG *)0x801F7E00);
     func_800783BC_(5, Cd_read_s(0x120, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
     Snd_se_stad(0x500, 0, 0, 0);
     Bg_set_mode(2, 0);
