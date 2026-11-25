@@ -584,3 +584,46 @@ Near misses (score.py words / dscore):
   target uses &n_prim3; reading the counts through a `USHORT *pN = &n_prim3` does not change it.
 - em_sub Goto01 (g01/sw3, 2304 type combos, best 21): the raw-copy + in-place sign-extension pattern still not found.
 - em_sub Esp_kill (b894/f.c, dscore 74), Esp_speed_add (bc80, 30): no progress.
+## Matching round agentI (types; drafts in the session scratchpad agentI/best)
+Matched: oba Oba_box_push. Type fix: door.h DOOR is RE2's tagDOOR minus pEdh_offset/pVb_offset (pPackettop,
+DIVPOLYGON3 Divp at 0xC, Ctr1 0x224, Ctr2 0x226 = the old Unk226 frame counter, V0..V2 0x228.., Sound_flg 0x240,
+Div_max); Door_init's 0xC/0x10/0x14 stores are Divp.ndiv/pih/piv.
+Type findings:
+- Tmp_Sca (0x800DEB48, 0x10) and Sca_work (0x800DEB58) are separate objects: every access uses its own %hi/%lo.
+  The koban "one variable" observation (agentF) is reproduced cast-free by a local
+  `union { SCA_WORK *pW; SCA_DATA *pC; } u;` (same code as the casts), but the function is still off (see below).
+- Sca_work.Pt0/Pt1 are packed GTE SXY words (x << 16 | z & 0xFFFF), read with lw + sll/sra (no SHORT fields).
+- Arg3 of the Sca_hit_* family is the packed position P1 that Sca_hit_line passes on (ULONG).
+- COL_ENT shares SCA_DATA's first 0x10 bytes; Oba_tmp_sca_set fills Tmp_Sca and passes it to Oba_ent_floor_set as
+  a COL_ENT (its 0x18-byte unused local is a COL_ENT).
+Rules learnt:
+- Use the .lreg/.greg numbers (agentI/dump.sh DIR FUNC.c OUT runs SN cc1 -dl -dg on base.c + draft): global-alloc
+  hands out t0, t1, ... in priority order floor_log2(refs)*refs/live_length. Reading the target's register order
+  as a priority order tells which variable needs more refs / a shorter life (do/while(0) adds 1 per ref).
+- A boolean that is copied into a second variable (`Zero = (Dx | Dz) == 0; Still = Zero;`) was what Oba_box_push
+  needed (sltu early, both regs right); a single variable of any type was 45 words off.
+- Cases that each compute a flag and jump to one shared test: put the test in the first case behind a label and
+  `goto` it from the others (Sca_high_hishi); `if (!In) return High; return pT->High;` gives the
+  `beqz; move v0,a3` / `lh v0` tail.
+- `Zone = (ULONG)Dz >> 30; Zone &= 2; Zone |= (ULONG)Dx >> 31;` reproduces the `srl/andi v1` then `or v1,v1,v0`
+  order of the area-bit switch (one expression puts the first half in v0).
+- A loop invariant (W * 2) is not hoisted when its register is set twice in the loop (reuse a variable); the
+  target's Oba_em_overlap_ck keeps `sll v0,W,1` in the loop.
+- &G from &Pl_work: `pPl = (ENEMY_WORK *)&G.Player;` then `G.x` lets cse derive &G as pPl - 0x248C (the target's
+  `addiu s5,Pl_work; addiu s3,s5,-0x248C`). `Tbe` kept in a variable changes the load order of two Be_flg reads;
+  writing `pT->pEm->Be_flg` at each use gives the target order (cse still loads it once).
+Near misses (agentI/best):
+- sca Sca_high_hishi (16): shared-test layout and the zone order match; left t-reg order (X0-load t1, Z t3, Dz t5).
+  Needs X0 priority above Z1 and Dz below Z0 (see the priority rule); permuter run in agentI/w/hhpm2.
+- sca Sca_hit_koban_x (22): u union pointer, `Zone` in two statements, case 0 stores X0 last from a temp
+  (`Cx1 = pT->X1 - D; ... pC->X0 = Cx1; goto Circle;`), case 3 holds the Circle label. Left: priorities (target
+  X0 > X > pT > D > Z0); do/while on X0 and pW (_30_regs.c) gets X0/X/pT right but swaps D/Z0.
+- oba Oba_tmp_sca_set (5): `Y <<= 16; C.All = ((Fl & 0xFF) | ((Fl << 8) & 0xFF00)) | Y;` gives the registers
+  but `andi 0xFF` before `sll 8`; the other orders give v1/a2 swapped.
+- oba Oba_em_overlap_ck (30, new draft): structure complete; left Shape in t1 instead of the Id register and X/Z
+  in a2/t0 (the W * 2 hoist is stopped by reusing Shape, which the target does not do).
+- door Door_init (10): needs `ppTim = &Door_data->pTim` to get the 0x8019D004 register; left the pAdr value in a1
+  with a copy to a0 for Mapping_tim (ours computes it straight into the a0 copy).
+- sca Sca_hit_line (13, agentG z6): unchanged.
+- oba Oba_ent_box_set (new draft, ~90 dscore): four values are reload spills (sw then lhu from 0x10..0x1C(sp)),
+  Type kept in fp; ours spills one more.
