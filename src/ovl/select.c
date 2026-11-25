@@ -882,12 +882,14 @@ const char Select_str_sel[8] = { 'S', 'e', 'l', 'e', 'c', 't', 0, 0x11 };
 #include "ovl/common/jill_sel/Jill_obj_draw.inc.c"
 #include "ovl/common/jill_sel/Jill_obj_rgb.inc.c"
 
+/* sets the position of a sprite object */
 void Sel_obj_pos_set(SEL_OBJ *pObj, SHORT X, SHORT Y)
 {
     pObj->X = X;
     pObj->Y = Y;
 }
 
+/* replaces size and texture position of a sprite object in both buffers (TpClut unused) */
 void Sel_obj_uv_set(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut)
 {
     SEL_SPRT *pSp;
