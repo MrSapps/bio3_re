@@ -3175,13 +3175,13 @@ void Pl_wep_poly_off(PL_WEP_POLY *pWp)
 }
 
 /* show a weapon light poly at half brightness when its depth is in range */
-void Pl_wep_poly_ck(PL_WEP_POLY *pWp, SVECTOR *pV)
+void Pl_wep_poly_ck(PL_WEP_POLY *pWp, ENEMY_WORK *pEm)
 {
     LONG d;
     ULONG Rgb;
 
     pWp->Be_flg = 0;
-    d = *(USHORT *)&pWp->pPos[1] - (USHORT)pV[7].vx;
+    d = *(USHORT *)&pWp->pPos[1] - (USHORT)pEm->Pos_y;
     if ((USHORT)(d + 0xC7F) < 0x125B) {
         pWp->Be_flg = 1;
         Rgb = *(ULONG *)&pWp->Poly[0].r0 & 0xFFFFFF;

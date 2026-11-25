@@ -211,7 +211,7 @@ SHORT Get_dir_xz(LONG X, LONG Z);
 void Pl_wep_poly_set(PL_WEP_POLY *pWp, SHORT Unk2, LONG *pPos);
 void Pl_wep_poly_rgb(PL_WEP_POLY *pWp, ULONG Rgb);
 void Pl_wep_poly_off(PL_WEP_POLY *pWp);
-void Pl_wep_poly_ck(PL_WEP_POLY *pWp, SVECTOR *pV);
+void Pl_wep_poly_ck(PL_WEP_POLY *pWp, ENEMY_WORK *pEm); /* lights the poly by its height against pEm */
 void Pl_wep_poly_trans(void);
 ULONG Em_near_pos_ck(VECTOR *pPos, LONG Ll0, LONG Ll1);
 LONG Pos_em_at_ck(HIT_REQ *pReq, HIT_ATTR *pAttr);
