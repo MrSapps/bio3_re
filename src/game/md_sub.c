@@ -128,7 +128,7 @@ POLY_GT3 *PresetObjectGT3_neo(MD_WORK *pW, POLY_GT3 *pPrim)
         *(ULONG *)&pP->r1 = 0x808080;
         *(ULONG *)&pP->u1 = (p[1] | Abr) & 0xFFFFFF;
         *(ULONG *)&pP->r2 = 0x808080;
-        *(ULONG *)&pP->u2 = *(USHORT *)&p[2];
+        *(ULONG *)&pP->u2 = (USHORT)p[2];
         pP[1] = pP[0];
         pP += 2;
         p += 3;
@@ -158,9 +158,9 @@ POLY_GT4 *PresetObjectGT4_neo(MD_WORK *pW, POLY_GT4 *pPrim)
         *(ULONG *)&pP->r1 = 0x808080;
         *(ULONG *)&pP->u1 = (p[1] | Abr) & 0xFFFFFF;
         *(ULONG *)&pP->r2 = 0x808080;
-        *(ULONG *)&pP->u2 = *(USHORT *)&p[2];
+        *(ULONG *)&pP->u2 = (USHORT)p[2];
         *(ULONG *)&pP->r3 = 0x808080;
-        *(ULONG *)&pP->u3 = *(USHORT *)&p[3];
+        *(ULONG *)&pP->u3 = (USHORT)p[3];
         pP[1] = pP[0];
         pP += 2;
         p += 4;
@@ -347,19 +347,19 @@ void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
 loop:
     ROT_XY(&pP[0]) = (pFrame[0] & 0xFFF) | ((pFrame[0] & 0xFFF000) << 4);
     n--;
-    pP[0].Rot_spd_z = ((UCHAR *)pFrame)[3] | (*(USHORT *)&pFrame[1] << 8);
+    pP[0].Rot_spd_z = ((UCHAR *)pFrame)[3] | ((USHORT)pFrame[1] << 8);
     if (n == 0) {
         goto end;
     }
     n--;
     ROT_XY(&pP[1]) = ((pFrame[1] & 0xFFF0) >> 4) | (pFrame[1] & 0xFFF0000);
-    pP[1].Rot_spd_z = (pFrame[1] >> 28) | (*(USHORT *)&pFrame[2] << 4);
+    pP[1].Rot_spd_z = (pFrame[1] >> 28) | ((USHORT)pFrame[2] << 4);
     if (n == 0) {
         goto end;
     }
     ROT_XY(&pP[2]) = ((pFrame[2] & 0xFFF00) >> 8) | ((pFrame[2] & 0xFFF00000) >> 4);
     n--;
-    pP[2].Rot_spd_z = *(USHORT *)&pFrame[3];
+    pP[2].Rot_spd_z = (USHORT)pFrame[3];
     if (n == 0) {
         goto end;
     }
@@ -1393,9 +1393,9 @@ POLY_GT4 *PresetObjectGT4_mizu(MD_WORK2 *pW, POLY_GT4 *pPrim)
         *(ULONG *)&pP->r1 = 0x808080;
         *(ULONG *)&pP->u1 = (p[1] | Abr) & 0xFFFFFF;
         *(ULONG *)&pP->r2 = 0x808080;
-        *(ULONG *)&pP->u2 = *(USHORT *)&p[2];
+        *(ULONG *)&pP->u2 = (USHORT)p[2];
         *(ULONG *)&pP->r3 = 0x808080;
-        *(ULONG *)&pP->u3 = *(USHORT *)&p[3];
+        *(ULONG *)&pP->u3 = (USHORT)p[3];
         pP[1] = pP[0];
         pP += 2;
         p += 4;
