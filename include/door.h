@@ -93,7 +93,8 @@ void Door_init(void);
 void Door_move(void);
 void Door_scheduler_main(void);
 void Door_Trans(void); /* RE2 Door_Trans */
-void DoorSort(UCHAR *pMw, UCHAR *pDw, ULONG *pTmd); /* RE2 DoorSort(MODEL_WORK *, DOOR_WORK *, TMD_MEM *) */
+struct tagSORT_PARAM;
+void DoorSort(DOOR_WORK *pDw, POLY_GT3 *pPacket, struct tagSORT_PARAM *pPrm); /* RE2 DoorSort */
 void Door_exit(void);
 void Door_texture_load(void); /* RE2 Door_texture_load */
 void Door_model_init(DOOR_WORK *pDw);

@@ -834,3 +834,6 @@ Md_rtp_floor = 0x8002D184; // type:func
 Md_rtp = 0x8002D5D8; // type:func
 // md_sub: average the colours of the prims p..pEnd with Rgb
 Rgb_blend = 0x8002D41C; // type:func
+Door_light_matrix = 0x80097574;
+Door_color_matrix = 0x80097594;
+Sca_block_list = 0x800DEB98;

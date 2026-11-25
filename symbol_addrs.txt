@@ -2095,3 +2095,6 @@ Spl_auto_dummy = 0x8005D290; // type:func
 Sca_high_tbl = 0x8009E020;
 Sca_hit_obj_circle = 0x8004D404; // type:func
 Sca_get_ground_obj = 0x8004DB10; // type:func
+Door_light_matrix = 0x80097574;
+Door_color_matrix = 0x80097594;
+Sca_block_list = 0x800DEB98;

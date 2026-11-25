@@ -1,5 +1,6 @@
 #include "cd.h"
 #include "door.h"
+#include "md_sub.h"
 #include "enemy/em_common.h"
 #include "monitor.h"
 #include "sub.h"
@@ -15,6 +16,31 @@
  * holds enemy setup from RE2 EM_SET.C (Enemy_work_set, Emd_load, Em_move_tbl_set) and the enemies'
  * scenario handler Em_sce_main with its Em_sce[] slots (the enemy copy of SPL_SCE.C).
  */
+
+/* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
+#define gte_SetBackColor(r0, r1, r2) __asm__ volatile("sll $12, %0, 4; sll $13, %1, 4; sll $14, %2, 4; ctc2 $12, $13; ctc2 $13, $14; ctc2 $14, $15" : : "r"(r0), "r"(r1), "r"(r2) : "$12", "$13", "$14")
+#define gte_SetRotMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $0; ctc2 $13, $1; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $2; ctc2 $13, $3; ctc2 $14, $4" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_SetTransMatrix(r0) __asm__ volatile("lw $12, 20(%0); lw $13, 24(%0); ctc2 $12, $5; lw $14, 28(%0); ctc2 $13, $6; ctc2 $14, $7" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_SetLightMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $8; ctc2 $13, $9; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $10; ctc2 $13, $11; ctc2 $14, $12" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_ldclmv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 6(%0); lhu $14, 12(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_rtir() __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_stclmv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 6(%0); sh $14, 12(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
+#define gte_ldlv0(r0) __asm__ volatile("lhu $13, 4(%0); lhu $12, 0(%0); sll $13, $13, 16; or $12, $12, $13; mtc2 $12, $0; lwc2 $1, 8(%0)" : : "r"(r0) : "$12", "$13")
+#define gte_rt() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
+#define gte_ldrgb(r0) __asm__ volatile("lwc2 $6, 0(%0)" : : "r"(r0))
+#define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
+#define gte_rtpt() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_ncct() __asm__ volatile("nop; nop; .word 0x4B18043F")
+#define gte_avsz3() __asm__ volatile("nop; nop; .word 0x4B58002D")
+#define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
+#define gte_stsxy3_gt3(r0) __asm__ volatile("swc2 $12, 8(%0); swc2 $13, 20(%0); swc2 $14, 32(%0)" : : "r"(r0) : "memory")
+#define gte_strgb3_gt3(r0) __asm__ volatile("swc2 $20, 4(%0); swc2 $21, 16(%0); swc2 $22, 28(%0)" : : "r"(r0) : "memory")
+
+extern MATRIX Door_light_matrix; /* RE2 D_LIGHTMATRIX */
+extern MATRIX Door_color_matrix; /* RE2 D_COLORMATRIX */
 
 /* local declarations (80011CF8.c) */
 /* Add_speedXZ is called with a third (unused) argument in RE3 */
@@ -93,7 +119,87 @@ void Door_scheduler_main(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", Door_Trans);
+/* RE2 Door_Trans: light and place every active door model, then DoorSort it */
+void Door_Trans(void)
+{
+    DOOR *pD; /* pDoor, later reused for pDw->pSuper (both in a0 in the original) */
+    DOOR_WORK *pDw;
+    ULONG i;
+    USHORT Free;
+    ULONG Rgb;
+    MATRIX *pM;
+    MATRIX *pWm;
+    MATRIX Lm;
+    SORT_PARAM Prm;
+
+    i = 0;
+    pD = pDoor;
+    if (G.Cbuf_id == 0) {
+        pD->pPackettop = pD->pPrepacket;
+    } else {
+        pD->pPackettop = (POLY_GT3 *)((UCHAR *)pD->pPrepacket + 0x5000);
+    }
+    pDw = pDwork[0];
+    do {
+        if (pDw->Be_flg != 0) {
+            pM = (MATRIX *)pDw->M;
+            RotMatrix((SVECTOR *)&pDw->Cdir_x, pM);
+            if (pDw->Attribute2 & 0x40) {
+                gte_SetBackColor(0x88, 0x88, 0x88);
+            } else {
+                gte_SetBackColor(0x40, 0x40, 0x40);
+            }
+            SetColorMatrix(&Door_color_matrix);
+            gte_SetRotMatrix(&Door_light_matrix);
+            pWm = &pDw->Workm;
+            gte_ldclmv(pWm);
+            gte_rtir();
+            pM = &Lm;
+            gte_stclmv(pM);
+            gte_ldclmv(&pDw->Workm.m[0][1]);
+            gte_rtir();
+            gte_stclmv(&Lm.m[0][1]);
+            gte_ldclmv(&pDw->Workm.m[0][2]);
+            gte_rtir();
+            gte_stclmv(&Lm.m[0][2]);
+            gte_SetLightMatrix(pM);
+            if (pDw->Attribute2 & 0x1000) {
+                Free = pDw->Free + 8;
+                pDw->Free = Free & 0x1FF;
+                if (Free & 0x100) {
+                    pDw->Free2 = 0x100 - (Free & 0xFF);
+                } else {
+                    pDw->Free2 = Free & 0xFF;
+                }
+                Rgb = pDw->Free2;
+                pDw->Poly_rgb = Rgb << 16 | Rgb << 8 | Rgb;
+            }
+            pD = (DOOR *)pDw->pSuper;
+            gte_SetRotMatrix(pD);
+            pM = (MATRIX *)pDw->M;
+            gte_ldclmv(pM);
+            gte_rtir();
+            gte_stclmv(pWm);
+            gte_ldclmv(&pDw->M[0][1]);
+            gte_rtir();
+            gte_stclmv(&pWm->m[0][1]);
+            gte_ldclmv(&pDw->M[0][2]);
+            gte_rtir();
+            gte_stclmv(&pWm->m[0][2]);
+            gte_SetTransMatrix(pD);
+            gte_ldlv0(&pDw->Pos_x);
+            gte_rt();
+            gte_stlvl(pWm->t);
+            SetRotMatrix(&pDw->Workm);
+            SetTransMatrix(&pDw->Workm);
+            Prm.pObj = (MD_OBJ *)pDw->pTmd;
+            Prm.u.Rgb = pDw->Poly_rgb;
+            DoorSort(pDw, pDw->pPacket + G.Cbuf_id, &Prm);
+        }
+        pDw++;
+        i++;
+    } while (i < 10);
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/door", DoorSort);
 
