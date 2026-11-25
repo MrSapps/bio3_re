@@ -847,3 +847,5 @@ Chaser_item_id_tbl = 0x8009E4C0;
 Chaser_item_num_tbl = 0x8009E4C8;
 Chaser_zone_30E_0 = 0x8009E504;
 Chaser_zone_30E_1 = 0x8009E518;
+Pld_no = 0x8009CD10;
+pPl_hand_tmd = 0x8009CD34;

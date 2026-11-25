@@ -1,6 +1,9 @@
+#include "cd.h"
+#include "md_sub.h"
 #include "mojidisp.h"
 #include "pad.h"
 #include "player.h"
+#include "pcstr.h"
 #include "pl_wep.h"
 #include "joint.h"
 #include "sca.h"
@@ -18,7 +21,67 @@
  * motion bytes are written as one word, like RE2 (EM_SET_RTN / EM_SET_MOVE).
  */
 
-INCLUDE_ASM("asm/nonmatchings/game/player", Player_set);
+/* PLD file header: offsets of the model data (RE2 PL_DATA_TBL; RE3 adds the skin data) */
+typedef struct tagPL_DATA_TBL {
+    LONG Seq_ofs;
+    LONG Kan_ofs;
+    LONG Tmd_ofs;
+    LONG Skin_ofs;
+    LONG Tim_ofs;
+} PL_DATA_TBL;
+
+/* RE2 Player_set: loads the PLD of the player (Pld_no[Id]) to 0x801BD5E0, copies it to 0x801D5C00 and sets up
+ * the model, the textures (Ctpage/Cclut kept), the parts and the skin */
+void Player_set(ENEMY_WORK *pEm)
+{
+    ULONG Work;
+    UCHAR *Cd_top;
+    PL_DATA_TBL *pTbl;
+    LONG Skin_ofs;
+    LONG Kan_ofs;
+    UCHAR Cclut;
+    UCHAR Ctpage;
+    tagGLOBAL *pG;
+
+    pG = &G;
+    Work = 0x801BD5E0;
+    Cd_read(Pld_no[pEm->Id], (ULONG *)0x801BD5E0, 1, "PLD");
+    do {
+        Cd_top = (UCHAR *)0x801D5C00;
+        pTbl = (PL_DATA_TBL *)(Work + *(LONG *)Work);
+    } while (0);
+    pEm->pSeq_t_ptr = (ULONG *)(Cd_top + pTbl->Seq_ofs);
+    Kan_ofs = pTbl->Kan_ofs;
+    pEm->Clut = 1;
+    pEm->Tpage = 0x17;
+    pEm->pKan_t_ptr = (ULONG *)(Cd_top + Kan_ofs);
+    pEm->pTmd = (ULONG *)(Cd_top + pTbl->Tmd_ofs);
+    Cclut = pG->Ctp.u.Cclut;
+    Ctpage = pG->Ctp.u.Ctpage;
+    pG->Ctp.u.Cclut = 1;
+    pG->Ctp.u.Ctpage = 0x17;
+    Mapping_tim((ULONG *)(Work + pTbl->Tim_ofs));
+    pG->Ctp.u.Cclut = Cclut;
+    pG->Ctp.u.Ctpage = Ctpage;
+    DrawSync(0);
+    Memcpy((void *)0x801D5C00, (void *)0x801BD5E0, pTbl->Tim_ofs);
+    Mapping_md(pEm->pTmd, 0x17, 1);
+    pEm->pTmd += 2;
+    Skin_ofs = pTbl->Skin_ofs;
+    Work = PartsWork_set(pEm, (ULONG)(Cd_top + pTbl->Tim_ofs));
+    pPl_emd_top = (PARTS_W *)Work;
+    PartsWork_link(pEm, Work, pEm->pKan_t_ptr);
+    if (*(ULONG *)(Skin_ofs + 0x801D5C00) != 0) {
+        Skin_set(pEm, (ULONG *)(Cd_top + Skin_ofs));
+    }
+    pG->pEnemy[0] = PLAYER_EM(pG);
+    pEm->Be_flg = 1;
+    pEm->Mot_scale_y = 0x1000;
+    pPl_hand_tmd = pEm->pSin_parts_ptr[4].pTmd;
+    pEm->Type = pG->pItem_set->Equip_id;
+    Pl_weapon_ch(pEm);
+    Pl_wep_eff_init(pEm);
+}
 
 /* per frame: damage blink, the Pl_routine step, magazine/recoil effects, water ripples, neck aim */
 void Player_move(ENEMY_WORK *pEm)

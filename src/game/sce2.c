@@ -6,6 +6,7 @@
 #include "pl_wep.h"
 #include "sce2.h"
 #include "sce_at.h"
+#include "sld.h"
 
 int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* Capcom called it undeclared here (implicit int); Kage_set differs with the void prototype */
 
