@@ -1834,7 +1834,120 @@ void Em33_mv09_br(ENEMY_WORK *pEm)
 {
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em33", Em33_mv09);
+/* mv[9]: surface at the east hole, rear back and sink again */
+void Em33_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Sv;
+    HIT_AREA Area;
+    EM33_SPD_TBL Spd_z = Em33_spd_z_tbl;
+    LONG n = 3;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM30_W(pEm)->u13.Clip_no = 1;
+        EM30_W(pEm)->u10.Side = 1;
+        EM30_W(pEm)->Dirt_part = 2;
+        EM30_W(pEm)->Timer = 60;
+        pEm->Routine_2++;
+    case 1:
+        pEm->Pos_x = -3000;
+        pEm->Pos_y = 200;
+        pEm->Pos_z = -19000;
+        pEm->Cdir_y = 0x800;
+        EM30_W(pEm)->Morph_dir = 1;
+        EM30_W(pEm)->Spd = 10;
+        EM_SET_MOVE(pEm, 0xA, 0, 0x1F);
+        EM30_W(pEm)->Spd_lim = 60;
+        pEm->Timer0 = 0;
+        pEm->UnkE2 = 0;
+        EM30_W(pEm)->Spd_add = 4;
+        pEm->UnkE3 = 0;
+        pEm->Routine_2++;
+        pEm->Col.D0 = 1200;
+        pEm->Col.W0 = 1200;
+        {
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
+        pW->Col.D0 = 1400;
+        pW->Col.W0 = 1400;
+        }
+        Snd_se_enem(4, pEm);
+    case 2:
+        do {
+            if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+                n = 1;
+                EM_SET_MOVE(pEm, 0xB, 0, 0x1F);
+                EM30_W(pEm)->Spd = -10;
+                EM30_W(pEm)->Spd_lim = -70;
+                EM30_W(pEm)->Spd_add = -10;
+                pEm->Spd_z = 0;
+                pEm->UnkE2 = 0;
+                pEm->UnkE3 = 0;
+                pEm->Routine_2++;
+            }
+            Em30_morph_step(pEm, 0x80, EM30_W(pEm)->Morph_dir);
+            pEm->Spd_x = EM30_W(pEm)->Spd;
+            pEm->Spd_z = Spd_z.Spd[pEm->Move_cnt / 10];
+            Add_speedXZ(pEm, 0);
+            EM30_W(pEm)->Spd += EM30_W(pEm)->Spd_add;
+            if (EM30_W(pEm)->Spd_add > 0 && EM30_W(pEm)->Spd > EM30_W(pEm)->Spd_lim)
+                EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+            if (EM30_W(pEm)->Spd_add < 0 && EM30_W(pEm)->Spd < EM30_W(pEm)->Spd_lim)
+                EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+            if (pEm->Move_cnt == 24)
+                Snd_se_enem(0, pEm);
+        } while (--n);
+        return;
+    case 3:
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+            EM_SET_MOVE(pEm, 0xA, 0, 0x1F);
+            EM30_W(pEm)->Timer = 60;
+            pEm->Routine_2++;
+        }
+        pEm->Spd_z = 0;
+        pEm->Spd_x = EM30_W(pEm)->Spd;
+        Add_speedXZ(pEm, 0);
+        if (pEm->Move_cnt == 30) {
+            EM30_W(pEm)->Spd = -70;
+            EM30_W(pEm)->Spd_lim = 350;
+            EM30_W(pEm)->Spd_add = 80;
+        }
+        if (pEm->Move_cnt == 36) {
+            EM30_W(pEm)->Spd = 350;
+            EM30_W(pEm)->Spd_lim = -100;
+            EM30_W(pEm)->Spd_add = -80;
+        }
+        EM30_W(pEm)->Spd += EM30_W(pEm)->Spd_add;
+        if (EM30_W(pEm)->Spd_add > 0 && EM30_W(pEm)->Spd > EM30_W(pEm)->Spd_lim)
+            EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+        if (EM30_W(pEm)->Spd_add < 0 && EM30_W(pEm)->Spd < EM30_W(pEm)->Spd_lim)
+            EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+        break;
+    case 4:
+        pEm->Col.D0 = 1200;
+        pEm->Col.W0 = 1200;
+        {
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
+        pW->Col.D0 = 1400;
+        pW->Col.W0 = 1400;
+        }
+        do {
+            if (Joint_move(pEm, pKan, pSeq, 0x10080)) {
+                n = 1;
+                EM30_W(pEm)->u13.Clip_no = 4;
+                EM_SET_RTN(pEm, 1, 7, 0, 0);
+            }
+            pEm->Spd_z = 0;
+            pEm->Spd_x = EM30_W(pEm)->Spd;
+            Add_speedXZ(pEm, 0);
+            EM30_W(pEm)->Spd += EM30_W(pEm)->Spd_add;
+            if (EM30_W(pEm)->Spd < EM30_W(pEm)->Spd_lim)
+                EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+            Em30_morph_step(pEm, 0x80, EM30_W(pEm)->Morph_dir);
+        } while (--n);
+        Em33_clip(pEm);
+        break;
+    }
+}
 
 /* no brain step for this move */
 void Em33_thrash_br(ENEMY_WORK *pEm)
