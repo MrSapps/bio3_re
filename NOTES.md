@@ -88,7 +88,7 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   one reused temp for several values (psp func_80048E34) is how several unrelated values share one register.
 - Near misses with drafts (2026-11-24): oba func_80034E78 (3 words), Jill_wep_load/select func_801C3AE4 (5),
   oba func_80035678 (~9), om func_80037E80 (~10), Door_init (12, needs DOOR Divp fields at 0xC/0x10/0x14),
-  em27 func_801000E0 (12), em22 func_80103110 (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
+  em27 Em27_Init (12), em22 Em22_dir_quarter (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
   Get_light_cut (4), snd func_80077F60 (5, 2 with an empty do/while after the decls), Pc_text_set (7),
   Flr_set (2), em36 func_8010511C (10), Plc_gun_eff (11), Get_matrix (17). Drafts in that session's scratchpad.
   option func_801C4C94 matches but shares the "\x81\x40" string with func_801C4A70 (must go in together).
@@ -384,9 +384,8 @@ overlay that has it (the name comes from the family's first module, e.g. `Em10_m
 `ovl/<ovl>.syms.txt`; after a rename, `rm -rf asm/*/ovl/<ovl>` and re-split that overlay.
 
 - em10/em16: em16 is a near copy of em10. All its routines, tables and its free work (include/enemy/em10_free.h)
-  take the em10 names; 28 functions shared. Exceptions: em16 has 3 routines of its own (func_80101BBC,
-  func_8010208C, func_80103CE4) and lacks Em10_sce02, Em10_Kahannsin_walk and Em10_ude_down. Same-asm pairs
-  that are both still func_ (e.g. em10 func_8010C3F0 / em16 func_8010BE98) block a few more.
+  take the em10 names (RE2 slot names: Em10_mvXX(_br), Em10_dmXX, Em10_dieXX, ...). em16's own versions:
+  Em10_dm_sel00 (no knock-down), and empty Em10_sce02 / Em10_ude_down; it lacks Em10_Kahannsin_walk.
 - em30/em33: 13 common routines named Em30_*; 6 shared. The other 7 differ only in the free-work views
   (EM30_W/EM30_SUB/EM30_SABUN_P vs EM33_W/EM33_B/EM33_SABUN_P). The layouts agree but signedness differs
   (em30 Unk12 signed, em33 UCHAR), so a merged header must be checked by building both.
