@@ -1,50 +1,55 @@
+/*
+ * RESULT.BIN: end-of-game result screens. G.Unk2115 picks the routine (Result_proc_tbl): 0 Mercenaries records
+ * and shop, 1/2 Mercenaries run cleared/failed, 3 main game result (grade), 4 bonus message, 5 epilogue.
+ */
 #include "ovl/result.h"
 #include "sub.h"
 
 void Print14_s(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short); arg 3 char* (canonical UC*) */
 LONG Print14_l(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* int-returning alias */
 
-void func_801C2154(ULONG *pAdr, UCHAR No)
+/* reads piece No of OMBG.TIM (CD file 0x3C) to pAdr */
+void Result_ombg_load(ULONG *pAdr, UCHAR No)
 {
     CD.Fno = 0x3C;
-    CD.Fsize = D_801C6800[No].Size;
-    CD.Fsector = (floc[0x3C].sec_high << 16) + floc[0x3C].sector + D_801C6800[No].Ofs;
-    CD.Fsum = D_801C6850[No];
+    CD.Fsize = Result_ombg_tbl[No].Size;
+    CD.Fsector = (floc[0x3C].sec_high << 16) + floc[0x3C].sector + Result_ombg_tbl[No].Ofs;
+    CD.Fsum = Result_ombg_sum[No];
     Cd_read(0x3C, pAdr, 2, "OMBG.TIM");
 }
 
 /* overlay task: runs the routine selected by G.Unk2115 every frame */
-void func_801C21EC(void)
+void Result_task(void)
 {
-    D_801C76C0.Vloop = Main.Vloop;
+    Result_wk.Vloop = Main.Vloop;
     while (1) {
-        D_801C69BC[G.Unk2115]();
+        Result_proc_tbl[G.Unk2115]();
         Task_sleep(1);
     }
 }
 
-/* routine 0: Mercenaries result screen */
-void func_801C224C(void)
+/* routine 0: Mercenaries records (best time, grade, money per character) with BUY / EXIT */
+void Result_merc_menu(void)
 {
-    RESULT_WORK *pWk = &D_801C76C0;
+    RESULT_WORK *pWk = &Result_wk;
 
-    D_801C69D4[pWk->Routine_0](pWk);
-    func_801C229C(pWk);
+    Result_merc_menu_tbl[pWk->Routine_0](pWk);
+    Result_merc_menu_disp(pWk);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2010);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_carlos);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2018);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_nicholai);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2024);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_mikhail);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C202C);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_no_time);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2038);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_time);
 
 /* draws the Mercenaries result screen. Returns the last Print14's value (only one path returns):
    that explicit v0 use is what keeps the /3600 and /60 mfhi out of v0 (see NOTES.md). */
-LONG func_801C229C(RESULT_WORK *pWk)
+LONG Result_merc_menu_disp(RESULT_WORK *pWk)
 {
     LONG Time;
     LONG Hour;
@@ -52,117 +57,117 @@ LONG func_801C229C(RESULT_WORK *pWk)
     LONG Sec;
 
     Print_color(0xFF, 0, 0x107);
-    Jill_obj_draw(&D_801C6D60[0], 7);
-    Jill_obj_draw(&D_801C6D60[1], 7);
+    Jill_obj_draw(&Result_obj[0], 7);
+    Jill_obj_draw(&Result_obj[1], 7);
     if (!(pWk->Flg & 0x20)) {
-        Jill_obj_draw(&D_801C6D60[2], 7);
-        Jill_obj_draw(&D_801C6D60[3], 7);
-        Jill_obj_draw(&D_801C6D60[4], 7);
-        Jill_obj_draw(&D_801C6D60[6], 7);
-        Jill_obj_draw(&D_801C6D60[13], 7);
-        Jill_obj_draw(&D_801C6D60[14], 7);
-        Jill_obj_draw(&D_801C6D60[15], 7);
-        Jill_obj_draw(&D_801C6D60[16], 7);
-        Jill_obj_draw(&D_801C6D60[17], 7);
-        Jill_obj_draw(&D_801C6D60[18], 7);
-        Jill_obj_draw(&D_801C6D60[19], 7);
-        Print14_s(D_801C69E0[0].X, D_801C69E0[0].Y, D_801C2010);
-        Print14_s(D_801C69E0[1].X, D_801C69E0[1].Y, D_801C2018);
-        Print14_s(D_801C69E0[2].X, D_801C69E0[2].Y, D_801C2024);
+        Jill_obj_draw(&Result_obj[2], 7);
+        Jill_obj_draw(&Result_obj[3], 7);
+        Jill_obj_draw(&Result_obj[4], 7);
+        Jill_obj_draw(&Result_obj[6], 7);
+        Jill_obj_draw(&Result_obj[13], 7);
+        Jill_obj_draw(&Result_obj[14], 7);
+        Jill_obj_draw(&Result_obj[15], 7);
+        Jill_obj_draw(&Result_obj[16], 7);
+        Jill_obj_draw(&Result_obj[17], 7);
+        Jill_obj_draw(&Result_obj[18], 7);
+        Jill_obj_draw(&Result_obj[19], 7);
+        Print14_s(Result_merc_menu_pos[0].X, Result_merc_menu_pos[0].Y, Result_str_carlos);
+        Print14_s(Result_merc_menu_pos[1].X, Result_merc_menu_pos[1].Y, Result_str_nicholai);
+        Print14_s(Result_merc_menu_pos[2].X, Result_merc_menu_pos[2].Y, Result_str_mikhail);
         if (Gr.Merc_time[0] == -1) {
-            Print14_s(D_801C69E0[3].X, D_801C69E0[3].Y, D_801C202C);
+            Print14_s(Result_merc_menu_pos[3].X, Result_merc_menu_pos[3].Y, Result_str_no_time);
         } else {
             Time = Gr.Merc_time[0];
             Hour = Time / 3600;
             Time -= Hour * 3600;
             Min = Time / 60;
             Sec = Time - Min * 60;
-            Print14_s(D_801C69E0[3].X, D_801C69E0[3].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+            Print14_s(Result_merc_menu_pos[3].X, Result_merc_menu_pos[3].Y, Result_str_time, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
         }
         if (Gr.Merc_time[2] == -1) {
-            Print14_s(D_801C69E0[4].X, D_801C69E0[4].Y, D_801C202C);
+            Print14_s(Result_merc_menu_pos[4].X, Result_merc_menu_pos[4].Y, Result_str_no_time);
         } else {
             Time = Gr.Merc_time[2];
             Hour = Time / 3600;
             Time -= Hour * 3600;
             Min = Time / 60;
             Sec = Time - Min * 60;
-            Print14_s(D_801C69E0[4].X, D_801C69E0[4].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+            Print14_s(Result_merc_menu_pos[4].X, Result_merc_menu_pos[4].Y, Result_str_time, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
         }
         if (Gr.Merc_time[1] == -1) {
-            Print14_s(D_801C69E0[5].X, D_801C69E0[5].Y, D_801C202C);
+            Print14_s(Result_merc_menu_pos[5].X, Result_merc_menu_pos[5].Y, Result_str_no_time);
         } else {
             Time = Gr.Merc_time[1];
             Hour = Time / 3600;
             Time -= Hour * 3600;
             Min = Time / 60;
             Sec = Time - Min * 60;
-            Print14_s(D_801C69E0[5].X, D_801C69E0[5].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+            Print14_s(Result_merc_menu_pos[5].X, Result_merc_menu_pos[5].Y, Result_str_time, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
         }
         if (Gr.Merc_grade[0] == 0xFF) {
-            Print14_s(D_801C69E0[6].X, D_801C69E0[6].Y, "_");
+            Print14_s(Result_merc_menu_pos[6].X, Result_merc_menu_pos[6].Y, "_");
         } else {
-            Print14_s(D_801C69E0[6].X, D_801C69E0[6].Y, D_801C2054, D_801C69B4[Gr.Merc_grade[0]]);
+            Print14_s(Result_merc_menu_pos[6].X, Result_merc_menu_pos[6].Y, Result_str_grade, Result_grade_chr[Gr.Merc_grade[0]]);
         }
         if (Gr.Merc_grade[2] == 0xFF) {
-            Print14_s(D_801C69E0[7].X, D_801C69E0[7].Y, "_");
+            Print14_s(Result_merc_menu_pos[7].X, Result_merc_menu_pos[7].Y, "_");
         } else {
-            Print14_s(D_801C69E0[7].X, D_801C69E0[7].Y, D_801C2054, D_801C69B4[Gr.Merc_grade[2]]);
+            Print14_s(Result_merc_menu_pos[7].X, Result_merc_menu_pos[7].Y, Result_str_grade, Result_grade_chr[Gr.Merc_grade[2]]);
         }
         if (Gr.Merc_grade[1] == 0xFF) {
-            Print14_s(D_801C69E0[8].X, D_801C69E0[8].Y, "_");
+            Print14_s(Result_merc_menu_pos[8].X, Result_merc_menu_pos[8].Y, "_");
         } else {
-            Print14_s(D_801C69E0[8].X, D_801C69E0[8].Y, D_801C2054, D_801C69B4[Gr.Merc_grade[1]]);
+            Print14_s(Result_merc_menu_pos[8].X, Result_merc_menu_pos[8].Y, Result_str_grade, Result_grade_chr[Gr.Merc_grade[1]]);
         }
         Print_color(0xFF, 0, 0x4107);
         if (Gr.Merc_money[0] == 0) {
-            Print14_s(D_801C69E0[9].X, D_801C69E0[9].Y, D_801C2058);
+            Print14_s(Result_merc_menu_pos[9].X, Result_merc_menu_pos[9].Y, Result_str_no_money);
         } else {
-            Print14_s(D_801C69E0[9].X, D_801C69E0[9].Y, D_801C2060, Gr.Merc_money[0]);
+            Print14_s(Result_merc_menu_pos[9].X, Result_merc_menu_pos[9].Y, Result_str_money, Gr.Merc_money[0]);
         }
         if (Gr.Merc_money[2] == 0) {
-            Print14_s(D_801C69E0[10].X, D_801C69E0[10].Y, D_801C2058);
+            Print14_s(Result_merc_menu_pos[10].X, Result_merc_menu_pos[10].Y, Result_str_no_money);
         } else {
-            Print14_s(D_801C69E0[10].X, D_801C69E0[10].Y, D_801C2060, Gr.Merc_money[2]);
+            Print14_s(Result_merc_menu_pos[10].X, Result_merc_menu_pos[10].Y, Result_str_money, Gr.Merc_money[2]);
         }
         if (Gr.Merc_money[1] == 0) {
-            Print14_s(D_801C69E0[11].X, D_801C69E0[11].Y, D_801C2058);
+            Print14_s(Result_merc_menu_pos[11].X, Result_merc_menu_pos[11].Y, Result_str_no_money);
         } else {
-            Print14_s(D_801C69E0[11].X, D_801C69E0[11].Y, D_801C2060, Gr.Merc_money[1]);
+            Print14_s(Result_merc_menu_pos[11].X, Result_merc_menu_pos[11].Y, Result_str_money, Gr.Merc_money[1]);
         }
-        Print14_s(D_801C69E0[13].X + 7, D_801C69E0[13].Y, D_801C2068);
-        Print14_s(D_801C69E0[14].X, D_801C69E0[14].Y, D_801C206C);
+        Print14_s(Result_merc_menu_pos[13].X + 7, Result_merc_menu_pos[13].Y, Result_str_buy);
+        Print14_s(Result_merc_menu_pos[14].X, Result_merc_menu_pos[14].Y, Result_str_exit);
     }
-    Jill_obj_draw(&D_801C6D60[20], 5);
-    Jill_obj_draw(&D_801C6D60[5], 5);
-    Jill_obj_draw(&D_801C6D60[7], 5);
-    Jill_obj_draw(&D_801C6D60[8], 5);
-    Jill_obj_draw(&D_801C6D60[9], 5);
-    Jill_obj_draw(&D_801C6D60[10], 5);
-    Jill_obj_draw(&D_801C6D60[11], 5);
-    Jill_obj_draw(&D_801C6D60[12], 2);
+    Jill_obj_draw(&Result_obj[20], 5);
+    Jill_obj_draw(&Result_obj[5], 5);
+    Jill_obj_draw(&Result_obj[7], 5);
+    Jill_obj_draw(&Result_obj[8], 5);
+    Jill_obj_draw(&Result_obj[9], 5);
+    Jill_obj_draw(&Result_obj[10], 5);
+    Jill_obj_draw(&Result_obj[11], 5);
+    Jill_obj_draw(&Result_obj[12], 2);
     if (pWk->Flg & 8) {
-        Jill_obj_draw(&D_801C6D60[21], 2);
-        Jill_obj_draw(&D_801C6D60[22], 2);
-        Jill_obj_draw(&D_801C6D60[23], 2);
-        Jill_obj_draw(&D_801C6D60[24], 2);
+        Jill_obj_draw(&Result_obj[21], 2);
+        Jill_obj_draw(&Result_obj[22], 2);
+        Jill_obj_draw(&Result_obj[23], 2);
+        Jill_obj_draw(&Result_obj[24], 2);
         Print_color(0xFF, 0, 0x4105);
-        return Print14_l(D_801C69E0[12].X, D_801C69E0[12].Y, D_801C2060, Gr.Money);
+        return Print14_l(Result_merc_menu_pos[12].X, Result_merc_menu_pos[12].Y, Result_str_money, Gr.Money);
     }
 }
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2054);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_grade);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2058);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_no_money);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2060);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_money);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C2068);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_buy);
 
-INCLUDE_RODATA("asm/nonmatchings/ovl/result", D_801C206C);
+INCLUDE_RODATA("asm/nonmatchings/ovl/result", Result_str_exit);
 
-/* Mercenaries result: init */
-void func_801C2ABC(RESULT_WORK *pWk)
+/* routine 0: init */
+void Result_merc_menu_init(RESULT_WORK *pWk)
 {
     Task_suspend(0);
     Main.Vloop = 2;
@@ -171,71 +176,71 @@ void func_801C2ABC(RESULT_WORK *pWk)
     pWk->Routine_0 = 1;
     pWk->Cursor = 0;
     pWk->Flg = 0;
-    func_801C3294();
+    Result_merc_bg_load();
     Bg_set_mode(2, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
-    Jill_obj_init(&D_801C6D60[0], &D_801C6A1C[0], 0x01EF0015, 0x808080);
-    Jill_obj_init(&D_801C6D60[1], &D_801C6A1C[1], 0x01EF0015, 0x808080);
-    D_801C6D60[1].pParent = &D_801C6D60[0];
-    Jill_obj_init(&D_801C6D60[2], &D_801C6A1C[5], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[3], &D_801C6A1C[6], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[4], &D_801C6A1C[7], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[5], &D_801C6A1C[8], 0x01F00016, 0x808080);
-    D_801C6D60[5].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[20], &D_801C6A1C[17], 0x01F00016, 0x808080);
-    D_801C6D60[20].pParent = &D_801C6D60[5];
-    D_801C6D60[20].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[6], &D_801C6A1C[9], 0x01F00016, 0x808080);
-    D_801C6D60[6].Flg |= RSPR_PULSE | RSPR_RESET;
-    Jill_obj_init(&D_801C6D60[21], &D_801C6A1C[25], 0x01F10017, 0x808080);
-    D_801C6D60[21].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[22], &D_801C6A1C[26], 0x01F10017, 0x808080);
-    D_801C6D60[22].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[23], &D_801C6A1C[27], 0x01F10017, 0x808080);
-    D_801C6D60[23].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[24], &D_801C6A1C[28], 0x01F10017, 0x808080);
-    D_801C6D60[24].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[7], &D_801C6A1C[10], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[0], &Result_merc_menu_spr[0], 0x01EF0015, 0x808080);
+    Jill_obj_init(&Result_obj[1], &Result_merc_menu_spr[1], 0x01EF0015, 0x808080);
+    Result_obj[1].pParent = &Result_obj[0];
+    Jill_obj_init(&Result_obj[2], &Result_merc_menu_spr[5], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[3], &Result_merc_menu_spr[6], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[4], &Result_merc_menu_spr[7], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[5], &Result_merc_menu_spr[8], 0x01F00016, 0x808080);
+    Result_obj[5].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[20], &Result_merc_menu_spr[17], 0x01F00016, 0x808080);
+    Result_obj[20].pParent = &Result_obj[5];
+    Result_obj[20].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[6], &Result_merc_menu_spr[9], 0x01F00016, 0x808080);
+    Result_obj[6].Flg |= RSPR_PULSE | RSPR_RESET;
+    Jill_obj_init(&Result_obj[21], &Result_merc_menu_spr[25], 0x01F10017, 0x808080);
+    Result_obj[21].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[22], &Result_merc_menu_spr[26], 0x01F10017, 0x808080);
+    Result_obj[22].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[23], &Result_merc_menu_spr[27], 0x01F10017, 0x808080);
+    Result_obj[23].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[24], &Result_merc_menu_spr[28], 0x01F10017, 0x808080);
+    Result_obj[24].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[7], &Result_merc_menu_spr[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
-        Jill_obj_rgb(&D_801C6D60[7], 0x404040);
-        D_801C6D60[21].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[7], 0x404040);
+        Result_obj[21].Flg |= RSPR_ON;
     }
-    D_801C6D60[7].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[8], &D_801C6A1C[11], 0x01F10017, 0x808080);
+    Result_obj[7].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[8], &Result_merc_menu_spr[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
-        Jill_obj_rgb(&D_801C6D60[8], 0x404040);
-        D_801C6D60[22].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[8], 0x404040);
+        Result_obj[22].Flg |= RSPR_ON;
     }
-    D_801C6D60[8].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[9], &D_801C6A1C[12], 0x01F10017, 0x808080);
+    Result_obj[8].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[9], &Result_merc_menu_spr[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
-        Jill_obj_rgb(&D_801C6D60[9], 0x404040);
-        D_801C6D60[23].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[9], 0x404040);
+        Result_obj[23].Flg |= RSPR_ON;
     }
-    D_801C6D60[9].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[10], &D_801C6A1C[13], 0x01F10017, 0x808080);
+    Result_obj[9].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[10], &Result_merc_menu_spr[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
-        Jill_obj_rgb(&D_801C6D60[10], 0x404040);
-        D_801C6D60[24].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[10], 0x404040);
+        Result_obj[24].Flg |= RSPR_ON;
     }
-    D_801C6D60[10].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[11], &D_801C6A1C[14], 0x01F10017, 0x808080);
-    D_801C6D60[11].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[12], &D_801C6A1C[15], 0x01F10017, 0x808080);
-    D_801C6D60[12].Flg = (D_801C6D60[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[13], &D_801C6A1C[19], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[14], &D_801C6A1C[20], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[15], &D_801C6A1C[21], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[16], &D_801C6A1C[22], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[17], &D_801C6A1C[23], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[18], &D_801C6A1C[24], 0x01F00016, 0x808080);
-    D_801C6A1C[18].Y++;
-    Jill_obj_init(&D_801C6D60[19], &D_801C6A1C[18], 0x01F00016, 0x808080);
-    D_801C6D60[19].Flg |= RSPR_BLINK | RSPR_RESET;
+    Result_obj[10].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[11], &Result_merc_menu_spr[14], 0x01F10017, 0x808080);
+    Result_obj[11].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[12], &Result_merc_menu_spr[15], 0x01F10017, 0x808080);
+    Result_obj[12].Flg = (Result_obj[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
+    Jill_obj_init(&Result_obj[13], &Result_merc_menu_spr[19], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[14], &Result_merc_menu_spr[20], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[15], &Result_merc_menu_spr[21], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[16], &Result_merc_menu_spr[22], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[17], &Result_merc_menu_spr[23], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[18], &Result_merc_menu_spr[24], 0x01F00016, 0x808080);
+    Result_merc_menu_spr[18].Y++;
+    Jill_obj_init(&Result_obj[19], &Result_merc_menu_spr[18], 0x01F00016, 0x808080);
+    Result_obj[19].Flg |= RSPR_BLINK | RSPR_RESET;
 }
 
-/* Mercenaries result: BUY / EXIT selection */
-void func_801C2FD0(RESULT_WORK *pWk)
+/* routine 0: BUY / EXIT selection */
+void Result_merc_menu_sel(RESULT_WORK *pWk)
 {
     LONG i;
 
@@ -246,10 +251,10 @@ void func_801C2FD0(RESULT_WORK *pWk)
     case 1:
         if (Gr.Key_rep & 0xA000) {
             pWk->Timer = (pWk->Timer + 1) & 1;
-            D_801C6D60[19].Flg |= RSPR_BLINK | RSPR_RESET;
+            Result_obj[19].Flg |= RSPR_BLINK | RSPR_RESET;
             Snd_se_stad(4, 0, 0, 0);
         }
-        D_801C6D60[19].X = pWk->Timer * 0x74 + 0x4A;
+        Result_obj[19].X = pWk->Timer * 0x74 + 0x4A;
         if (Gr.Key_trg & 0x2000) {
             Snd_se_stad(5, 0, 0, 0);
             pWk->Routine_0 = 2;
@@ -259,27 +264,27 @@ void func_801C2FD0(RESULT_WORK *pWk)
                 pWk->Routine_0 = 2;
             } else {
                 pWk->Routine_1 = 2;
-                D_801C6D60[19].Flg &= ~RSPR_ON;
-                D_801C6D60[5].Flg |= RSPR_ON;
-                D_801C6D60[20].Flg |= RSPR_ON;
+                Result_obj[19].Flg &= ~RSPR_ON;
+                Result_obj[5].Flg |= RSPR_ON;
+                Result_obj[20].Flg |= RSPR_ON;
                 for (i = 6; i != 0; i--) {
-                    D_801C6D60[i + 6].Flg |= RSPR_ON;
+                    Result_obj[i + 6].Flg |= RSPR_ON;
                 }
                 pWk->Flg |= 0x28;
             }
         }
         break;
     case 2:
-        func_801C4188(pWk);
+        Result_shop(pWk);
         if (pWk->Routine_0 == 2) {
             pWk->Routine_0 = 1;
             pWk->Routine_1 = 0;
             pWk->Routine_2 = 0;
-            D_801C6D60[19].Flg |= RSPR_ON;
-            D_801C6D60[5].Flg &= ~RSPR_ON;
-            D_801C6D60[20].Flg &= ~RSPR_ON;
+            Result_obj[19].Flg |= RSPR_ON;
+            Result_obj[5].Flg &= ~RSPR_ON;
+            Result_obj[20].Flg &= ~RSPR_ON;
             for (i = 6; i != 0; i--) {
-                D_801C6D60[i + 6].Flg &= ~RSPR_ON;
+                Result_obj[i + 6].Flg &= ~RSPR_ON;
             }
             pWk->Flg &= ~0x28;
         }
@@ -287,11 +292,12 @@ void func_801C2FD0(RESULT_WORK *pWk)
     }
 }
 
-void func_801C31FC(RESULT_WORK *pWk)
+/* routine 0: exit */
+void Result_merc_menu_exit(RESULT_WORK *pWk)
 {
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C229C(pWk);
+        Result_merc_menu_disp(pWk);
         Task_sleep(1);
     }
     Moji.Mess_flg = 0;
@@ -300,7 +306,8 @@ void func_801C31FC(RESULT_WORK *pWk)
     Task_exit();
 }
 
-void func_801C3294(void)
+/* routine 0: background */
+void Result_merc_bg_load(void)
 {
     Cd_read(0x46, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
@@ -308,18 +315,18 @@ void func_801C3294(void)
     Mapping_tim((ULONG *)0x80100000);
 }
 
-/* routine 1: Mercenaries shop */
-void func_801C32F4(void)
+/* routine 1: result of a successful Mercenaries run: time, grade, score counted into money, then the shop */
+void Result_merc_clear(void)
 {
-    RESULT_WORK *pWk = &D_801C76C0;
+    RESULT_WORK *pWk = &Result_wk;
 
-    D_801C6BB4[pWk->Routine_0](pWk);
-    func_801C3344(pWk);
+    Result_merc_clear_tbl[pWk->Routine_0](pWk);
+    Result_merc_clear_disp(pWk);
 }
 
 /* draws the Mercenaries shop. Returns the last Print14's value: the explicit v0 use places the
    /3600 and /60 mfhi (see NOTES.md). */
-LONG func_801C3344(RESULT_WORK *pWk)
+LONG Result_merc_clear_disp(RESULT_WORK *pWk)
 {
     tagGLOBAL *pG = &G;
     LONG Time = (SHORT)pG->Time;
@@ -327,36 +334,36 @@ LONG func_801C3344(RESULT_WORK *pWk)
     LONG Min;
 
     Print_color(0xFF, 0, 0x102);
-    Jill_obj_draw(&D_801C6D60[0], 7);
-    Jill_obj_draw(&D_801C6D60[1], 7);
-    Jill_obj_draw(&D_801C6D60[2], 7);
-    Jill_obj_draw(&D_801C6D60[3], 7);
-    Jill_obj_draw(&D_801C6D60[4], 7);
-    Jill_obj_draw(&D_801C6D60[5], 7);
-    Jill_obj_draw(&D_801C6D60[6], 7);
-    Jill_obj_draw(&D_801C6D60[7], 7);
-    Jill_obj_draw(&D_801C6D60[8], 7);
-    Jill_obj_draw(&D_801C6D60[9], 7);
-    Jill_obj_draw(&D_801C6D60[10], 7);
-    Jill_obj_draw(&D_801C6D60[11], 7);
-    Jill_obj_draw(&D_801C6D60[12], 6);
-    Jill_obj_draw(&D_801C6D60[13], 7);
-    Jill_obj_draw(&D_801C6D60[14], 7);
-    Jill_obj_draw(&D_801C6D60[15], 7);
-    Jill_obj_draw(&D_801C6D60[16], 7);
-    Jill_obj_draw(&D_801C6D60[21], 2);
-    Jill_obj_draw(&D_801C6D60[22], 2);
-    Jill_obj_draw(&D_801C6D60[23], 2);
-    Jill_obj_draw(&D_801C6D60[24], 2);
+    Jill_obj_draw(&Result_obj[0], 7);
+    Jill_obj_draw(&Result_obj[1], 7);
+    Jill_obj_draw(&Result_obj[2], 7);
+    Jill_obj_draw(&Result_obj[3], 7);
+    Jill_obj_draw(&Result_obj[4], 7);
+    Jill_obj_draw(&Result_obj[5], 7);
+    Jill_obj_draw(&Result_obj[6], 7);
+    Jill_obj_draw(&Result_obj[7], 7);
+    Jill_obj_draw(&Result_obj[8], 7);
+    Jill_obj_draw(&Result_obj[9], 7);
+    Jill_obj_draw(&Result_obj[10], 7);
+    Jill_obj_draw(&Result_obj[11], 7);
+    Jill_obj_draw(&Result_obj[12], 6);
+    Jill_obj_draw(&Result_obj[13], 7);
+    Jill_obj_draw(&Result_obj[14], 7);
+    Jill_obj_draw(&Result_obj[15], 7);
+    Jill_obj_draw(&Result_obj[16], 7);
+    Jill_obj_draw(&Result_obj[21], 2);
+    Jill_obj_draw(&Result_obj[22], 2);
+    Jill_obj_draw(&Result_obj[23], 2);
+    Jill_obj_draw(&Result_obj[24], 2);
     switch (pG->Player.Id) {
     case 8:
-        Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2010);
+        Print14_s(Result_merc_pos[0].X, Result_merc_pos[0].Y, Result_str_carlos);
         break;
     case 10:
-        Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2018);
+        Print14_s(Result_merc_pos[0].X, Result_merc_pos[0].Y, Result_str_nicholai);
         break;
     case 9:
-        Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2024);
+        Print14_s(Result_merc_pos[0].X, Result_merc_pos[0].Y, Result_str_mikhail);
         break;
     }
     if (pWk->Flg & 2) {
@@ -364,21 +371,21 @@ LONG func_801C3344(RESULT_WORK *pWk)
         Time -= Hour * 3600;
         Min = Time / 60;
         Time -= Min * 60;
-        Print14_s(D_801C6BC0[1].X, D_801C6BC0[1].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Time / 10, Time % 10);
+        Print14_s(Result_merc_pos[1].X, Result_merc_pos[1].Y, Result_str_time, Hour / 10, Hour % 10, Min / 10, Min % 10, Time / 10, Time % 10);
     }
     if (pWk->Flg & 0x10) {
-        Print14_s(D_801C6BC0[2].X, D_801C6BC0[2].Y, D_801C2054, D_801C69B4[pWk->Grade]);
+        Print14_s(Result_merc_pos[2].X, Result_merc_pos[2].Y, Result_str_grade, Result_grade_chr[pWk->Grade]);
     }
     if (pWk->Flg & 4) {
         Print_color(0xFF, 0, 0x4102);
-        Print14_s(D_801C6BC0[3].X, D_801C6BC0[3].Y, D_801C2060, Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus);
+        Print14_s(Result_merc_pos[3].X, Result_merc_pos[3].Y, Result_str_money, Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus);
     }
     Print_color(0xFF, 0, 0x4102);
-    return Print14_l(D_801C6BC0[4].X, D_801C6BC0[4].Y, D_801C2060, Gr.Money);
+    return Print14_l(Result_merc_pos[4].X, Result_merc_pos[4].Y, Result_str_money, Gr.Money);
 }
 
-/* Mercenaries shop: init */
-void func_801C3724(RESULT_WORK *pWk)
+/* routine 1: init */
+void Result_merc_clear_init(RESULT_WORK *pWk)
 {
     Task_suspend(0);
     Main.Vloop = 2;
@@ -386,7 +393,7 @@ void func_801C3724(RESULT_WORK *pWk)
     pWk->pBuf = (ULONG *)0x80100000;
     pWk->Routine_0 = 1;
     pWk->Cursor = 0;
-    func_801C4128();
+    Result_merc_clear_bg_load();
     Bg_set_mode(2, 0);
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     Snd_seq_data_set(0, 0x3D, (ULONG *)0x801F7E00);
@@ -395,63 +402,63 @@ void func_801C3724(RESULT_WORK *pWk)
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
-    Jill_obj_init(&D_801C6D60[0], &D_801C6BD4[0], 0x01EF0015, 0x808080);
-    Jill_obj_init(&D_801C6D60[1], &D_801C6BD4[1], 0x01EF0015, 0x808080);
-    D_801C6D60[1].pParent = &D_801C6D60[0];
-    Jill_obj_init(&D_801C6D60[2], &D_801C6BD4[5], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[3], &D_801C6BD4[6], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[4], &D_801C6BD4[7], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[5], &D_801C6BD4[8], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[6], &D_801C6BD4[2], 0x01EF0015, 0x808080);
-    D_801C6D60[6].Flg = (D_801C6D60[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[21], &D_801C6BD4[18], 0x01F10017, 0x808080);
-    D_801C6D60[21].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[22], &D_801C6BD4[19], 0x01F10017, 0x808080);
-    D_801C6D60[22].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[23], &D_801C6BD4[20], 0x01F10017, 0x808080);
-    D_801C6D60[23].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[24], &D_801C6BD4[21], 0x01F10017, 0x808080);
-    D_801C6D60[24].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[7], &D_801C6BD4[10], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[0], &Result_merc_spr[0], 0x01EF0015, 0x808080);
+    Jill_obj_init(&Result_obj[1], &Result_merc_spr[1], 0x01EF0015, 0x808080);
+    Result_obj[1].pParent = &Result_obj[0];
+    Jill_obj_init(&Result_obj[2], &Result_merc_spr[5], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[3], &Result_merc_spr[6], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[4], &Result_merc_spr[7], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[5], &Result_merc_spr[8], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[6], &Result_merc_spr[2], 0x01EF0015, 0x808080);
+    Result_obj[6].Flg = (Result_obj[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
+    Jill_obj_init(&Result_obj[21], &Result_merc_spr[18], 0x01F10017, 0x808080);
+    Result_obj[21].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[22], &Result_merc_spr[19], 0x01F10017, 0x808080);
+    Result_obj[22].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[23], &Result_merc_spr[20], 0x01F10017, 0x808080);
+    Result_obj[23].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[24], &Result_merc_spr[21], 0x01F10017, 0x808080);
+    Result_obj[24].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[7], &Result_merc_spr[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
-        Jill_obj_rgb(&D_801C6D60[7], 0x404040);
-        D_801C6D60[21].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[7], 0x404040);
+        Result_obj[21].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[8], &D_801C6BD4[11], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[8], &Result_merc_spr[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
-        Jill_obj_rgb(&D_801C6D60[8], 0x404040);
-        D_801C6D60[22].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[8], 0x404040);
+        Result_obj[22].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[9], &D_801C6BD4[12], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[9], &Result_merc_spr[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
-        Jill_obj_rgb(&D_801C6D60[9], 0x404040);
-        D_801C6D60[23].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[9], 0x404040);
+        Result_obj[23].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[10], &D_801C6BD4[13], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[10], &Result_merc_spr[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
-        Jill_obj_rgb(&D_801C6D60[10], 0x404040);
-        D_801C6D60[24].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[10], 0x404040);
+        Result_obj[24].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[11], &D_801C6BD4[14], 0x01F10017, 0x808080);
-    Jill_obj_init(&D_801C6D60[12], &D_801C6BD4[15], 0x01F10017, 0x808080);
-    D_801C6D60[12].Flg = (D_801C6D60[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[13], &D_801C6BD4[16], 0x01F00016, 0x808080);
-    D_801C6D60[13].pParent = &D_801C6D60[2];
-    Jill_obj_init(&D_801C6D60[14], &D_801C6BD4[16], 0x01F00016, 0x808080);
-    D_801C6D60[14].pParent = &D_801C6D60[3];
-    Jill_obj_init(&D_801C6D60[15], &D_801C6BD4[16], 0x01F00016, 0x808080);
-    D_801C6D60[15].pParent = &D_801C6D60[4];
-    Jill_obj_init(&D_801C6D60[16], &D_801C6BD4[17], 0x01F00016, 0x808080);
-    D_801C6D60[16].pParent = &D_801C6D60[5];
+    Jill_obj_init(&Result_obj[11], &Result_merc_spr[14], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[12], &Result_merc_spr[15], 0x01F10017, 0x808080);
+    Result_obj[12].Flg = (Result_obj[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
+    Jill_obj_init(&Result_obj[13], &Result_merc_spr[16], 0x01F00016, 0x808080);
+    Result_obj[13].pParent = &Result_obj[2];
+    Jill_obj_init(&Result_obj[14], &Result_merc_spr[16], 0x01F00016, 0x808080);
+    Result_obj[14].pParent = &Result_obj[3];
+    Jill_obj_init(&Result_obj[15], &Result_merc_spr[16], 0x01F00016, 0x808080);
+    Result_obj[15].pParent = &Result_obj[4];
+    Jill_obj_init(&Result_obj[16], &Result_merc_spr[17], 0x01F00016, 0x808080);
+    Result_obj[16].pParent = &Result_obj[5];
     pWk->Bonus = 0;
     if (Flg_ck(G.Unk7868, 0x18)) {
         pWk->Bonus = 100;
     }
-    func_801C678C(pWk);
+    Result_merc_grade_set(pWk);
 }
 
-/* Mercenaries shop: count the money earned, then buy */
-void func_801C3C50(RESULT_WORK *pWk)
+/* routine 1: count the money earned, then the shop */
+void Result_merc_clear_count(RESULT_WORK *pWk)
 {
     LONG Idx;
 
@@ -539,30 +546,30 @@ void func_801C3C50(RESULT_WORK *pWk)
         break;
     case 7:
         pWk->Routine_1 = 8;
-        D_801C6D60[12].Flg |= RSPR_ON;
+        Result_obj[12].Flg |= RSPR_ON;
         Snd_se_stad(0xD, 0, 0, 0);
         Idx = Gr.Pl_id - 8;
         if (Gr.Merc_money[Idx] < Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus) {
-            D_801C6D60[6].Flg |= RSPR_ON;
+            Result_obj[6].Flg |= RSPR_ON;
             Gr.Merc_time[Idx] = (SHORT)Gr.Time;
             Gr.Merc_grade[Idx] = pWk->Grade;
             Gr.Merc_money[Idx] = Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus;
         }
     case 8:
-        func_801C4188(pWk);
+        Result_shop(pWk);
         break;
     }
 }
 
-/* Mercenaries shop: exit */
-void func_801C4070(RESULT_WORK *pWk)
+/* routine 1: exit */
+void Result_merc_clear_exit(RESULT_WORK *pWk)
 {
     Snd_work.Seq[0].Fade_mode = 2;
     Snd_work.Seq[0].Fade_vol = 0x3DAF;
     Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C3344(pWk);
+        Result_merc_clear_disp(pWk);
         Task_sleep(1);
     }
     Moji.Mess_flg = 0;
@@ -571,7 +578,8 @@ void func_801C4070(RESULT_WORK *pWk)
     Task_exit();
 }
 
-void func_801C4128(void)
+/* routine 1: background */
+void Result_merc_clear_bg_load(void)
 {
     Cd_read(0x46, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
@@ -579,12 +587,12 @@ void func_801C4128(void)
     Mapping_tim((ULONG *)0x80100000);
 }
 
-/* Mercenaries shop: item selection and buying */
-void func_801C4188(RESULT_WORK *pWk)
+/* Mercenaries shop: item selection and buying (routines 0..2) */
+void Result_shop(RESULT_WORK *pWk)
 {
     switch (pWk->Routine_2) {
     case 0:
-        Mess_set(0xB90000, 0x3402, (ULONG)&D_801C685C[D_801C69A0[pWk->Cursor + 1]], 0);
+        Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[pWk->Cursor + 1]], 0);
         pWk->Routine_2 = 1;
     case 1:
         if (G.Unk20FC & 0x8000) {
@@ -592,9 +600,9 @@ void func_801C4188(RESULT_WORK *pWk)
                 pWk->Cursor = 4;
             }
             Moji.Mess_flg = 0;
-            Mess_set(0xB90000, 0x3402, (ULONG)&D_801C685C[D_801C69A0[pWk->Cursor + 1]], 0);
-            D_801C6D60[12].X = pWk->Cursor * 0x38 + 0x14;
-            D_801C6D60[12].Flg |= RSPR_BLINK | RSPR_RESET;
+            Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[pWk->Cursor + 1]], 0);
+            Result_obj[12].X = pWk->Cursor * 0x38 + 0x14;
+            Result_obj[12].Flg |= RSPR_BLINK | RSPR_RESET;
             Snd_se_stad(4, 0, 0, 0);
         }
         if (G.Unk20FC & 0x2000) {
@@ -602,9 +610,9 @@ void func_801C4188(RESULT_WORK *pWk)
                 pWk->Cursor = 0;
             }
             Moji.Mess_flg = 0;
-            Mess_set(0xB90000, 0x3402, (ULONG)&D_801C685C[D_801C69A0[pWk->Cursor + 1]], 0);
-            D_801C6D60[12].X = pWk->Cursor * 0x38 + 0x14;
-            D_801C6D60[12].Flg |= RSPR_BLINK | RSPR_RESET;
+            Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[pWk->Cursor + 1]], 0);
+            Result_obj[12].X = pWk->Cursor * 0x38 + 0x14;
+            Result_obj[12].Flg |= RSPR_BLINK | RSPR_RESET;
             Snd_se_stad(4, 0, 0, 0);
         }
         if (Gr.Key_trg & 0x2000) {
@@ -616,18 +624,18 @@ void func_801C4188(RESULT_WORK *pWk)
                 pWk->Routine_0++;
                 Snd_se_stad(6, 0, 0, 0);
                 Moji.Mess_flg = 0;
-            } else if (Flg_ck(Gr.Unk77F8, D_801C6D10[pWk->Cursor])) {
+            } else if (Flg_ck(Gr.Unk77F8, Result_shop_flg[pWk->Cursor])) {
                 Moji.Mess_flg = 0;
-                Mess_set(0xB90000, 0x3402, (ULONG)&D_801C685C[D_801C69A0[7]], 0);
+                Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[7]], 0);
                 Snd_se_stad(7, 0, 0, 0);
-            } else if (Gr.Money < D_801C6D08[pWk->Cursor]) {
+            } else if (Gr.Money < Result_shop_price[pWk->Cursor]) {
                 Moji.Mess_flg = 0;
-                Mess_set(0xB90000, 0x3402, (ULONG)&D_801C685C[D_801C69A0[6]], 0);
+                Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[6]], 0);
                 Snd_se_stad(7, 0, 0, 0);
             } else {
                 pWk->Routine_2 = 2;
                 Moji.Mess_flg = 0;
-                Mess_set(0xB90000, 0x3002, (ULONG)&D_801C685C[D_801C69A0[0]], 0);
+                Mess_set(0xB90000, 0x3002, (ULONG)&Result_mess[Result_mess_ofs[0]], 0);
                 Snd_se_stad(6, 0, 0, 0);
             }
         }
@@ -637,11 +645,11 @@ void func_801C4188(RESULT_WORK *pWk)
             switch (Gr.Unk7848) {
             case 0:
                 pWk->Routine_2 = 3;
-                pWk->Count = D_801C6D08[pWk->Cursor];
+                pWk->Count = Result_shop_price[pWk->Cursor];
                 pWk->Timer = 0;
-                Flg_on(Gr.Unk77F8, D_801C6D10[pWk->Cursor]);
-                Jill_obj_rgb(&D_801C6D60[pWk->Cursor + 7], 0x404040);
-                D_801C6D60[pWk->Cursor + 21].Flg |= RSPR_ON;
+                Flg_on(Gr.Unk77F8, Result_shop_flg[pWk->Cursor]);
+                Jill_obj_rgb(&Result_obj[pWk->Cursor + 7], 0x404040);
+                Result_obj[pWk->Cursor + 21].Flg |= RSPR_ON;
                 Snd_se_stad(0xB, 0, 0, 0);
                 break;
             case 1:
@@ -677,68 +685,69 @@ void func_801C4188(RESULT_WORK *pWk)
     }
 }
 
-/* routine 2 */
-void func_801C46EC(void)
+/* routine 2: result of a failed Mercenaries run (no time, half the score as money) */
+void Result_merc_fail(void)
 {
-    RESULT_WORK *pWk = &D_801C76C0;
+    RESULT_WORK *pWk = &Result_wk;
 
-    D_801C6D14[pWk->Routine_0](pWk);
-    func_801C473C(pWk);
+    Result_merc_fail_tbl[pWk->Routine_0](pWk);
+    Result_merc_fail_disp(pWk);
 }
 
-void func_801C473C(RESULT_WORK *pWk)
+/* routine 2: draws the result */
+void Result_merc_fail_disp(RESULT_WORK *pWk)
 {
     tagGLOBAL *pG = &G;
 
     Print_color(0xFF, 0, 0x102);
-    Jill_obj_draw(&D_801C6D60[0], 7);
-    Jill_obj_draw(&D_801C6D60[1], 7);
-    Jill_obj_draw(&D_801C6D60[2], 7);
-    Jill_obj_draw(&D_801C6D60[3], 7);
-    Jill_obj_draw(&D_801C6D60[4], 7);
-    Jill_obj_draw(&D_801C6D60[5], 7);
-    Jill_obj_draw(&D_801C6D60[6], 7);
-    Jill_obj_draw(&D_801C6D60[7], 7);
-    Jill_obj_draw(&D_801C6D60[8], 7);
-    Jill_obj_draw(&D_801C6D60[9], 7);
-    Jill_obj_draw(&D_801C6D60[10], 7);
-    Jill_obj_draw(&D_801C6D60[11], 7);
-    Jill_obj_draw(&D_801C6D60[12], 6);
-    Jill_obj_draw(&D_801C6D60[13], 7);
-    Jill_obj_draw(&D_801C6D60[14], 7);
-    Jill_obj_draw(&D_801C6D60[15], 7);
-    Jill_obj_draw(&D_801C6D60[16], 7);
-    Jill_obj_draw(&D_801C6D60[21], 2);
-    Jill_obj_draw(&D_801C6D60[22], 2);
-    Jill_obj_draw(&D_801C6D60[23], 2);
-    Jill_obj_draw(&D_801C6D60[24], 2);
+    Jill_obj_draw(&Result_obj[0], 7);
+    Jill_obj_draw(&Result_obj[1], 7);
+    Jill_obj_draw(&Result_obj[2], 7);
+    Jill_obj_draw(&Result_obj[3], 7);
+    Jill_obj_draw(&Result_obj[4], 7);
+    Jill_obj_draw(&Result_obj[5], 7);
+    Jill_obj_draw(&Result_obj[6], 7);
+    Jill_obj_draw(&Result_obj[7], 7);
+    Jill_obj_draw(&Result_obj[8], 7);
+    Jill_obj_draw(&Result_obj[9], 7);
+    Jill_obj_draw(&Result_obj[10], 7);
+    Jill_obj_draw(&Result_obj[11], 7);
+    Jill_obj_draw(&Result_obj[12], 6);
+    Jill_obj_draw(&Result_obj[13], 7);
+    Jill_obj_draw(&Result_obj[14], 7);
+    Jill_obj_draw(&Result_obj[15], 7);
+    Jill_obj_draw(&Result_obj[16], 7);
+    Jill_obj_draw(&Result_obj[21], 2);
+    Jill_obj_draw(&Result_obj[22], 2);
+    Jill_obj_draw(&Result_obj[23], 2);
+    Jill_obj_draw(&Result_obj[24], 2);
     switch (pG->Player.Id) {
     case 8:
-        Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2010);
+        Print14_s(Result_merc_pos[0].X, Result_merc_pos[0].Y, Result_str_carlos);
         break;
     case 10:
-        Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2018);
+        Print14_s(Result_merc_pos[0].X, Result_merc_pos[0].Y, Result_str_nicholai);
         break;
     case 9:
-        Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2024);
+        Print14_s(Result_merc_pos[0].X, Result_merc_pos[0].Y, Result_str_mikhail);
         break;
     }
     if (pWk->Flg & 2) {
-        Print14_s(D_801C6BC0[1].X, D_801C6BC0[1].Y, D_801C202C);
+        Print14_s(Result_merc_pos[1].X, Result_merc_pos[1].Y, Result_str_no_time);
     }
     if (pWk->Flg & 0x10) {
-        Print14_s(D_801C6BC0[2].X, D_801C6BC0[2].Y, D_801C2054, D_801C69B4[pWk->Grade]);
+        Print14_s(Result_merc_pos[2].X, Result_merc_pos[2].Y, Result_str_grade, Result_grade_chr[pWk->Grade]);
     }
     if (pWk->Flg & 4) {
         Print_color(0xFF, 0, 0x4102);
-        Print14_s(D_801C6BC0[3].X, D_801C6BC0[3].Y, D_801C2060, Gr.Score / 2);
+        Print14_s(Result_merc_pos[3].X, Result_merc_pos[3].Y, Result_str_money, Gr.Score / 2);
     }
     Print_color(0xFF, 0, 0x4102);
-    Print14_s(D_801C6BC0[4].X, D_801C6BC0[4].Y, D_801C2060, Gr.Money);
+    Print14_s(Result_merc_pos[4].X, Result_merc_pos[4].Y, Result_str_money, Gr.Money);
 }
 
 /* routine 2: init */
-void func_801C49FC(RESULT_WORK *pWk)
+void Result_merc_fail_init(RESULT_WORK *pWk)
 {
     Task_suspend(0);
     Main.Vloop = 2;
@@ -746,7 +755,7 @@ void func_801C49FC(RESULT_WORK *pWk)
     pWk->pBuf = (ULONG *)0x80100000;
     pWk->Routine_0 = 1;
     pWk->Cursor = 0;
-    func_801C5324();
+    Result_merc_fail_bg_load();
     Bg_set_mode(2, 0);
     Cd_read(0x125, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     Snd_seq_data_set(0, 0x3D, (ULONG *)0x801F7E00);
@@ -755,59 +764,59 @@ void func_801C49FC(RESULT_WORK *pWk)
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
-    Jill_obj_init(&D_801C6D60[0], &D_801C6BD4[0], 0x01EF0015, 0x808080);
-    Jill_obj_init(&D_801C6D60[1], &D_801C6BD4[1], 0x01EF0015, 0x808080);
-    D_801C6D60[1].pParent = &D_801C6D60[0];
-    Jill_obj_init(&D_801C6D60[2], &D_801C6BD4[5], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[3], &D_801C6BD4[6], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[4], &D_801C6BD4[7], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[5], &D_801C6BD4[8], 0x01F00016, 0x808080);
-    Jill_obj_init(&D_801C6D60[6], &D_801C6BD4[2], 0x01EF0015, 0x808080);
-    D_801C6D60[6].Flg = (D_801C6D60[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[21], &D_801C6BD4[18], 0x01F10017, 0x808080);
-    D_801C6D60[21].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[22], &D_801C6BD4[19], 0x01F10017, 0x808080);
-    D_801C6D60[22].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[23], &D_801C6BD4[20], 0x01F10017, 0x808080);
-    D_801C6D60[23].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[24], &D_801C6BD4[21], 0x01F10017, 0x808080);
-    D_801C6D60[24].Flg &= ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[7], &D_801C6BD4[10], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[0], &Result_merc_spr[0], 0x01EF0015, 0x808080);
+    Jill_obj_init(&Result_obj[1], &Result_merc_spr[1], 0x01EF0015, 0x808080);
+    Result_obj[1].pParent = &Result_obj[0];
+    Jill_obj_init(&Result_obj[2], &Result_merc_spr[5], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[3], &Result_merc_spr[6], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[4], &Result_merc_spr[7], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[5], &Result_merc_spr[8], 0x01F00016, 0x808080);
+    Jill_obj_init(&Result_obj[6], &Result_merc_spr[2], 0x01EF0015, 0x808080);
+    Result_obj[6].Flg = (Result_obj[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
+    Jill_obj_init(&Result_obj[21], &Result_merc_spr[18], 0x01F10017, 0x808080);
+    Result_obj[21].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[22], &Result_merc_spr[19], 0x01F10017, 0x808080);
+    Result_obj[22].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[23], &Result_merc_spr[20], 0x01F10017, 0x808080);
+    Result_obj[23].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[24], &Result_merc_spr[21], 0x01F10017, 0x808080);
+    Result_obj[24].Flg &= ~RSPR_ON;
+    Jill_obj_init(&Result_obj[7], &Result_merc_spr[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
-        Jill_obj_rgb(&D_801C6D60[7], 0x404040);
-        D_801C6D60[21].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[7], 0x404040);
+        Result_obj[21].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[8], &D_801C6BD4[11], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[8], &Result_merc_spr[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
-        Jill_obj_rgb(&D_801C6D60[8], 0x404040);
-        D_801C6D60[22].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[8], 0x404040);
+        Result_obj[22].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[9], &D_801C6BD4[12], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[9], &Result_merc_spr[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
-        Jill_obj_rgb(&D_801C6D60[9], 0x404040);
-        D_801C6D60[23].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[9], 0x404040);
+        Result_obj[23].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[10], &D_801C6BD4[13], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[10], &Result_merc_spr[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
-        Jill_obj_rgb(&D_801C6D60[10], 0x404040);
-        D_801C6D60[24].Flg |= RSPR_ON;
+        Jill_obj_rgb(&Result_obj[10], 0x404040);
+        Result_obj[24].Flg |= RSPR_ON;
     }
-    Jill_obj_init(&D_801C6D60[11], &D_801C6BD4[14], 0x01F10017, 0x808080);
-    Jill_obj_init(&D_801C6D60[12], &D_801C6BD4[15], 0x01F10017, 0x808080);
-    D_801C6D60[12].Flg = (D_801C6D60[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
-    Jill_obj_init(&D_801C6D60[13], &D_801C6BD4[16], 0x01F00016, 0x808080);
-    D_801C6D60[13].pParent = &D_801C6D60[2];
-    Jill_obj_init(&D_801C6D60[14], &D_801C6BD4[16], 0x01F00016, 0x808080);
-    D_801C6D60[14].pParent = &D_801C6D60[3];
-    Jill_obj_init(&D_801C6D60[15], &D_801C6BD4[16], 0x01F00016, 0x808080);
-    D_801C6D60[15].pParent = &D_801C6D60[4];
-    Jill_obj_init(&D_801C6D60[16], &D_801C6BD4[17], 0x01F00016, 0x808080);
-    D_801C6D60[16].pParent = &D_801C6D60[5];
-    func_801C678C(pWk);
+    Jill_obj_init(&Result_obj[11], &Result_merc_spr[14], 0x01F10017, 0x808080);
+    Jill_obj_init(&Result_obj[12], &Result_merc_spr[15], 0x01F10017, 0x808080);
+    Result_obj[12].Flg = (Result_obj[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
+    Jill_obj_init(&Result_obj[13], &Result_merc_spr[16], 0x01F00016, 0x808080);
+    Result_obj[13].pParent = &Result_obj[2];
+    Jill_obj_init(&Result_obj[14], &Result_merc_spr[16], 0x01F00016, 0x808080);
+    Result_obj[14].pParent = &Result_obj[3];
+    Jill_obj_init(&Result_obj[15], &Result_merc_spr[16], 0x01F00016, 0x808080);
+    Result_obj[15].pParent = &Result_obj[4];
+    Jill_obj_init(&Result_obj[16], &Result_merc_spr[17], 0x01F00016, 0x808080);
+    Result_obj[16].pParent = &Result_obj[5];
+    Result_merc_grade_set(pWk);
 }
 
-/* routine 2: count the money earned, then buy */
-void func_801C4F0C(RESULT_WORK *pWk)
+/* routine 2: count the money earned, then the shop */
+void Result_merc_fail_count(RESULT_WORK *pWk)
 {
     switch (pWk->Routine_1) {
     case 0:
@@ -892,23 +901,23 @@ void func_801C4F0C(RESULT_WORK *pWk)
         break;
     case 7:
         pWk->Routine_1 = 8;
-        D_801C6D60[12].Flg |= RSPR_ON;
+        Result_obj[12].Flg |= RSPR_ON;
         Snd_se_stad(0xD, 0, 0, 0);
     case 8:
-        func_801C4188(pWk);
+        Result_shop(pWk);
         break;
     }
 }
 
 /* routine 2: exit */
-void func_801C526C(RESULT_WORK *pWk)
+void Result_merc_fail_exit(RESULT_WORK *pWk)
 {
     Snd_work.Seq[0].Fade_mode = 2;
     Snd_work.Seq[0].Fade_vol = 0x3DAF;
     Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C473C(pWk);
+        Result_merc_fail_disp(pWk);
         Task_sleep(1);
     }
     Moji.Mess_flg = 0;
@@ -917,7 +926,8 @@ void func_801C526C(RESULT_WORK *pWk)
     Task_exit();
 }
 
-void func_801C5324(void)
+/* routine 2: background */
+void Result_merc_fail_bg_load(void)
 {
     Cd_read(0x46, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
@@ -926,17 +936,17 @@ void func_801C5324(void)
 }
 
 /* routine 3: main game result */
-void func_801C5384(void)
+void Result_main(void)
 {
-    RESULT_WORK *pWk = &D_801C76C0;
+    RESULT_WORK *pWk = &Result_wk;
 
-    D_801C6D20[pWk->Routine_0](pWk);
-    func_801C53D4(pWk);
+    Result_main_tbl[pWk->Routine_0](pWk);
+    Result_disp(pWk);
 }
 
 /* draws the main game result: time, saves and grade. Returns the last Print14's value (only one path
    returns): that explicit v0 use is what puts the /10 mfhi in t2 (see NOTES.md). */
-LONG func_801C53D4(RESULT_WORK *pWk)
+LONG Result_disp(RESULT_WORK *pWk)
 {
     LONG Time;
     LONG Hour;
@@ -956,23 +966,23 @@ LONG func_801C53D4(RESULT_WORK *pWk)
         Sec = 59;
     }
     Print_color(0xFF, 0, 0x102);
-    Print14_s(D_801C6D2C[1].X, D_801C6D2C[1].Y, "Time");
-    Print14_s(D_801C6D2C[2].X, D_801C6D2C[2].Y, D_801C2038, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
+    Print14_s(Result_main_pos[1].X, Result_main_pos[1].Y, "Time");
+    Print14_s(Result_main_pos[2].X, Result_main_pos[2].Y, Result_str_time, Hour / 10, Hour % 10, Min / 10, Min % 10, Sec / 10, Sec % 10);
     if (pWk->Saves == 1) {
-        Print14_s(D_801C6D2C[3].X, D_801C6D2C[3].Y, "Number of Save");
-        Print14_s(D_801C6D2C[4].X, D_801C6D2C[4].Y, "%1d%1d", (UCHAR)(pWk->Saves / 10), (UCHAR)(pWk->Saves % 10));
+        Print14_s(Result_main_pos[3].X, Result_main_pos[3].Y, "Number of Save");
+        Print14_s(Result_main_pos[4].X, Result_main_pos[4].Y, "%1d%1d", (UCHAR)(pWk->Saves / 10), (UCHAR)(pWk->Saves % 10));
     } else {
-        Print14_s(D_801C6D2C[3].X, D_801C6D2C[3].Y, "Number of Saves");
-        Print14_s(D_801C6D2C[4].X, D_801C6D2C[4].Y, "%1d%1d", (UCHAR)(pWk->Saves / 10), (UCHAR)(pWk->Saves % 10));
+        Print14_s(Result_main_pos[3].X, Result_main_pos[3].Y, "Number of Saves");
+        Print14_s(Result_main_pos[4].X, Result_main_pos[4].Y, "%1d%1d", (UCHAR)(pWk->Saves / 10), (UCHAR)(pWk->Saves % 10));
     }
     if (!(G.System_flg & 0x100)) {
-        Print14_s(D_801C6D2C[5].X, D_801C6D2C[5].Y, "Grade");
-        return Print14_l(D_801C6D2C[6].X, D_801C6D2C[6].Y, D_801C2054, D_801C69B4[pWk->Grade]);
+        Print14_s(Result_main_pos[5].X, Result_main_pos[5].Y, "Grade");
+        return Print14_l(Result_main_pos[6].X, Result_main_pos[6].Y, Result_str_grade, Result_grade_chr[pWk->Grade]);
     }
 }
 
 /* routine 3: init */
-void func_801C567C(RESULT_WORK *pWk)
+void Result_init(RESULT_WORK *pWk)
 {
     Task_suspend(0);
     Main.Vloop = 2;
@@ -982,15 +992,15 @@ void func_801C567C(RESULT_WORK *pWk)
     Cd_read(0x129, (ULONG *)0x801F2600, 0, "RESULT BGM");
     Snd_seq_data_set(1, 0x2A, (ULONG *)0x801F2600);
     Snd_bank_set(6, Cd_read_s(0x12A, 2, (ULONG *)0x80180000, 6, "RESULT VB"), 0);
-    func_801C5854();
+    Result_bg_load();
     Bg_set_mode(2, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Saves = G.Save_cnt;
-    func_801C650C(pWk);
+    Result_grade_set(pWk);
 }
 
 /* routine 3: wait for a button */
-void func_801C577C(RESULT_WORK *pWk)
+void Result_wait(RESULT_WORK *pWk)
 {
     if (G.Key_trg & 0x3000) {
         pWk->Routine_0 = 2;
@@ -1001,11 +1011,11 @@ void func_801C577C(RESULT_WORK *pWk)
 }
 
 /* routine 3: exit */
-void func_801C57BC(RESULT_WORK *pWk)
+void Result_exit(RESULT_WORK *pWk)
 {
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C53D4(pWk);
+        Result_disp(pWk);
         Task_sleep(1);
     }
     Moji.Mess_flg = 0;
@@ -1014,7 +1024,8 @@ void func_801C57BC(RESULT_WORK *pWk)
     Task_exit();
 }
 
-void func_801C5854(void)
+/* routine 3: background (0x50, or 0x4C when G.Unk7868 bit 0x58 is set) */
+void Result_bg_load(void)
 {
     Cd_read(!Flg_ck(Gr.Unk7868, 0x58) ? 0x50 : 0x4C, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
@@ -1022,39 +1033,40 @@ void func_801C5854(void)
     Mapping_tim((ULONG *)0x80100000);
 }
 
-/* routine 4 */
-void func_801C58CC(void)
+/* routine 4: one message, sets G.Unk77F8 bit 5 */
+void Result_bonus(void)
 {
-    RESULT_WORK *pWk = &D_801C76C0;
+    RESULT_WORK *pWk = &Result_wk;
 
-    D_801C6D48[pWk->Routine_0](pWk);
-    func_801C591C(pWk);
+    Result_bonus_tbl[pWk->Routine_0](pWk);
+    Result_bonus_disp(pWk);
 }
 
-void func_801C591C(RESULT_WORK *pWk)
+/* routine 4: draws the message */
+void Result_bonus_disp(RESULT_WORK *pWk)
 {
     Print_color(0xFF, 0, 0x102);
 }
 
 /* routine 4: init */
-void func_801C5944(RESULT_WORK *pWk)
+void Result_bonus_init(RESULT_WORK *pWk)
 {
     Task_suspend(0);
     Main.Vloop = 2;
     Main.Unk191 = 1;
     pWk->pBuf = (ULONG *)0x80100000;
     pWk->Routine_0 = 1;
-    func_801C5AF4();
+    Result_bonus_bg_load();
     Bg_set_mode(2, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     Snd_se_stad(0x600, 0, 0, 0);
     Flg_on(G.Unk77F8, 5);
     Moji.Mess_flg = 0;
-    Mess_set(0xB90000, 0x3402, (ULONG)&D_801C685C[D_801C69A0[8]], 0);
+    Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[8]], 0);
 }
 
 /* routine 4: wait for a button */
-void func_801C5A1C(RESULT_WORK *pWk)
+void Result_bonus_wait(RESULT_WORK *pWk)
 {
     if (G.Key_trg & 0x3000) {
         pWk->Routine_0 = 2;
@@ -1065,11 +1077,11 @@ void func_801C5A1C(RESULT_WORK *pWk)
 }
 
 /* routine 4: exit */
-void func_801C5A5C(RESULT_WORK *pWk)
+void Result_bonus_exit(RESULT_WORK *pWk)
 {
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C591C(pWk);
+        Result_bonus_disp(pWk);
         Task_sleep(1);
     }
     Moji.Mess_flg = 0;
@@ -1078,7 +1090,8 @@ void func_801C5A5C(RESULT_WORK *pWk)
     Task_exit();
 }
 
-void func_801C5AF4(void)
+/* routine 4: background */
+void Result_bonus_bg_load(void)
 {
     Cd_read(0x4E, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
@@ -1086,29 +1099,30 @@ void func_801C5AF4(void)
     Mapping_tim((ULONG *)0x80100000);
 }
 
-/* routine 5 */
-void func_801C5B54(void)
+/* routine 5: epilogue */
+void Result_epilogue(void)
 {
-    RESULT_WORK *pWk = &D_801C76C0;
+    RESULT_WORK *pWk = &Result_wk;
 
-    D_801C6D54[pWk->Routine_0](pWk);
-    func_801C5BA4(pWk);
+    Result_epilogue_tbl[pWk->Routine_0](pWk);
+    Result_epilogue_disp(pWk);
 }
 
-void func_801C5BA4(RESULT_WORK *pWk)
+/* routine 5: draws the epilogue */
+void Result_epilogue_disp(RESULT_WORK *pWk)
 {
     Print_color(0xFF, 0, 0x102);
 }
 
 /* routine 5: init (epilogue) */
-void func_801C5BCC(RESULT_WORK *pWk)
+void Result_epilogue_init(RESULT_WORK *pWk)
 {
     Task_suspend(0);
     Main.Vloop = 2;
     Main.Unk191 = 1;
     pWk->pBuf = (ULONG *)0x80100000;
     pWk->Routine_0 = 1;
-    func_801C6114();
+    Result_epilogue_bg_load();
     Cd_read(0x11F, (ULONG *)0x801F7E00, 0, "RESULT BGM");
     Snd_seq_data_set(0, 0x33, (ULONG *)0x801F7E00);
     Snd_bank_set(5, Cd_read_s(0x120, 2, (ULONG *)0x80180000, 5, "RESULT VB"), 0);
@@ -1119,7 +1133,7 @@ void func_801C5BCC(RESULT_WORK *pWk)
 }
 
 /* routine 5: "EPILOGUE" title, then the epilogue pictures */
-void func_801C5CD8(RESULT_WORK *pWk)
+void Result_epilogue_main(RESULT_WORK *pWk)
 {
     switch (pWk->Routine_1) {
     case 0:
@@ -1176,7 +1190,7 @@ void func_801C5CD8(RESULT_WORK *pWk)
             Task_sleep(1);
         }
         pWk->Routine_1 = 6;
-        func_801C2154((ULONG *)0x8019C000, 8);
+        Result_ombg_load((ULONG *)0x8019C000, 8);
         break;
     case 6:
         Fade_set(0, 1, 2, 2, 0xFFFFFF, 0, 0x3C);
@@ -1196,14 +1210,14 @@ void func_801C5CD8(RESULT_WORK *pWk)
 }
 
 /* routine 5: exit */
-void func_801C605C(RESULT_WORK *pWk)
+void Result_epilogue_exit(RESULT_WORK *pWk)
 {
     Snd_work.Seq[0].Fade_mode = 2;
     Snd_work.Seq[0].Fade_vol = 0x3DAF;
     Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C591C(pWk);
+        Result_bonus_disp(pWk);
         Task_sleep(1);
     }
     Moji.Mess_flg = 0;
@@ -1212,9 +1226,10 @@ void func_801C605C(RESULT_WORK *pWk)
     Task_exit();
 }
 
-void func_801C6114(void)
+/* routine 5: background */
+void Result_epilogue_bg_load(void)
 {
-    func_801C2154((ULONG *)0x8019C000, G.Unk7806);
+    Result_ombg_load((ULONG *)0x8019C000, G.Unk7806);
 }
 
 /* sets up a sprite object; Tp_clut: clut row << 16 | texture page */
@@ -1318,6 +1333,7 @@ void Jill_obj_draw(RESULT_SPR *pSpr, ULONG Pri)
     AddPrim(&G.Ot0[G.Cbuf_id][Pri], pDm);
 }
 
+/* sets the colour of a sprite object */
 void Jill_obj_rgb(RESULT_SPR *pSpr, ULONG Rgb)
 {
     pSpr->Sprt[0].W.Rgbc = (pSpr->Sprt[0].W.Rgbc & 0xFF000000) | Rgb;
@@ -1325,7 +1341,7 @@ void Jill_obj_rgb(RESULT_SPR *pSpr, ULONG Rgb)
 }
 
 /* main game grade from the number of saves, the play time and Unk7E94 */
-void func_801C650C(RESULT_WORK *pWk)
+void Result_grade_set(RESULT_WORK *pWk)
 {
     ULONG Time_pt;
     ULONG Unk_pt;
@@ -1453,7 +1469,7 @@ void func_801C650C(RESULT_WORK *pWk)
 }
 
 /* Mercenaries grade from the time left */
-void func_801C678C(RESULT_WORK *pWk)
+void Result_merc_grade_set(RESULT_WORK *pWk)
 {
     ULONG Score = Gr.Score;
 
