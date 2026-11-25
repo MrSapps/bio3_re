@@ -310,8 +310,70 @@ void Skin_light0(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
     } while (*pData != 0xFF);
 }
 
-/* lit colours of the second skin list */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light1);
+/* lit colours of the second skin list: like Skin_light0 (no ldrgb), the ncct colours are averaged into pRgb
+   (vertices whose list byte is 0xFF skip the blend for the 2nd/3rd vertex) */
+void Skin_light1(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
+{
+    MATRIX M;
+    ULONG Rgb[3];
+    ENEMY_WORK *pEm;
+    SVECTOR *pNor;
+    PARTS_W *pParts;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    ULONG *p0;
+    ULONG *p1;
+    ULONG *p2;
+    ULONG Hi;
+
+    pEm = pEnv->pEm;
+    pNor = pEnv->pMdl->pNor;
+    gte_SetRotMatrix(&LIGHTMATRIX);
+    do {
+        pParts = &pEm->pSin_parts_ptr[pData[0]];
+        gte_ldclmv(&pParts->Workm.m[0][0]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][0]);
+        gte_ldclmv(&pParts->Workm.m[0][1]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][1]);
+        gte_ldclmv(&pParts->Workm.m[0][2]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][2]);
+        gte_SetLightMatrix(&M);
+        n = pData[1];
+        pData += 2;
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+    inner:
+        gte_ldv3(&pNor[i0], &pNor[i1], &pNor[i2]);
+        pData += 3;
+        n--;
+        gte_ncct_b();
+        p0 = &pRgb[i0];
+        p1 = &pRgb[i1];
+        p2 = &pRgb[i2];
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_strgb3(&Rgb[0], &Rgb[1], &Rgb[2]);
+        Hi = ((*p0 & 0xFF00) + (Rgb[0] & 0xFF00)) >> 1;
+        *p0 = (Hi & 0xFF00) | (((*p0 & 0xFF00FF) + (Rgb[0] & 0xFF00FF)) >> 1 & 0xFF00FF);
+        if (pData[-2] != 0xFF) {
+            Hi = ((*p1 & 0xFF00) + (Rgb[1] & 0xFF00)) >> 1;
+            *p1 = (Hi & 0xFF00) | (((*p1 & 0xFF00FF) + (Rgb[1] & 0xFF00FF)) >> 1 & 0xFF00FF);
+        }
+        if (pData[-1] != 0xFF) {
+            Hi = ((*p2 & 0xFF00) + (Rgb[2] & 0xFF00)) >> 1;
+            *p2 = (Hi & 0xFF00) | (((*p2 & 0xFF00FF) + (Rgb[2] & 0xFF00FF)) >> 1 & 0xFF00FF);
+        }
+        if (n != 0)
+            goto inner;
+    } while (*pData != 0xFF);
+}
 
 /* lit colours of the third skin list: normals rotated by both parts, blended by weight */
 void Skin_light2(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
