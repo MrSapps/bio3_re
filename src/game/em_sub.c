@@ -116,7 +116,31 @@ LONG Direction_ck(LONG Hontai_x, LONG Hontai_z, LONG Target_x, LONG Target_z)
     return Dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Goto00);
+/* turn toward (Vec_x, Vec_z) by at most Add_dir (a negative Add_dir turns away) */
+void Goto00(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
+{
+    ULONG Ang_err;
+    USHORT Turn;
+    ULONG Tgt;
+    LONG Sign;
+
+    Turn = Add_dir;
+    Tgt = Direction_ck((SHORT)pEm->Pos_x, (SHORT)pEm->Pos_z, (SHORT)Vec_x, (SHORT)Vec_z);
+    Sign = (SHORT)Add_dir;
+    if (Sign & 0x8000) {
+        Turn = -Sign;
+        Tgt = (Tgt + 0x800) & 0xFFF;
+    }
+    Ang_err = (USHORT)(Turn + (Tgt - pEm->Cdir_y)) & 0xFFF;
+    if ((LONG)Ang_err < (SHORT)Turn * 2) {
+        pEm->Cdir_y = Tgt;
+        return;
+    }
+    pEm->Cdir_y -= Turn;
+    if (Ang_err < 0x801) {
+        pEm->Cdir_y += Turn + Turn;
+    }
+}
 
 /* turn needed to face (Vec_x, Vec_z): 0 when within Add_dir, else +-Add_dir */
 LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
@@ -133,7 +157,31 @@ LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
     return -(SHORT)Add_dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Goto01);
+/* turn toward direction Dir by at most Add_dir (a negative Add_dir turns away) */
+void Goto01(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir)
+{
+    ULONG Ang_err;
+    USHORT Turn;
+    USHORT Tgt;
+    LONG Sign;
+
+    Turn = Add_dir;
+    Sign = (SHORT)Add_dir;
+    Tgt = Dir;
+    if (Sign & 0x8000) {
+        Turn = -Sign;
+        Tgt = (Dir + 0x800) & 0xFFF;
+    }
+    Ang_err = (USHORT)(Turn + (Tgt - pEm->Cdir_y)) & 0xFFF;
+    if ((LONG)Ang_err < (SHORT)Turn * 2) {
+        pEm->Cdir_y = Tgt;
+        return;
+    }
+    pEm->Cdir_y -= Turn;
+    if (Ang_err < 0x801) {
+        pEm->Cdir_y += Turn + Turn;
+    }
+}
 
 /* turn needed to face direction Dir: 0 when within Add_dir, else +-Add_dir */
 LONG Goto01_ck(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir)
