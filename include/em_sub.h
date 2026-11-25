@@ -23,7 +23,7 @@ typedef struct tagESP_DATA {
 typedef struct tagKAN_HEAD {
     USHORT dummy00;                    /* 0x0 */
     USHORT Bone_ofs;                   /* 0x2 */
-    ULONG Rec_sz;                      /* 0x4 record size in words << 18 */
+    ULONG Rec_sz;                      /* 0x4 low half: parts count; bits 18..: record size in words */
 } KAN_HEAD;
 
 extern MATRIX GsIDMATRIX;              /* 0x80098970 */

@@ -341,7 +341,7 @@ void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
     pP->Pos_step_y = ((pF->Pos_y * pEm->Mot_scale_y) >> 12) - pP->Pos_base_y;
     pP->Pos_step_x = pF->Pos_x - pP->Pos_base_x;
     pP->Pos_step_z = pF->Pos_z - pP->Pos_base_z;
-    Parts_cnt = *(USHORT *)&((KAN_HEAD *)pKan)->Rec_sz;
+    Parts_cnt = (USHORT)((KAN_HEAD *)pKan)->Rec_sz;
     pFrame = pF->Rot;
     n = Parts_cnt;
 loop:
