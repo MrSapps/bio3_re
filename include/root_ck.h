@@ -18,8 +18,8 @@ extern USHORT **D_800CC86C;
 LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode);
 LONG Rnd_area(void);
 LONG Guide_check(SHORT X, SHORT Z, UCHAR Floor);
-ULONG func_80049F80(SHORT *pA, SHORT *pB);
+ULONG Line_cross_ck(SHORT *pA, SHORT *pB);
 void kara_rootck2(ENEMY_WORK *pEm, USHORT *pBlock, ROOT_REQ *pReq, LONG *pPos);
-void func_8004A7F4(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut);
+void Root_step(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut);
 
 #endif /* ROOT_CK_H */

@@ -130,7 +130,7 @@ LONG Guide_check(SHORT X, SHORT Z, UCHAR Floor)
 }
 
 /* do segments pA and pB ({x0, y0, x1, y1}) intersect? (1 = yes) */
-ULONG func_80049F80(SHORT *pA, SHORT *pB)
+ULONG Line_cross_ck(SHORT *pA, SHORT *pB)
 {
     LONG dx1, dy2, dy1, dx2;
     LONG Den, dy, dx, S, T;
@@ -158,7 +158,7 @@ ULONG func_80049F80(SHORT *pA, SHORT *pB)
 INCLUDE_ASM("asm/nonmatchings/game/root_ck", kara_rootck2);
 
 /* step of Spd towards pT from pPos: pOut gets the normalised direction (z into vx, x into vz) * Spd */
-void func_8004A7F4(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut)
+void Root_step(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut)
 {
     LONG dx;
     LONG dz;

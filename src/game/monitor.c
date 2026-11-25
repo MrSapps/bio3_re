@@ -63,16 +63,16 @@ ULONG Task_lexecute_(ULONG Level, ULONG Task_no)
 {
     ULONG Size;
 
-    Size = Cd_read(D_8009C944[Task_no].File_no, *D_8009C944[Task_no].Ld_adr, 0, "execute");
-    Task_execute(Level, D_8009C944[Task_no].Func);
+    Size = Cd_read(Task_ovl_tbl[Task_no].File_no, *Task_ovl_tbl[Task_no].Ld_adr, 0, "execute");
+    Task_execute(Level, Task_ovl_tbl[Task_no].Func);
     return Size;
 }
 
 /* RE2 Task_lchain: loads task file Task_no and chains the current task to it */
 void Task_lchain_(ULONG Task_no)
 {
-    Cd_read(D_8009C944[Task_no].File_no, *D_8009C944[Task_no].Ld_adr, 0, "chain");
-    Task_chain(D_8009C944[Task_no].Func);
+    Cd_read(Task_ovl_tbl[Task_no].File_no, *Task_ovl_tbl[Task_no].Ld_adr, 0, "chain");
+    Task_chain(Task_ovl_tbl[Task_no].Func);
 }
 
 /* RE2 Task_execute: starts pFuncall as task Level */
