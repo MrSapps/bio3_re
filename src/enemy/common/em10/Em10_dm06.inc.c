@@ -9,7 +9,7 @@ void Em10_dm06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = ((Rnd_l() & 7) << 8) + 0x30007;
+        EM_SET_MOVE(pEm, 7, Rnd_l() & 7, 3);
         pEm->Routine_2 = 1;
         Mode = 0;
         if (pEm->Unk132 & 0x200)

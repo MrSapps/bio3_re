@@ -27,7 +27,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         func_8002646C_(pEm, 200, 20, pEm->Col.Unk39);
-        EM_MOVE(pEm) = Mot[pEm->Routine_1] + 0x30000;
+        EM_SET_MOVE(pEm, Mot[pEm->Routine_1], 0, 3);
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0x800;
         pEm->UnkE2 = 0;
@@ -49,7 +49,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x400);
         break;
     case 2:
-        EM_MOVE(pEm) = Mot[pEm->Routine_1] + 1;
+        EM_SET_MOVE(pEm, Mot[pEm->Routine_1] + 1, 0, 0);
         pEm->Routine_2 = 3;
     case 3:
         if (pEm->Move_cnt == 15) {
@@ -67,7 +67,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move2(pEm, pKan, pSeq, 0x800);
         break;
     case 4:
-        EM_MOVE(pEm) = Mot[pEm->Routine_1] + 0x70002;
+        EM_SET_MOVE(pEm, Mot[pEm->Routine_1] + 2, 0, 7);
         pEm->Routine_2 = 5;
         if (pEm->UnkE2) {
             pP = pEm->pSin_parts_ptr;

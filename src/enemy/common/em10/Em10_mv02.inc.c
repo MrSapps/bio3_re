@@ -9,7 +9,7 @@ void Em10_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = EM10_W(pEm)->Unk27 + 0x1F0000;
+        EM_SET_MOVE(pEm, EM10_W(pEm)->Unk27, 0, 0x1F);
         pEm->Timer0 = (Rnd_l() & 0x7F) + 300;
         if (!EM10_W(pEm)->Unk21) {
             if (!(Rnd_l() & 1))

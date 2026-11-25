@@ -21,13 +21,13 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Flg = pEm->Type & 1;
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Type_mot[Flg][0] + 0xF0000;
+        EM_SET_MOVE(pEm, Type_mot[Flg][0], 0, 0xF);
         pEm->Routine_2 = 1;
         Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x800);
         pPl->pEnemy_ptr = pEm;
         Set_base_pos(pPl, pKan, pSeq, 0);
         func_8002646C_(pEm, 200, 20, pEm->Col.Unk39);
-        EM_RTN(pPl) = (Cdir_ck_l(pEm, pPl) << 8) | 5;
+        EM_SET_RTN(pPl, 5, Cdir_ck_l(pEm, pPl), 0, 0);
         pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
         pPl->pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
         pPl->Damage_cnt |= 0x80;
@@ -51,7 +51,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x100);
         break;
     case 2:
-        EM_MOVE(pEm) = Type_mot[Flg][0] + 1;
+        EM_SET_MOVE(pEm, Type_mot[Flg][0] + 1, 0, 0);
         pEm->Routine_2 = 3;
         pEm->Timer0 = 148;
         if (G.Unk75EA & 1)
@@ -78,12 +78,12 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             if (Life_ck & 2) {
                 EM_SET_RTN(pEm, 1, 6, 0, 0);
-                EM_RTN(&Pl_work) = (Cdir_ck_l(pEm, pPl) << 8) | 6;
+                EM_SET_RTN(&Pl_work, 6, Cdir_ck_l(pEm, pPl), 0, 0);
             }
         }
         break;
     case 4:
-        EM_MOVE(pEm) = Type_mot[Flg][0] + 0x70002;
+        EM_SET_MOVE(pEm, Type_mot[Flg][0] + 2, 0, 7);
         pEm->Routine_2 = 5;
         pEm->Timer0 = 0;
         pEm->UnkE2 = 0;

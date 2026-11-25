@@ -8,7 +8,7 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = EM10_W(pEm)->Walk_no + 0x1F0000;
+        EM_SET_MOVE(pEm, EM10_W(pEm)->Walk_no, 0, 0x1F);
         pEm->UnkDA = (Rnd_l() >> 3) + 100;
         pEm->UnkE2 = (Rnd_l() & 0xF) + 30;
         pEm->UnkE3 = (Rnd_l() & 0xF) << 1;

@@ -8,7 +8,7 @@ void Em10_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Mot[pEm->Routine_1] + 0xF0000;
+        EM_SET_MOVE(pEm, Mot[pEm->Routine_1], 0, 0xF);
         func_8002646C_(pEm, 200, 20, pEm->Col.Unk39);
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0x800;
