@@ -38,7 +38,6 @@ typedef struct tagEM21_FREE {
 } EM21_FREE;
 
 #define EF(p) ((EM21_FREE *)(p)->Unk1CC)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 
 /* keep a coordinate inside +-l (scenario flight paths) */
 #define EM21_LIMIT(v, l) ((v) < -(l) ? -(l) : ((v) > (l) ? (l) : (v)))

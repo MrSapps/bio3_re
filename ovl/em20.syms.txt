@@ -142,3 +142,5 @@ Em20_sce_tbl = 0x80105E6C;
 pl_chi_parts = 0x80105E70;
 mot_tbl = 0x80105E74;
 blood_id_tbl = 0x80105E78;
+Em20_Dmg_freeze = 0x80103F54; // type:func
+Em20_Die_freeze = 0x80104B78; // type:func

@@ -49,7 +49,6 @@ typedef struct tagEM20_FREE {
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 /* RE2 Sca_info: the collision node's Unk2C/Hit_flg pair read as one word */
 #define EM20_SCA_INFO(p) (*(ULONG *)&(p)->Col.Unk2C)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 
 /* RE2 EM20_BLOOD_TBL (RE3 adds a word) */
 typedef struct tagEM20_BLOOD_TBL {
@@ -172,7 +171,7 @@ void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103F54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em20_Dmg_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Dmg_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Dmg_nml2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Dmg_nml2_00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
@@ -190,7 +189,7 @@ void Em20_Die_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Die_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104B78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em20_Die_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Die_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Die_spark00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em20_Die_bang2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

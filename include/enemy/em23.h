@@ -77,7 +77,6 @@ typedef struct tagEM23_FREE {
     }
 #define EM23_WALL_DIR(p) EM23_WALL_DIR_(p, (void)0)
 #define EM23_WALL_DIR_T(p) EM23_WALL_DIR_(p, (p)->Timer0 = 0)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 
 extern USHORT Em23_life[16];
 extern USHORT Em23_life_easy[16];

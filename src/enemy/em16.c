@@ -1518,7 +1518,7 @@ void Em10_mv11(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em10_dm00 */
+/* RE2 Em10_dm00: hit, recoiling on the spot */
 void Em10_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv;
@@ -1644,7 +1644,7 @@ void Em10_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Add_speedXZ(pEm, 0);
 }
 
-/* RE2 Em10_dm01 */
+/* RE2 Em10_dm01: hit, staggering back (may fall over) */
 void Em10_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd[2] = { -225, 0 };

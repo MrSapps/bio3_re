@@ -4,12 +4,14 @@
 #include "root_ck.h"
 #include "snd.h"
 
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
-void Add_speedXZ3(ENEMY_WORK *pEm, LONG muki, LONG a2) __asm__("Add_speedXZ"); /* 3 args here (canonical 2) */
+/* Capcom's EM20.C called these without a prototype in scope: int results, unnarrowed int arguments,
+ * and Add_speedXZ with a third argument. */
+LONG Rnd_l(void) __asm__("Rnd");
+void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C");
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
+void Add_speedXZ3(ENEMY_WORK *pEm, LONG muki, LONG a2) __asm__("Add_speedXZ");
 
-/* RE2 EM_MAIN */
+/* RE2 EM_MAIN: per-frame entry of the dog: timers, routine dispatch, stuck counter, ground check */
 void EM_MAIN(ENEMY_WORK *pEm)
 {
     if (pEm->Damage_cnt & 0x7F)
@@ -27,7 +29,7 @@ void EM_MAIN(ENEMY_WORK *pEm)
         pEm->Be_flg |= 0x80000;
 }
 
-/* RE2 Em20_Init */
+/* RE2 Em20_Init: life, collision, neck limits, effects and the start routine of the Type */
 void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
@@ -150,14 +152,14 @@ void Em20_Esp_set(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em20_Move */
+/* RE2 Em20_Move: move routines by Routine_1 (em20_move_tbl) */
 void Em20_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     em20_move_tbl[pEm->Routine_1](pEm, pKan, pSeq);
     Em_seq_sound(pEm);
 }
 
-/* RE2 Em20_rndwalk */
+/* RE2 Em20_rndwalk: wandering between random route areas; returns 1 when the target is seen */
 LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -215,7 +217,7 @@ LONG Em20_rndwalk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     return ck;
 }
 
-/* RE2 Em20_Move_walk */
+/* RE2 Em20_Move_walk: wander until the player is near (approach) or the alarm is up (run) */
 void Em20_Move_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG ck;
@@ -233,7 +235,7 @@ void Em20_Move_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Ck_Died(pEm);
 }
 
-/* RE2 Em20_Move_yori */
+/* RE2 Em20_Move_yori: close in on the player at a walk, towards a random offset around him */
 void Em20_Move_yori(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
@@ -288,7 +290,7 @@ void Em20_Move_yori(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Ck_Died(pEm);
 }
 
-/* RE2 Em20_Move_run */
+/* RE2 Em20_Move_run: running at the target (move_run_tbl by Routine_2) */
 void Em20_Move_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_run_tbl[pEm->Routine_2](pEm, pKan, pSeq);
@@ -298,7 +300,7 @@ void Em20_Move_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Ck_Died(pEm);
 }
 
-/* RE2 Em20_Mv_run00 */
+/* RE2 Em20_Mv_run00: start running */
 void Em20_Mv_run00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -324,7 +326,7 @@ void Em20_Mv_run00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_run10 */
+/* RE2 Em20_Mv_run10: running at the target, spinning round when stuck, attacking when in range */
 void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -380,7 +382,7 @@ void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_run20 */
+/* RE2 Em20_Mv_run20: slowing down to a halt */
 void Em20_Mv_run20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     USHORT dir;
@@ -448,7 +450,7 @@ void Em20_Mv_run30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Move_atck */
+/* RE2 Em20_Move_atck: jumping at the target (move_atck_tbl by Routine_2) */
 void Em20_Move_atck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_atck_tbl[pEm->Routine_2](pEm, pKan, pSeq);
@@ -520,7 +522,7 @@ void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Jump_set */
+/* RE2 Jump_set: start a jump with the given forward and vertical speed */
 void Jump_set(ENEMY_WORK *pEm, LONG spd_x, LONG spd_y)
 {
     pEm->Spd_x = spd_x;
@@ -531,7 +533,7 @@ void Jump_set(ENEMY_WORK *pEm, LONG spd_x, LONG spd_y)
     EM20_W(pEm)->Blood = 0;
 }
 
-/* RE2 Em20_Mv_atck10 */
+/* RE2 Em20_Mv_atck10: in the air; on a bite the player is shaken (pad vibration) */
 void Em20_Mv_atck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -556,7 +558,7 @@ void Em20_Mv_atck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_jump10 */
+/* RE2 Em20_Mv_jump10: jump flight; returns 1 on a hit, -1 when falling without one */
 LONG Em20_Mv_jump10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG d0;
@@ -571,7 +573,7 @@ LONG Em20_Mv_jump10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     return d0;
 }
 
-/* RE2 Em20_Mv_atck20 */
+/* RE2 Em20_Mv_atck20: landing after a missed jump, then back to running */
 void Em20_Mv_atck20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (Em20_Mv_jump20(pEm, pKan, pSeq)) {
@@ -582,7 +584,7 @@ void Em20_Mv_atck20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_jump20 */
+/* RE2 Em20_Mv_jump20: falling to the ground and the landing motion; returns 1 when done */
 LONG Em20_Mv_jump20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
@@ -605,7 +607,7 @@ LONG Em20_Mv_jump20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     return 0;
 }
 
-/* RE2 Em20_Mv_atck30 */
+/* RE2 Em20_Mv_atck30: bounced off the target, falling back */
 void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -647,13 +649,13 @@ void Em20_Mv_atck30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Move_sleep */
+/* RE2 Em20_Move_sleep: lying asleep (move_sleep_tbl by Routine_2) */
 void Em20_Move_sleep(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_sleep_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Mv_sleep00 */
+/* RE2 Em20_Mv_sleep00: asleep: wake up when the player comes near or the alarm is up */
 void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
@@ -677,7 +679,7 @@ void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x100);
 }
 
-/* RE2 Em20_Mv_sleep10 */
+/* RE2 Em20_Mv_sleep10: waiting Timer0 frames before waking up */
 void Em20_Mv_sleep10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!--pEm->Timer0) {
@@ -687,7 +689,7 @@ void Em20_Mv_sleep10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x100);
 }
 
-/* RE2 Em20_Mv_sleep20 */
+/* RE2 Em20_Mv_sleep20: getting up */
 void Em20_Mv_sleep20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (Joint_move(pEm, pKan, pSeq, 0x100)) {
@@ -696,7 +698,7 @@ void Em20_Mv_sleep20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_sleep30 */
+/* RE2 Em20_Mv_sleep30: standing for a while, then walking */
 void Em20_Mv_sleep30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
@@ -713,7 +715,7 @@ void Em20_Mv_sleep30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_Move_ikaku */
+/* RE2 Em20_Move_ikaku: growling at the player (ikaku: threat), then running */
 void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
@@ -734,7 +736,7 @@ void Em20_Move_ikaku(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, 4, 6);
 }
 
-/* RE2 Em20_Move_back */
+/* RE2 Em20_Move_back: jumping back from the player */
 void Em20_Move_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
@@ -757,7 +759,7 @@ void Em20_Move_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_Move_critical */
+/* RE2 Em20_Move_critical: the finishing bite on a weak player (Em20_Mv_critical00 / Em20_Mv_critical10) */
 void Em20_Move_critical(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
@@ -766,7 +768,7 @@ void Em20_Move_critical(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em20_Mv_critical10(pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Mv_critical00: the bite that kills the player */
+/* RE2 Em20_Mv_critical00: pin the player down (his routine 6) and start the bite */
 void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
@@ -834,7 +836,7 @@ void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, 8, 4);
 }
 
-/* RE2 Em20_Mv_critical10 */
+/* RE2 Em20_Mv_critical10: biting the pinned player */
 void Em20_Mv_critical10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG eos;
@@ -859,7 +861,7 @@ void Em20_Mv_critical10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Move_escape */
+/* RE2 Em20_Move_escape: running away to a random area for a while */
 void Em20_Move_escape(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -888,7 +890,7 @@ void Em20_Move_escape(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Ck_Floor(pEm);
 }
 
-/* RE2 Em20_Move_floorout */
+/* RE2 Em20_Move_floorout: standing still while the player is on another floor */
 void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
@@ -905,7 +907,7 @@ void Em20_Move_floorout(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_Move_walk2 */
+/* RE2 Em20_Move_walk2: wander until the player is near, then run at him */
 void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em20_rndwalk(pEm, pKan, pSeq);
@@ -948,7 +950,7 @@ void Em20_Move_died(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_Move_eat */
+/* RE2 Em20_Move_eat: eating a corpse (Em20_mv_eat00), then standing (Em20_Mv_sleep30) */
 void Em20_Move_eat(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
@@ -957,7 +959,7 @@ void Em20_Move_eat(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em20_Mv_sleep30(pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_mv_eat00 */
+/* RE2 Em20_mv_eat00: eating until the player comes near */
 void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
@@ -1007,7 +1009,7 @@ void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Add_speedXZ(pEm, 0);
 }
 
-/* RE2 Em20_Move_house */
+/* RE2 Em20_Move_house: kept on a spot (house: a dog's place), barking and circling */
 void Em20_Move_house(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
@@ -1017,7 +1019,7 @@ void Em20_Move_house(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_mv_house00 */
+/* RE2 Em20_mv_house00: a few random bark / stand motions */
 void Em20_mv_house00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
@@ -1041,7 +1043,7 @@ void Em20_mv_house00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_mv_house10 */
+/* RE2 Em20_mv_house10: running round in a circle for Timer0 frames */
 void Em20_mv_house10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
@@ -1080,14 +1082,14 @@ void Em20_mv_house10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x100);
 }
 
-/* RE2 Em20_Move_rush */
+/* RE2 Em20_Move_rush: a long leap past the player (move_rush_tbl by Routine_2) */
 void Em20_Move_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_rush_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_Mv_rush00 */
+/* RE2 Em20_Mv_rush00: crouch, then take off */
 void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
@@ -1113,7 +1115,7 @@ void Em20_Mv_rush00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_rush10 */
+/* RE2 Em20_Mv_rush10: in the air (no bite) */
 void Em20_Mv_rush10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_W(pEm)->No_hit = 1;
@@ -1124,7 +1126,7 @@ void Em20_Mv_rush10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_rush20 */
+/* RE2 Em20_Mv_rush20: landing, then back to running */
 void Em20_Mv_rush20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Damage_cnt &= 0x7F;
@@ -1136,14 +1138,14 @@ void Em20_Mv_rush20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Move_bodyatck */
+/* RE2 Em20_Move_bodyatck: leaping body attack (move_bodyatck_tbl by Routine_2) */
 void Em20_Move_bodyatck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_bodyatck_tbl[pEm->Routine_2](pEm, pKan, pSeq);
     Dog_rot_neck(pEm);
 }
 
-/* RE2 Em20_Mv_bodyatck10 */
+/* RE2 Em20_Mv_bodyatck10: in the air; bounces off when it hits a wall or the player */
 void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_W(pEm)->No_hit = 1;
@@ -1162,7 +1164,7 @@ void Em20_Mv_bodyatck10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_bodyatck20 */
+/* RE2 Em20_Mv_bodyatck20: landing after the leap */
 void Em20_Mv_bodyatck20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (Em20_Mv_jump20(pEm, pKan, pSeq)) {
@@ -1172,7 +1174,7 @@ void Em20_Mv_bodyatck20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_bodyatck30 */
+/* RE2 Em20_Mv_bodyatck30: falling back after bouncing off, turning round */
 void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
@@ -1199,13 +1201,13 @@ void Em20_Mv_bodyatck30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Move_jumpin */
+/* RE2 Em20_Move_jumpin: jumping down onto the player's floor (move_jumpin_tbl by Routine_2) */
 void Em20_Move_jumpin(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_jumpin_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Mv_jumpin00 */
+/* RE2 Em20_Mv_jumpin00: crouch, then take off */
 void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!(pEm->Routine_3 & 0xF)) {
@@ -1226,7 +1228,7 @@ void Em20_Mv_jumpin00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Mv_jumpin20 */
+/* RE2 Em20_Mv_jumpin20: landing on the player's floor, then running */
 void Em20_Mv_jumpin20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Pos_y >= pEm->Unk122)
@@ -1252,13 +1254,13 @@ void Em20_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em20_Dmg_combo(pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Dmg_nml */
+/* RE2 Em20_Dmg_nml: normal hit (dmg_nml_tbl by Routine_2) */
 void Em20_Dmg_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     dmg_nml_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Dmg_nml00 */
+/* RE2 Em20_Dmg_nml00: start of a hit: knock-back speed and the reaction motion */
 void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -1292,7 +1294,7 @@ void Em20_Dmg_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, 0, 0);
 }
 
-/* RE2 Em20_Dmg_nml10 */
+/* RE2 Em20_Dmg_nml10: knocked into the air, landing */
 void Em20_Dmg_nml10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -1318,7 +1320,7 @@ void Em20_Dmg_nml10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move(pEm, pKan, pSeq, 0x200);
 }
 
-/* RE2 Em20_Dmg_nml20 */
+/* RE2 Em20_Dmg_nml20: the hit reaction on the ground, then back to running */
 void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl;
@@ -1356,7 +1358,7 @@ void Em20_Dmg_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Dmg_nml30 */
+/* RE2 Em20_Dmg_nml30: getting up after the hit */
 void Em20_Dmg_nml30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
@@ -1371,7 +1373,7 @@ void Em20_Dmg_nml30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Dmg_nml40 */
+/* RE2 Em20_Dmg_nml40: lying stunned (no more hits taken) */
 void Em20_Dmg_nml40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
@@ -1381,7 +1383,7 @@ void Em20_Dmg_nml40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Dmg_combo */
+/* RE2 Em20_Dmg_combo: hit again while still reacting (dmg_combo_tbl by Routine_2) */
 void Em20_Dmg_combo(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     dmg_combo_tbl[pEm->Routine_2](pEm, pKan, pSeq);
@@ -1390,7 +1392,7 @@ void Em20_Dmg_combo(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, Rnd_l() & 0xF, 5);
 }
 
-/* RE2 Em20_Dmg_combo00 */
+/* RE2 Em20_Dmg_combo00: start of the follow-up hit, blood by weapon */
 void Em20_Dmg_combo00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -1425,7 +1427,7 @@ void Em20_Dmg_combo00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->UnkDA = 0;
 }
 
-/* RE2 Em20_Dmg_combo10 */
+/* RE2 Em20_Dmg_combo10: knocked into the air again, in a random direction */
 void Em20_Dmg_combo10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_3) {
@@ -1436,7 +1438,7 @@ void Em20_Dmg_combo10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em20_Dmg_nml10(pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Dmg_combo20 */
+/* RE2 Em20_Dmg_combo20: the follow-up reaction on the ground */
 void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -1459,7 +1461,7 @@ void Em20_Dmg_combo20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Dmg_combo30 */
+/* RE2 Em20_Dmg_combo30: sliding after the follow-up hit */
 void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->UnkE2) {
@@ -1473,7 +1475,7 @@ void Em20_Dmg_combo30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM20_W(pEm)->Combo_flg &= 0xBF;
 }
 
-/* RE2 Em20_Dmg_gnml */
+/* RE2 Em20_Dmg_gnml: shotgun / grenade hit: more blood, then a normal hit */
 void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG i;
@@ -1485,7 +1487,7 @@ void Em20_Dmg_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Dmg_fire */
+/* RE2 Em20_Dmg_fire: hit by fire: set burning, then a normal hit */
 void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
@@ -1506,7 +1508,7 @@ void Em20_Dmg_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Dmg_H2SO4 */
+/* RE2 Em20_Dmg_H2SO4: hit by acid: tints a part, then a normal hit */
 void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG d0;
@@ -1519,8 +1521,8 @@ void Em20_Dmg_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em20_Dmg_nml(pEm, pKan, pSeq);
 }
 
-/* RE3 only: damage kind 5, marks seven parts (UnkA2 0x40) and spins the light colour (Unk178) */
-void func_80103F54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE3 only: damage kind 9 (probably the freeze rounds: sets Status_flg 2 as em10 does for them), tints the body */
+void Em20_Dmg_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
@@ -1577,13 +1579,13 @@ void Em20_Dmg_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Dmg_nml2 */
+/* RE2 Em20_Dmg_nml2: hit that throws it up in the air (dmg_nml2_tbl by Routine_2) */
 void Em20_Dmg_nml2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     dmg_nml2_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Dmg_nml2_00 */
+/* RE2 Em20_Dmg_nml2_00: start of the hit with an upward jump */
 void Em20_Dmg_nml2_00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!(pEm->Unk132 & 0x8000) && !EM20_W(pEm)->Jump_flg) {
@@ -1610,13 +1612,13 @@ void Set_dmghit(ENEMY_WORK *pEm, ULONG Type)
     }
 }
 
-/* RE2 Em20_Die */
+/* RE2 Em20_Die: death routines by damage kind (em20_die_tbl) */
 void Em20_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     em20_die_tbl[pEm->Unk12C - 1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Die_nml */
+/* RE2 Em20_Die_nml: normal death (die_nml_init by damage kind, then die_nml_tbl) */
 void Em20_Die_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
@@ -1625,7 +1627,7 @@ void Em20_Die_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         die_nml_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em20_Die_nml00 */
+/* RE2 Em20_Die_nml00: start of a death: dead flag, death cry, knock-back */
 void Em20_Die_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG tmp;
@@ -1640,7 +1642,7 @@ void Em20_Die_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x = 0;
 }
 
-/* RE2 Em20_Die_nml20 */
+/* RE2 Em20_Die_nml20: falling over, then the corpse (Routine_0 7) */
 void Em20_Die_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!EM20_W(pEm)->Em_next) {
@@ -1656,7 +1658,7 @@ void Em20_Die_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Die_bang */
+/* RE2 Em20_Die_bang: the head blown off by a close shot (die_bang_tbl by Routine_2) */
 void Em20_Die_bang(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     die_bang_tbl[pEm->Routine_2](pEm, pKan, pSeq);
@@ -1666,7 +1668,7 @@ void Em20_Die_bang(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Set_blood(pEm, 2, (Rnd_l() & 1) + 1);
 }
 
-/* RE2 Em20_Die_bang00 */
+/* RE2 Em20_Die_bang00: blow the head off when caught in mid-jump, else a normal death */
 void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -1688,7 +1690,7 @@ void Em20_Die_bang00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Set_head_bomb */
+/* RE2 Set_head_bomb: the head parts fly off (PARTS_W bomb work) */
 void Set_head_bomb(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
@@ -1732,7 +1734,7 @@ void Set_tail_bomb(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em20_Die_bang10 */
+/* RE2 Em20_Die_bang10: the headless body falls to the ground */
 void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM20_FREE *pFp;
@@ -1762,7 +1764,7 @@ void Em20_Die_bang10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Die_gnml */
+/* RE2 Em20_Die_gnml: shotgun / grenade death (die_gnml_tbl by Routine_2) */
 void Em20_Die_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     die_gnml_tbl[pEm->Routine_2](pEm, pKan, pSeq);
@@ -1771,7 +1773,7 @@ void Em20_Die_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, 2, (Rnd_l() & 1) + 1);
 }
 
-/* RE2 Em20_Die_gnml00 */
+/* RE2 Em20_Die_gnml00: start of a shotgun / grenade death, the head bursts */
 void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
@@ -1794,7 +1796,7 @@ void Em20_Die_gnml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM20_W(pEm)->Blood = 0x12;
 }
 
-/* RE2 Em20_Die_fire */
+/* RE2 Em20_Die_fire: burnt to death: blackened body, flames */
 void Em20_Die_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
@@ -1811,7 +1813,7 @@ void Em20_Die_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Die_H2SO4 */
+/* RE2 Em20_Die_H2SO4: killed by acid: tinted body, acid smoke */
 void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
@@ -1829,8 +1831,8 @@ void Em20_Die_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, (Rnd_l() & 7) | 8, 10);
 }
 
-/* RE3 only: death of damage kind 9 (cf. func_80103F54) */
-void func_80104B78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE3 only: death by damage kind 9 (see Em20_Dmg_freeze) */
+void Em20_Die_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
@@ -1852,7 +1854,7 @@ void func_80104B78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_blood(pEm, (Rnd_l() & 7) | 8, 10);
 }
 
-/* RE2 Em20_Die_spark */
+/* RE2 Em20_Die_spark: electrocuted (die_spark_tbl by Routine_2), sparks every other frame */
 void Em20_Die_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     die_spark_tbl[pEm->Routine_2](pEm, pKan, pSeq);
@@ -1862,7 +1864,7 @@ void Em20_Die_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em20_Die_spark00 */
+/* RE2 Em20_Die_spark00: start of the electrocution, purple tint and sparks */
 void Em20_Die_spark00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
@@ -1903,7 +1905,7 @@ void Em20_Die_bang2_00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM20_W(pEm)->Blood = 0x12;
 }
 
-/* RE2 Em20_Scenario */
+/* RE2 Em20_Scenario: scenario-driven routines (Em20_sce_tbl, or the common one for Type & 0x100) */
 void Em20_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100)
@@ -1940,7 +1942,7 @@ void Em20_Col_set(ENEMY_WORK *pEm, LONG n)
     }
 }
 
-/* RE2 Em20_Dead */
+/* RE2 Em20_Dead: the corpse: blood pool */
 void Em20_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_1) {
@@ -2007,7 +2009,7 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Dog_rot_neck */
+/* RE2 Dog_rot_neck: turn both neck parts (2 and 3) to the target */
 void Dog_rot_neck(ENEMY_WORK *pEm)
 {
     pEm->Neck_no = 2;
@@ -2017,7 +2019,7 @@ void Dog_rot_neck(ENEMY_WORK *pEm)
     pEm->Neck_no = 2;
 }
 
-/* RE2 Rate_speed_up */
+/* RE2 Rate_speed_up: raise Spd_x by g up to limit */
 void Rate_speed_up(ENEMY_WORK *pEm, LONG g, LONG limit)
 {
     if (pEm->Spd_x < limit) {
@@ -2027,7 +2029,7 @@ void Rate_speed_up(ENEMY_WORK *pEm, LONG g, LONG limit)
     }
 }
 
-/* RE2 Rate_speed_down */
+/* RE2 Rate_speed_down: lower Spd_x by g down to limit */
 void Rate_speed_down(ENEMY_WORK *pEm, LONG g, LONG limit)
 {
     if (pEm->Spd_x > limit) {
@@ -2037,7 +2039,7 @@ void Rate_speed_down(ENEMY_WORK *pEm, LONG g, LONG limit)
     }
 }
 
-/* RE2 Set_run_motion */
+/* RE2 Set_run_motion: run motion turning left, straight or right by d_tmp */
 void Set_run_motion(ENEMY_WORK *pEm, SHORT d_tmp)
 {
     UCHAR t_tmp;
@@ -2050,7 +2052,7 @@ void Set_run_motion(ENEMY_WORK *pEm, SHORT d_tmp)
     }
 }
 
-/* RE2 Atck_range_ck */
+/* RE2 Atck_range_ck: can the target be attacked from here; < 0: no (and why) */
 LONG Atck_range_ck(ENEMY_WORK *pEm)
 {
     EM20_FREE *pFp;
@@ -2128,7 +2130,7 @@ ULONG hit_ck_main(ENEMY_WORK *pEm, LONG pl)
     return pFp->Hit_type;
 }
 
-/* RE2 Atck_hit_ck */
+/* RE2 Atck_hit_ck: bite hit check against the player (and the sub player); returns the hit type */
 ULONG Atck_hit_ck(ENEMY_WORK *pEm)
 {
     if (EM20_W(pEm)->No_hit)
@@ -2189,7 +2191,7 @@ void Set_blood(ENEMY_WORK *pEm, UCHAR parts, ULONG type)
     }
 }
 
-/* RE2 Em20_Pl_to_dmg */
+/* RE2 Em20_Pl_to_dmg: put the player (pl 0) or sub player (1) into the damage routine from side dir */
 void Em20_Pl_to_dmg(ULONG pl, UCHAR dir)
 {
     ENEMY_WORK *pPl;
@@ -2202,7 +2204,7 @@ void Em20_Pl_to_dmg(ULONG pl, UCHAR dir)
     pPl->Damage_cnt |= 0x80;
 }
 
-/* RE2 Em20_Pl_to_die */
+/* RE2 Em20_Pl_to_die: put the player (pl 0) or sub player (1) into the death routine */
 void Em20_Pl_to_die(ULONG pl)
 {
     ENEMY_WORK *pPl;
@@ -2214,7 +2216,7 @@ void Em20_Pl_to_die(ULONG pl)
     pPl->Routine_3 = 0;
 }
 
-/* RE2 Ck_Floor */
+/* RE2 Ck_Floor: the player is two floors away: stand still (Em20_Move_floorout) */
 void Ck_Floor(ENEMY_WORK *pEm)
 {
     if (__builtin_abs(G.Player.nFloor - pEm->nFloor) >= 2 && !(pEm->Status_flg & 0x2000)) {
@@ -2224,7 +2226,7 @@ void Ck_Floor(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Ck_Died */
+/* RE2 Ck_Died: the scenario killed the pack (G.Unk75EA 0x40): routine 11 */
 void Ck_Died(ENEMY_WORK *pEm)
 {
     if (G.Unk75EA & 0x40) {

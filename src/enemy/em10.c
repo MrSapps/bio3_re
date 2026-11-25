@@ -1623,7 +1623,7 @@ void Em10_mv11(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em10_dm00 (shared with em16 func_801076B8) */
+/* RE2 Em10_dm00: hit, recoiling on the spot */
 void Em10_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv;
