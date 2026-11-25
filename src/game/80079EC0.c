@@ -790,8 +790,104 @@ void Skin_vtx0_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
     }
 }
 
-/* Skin_vtx1 for the alternate routines */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1_alt);
+/* Skin_vtx1 for the alternate routines: the bone matrix is copied (no CompM), the vertices are rotated by the
+   bone, flattened (vy > 0 -> 0), then projected with the world matrix and averaged into pSxy/pSz */
+void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    SVECTOR W[3];
+    struct {
+        SXY Sxy[3];
+        LONG Sz[3];
+    } S; /* one 24-byte block at 0x18 (two 12-byte arrays would each be padded to 16) */
+    MATRIX *pM;
+    MATRIX *pWs;
+    VECTOR *pV;
+    JOINT_OFS *pOfs;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SXY *p0;
+    SXY *p1;
+    SXY *p2;
+
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEnv->pEm->pUnk11C;
+    do {
+        n = *pData;
+        do {
+            *pM = pEnv->pEm->pSin_parts_ptr[n].Workm;
+        } while (0); /* raises the refs of n over p1 (t0/t1) */
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+    loop:
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        pData += 3;
+        n--;
+        gte_rtv0tr();
+        gte_stsv(&W[0]);
+        gte_rtv1tr();
+        gte_stsv(&W[1]);
+        gte_rtv2tr();
+        gte_stsv(&W[2]);
+        if (W[0].vy > 0) {
+            W[0].vy = 0;
+        }
+        if (W[1].vy > 0) {
+            W[1].vy = 0;
+        }
+        if (W[2].vy > 0) {
+            W[2].vy = 0;
+        }
+        gte_ldv3c(W);
+        gte_SetRotMatrix(pWs);
+        gte_SetTransMatrix(pWs);
+        gte_rtpt();
+        p0 = &pSxy[i0];
+        p1 = &pSxy[i1];
+        p2 = &pSxy[i2];
+        gte_stsxy3(&S.Sxy[0], &S.Sxy[1], &S.Sxy[2]);
+        gte_stsz3(&S.Sz[0], &S.Sz[1], &S.Sz[2]);
+        p0->l = ((p0->s.x + S.Sxy[0].s.x) >> 1 & 0xFFFF) | ((p0->s.y + S.Sxy[0].s.y) >> 1) << 16;
+        if (S.Sz[0] > 0x7FFF) {
+            S.Sz[0] = 0x7FFF;
+        }
+        pSz[i0] = (S.Sz[0] + pSz[i0]) >> 1;
+        if (i1 != 0xFF) {
+            p1->l = ((p1->s.x + S.Sxy[1].s.x) >> 1 & 0xFFFF) | ((p1->s.y + S.Sxy[1].s.y) >> 1) << 16;
+            if (S.Sz[1] > 0x7FFF) {
+                S.Sz[1] = 0x7FFF;
+            }
+            pSz[i1] = (S.Sz[1] + pSz[i1]) >> 1;
+        }
+        if (i2 != 0xFF) {
+            p2->l = ((p2->s.x + S.Sxy[2].s.x) >> 1 & 0xFFFF) | ((p2->s.y + S.Sxy[2].s.y) >> 1) << 16;
+            if (S.Sz[2] > 0x7FFF) {
+                S.Sz[2] = 0x7FFF;
+            }
+            pSz[i2] = (S.Sz[2] + pSz[i2]) >> 1;
+        }
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+}
 
 /* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);
