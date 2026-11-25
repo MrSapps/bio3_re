@@ -18,7 +18,7 @@ Em10_walk_rnd = 0x8010C824;
 Em10_mv0d_rnd = 0x8010C878;
 Em10_mv11_esp = 0x8010C898;
 Em10_dm00_usonum = 0x8010CA08;
-// names shared with em10 (same code, src/ovl/shared/em10)
+// names shared with em10 (same code, src/enemy/common/em10)
 Em10_water = 0x8010C140; // type:func
 Em10_Kubigoro = 0x8010393C; // type:func
 Em10_mv03 = 0x80104A70; // type:func

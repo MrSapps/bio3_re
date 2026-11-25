@@ -42,7 +42,7 @@ segments:
     vram: 0x801c2000
     subsegments:
       - [0x0, rodata, ovl/select/header]
-      - [0x4, .rodata, ovl/select/select]
-      - [0x94, c, ovl/select/select]
+      - [0x4, .rodata, ovl/select]
+      - [0x94, c, ovl/select]
       - [0x2c0c, data, ovl/select/data]
   - [0x4e58]

@@ -43,7 +43,7 @@ segments:
     vram: 0x80100000
     subsegments:
       - [0x0, rodata, ovl/em36/header]
-      - [0x4, .rodata, ovl/em36/em36]
-      - [0xf8, c, ovl/em36/em36]
+      - [0x4, .rodata, enemy/em36]
+      - [0xf8, c, enemy/em36]
       - [0xc7fc, data, ovl/em36/data]
   - [0xcf68]

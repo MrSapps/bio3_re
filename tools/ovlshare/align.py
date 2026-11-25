@@ -15,7 +15,7 @@ def load(ov):
         fs.append((addr,os.path.basename(f)[:-2],ins))
     d={}
     for a,n,i in fs: d.setdefault(a,(a,n,i))   # one entry per address
-    srcn=set(re.findall(r'\b(\w+)\s*\(', open(f'src/ovl/{ov}/{ov}.c').read()))
+    srcn=set(re.findall(r'\b(\w+)\s*\(', open((f'src/enemy/{ov}.c' if ov.startswith('em') else f'src/ovl/{ov}.c')).read()))
     out=[]
     for a in sorted(d):
         n=d[a][1]

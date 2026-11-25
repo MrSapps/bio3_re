@@ -64,7 +64,7 @@ $(WARNING_CC1): tools/compilers/gcc-2.7.2-cdk/cc1
 	echo "215c4f4cb79647896307ddcb087d6e42cbe33bb3  $@.tmp" | sha1sum -c --quiet
 	mv $@.tmp $@
 
-WARNING_GAS_OBJS := $(BUILD)/src/ovl/warning/warning.c.o $(BUILD)/src/ovl/warning/frame.c.o
+WARNING_GAS_OBJS := $(BUILD)/src/ovl/warning.c.o $(BUILD)/src/ovl/warning_frame.c.o
 $(WARNING_GAS_OBJS): $(BUILD)/%.c.o: %.c $(WARNING_CC1)
 	@mkdir -p $(dir $@)
 	cpp $(CPPFLAGS) -MMD -MF $@.d -MT $@ $< | $(WARNING_CC1) $(CFLAGS) -fpic -o - \
@@ -92,6 +92,11 @@ $(BUILD)/$(BASENAME): $(BUILD)/$(BASENAME).elf
 	$(OBJCOPY) -O binary $< $@
 
 # Code overlays (CD_DATA/BIN/*.BIN), one splat config each: ovl/<name>.yaml (tools/mkovl.py)
+# Sources: enemy overlays in src/enemy/<name>.c, the others in src/ovl/<name>.c (warning has three files);
+# functions shared between overlays are #included from src/enemy/common and src/ovl/common.
+OVL_SRCS = $(wildcard src/enemy/$(1).c src/ovl/$(1).c)
+$(foreach o,$(basename $(notdir $(wildcard ovl/*.yaml))),$(eval OVL_SRCS_$(o) := $(call OVL_SRCS,$(o))))
+OVL_SRCS_warning += src/ovl/warning_frame.c src/ovl/warning_task.c
 OVLS     := $(basename $(notdir $(wildcard ovl/*.yaml)))
 OVL_BINS := $(foreach o,$(OVLS),$(BUILD)/ovl/$(o).bin)
 
@@ -102,7 +107,7 @@ $(BUILD)/assets/%.bin.o: assets/%.bin
 define OVL_RULES
 $(BUILD)/ovl/$(1).elf: $$(patsubst %.s,$(BUILD)/%.s.o,$$(wildcard asm/data/ovl/$(1)/*.s)) \
 		$$(patsubst %.bin,$(BUILD)/%.bin.o,$$(wildcard assets/ovl/$(1)/*.bin)) \
-		$$(patsubst %.c,$(BUILD)/%.c.o,$$(wildcard src/ovl/$(1)/*.c)) ovl/$(1).ld $(SYMS_LD)
+		$$(patsubst %.c,$(BUILD)/%.c.o,$$(OVL_SRCS_$(1))) ovl/$(1).ld $(SYMS_LD)
 	@mkdir -p $(BUILD)/ovl
 	$$(LD) $$(LDFLAGS) -T ovl/$(1).ld -T ovl/$(1).undefined_funcs_auto.txt -T ovl/$(1).undefined_syms_auto.txt \
 		$$(addprefix -T ,$$(wildcard ovl/$(1).bss.ld)) -T $(SYMS_LD) \

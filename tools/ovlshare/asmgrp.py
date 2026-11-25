@@ -1,6 +1,6 @@
 import re,glob,collections,os
 sig=collections.defaultdict(dict)
-SRCN={os.path.basename(os.path.dirname(f)):set(re.findall(r'\b(\w+)\s*\(',open(f,errors='replace').read())) for f in glob.glob('src/ovl/*/*.c')}
+SRCN={os.path.basename(f)[:-2]:set(re.findall(r'\b(\w+)\s*\(',open(f,errors='replace').read())) for f in glob.glob('src/ovl/*.c')+glob.glob('src/enemy/*.c')}
 for f in glob.glob('asm/nonmatchings/ovl/**/*.s',recursive=True)+glob.glob('asm/matchings/ovl/**/*.s',recursive=True):
     s=open(f,errors='replace').read()
     if 'glabel' not in s: continue
@@ -26,7 +26,7 @@ print('cross-overlay identical groups',len(G),'functions',sum(len(v) for v in G)
 for p,c in pairs.most_common(30): print(c,p)
 import json
 inc=set()
-for f in glob.glob('src/ovl/**/*.c',recursive=True):
+for f in glob.glob('src/ovl/**/*.c',recursive=True)+glob.glob('src/enemy/**/*.c',recursive=True):
     for m in re.finditer(r'INCLUDE_ASM\("([^"]+)",\s*(\w+)\)',open(f,errors='replace').read()): inc.add(m.group(2))
 # map (ov,addr)->current name: prefer name present in src
 out=[]

@@ -2,7 +2,7 @@
 import json,re,sys,glob
 A,B=sys.argv[1],sys.argv[2]; apply='--apply' in sys.argv
 G=json.load(open('build/ovlshare_groups.json'))
-srcB=re.sub(r'/\*.*?\*/','',open(f'src/ovl/{B}/{B}.c').read(),flags=re.S)
+srcB=re.sub(r'/\*.*?\*/','',open((f'src/enemy/{B}.c' if B.startswith('em') else f'src/ovl/{B}.c')).read(),flags=re.S)
 m=[]
 for g in G:
     a=[x for x in g if x[0]==A]; b=[x for x in g if x[0]==B]
@@ -14,9 +14,9 @@ for g in G:
 for x in m: print(x)
 if apply:
     with open(f'ovl/{B}.syms.txt','a') as f:
-        f.write(f'// names shared with {A} (same code, src/ovl/shared/{A})\n')
+        f.write(f'// names shared with {A} (same code, src/enemy/common/{A})\n')
         for nb,na,addr in m: f.write(f'{na} = 0x{addr.upper()}; // type:func\n')
-    for p in [f'src/ovl/{B}/{B}.c',f'include/ovl/{B}.h']:
+    for p in [(f'src/enemy/{B}.c' if B.startswith('em') else f'src/ovl/{B}.c'),(f'include/enemy/{B}.h' if B.startswith('em') else f'include/ovl/{B}.h')]:
         s=open(p).read()
         for nb,na,_ in m: s=re.sub(r'\b'+nb+r'\b',na,s)
         open(p,'w').write(s)

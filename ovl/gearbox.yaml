@@ -42,7 +42,7 @@ segments:
     vram: 0x801c2000
     subsegments:
       - [0x0, rodata, ovl/gearbox/header]
-      - [0x4, .rodata, ovl/gearbox/gearbox]
-      - [0x8, c, ovl/gearbox/gearbox]
+      - [0x4, .rodata, ovl/gearbox]
+      - [0x8, c, ovl/gearbox]
       - [0xab0, data, ovl/gearbox/data]
   - [0xbac]

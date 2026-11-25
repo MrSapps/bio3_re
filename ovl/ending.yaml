@@ -42,5 +42,5 @@ segments:
     vram: 0x80194000
     subsegments:
       - [0x0, rodata, ovl/ending/header]
-      - [0x4, c, ovl/ending/ending]
+      - [0x4, c, ovl/ending]
   - [0x438]

@@ -20,6 +20,7 @@ def main():
     data = open(os.path.join(ROOT, path), "rb").read()
     vram = 0x80100000 if em else BASE.get(name, 0x801C2000)
     ro = 0 if name == "WARNING" else 4
+    src = f"enemy/{low}" if em else f"ovl/{low}"  # src/enemy/<name>.c or src/ovl/<name>.c
     subs = []
     if ro:
         subs.append(f"      - [0x0, rodata, ovl/{low}/header]")
@@ -33,8 +34,8 @@ def main():
                 f"# slot 2 linker filler bytes (offset value), applied after objcopy\n"
                 + "".join(f"{i:#x} {v:#x}\n" for i, v in fix))
     if ts > ro:
-        subs.append(f"      - [{ro:#x}, .rodata, ovl/{low}/{low}]")
-    subs.append(f"      - [{ts:#x}, c, ovl/{low}/{low}]")
+        subs.append(f"      - [{ro:#x}, .rodata, {src}]")
+    subs.append(f"      - [{ts:#x}, c, {src}]")
     end = len(data) & ~3
     if ds < end:
         subs.append(f"      - [{ds:#x}, data, ovl/{low}/data]")

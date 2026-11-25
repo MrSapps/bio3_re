@@ -42,7 +42,7 @@ segments:
     vram: 0x801c2000
     subsegments:
       - [0x0, rodata, ovl/jill_sel/header]
-      - [0x4, .rodata, ovl/jill_sel/jill_sel]
-      - [0x50, c, ovl/jill_sel/jill_sel]
+      - [0x4, .rodata, ovl/jill_sel]
+      - [0x50, c, ovl/jill_sel]
       - [0x1220, data, ovl/jill_sel/data]
   - [0x1df0]

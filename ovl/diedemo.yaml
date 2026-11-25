@@ -42,7 +42,7 @@ segments:
     vram: 0x80194000
     subsegments:
       - [0x0, rodata, ovl/diedemo/header]
-      - [0x4, .rodata, ovl/diedemo/diedemo]
-      - [0x10, c, ovl/diedemo/diedemo]
+      - [0x4, .rodata, ovl/diedemo]
+      - [0x10, c, ovl/diedemo]
       - [0x3f8c, data, ovl/diedemo/data]
   - [0x42dc]

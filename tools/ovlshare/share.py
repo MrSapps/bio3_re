@@ -1,6 +1,6 @@
 # usage: share.py FAMILY CANON COPY... [--apply]
 # Moves functions whose definitions are identical (ignoring comments/whitespace) in CANON and COPY overlays
-# into src/ovl/shared/FAMILY/<name>.inc.c, included at the same place in each overlay.
+# into src/enemy/common/FAMILY (src/ovl/common for menus)/<name>.inc.c, included at the same place in each overlay.
 import re,sys,os
 args=[a for a in sys.argv[1:] if not a.startswith('--')]; apply='--apply' in sys.argv
 fam,ovs=args[0],args[1:]
@@ -29,7 +29,7 @@ def funcs(s):
             break
         d[m.group(1)]=(k+1 if k>0 else st,m.start(),j+1)
     return d
-src={o:open(f'src/ovl/{o}/{o}.c').read() for o in ovs}
+src={o:open((f'src/enemy/{o}.c' if o.startswith('em') else f'src/ovl/{o}.c')).read() for o in ovs}
 F={o:funcs(src[o]) for o in ovs}
 A=ovs[0]; share={}
 for n,(c0,h0,e0) in F[A].items():
@@ -38,7 +38,7 @@ for n,(c0,h0,e0) in F[A].items():
 for n,u in share.items(): print(n,u)
 print(len(share),'functions')
 if apply:
-    os.makedirs(f'src/ovl/shared/{fam}',exist_ok=True)
+    os.makedirs(f'{'src/enemy/common' if fam.startswith('em') else 'src/ovl/common'}/{fam}',exist_ok=True)
     for o in ovs:
         s=src[o]; reps=[]
         for n,u in share.items():
@@ -46,7 +46,7 @@ if apply:
             c,h,e=F[o][n]
             if o==A:
                 body=s[c:e].rstrip()+'\n'
-                open(f'src/ovl/shared/{fam}/{n}.inc.c','w').write(f'/* shared by {", ".join(u)} */\n'+body)
-            reps.append((c,e,f'#include "ovl/shared/{fam}/{n}.inc.c"'))
+                open(f'{'src/enemy/common' if fam.startswith('em') else 'src/ovl/common'}/{fam}/{n}.inc.c','w').write(f'/* shared by {", ".join(u)} */\n'+body)
+            reps.append((c,e,f'#include "{'enemy/common' if fam.startswith('em') else 'ovl/common'}/{fam}/{n}.inc.c"'))
         for c,e,r in sorted(reps,reverse=True): s=s[:c]+r+s[e:]
-        open(f'src/ovl/{o}/{o}.c','w').write(s)
+        open((f'src/enemy/{o}.c' if o.startswith('em') else f'src/ovl/{o}.c'),'w').write(s)

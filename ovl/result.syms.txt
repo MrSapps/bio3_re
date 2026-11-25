@@ -1,5 +1,5 @@
 // RESULT.BIN symbols (loaded at 0x801c2000)
-// names shared with jill_sel (same code, src/ovl/shared/jill_sel)
+// names shared with jill_sel (same code, src/ovl/common/jill_sel)
 Jill_obj_draw = 0x801C62B0; // type:func
 Jill_obj_init = 0x801C6140; // type:func
 Jill_obj_rgb = 0x801C64E4; // type:func

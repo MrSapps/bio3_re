@@ -158,7 +158,7 @@ def resolve_target(r, syms):
     return (kind, a)
 
 # objects built with gcc 2.7.2 + plain GNU as instead of ASPSX (Makefile WARNING_GAS_OBJS / WARNING_CC1)
-OLD_AS_OBJS = r"src/ovl/warning/(warning|frame)\.c$"
+OLD_AS_OBJS = r"src/ovl/warning(_frame)?\.c$"
 OLD_AS_CC = "gcc-2.7.2-cdk-warning"  # patched gcc-2.7.2-cdk, made by `make tools/compilers/gcc-2.7.2-cdk-warning/cc1`
 OLD_AS_FLAGS = " -fpic"  # unsplit `lw $3,sym` macros
 
@@ -177,9 +177,9 @@ def main():
     if old and a.cc == OLD_AS_CC and not os.path.exists(os.path.join(ROOT, "tools/compilers", a.cc, "cc1")):
         subprocess.run(["make", "-s", f"tools/compilers/{a.cc}/cc1"], cwd=ROOT, check=True)
     a.aspsx = a.aspsx or ("none" if old else "2.77")
-    m = re.search(r"src/ovl/(\w+)/", os.path.abspath(a.cfile))
+    m = re.search(r"src/(?:ovl|enemy)/(\w+)\.c$", os.path.abspath(a.cfile))
     if m:  # overlay: its own symbols first, then its view of the exe
-        o = os.path.join(ROOT, "ovl", m.group(1))
+        o = os.path.join(ROOT, "ovl", re.sub(r"^warning_\w+$", "warning", m.group(1)))
         a.syms = [o + ".syms.txt", o + ".undefined_funcs_auto.txt", o + ".undefined_syms_auto.txt"] + a.syms
     syms = load_syms(a.syms)
     tw, tm, tt, tr = target_words(a.func, a.cfile)

@@ -42,7 +42,7 @@ segments:
     vram: 0x80194000
     subsegments:
       - [0x0, rodata, ovl/title/header]
-      - [0x4, .rodata, ovl/title/title]
-      - [0xe8, c, ovl/title/title]
+      - [0x4, .rodata, ovl/title]
+      - [0xe8, c, ovl/title]
       - [0x34b4, data, ovl/title/data]
   - [0x37a8]

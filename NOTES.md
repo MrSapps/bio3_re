@@ -29,7 +29,7 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   `tools/mkovl.py --bss emXX` rewrites them module-relative (ovl/emXX.bss.ld). em2c slot 2 differs in one
   .rdata padding byte (linker filler): ovl/em2c_2.fixup, applied by tools/fixup.py.
 - Workflow: `tools/mkovl.py NAME TEXT DATA` writes ovl/<name>.yaml; `make split-ovl`; C in
-  src/ovl/<name>/<name>.c; check with `tools/ovlcheck.sh <name>` (parallel-safe) or `make check-ovl`.
+  src/enemy/<name>.c (enemy overlays em*) or src/ovl/<name>.c (the others; warning also has warning_frame.c and warning_task.c); check with `tools/ovlcheck.sh <name>` (parallel-safe) or `make check-ovl`.
   fdiff.py picks the overlay's own asm/syms from the C path. The overlay link uses the generated
   undefined_*_auto files plus build/syms.ld (exe names from syms/*.txt), so new names in
   ovl/<name>.syms.txt take effect after a re-split (`.venv/bin/splat split ovl/<name>.yaml`, for em* then
@@ -162,7 +162,7 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
 - status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in 800636D4.c.
 - snd.h: SND_* incl. SND_VOL embedded at SND_WORK.Vol (0x7C0) and the listener Cam_x/y/z, Cattr.
 - sub.h: LIGHT_CUT_DATA, LIGHT_ZONE, PL_SAVE (D_800C7048). sca.h: SCA_HEAD, SCA_DATA, SCA_WORK.
-  oba.h: COL_ENT, COL_WORK. Overlay-only types live in include/ovl/<name>.h.
+  oba.h: COL_ENT, COL_WORK. Overlay-only types live in include/enemy/<name>.h (enemies) or include/ovl/<name>.h.
 Views of G that remain on purpose (codegen needs a second declaration of the symbol, so gcc does
 not share the &G base): result.h GLOBAL_RESULT `Gr`. em33.h EM33_PL reaches G.pEnemy[] from
 pPl = &Pl_work (one base register).
@@ -170,7 +170,7 @@ Prototypes: every function defined in src/game/<m>.c is declared once, in includ
 esp_r.h, psp.h, room.h, root_ck.h, sabun.h, sce1.h, sce2.h, sce_at.h, spl.h, spl_auto.h, spl_sce.h;
 800636D4.c -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
 0x8001B08C) -> esp.h, pl_wep2.h folded into pl_wep.h). SLD.S functions are in sld.h. Overlay functions and
-data are in include/ovl/<n>.h (their names come from ovl/<n>.syms.txt via the split, no naming aliases). Data externs
+data are in include/enemy/<n>.h or include/ovl/<n>.h (their names come from ovl/<n>.syms.txt via the split, no naming aliases). Data externs
 are in the owning module's header. PsyQ functions come from the SDK (psyq.h also pulls libpad.h and
 libpress.h); InitGeom/PadStartCom/InitCARD/StartCARD/DecDCToutSync were identified and added to syms/game.txt.
 A .c keeps a local `T f_(..) __asm__("f")` alias only where its codegen needs a different prototype
@@ -375,15 +375,15 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   (`addu t0,a1,zero`, D898 twice); no C or PsyQ inline_c.h macro form reproduces it (gcc 2.8 global-alloc
   always gives the parameter its incoming register unless it clashes with that hard reg).
 
-## Code shared between overlays (src/ovl/shared)
+## Code shared between overlays (src/enemy/common, src/ovl/common)
 
 Overlays are linked separately, so identical routines exist once per overlay in the binary. In the source they
-live once, in `src/ovl/shared/<family>/<Name>.inc.c`, and every overlay `#include`s the file at the position
+live once, in `src/enemy/common/<family>/<Name>.inc.c` (menus: `src/ovl/common/<family>/`), and every overlay `#include`s the file at the position
 the function has in its own .text (order matters). As in sotn, a shared function has the same name in every
 overlay that has it (the name comes from the family's first module, e.g. `Em10_mv04` in em16), set through
 `ovl/<ovl>.syms.txt`; after a rename, `rm -rf asm/*/ovl/<ovl>` and re-split that overlay.
 
-- em10/em16: em16 is a near copy of em10. All its routines, tables and its free work (include/ovl/em10_free.h)
+- em10/em16: em16 is a near copy of em10. All its routines, tables and its free work (include/enemy/em10_free.h)
   take the em10 names; 28 functions shared. Exceptions: em16 has 3 routines of its own (func_80101BBC,
   func_8010208C, func_80103CE4) and lacks Em10_sce02, Em10_Kahannsin_walk and Em10_ude_down. Same-asm pairs
   that are both still func_ (e.g. em10 func_8010C3F0 / em16 func_8010BE98) block a few more.
@@ -402,7 +402,7 @@ tools/ovlshare: `asmgrp.py` lists asm-identical functions across overlays (write
 `align.py A B` aligns two overlays' functions in order; `rename.py A B [--apply]` gives B's func_ copies
 A's names; `maprename.py OVL MAP` renames from an "old new" list; `trytext.py A B` tries A's C text for
 B's same-named functions and keeps it when all outputs stay OK; `share.py FAMILY A B... [--apply]` moves
-text-identical functions into src/ovl/shared/FAMILY.
+text-identical functions into src/enemy/common/FAMILY (or src/ovl/common/FAMILY).
 
 ## Near-miss status (agentE, drafts in the session scratchpad agentE/r2)
 - Flr_set matched: the base pointer is a temp that gets overwritten afterwards (`p = (UCHAR *)pFlr; p += n * 12;

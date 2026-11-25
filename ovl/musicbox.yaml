@@ -42,7 +42,7 @@ segments:
     vram: 0x801c2000
     subsegments:
       - [0x0, rodata, ovl/musicbox/header]
-      - [0x4, .rodata, ovl/musicbox/musicbox]
-      - [0x30, c, ovl/musicbox/musicbox]
+      - [0x4, .rodata, ovl/musicbox]
+      - [0x30, c, ovl/musicbox]
       - [0xa44, data, ovl/musicbox/data]
   - [0xbcc]

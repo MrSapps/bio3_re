@@ -42,11 +42,11 @@ segments:
     start: 0x0
     vram: 0x80184000
     subsegments:
-      - [0x0, .rodata, ovl/warning/warning]
-      - [0xe0, .rodata, ovl/warning/frame]
-      - [0xf0, .rodata, ovl/warning/task]
-      - [0xf8, c, ovl/warning/warning]
-      - [0x1288, c, ovl/warning/frame]
-      - [0x1418, c, ovl/warning/task]
+      - [0x0, .rodata, ovl/warning]
+      - [0xe0, .rodata, ovl/warning_frame]
+      - [0xf0, .rodata, ovl/warning_task]
+      - [0xf8, c, ovl/warning]
+      - [0x1288, c, ovl/warning_frame]
+      - [0x1418, c, ovl/warning_task]
       - [0x1560, data, ovl/warning/data]
   - [0x1620]
