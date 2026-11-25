@@ -1,8 +1,8 @@
 #ifndef OVL_EM26_H
 #define OVL_EM26_H
 /*
- * Enemy module em26 (enemy id 0x26), the successor of RE2's EM26.C: a small
- * crawling enemy (walk, fall, jump, swim; catches the player).
+ * Enemy module em26 (enemy id 0x26: the young spiders that em25's spider releases,
+ * Em25_Set_child), the successor of RE2's EM26.C: walk, fall, jump, swim; catches the player.
  * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"
@@ -22,7 +22,7 @@ typedef struct tagEM26_FREE {
     UCHAR Atck_flg;                    /* 0x09 (0x1D5) */
     UCHAR Jump_flg;                    /* 0x0A (0x1D6) */
     signed char Chase_rot;             /* 0x0B (0x1D7) */
-    signed char Unk0C;                 /* 0x0C (0x1D8) RE3: no-catch timer after a jump, (Rnd() & 0x3F) + 0x5A */
+    signed char Catch_wait;            /* 0x0C (0x1D8) RE3: no-catch timer after a jump, (Rnd() & 0x3F) + 0x5A */
 } EM26_FREE;
 
 #define EM26_W(p) ((EM26_FREE *)(p)->Unk1CC)
@@ -50,30 +50,30 @@ extern UCHAR Em26_routine_tbl[]; /* Routine_1 by Type */
 extern UCHAR Em26_dieblood_type_tbl[];
 extern EM26_BLOOD_TBL Em26_blood_id_tbl[];
 
-void func_80100D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* RE2 Em26_Die00 */
-void func_80100E38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* RE2 Em26_Die10 */
-void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type); /* RE2 Set_blood */
-ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl);
-void func_801010E8(ENEMY_WORK *pPl, UCHAR Dir); /* RE2 Em26_Pl_to_dmg */                         /* RE2 Em26_atck_ck */
-LONG func_80101100(ENEMY_WORK *pEm); /* RE2 Get_sc_hit */
+void Em26_Die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* RE2 Em26_Die00 */
+void Em26_Die10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* RE2 Em26_Die10 */
+void Set_blood(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type); /* RE2 Set_blood */
+ULONG Em26_atck_ck(ENEMY_WORK *pEm, ULONG Pl);
+void Em26_Pl_to_dmg(ENEMY_WORK *pPl, UCHAR Dir); /* RE2 Em26_Pl_to_dmg */                         /* RE2 Em26_atck_ck */
+LONG Get_sc_hit(ENEMY_WORK *pEm); /* RE2 Get_sc_hit */
 
-void func_8010001C(ENEMY_WORK *pEm);
-void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801003EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100614(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100C94(void);
-void func_80100C9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100CC8(void);
-void func_80100CD0(void);
-void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100EDC(void);
-void func_80100EE4(void);
-void func_80100EEC(void);
+void Em26_main(ENEMY_WORK *pEm);
+void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_dummy(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_walk00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_walk10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_fall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_jump(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Mv_swim(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Damage(void);
+void Em26_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_dm01(void);
+void Em26_dm02(void);
+void Em26_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em26_Scenario(void);
+void Em26_Dead(void);
+void Pldamege_Em26(void);
 
 #endif /* OVL_EM26_H */

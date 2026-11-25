@@ -5,14 +5,14 @@
 LONG Rnd_l(void) __asm__("Rnd"); /* Capcom called Rnd unprototyped: int result, no masking */
 void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector");  /* main.c, called with an int angle */
 
-/* RE2 EM_MAIN */
-void func_8010001C(ENEMY_WORK *pEm)
+/* RE2 EM_MAIN: per-frame entry of the larva: routine dispatch, collision */
+void Em27_main(ENEMY_WORK *pEm)
 {
     Em27_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
 }
 
 /* stay on the floor: undo the move when the ground height changes */
-void func_80100060(ENEMY_WORK *pEm)
+void Em27_ground_ck(ENEMY_WORK *pEm)
 {
     VECTOR V;
 
@@ -28,10 +28,10 @@ void func_80100060(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em27", func_801000E0);
+INCLUDE_ASM("asm/nonmatchings/enemy/em27", Em27_Init);
 
 /* reset the parts: hide 0 and 1, part 2 at the body, parts 3 and 4 beside it */
-void func_80100378(ENEMY_WORK *pEm)
+void Em27_parts_reset(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     SVECTOR Sv;
@@ -74,7 +74,7 @@ void func_80100378(ENEMY_WORK *pEm)
 }
 
 /* hide parts 0 and 1, put part 2 at the body, show parts 3 and 4 */
-void func_80100518(ENEMY_WORK *pEm)
+void Em27_parts_set(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
 
@@ -101,16 +101,16 @@ void func_80100518(ENEMY_WORK *pEm)
     pEm->Timer0 = 120;
 }
 
-/* RE2 Em27_Move */
-void func_801005F8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em27_Move: decision (Em27_mv_br) then action (Em27_mv) by Routine_1 */
+void Em27_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em27_mv_br[pEm->Routine_1](pEm);
     Em27_mv[pEm->Routine_1](pEm, pKan, pSeq);
     pEm->Unk1C4 = EM_RTN(pEm);
 }
 
-/* wait, then pick the next move (Routine_1 = 1) */
-void func_80100688(ENEMY_WORK *pEm)
+/* mv00 decision: wait, then pick the next move (Routine_1 = 1) */
+void Em27_mv00_br(ENEMY_WORK *pEm)
 {
     if (EM27_W(pEm)->Wait) {
         EM27_W(pEm)->Wait--;
@@ -121,8 +121,8 @@ void func_80100688(ENEMY_WORK *pEm)
     pEm->Damage_cnt &= 0x7F;
 }
 
-/* mv[0]: crawl in short bursts towards the player or a random point */
-void func_801006E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv00: crawl in short bursts towards the player or a random point */
+void Em27_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -165,8 +165,8 @@ void func_801006E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Goto00(pEm, pEm->Dest_x, pEm->Dest_z, (Rnd_l() & 0xF) | 0x20);
 }
 
-/* mv_br[1]: wander; leap at a near player (Routine_1 2); shaken off by a step move */
-void func_801008EC(ENEMY_WORK *pEm)
+/* mv01 decision: wander; leap at a near player (Routine_1 2); shaken off by a step move */
+void Em27_mv01_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -188,8 +188,8 @@ void func_801008EC(ENEMY_WORK *pEm)
     }
 }
 
-/* mv[1]: crawl towards the player or a random point nearby */
-void func_80100A50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv01: crawl towards the player or a random point nearby */
+void Em27_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -214,8 +214,8 @@ void func_80100A50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* mv_br[2]: close to the player: leap onto it (Routine_1 3) or turn aside */
-void func_80100BAC(ENEMY_WORK *pEm)
+/* mv02 decision: close to the player: leap onto it (Routine_1 3) or turn aside */
+void Em27_mv02_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     PARTS_W *pP;
@@ -243,8 +243,8 @@ void func_80100BAC(ENEMY_WORK *pEm)
     }
 }
 
-/* mv[2]: hop towards the player */
-void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv02: hop towards the player */
+void Em27_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -263,11 +263,12 @@ void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100DDC(void) {
+/* mv03 decision: empty */
+void Em27_mv03_br(void) {
 }
 
-/* mv[3]: latched onto the player: bite, ride along until shaken off (Gacha_ch) */
-void func_80100DE4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv03: latched onto the player: bite, ride along until shaken off (Gacha_ch) */
+void Em27_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     VECTOR Pos;
@@ -306,13 +307,13 @@ void func_80100DE4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z);
         Pos.vx = pPl->pSin_parts_ptr->Workm.t[0];
         Pos.vz = pPl->pSin_parts_ptr->Workm.t[2];
-        func_801014B0(pEm, 150, EM27_W(pEm)->Dir + pPl->Cdir_y, &Pos);
+        Em27_pos_set(pEm, 150, EM27_W(pEm)->Dir + pPl->Cdir_y, &Pos);
         Add_speedXZ(pEm, 0);
     }
 }
 
-/* mv_br[4]: latched on: the player shakes it off with a step move */
-void func_80100FFC(ENEMY_WORK *pEm)
+/* mv04 decision: latched on: the player shakes it off with a step move */
+void Em27_mv04_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = G_PLAYER;
 
@@ -326,8 +327,8 @@ void func_80100FFC(ENEMY_WORK *pEm)
     }
 }
 
-/* mv[4]: thrown off: fall to the floor, roll a few times, then back to mv 1 */
-void func_801010D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv04: thrown off: fall to the floor, roll a few times, then back to mv 1 */
+void Em27_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -385,22 +386,24 @@ void func_801010D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_8010131C(void) {
+/* mv05 decision: empty */
+void Em27_mv05_br(void) {
 }
 
-void func_80101324(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv05: plays the current motion */
+void Em27_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Joint_move(pEm, pKan, pSeq, 0x400);
 }
 
 /* hidden: wait for the player, then pop up (parts 0 and 1 grow) and come alive */
-void func_80101344(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em27_Hide(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
     switch (pEm->Routine_2) {
     case 0:
-        func_80100518(pEm);
+        Em27_parts_set(pEm);
         pEm->Routine_2++;
     case 1:
         if (pEm->Timer0 == 0) {
@@ -429,11 +432,11 @@ void func_80101344(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     }
-    func_8010158C(pEm);
+    Em27_popup(pEm);
 }
 
 /* place the body Dist away from pPos at angle Dir, following the player's floor */
-void func_801014B0(ENEMY_WORK *pEm, SHORT Dist, SHORT Dir, VECTOR *pPos)
+void Em27_pos_set(ENEMY_WORK *pEm, SHORT Dist, SHORT Dir, VECTOR *pPos)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Sv;
@@ -455,7 +458,7 @@ void func_801014B0(ENEMY_WORK *pEm, SHORT Dist, SHORT Dir, VECTOR *pPos)
 }
 
 /* pop part 2 up to full size, then shrink it back */
-void func_8010158C(ENEMY_WORK *pEm)
+void Em27_popup(ENEMY_WORK *pEm)
 {
     PARTS_W *pP0;
     PARTS_W *pP;
@@ -483,11 +486,12 @@ void func_8010158C(ENEMY_WORK *pEm)
     }
 }
 
-void func_80101660(void) {
+/* empty */
+void Em27_Damage(void) {
 }
 
 /* RE2 Em27_Die: fall, or (Routine_3 1) burst into blood */
-void func_80101668(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em27_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     KAGE_WORK *pKage;
     SVECTOR Sv;
@@ -526,7 +530,7 @@ void func_80101668(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em27_Dead: the shadow turns red and spreads */
-void func_801017FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em27_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     KAGE_WORK *pKage;
 
@@ -551,8 +555,8 @@ void func_801017FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* move: hop (seq sound, collision off while airborne) */
-void func_801018D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* hop (seq sound, collision off while airborne) */
+void Em27_hop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -572,7 +576,7 @@ void func_801018D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* number of other live enemies of id 0x23 / 0x28 */
-LONG func_801019BC(ENEMY_WORK *pEm)
+LONG Em27_parent_cnt(ENEMY_WORK *pEm)
 {
     ENEMY_WORK **ppEm;
     LONG n = 0;
