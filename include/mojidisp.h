@@ -75,7 +75,6 @@ void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item);
 UCHAR *name_ptr_set(UCHAR No);
 LONG Mess_char_width(ULONG Mode, ULONG Code, LONG *pPos);
 LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos);
-void D_80031BDC(void); /* game task entry (Task_execute) */
 void Mess_hint_task(void);
 
 #endif /* MOJIDISP_H */

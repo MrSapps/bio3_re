@@ -781,7 +781,7 @@ void Title_sel_start(TITLE_WORK *pTi)
         return;
     }
     G.Unk2115 = 1;
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     G.System_flg &= ~0x1000;
     pTi->Main_rtn = 4;
 }
@@ -907,7 +907,7 @@ void Title_sel_mode(TITLE_WORK *pTi)
     } else {
         G.Unk2115 = 0;
     }
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     pTi->Main_rtn = 4;
 }
 
@@ -1048,7 +1048,7 @@ void Title_main_demo(TITLE_WORK *pTi)
     Game.Unk4E = 0;
     Game.Pdemo_cnt = 0;
     G.Unk2115 = 3;
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     G.System_flg = (G.System_flg | 0x10000000) & ~0x1000;
     pTi->Main_rtn = 4;
 }
@@ -1296,7 +1296,7 @@ start:
     G.Unk2116 = 0;
     G.Next_cut_no = G.Cut_no;
     Status_init();
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     pTi->Main_rtn = 4;
 }
 
