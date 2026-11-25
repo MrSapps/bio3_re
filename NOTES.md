@@ -607,14 +607,19 @@ Rules learnt:
   `beqz; move v0,a3` / `lh v0` tail.
 - `Zone = (ULONG)Dz >> 30; Zone &= 2; Zone |= (ULONG)Dx >> 31;` reproduces the `srl/andi v1` then `or v1,v1,v0`
   order of the area-bit switch (one expression puts the first half in v0).
-- A loop invariant (W * 2) is not hoisted when its register is set twice in the loop (reuse a variable); the
-  target's Oba_em_overlap_ck keeps `sll v0,W,1` in the loop.
+- loop.c (read `-dL`, "Insn N: regno R (life L), savings S moved/not desirable") hoists an invariant when
+  threshold * savings * life >= the loop's real insn count, threshold ~58 for a call-free loop: a life-1 use is
+  never hoisted, life 2 is hoisted in a 107-insn loop. Oba_em_overlap_ck's target keeps `sll v0,W,1` (used by
+  two adjacent adds) in the loop, so either its loop has more RTL insns than our draft or W * 2 was computed
+  twice and merged by cse2. Reusing a variable for W * 2 (set twice) also stops the hoist but is not what the
+  target does.
 - &G from &Pl_work: `pPl = (ENEMY_WORK *)&G.Player;` then `G.x` lets cse derive &G as pPl - 0x248C (the target's
   `addiu s5,Pl_work; addiu s3,s5,-0x248C`). `Tbe` kept in a variable changes the load order of two Be_flg reads;
   writing `pT->pEm->Be_flg` at each use gives the target order (cse still loads it once).
 Near misses (agentI/best):
-- sca Sca_high_hishi (16): shared-test layout and the zone order match; left t-reg order (X0-load t1, Z t3, Dz t5).
-  Needs X0 priority above Z1 and Dz below Z0 (see the priority rule); permuter run in agentI/w/hhpm2.
+- sca Sca_high_hishi (16; 13 with three do/while(0) in _13_dw.c): shared-test layout and the zone order match;
+  `Zone = pT->Z1 - pT->Z0; Cz = pT->Z0 + (Zone >> 1);` with Dz holding the X half width. Left: t-reg order
+  (X0-load t1, Z t3, Dz t5, Dx a2): needs X0 above Z1 and Dz below Z0 (see the priority rule).
 - sca Sca_hit_koban_x (22): u union pointer, `Zone` in two statements, case 0 stores X0 last from a temp
   (`Cx1 = pT->X1 - D; ... pC->X0 = Cx1; goto Circle;`), case 3 holds the Circle label. Left: priorities (target
   X0 > X > pT > D > Z0); do/while on X0 and pW (_30_regs.c) gets X0/X/pT right but swaps D/Z0.
