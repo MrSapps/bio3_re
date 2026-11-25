@@ -1113,7 +1113,40 @@ INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001B484);
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001B894);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BA48);
+/* set the four routine bytes (Rtn01 = Routine_0 | Routine_1 << 16, Rtn23 = Routine_2 | Unk03 << 16) of the live
+ * effects of kind Id, only those attached to pM unless pM is NULL (RE2 Esp_ctrl sets Routine0 alone) */
+void func_8001BA48(ULONG Id, MATRIX *pM, ULONG Rtn01, ULONG Rtn23)
+{
+    ULONG i;
+    ESP_WORK *pEw;
+    UCHAR Rtn1, Rtn3;
+
+    Rtn1 = Rtn01 >> 16;
+    Rtn3 = Rtn23 >> 16;
+    pEw = Esp;
+    /* the loop is never repeated; the original has one (it changes register allocation) */
+    do {
+        if (pM != NULL) {
+            for (i = 0; i < 96; i++, pEw++) {
+                if ((pEw->Be_flg & 0x8000) && pEw->Id.W == (USHORT)Id && pEw->pMat == pM) {
+                    pEw->Routine_0 = Rtn01;
+                    pEw->Routine_1 = Rtn1;
+                    pEw->Routine_2 = Rtn23;
+                    pEw->Unk03 = Rtn3;
+                }
+            }
+        } else {
+            for (i = 0; i < 96; i++, pEw++) {
+                if ((pEw->Be_flg & 0x8000) && pEw->Id.W == (USHORT)Id) {
+                    pEw->Routine_0 = Rtn01;
+                    pEw->Routine_1 = Rtn1;
+                    pEw->Routine_2 = Rtn23;
+                    pEw->Unk03 = Rtn3;
+                }
+            }
+        }
+    } while (0);
+}
 
 void Esp_task_main(void)
 {
@@ -1261,7 +1294,7 @@ ESP_WORK *func_8001C2DC(USHORT Id)
         } while (pEw > (ESP_WORK *)(D_800BF754 - 0x4F80));
     } else {
         do {
-            if (pEw->Be_flg != 0 && pEw->Id.W == Id) {
+            if (pEw->Be_flg != 0 && pEw->Id.W == (USHORT)Id) {
                 return pEw;
             }
             pEw--;

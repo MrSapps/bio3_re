@@ -98,7 +98,7 @@ void Esp_data_set1(ULONG *pTim);
 #define ESP_NONE ((ESP_WORK *)-1)
 ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
 ESP_WORK *Esp_call(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd);
-void func_8001BA48();
+void func_8001BA48(ULONG Id, MATRIX *pM, ULONG Rtn01, ULONG Rtn23); /* set the routines of the effects of Id on pM */
 void Esp_task_main(void);
 void func_8001BC80(ESP_WORK *pEw);
 void func_8001BCFC(ESP_WORK *pEw);
