@@ -83,6 +83,7 @@ ULONG Evt_exec(SCE_TASK *pSce)
     return 1;
 }
 
+/* arms (Data[1] 1: skip to event Data[3] from this task) or disarms the event skip */
 ULONG Evt_skip_set(SCE_TASK *pSce)
 {
     UCHAR Flg;
@@ -1223,6 +1224,7 @@ ULONG Add_aspeed(SCE_TASK *pSce)
     return 1;
 }
 
+/* moves the event camera eye/target by the task's Spd/Dspd and sets the view */
 ULONG Add_vspeed(SCE_TASK *pSce)
 {
     SCE_CAMERA *pCam = &D_800E0150;
@@ -1325,6 +1327,7 @@ ULONG Cmp(SCE_TASK *pSce)
     }
 }
 
+/* RE2 Sce_rnd: reseeds the scenario random value (Sce_rnd_set) */
 ULONG Sce_rnd(SCE_TASK *pSce)
 {
     pSce->Data++;
@@ -1332,6 +1335,7 @@ ULONG Sce_rnd(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_chg: switches to camera cut Data[1] & 0x7F (bit 7: no background reload) and locks the camera */
 ULONG Cut_chg(SCE_TASK *pSce)
 {
     tagGLOBAL *pG = &G;
@@ -1349,6 +1353,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_old: switches back to the previous camera cut */
 ULONG Cut_old(SCE_TASK *pSce)
 {
     Cut_chg_main(D_800E0175[0]);
@@ -1357,6 +1362,7 @@ ULONG Cut_old(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_chg_main: changes G.Cut_no to Cut, keeping the old one */
 void Cut_chg_main(ULONG Cut)
 {
     UCHAR Old;
@@ -1368,6 +1374,7 @@ void Cut_chg_main(ULONG Cut)
     Cut_change(Cut);
 }
 
+/* RE2 Cut_auto: Data[1] 1 lets the camera follow the cut zones again, else locks it */
 ULONG Cut_auto(SCE_TASK *pSce)
 {
     if (pSce->Data[1] == 1) {
@@ -1379,6 +1386,7 @@ ULONG Cut_auto(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_replace: swaps cuts Data[1] and Data[2] in the room's camera switch zones */
 ULONG Cut_replace(SCE_TASK *pSce)
 {
     ULONG Cut_a;
@@ -1408,8 +1416,10 @@ ULONG Cut_replace(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_be_set: sets byte 0 of switch zone Data[2] of cut Data[1] to Data[3] (zone on/off) */
 INCLUDE_ASM("asm/nonmatchings/game/sce1", Cut_be_set);
 
+/* RE2 Pos_set: sets the work's position (and old position) to the SHORT x, y, z operands */
 ULONG Pos_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1432,6 +1442,7 @@ ULONG Pos_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Dir_set: sets the work's direction to the SHORT x, y, z operands */
 ULONG Dir_set(SCE_TASK *pSce)
 {
     SHORT *pData;
@@ -1475,6 +1486,7 @@ ULONG Vib_fade_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* sets Rbj_id, the room pack entry id of the RBJ, to Data[1] */
 ULONG Sce_rbj_set(SCE_TASK *pSce)
 {
     Rbj_id_a[0] = pSce->Data[1];
@@ -1494,6 +1506,7 @@ ULONG Message_on(SCE_TASK *pSce)
     return 1;
 }
 
+/* closes the message window and the live selection (Status_flg 0x10000000) */
 ULONG Message_off(SCE_TASK *pSce)
 {
     Moji.Mess_flg = 0;
@@ -1502,6 +1515,7 @@ ULONG Message_off(SCE_TASK *pSce)
     return 1;
 }
 
+/* starts rain effect Data[1] */
 ULONG Sce_rain_set(SCE_TASK *pSce)
 {
     func_80048974(pSce->Data[1]);
@@ -1712,6 +1726,7 @@ ULONG Sce_bgm_control(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Xa_on: plays XA voice Data[1] at sector offset (USHORT +2) of the room's XA table */
 ULONG Xa_on(SCE_TASK *pSce)
 {
     LONG Dummy[4];
@@ -1734,6 +1749,7 @@ ULONG Movie_on(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Sce_bgmtbl_set: sets the BGM (USHORT +4) of stage Data[2] - 1, room Data[3] */
 ULONG Sce_bgmtbl_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1744,6 +1760,7 @@ ULONG Sce_bgmtbl_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* true when room (Data[2], Data[3]) has BGM (USHORT +4) in G.Unk7C84 */
 ULONG Sce_bgmtbl_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1823,6 +1840,7 @@ ULONG Sca_id_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* object model Data[1]: sets its flag word (G.pUnk75AC[UnkC1]) to 0xFF */
 ULONG Om_flg_clr(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1837,6 +1855,7 @@ ULONG Om_flg_clr(SCE_TASK *pSce)
     return 1;
 }
 
+/* object model Data[1]: toggles its flag word between 0 and 0xFF and its G.Unk799C bit */
 ULONG Om_rev(SCE_TASK *pSce)
 {
     UCHAR *pData;

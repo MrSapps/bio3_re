@@ -40,8 +40,10 @@ typedef struct tagSCE_AOT_DOOR {
     UCHAR Mess;                        /* 0x11 0x80: message in low 4 bits, 0x40: ask first */
 } SCE_AOT_DOOR;
 
+/* RE2 Sce_at_check: runs the AOTs of the given kinds that a work stands in */
 INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_at_check);
 
+/* RE2 Sce_at: AOT checks for the player, the enemies, the object models and the sub player */
 void Sce_at(void)
 {
     ENEMY_WORK *pEw;
@@ -89,6 +91,7 @@ ULONG Nothing(void *pAot)
     return 0;
 }
 
+/* RE2 Sce_Door: locked doors (key item, messages, sounds), optional question, then the door demo */
 ULONG Sce_Door(void *pAot)
 {
     tagGLOBAL *pG;
@@ -168,6 +171,7 @@ ULONG Sce_Door(void *pAot)
     }
 }
 
+/* RE2 Key_lost: after a key was used, offers to discard it (Front_func) */
 void Key_lost(void)
 {
     tagGLOBAL *pG = &G;
@@ -195,6 +199,7 @@ void Key_lost(void)
     }
 }
 
+/* Front_func after "open the door?": starts the door demo on yes */
 void Door_ask_entrance(void)
 {
     if (G.Front_func_rtn == 0 && (Moji.Mess_flg & 0x80) == 0) {
@@ -230,6 +235,7 @@ ULONG Sce_Item(void *pAot)
     return 0;
 }
 
+/* Front_func for items with flag >= 0xF8: shows the item message, then the status screen */
 void Item_mess_entrance(void)
 {
     tagGLOBAL *pG = &G;
@@ -257,6 +263,7 @@ void Item_mess_entrance(void)
     }
 }
 
+/* RE2 Sce_Normal: nothing */
 LONG Sce_Normal(void)
 {
     return 0;
@@ -349,6 +356,7 @@ void Save_entrance(void)
     }
 }
 
+/* RE2 Sce_Itembox: opens the item box (St_type 2) through Item_box_entrance */
 ULONG Sce_Itembox(void *pAot)
 {
     D_800E01C4[0] = 2;
@@ -401,6 +409,7 @@ void Item_box_entrance(void)
     }
 }
 
+/* remembers the AOT in G.pUnk21DC and sets System_flg 0x2000 */
 ULONG Sce_Aot_set(void *pAot)
 {
     G.pUnk21DC = pAot;
@@ -408,6 +417,7 @@ ULONG Sce_Aot_set(void *pAot)
     return 0;
 }
 
+/* RE2 Sce_Hikidashi: drawer: asks to open it, then shows its item through the status screen */
 ULONG Sce_Hikidashi(void *pAot)
 {
     tagGLOBAL *pG;
@@ -460,6 +470,7 @@ ULONG Sce_Hikidashi(void *pAot)
     return 0;
 }
 
+/* RE2 Hikidashi_entrance: drawer question, unlock flag and the item pickup */
 void Hikidashi_entrance(void)
 {
     tagGLOBAL *pG;
@@ -567,6 +578,7 @@ ULONG Sce_Door2(void *pAot)
     }
 }
 
+/* asks to rest (Heal_entrance) */
 ULONG Sce_Heal(void *pAot)
 {
     G.Back_func = Heal_entrance;
@@ -576,6 +588,7 @@ ULONG Sce_Heal(void *pAot)
     return 0;
 }
 
+/* Back_func of Sce_Heal: on yes cures poison (message 8), else message 9 */
 void Heal_entrance(void)
 {
     tagGLOBAL *pG = &G;

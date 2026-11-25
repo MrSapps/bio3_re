@@ -61,6 +61,7 @@ void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
     pAot->pParts = pP;
 }
 
+/* model data kind of enemy Id from Em_kind_tbl (0x80 if not listed) */
 ULONG Em_kind_search(ULONG Id)
 {
     EM_KIND *p;
@@ -75,6 +76,7 @@ ULONG Em_kind_search(ULONG Id)
     return 0x80;
 }
 
+/* Em_kind_tbl flag byte of enemy Id, ORed into ENEMY_WORK.Unk4B (0x80 if not listed) */
 UCHAR Em_kind_flg_search(ULONG Id)
 {
     EM_KIND *p;
@@ -89,6 +91,7 @@ UCHAR Em_kind_flg_search(ULONG Id)
     return 0x80;
 }
 
+/* enemy whose model data of kind Id is already loaded (Em_dat), or NULL */
 void *Em_dat_search(ULONG Id)
 {
     EM_DAT *p;
@@ -162,6 +165,7 @@ void Sce_model_init(void)
     }
 }
 
+/* clears the per-frame scenario work (G.Sce_work[], G.Unk2474[], G.Unk788C) */
 void Sce_work_clr(void)
 {
     G.Sce_work[0] = -1;
@@ -176,6 +180,7 @@ void Sce_work_clr(void)
     D_800E017E[0] = 0;
 }
 
+/* empty (RE2 Sce_work_clr_at) */
 void Sce_work_clr_at(void) {
 }
 
@@ -322,6 +327,7 @@ void Sce_kirakira_set(void)
     }
 }
 
+/* event skip: on the skip button fades out, stops tasks 2..10, then runs Skip_evt on task 1 */
 void Sce_skip_ck(void)
 {
     ULONG i;
@@ -367,6 +373,7 @@ void Sce_skip_ck(void)
     }
 }
 
+/* ends the skip state once the skippable task (or the skip event on task 1) has finished */
 void Sce_skip_end(void)
 {
     SCENARIO *pScn = &Sce;
@@ -386,6 +393,7 @@ void Sce_skip_end(void)
     }
 }
 
+/* clears the Nemesis room list G.Unk7E24[8] */
 void Chaser_room_clr(void)
 {
     UCHAR i;
@@ -396,6 +404,7 @@ void Chaser_room_clr(void)
     }
 }
 
+/* Nemesis room state G.Unk7862: 3/4 -> 0, 5 -> 0 and clears the room list */
 void Chaser_state_reset(void)
 {
     switch (G.Unk7862) {
@@ -410,6 +419,7 @@ void Chaser_state_reset(void)
     }
 }
 
+/* Nemesis room check on room entry: sets G.Unk7862 from G.Unk784C and the room list */
 void Chaser_room_ck(void)
 {
     USHORT Id;
@@ -449,6 +459,7 @@ void Chaser_room_ck(void)
     }
 }
 
+/* room entry: copies Sce_jmp_tbl to the scratchpad, inits the tasks, runs event 0 on task 1 */
 void Sce_scheduler_set(void)
 {
     Memcpy(ScratchPad, Sce_jmp_tbl, 0x400);
@@ -463,6 +474,7 @@ void Sce_scheduler_set(void)
     Sce_kirakira_set();
 }
 
+/* per frame: runs the event tasks (Sce_scheduler_main) with the event skip checks */
 void Sce_scheduler(void)
 {
     if ((G.Unk2468 & 0x2000000) == 0) {
