@@ -181,12 +181,12 @@ void Weapon_parts_clr(ENEMY_WORK *pEm);
 void Pl_weapon_ch_init(ENEMY_WORK *pEm);
 void Non_init(ENEMY_WORK *pEm);
 void Plw02_init(ENEMY_WORK *pEm);
-void Plw_init_43FF0(ENEMY_WORK *pEm);
-void Plw_init_44054(ENEMY_WORK *pEm);
-void Plw_init_440AC(ENEMY_WORK *pEm);
-void Plw_init_440F4(ENEMY_WORK *pEm);
-void Plw_init_44134(ENEMY_WORK *pEm);
-void Plw_init_4417C(ENEMY_WORK *pEm);
+void Plw06_init(ENEMY_WORK *pEm);
+void Plw0b_init(ENEMY_WORK *pEm);
+void Plw0c_init(ENEMY_WORK *pEm);
+void Plw0d_init(ENEMY_WORK *pEm);
+void Plw0e_init(ENEMY_WORK *pEm);
+void Plw10_init(ENEMY_WORK *pEm);
 ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL);
 LONG Hit_area_ck(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm);
 LONG Hit_area_em_ck(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm); /* pEm inside the box */
