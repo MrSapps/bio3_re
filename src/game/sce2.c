@@ -601,7 +601,22 @@ ULONG Plc_gun(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Plc_gun_eff);
+ULONG Plc_gun_eff(SCE_TASK *pSce)
+{
+    VECTOR Pos; /* the effect positions are set and never used (dead code left in the original) */
+
+    Pos.vx = 140;
+    Pos.vy = 605;
+    Pos.vz = 0;
+    Pos.vx = 145;
+    Pos.vy = 500;
+    Pos.vz = -25;
+    Pos.vx = 145;
+    Pos.vy = 265;
+    Pos.vz = -50;
+    pSce->Data++;
+    return 1;
+}
 
 ULONG Plc_neck(SCE_TASK *pSce)
 {
