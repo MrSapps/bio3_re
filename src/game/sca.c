@@ -449,11 +449,11 @@ LONG Sca_get_ground_obj(VECTOR *pPos, LONG R, ULONG Att, ULONG Flg, LONG Ground)
                     if (pEnt->Type < 3) {
                         pW->pEm_hit = pEnt->pObj->pEm;
                         pW->pEm_hit2 = NULL;
-                        pW->Unk24 = 0x1000;
+                        pW->Gnd.s.Id = 0x1000;
                     } else {
                         pW->pEm_hit2 = pEnt->pObj->pEm;
                         pW->pEm_hit = NULL;
-                        pW->Unk24 = 0x1000;
+                        pW->Gnd.s.Id = 0x1000;
                     }
                 }
             }
@@ -768,7 +768,131 @@ LONG Sca_high_cone(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     return High;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_ck_line);
+/* segment pV0-pV1 against the room's SCA shapes (Attr bits of Id, same area at both ends, bounding box, Flg & 1: height
+ * range and the 3D confirmation of Sca_line_xy/zy); Flg & 2 also scans the collision objects (Sca_ck_line_oba),
+ * Flg & 4 only those; RE2 Sca_ck_line */
+LONG Sca_ck_line(VECTOR *pV0, VECTOR *pV1, ULONG Attr, ULONG Flg)
+{
+    SCA_DATA *pT;
+    SCA_DATA *pEnd;
+    VECTOR *pA;
+    VECTOR *pB;
+    VECTOR A;
+    VECTOR B;
+    ULONG Area;
+    LONG Ret;
+    LONG Dx;
+    LONG Dz;
+    LONG Max;
+    LONG Min;
+    ULONG P0;
+    ULONG P1;
+
+    Ret = 0;
+    pT = (SCA_DATA *)G.pRoom->pSca;
+    pEnd = pT + ((SCA_HEAD *)pT)->Num;
+    Sca_work.pEm_hit = NULL;
+    Sca_work.pEm_hit2 = NULL;
+    pA = &A;
+    pB = &B;
+    if (G.pRoom->pSca->Num == 0) {
+        return Ret;
+    }
+    if ((pV0->vx >> 1) == (pV1->vx >> 1) && (pV0->vz >> 1) == (pV1->vz >> 1)) {
+        return 0;
+    }
+    Area = Sca_get_area((SHORT)pV0->vx, (SHORT)pV0->vz);
+    if (Area != Sca_get_area((SHORT)pV1->vx, (SHORT)pV1->vz)) {
+        Area = 0xFF;
+    }
+    if (!(Flg & 4)) {
+        for (pT++; pT != pEnd && Ret == 0; pT++) {
+            if (!(pT->Id & Attr) || (pT->Id & 0xF) == 11 || !(pT->Type & Area)) {
+                continue;
+            }
+            if (pT->Type & 0x1000) {
+                Dx = pV0->vx - pT->X0;
+                Dz = pV0->vz - pT->Z0;
+                pA->vx = ((Dx - Dz) * 181) >> 8;
+                pA->vz = ((Dx + Dz) * 181) >> 8;
+                pA->vx += pT->X0;
+                pA->vz += pT->Z0;
+                Dx = pV1->vx - pT->X0;
+                Dz = pV1->vz - pT->Z0;
+                pB->vx = ((Dx - Dz) * 181) >> 8;
+                pB->vz = ((Dx + Dz) * 181) >> 8;
+                pB->vx += pT->X0;
+                pB->vz += pT->Z0;
+            } else {
+                pA->vx = pV0->vx;
+                pA->vz = pV0->vz;
+                pB->vx = pV1->vx;
+                pB->vz = pV1->vz;
+            }
+            pA->vy = pV0->vy;
+            pB->vy = pV1->vy;
+            Max = pB->vx;
+            if (Max < pA->vx) {
+                Max = pA->vx;
+            }
+            Min = pB->vx;
+            if (pA->vx < Min) {
+                Min = pA->vx;
+            }
+            if (pT->X1 < Min || Max < pT->X0) {
+                continue;
+            }
+            Max = pB->vz;
+            if (Max < pA->vz) {
+                Max = pA->vz;
+            }
+            Min = pB->vz;
+            if (pA->vz < Min) {
+                Min = pA->vz;
+            }
+            if (pT->Z1 < Min || Max < pT->Z0) {
+                continue;
+            }
+            if (Flg & 1) {
+                Max = pB->vy;
+                if (Max < pA->vy) {
+                    Max = pA->vy;
+                }
+                Min = pB->vy;
+                if (pA->vy < Min) {
+                    Min = pA->vy;
+                }
+                if (Max < pT->High || pT->Floor_lo * -1800 < Min) {
+                    continue;
+                }
+            }
+            P0 = ((pA->vx >> 1) << 16) | ((pA->vz >> 1) & 0xFFFF);
+            P1 = ((pB->vx >> 1) << 16) | ((pB->vz >> 1) & 0xFFFF);
+            Ret = Sca_line_tbl[pT->Id & 0xF](P0, P1, pT);
+            if (Flg & 1) {
+                if ((pT->Id & 0xF) == 6) {
+                    if (Ret == 2) {
+                        Ret = 0;
+                    } else if (Ret != 0) {
+                        Ret = Sca_line_xy_box(pA, pB, pT);
+                        if (Ret != 0) {
+                            Ret = Sca_line_zy_box(pA, pB, pT);
+                        }
+                    }
+                } else if (Ret != 0) {
+                    Ret = Sca_line_xy(pA, pB, pT);
+                    if (Ret != 0) {
+                        Ret = Sca_line_zy(pA, pB, pT);
+                    }
+                }
+            }
+        }
+        if (!(Flg & 2)) {
+            return Ret;
+        }
+    }
+    return Sca_ck_line_oba(pV0, pV1, Attr, Flg);
+}
 
 /* Sca_ck_line-like scan of the collision object list: segment pA-pB against every
  * object (shape test Sca_line_tbl[Id & 0xF]); with Flg & 1 the hit is confirmed in 3D */

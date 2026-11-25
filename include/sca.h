@@ -44,14 +44,21 @@ typedef struct tagSCA_WORK {
     LONG Old_x;                        /* 0x14 */
     LONG Old_z;                        /* 0x18 */
     UCHAR pad1C[0x24 - 0x1C];
-    USHORT Unk24;                      /* 0x24 0x1000 when Sca_get_ground_obj finds a character under the point */
-    UCHAR pad26[0x28 - 0x26];
+    union {
+        ULONG All;                     /* 0x24 */
+        struct {
+            USHORT Id;                 /* 0x24 SCA_DATA.Id of the ground shape (0x1000: a character, Sca_get_ground_obj) */
+            USHORT Type;               /* 0x26 SCA_DATA.Type of the ground shape */
+        } s;
+    } Gnd;                             /* 0x24 set by Sca_get_ground */
     struct tagENEMY_WORK *pEm_hit;     /* 0x28 character hit by Sca_ck_line-like scans (Sca_ck_line_oba) */
     struct tagENEMY_WORK *pEm_hit2;    /* 0x2C same, for objects of type >= 3 */
 } SCA_WORK;
 extern SCA_WORK Sca_work;
 
 extern LONG (*Sca_line_tbl[])(ULONG P0, ULONG P1, SCA_DATA *pT); /* line test per shape (Id & 0xF) */
+extern LONG (*Sca_high_tbl[][13])(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High); /* height per [Flg & 8][shape] */
+extern UCHAR Sca_block_list[]; /* 0xFF-terminated shape list of the grid block (Sca_get_block output) */
 extern SCA_DATA Tmp_Sca; /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
 
 void Sca_set_ground(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y);
