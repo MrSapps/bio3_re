@@ -480,7 +480,7 @@ typedef struct tagGLOBAL {
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
     OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
     OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
-    USHORT *pOm_target[10];            /* 0x75AC per object model flag word (Om_rev); OM_TARGET records (pl_wep.h) */
+    struct tagOM_TARGET *pOm_target[10]; /* 0x75AC aim targets of the object models (OM_TARGET, pl_wep.h; Flg is the Om_rev on/off word) */
     ULONG Om_target_num;               /* 0x75D4 used entries of pOm_target (Obj_model_set; sce0 clears it as pOm_target[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */

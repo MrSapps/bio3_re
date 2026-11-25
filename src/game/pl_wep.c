@@ -3158,7 +3158,7 @@ LONG Weapon_om_at_ck(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
     TransposeMatrix(pM, &Mt);
     SetRotMatrix(&Mt);
     i = pG->Om_target_num;
-    ppT = (OM_TARGET **)pG->pOm_target;
+    ppT = pG->pOm_target;
     do {
         pT = *ppT;
         if (pT->Flg == 0xFF) {
@@ -3258,7 +3258,7 @@ LONG Pos_om_at_ck(HIT_REQ *pReq, HIT_ATTR *pAttr)
     Rot.vy = pReq->R;
     Rot.vz = 0;
     RotMatrix_gte(&Rot, &M);
-    ppT = (OM_TARGET **)pG->pOm_target;
+    ppT = pG->pOm_target;
     *(VECTOR *)M.t = *pReq->pPos;
     pPos = pReq->pPos;
     Bottom = pAttr->Bottom;
@@ -3314,7 +3314,7 @@ VECTOR *Om_target_near(ENEMY_WORK *pEm, ULONG LL)
     if (i == 0) {
         return 0;
     }
-    ppT = (OM_TARGET **)pG->pOm_target;
+    ppT = pG->pOm_target;
     if (LL != 0) {
         Min = LL;
     }

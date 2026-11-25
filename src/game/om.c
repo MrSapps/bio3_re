@@ -407,7 +407,7 @@ void Om_rtn_wait(OBJ_MODEL_WORK *pOm)
             pOm_push = pOm;
         }
     }
-    if ((pOm->Unk4A & 4) && *G.pOm_target[pOm->UnkC1] == 0xFF) {
+    if ((pOm->Unk4A & 4) && G.pOm_target[pOm->UnkC1]->Flg == 0xFF) {
         switch (pOm->Type & 0xC0) {
         case 0:
             Om_explosion(pOm, 1, 1);
@@ -606,13 +606,13 @@ void Om_rtn_target_off(OBJ_MODEL_WORK *pOm)
 {
     switch (pOm->Routine_1) {
     case 0:
-        *G.pOm_target[pOm->UnkC1] = 0xFF;
+        G.pOm_target[pOm->UnkC1]->Flg = 0xFF;
         pOm->Routine_1 = 1;
         break;
     case 1:
         break;
     case 2:
-        *G.pOm_target[pOm->UnkC1] = 0;
+        G.pOm_target[pOm->UnkC1]->Flg = 0;
         pOm->Routine_0 = 0;
         pOm->Routine_1 = 0;
         break;
