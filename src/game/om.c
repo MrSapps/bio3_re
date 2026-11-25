@@ -7,7 +7,7 @@
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
-    return D_80098E88 + D_80099654[No];
+    return Mess_sys_text + Mess_sys_ofs[No];
 }
 
 #define PW_FREE(p) ((USHORT *)&(p)->Unk74)  /* PARTS_W 0x74..0x7F */

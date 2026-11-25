@@ -35,35 +35,42 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
+/* RE2 Print_color: colour and attributes of the next debug prints */
 void Print_color(UCHAR A0, UCHAR Col, USHORT Attr)
 {
     Moji.Unk75C9 = A0;
     Moji.Mess_attr = Attr | (Col << 3);
 }
 
+/* RE2 Print8: printf-style 8-pixel text */
 void Print8(USHORT X, USHORT Y, UCHAR *pFmt, ...)
 {
     Print_main(X | (Y << 16), Moji.Mess_attr, &pFmt);
 }
 
+/* RE2 Print14: printf-style 14-pixel text */
 void Print14(USHORT X, USHORT Y, UCHAR *pFmt, ...)
 {
     Print_main(X | (Y << 16), Moji.Mess_attr | 0x8000, &pFmt);
 }
 
+/* Print8 in colour Col */
 void Print8_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...)
 {
     Print_main(X | (Y << 16), (Moji.Mess_attr & 0xFF07) | (Col << 3), &pFmt);
 }
 
+/* Print14 in colour Col */
 void Print14_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...)
 {
     Print_main(X | (Y << 16), ((SHORT)(Moji.Mess_attr & 0xFF07) | 0x8000) | (Col << 3), &pFmt);
 }
 
+/* formats a Print* string and queues its glyphs */
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Print_main);
 
-void func_8002F98C(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
+/* queues the 8-pixel glyph sprites of a string at Xy */
+void Print8_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
 {
     ULONG Col;
     ULONG Mode;
@@ -105,7 +112,8 @@ void func_8002F98C(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
     pMoji->pPrim8_cur = pPrim;
 }
 
-void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
+/* queues the 14-pixel glyph sprites of a string at Xy */
+void Print14_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
 {
     ULONG Clut;
     ULONG Wh;
@@ -135,7 +143,7 @@ void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
     do {
         pCur = pPrim;
         if (*pStr != 0x20) {
-            W = func_80031970(Mode, *pStr, (LONG *)&Xy);
+            W = Mess_char_width(Mode, *pStr, (LONG *)&Xy);
             *(ULONG *)&pCur->r0 = 0x64808080;
             *(ULONG *)&pCur->x0 = Xy;
             c = *pStr;
@@ -148,7 +156,7 @@ void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
                 break;
             }
         } else {
-            W = func_80031970(Mode, *pStr, (LONG *)&Xy);
+            W = Mess_char_width(Mode, *pStr, (LONG *)&Xy);
         }
         Xy += W;
         pStr++;
@@ -157,6 +165,7 @@ void func_8002FB14(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
     pMoji->pPrim14_cur = pPrim;
 }
 
+/* RE2 Mess_set: opens message Mess_no (Attr 0 system, 0x1000 status, 0x2000 room messages) */
 LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data)
 {
     MOJIDISP *pMoji;
@@ -179,12 +188,12 @@ LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data)
     case 0:
         pMoji->Pos_x_def = 0x22;
         pMoji->Pos_y_def = 0xB9;
-        pMoji->Mess_top = D_80098E88 + D_80099654[Mess_no];
+        pMoji->Mess_top = Mess_sys_text + Mess_sys_ofs[Mess_no];
         break;
     case 0x1000:
         pMoji->Pos_x_def = 0xE;
         pMoji->Pos_y_def = 0xAD;
-        pMoji->Mess_top = D_800996E4 + D_8009BDB4[Mess_no];
+        pMoji->Mess_top = Mess_st_text + Mess_st_ofs[Mess_no];
         break;
     case 0x2000:
         pMoji->Pos_x_def = 0x22;
@@ -202,6 +211,7 @@ LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data)
     return 0;
 }
 
+/* RE2 Moji_trans_main: per frame: message window and the queued text */
 void Moji_trans_main(void)
 {
     MOJIDISP *pMoji = &Moji;
@@ -215,10 +225,12 @@ void Moji_trans_main(void)
     }
 }
 
+/* RE2 Mess_disp: message state machine and drawing */
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Mess_disp);
 /* ---- from 800303CC.c ---- */
 
-ULONG func_800303CC(ULONG Val)
+/* 0x10000 / Val + 1 (0 for 0) */
+ULONG Moji_recip(ULONG Val)
 {
     if (Val == 0) {
         return 0;
@@ -226,9 +238,11 @@ ULONG func_800303CC(ULONG Val)
     return 0x10000 / Val + 1;
 }
 
+/* RE2 Branch_disp: yes/no choice of a message */
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Branch_disp);
 
-void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
+/* live selection choice: two lines and the blinking cursor (colour by Live_sel.Step) */
+void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
 {
     UCHAR *pStr;
     LONG Sel;
@@ -246,7 +260,7 @@ void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
 
     Mode = (USHORT)(pMoji->Mess_attr2 & 0x100);
     if (((*pData++ >> 4) & 7) == 0) {
-        pStr = D_80098E80;
+        pStr = Mess_sel_text;
     } else {
         pStr = pData;
     }
@@ -411,8 +425,10 @@ void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
     }
 }
 
+/* RE2 mess_trans: interprets the message control codes */
 INCLUDE_ASM("asm/nonmatchings/game/mojidisp", mess_trans);
 
+/* RE2 Name_disp: draws an item name */
 void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item)
 {
     UCHAR c;
@@ -518,6 +534,7 @@ void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item)
     Moji.pPrim14_cur = pP;
 }
 
+/* draws a message string directly */
 void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr)
 {
     UCHAR c;
@@ -639,6 +656,7 @@ void Mess_print(ULONG x, ULONG y, UCHAR *pStr, ULONG Attr)
     Moji.pPrim14_cur = pP;
 }
 
+/* RE2 name_ptr_set: name text of item No (the examined name once its Chk_flg is set) */
 UCHAR *name_ptr_set(UCHAR No)
 {
     ULONG Flg;
@@ -646,15 +664,16 @@ UCHAR *name_ptr_set(UCHAR No)
     USHORT *pOfs;
 
     Flg = Item_data_tbl[No].Chk_flg;
-    pTop = D_8009BEE4;
-    pOfs = D_8009C7C0;
-    if (Flg != 0 && Flg_ck(D_800D2048, Flg)) {
+    pTop = Item_name_text;
+    pOfs = Item_name_ofs;
+    if (Flg != 0 && Flg_ck(Item_chk_flg, Flg)) {
         No = Flg - 0x55;
     }
     return pTop + pOfs[No];
 }
 
-LONG func_80031970(ULONG Mode, ULONG Code, LONG *pPos)
+/* width of a proportional glyph (control codes 0x24..), moves *pPos by its left space */
+LONG Mess_char_width(ULONG Mode, ULONG Code, LONG *pPos)
 {
     ULONG Idx;
 
@@ -674,6 +693,7 @@ LONG func_80031970(ULONG Mode, ULONG Code, LONG *pPos)
     return 14;
 }
 
+/* width of glyph Code, moves *pPos by its left space */
 LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos)
 {
     if (Mode != 0 && Code < 0x57) {
@@ -684,6 +704,7 @@ LONG Moji_char_width(ULONG Mode, ULONG Code, LONG *pPos)
     return 14;
 }
 
+/* RE2 Moji_init: message work and glyph sprites */
 void Moji_init(void)
 {
     LONG i;
@@ -720,6 +741,7 @@ void Moji_init(void)
     Moji_mode_init();
 }
 
+/* sets up the glyph sprites of both buffers */
 void Moji_mode_init(void)
 {
     ULONG i;
@@ -742,12 +764,13 @@ void Moji_mode_init(void)
     Moji.pPrim8_cur = Moji.Prim_sprt_8[Cbuf];
 }
 
-static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
+static __inline__ UCHAR *Mess_sys_get(ULONG No)
 {
-    return D_80098E88 + D_80099654[No];
+    return Mess_sys_text + Mess_sys_ofs[No];
 }
 
-void func_80031BDC(void)
+/* task: shows three two-line hint pages (by G+0x2115) for 3 seconds each */
+void Mess_hint_task(void)
 {
     ULONG idx;
     ULONG i;
@@ -771,8 +794,8 @@ void func_80031BDC(void)
         break;
     }
     i = 0;
-    p1 = Msg_get_80031BDC(idx);
-    p2 = Msg_get_80031BDC(idx + 1);
+    p1 = Mess_sys_get(idx);
+    p2 = Mess_sys_get(idx + 1);
     t = VSync(-1);
     while (1) {
         if ((ULONG)(VSync(-1) - t) > 180) {
@@ -780,8 +803,8 @@ void func_80031BDC(void)
             if (i == 6) {
                 break;
             }
-            p1 = Msg_get_80031BDC(idx + i);
-            p2 = Msg_get_80031BDC(idx + i + 1);
+            p1 = Mess_sys_get(idx + i);
+            p2 = Mess_sys_get(idx + i + 1);
             Mess_print(0x22, 0xB9, p1, 0x100);
             Mess_print(0x22, 0xC9, p2, 0x100);
             Task_sleep(1);

@@ -4,7 +4,7 @@
 
 static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
 {
-    return D_80098E88 + D_80099654[No];
+    return Mess_sys_text + Mess_sys_ofs[No];
 }
 
 void Init_scheduler(void)
