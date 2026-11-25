@@ -584,3 +584,43 @@ Near misses (score.py words / dscore):
   target uses &n_prim3; reading the counts through a `USHORT *pN = &n_prim3` does not change it.
 - em_sub Goto01 (g01/sw3, 2304 type combos, best 21): the raw-copy + in-place sign-extension pattern still not found.
 - em_sub Esp_kill (b894/f.c, dscore 74), Esp_speed_add (bc80, 30): no progress.
+
+## Matching round agentJ (types; drafts in the session scratchpad agentJ/best)
+Matched: md_sub Mapping_md, em_sub Esp_speed_add.
+Type fixes (all 60 OK, none changed codegen elsewhere):
+- MD_OBJ 0x14 is one `ULONG n_prim` (low half GT3 count, high half GT4 count), like n_vert. Mapping_md reads it as
+  one word (`n_prim & 0xFFFF`, `n_prim >> 16`), which is what makes loop.c pick &n_prim as the giv base; every other
+  user reads `(USHORT)p->n_prim` (lhu 0x14) / `p->n_prim >> 16` (lhu 0x16, combine narrows the shifted load).
+  Touches md_sub.c and four lines of om.c.
+- KAN_HEAD.Rec_sz is one word too: low half = parts count (lhu 4), bits 18.. = record size (lw 4 >> 18).
+- ESP_WORK.Unk08/Unk0A (sprite scales) are USHORT (lhu in Esp_trans_main/3d); one `(USHORT)` cast in em_sub dropped.
+- Spd_get_sub has a real prototype (pEm, pKan, pSeq_t, R_flg). md_sub `*(USHORT *)&p[n]` casts became `(USHORT)p[n]`.
+Rules learnt:
+- Two halves of one struct word read with lhu at +0/+2: check whether the original read a ULONG (`& 0xFFFF`, `>> 16`);
+  gcc narrows both to lhu, but loop/cse see one memory word, which changes giv bases and register choices.
+- "Loads all six halves first" (Esp_speed_add): two sets of SHORT temps reused for the second sum
+  (`Ax = Spd_x; Bx = Mov_x; ... Mov_x = Ax + Bx; ... Ax = Acc_x; Bx = Spd_x; ...`). The re-read of Spd_x/Spd_y vs
+  the register copy for Spd_z falls out of cse by itself.
+- cse.c make_regs_eqv (2.8.1, line 871): after `B = A` the new pseudo B becomes canonical only if it lives beyond the
+  current cse block and its last use is later than A's; otherwise A stays canonical and later reads of B are rewritten
+  to A. In Goto01 our `Turn = Add_dir` always makes Turn canonical (the -ds dump shows the param copy rewritten to set
+  Turn directly); the target's `move v1,a2` + in-place `sll/sra a2` needs Add_dir to stay canonical. Not found with
+  if/else forms, K&R definitions, params modified in place, or 3000+ type combos.
+- A local constant assigned before an early `if (n == 0) return` keeps its s-reg save at the top of the prologue
+  schedule; assigned after the test, the `sw s0` drops behind the loads (SortGT3_col Vmask).
+- `li v0,1; sll v0,v0,2; addu` (unfolded giv init) means the loop counter's `= 1` was not in the loop pre-header
+  (set at the top of the function, before an earlier loop): Sa_joint_blend `j = 1` at entry.
+Near misses (agentJ/best):
+- em_sub Goto01 (Goto01.c, 3 words): `Turn = (USHORT)Add_dir; USHORT Tgt = Dir` gives every register right; left are the
+  two `andi 0xFFFF` the target does not have (target: raw `move v1,a2`, no andi before `subu v0,a3,a1`). Goto00 has the
+  same pattern (copy of Add_dir made before the Direction_ck call, extension after it).
+- md_sub SortGT3_col (SortGT3_col.c, ~88 score, mostly one shift): needs `n` read from n_prim now; Vmask after the
+  n == 0 test fixes part of the prologue; pZ0/1/2 registers still v1/a1/a0 vs a1/a0/v1.
+- sabun Sa_joint_blend (Sa_joint_blend.c, ~90, struct right): the first loop's three `lh` and the GTE loop's three
+  `lhu` share one giv in the target (0/2/4 off one register); every form tried splits off a second giv for +4.
+  Uses `SVECTOR Tmp` filled field by field for gte_ldsv, `Shape_sz = pHead[2]` hoisted, `j = 1` at the top.
+- trans Esp_trans_3d (Esp_trans_3d.c, 70): RE2 TRANS.C shape with X/Y/X1/Y1 SHORT temps computed before rtps; frame and
+  stack layout match. The target saves s2 but never uses it (the mult products were allocated to s2 and later moved
+  to v1 by reload); ours keeps them in s2.
+- em_sub Spd_get_sub (Spd_get_sub.c): the pKan copy (t5) comes out right, the pSeq_t copy (t3) never does.
+- Kage_work9_sort is compiled C with -fcaller-saves (t0/t3/t4 saved around jal), not hand-written.
