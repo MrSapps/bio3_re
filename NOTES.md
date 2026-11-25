@@ -375,6 +375,21 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   (`addu t0,a1,zero`, D898 twice); no C or PsyQ inline_c.h macro form reproduces it (gcc 2.8 global-alloc
   always gives the parameter its incoming register unless it clashes with that hard reg).
 
+### Cleanup pass (status/system/scenario side)
+- New exe names went straight into symbol_addrs.txt (section "cleanup names"), followed by a main `make split`
+  (9 s); overlays whose C uses a renamed exe symbol were re-split (`rm -rf asm/data/ovl/<o> asm/nonmatchings/ovl/<o>`,
+  splat; em*: also `tools/mkovl.py --bss`). Overlay names go into ovl/<o>.syms.txt the same way. Rename C uses with a
+  word-boundary replace over the whole tree. Check afterwards that no C file still uses a D_/func_ alias of a renamed
+  address (title used D_80031BDC for Mess_hint_task).
+- 800636D4.c is now status.c (one object). Its sprite tables are ST_SPR_DEF/ST_FT4_DEF/ST_TILE_DEF; item tables are
+  ITEM_DATA (Item_data_tbl), ITEM_MIX, ITEM_CHECK, ITEM_TAMA; map data ST_MAP_DATA/ST_MAP_FLG (MAP_FLG_LIST keeps the
+  load order the original has). Most box/status sprite tables (D_8009F3xx..D_800A00xx) still have address names.
+- Aliases that remain are implicit declarations in Capcom's files (int return kept live in v0, or int arguments
+  without the char/short masks) and array views of scalars (a store through an array is not moved before loads of
+  struct fields); each says so in its comment. Calls through a void prototype matched for Pad_vib_*, Xa_play and
+  the rain setter, so those aliases were dropped; Set_view, Quake_add, Kage_work_color_set, Flg_off and the
+  LINE_SCR functions really need the int return.
+
 ## Code shared between overlays (src/enemy/common, src/ovl/common)
 
 Overlays are linked separately, so identical routines exist once per overlay in the binary. In the source they
