@@ -2115,7 +2115,7 @@ ULONG Ck_lock_wall(ENEMY_WORK *pEm)
     pSc = pEm->Col.pSca_hit_data;
     pFp = EF(pEm);
     if (pSc) {
-        pos = func_800502B8(POS_V(pEm), pSc);
+        pos = Sca_get_dir(POS_V(pEm), pSc);
         pFp->pWall = pSc;
         pFp->Sc_dir = pos << 10;
         dir = (pEm->Cdir_y + 0x200) & 0xC00;
@@ -2624,7 +2624,7 @@ LONG Em25_box_ray_ck(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2)
     pEnd = pSc + SCA_HEAD_NUM(pSc);
     for (pSc++; pSc != pEnd && !Hit; pSc++) {
         if ((pSc->Id & Mask) && (pSc->Id & 0xF) == 1)
-            Hit = func_8004F258(((pPos->vx >> 1) << 16) | ((pPos->vz >> 1) & 0xFFFF),
+            Hit = Sca_line_wall(((pPos->vx >> 1) << 16) | ((pPos->vz >> 1) & 0xFFFF),
                                 ((P0.vx >> 1) << 16) | ((P0.vz >> 1) & 0xFFFF), pSc);
     }
     pEm->Col.pSca_hit_data = --pSc;
@@ -2648,7 +2648,7 @@ LONG Em25_box_ray_ck(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2)
         pEnd = pSc + SCA_HEAD_NUM(pSc);
         for (pSc++; pSc != pEnd && !Hit; pSc++) {
             if ((pSc->Id & Mask) && (pSc->Id & 0xF) == 1)
-                Hit = func_8004F258(((P0.vx >> 1) << 16) | ((P0.vz >> 1) & 0xFFFF),
+                Hit = Sca_line_wall(((P0.vx >> 1) << 16) | ((P0.vz >> 1) & 0xFFFF),
                                     ((P1.vx >> 1) << 16) | ((P1.vz >> 1) & 0xFFFF), pSc);
         }
         pEm->Col.pSca_hit_data = --pSc;

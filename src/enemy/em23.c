@@ -687,7 +687,7 @@ LONG Em23_wall_climb_ck(ENEMY_WORK *pEm, SCA_DATA *pS)
 {
     ULONG Side;
 
-    Side = func_800502B8(POS_V(pEm), pS);
+    Side = Sca_get_dir(POS_V(pEm), pS);
     EF(pEm)->Side = Side;
     if (Side & 1) {
         if (pS->X0 + 800 < pEm->Pos_x && pEm->Pos_x < pS->X1 - 800 && (pS->Type & 0x500))
@@ -732,7 +732,7 @@ LONG Em23_wall_probe_up(ENEMY_WORK *pEm, LONG Dist, LONG Up, LONG Side)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x100) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -758,7 +758,7 @@ LONG Em23_wall_probe_up(ENEMY_WORK *pEm, LONG Dist, LONG Up, LONG Side)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x100) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(P0.vx, P0.vz), SCA_XZ(P1.vx, P1.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(P0.vx, P0.vz), SCA_XZ(P1.vx, P1.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -779,7 +779,7 @@ LONG Em23_wall_probe_up(ENEMY_WORK *pEm, LONG Dist, LONG Up, LONG Side)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x100) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(P0.vx, P0.vz), SCA_XZ(P1.vx, P1.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(P0.vx, P0.vz), SCA_XZ(P1.vx, P1.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -832,7 +832,7 @@ LONG Em23_edge_probe(ENEMY_WORK *pEm, LONG Dist, LONG Down)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x200) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(P0.vx, P0.vz), SCA_XZ(P1.vx, P1.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(P0.vx, P0.vz), SCA_XZ(P1.vx, P1.vz), pS);
         }
     }
     return Hit;
@@ -870,7 +870,7 @@ LONG Em23_wall_probe_turn(ENEMY_WORK *pEm, LONG Dist, LONG Dir, LONG Flg)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x100) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -892,7 +892,7 @@ LONG Em23_wall_probe_turn(ENEMY_WORK *pEm, LONG Dist, LONG Dir, LONG Flg)
             while (!(Hit & 1) && ++pS != pEnd) {
                 if (pS->Id & 0x100) {
                     if ((pS->Id & 0xF) == 1)
-                        Hit |= func_8004F258(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                        Hit |= Sca_line_wall(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
                 }
             }
         }
@@ -934,7 +934,7 @@ LONG Em23_wall_probe_ahead(ENEMY_WORK *pEm, LONG Dist, LONG Dir)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x100) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -973,13 +973,13 @@ LONG Em23_floor_probe(ENEMY_WORK *pEm, LONG Dist)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x200) {
             if ((pS->Id & 0xF) == 1)
-                Hit = func_8004F258(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_wall(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
             if (!(pS->Id & 0xF))
-                Hit = func_8004F098(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_circle(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
             if ((pS->Id & 0xF) == 2)
-                Hit = func_8004F498(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_koban_x(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
             if ((pS->Id & 0xF) == 3)
-                Hit = func_8004F5B4(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_koban_z(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -1018,11 +1018,11 @@ LONG Em23_floor_probe_box(ENEMY_WORK *pEm, LONG Dist)
     while (!Hit && ++pS != pEnd) {
         if (pS->Id & 0x200) {
             if (!(pS->Id & 0xF))
-                Hit = func_8004F098(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_circle(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
             if ((pS->Id & 0xF) == 2)
-                Hit = func_8004F498(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_koban_x(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
             if ((pS->Id & 0xF) == 3)
-                Hit = func_8004F5B4(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
+                Hit = Sca_line_koban_z(SCA_XZ(pPos[0], pPos[2]), SCA_XZ(P0.vx, P0.vz), pS);
         }
     }
     pEm->Col.pSca_hit_data = pS;
@@ -1070,14 +1070,14 @@ LONG Em23_front_probe(ENEMY_WORK *pEm, LONG Dist)
             Hit = 0;
             if (pS->Id & 0x100) {
                 if ((pS->Id & 0xF) == 1)
-                    Hit = func_8004F258(A, B, pS);
+                    Hit = Sca_line_wall(A, B, pS);
             } else {
                 if (!(pS->Id & 0xF))
-                    Hit = func_8004F098(A, B, pS) << 1;
+                    Hit = Sca_line_circle(A, B, pS) << 1;
                 if ((pS->Id & 0xF) == 2)
-                    Hit = func_8004F498(A, B, pS) << 1;
+                    Hit = Sca_line_koban_x(A, B, pS) << 1;
                 if ((pS->Id & 0xF) == 3)
-                    Hit = func_8004F5B4(A, B, pS) << 1;
+                    Hit = Sca_line_koban_z(A, B, pS) << 1;
             }
             if (Hit) {
                 Res = Hit;

@@ -291,12 +291,12 @@ void Oba_pos_back(COL_OBJ *pTop)
         if (pEm->Unk1B8 != 0) {
             pV->vy = y - pEm->Unk1B8;
         }
-        D_800DEB58.Unk8 = 0;
+        Sca_work.Unk8 = 0;
         p->Unk39 &= ~8;
         if (p->Hit_flg & 0x80) {
-            func_8004B7E8(pEm, p, Sca_get_ground(&pV->vx, W, Tbl, 9));
+            Sca_set_ground(pEm, p, Sca_get_ground(&pV->vx, W, Tbl, 9));
         }
-        if (D_800DEB58.Unk8 == 0) {
+        if (Sca_work.Unk8 == 0) {
             p->Unk39 |= 8;
             p->Hit_flg &= ~0x40;
             if (p->Type < 3) {
@@ -607,7 +607,7 @@ LONG Oba_area_ck(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
     LONG Shape;
 
     pE = pEnt = Oba_work.Ent;
-    Area = func_8004D6B8((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
+    Area = Sca_get_area((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
     for (; pEnt->C.All != -1; pEnt = ++pE) {
         if ((pEnt->Area & Area) != Area) {
             continue;

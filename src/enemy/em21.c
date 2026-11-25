@@ -9,7 +9,7 @@
 LONG Rnd_l(void) __asm__("Rnd");
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 void Add_speedXZ_n(ENEMY_WORK *pEm, LONG muki, LONG Dummy) __asm__("Add_speedXZ");
-LONG Sca_get_dir_l(SVECTOR *pPos, struct tagSCA_DATA *pT) __asm__("func_800502B8"); /* RE2 Sca_get_dir */
+LONG Sca_get_dir_l(SVECTOR *pPos, struct tagSCA_DATA *pT) __asm__("Sca_get_dir"); /* RE2 Sca_get_dir */
 
 /* RE2 EM_MAIN (Em121/Em221): per-frame entry of the crow: routine dispatch, collision, shadow, sounds */
 void Em21_main(ENEMY_WORK *pEm)

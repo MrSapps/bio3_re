@@ -10,14 +10,15 @@
 #define gte_nclip() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_stopz(r0) __asm__ volatile("swc2 $24, 0(%0)" : : "r"(r0) : "memory")
 
-void func_8004B7E8(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
+/* store a ground height in the character (Ground, nFloor, Pos_y unless Be_flg 0x400; keeps the stairs offset Unk1B8 while Sca_work.Unk8 is set); oba.c passes the Sca_get_ground result */
+void Sca_set_ground(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
 {
     pEm->Ground = Y;
     pEm->nFloor = Y / -1800;
     if (!(pEm->Be_flg & 0x400)) {
         pEm->Base_pos_y = pEm->Pos_y = pEm->Ground;
     }
-    if (D_800DEB58.Unk8 != 0) {
+    if (Sca_work.Unk8 != 0) {
         pEm->Pos_y += pEm->Unk1B8;
         if (pEm->Ground < pEm->Pos_y) {
             pEm->Pos_y = pEm->Ground;
@@ -27,11 +28,14 @@ void func_8004B7E8(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004B874);
+/* push a COL_OBJ off the wall segment Sca_work.Pt0-Pt1 (GTE nclip side test, Sca_ck_pass_line first), then circle-push off both end points via Tmp_Sca/Sca_hit_circle; building block of the edge-based hit routines (no RE2 equivalent) */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_line);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004BB4C);
+/* hit routine for shape 4 (diamond): Sca_rtn_tbl[4]; RE2 Sca_hit_hishi (same shape slot as Sca_high_hishi / Sca_line_hishi) */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_hishi);
 
-ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+/* hit routine for shape 0: push the object out of the circle (R < 0 = use the 45-degree rotated position in Sca_work and rotate the push back); RE2 Sca_hit_circle */
+ULONG Sca_hit_circle(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
 {
     SCA_WORK *pW;
     ULONG Rot;
@@ -46,7 +50,7 @@ ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
     LONG Mz;
 
     Rot = 0;
-    pW = &D_800DEB58;
+    pW = &Sca_work;
     if (R < 0) {
         do { /* (matching: raises R's register priority) */
             R = -R;
@@ -89,11 +93,14 @@ ULONG func_8004C408(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C57C);
+/* hit routine for shape 2: capsule along X, middle part as Sca_hit_box, rounded ends as Sca_hit_circle on Tmp_Sca; RE2 Sca_hit_koban_x */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_koban_x);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C6EC);
+/* hit routine for shape 3: same along Z; RE2 Sca_hit_koban_z */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_koban_z);
 
-ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
+/* box hit when the old position is already inside: push to the nearer edge on each axis (direction from the move), then Sca_hosei_box; RE2 Sca_hit_box2 */
+ULONG Sca_hit_box2(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
 {
     SCA_WORK *pW;
     LONG X;
@@ -106,7 +113,7 @@ ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
     LONG Hz;
     LONG Near;
 
-    pW = &D_800DEB58;
+    pW = &Sca_work;
     X = pW->X;
     Dx = X - pW->Old_x;
     Side = (ULONG)Dx >> 31;
@@ -133,12 +140,14 @@ ULONG func_8004C85C(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
     } else if (-Near < Hz) {
         Hz = Near;
     }
-    return func_8004CC54(pObj, Hx, Hz, pT);
+    return Sca_hosei_box(pObj, Hx, Hz, pT);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004C960);
+/* hit routine for shapes 1/5/7/8: box push (Type & 0xF00 == 0 only sets Hit_flg 0x80), inside case goes to Sca_hit_box2; RE2 Sca_hit_box */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_box);
 
-ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
+/* apply the box push Dx/Dz: pick the axis from the move direction with a slide limit (W0 capped at 400, else Hit_flg 0x100), rotate back for 45-degree shapes; RE2 Sca_hosei_box */
+ULONG Sca_hosei_box(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
 {
     SCA_WORK *pW;
     LONG Lim;
@@ -148,7 +157,7 @@ ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
     LONG Z;
 
     Lim = 400;
-    pW = &D_800DEB58;
+    pW = &Sca_work;
     if (pObj->W0 < 401) {
         Lim = pObj->W0;
     }
@@ -203,9 +212,11 @@ ULONG func_8004CC54(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004CE2C);
+/* hit routine for shapes 9/10 (slope, stairs): Sca_hit_line on each edge flagged in Type 0x100..0x800 (stairs side walls dropped when the object is within the width), RE2 Sca_hit_slope role */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_slope);
 
-ULONG func_8004D194(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+/* hit routine for shape 6 (right triangle, corner = (Id >> 4) & 3): Sca_hit_line on the flagged legs / hypotenuse; one routine for RE2 Sca_hit_naname_a..d */
+ULONG Sca_hit_naname(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
 {
     SCA_WORK *pW;
     ULONG Ret;
@@ -213,40 +224,40 @@ ULONG func_8004D194(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
     ULONG Type;
 
     Ret = 0;
-    pW = &D_800DEB58;
+    pW = &Sca_work;
     Dir = (pT->Id >> 4) & 3;
     Type = pT->Type;
     if (Type & 0x100) {
         if (Dir & 2) {
             pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
             pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z0;
-            Ret = func_8004B874(pObj, R, Arg3);
+            Ret = Sca_hit_line(pObj, R, Arg3);
         } else {
             pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z1;
             pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z1;
-            Ret = func_8004B874(pObj, R, Arg3);
+            Ret = Sca_hit_line(pObj, R, Arg3);
         }
     }
     if (Type & 0x200) {
         if (Dir & 1) {
             pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
             pW->Pt1 = (pT->X0 << 16) | (USHORT)pT->Z1;
-            Ret |= func_8004B874(pObj, R, Arg3);
+            Ret |= Sca_hit_line(pObj, R, Arg3);
         } else {
             pW->Pt0 = (pT->X1 << 16) | (USHORT)pT->Z0;
             pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z1;
-            Ret |= func_8004B874(pObj, R, Arg3);
+            Ret |= Sca_hit_line(pObj, R, Arg3);
         }
     }
     if (Type & 0x400) {
         if (Dir == 0 || Dir == 3) {
             pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z1;
             pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z0;
-            Ret |= func_8004B874(pObj, R, Arg3);
+            Ret |= Sca_hit_line(pObj, R, Arg3);
         } else {
             pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
             pW->Pt1 = (pT->X1 << 16) | (USHORT)pT->Z1;
-            Ret |= func_8004B874(pObj, R, Arg3);
+            Ret |= Sca_hit_line(pObj, R, Arg3);
         }
     }
     return Ret;
@@ -272,9 +283,11 @@ ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D404);
+/* push a COL_OBJ off a circle at (X, Z) radius R (another character, from oba func_80034814): pass-through test on the perpendicular diameter (Sca_ck_pass_line) plus Sca_hit_circle on Tmp_Sca */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_circle_obj);
 
-ULONG func_8004D590(COL_OBJ *pObj, LONG R, ULONG P0)
+/* did the move Old->Pos cross the segment Sca_work.Pt0-Pt1 (GTE nclip); if so add (Old - Pos) back and return 1 */
+ULONG Sca_ck_pass_line(COL_OBJ *pObj, LONG R, ULONG P0)
 {
     SCA_WORK *pW;
     LONG X;
@@ -288,7 +301,7 @@ ULONG func_8004D590(COL_OBJ *pObj, LONG R, ULONG P0)
     ULONG Sign;
     LONG Opz[4];
 
-    pW = &D_800DEB58;
+    pW = &Sca_work;
     P2 = pW->Pt0;
     P3 = pW->Pt1;
     X = pObj->Pos_x;
@@ -322,13 +335,14 @@ ULONG func_8004D590(COL_OBJ *pObj, LONG R, ULONG P0)
     return Ret;
 }
 
-LONG func_8004D6B0(void)
+/* hit routine for shapes 11/12: returns 0 */
+LONG Sca_hit_dummy(void)
 {
     return 0;
 }
 
 /* area bits of (X, Z) against the room's two split points (RE2 Sca_get_area twice) */
-ULONG func_8004D6B8(LONG X, LONG Z)
+ULONG Sca_get_area(LONG X, LONG Z)
 {
     SCA_HEAD *pH = G.pRoom->pSca;
     LONG Sx;
@@ -347,9 +361,11 @@ ULONG func_8004D6B8(LONG X, LONG Z)
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground);
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004DB10);
+/* highest standable top of the collision objects (Oba_work list, box/circle) under the position, starting from the room ground; records the character stood on in Sca_work.pEm_hit/pEm_hit2; called by Sca_get_ground */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground_oba);
 
-ULONG func_8004DDC4(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut)
+/* copy the 0xFF-terminated shape index list of the 16x16 room grid block containing pPos (table of USHORT offsets + byte lists); used by Sca_get_ground */
+ULONG Sca_get_block(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut)
 {
     USHORT *p;
     LONG x;
@@ -386,7 +402,8 @@ ULONG Sca_ck_circle2(VECTOR *pPos, LONG R, SCA_DATA *pT)
     return SquareRoot0(Dx * Dx + Dz * Dz) < Lim;
 }
 
-LONG func_8004DEA8(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+/* height routine for shapes without a top (5, 7, 8, 11, ...): returns High unchanged */
+LONG Sca_high_dummy(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 {
     return High;
 }
@@ -409,7 +426,8 @@ LONG Sca_high_circle(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     return High;
 }
 
-LONG func_8004DF24(SCA_DATA *pT, VECTOR *pPos, LONG Unused, LONG High)
+/* height routine for shape 6: dispatch to Sca_high_naname_a..d by (Id >> 4) & 3 */
+LONG Sca_high_naname(SCA_DATA *pT, VECTOR *pPos, LONG Unused, LONG High)
 {
     LONG (*Tbl[4])(SCA_DATA *, VECTOR *, LONG) = {
         Sca_high_naname_a, Sca_high_naname_b, Sca_high_naname_c, Sca_high_naname_d
@@ -464,7 +482,8 @@ LONG Sca_high_naname_d(SCA_DATA *pT, VECTOR *pPos, LONG High)
     return High;
 }
 
-LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High, LONG Unused)
+/* height on a slope: linear ramp from the Floor_lo level to High + 1800 along the direction (Id >> 4) & 3, clamped; RE2 Sca_get_slope_high */
+LONG Sca_high_slope(SCA_DATA *pT, VECTOR *pPos, LONG High, LONG Unused)
 {
     LONG X;
     LONG Z;
@@ -505,7 +524,8 @@ LONG func_8004E10C(SCA_DATA *pT, VECTOR *pPos, LONG High, LONG Unused)
     return High;
 }
 
-LONG func_8004E230(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+/* height routine for shape 10 (stairs): sets Sca_work.Unk8, Flg & 1 -> Sca_high_slope, Flg & 2 -> High, else 450 per 540 step, clamped; RE2 Sca_get_stairs_high (same 0x21C/0x1C2 constants) */
+LONG Sca_high_stairs(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 {
     LONG Dir;
     LONG Lo;
@@ -513,9 +533,9 @@ LONG func_8004E230(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     LONG H;
 
     Dir = (pT->Id >> 4) & 3;
-    D_800DEB58.Unk8 = 1;
+    Sca_work.Unk8 = 1;
     if (Flg & 1) {
-        return func_8004E10C(pT, pPos, Flg, High);
+        return Sca_high_slope(pT, pPos, Flg, High);
     }
     if (Flg & 2) {
         return pT->High;
@@ -547,8 +567,8 @@ LONG func_8004E230(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 }
 
 /* height of a koban (capsule) along X, RE2 Sca_ck_koban_x as a height routine: in the rounded ends the
- * point must lie in the end circle (func_8004E38C = Sca_high_koban_x) */
-LONG func_8004E38C(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+ * point must lie in the end circle */
+LONG Sca_high_koban_x(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 {
     SHORT D;
     SHORT Half;
@@ -585,8 +605,8 @@ LONG func_8004E38C(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     } while (0);
 }
 
-/* height of a koban (capsule) along Z, RE2 Sca_ck_koban_z as a height routine (func_8004E4C4 = Sca_high_koban_z) */
-LONG func_8004E4C4(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+/* height of a koban (capsule) along Z, RE2 Sca_ck_koban_z as a height routine */
+LONG Sca_high_koban_z(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 {
     SHORT W;
     SHORT Half;
@@ -623,9 +643,11 @@ LONG func_8004E4C4(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
     } while (0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004E5FC);
+/* height routine for shape 4 (diamond): per quadrant from the centre, inside the edge line -> pT->High; RE2 Sca_ck_hishi as a height test */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_high_hishi);
 
-LONG func_8004E750(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+/* height routine for shape 12: top falls linearly from High at the centre to the Floor_lo level at the circle's rim (cone / mound); no RE2 equivalent (RE2 Sca_get_curve_high is a half cylinder) */
+LONG Sca_high_cone(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 {
     LONG R;
     LONG dx;
@@ -649,8 +671,8 @@ LONG func_8004E750(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_ck_line);
 
 /* Sca_ck_line-like scan of the collision object list: segment pA-pB against every
- * object (shape test D_8009E088[Id & 0xF]); with Flg & 1 the hit is confirmed in 3D */
-LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
+ * object (shape test Sca_line_tbl[Id & 0xF]); with Flg & 1 the hit is confirmed in 3D */
+LONG Sca_ck_line_oba(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
 {
     SCA_WORK *pW;
     COL_ENT *pEnt;
@@ -661,7 +683,7 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
 
     Ret = 0;
     pT = (SCA_DATA *)G.pRoom->pSca;
-    pW = &D_800DEB58;
+    pW = &Sca_work;
     if (pT->X0 == 0) {
         return Ret;
     }
@@ -674,7 +696,7 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
                 pT = &Tmp_Sca;
                 func_80034E78(pEnt->pObj, pT);
             }
-            Ret = D_8009E088[pT->Id & 0xF](P0, P1, pT);
+            Ret = Sca_line_tbl[pT->Id & 0xF](P0, P1, pT);
             if (!(Flg & 1)) {
                 if (Ret != 0) {
                     if (pEnt->Type < 3) {
@@ -686,9 +708,9 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
                     }
                 }
             } else if (Ret != 0) {
-                Ret = func_8004F928(pA, pB, pT);
+                Ret = Sca_line_xy(pA, pB, pT);
                 if (Ret != 0) {
-                    Ret = func_8004FBD4(pA, pB, pT);
+                    Ret = Sca_line_zy(pA, pB, pT);
                     if (Ret != 0) {
                         if (pEnt->Type < 3) {
                             pW->pEm_hit = pEnt->pObj->pEm;
@@ -706,7 +728,8 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
     return Ret;
 }
 
-LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3)
+/* do segments P0-P1 and P2-P3 cross (two pairs of GTE nclip sign tests); points packed (x << 16) | z */
+LONG Sca_ck_cross(ULONG P0, ULONG P1, ULONG P2, ULONG P3)
 {
     LONG Opz[2];
     ULONG Ret;
@@ -730,21 +753,25 @@ LONG func_8004EF74(ULONG P0, ULONG P1, ULONG P2, ULONG P3)
     return ((Opz[0] ^ Opz[1]) & Ret) != 0;
 }
 
-LONG func_8004F02C(void)
+/* line test for shapes 8/11/12: returns 0 */
+LONG Sca_line_dummy(void)
 {
     return 0;
 }
 
-LONG func_8004F034(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shape 5: the single diagonal (X0,Z0)-(X1,Z1) */
+LONG Sca_line_diag(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     UCHAR Unused[0x20];
 
-    return func_8004EF74(P0, P1, ((pT->X0 >> 1) << 16) | ((pT->Z0 >> 1) & 0xFFFF), ((pT->X1 >> 1) << 16) | ((pT->Z1 >> 1) & 0xFFFF));
+    return Sca_ck_cross(P0, P1, ((pT->X0 >> 1) << 16) | ((pT->Z0 >> 1) & 0xFFFF), ((pT->X1 >> 1) << 16) | ((pT->Z1 >> 1) & 0xFFFF));
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004F098);
+/* line test for shape 0: line against the circle's diameter perpendicular to it, or P1 inside the circle */
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_line_circle);
 
-LONG func_8004F258(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shapes 9/10 (and boxes in em23/em25): each box edge whose wall flag is set in Type 0x100/0x200/0x400/0x800 */
+LONG Sca_line_wall(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     LONG Unused[8];
     LONG x0, x1, z0, z1;
@@ -758,25 +785,26 @@ LONG func_8004F258(ULONG P0, ULONG P1, SCA_DATA *pT)
     x1 = pT->X1 >> 1;
     A = (x0 << 16) | (z0 & 0xFFFF);
     B = (x0 << 16) | (z1 & 0xFFFF);
-    if ((Flg & 0x100) && func_8004EF74(P0, P1, A, B)) {
+    if ((Flg & 0x100) && Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     A = (x1 << 16) | (z1 & 0xFFFF);
-    if ((Flg & 0x200) && func_8004EF74(P0, P1, A, B)) {
+    if ((Flg & 0x200) && Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     B = (x1 << 16) | (z0 & 0xFFFF);
-    if ((Flg & 0x400) && func_8004EF74(P0, P1, A, B)) {
+    if ((Flg & 0x400) && Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     A = (x0 << 16) | (z0 & 0xFFFF);
-    if ((Flg & 0x800) && func_8004EF74(P0, P1, A, B)) {
+    if ((Flg & 0x800) && Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     return 0;
 }
 
-LONG func_8004F3C8(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shapes 1/7: both diagonals of the box */
+LONG Sca_line_box(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     LONG Unused[8];
     ULONG Z0, Z1;
@@ -789,15 +817,16 @@ LONG func_8004F3C8(ULONG P0, ULONG P1, SCA_DATA *pT)
     z0 = pT->Z0 >> 1;
     A = (x0 << 16) | (Z1 = z1 & 0xFFFF);
     B = (x1 << 16) | (Z0 = z0 & 0xFFFF);
-    if (func_8004EF74(P0, P1, A, B)) {
+    if (Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     A &= 0xFFFF0000;
     B &= 0xFFFF0000;
-    return func_8004EF74(P0, P1, A | Z0, B | Z1) != 0;
+    return Sca_ck_cross(P0, P1, A | Z0, B | Z1) != 0;
 }
 
-LONG func_8004F498(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shape 2: capsule along X (centre line + two inner diagonals) */
+LONG Sca_line_koban_x(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     LONG Unused[8];
     LONG x0, x1, z0, z1, d;
@@ -808,20 +837,21 @@ LONG func_8004F498(ULONG P0, ULONG P1, SCA_DATA *pT)
     d = (pT->Z1 - pT->Z0) >> 2;
     z1 = pT->Z1 >> 1;
     x1 = pT->X1 >> 1;
-    if (func_8004EF74(P0, P1, (x0 << 16) | ((z0 + d) & 0xFFFF), (x1 << 16) | ((z0 + d) & 0xFFFF))) {
+    if (Sca_ck_cross(P0, P1, (x0 << 16) | ((z0 + d) & 0xFFFF), (x1 << 16) | ((z0 + d) & 0xFFFF))) {
         return 1;
     }
     A = ((x0 + d) << 16) | (Z0 = z0 & 0xFFFF);
     B = ((x1 - d) << 16) | (Z1 = z1 & 0xFFFF);
-    if (func_8004EF74(P0, P1, A, B)) {
+    if (Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     A &= 0xFFFF0000;
     B &= 0xFFFF0000;
-    return func_8004EF74(P0, P1, A | Z1, B | Z0) != 0;
+    return Sca_ck_cross(P0, P1, A | Z1, B | Z0) != 0;
 }
 
-LONG func_8004F5B4(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shape 3: capsule along Z */
+LONG Sca_line_koban_z(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     LONG Unused[8];
     LONG x0, x1, z0, z1, d;
@@ -832,20 +862,21 @@ LONG func_8004F5B4(ULONG P0, ULONG P1, SCA_DATA *pT)
     z0 = pT->Z0 >> 1;
     d = (pT->X1 - pT->X0) >> 2;
     z1 = pT->Z1 >> 1;
-    if (func_8004EF74(P0, P1, ((x0 + d) << 16) | (z0 & 0xFFFF), ((x0 + d) << 16) | (z1 & 0xFFFF))) {
+    if (Sca_ck_cross(P0, P1, ((x0 + d) << 16) | (z0 & 0xFFFF), ((x0 + d) << 16) | (z1 & 0xFFFF))) {
         return 1;
     }
     A = (x0 << 16) | ((z0 + d) & 0xFFFF);
     B = (x1 << 16) | ((z1 - d) & 0xFFFF);
-    if (func_8004EF74(P0, P1, A, B)) {
+    if (Sca_ck_cross(P0, P1, A, B)) {
         return 1;
     }
     A &= 0xFFFF;
     B &= 0xFFFF;
-    return func_8004EF74(P0, P1, A | (x1 << 16), B | (x0 << 16)) != 0;
+    return Sca_ck_cross(P0, P1, A | (x1 << 16), B | (x0 << 16)) != 0;
 }
 
-LONG func_8004F6CC(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shape 4: the two centre lines (diamond's diagonals) */
+LONG Sca_line_hishi(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     LONG Unused[8];
     LONG x0, x1, z0, z1;
@@ -857,13 +888,14 @@ LONG func_8004F6CC(ULONG P0, ULONG P1, SCA_DATA *pT)
     z1 = pT->Z1 >> 1;
     xm = x0 + ((x1 - x0) >> 1);
     dz = (z1 - z0) >> 1;
-    if (func_8004EF74(P0, P1, (xm << 16) | (z0 & 0xFFFF), (xm << 16) | (z1 & 0xFFFF))) {
+    if (Sca_ck_cross(P0, P1, (xm << 16) | (z0 & 0xFFFF), (xm << 16) | (z1 & 0xFFFF))) {
         return 1;
     }
-    return func_8004EF74(P0, P1, (x0 << 16) | ((z0 + dz) & 0xFFFF), (x1 << 16) | ((z0 + dz) & 0xFFFF)) != 0;
+    return Sca_ck_cross(P0, P1, (x0 << 16) | ((z0 + dz) & 0xFFFF), (x1 << 16) | ((z0 + dz) & 0xFFFF)) != 0;
 }
 
-LONG func_8004F7A8(ULONG P0, ULONG P1, SCA_DATA *pT)
+/* line test for shape 6: the two legs (return 1) and the hypotenuse (return 2) of the triangle, corner from Id & 0x30 */
+LONG Sca_line_naname(ULONG P0, ULONG P1, SCA_DATA *pT)
 {
     LONG Unused[8];
     LONG x0, x1, z0, z1;
@@ -876,34 +908,35 @@ LONG func_8004F7A8(ULONG P0, ULONG P1, SCA_DATA *pT)
     z0 = pT->Z0 >> 1;
     z1 = pT->Z1 >> 1;
     if (Flg & 0x20) {
-        Ret = func_8004EF74(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z0 & 0xFFFF));
+        Ret = Sca_ck_cross(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z0 & 0xFFFF));
     } else {
-        Ret = func_8004EF74(P0, P1, (x0 << 16) | (z1 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF));
+        Ret = Sca_ck_cross(P0, P1, (x0 << 16) | (z1 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF));
     }
     if (Ret) {
         return 1;
     }
     if (Flg & 0x10) {
-        Ret = func_8004EF74(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x0 << 16) | (z1 & 0xFFFF));
+        Ret = Sca_ck_cross(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x0 << 16) | (z1 & 0xFFFF));
     } else {
-        Ret = func_8004EF74(P0, P1, (x1 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF));
+        Ret = Sca_ck_cross(P0, P1, (x1 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF));
     }
     if (Ret) {
         return 1;
     }
     if (Flg == 0 || Flg == 0x30) {
-        if (func_8004EF74(P0, P1, (x0 << 16) | (z1 & 0xFFFF), (x1 << 16) | (z0 & 0xFFFF))) {
+        if (Sca_ck_cross(P0, P1, (x0 << 16) | (z1 & 0xFFFF), (x1 << 16) | (z0 & 0xFFFF))) {
             return 2;
         }
     } else {
-        if (func_8004EF74(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF))) {
+        if (Sca_ck_cross(P0, P1, (x0 << 16) | (z0 & 0xFFFF), (x1 << 16) | (z1 & 0xFFFF))) {
             return 2;
         }
     }
     return 0;
 }
 
-LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+/* Sca_ck_line height confirm, X-Y projection: line against the shape's side rectangle (Floor_lo..High), slope / stairs profile for shapes >= 9 */
+LONG Sca_line_xy(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
 {
     LONG ax, ay, bx, by;
     LONG hi, lo, x0, x1;
@@ -935,25 +968,25 @@ LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
             if (Id & 0x10) {
                 A = (x0 << 16) | (lo & 0xFFFF);
                 B = (x0 << 16) | (hi & 0xFFFF);
-                if (func_8004EF74(P0, P1, A, B)) {
+                if (Sca_ck_cross(P0, P1, A, B)) {
                     return 1;
                 }
                 A &= 0xFFFF;
-                if (func_8004EF74(P0, P1, A | (x1 << 16), B)) {
+                if (Sca_ck_cross(P0, P1, A | (x1 << 16), B)) {
                     return 1;
                 }
             } else {
                 A = (x1 << 16) | (lo & 0xFFFF);
                 B = (x1 << 16) | (hi & 0xFFFF);
-                if (func_8004EF74(P0, P1, A, B)) {
+                if (Sca_ck_cross(P0, P1, A, B)) {
                     return 1;
                 }
                 A &= 0xFFFF;
-                if (func_8004EF74(P0, P1, A | (x0 << 16), B)) {
+                if (Sca_ck_cross(P0, P1, A | (x0 << 16), B)) {
                     return 1;
                 }
             }
-            if (func_8004EF74(P0, P1, (x0 << 16) | (lo & 0xFFFF), (x1 << 16) | (lo & 0xFFFF))) {
+            if (Sca_ck_cross(P0, P1, (x0 << 16) | (lo & 0xFFFF), (x1 << 16) | (lo & 0xFFFF))) {
                 return 1;
             }
         }
@@ -962,28 +995,29 @@ LONG func_8004F928(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     if (ax < x0 || bx < x0 || x1 < ax || x1 < bx || ay < hi || by < hi || lo < ay || lo < by) {
         A = (x0 << 16) | (lo & 0xFFFF);
         B = (x0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF;
         B &= 0xFFFF;
         B |= x1 << 16;
         A |= x1 << 16;
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A = (x0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF0000;
         B &= 0xFFFF0000;
-        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+        return Sca_ck_cross(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
     }
     return 1;
 }
 
-LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+/* same in the Z-Y projection */
+LONG Sca_line_zy(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
 {
     LONG az, ay, bz, by;
     LONG hi, lo, z0, z1;
@@ -1014,22 +1048,22 @@ LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
         if (Id & 0x20) {
             if (Id & 0x10) {
                 B = (z0 << 16) | (hi & 0xFFFF);
-                if (func_8004EF74(P0, P1, (z0 << 16) | (lo & 0xFFFF), B)) {
+                if (Sca_ck_cross(P0, P1, (z0 << 16) | (lo & 0xFFFF), B)) {
                     return 1;
                 }
-                if (func_8004EF74(P0, P1, (z1 << 16) | (lo & 0xFFFF), B)) {
+                if (Sca_ck_cross(P0, P1, (z1 << 16) | (lo & 0xFFFF), B)) {
                     return 1;
                 }
             } else {
                 B = (z1 << 16) | (hi & 0xFFFF);
-                if (func_8004EF74(P0, P1, (z1 << 16) | (lo & 0xFFFF), B)) {
+                if (Sca_ck_cross(P0, P1, (z1 << 16) | (lo & 0xFFFF), B)) {
                     return 1;
                 }
-                if (func_8004EF74(P0, P1, (z0 << 16) | (lo & 0xFFFF), B)) {
+                if (Sca_ck_cross(P0, P1, (z0 << 16) | (lo & 0xFFFF), B)) {
                     return 1;
                 }
             }
-            if (func_8004EF74(P0, P1, (z0 << 16) | (lo & 0xFFFF), (z1 << 16) | (lo & 0xFFFF))) {
+            if (Sca_ck_cross(P0, P1, (z0 << 16) | (lo & 0xFFFF), (z1 << 16) | (lo & 0xFFFF))) {
                 return 1;
             }
         }
@@ -1038,28 +1072,29 @@ LONG func_8004FBD4(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     if (az < z0 || bz < z0 || z1 < az || z1 < bz || ay < hi || by < hi || lo < ay || lo < by) {
         A = (z0 << 16) | (lo & 0xFFFF);
         B = (z0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF;
         B &= 0xFFFF;
         B |= z1 << 16;
         A |= z1 << 16;
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A = (z0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF0000;
         B &= 0xFFFF0000;
-        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+        return Sca_ck_cross(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
     }
     return 1;
 }
 
-LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+/* X-Y projection test against the plain box side (no slope case); Sca_ck_line uses it for a triangle leg hit */
+LONG Sca_line_xy_box(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
 {
     LONG ax, ay, bx, by;
     LONG hi, lo, x0, x1;
@@ -1083,28 +1118,29 @@ LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     if (ax < x0 || bx < x0 || x1 < ax || x1 < bx || ay < hi || by < hi || lo < ay || lo < by) {
         A = (x0 << 16) | (lo & 0xFFFF);
         B = (x0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF;
         B &= 0xFFFF;
         B |= x1 << 16;
         A |= x1 << 16;
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A = (x0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF0000;
         B &= 0xFFFF0000;
-        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+        return Sca_ck_cross(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
     }
     return 1;
 }
 
-LONG func_8005003C(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
+/* same in the Z-Y projection */
+LONG Sca_line_zy_box(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
 {
     LONG az, ay, bz, by;
     LONG hi, lo, z0, z1;
@@ -1128,23 +1164,23 @@ LONG func_8005003C(VECTOR *pA, VECTOR *pB, SCA_DATA *pT)
     if (az < z0 || bz < z0 || z1 < az || z1 < bz || ay < hi || by < hi || lo < ay || lo < by) {
         A = (z0 << 16) | (lo & 0xFFFF);
         B = (z0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF;
         B &= 0xFFFF;
         B |= z1 << 16;
         A |= z1 << 16;
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A = (z0 << 16) | (hi & 0xFFFF);
-        if (func_8004EF74(P0, P1, A, B)) {
+        if (Sca_ck_cross(P0, P1, A, B)) {
             return 1;
         }
         A &= 0xFFFF0000;
         B &= 0xFFFF0000;
-        return func_8004EF74(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
+        return Sca_ck_cross(P0, P1, A | (lo & 0xFFFF), B | (lo & 0xFFFF)) != 0;
     }
     return 1;
 }
@@ -1181,7 +1217,7 @@ test:
 }
 
 /* RE2 Sca_get_dir: side of the shape the point is on (45 degree shapes are rotated first) */
-USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT)
+USHORT Sca_get_dir(VECTOR *pPos, SCA_DATA *pT)
 {
     VECTOR Pos;
     VECTOR *pP;
@@ -1217,7 +1253,7 @@ USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT)
 
 /* quadrant of the shape the point is in (45 degree shapes are rotated first): bit 0 left of the centre,
  * bit 2 right, bit 3 in front, bit 1 behind (on a centre line both bits of that axis) */
-USHORT func_800503E8(VECTOR *pPos, SCA_DATA *pT)
+USHORT Sca_get_quadrant(VECTOR *pPos, SCA_DATA *pT)
 {
     VECTOR Pos;
     VECTOR *pP;
@@ -1260,14 +1296,14 @@ USHORT func_800503E8(VECTOR *pPos, SCA_DATA *pT)
     return Dir;
 }
 
-/* is the object inside the extent of the wall it hit, along the wall's axis (func_800502B8 = RE2 Sca_get_dir) */
-LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT)
+/* is the object inside the extent of the wall it hit, along the wall's axis (Sca_get_dir) */
+LONG Sca_ck_wall_range(COL_OBJ *pObj, SCA_DATA *pT)
 {
     LONG Pos;
     LONG Min;
     LONG Max;
 
-    if (func_800502B8(POS_V(pObj), pT) & 1) {
+    if (Sca_get_dir(POS_V(pObj), pT) & 1) {
         Min = pT->X0;
         Max = pT->X1;
         Pos = pObj->Pos_x;

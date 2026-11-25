@@ -301,7 +301,7 @@ typedef struct tagEM_HIT_AREA {
     SHORT Unk1AC[3];                   /* 0x1AC em23 damage */                \
     UCHAR pad1B2[0x1B4 - 0x1B2];                                              \
     ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Player.pUnk1B4, select overlay) */ \
-    SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */ \
+    SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (Sca_set_ground) */ \
     SHORT Tilt_max;                    /* 0x1BA body tilt limit (Em_tilt_set) */ \
     SHORT Tilt[2];                     /* 0x1BC body tilt x, z (Joint_trans, Foot_set_pl) */ \
     UCHAR Unk1C0;                      /* 0x1C0 */                            \

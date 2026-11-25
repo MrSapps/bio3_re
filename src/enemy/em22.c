@@ -5,10 +5,10 @@
 #include "snd.h"
 
 /* Called the way an unprototyped call in Capcom's source compiles: int result, unnarrowed int
- * arguments (and func_8004D6B8 with four) */
+ * arguments (and Sca_get_area with four) */
 LONG Rnd_l(void) __asm__("Rnd");
 LONG Guide_check_(LONG X, LONG Z, LONG Floor) __asm__("Guide_check");
-ULONG func_8004D6B8_(LONG X, LONG Z, LONG a2, LONG a3) __asm__("func_8004D6B8");
+ULONG func_8004D6B8_(LONG X, LONG Z, LONG a2, LONG a3) __asm__("Sca_get_area");
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set");
 void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector");
 
