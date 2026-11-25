@@ -741,7 +741,7 @@ void Moji_init(void)
     Moji_mode_init();
 }
 
-/* sets up the glyph sprites of both buffers */
+/* per frame: links the text tpage nodes into the 8 OT levels and resets the glyph sprite cursors */
 void Moji_mode_init(void)
 {
     ULONG i;
