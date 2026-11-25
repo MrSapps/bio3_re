@@ -712,3 +712,60 @@ Near misses (agentI/best):
 - sca Sca_hit_line (13, agentG z6): unchanged.
 - oba Oba_ent_box_set (new draft, ~90 dscore): four values are reload spills (sw then lhu from 0x10..0x1C(sp)),
   Type kept in fp; ours spills one more.
+
+## Matching round agentO (drafts in the session scratchpad agentO/best, agentO/em33, agentO/em3436, agentO/esp, agentO/em2238)
+Matched: em_sub Goto00, Goto01, Esp_17; em33 Em33_mv04, Em33_mv07, Em33_mv09; em36 Em36_mv12; em3e Em3e_fly.
+Rules learnt:
+- Goto00/Goto01 (raw `move v1,a2` + in-place `sll/sra a2`): `USHORT Turn = Add_dir;` plus a separate
+  `LONG Sign = (SHORT)Add_dir;` for the sign test, the error in 16 bits
+  (`(USHORT)(Turn + (Tgt - pEm->Cdir_y)) & 0xFFF`) and `Turn + Turn` for the last add: with USHORT operands and a
+  16-bit result gcc drops every zero-extension. Goto01 needs `USHORT Tgt`, Goto00 `ULONG Tgt`.
+- Em3e_fly: a range test written with its bounds in locals first (`Hi = X + 1800; Lo = X - 1800;
+  if (Pl_work.Pos_x < Hi && Lo < Pl_work.Pos_x)`) fixed both the register choice and the unfilled `beqz; nop` of
+  the `if (Shot_wait) Shot_wait--; else ...` above it, which no structural change (do/while, switch, goto,
+  return) had touched. Try temps for sub-expressions before blaming reorg.
+- reorg.c fill_slots_from_thread (~line 3690): when the thread it scans has a reg-reg copy (`move t0,a0`), it
+  rewrites the next insn to read the copy's source. A parameter living in a t-reg can therefore be read as its
+  a-reg by the insn after its entry copy (Esp_kill: `srl a2,a0,24` while Id is in t0).
+- global.c find_reg pass 0 skips registers that a conflicting allocno prefers. Non-copy preferences come from
+  `(set X (op Y ..))` when X is already in a hard reg (Y prefers it), and are merged along `(set X (f Y))` where Y
+  dies. In Esp_kill the `Id & 0xFF00` temp in v1 gives Id, and the hoisted `(USHORT)Id`/`(UCHAR)Id` invariants,
+  a v1 preference, which keeps the loop counter out of v1. To see this: the FSF -g cc1 under gdb, `break find_reg`,
+  print hard_reg_conflicts / regs_someone_prefers / hard_reg_preferences per allocno. Only valid where the
+  function has no global address (FSF cc1 emits `la`, so no %hi pseudo).
+- A `move v1,a0; jr ra; move v0,v1` tail (Em22_dir_quarter, also em20 Get_target_pl) is a copy into an older
+  variable at the end of each arm (`Dir = Ret;`) with `return Dir;` after the join: combine cannot merge across
+  the join and jump2 cross-jumps the identical copies.
+- (em33) When the only diffs are the order of independent stores/loads, a hill-climb over statement order
+  (agentO/em33/hill.py, hill2.py) converges in a few rounds. A load the target keeps below a run of stores:
+  start a `do { } while (0);` at the load's statement (the loop note stops sched1 hoisting it).
+- (em36) Em36_mv12 matched by reusing `Side` for the first hit test (`Side = Hit_area_ck(..); Hit = Side | ..`).
+  score.py scores implicit declarations: a 0 with an old `func_` name still fails to link.
+- (em_sub Esp_17) local SHORT tables declared inside the block that uses them (at the top they are initialised
+  at entry); an empty `case 7: break;` for the extra `slti 9`; HIT_AREA fields in the order pPos, pBox, Dir, Id;
+  the case-1 vib `if` must not get a do/while (the jump target would be "outside the loop" and reorg predicts it
+  not taken).
+- Kage_work9_sort is C: its t-reg saves around jals are caller-saves spills.
+Unsolved pattern (three functions): load X, `move C,X`, then `addiu X,X,off` or `addiu C,C,off`, where cse should
+have tied C to X (Em27_Init pSin_parts_ptr + 0x40, Em34_Init pUnk174 + 0x18, Spd_get_sub's pSeq_t/pKan copies in
+t3/t5). Every assignment/order/`++`/re-read form tried folds the copy.
+Near misses (agentO/best/<func>.c):
+- em22 Em22_dir_quarter (1 word): `Dir = Ret;` at the end of both arms gives the double move; arm 1's
+  `Ret &= 1; Dir = Ret;` is combined into `andi v1,a0,1` (target: andi into a0 then the shared copy). A label
+  between them or Ret living past the copy would stop combine; no natural form found.
+- em_sub Esp_call (2 words, esp fork): sched puts `lui/addiu Esp_data` before `srl fp,Id,8`; draft still uses
+  `*(ULONG *)&pEw->Id`-style word views (clean those up before committing).
+- em34 Em34_Init (5): the pUnk174 copy above; loop `addu v1,s3,v1` operand order.
+- em27 Em27_Init (7 dscore): the pSin_parts_ptr copy above.
+- em34 Em34_shoot (12): Unk0A halving (lhu + sll/sra sharing one sll); 0x101 in a0 vs v0 in case 6.
+- em36 Em36_Init (13): block-scoped `PARTS_W *pB` per part block, `pG = &G` only for System_flg/pEnemy/ppEnemy_end,
+  `SHORT Life`, an unused 8-byte local. Left: loop addu order, Pldamage/Pldie store placement.
+- em_sub Spd_get_sub (dscore 35): params end up in a-regs, target has them in t3/t5 and the advanced pointers in
+  a2/a1. Ternary for the R_flg offset is worse; `(SHORT)pSeq[2] + byte` operand order is better.
+- em_sub Esp_kill (42): structure right; `Key = Id` copy at the top emulates Id living in t0 (reorg rewrite above);
+  left: Kind/i/compare registers (preference chain above).
+- em_sub Rot_neck (61, first attempt, from RE2 EM_SUB.C): Free_dif SHORT/Free_dif12 as in Rot_neck_em, z clamp on
+  Neck_rot.vz directly, pFree for N_rot_z set after the clamp; left: the prologue load order (Own_neck_no),
+  N_rot - Spd_lim computed late, the Unk166 update reassociation, Unk164 register.
+- em_sub Kage_work9_sort (103): loop.c hoists &M2, %hi(G) and the jump table out of the inner loop; target does not.
+- em23 Em23_mv03/Em23_mv0b, em22 Em22_mv_jump, em38 Em38_sce03: worked by a separate fork (drafts agentO/em2238); see its commits.
