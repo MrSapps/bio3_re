@@ -4,7 +4,7 @@
 #include "snd.h"
 #include "sld.h"
 
-LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__("func_8004D720"); /* Capcom passes a fifth argument (unprototyped call) */
+LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__("Sca_get_ground"); /* Capcom passes a fifth argument (unprototyped call) */
 
 /* RE2 EM_MAIN: per-frame entry of the young spider: routine dispatch, collision */
 void Em26_main(ENEMY_WORK *pEm)
@@ -30,17 +30,17 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk1CC[i] = 0;
     EM_SET_MOVE(pEm, 0, 0, 0xF);
     Joint_move(pEm, pKan, pSeq, 0x400);
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
     EM26_W(pEm)->Kasakasarot = 0x78;
     EM26_W(pEm)->No_catch_cnt = Rnd() & 0x1F;
     pCol = &pEm->Col;
     EM26_W(pEm)->pTarget_pl = &Pl_work;
-    pEm->Unk134 = 300;
-    pEm->Unk136 = -300;
-    pEm->Unk13A = 300;
-    pEm->Unk138 = 0x50;
-    pEm->Unk139 = 0xA0;
+    pEm->Hit_area.Top = 300;
+    pEm->Hit_area.Bottom = -300;
+    pEm->Hit_area.R = 300;
+    pEm->Hit_area.Rate0 = 0x50;
+    pEm->Hit_area.Rate1 = 0xA0;
     pEm->Damage_cnt = 6;
     EM26_W(pEm)->Catch_wait = 0;
     pEm->Unk140 = 0;
@@ -50,7 +50,7 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Cdir_x = 0;
     pEm->Cdir_z = 0;
     pEm->Timer0 = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pCol->pEm = pEm;
     pCol->W0 = pEm->Col.D0 = 30;
     pCol->H = 100;
@@ -72,13 +72,13 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_MOVE(pEm, 0, 0, 0xF);
             Joint_move(pCp, pKan, pSeq, 0x400);
             pCol = &pCp->Col;
-            pCp->Unk136 = -300;
-            pCp->Unk138 = 0x50;
-            pCp->Unk139 = 0xA0;
-            pCp->Unk134 = 300;
-            pCp->Unk13A = 300;
+            pCp->Hit_area.Bottom = -300;
+            pCp->Hit_area.Rate0 = 0x50;
+            pCp->Hit_area.Rate1 = 0xA0;
+            pCp->Hit_area.Top = 300;
+            pCp->Hit_area.R = 300;
             pCp->Unk140 = 0;
-            pCp->pUnk13C = (UCHAR *)&pCp->pSin_parts_ptr->Workm;
+            pCp->Hit_area.pM = (UCHAR *)&pCp->pSin_parts_ptr->Workm;
             pCol->pEm = pCp;
             pCol->W0 = pCp->Col.D0 = 30;
             pCol->H = 100;
@@ -87,8 +87,8 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pCol->Unk26 = 0;
             pCol->Flg = 0;
             pCol->Type = 2;
-            func_80033580(pCol, 0);
-            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pCp->Pos_x);
+            Oba_set(pCol, 0);
+            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, POS_V(pCp));
         }
         break;
     case 1:
@@ -103,8 +103,8 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Be_flg |= 0x404000;
         break;
     }
-    func_80033580(&pEm->Col, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
+    Oba_set(&pEm->Col, 0);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, POS_V(pEm));
 }
 
 /* RE2 Em26_Move: move routines by Routine_1 (Em26_move_tbl) */
@@ -133,14 +133,14 @@ void Em26_Mv_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM26_W(pEm)->No_catch_cnt--;
     if (EM26_W(pEm)->Catch_wait)
         EM26_W(pEm)->Catch_wait--;
-    Dist = (pTg == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
+    Dist = (pTg == G_PLAYER) ? pEm->L_pl : pEm->Unk158;
     if (Dist < 2000 && !Dir0)
         if (!EM26_W(pEm)->Catch_wait && !EM26_W(pEm)->No_catch_cnt && !(pTg->Damage_cnt & 0x7F)) {
             pEm->Routine_1 = 3;
             EM_RTN23(pEm) = 0;
         }
     pTg = G_PLAYER;
-    if ((LONG)pEm->Unk154 < 550 && (G.Unk75E8 & 6) && pEm->nFloor == pTg->nFloor) {
+    if ((LONG)pEm->L_pl < 550 && (G.Unk75E8 & 6) && pEm->nFloor == pTg->nFloor) {
         if (EM_RTN01(pTg) == 0x101 || EM_RTN01(pTg) == 0x201 || EM_RTN01(pTg) == 0x301 || EM_RTN01(pTg) == 0x401) {
             EM_SET_RTN(pEm, 3, 0, 0, 0);
             Pad_vib_set0(1, 0);
@@ -166,7 +166,7 @@ void Em26_Mv_walk00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM26_W(pEm)->Atck_flg = 0;
         EM26_W(pEm)->Chase_rot = ((0x1111 >> (Rnd() & 0xF)) & 1) ? -0x40 : 0x40;
         if ((LONG)G.Status_flg < 0) {
-            if ((LONG)pEm->Unk154 < (pEm->Unk158 & 0x3FFFFFFF))
+            if ((LONG)pEm->L_pl < (pEm->Unk158 & 0x3FFFFFFF))
                 EM26_W(pEm)->pTarget_pl = G_PLAYER;
             else
                 EM26_W(pEm)->pTarget_pl = G.pEnemy[1];
@@ -222,7 +222,7 @@ void Em26_Mv_fall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_y = 40;
         pEm->Be_flg |= 0x4000;
         Ground = func_8004D720_(&pEm->Pos_x, pEm->Col.W0, 0x200, 8, pEm->Pos_y);
-        pEm->Unk122 = Ground;
+        pEm->Ground = Ground;
         EM26_W(pEm)->Jump_flg = 1;
         pEm->nFloor = Ground / -1800;
     }
@@ -243,7 +243,7 @@ void Em26_Mv_fall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Be_flg |= 0x20;
         } else {
             pEm->Routine_1 = 1;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
             pEm->Be_flg &= ~0x20;
         }
         EM_RTN23(pEm) = 0;
@@ -284,7 +284,7 @@ void Em26_Mv_jump(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_RTN23(pEm) = 0;
             pFp->No_catch_cnt = (Rnd() & 0x1F) + 0x1E;
             pEm->Be_flg &= ~0x20;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
         }
     }
 }
@@ -311,7 +311,7 @@ void Em26_Mv_swim(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Set_blood(pEm, 0, 0x82);
         pEm->UnkE2 += Rnd() & 7;
     }
-    Dist = (EM26_W(pEm)->pTarget_pl == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
+    Dist = (EM26_W(pEm)->pTarget_pl == G_PLAYER) ? pEm->L_pl : pEm->Unk158;
     if (Dist < 2000 && !Dir0)
         if (!(pTg->Damage_cnt & 0x7F)) {
             pEm->Routine_1 = 3;
@@ -355,7 +355,7 @@ void Em26_dm02(void) {
 /* RE2 Em26_Die: death on the floor (Em26_Die00) or sinking in the water (Em26_Die10) */
 void Em26_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (Water_ck(pEm->Pos_x, pEm->Pos_z) >= pEm->Unk122 || EM26_W(pEm)->Jump_flg)
+    if (Water_ck(pEm->Pos_x, pEm->Pos_z) >= pEm->Ground || EM26_W(pEm)->Jump_flg)
         Em26_Die00(pEm, pKan, pSeq);
     else
         Em26_Die10(pEm, pKan, pSeq);
@@ -394,7 +394,7 @@ void Em26_Die10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Cdir_y += 0x20;
     pEm->Cdir_z += 0x40;
     Joint_move(pEm, pKan, pSeq, 0x400);
-    if (pEm->Pos_y >= pEm->Unk122 || pEm->Pos_y < pEm->Water)
+    if (pEm->Pos_y >= pEm->Ground || pEm->Pos_y < pEm->Water)
         KILL_ENEMY_WORK(pEm);
 }
 
@@ -420,7 +420,7 @@ ULONG Em26_atck_ck(ENEMY_WORK *pEm, ULONG Pl)
     pFp = EM26_W(pEm);
     if (!Pl) {
         pPl = &Pl_work;
-        Dist = pEm->Unk154;
+        Dist = pEm->L_pl;
     } else {
         pPl = G.pEnemy[1];
         Dist = pEm->Unk158 & 0x3FFFFFFF;
@@ -456,7 +456,7 @@ void Set_blood(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type)
     pP += Parts;
     Sv.vx = pP->Workm.t[0];
     Sv.vy = pP->Workm.t[1];
-    if ((Type & 0x80) && pTg->Water < pTg->Unk122)
+    if ((Type & 0x80) && pTg->Water < pTg->Ground)
         Sv.vy = pTg->Water + 10;
     Sv.vz = pP->Workm.t[2];
     Esp_call(((pTbl->Flg & 0xF) << 24) | (pTbl->Type << 8) | pTbl->Id, (pTbl->Zoom << 16) | (USHORT)Dir, &GsIDMATRIX, &Sv, NULL);
@@ -477,7 +477,7 @@ LONG Get_sc_hit(ENEMY_WORK *pEm)
     LONG Wat;
 
     Wat = Water_ck(pEm->Pos_x, pEm->Pos_z);
-    if (pEm->Pos_y >= pEm->Unk122)
+    if (pEm->Pos_y >= pEm->Ground)
         return 1;
     if (pEm->Pos_y - 10 >= Wat)
         return Wat;

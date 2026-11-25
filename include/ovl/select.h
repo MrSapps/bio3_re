@@ -87,7 +87,7 @@ typedef struct tagSELECT_PL_INIT {
     SHORT Cdir_z;                      /* 0x0E */
     UCHAR pad10[4];
     ULONG Rgb;                         /* 0x14 */
-    SHORT Unk18;                       /* 0x18 -> ENEMY_WORK.Unk12A */
+    SHORT Unk18;                       /* 0x18 -> ENEMY_WORK.Mot_scale_y */
     UCHAR pad1A[2];
 } SELECT_PL_INIT;
 

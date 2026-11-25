@@ -52,21 +52,21 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk1CC[i] = 0;
     EM_SET_MOVE(pEm, 1, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, (VECTOR *)&pEm->Pos_x);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, POS_V(pEm));
     pCol = &pEm->Col;
     pFp = EF(pEm);
     pFp->Foot_cnt = 8;
     pFp->Water_rno = 0;
     pEm->Water = 0;
-    pEm->Unk136 = -1500;
-    pEm->Unk134 = 800;
-    pEm->Unk138 = 0x50;
-    pEm->Unk139 = 0xA0;
-    pEm->Unk13A = 800;
+    pEm->Hit_area.Bottom = -1500;
+    pEm->Hit_area.Top = 800;
+    pEm->Hit_area.Rate0 = 0x50;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 800;
     pEm->Unk140 = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pCol->pEm = pEm;
     pCol->W0 = pEm->Col.D0 = 1000;
     pCol->H = 1800;
@@ -75,7 +75,7 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk26 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     if (!Ck_em_id(pEm, &pFp->pPair, 0x25, 1))
         pFp->pPair = NULL;
     switch (pEm->Type & 0xF) {
@@ -114,7 +114,7 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pFp->Down_point = ((pEm->Type & 0x70) >> 4) * -1800 + 1250;
         pFp->Kage_routine = 1;
         Em25_wall_init(pEm, pKan, pSeq);
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
         break;
     }
     if (pEm->Type & 0x100)
@@ -184,7 +184,7 @@ void Em25_mv000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     USHORT LL;
 
     Em25_mv_taiki(pEm, pKan, pSeq);
-    LL = EF(pEm)->Target_pl ? pEm->Unk158 : pEm->Unk154;
+    LL = EF(pEm)->Target_pl ? pEm->Unk158 : pEm->L_pl;
     Dir0 = Em25_goto00(pEm, 0x80);
     Em25_goto00(pEm, 0x100);
     if (Em25_goto00(pEm, 0x400) && LL < 8000)
@@ -306,11 +306,11 @@ void Em25_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Box[1] = 0;
         Box[2] = 2200;
         Box[3] = 1200;
-        Hit.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+        Hit.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
         Hit.pBox = Box;
         Hit.Dir = pEm->Cdir_y;
         Hit.Id = 0x81;
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (!Dir)
             pEm->Routine_2 = 4;
@@ -327,11 +327,11 @@ void Em25_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Box[1] = 0;
         Box[2] = 2200;
         Box[3] = 1200;
-        Hit.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+        Hit.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
         Hit.pBox = Box;
         Hit.Dir = pEm->Cdir_y;
         Hit.Id = 0x81;
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
         Goto00(pEm, pTg->Pos_x, pTg->Pos_z, 0x10);
         Add_speedXZ(pEm, EF(pEm)->Flip);
         Joint_move(pEm, pKan, pSeq, 0x200);
@@ -378,11 +378,11 @@ void Em25_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Box[1] = 0;
             Box[2] = 1800;
             Box[3] = 1200;
-            Hit.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+            Hit.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
             Hit.pBox = Box;
             Hit.Dir = pEm->Cdir_y;
             Hit.Id = 0x81;
-            func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit, pPl);
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit, pPl);
         }
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
         break;
@@ -418,7 +418,7 @@ LONG Em25_mv08sp(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Set_poison(pEm, EF(pEm)->Place + 8, pEm->Cdir_y + EF(pEm)->Flip);
                 return 0;
             }
-            type = ((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000) ? 0x89 : 0x88;
+            type = ((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->L_pl) < 3000) ? 0x89 : 0x88;
         } else
             break;
         Set_poison(pEm, type, Get_wallshot(pEm));
@@ -454,7 +454,7 @@ void Em25_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Tsv.vx = (Rnd_l() & 0x3F) + 400;
         Tsv.vy = 0;
         Tsv.vz = 0;
-        ApplyMatrixSV(&Tm, &Tsv, (SVECTOR *)&pEm->Spd_x);
+        ApplyMatrixSV(&Tm, &Tsv, EM_SPD_SV(pEm));
     case 1:
         pEm->Cdir_y += Em25_goto00(pEm, 0x60);
         Add_speedXZ(pEm, EF(pEm)->Flip + pEm->Timer0);
@@ -481,7 +481,7 @@ void Em25_mv001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     USHORT LL;
 
     Em25_mv_taiki(pEm, pKan, pSeq);
-    LL = EF(pEm)->Target_pl ? pEm->Unk158 : pEm->Unk154;
+    LL = EF(pEm)->Target_pl ? pEm->Unk158 : pEm->L_pl;
     Dir0 = Em25_goto00(pEm, 0x80);
     Em25_goto00(pEm, 0x100);
     Em25_goto00(pEm, 0x400);
@@ -546,7 +546,7 @@ void Em25_mv011(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM_RTN23(pEm) = 0;
             }
         }
-        if (EF(pEm)->Drop_ok && (LONG)pEm->Unk154 < 3500 && !(Rnd_l() & 3))
+        if (EF(pEm)->Drop_ok && (LONG)pEm->L_pl < 3500 && !(Rnd_l() & 3))
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
 }
@@ -745,7 +745,7 @@ void Em25_Mv_wall000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     dist = pTg->Pos_y - pEm->Pos_y;
     if (dist > 3500) {
         water = Water_ck(pEm->Pos_x, pEm->Pos_z);
-        if (water >= pEm->Unk122) {
+        if (water >= pEm->Ground) {
             pEm->Timer0 = (dist - 3500) / 100;
         } else {
             if ((pEm->Timer0 = (-(pEm->Pos_y + 2200) + water) / 100) < 0)
@@ -796,7 +796,7 @@ void Em25_Mv_wall200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     Joint_move(pEm, pKan, pSeq, 0x400);
     if (!--pEm->Timer0) {
-        if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000)
+        if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->L_pl) < 3000)
             && ((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Jump_ok)
             pEm->Routine_1 = 7;
         else
@@ -1021,7 +1021,7 @@ void Em25_Mv_wall70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!Dir || !--pEm->Timer0) {
             pEm->Routine_2 = 2;
             EM_SET_MOVE(pEm, 0xB, 0, 3);
-            type = ((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000) ? 0x81 : 0x80;
+            type = ((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->L_pl) < 3000) ? 0x81 : 0x80;
             Set_poison(pEm, type, Get_wallshot(pEm));
         }
         Joint_move(pEm, pKan, pSeq, 0x400);
@@ -1072,9 +1072,9 @@ void Em25_Mv_wall001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Em25_Mv_wall201(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Joint_move(pEm, pKan, pSeq, 0x400);
-    if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 7200)
+    if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->L_pl) < 7200)
         || Ck_near_wall(pEm, EF(pEm)->pWall, EF(pEm)->Wall_pos)) {
-        if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000) && EF(pEm)->Jump_ok)
+        if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->L_pl) < 3000) && EF(pEm)->Jump_ok)
             pEm->Routine_1 = 7;
         else
             pEm->Routine_1 = 3;
@@ -1102,10 +1102,10 @@ void Em25_wall_hit_ofs(ENEMY_WORK *pEm)
 void Em25_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
-        EF(pEm)->Dmg_type = pEm->Unk12C;
+        EF(pEm)->Dmg_type = pEm->Damage_no;
     if (!pEm->Water)
         pEm->Water = Water_ck(pEm->Pos_x, pEm->Pos_z);
-    Em25_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
+    Em25_dm[pEm->Damage_no - 1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em25_dm_nml: normal hit, by place (dmg_nml_tbl) */
@@ -1129,7 +1129,7 @@ void Em25_dm_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x400);
         break;
     case 2:
-        if (pEm->Unk12C == 1 || !(pEm->Unk132 & 0xC))
+        if (pEm->Damage_no == 1 || !(pEm->Damage_flg & 0xC))
             next = 0x901;
         else
             next = (next_rtn_tbl[Rnd_l() & 7] << 8) + 1;
@@ -1238,9 +1238,9 @@ void Em25_dm_ftl111(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_z += 0x200;
         pEm->Timer0 -= 0x200;
     }
-    if (pEm->Pos_y >= pEm->Unk122) {
+    if (pEm->Pos_y >= pEm->Ground) {
         pEm->Col.W0 = pEm->Col.D0 = 1000;
-        pEm->Pos_y = pEm->Unk122;
+        pEm->Pos_y = pEm->Ground;
         if (!pEm->Timer0) {
             pEm->Routine_2 = 2;
             EM_SET_MOVE(pEm, 9, 0, 3);
@@ -1322,11 +1322,11 @@ void Em25_dm_ftl211(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_add_speed(pEm, pEm->Timer0, pEm->UnkDA, 0);
     pEm->Spd_x += 40;
-    if (pEm->Pos_y + 400 >= pEm->Unk122) {
+    if (pEm->Pos_y + 400 >= pEm->Ground) {
         pEm->Cdir_x = 0;
         pEm->Cdir_z = 0;
         pEm->Cdir_y = -(EF(pEm)->Sc_dir + (EF(pEm)->Wall_pos << 10) * (EF(pEm)->Wall_pos & 1));
-        pEm->Pos_y = pEm->Unk122;
+        pEm->Pos_y = pEm->Ground;
         pEm->Routine_2 = 2;
         EM_SET_MOVE(pEm, 9, 0, 3);
         Joint_move(pEm, pKan, pSeq, 0x400);
@@ -1359,7 +1359,7 @@ void Em25_dm_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     pEm->Routine_1 = 7;
     Em25_dm_ftl(pEm, pKan, pSeq);
-    for (i = 0; i < 2 - ((pEm->Unk132 & 0xC) >> 2); i++) {
+    for (i = 0; i < 2 - ((pEm->Damage_flg & 0xC) >> 2); i++) {
         d0 = (Rnd_l() & 0xF) + 3;
         pP_ptr = &pEm->pSin_parts_ptr[d0];
         if ((pP_ptr->Be_flg & 1) && !(pP_ptr->UnkA2 & 0x20))
@@ -1406,10 +1406,10 @@ void Em25_dm_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP_ptr = &pEm->pSin_parts_ptr[base] + 1;
         pP_ptr->Poly_rgb = 0x101F3F;
         pP_ptr->Old_x = pEm->Cdir_y + 0x800;
-        pP_ptr->Unk96 = 0;
+        pP_ptr->Timer3 = 0;
         pP_ptr->Old_z = 100;
         pP_ptr->Old_y = 0;
-        pP_ptr->Unk85 = 30;
+        pP_ptr->Timer1 = 30;
     }
     pP_ptr = &pEm->pSin_parts_ptr[base];
     pP_ptr->Poly_rgb = 0x102F4F;
@@ -1419,17 +1419,17 @@ void Em25_dm_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_dm_nml(pEm, pKan, pSeq);
 }
 
-/* RE3 damage (Em25_dm[8]): legs frozen, model fades (Unk178) */
+/* RE3 damage (Em25_dm[8]): legs frozen, model fades (Add_col) */
 void Em25_dm_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG base;
 
     if (!(pEm->Status_flg & 2)) {
-        pEm->Unk178[2] = -0x1000;
-        pEm->Unk178[0] = 0;
-        pEm->Unk178[1] = 0;
-        pEm->Unk17E = 0x40;
+        pEm->Add_col[2] = -0x1000;
+        pEm->Add_col[0] = 0;
+        pEm->Add_col[1] = 0;
+        pEm->Col_flg = 0x40;
         pEm->Be_flg |= 8;
         pP_ptr = &pEm->pSin_parts_ptr[0];
         pP_ptr->UnkA2 |= 0x40;
@@ -1498,10 +1498,10 @@ void Em25_dm_fire2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Em25_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
-        EF(pEm)->Dmg_type = pEm->Unk12C;
+        EF(pEm)->Dmg_type = pEm->Damage_no;
     if (!pEm->Water)
         pEm->Water = Water_ck(pEm->Pos_x, pEm->Pos_z);
-    em25_die_tbl[pEm->Unk12C - 1](pEm, pKan, pSeq);
+    em25_die_tbl[pEm->Damage_no - 1](pEm, pKan, pSeq);
     Em25_float_move(pEm);
     Em_dead_flg_on_cand(pEm);
 }
@@ -1821,7 +1821,7 @@ void Die_break_set(ENEMY_WORK *pEm)
     ULONG i;
     PARTS_W *pP_ptr;
 
-    pEm->Unk120 |= 1;
+    pEm->Neck_flg |= 1;
     pP_ptr = &pEm->pSin_parts_ptr[19];
     pP_ptr->UnkA2 |= 0x20;
     pP_ptr->Be_flg |= 2;
@@ -1903,7 +1903,7 @@ void Em25_Die_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     PARTS_W *pP_ptr;
     ULONG base;
 
-    pEm->Unk17E = 0x40;
+    pEm->Col_flg = 0x40;
     pEm->Be_flg |= 8;
     pP_ptr = &pEm->pSin_parts_ptr[0];
     pP_ptr->UnkA2 |= 0x80;
@@ -2000,7 +2000,7 @@ void Em25_kage_move(ENEMY_WORK *pEm)
     case 0:
         if (!Water_ck(pEm->Pos_x, pEm->Pos_z)) {
             pEm->Be_flg &= ~0x20;
-            pEm->Unk122 = func_8004D720(&pEm->Col.Pos_x, 800, 0x200, 8);
+            pEm->Ground = Sca_get_ground(&pEm->Col.Pos_x, 800, 0x200, 8);
             break;
         }
     case 1:
@@ -2035,7 +2035,7 @@ void Em25_float_move(ENEMY_WORK *pEm)
     if (!pEm->Water) {
         pFp->Hitline = 1;
         pFp->Unk27 = 0;
-        pEm->Pos_y = pEm->Unk122;
+        pEm->Pos_y = pEm->Ground;
         return;
     }
     switch (pFp->Water_rno) {
@@ -2073,15 +2073,15 @@ void Em25_foot_set(ENEMY_WORK *pEm, UCHAR Flg)
     SHORT dx, dz;
 
     pP_ptr = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP_ptr->M, &Tm);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP_ptr), &Tm);
     pP_ptr += (Flg << 3) + 4;
     no = Flg << 2;
     if ((EF(pEm)->Foot_flg >> no) & 1) {
         pEm->Spd_x = 0;
     } else {
         CompM(&Tm, (MATRIX *)pP_ptr[-1].M, &Tm);
-        CompM(&Tm, (MATRIX *)pP_ptr->M, &Tm);
+        CompM(&Tm, PW_M(pP_ptr), &Tm);
         dx = Tm.t[0] - pP_ptr->Workm.t[0];
         dz = Tm.t[2] - pP_ptr->Workm.t[2];
         pEm->Spd_x = SquareRoot0(dx * dx + dz * dz);
@@ -2115,7 +2115,7 @@ ULONG Ck_lock_wall(ENEMY_WORK *pEm)
     pSc = pEm->Col.pSca_hit_data;
     pFp = EF(pEm);
     if (pSc) {
-        pos = func_800502B8((VECTOR *)&pEm->Pos_x, pSc);
+        pos = func_800502B8(POS_V(pEm), pSc);
         pFp->pWall = pSc;
         pFp->Sc_dir = pos << 10;
         dir = (pEm->Cdir_y + 0x200) & 0xC00;
@@ -2151,7 +2151,7 @@ void Em25_add_speed(ENEMY_WORK *pEm, LONG rx, LONG ry, LONG rz)
     Sv.vy = pEm->Cdir_y + ry;
     Sv.vz = pEm->Cdir_z + rz;
     RotMatrix(&Sv, &M);
-    ApplyMatrixSV(&M, (SVECTOR *)&pEm->Spd_x, &Sv);
+    ApplyMatrixSV(&M, EM_SPD_SV(pEm), &Sv);
     pEm->Pos_x += Sv.vx;
     pEm->Pos_y += Sv.vy;
     pEm->Pos_z += Sv.vz;
@@ -2262,7 +2262,7 @@ void Set_blood(ENEMY_WORK *pEm, UCHAR parts, UCHAR type)
     Clut = tbl->Clut;
     Id = tbl->Id & 0x7F;
     if (Clut == 0xFF)
-        Clut = (pEm->Unk132 & 0x200) ? 6 : 1;
+        Clut = (pEm->Damage_flg & 0x200) ? 6 : 1;
     if (tbl->Id & 0x80) {
         Sv.vx = 0;
         Sv.vy = -100;
@@ -2335,7 +2335,7 @@ ULONG atck_ck_main(ENEMY_WORK *pEm, ULONG pl, LONG R)
         pTg = G.pEnemy[1];
     } else {
         pTg = &Pl_work;
-        dist = pEm->Unk154;
+        dist = pEm->L_pl;
     }
     if (dist < R) {
         if (!(pTg->Damage_cnt & 0x80)) {
@@ -2520,14 +2520,14 @@ void Chg_modelcol(ENEMY_WORK *pEm, ULONG Rgb)
 /* RE2 Ck_land: reached the water (-1) or the floor (1); Fe/Fg/Fw: foot, ground and water offsets */
 LONG Ck_land(ENEMY_WORK *pEm, LONG Fe, LONG Fg, LONG Fw)
 {
-    if (pEm->Water < pEm->Unk122) {
+    if (pEm->Water < pEm->Ground) {
         if (pEm->Pos_y + Fe < pEm->Water)
             return 0;
         pEm->Pos_y = pEm->Water + Fw;
         EF(pEm)->Hitline = -1;
         return -1;
-    } else if (pEm->Pos_y + Fe >= pEm->Unk122) {
-        pEm->Pos_y = pEm->Unk122 + Fg;
+    } else if (pEm->Pos_y + Fe >= pEm->Ground) {
+        pEm->Pos_y = pEm->Ground + Fg;
         EF(pEm)->Hitline = 1;
         return 1;
     }
@@ -2607,7 +2607,7 @@ LONG Em25_box_ray_ck(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2)
     ULONG Mask;
 
     pSc = (SCA_DATA *)G.pRoom->pSca;
-    pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+    pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
     Sv.vx = pEm->Cdir_x;
     Sv.vz = pEm->Cdir_z;
     Sv.vy = pEm->Cdir_y;

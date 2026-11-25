@@ -228,15 +228,15 @@ UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
     G.Ctp.u.Cclut = Cclut;
     G.Ctp.u.Ctpage = Ctpage;
     DrawSync(0);
-    func_8002AB34(pEm->pTmd, pEm->Tpage, pEm->Clut);
+    Mapping_md(pEm->pTmd, pEm->Tpage, pEm->Clut);
     pEm->pTmd += 2;
     Ofs = pHdr[3];
-    p = (UCHAR *)func_800261AC(pEm, PartsWork_set(pEm, (ULONG)(p + pHdr[4])), pEm->pKan_t_ptr);
+    p = (UCHAR *)PartsWork_link(pEm, PartsWork_set(pEm, (ULONG)(p + pHdr[4])), pEm->pKan_t_ptr);
     if (*(ULONG *)(0x801D5C00 + Ofs) != 0) {   /* fixed address of the model file (select reads pWork + Ofs) */
         func_8007A2D4(pEm, (ULONG *)(pWork + Ofs));
     }
     pEm->Be_flg = 1;
-    pEm->Unk12A = 0x1000;
+    pEm->Mot_scale_y = 0x1000;
     return p;
 }
 

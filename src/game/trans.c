@@ -84,7 +84,7 @@ loop:
     pAseq = pEff->pSeq + pEff->Seq_no;
     nSpr = pAseq->nSpr;
     if ((Be_flg & 0xA000) == 0xA000 && Hit_ck_point4(workm.t, pCcut) != 0 && nSpr != 0) {
-        pOt = func_80037D50((VECTOR *)workm.t);
+        pOt = Ot_get_pos(workm.t);
         D2 = 0x2C;
         if (Be_flg & 0x1000) {
             D2 = 0x2E;
@@ -92,9 +92,9 @@ loop:
         D0 = pAseq->Unk3;
         D1 = pAseq->Unk0;
         if (Be_flg & 0x200) {
-            workm.t[0] = pEff->Unk38[0] + pEff->Unk30;
-            workm.t[1] = pEff->Unk38[1] + pEff->Unk32;
-            workm.t[2] = pEff->Unk38[2] + pEff->Unk34;
+            workm.t[0] = pEff->Base[0] + pEff->Mov_x;
+            workm.t[1] = pEff->Base[1] + pEff->Mov_y;
+            workm.t[2] = pEff->Base[2] + pEff->Mov_z;
             RotMatrix((SVECTOR *)pEff->Rot, &workm);
             CompM(&pEff->Workm, &workm, &workm2);
             CompM(&GsWSMATRIX, &workm2, &m);

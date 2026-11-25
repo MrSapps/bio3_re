@@ -68,7 +68,7 @@ void Em10_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM10_W(pEm)->Mot_dm = 1;
         if (EM10_W(pEm)->Etc_flg & 4)
             EM10_W(pEm)->Mot_dm = 0;
-        if (pEm->UnkE3 == 1 && pEm->Unk12C != 0x1A) {
+        if (pEm->UnkE3 == 1 && pEm->Damage_no != 0x1A) {
             pP = pEm->pSin_parts_ptr;
             Sv.vx = 0;
             Sv.vy = 0;
@@ -80,7 +80,7 @@ void Em10_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM10_W(pEm)->Dam_s = 150;
         }
         EM10_W(pEm)->Etc_flg &= 0xFDFF;
-        pEm->Unk132 |= 0x8000;
+        pEm->Damage_flg |= 0x8000;
     case 7:
         if (pEm->Move_cnt < 0x37)
             func_8002646C_(pEm, 400, 80, pEm->Col.Unk39);
@@ -94,8 +94,8 @@ void Em10_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Col.D0 > 500)
             pEm->Col.W0 = pEm->Col.D0 = 500;
         if (pEm->Move_cnt == 0x37) {
-            pEm->Unk1C2 = 30;
-            pEm->Unk132 &= 0x7FFF;
+            pEm->Tilt_spd = 30;
+            pEm->Damage_flg &= 0x7FFF;
             pEm->Be_flg |= 0x80000;
         }
         break;

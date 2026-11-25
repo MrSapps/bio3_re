@@ -68,7 +68,7 @@ typedef struct tagEM30_PARTS_FREE {
 } EM30_PARTS_FREE;
 #define EM30_PW(p) ((EM30_PARTS_FREE *)&(p)->Unk74)
 
-/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c func_8004AC54) */
+/* morph (sabun) data at PARTS_W.pSa_dat_head: key weights, 0x1000 = full (sabun.c func_8004AC54) */
 typedef struct tagEM30_SABUN {
     ULONG Ofs;                         /* 0x00 */
     ULONG Size;                        /* 0x04 */
@@ -79,12 +79,12 @@ typedef struct tagEM30_SABUN {
         USHORT pad;
     } Key[3];
 } EM30_SABUN;
-#define EM30_SABUN_P(pP) ((EM30_SABUN *)(pP)->pUnk98)
+#define EM30_SABUN_P(pP) ((EM30_SABUN *)(pP)->pSa_dat_head)
 
 /* Routine_0 and Routine_1 as one halfword */
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 
-extern void (*Em30_dm[][2])();         /* damage routines [Unk12C - 1][Routine_1] */
+extern void (*Em30_dm[][2])();         /* damage routines [Damage_no - 1][Routine_1] */
 
 /* in both modules (src/enemy/common/em30) */
 void Em30_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

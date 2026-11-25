@@ -11,11 +11,11 @@ void Em10_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        Dir = pEm->Unk132 & 0x10;
+        Dir = pEm->Damage_flg & 0x10;
         EM_MOVE(pEm) = 0x30005 - (Dir = Dir != 0);
         pEm->Routine_2 = 1;
         pEm->UnkDA = 10;
-        pEm->Spd_x = Spd[(pEm->Unk132 >> 4) & 1];
+        pEm->Spd_x = Spd[(pEm->Damage_flg >> 4) & 1];
         pEm->Spd_z = 0;
         Add_speedXZ(pEm, 0);
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x10);
@@ -27,25 +27,25 @@ void Em10_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM10_W(pEm)->Dam_s = 150;
         }
         pEm->UnkE2 = 1;
-        if (pEm->Unk132 & 0x10)
+        if (pEm->Damage_flg & 0x10)
             pEm->UnkE2 = -1;
-        if (pEm->Unk12C == 0x1A)
+        if (pEm->Damage_no == 0x1A)
             pEm->UnkE2 = 0;
         else {
             Em10_blood_set(pEm);
-            if ((pEm->Unk132 & 3) == 1)
+            if ((pEm->Damage_flg & 3) == 1)
                 pEm->UnkE2 = 0;
         }
         pEm->UnkE3 = 0;
-        if (pEm->Unk132 & 0x200)
+        if (pEm->Damage_flg & 0x200)
             pEm->UnkE3 = 5;
-        if (pEm->Unk12C == 0x1A && !(Rnd_l() & 1)) {
+        if (pEm->Damage_no == 0x1A && !(Rnd_l() & 1)) {
             EM10_W(pEm)->Dm_cnt = 0;
             EM10_W(pEm)->Dm_r0 = 1;
         }
     case 1:
         Spd_get(pEm, pKan, pSeq, 0);
-        if (pEm->Unk12C == 0x1A && pEm->Move_cnt < 10)
+        if (pEm->Damage_no == 0x1A && pEm->Move_cnt < 10)
             pEm->Spd_x <<= 1;
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x400);
         Add_speedXZ(pEm, 0);
@@ -65,7 +65,7 @@ void Em10_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             pEm->UnkDA--;
         }
-        if (pEm->Unk12C == 0x1A && pEm->Move_cnt == 13) {
+        if (pEm->Damage_no == 0x1A && pEm->Move_cnt == 13) {
             R = Rnd_l() & 3;
             if (R == 1 && !(pEm->Status_flg & 0x400)) {
                 EM_SET_RTN(pEm, 1, 5, 0, 0);
@@ -73,7 +73,7 @@ void Em10_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM10_W(pEm)->Etc_flg &= 0xFFF7;
                 pEm->UnkE2 = R;
                 EM10_W(pEm)->Etc_flg |= 4;
-                if (pEm->Unk132 & 0x10) {
+                if (pEm->Damage_flg & 0x10) {
                     pEm->UnkE2 = 0;
                     EM10_W(pEm)->Etc_flg &= 0xFFFB;
                 }
@@ -106,7 +106,7 @@ void Em10_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM10_W(pEm)->Dm_cnt = (Rnd_l() & 0x10) + 0xF;
             EM10_W(pEm)->Dm_r0 = 0;
         }
-        if ((LONG)pEm->Unk154 < 3000 && Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 900) && (Rnd_l() & 1))
+        if ((LONG)pEm->L_pl < 3000 && Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 900) && (Rnd_l() & 1))
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
 }

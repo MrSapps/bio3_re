@@ -23,7 +23,7 @@ typedef struct tagKAGE_WORK {
     SHORT Pos_z;                       /* 0x0C */
     UCHAR Be_flg;                      /* 0x0E */
     SHORT Dir_y;                       /* 0x10 */
-    VECTOR *pPos;                      /* 0x14 */
+    LONG *pPos;                        /* 0x14 position followed (x, y, z longs) */
     POLY_FT4 Prim[2];                  /* 0x18 */
 } KAGE_WORK;
 
@@ -38,7 +38,7 @@ typedef struct tagKAGE_WORK9 {
     SHORT Pos_z;                       /* 0x0C */
     UCHAR Be_flg;                      /* 0x0E */
     SHORT Dir_y;                       /* 0x10 */
-    VECTOR *pPos;                      /* 0x14 */
+    LONG *pPos;                        /* 0x14 position followed (x, y, z longs) */
     KAGE_WORK *pKw_top;                /* 0x18 */
 } KAGE_WORK9;
 
@@ -61,9 +61,9 @@ typedef struct tagOBJ_MODEL_WORK {
     UCHAR Parts_num;                   /* 0x08 */
     signed char nFloor;                /* 0x09 */
     UCHAR padA[0xD - 0xA];
-    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (func_80037C38) */
+    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (Ot_set_all) */
     UCHAR padE[0x10 - 0xE];
-    ULONG Attribute;                   /* 0x10 RE2 Attribute (func_8003589C) */
+    ULONG Attribute;                   /* 0x10 RE2 Attribute (Om_parts_link) */
     struct tagMD_OBJ *pTmd;            /* 0x14 RE2 pTmd (an MD object in RE3) */
     UCHAR pad18[0x20 - 0x18];
     MATRIX M;                          /* 0x20 M.t = Pos_x/y/z */
@@ -79,22 +79,22 @@ typedef struct tagOBJ_MODEL_WORK {
     SVECTOR Cdir;                      /* 0x6C */
     ULONG Poly_rgb;                    /* 0x74 */
     MATRIX *pSuper;                    /* 0x78 */
-    ULONG *pUnk7C;                     /* 0x7C ordering table (func_80037C38) */
+    ULONG *pUnk7C;                     /* 0x7C ordering table (Ot_set_all) */
     UCHAR pad80[0xAE - 0x80];
-    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (func_80036570) */
+    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (Om_push_ck) */
     UCHAR padB0[0xBA - 0xB0];
     USHORT UnkBA;                      /* 0xBA */
     UCHAR padBC[0xC0 - 0xBC];
-    UCHAR Push_cnt;                    /* 0xC0 frames pushed (func_80036570) */
+    UCHAR Push_cnt;                    /* 0xC0 frames pushed (Om_push_ck) */
     UCHAR UnkC1;                       /* 0xC1 index into G.pUnk75AC */
-    UCHAR UnkC2;                       /* 0xC2 flag id set when done (func_80036C60) */
+    UCHAR UnkC2;                       /* 0xC2 flag id set when done (Om_rtn_wait) */
     UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
     struct tagPARTS_W *pParts;         /* 0xC4 */
     UCHAR padC8[0x130 - 0xC8];
     ULONG Unk130;                      /* 0x130 */
     UCHAR pad134[0x188 - 0x134];
     ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (Col_chg_init) */
-    SHORT Unk18C;                      /* 0x18C fall speed (func_80036D94) */
+    SHORT Unk18C;                      /* 0x18C fall speed (Om_rtn_drop) */
     SHORT Unk18E;                      /* 0x18E */
     SHORT Unk190;                      /* 0x190 */
     SHORT Unk192;                      /* 0x192 ground y */
@@ -151,10 +151,20 @@ typedef struct tagCOL_OBJ {
     MATRIX *pM;                        /* 0x30 (em30 sub-works: matrix of the followed part) */
     struct tagCOL_OBJ *pNext;          /* 0x34 */
     UCHAR Em_idx;                      /* 0x38 */
-    signed char Unk39;                 /* 0x39 (em10 pldm00 passes it to func_8002646C) */
+    signed char Unk39;                 /* 0x39 (em10 pldm00 passes it to Em_tilt_set) */
     USHORT Unk3A;                      /* 0x3A bits of the works hit (RE2 At_em_flg, em10 pldm00) */
     struct tagSCA_DATA *pSca_hit_data; /* 0x3C RE2 pSca_hit_data (wall hit by Sca_ck_em) */
 } COL_OBJ;
+
+/* hit area: a box Top..Bottom high, radius R, around pM->t (ENEMY_WORK + 0x134, OM_TARGET + 0x8) */
+typedef struct tagEM_HIT_AREA {
+    SHORT Top;                         /* 0x00 y offset from pM->t[1] */
+    SHORT Bottom;                      /* 0x02 y offset from pM->t[1] */
+    UCHAR Rate0;                       /* 0x04 */
+    UCHAR Rate1;                       /* 0x05 */
+    SHORT R;                           /* 0x06 */
+    MATRIX *pM;                        /* 0x08 matrix of the part the box follows */
+} EM_HIT_AREA;
 
 /* enemy work (RE2 struct tagENEMY_WORK; RE3 layout differs: no pTmd2/pPacket2, no dummy00).
  * The player is the first 0x1CC bytes of one (PLAYER_WORK, G.Player): EM_WORK_HEAD lists those
@@ -194,13 +204,13 @@ typedef struct tagCOL_OBJ {
     USHORT dummy01;                    /* 0x072 */                            \
     ULONG Poly_rgb;                    /* 0x074 */                            \
     MATRIX *pSuper;                    /* 0x078 */                            \
-    ULONG *pUnk7C;                     /* 0x07C ordering table of the work (func_80037C38) */ \
+    ULONG *pUnk7C;                     /* 0x07C ordering table of the work (Ot_set_all) */ \
     COL_OBJ Col;                       /* 0x080 collision node (OBA.C) */     \
     SHORT Spd_x;                       /* 0x0C0 */                            \
     SHORT Spd_y;                       /* 0x0C2 */                            \
     SHORT Spd_z;                       /* 0x0C4 */                            \
     UCHAR UnkC6;                       /* 0xC6 */                             \
-    UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (func_800445C8) */ \
+    UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (Hit_area_em_ck) */ \
     UCHAR Move_no;                     /* 0x0C8 */                            \
     UCHAR Move_cnt;                    /* 0x0C9 */                            \
     UCHAR Hokan_flg;                   /* 0x0CA RE2 Hokan_flg: joint interpolation rate */ \
@@ -228,43 +238,38 @@ typedef struct tagCOL_OBJ {
     ULONG *pUnk100_kan_t_ptr;          /* 0x100 */                            \
     ULONG *pUnk104_seq_t_ptr;          /* 0x104 */                            \
     struct tagPARTS_W *pSin_parts_ptr; /* 0x108 */                            \
-    ULONG *pUnk10C;                    /* 0x10C base kan of the part tree (func_800261AC) */ \
+    ULONG *pUnk10C;                    /* 0x10C base kan of the part tree (PartsWork_link) */ \
     struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */                            \
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */                            \
     ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */ \
-    ULONG *pUnk11C;                    /* 0x11C (func_8001760C: first EMD section) */ \
-    UCHAR Unk120;                      /* 0x120 */                            \
+    ULONG *pUnk11C;                    /* 0x11C (Emd_load: first EMD section) */ \
+    UCHAR Neck_flg;                    /* 0x120 RE2 Neck_flg: 1 no neck turn, 2 keep y, 0x80 scenario speed */ \
     UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */ \
-    SHORT Unk122;                      /* 0x122 */                            \
+    SHORT Ground;                      /* 0x122 RE2 Ground: floor height under the work (Sca_get_ground) */ \
     SHORT Spd_base_x;                  /* 0x124 RE2 Spd_base_x (Spd_get) */   \
     SHORT Spd_base_y;                  /* 0x126 */                            \
     SHORT Spd_base_z;                  /* 0x128 */                            \
-    SHORT Unk12A;                      /* 0x12A */                            \
-    UCHAR Unk12C;                      /* 0x12C */                            \
+    SHORT Mot_scale_y;                 /* 0x12A root height scale of the motions, 0x1000 = 1 */ \
+    UCHAR Damage_no;                   /* 0x12C RE2 Damage_no: kind of the last hit */ \
     UCHAR Damage_cnt;                  /* 0x12D player: |= 0x80 on game over (Pl_life_down) */ \
     UCHAR Root_ck_cnt;                 /* 0x12E RE2 Root_ck_cnt */            \
     UCHAR Unk12F;                      /* 0x12F compared with the room sound table (Snd_se_enem) */ \
     SHORT Unk130;                      /* 0x130 direction */                  \
-    USHORT Unk132;                     /* 0x132 bits 8-12 cleared by Pl_life_down */ \
-    SHORT Unk134;                      /* 0x134 */                            \
-    SHORT Unk136;                      /* 0x136 */                            \
-    UCHAR Unk138;                      /* 0x138 */                            \
-    UCHAR Unk139;                      /* 0x139 */                            \
-    SHORT Unk13A;                      /* 0x13A */                            \
-    UCHAR *pUnk13C;                    /* 0x13C */                            \
+    USHORT Damage_flg;                 /* 0x132 RE2 Damage_flg: hit flags (bits 8-12 cleared by Pl_life_down) */ \
+    EM_HIT_AREA Hit_area;              /* 0x134 aim/hit box (pl_wep) */        \
     LONG Unk140;                       /* 0x140 */                            \
     USHORT Unk144;                     /* 0x144 0x100: no seq sound */        \
-    UCHAR Unk146;                      /* 0x146 RE2 Set_flg_no */             \
-    UCHAR Unk147;                      /* 0x147 flag no (Em_dead_flg_on_cand) */ \
+    UCHAR Set_flg_no;                  /* 0x146 RE2 Set_flg_no */             \
+    UCHAR Em_set_flg;                  /* 0x147 RE2 Em_set_flg: kill flag number (Em_dead_flg_on_cand) */ \
     SHORT Add_dir;                     /* 0x148 turn speed passed to Goto00 */ \
     SHORT Unk14A;                      /* 0x14A */                            \
     SHORT Unk14C;                      /* 0x14C */                            \
     SHORT Unk14E;                      /* 0x14E */                            \
     USHORT Unk150;                     /* 0x150 0x80: scenario move request, low bits its kind (Spl_sce) */ \
     SHORT Unk152;                      /* 0x152 */                            \
-    ULONG Unk154;                      /* 0x154 */                            \
+    ULONG L_pl;                        /* 0x154 RE2 L_pl: distance to the player */ \
     LONG Unk158;                       /* 0x158 distance to target? (masked 0x3FFFFFFF) */ \
-    LONG *pUnk15C;                     /* 0x15C target position (func_8003CEA0) */ \
+    LONG *pUnk15C;                     /* 0x15C target position (pl_mv0d) */ \
     union {                                                                   \
         struct tagKAGE_WORK *pKw;      /* 0x160 RE2 pKage_work: enemies (Kage_work_set) */ \
         struct tagKAGE_WORK9 *pKw9;    /* 0x160 player (Kage_work9_set) */    \
@@ -274,11 +279,11 @@ typedef struct tagCOL_OBJ {
     SHORT Unk168;                      /* 0x168 */                            \
     UCHAR Unk16A;                      /* 0x16A em22: set on a seq flag 0x800 (id 0x24) */ \
     UCHAR Unk16B;                      /* 0x16B */                            \
-    LONG *pUnk16C;                     /* 0x16C hit position (func_800445C8 arg 0) */ \
-    LONG *pUnk170;                     /* 0x170 hitter position (func_800445C8 arg 1) */ \
+    LONG *pUnk16C;                     /* 0x16C hit position (Hit_area_em_ck arg 0) */ \
+    LONG *pUnk170;                     /* 0x170 hitter position (Hit_area_em_ck arg 1) */ \
     struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
-    SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */ \
-    USHORT Unk17E;                     /* 0x17E */                            \
+    SHORT Add_col[3];                  /* 0x178 colour added in the lit sorts (Model_col); em10 Dead fades [0], [2] to 0 */ \
+    USHORT Col_flg;                    /* 0x17E Model_col: bits 8-11 mode, low byte grey level */ \
     ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
     ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
@@ -287,9 +292,9 @@ typedef struct tagCOL_OBJ {
     ULONG *pUnk194_kan_t_ptr;          /* 0x194 */                            \
     ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */ \
     ULONG *pUnk19C_kan_t_ptr;          /* 0x19C */                            \
-    UCHAR Unk1A0;                      /* 0x1A0 */                            \
-    UCHAR Unk1A1;                      /* 0x1A1 */                            \
-    UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */            \
+    UCHAR Sub_move_no;                 /* 0x1A0 second motion slot (slope walking; Spd_get_sub) */ \
+    UCHAR Sub_move_cnt;                /* 0x1A1 */                            \
+    UCHAR Sub_hokan_flg;               /* 0x1A2 (pl_mv05_w2_t2) */            \
     UCHAR pad1A3;                                                             \
     SHORT Unk1A4[3];                   /* 0x1A4 em23 damage: hit offset? */   \
     UCHAR pad1AA[0x1AC - 0x1AA];                                              \
@@ -297,12 +302,12 @@ typedef struct tagCOL_OBJ {
     UCHAR pad1B2[0x1B4 - 0x1B2];                                              \
     ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Player.pUnk1B4, select overlay) */ \
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */ \
-    SHORT Unk1BA;                      /* 0x1BA func_8002646C */              \
-    SHORT Unk1BC[2];                   /* 0x1BC decayed by Unk1C2 (func_80026648) */ \
+    SHORT Tilt_max;                    /* 0x1BA body tilt limit (Em_tilt_set) */ \
+    SHORT Tilt[2];                     /* 0x1BC body tilt x, z (Joint_trans, Foot_set_pl) */ \
     UCHAR Unk1C0;                      /* 0x1C0 */                            \
-    UCHAR Unk1C1;                      /* 0x1C1 func_8002646C */              \
-    SHORT Unk1C2;                      /* 0x1C2 func_8002646C */              \
-    ULONG Unk1C4;                      /* 0x1C4 em23: Routine_0..3 of the last frame */ \
+    UCHAR Tilt_flg;                    /* 0x1C1 1/2/4: tilt direction, 8: return (Em_tilt_move) */ \
+    SHORT Tilt_spd;                    /* 0x1C2 tilt step per frame */ \
+    ULONG Old_routine;                 /* 0x1C4 Routine_0..3 of the last frame (em23) */ \
     SHORT Unk1C8;                      /* 0x1C8 */                            \
     USHORT Unk1CA;                     /* 0x1CA */                            \
     /* 0x1CC */
@@ -319,6 +324,21 @@ typedef struct tagENEMY_WORK {
 STATIC_ASSERT(player_work_size, sizeof(PLAYER_WORK) == 0x1CC);
 STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
 
+/*
+ * Vector views of field runs (gcc 2.8 has no anonymous unions, so these stay views).
+ * Work types with Cdir_x/y/z + dummy01 (ENEMY_WORK, PARTS_W): CDIR_SV is that run as an SVECTOR;
+ * with Pos_x/y/z (ENEMY_WORK world position, PARTS_W offset from the parent): POS_V as a VECTOR.
+ * ENEMY_WORK: Spd_x/y/z + UnkC6/C7 as an SVECTOR, and Workm_m + Pos as
+ * the work matrix (RE2 Workm). PARTS_W: M[3][3] + Pos_x/y/z is the local matrix, Workm.t the
+ * world position as a VECTOR (the pad word after it is Cdir_x/y, never used by the callees).
+ */
+#define CDIR_SV(p)   ((SVECTOR *)&(p)->Cdir_x)
+#define EM_SPD_SV(p) ((SVECTOR *)&(p)->Spd_x)
+#define POS_V(p)  ((VECTOR *)&(p)->Pos_x)
+#define EM_WORKM(p)  ((MATRIX *)(p)->Workm_m)
+#define PW_M(p)      ((MATRIX *)(p)->M)
+#define WORKM_POS_V(p) ((VECTOR *)(p)->Workm.t) /* world position (Workm.t) of a work or part */
+
 /* G: global work area (RE2 struct tagGLOBAL, 0x800CC1E8 in RE2) */
 struct tagROOM_WORK;
 struct tagPARTS_W;
@@ -330,7 +350,7 @@ typedef struct tagGLOBAL {
     ULONG *pOt1;                       /* 0x2044 */
     ULONG Ot2[2][8];                   /* 0x2048 RE2 Ot2, index Cbuf_id (main) */
     ULONG *pOt2;                       /* 0x2088 */
-    POLY_GT4 *pUnk208C;                /* 0x208C packet pointer of the model sorters (func_80025FB0) */
+    POLY_GT4 *pUnk208C;                /* 0x208C packet pointer of the model sorters (Parts_sort_ex) */
     ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (Psp_trans) */
     UCHAR Padd_data[2][0x24];          /* 0x20B0 RE2 Padd_data (PadInitDirect buffers) */
     LONG Unk20F8;                      /* 0x20F8 set to -1 on soft reset */
@@ -413,7 +433,7 @@ typedef struct tagGLOBAL {
     UCHAR Back_func_rtn;               /* 0x75DB RE2 Back_func_rtn */
     void (*Front_func)(); /* 0x75DC RE2 Front_func */
     void (*Back_func)(); /* 0x75E0 RE2 Back_func */
-    SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp func_80049218) */
+    SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp Rain_wind_move) */
     SHORT Unk75E6;                     /* 0x75E6 screen shake y? */
     USHORT Unk75E8;                   /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */
     USHORT Unk75EA;                    /* 0x75EA */
@@ -457,7 +477,7 @@ typedef struct tagGLOBAL {
     SHORT Unk7858;                     /* 0x7858 bg scroll y, -0xEF..0xEF (Swap_Cbuff) */
     UCHAR pad785A[0x785C - 0x785A];
     SHORT Unk785C;                     /* 0x785C cleared by em36 (Nemesis) death */
-    USHORT Unk785E;                    /* 0x785E counter (func_8003CEA0) */
+    USHORT Unk785E;                    /* 0x785E counter (pl_mv0d) */
     USHORT Time;                       /* 0x7860 Mercenaries time left (result) */
     SHORT Unk7862;                     /* 0x7862 */
     SHORT Unk7864;                     /* 0x7864 set with Unk784E by the title extra menu */
@@ -488,7 +508,7 @@ typedef struct tagGLOBAL {
     UCHAR Save_mono;                   /* 0x7D8E Snd_work.UnkB75 */
     UCHAR pad7D8F;
     ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (func_80024C58) */
-    struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (func_80037A90) */
+    struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (Om_drop_set) */
         UCHAR Unk0;
         UCHAR Unk1;
         UCHAR pad2[2];
@@ -550,37 +570,37 @@ typedef struct tagPARTS_W {
     UCHAR pad70[0x74 - 0x70];
     UCHAR Unk74;                       /* 0x74 */
     UCHAR pad75[0x78 - 0x75];
-    SHORT Unk78;                       /* 0x78 ground height (func_800452E8) */
+    SHORT Unk78;                       /* 0x78 ground height (Pl_wep_parts_drop) */
     UCHAR pad7A[0x7C - 0x7A];
-    SHORT Unk7C;                       /* 0x7C (func_800455B4) */
+    SHORT Unk7C;                       /* 0x7C (Pl_wep_eff_parts_set) */
     UCHAR pad7E[0x82 - 0x7E];
-    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (func_800336B4) */
-    UCHAR Unk84;                       /* 0x84 part number (Pl_weapon_ch) */
-    signed char Unk85;                 /* 0x85 RE2 Timer1 (signed counter) */
-    signed char Unk86;                 /* 0x86 */
+    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (Em_work_no_get) */
+    UCHAR Parts_no;                    /* 0x84 RE2 Parts_no: index in pSin_parts_ptr[] */
+    signed char Timer1;                /* 0x85 RE2 Timer1: fall speed added to Old_y (Parts_down) */
+    signed char Timer2;                /* 0x86 RE2 Timer2: frames left to blend into the fall rotation (Parts_down) */
     UCHAR pad87;
-    SHORT Unk88;                       /* 0x88 rotation x (func_8002B190) */
-    SHORT Unk8A;                       /* 0x8A rotation y */
-    SHORT Unk8C;                       /* 0x8C rotation z */
-    SHORT Unk8E;                       /* 0x8E rotation speed z */
-    SHORT Unk90;                       /* 0x90 */
-    SHORT Unk92;                       /* 0x92 rotation speed y */
+    SHORT Rot_x;                       /* 0x88 RE2 Rot_x: rotation of the current key frame */
+    SHORT Rot_y;                       /* 0x8A */
+    SHORT Rot_z;                       /* 0x8C */
+    SHORT Rot_spd_z;                   /* 0x8E rotation step to the next key frame, * rate >> 8 */
+    SHORT Rot_spd_x;                   /* 0x90 */
+    SHORT Rot_spd_y;                   /* 0x92 */
     SHORT Unk94;                       /* 0x94 */
-    SHORT Unk96;                       /* 0x96 */
-    ULONG *pUnk98;                     /* 0x98 per-part animation data (Sa_dat_set) */
+    SHORT Timer3;                      /* 0x96 RE2 Timer3: bounces left (Parts_down) */
+    ULONG *pSa_dat_head;               /* 0x98 RE2 pSa_dat_head: per-part animation data (Sa_dat_set) */
     SHORT Size_x;                      /* 0x9C RE2 Size_x */
     SHORT Size_y;                      /* 0x9E RE2 Size_y */
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */
     SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
     struct tagPARTS_W *pOya_parts;     /* 0xA4 */
     ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (func_8007A2D4, func_8007A350) */
-    SHORT UnkAC;                       /* 0xAC Pos_x base (get_null_pos2) */
-    SHORT UnkAE;                       /* 0xAE Pos_y base (func_80027338) */
-    SHORT UnkB0;                       /* 0xB0 Pos_z base */
-    SHORT UnkB2;                       /* 0xB2 Pos_z step, * rate >> 8 */
-    SHORT UnkB4;                       /* 0xB4 Pos_x step, * rate >> 8 */
-    SHORT UnkB6;                       /* 0xB6 Pos_y step, * rate >> 8 (func_80027338) */
-    UCHAR padB8[0xBC - 0xB8];
+    SHORT Pos_base_x;                  /* 0xAC root position of the current key frame (get_null_pos2) */
+    SHORT Pos_base_y;                  /* 0xAE */
+    SHORT Pos_base_z;                  /* 0xB0 */
+    SHORT Pos_step_z;                  /* 0xB2 root step to the next key frame, * rate >> 8 */
+    SHORT Pos_step_x;                  /* 0xB4 */
+    SHORT Pos_step_y;                  /* 0xB6 */
+    ULONG UnkB8;                       /* 0xB8 sort parameter (Parts_sort_ex) */
 } PARTS_W;
 
 #endif /* BIO3_H */

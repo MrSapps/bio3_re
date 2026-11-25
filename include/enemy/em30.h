@@ -29,7 +29,7 @@ extern void (*Em30_routine_0[])();     /* Init, Move, Damage, Die */
 extern USHORT Em30_col_w[];          /* segment collision W0/D0 by part */
 extern void (*Em30_mv_br[])();         /* brain routines by Routine_1 */
 extern void (*Em30_mv[])();            /* motion routines by Routine_1 */
-extern void (*Em30_die[])();           /* by Unk12C - 1 */
+extern void (*Em30_die[])();           /* by Damage_no - 1 */
 
 void Em30_main(ENEMY_WORK *pEm);
 void Em30_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

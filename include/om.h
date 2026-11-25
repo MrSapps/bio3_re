@@ -5,7 +5,7 @@
 
 /* per object-model type (ENEMY_WORK.Type & 0x1F) */
 typedef struct {
-    UCHAR Unk0;                        /* 0x0 non-zero: part Unk1 starts hidden (func_8003589C) */
+    UCHAR Unk0;                        /* 0x0 non-zero: part Unk1 starts hidden (Om_parts_link) */
     UCHAR Unk1;                        /* 0x1 */
     UCHAR Num;                         /* 0x2 */
     UCHAR Idx;                         /* 0x3 */
@@ -44,51 +44,51 @@ extern CC_WORK Cc_work;                /* 0x800DD4B8 */
 
 void Tex_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
 ULONG Tex_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr);
-void Om_chg_init_80036234(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
-void Col_chg_ctr_80036248(CC_PARTS_WORK *pCcp);
+void Uv_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
+void Uv_chg_ctr(CC_PARTS_WORK *pCcp);
 void Tex_ctr(void);
 void Om_trans(void);
-void func_80037C38(void); /* set the OT pointer of every enemy and object model */
+void Ot_set_all(void); /* set the OT pointer of every enemy and object model */
 
-extern OM_BREAK_TBL D_8009CBEC[];
-extern struct tagHIT_ATTR *D_8009CC54[]; /* attack data per object type */
-extern void (*D_8009CC64[])(OBJ_MODEL_WORK *pOm);
+extern OM_BREAK_TBL Om_bomb_parts[];
+extern struct tagHIT_ATTR *Om_at_tbl[]; /* attack data per object type */
+extern void (*Om_routine[])(OBJ_MODEL_WORK *pOm);
 extern UCHAR D_800CC84B;
 extern ULONG D_800D20D4[];
-extern SHORT D_800DD492;
-extern SHORT D_800DD494;
-extern SHORT D_800DD496;
-extern SHORT D_800DD498;
-extern SHORT D_800DD49A;
-extern SHORT D_800DD49C;
-extern SVECTOR D_800DD4A0;
-extern UCHAR D_800DD4A8;
-extern LONG D_800DD4AC; /* number of pushable object models touched this frame */
-extern OBJ_MODEL_WORK *D_800DD4B0; /* the one on the player's floor */
-extern SHORT D_800DE614;
-extern SHORT D_800DE618;
-extern SHORT D_800DE61A;
-extern SHORT D_800DE61E;
+extern SHORT Om_pos_spd;
+extern SHORT Om_pos_spd_add;
+extern SHORT Om_dir_spd;
+extern SHORT Om_dir_spd_add;
+extern SHORT Om_fall_spd;
+extern SHORT Om_dir_sum;
+extern SVECTOR Om_add_dir;
+extern UCHAR Om_in_water_flg;
+extern LONG Om_push_num; /* number of pushable object models touched this frame */
+extern OBJ_MODEL_WORK *pOm_push; /* the one on the player's floor */
+extern SHORT Om_fall_cdir_x;
+extern SHORT Om_fall_cdir_z;
+extern SHORT Om_fall_dir_x;
+extern SHORT Om_fall_dir_z;
 
-void func_80035790(ENEMY_WORK *pEm, ULONG *pData);
-PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts);
-void func_8003589C(OBJ_MODEL_WORK *pOm, ULONG *pKan);
-void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos);
+void Om_init(ENEMY_WORK *pEm, ULONG *pData);
+PARTS_W *Om_parts_work_set(ENEMY_WORK *pEm, PARTS_W *pParts);
+void Om_parts_link(OBJ_MODEL_WORK *pOm, ULONG *pKan);
+void Om_joint_trans2(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos);
 void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp);
 void Col_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr);
 void Om_move(void);
-void func_80036570(void);
-void Em_routine0_set1_80036640(OBJ_MODEL_WORK *pOm);
+void Om_push_ck(void);
+void Om_move_start(OBJ_MODEL_WORK *pOm);
 void Om_set_fall_dir(ENEMY_WORK *pEm);
-void func_800366EC(OBJ_MODEL_WORK *pOm, ULONG Arg1, ULONG Arg2);
-void func_80036C60(OBJ_MODEL_WORK *pOm);
-void func_80036D94(OBJ_MODEL_WORK *pOm);
-void func_80036F78(OBJ_MODEL_WORK *pOm);
-void func_8003749C(OBJ_MODEL_WORK *pOm);
-void func_80037680(OBJ_MODEL_WORK *pOm);
-void func_8003783C(OBJ_MODEL_WORK *pOm);
-void func_80037A90(ENEMY_WORK *pEm, ULONG Arg1);
-ULONG *func_80037D50(VECTOR *pPos); /* ordering table for a position */
-void func_80037E80(void);
+void Om_explosion(OBJ_MODEL_WORK *pOm, ULONG Arg1, ULONG Arg2);
+void Om_rtn_wait(OBJ_MODEL_WORK *pOm);
+void Om_rtn_drop(OBJ_MODEL_WORK *pOm);
+void Om_rtn_fall(OBJ_MODEL_WORK *pOm);
+void Om_move_box(OBJ_MODEL_WORK *pOm);
+void Om_explosion_set(OBJ_MODEL_WORK *pOm);
+void Om_rtn_target_off(OBJ_MODEL_WORK *pOm);
+void Om_drop_set(ENEMY_WORK *pEm, ULONG Arg1);
+ULONG *Ot_get_pos(LONG *pPos); /* ordering table for a position */
+void Ot_sub_init(void);
 
 #endif /* OM_H */

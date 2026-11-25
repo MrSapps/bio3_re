@@ -2,7 +2,6 @@
 #include "sld.h"
 #include "status.h"
 
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* result used without the UCHAR mask */
 
 /* task entry */
 void Die_demo(void)
@@ -65,7 +64,7 @@ void Die_move_set(void)
     G.Status_flg &= ~4;
     G.Status_flg &= ~2;
     Pl_wep_eff_parts_init(G_PLAYER);
-    func_80046C90();
+    Pl_wep_poly_init();
     if (G.Status_flg & STAT_XA_VOICE) {
         Xa_error();
     }
@@ -194,11 +193,11 @@ void Die_move_slow(void)
             Task_sleep(1);
         }
         G.pEnemy[0]->Be_flg |= 0x80000;
-        G.pEnemy[0]->Unk1BC[0] = 0;
-        G.pEnemy[0]->Unk1BC[1] = 0;
+        G.pEnemy[0]->Tilt[0] = 0;
+        G.pEnemy[0]->Tilt[1] = 0;
         G.pEnemy[1]->Be_flg |= 0x80000;
-        G.pEnemy[1]->Unk1BC[0] = 0;
-        G.pEnemy[1]->Unk1BC[1] = 0;
+        G.pEnemy[1]->Tilt[0] = 0;
+        G.pEnemy[1]->Tilt[1] = 0;
         if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 |= 0x20000000;
         }
@@ -216,7 +215,7 @@ void Die_move_slow(void)
             pG->Ob_model[i].Be_flg = 0;
         }
         Bg_set_mode(1, 0);
-        func_8001B894(0x2000000, NULL);
+        Esp_kill(0x2000000, NULL);
         pGw = &G;
         pGw->Player.Be_flg |= 0x2000;
         n = pGw->pRoom->nOmodel;
@@ -257,14 +256,14 @@ void Die_move_set_cut(void)
     }
     Diedemo.Theta &= 0xFFF;
     if (!(Diedemo.Em_flg & 1)) {
-        if (Cdir_ck_l(&Pl_work, Pl_work.pEnemy_ptr)) {
+        if (Cdir_ck(&Pl_work, Pl_work.pEnemy_ptr)) {
             Diedemo.Theta += pCut->P_theta;
             Diedemo.Prad = pCut->Prad;
         } else {
             Diedemo.Theta += pCut->M_theta;
             Diedemo.Prad = pCut->Mrad;
         }
-    } else if (Cdir_ck_l(G.pEnemy[1], G.Player.pEnemy_ptr)) {
+    } else if (Cdir_ck(G.pEnemy[1], G.Player.pEnemy_ptr)) {
         Diedemo.Theta += pCut->P_theta;
         Diedemo.Prad = pCut->Prad;
     } else {
@@ -655,7 +654,7 @@ void Die_move_dark(void)
         }
         pLc->L[0] = L;
     }
-    Set_light(pLc, (VECTOR *)&G.pEnemy[0]->Pos_x);
+    Set_light(pLc, POS_V(G.pEnemy[0]));
 }
 
 /* routine 7: end of the demo */
@@ -817,13 +816,13 @@ void Die_light_set(void)
     switch (Diedemo.pCutinfo->R_obj) {
     case 0:
         if (!(Diedemo.Em_flg & 1)) {
-            Set_light(pLc, (VECTOR *)&G.Player.Pos_x);
+            Set_light(pLc, POS_V(&G.Player));
         } else {
-            Set_light(pLc, (VECTOR *)&G.pEnemy[1]->Pos_x);
+            Set_light(pLc, POS_V(G.pEnemy[1]));
         }
         break;
     case 1:
-        Set_light(pLc, (VECTOR *)&G.Player.pEnemy_ptr->Pos_x);
+        Set_light(pLc, POS_V(G.Player.pEnemy_ptr));
         break;
     }
 }

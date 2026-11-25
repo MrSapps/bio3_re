@@ -120,10 +120,10 @@ Movie_xa_stop = 0x800332CC;
 Set_movie_volume2 = 0x8003331C;
 Tex_chg_init = 0x80035F2C;
 Tex_chg = 0x80035FCC;
-Om_chg_init_80036234 = 0x80036234;
-Col_chg_ctr_80036248 = 0x80036248;
+Uv_chg_init = 0x80036234;
+Uv_chg_ctr = 0x80036248;
 Tex_ctr = 0x80036380;
-Em_routine0_set1_80036640 = 0x80036640;
+Om_move_start = 0x80036640;
 Pad_vib_set0 = 0x80038678;
 Pad_vib_set1 = 0x80038704;
 Pad_vib_fade_set = 0x8003879C;
@@ -337,7 +337,6 @@ Monitor = 0x800DCB90;
 Vm_disp = 0x800DCD20;
 Vm_work = 0x800DCD88;
 pAtv = 0x800DCDC8;
-D_800DD496 = 0x800DD496;
 Cc_work = 0x800DD4B8;
 Vib_req0 = 0x800DE648;
 Vib_req1 = 0x800DE798;
@@ -390,3 +389,448 @@ PadStartCom = 0x800912C4;
 InitCARD = 0x80094374;
 StartCARD = 0x800943C8;
 DecDCToutSync = 0x8008FAD4;
+// em_sub: Spd_get on interpolated frames (func_8002B2BC), like get_null_pos2
+Spd_get2 = 0x80018EC8; // type:func
+// em_sub: Spd_get for the second motion slot (ENEMY_WORK 0x1A0/0x1A1)
+Spd_get_sub = 0x80019178; // type:func
+// em_sub: pNow_seq = current seq frame, skipping interpolated (0x100) frames
+Now_seq_set = 0x8001AD78; // type:func
+// em_sub: Hit_area Top/Bottom from two parts' heights (part | ofs << 16)
+Hit_area_parts_set = 0x8001AECC; // type:func
+// em_sub: last enemy in pEnemy[2..] with the given Id
+Em_work_search = 0x8001B048; // type:func
+// esp: Esp_call from a running effect; the child inherits pEm and is positioned at once
+Esp_call_child = 0x8001B35C; // type:func
+// esp: Mov += Spd, Spd += Acc (the Be_flg 2 part of RE2 Esp_pos)
+Esp_speed_add = 0x8001BC80; // type:func
+// esp: water, floor and wall checks, sets Flg2 hit bits
+Esp_hit_ck = 0x8001BFCC; // type:func
+// esp: sprite sequence step (the Be_flg 1 part of RE2 Esp_pos)
+Esp_anm_move = 0x8001C168; // type:func
+// esp: free Esp[] slot (else one with Be_flg 8), cleared
+Esp_work_get = 0x8001C254; // type:func
+// esp: running effect by id (0xFFnn: by kind byte only)
+Esp_search = 0x8001C2DC; // type:func
+Esp_at_tbl = 0x80097FCC; // HIT_ATTR *[] attack data of the effects that hurt (index by effect)
+pEsp_top = 0x80098084; // ESP_WORK * = Esp (start of the pool, Esp_task_main)
+pEsp_end = 0x80098088; // ESP_WORK * = &Esp[96]
+pEsp_top2 = 0x8009808C; // ESP_WORK * = Esp (second copy, Esp_04)
+pEsp_end2 = 0x80098090; // ESP_WORK * = &Esp[96]
+Rnd_tbl = 0x80098728; // UCHAR[256] random bytes, indexed by Rnd()
+Rsin_tbl = 0x80098828; // signed char[256] sine, +-127
+// ESP_DATA[32] effect data per id: [0..15] core (CORE00.ESP), [16..31] room; RE2 Espid/pEspdt/pEspmv
+Esp_data = 0x800BA728;
+// esp: start the sprite sequence at a random one of n frames from Unk0F
+Esp_seq_rnd_set = 0x8001CDA4; // type:func
+// esp: scale Acc/Spd by Size, with a random spread on Spd_x/Spd_y
+Esp_spd_rnd_set = 0x8001CE24; // type:func
+// esp: end an effect by Routine_1: 2 starts a follow-up effect, 0 frees it, 3 stops it moving
+Esp_end = 0x8001CF24; // type:func
+// esp: start n child effects at once and run their first frames
+Esp_child_burst = 0x8001CFF4; // type:func
+// joint: body matrix (Cdir, Size, tilt) and the world matrix of every part
+Joint_trans = 0x800251FC; // type:func
+// joint: world matrix of one part (pSuper * M); falling / flying parts
+ko_joint_trans = 0x800253F0; // type:func
+// joint: light and screen matrices of a part, Parts_sort_ex (no caller in the exe)
+ko_joint_trans3 = 0x80025A28; // type:func
+// joint: sort a part's polygons, optional colour passes and colour blend
+Parts_sort = 0x80025C04; // type:func
+// joint: sort a vertex-animated (sabun) part
+Parts_sort_sabun = 0x80025DE8; // type:func
+// joint: sort a part with its extra sort data (PARTS_W 0xB8)
+Parts_sort_ex = 0x80025FB0; // type:func
+// joint: sort a part without the colour passes
+Parts_sort_simple = 0x8002606C; // type:func
+// joint: start tilting the body (Be_flg 0x40000): limit, speed, direction flags
+Em_tilt_set = 0x8002646C; // type:func
+// joint: tilt step: Tilt[] towards the flagged direction, clamped to Tilt_max
+Em_tilt_move = 0x80026498; // type:func
+// joint: bring Tilt[] back to 0 by Tilt_spd, then clear Be_flg 0x80000
+Em_tilt_return = 0x80026648; // type:func
+// joint: interpolated frame (seq flag 0x100) of Joint_move: key rotation + step * rate
+J_seq_hokan = 0x80027338; // type:func
+// joint: J_seq_hokan for Joint_move2 (15 parts)
+J_seq2_hokan = 0x80027F8C; // type:func
+// joint: blend 15 parts from their rotation to the interpolated key rotation
+Parts_hokan2 = 0x800281B4; // type:func
+// joint: light, screen matrix and sort of an object model part (om.c)
+Om_joint_trans = 0x800288C8; // type:func
+// md_sub: blend n parts from their rotation to the interpolated key rotation
+Parts_hokan = 0x8002B190; // type:func
+// md_sub: on the first interpolated frame, set the key rotation/root of every part and the step to the next key
+Hokan_key_set = 0x8002B2BC; // type:func
+Model_col = 0x80098B08; // MODEL_COL colour parameters of the lit sorts, from ENEMY_WORK 0x178/0x17E (Joint_trans2)
+// player: shadow back on, clear the water/scenario/tilt state of the player work
+Pl_reset = 0x80038F98; // type:func
+// player: Pl_mv slot 6: quick turn, 8 frames of +0x100 while stepping
+pl_mv06 = 0x8003A688; // type:func
+// player: Pl_mv slot 7
+pl_mv07 = 0x8003A7D8; // type:func
+// player: Pl_mv slot 8: motion 5, then the status screen is opened
+pl_mv08 = 0x8003B080; // type:func
+// player: Pl_mv_pad slot 0xA: walking on a slope or stairs
+pl_mv_slope_walk_pad = 0x8003B4FC; // type:func
+// player: Pl_mv slot 0xA: walk along the slope (Pl_slope_dir), split body motions
+pl_mv_slope_walk = 0x8003B784; // type:func
+// player: Pl_mv_pad slot 0xE: stepping back on a slope
+pl_mv_slope_back_pad = 0x8003B9FC; // type:func
+// player: Pl_mv slot 0xE
+pl_mv_slope_back = 0x8003BCA4; // type:func
+// player: Pl_mv_pad slot 0xF: running on a slope
+pl_mv_slope_run_pad = 0x8003BF28; // type:func
+// player: Pl_mv slot 0xF
+pl_mv_slope_run = 0x8003C104; // type:func
+// player: direction up the slope under the player, | 0x1000 when facing down it; Flg picks the slope walk motion
+Pl_slope_dir = 0x8003C390; // type:func
+// player: Pl_slope_dir with the slope run motions
+Pl_slope_dir_run = 0x8003C5B0; // type:func
+// player: Pl_mv slot 0xB
+pl_mv0b = 0x8003C740; // type:func
+// player: Pl_mv slot 0xC
+pl_mv0c = 0x8003CA88; // type:func
+// player: Pl_mv slot 0xD
+pl_mv0d = 0x8003CEA0; // type:func
+// UCHAR life state 0 fine, 1 caution (or poisoned), 2 danger: RE2 ENEMY_WORK.D_life_u
+Pl_life_u = 0x8009CD3C;
+// UCHAR[] motion numbers [action * 3 + Pl_life_u]: 0 stand, 3 walk, 6 run, 9 back
+Pl_mot_tbl = 0x8009CDE0;
+Pl_rot_spd_walk = 0x8009CDEC; // UCHAR[3] turn speed per Pl_life_u while walking
+Pl_rot_spd_run = 0x8009CDF0; // UCHAR[3] turn speed while running
+Pl_rot_spd_back = 0x8009CDF4; // UCHAR[3] turn speed while stepping back
+Pl_rot_spd = 0x8009CDF8; // UCHAR[3] turn speed standing/aiming, RE2 Pl_rot_spd {0x50, 0x30, 0x20}
+Slope_dir_tbl = 0x8009CDFC; // USHORT[8] uphill direction of a slope, index COL_OBJ.Unk39 & 7
+// UCHAR[] per weapon Type: bits 0-1 slope motion set, 0x80 (pl_wep)
+Pl_wep_flg = 0x8009CF78;
+// player: empty, unreferenced (after pl_die00)
+Pl_null = 0x8003DC0C; // type:func
+// om: take Parts_num PARTS_W for an object model (PartsWork_set for OBJ_MODEL_WORK)
+Om_parts_work_set = 0x80035868; // type:func
+// om: link the part tree of an object model from its kan
+Om_parts_link = 0x8003589C; // type:func
+// om: draw the parts of an object model, culled by pPos (Joint_trans2 for object models)
+Om_joint_trans2 = 0x80035B84; // type:func
+// om: a pushed object model holds still for 6 frames before the push starts
+Om_push_ck = 0x80036570; // type:func
+// om: an object model blows up: blasts, sound, rumble, damage around it
+Om_explosion = 0x800366EC; // type:func
+// om: Om_routine 0: push bookkeeping, trigger (explode / start) when its target flag is hit
+Om_rtn_wait = 0x80036C60; // type:func
+// om: Om_routine 1: drop to the ground and land
+Om_rtn_drop = 0x80036D94; // type:func
+// om: Om_routine 4: fall to the ground where an enemy dropped it (Om_drop_set)
+Om_rtn_fall = 0x80036F78; // type:func
+// om: Om_routine 5: aim target off while Routine_1 is 1
+Om_rtn_target_off = 0x8003783C; // type:func
+// om: the object model of kind 8 falls where pEm is (Om_routine 4), logged in G.Unk7DC0
+Om_drop_set = 0x80037A90; // type:func
+// om: ordering table of every live work and object model (by position, or fixed)
+Ot_set_all = 0x80037C38; // type:func
+// om: ordering table of the room block that contains pPos (G.pOt1 if none)
+Ot_get_pos = 0x80037D50; // type:func
+// om: one cleared ordering table per room block of the current cut (G.pOt_sub)
+Ot_sub_init = 0x80037E80; // type:func
+Om_routine = 0x8009CC64; // OM_FUNC[6] object model routines by Routine_0
+// per object kind: first part / number of parts that fly in Om_explosion_set
+Om_bomb_parts = 0x8009CBEC;
+Om_at_tbl = 0x8009CC54; // HIT_ATTR *[16] explosion damage per object kind
+Om_push_num = 0x800DD4AC; // number of pushable object models touched this frame
+pOm_push = 0x800DD4B0; // object model being pushed (Om_push_ck)
+Om_fall_dir_x = 0x800DE61A; // -1/0/1 direction a box tips over (Om_set_fall_dir)
+Om_fall_dir_z = 0x800DE61E;
+Om_fall_cdir_x = 0x800DE614; // Cdir_x of the pusher (Om_set_fall_dir)
+Om_fall_cdir_z = 0x800DE618;
+// Om_move_box: RE2 Pos_spd
+Om_pos_spd = 0x800DD492;
+Om_pos_spd_add = 0x800DD494; // RE2 Pos_spd_add
+Om_dir_spd = 0x800DD496; // RE2 Dir_spd
+Om_dir_spd_add = 0x800DD498; // RE2 Dir_spd_add
+Om_fall_spd = 0x800DD49A; // RE2 Fall_spd
+Om_dir_sum = 0x800DD49C; // RE2 Dir_sum
+Om_add_dir = 0x800DD4A0; // SVECTOR, RE2 Add_dir
+Om_in_water_flg = 0x800DD4A8; // RE2 In_water_flg
+// psp: room sprite work: OT z and group per sprite, two prims per sprite (RE2 Psp_init0 + Psp_init1)
+Psp_init = 0x80048630; // type:func
+// psp: RE3 rain: drop work and prims, Arg drops, first scatter
+Rain_init = 0x80048974; // type:func
+// psp: RE3 rain: move the drops, splash on the ground, wind
+Rain_move = 0x80048A3C; // type:func
+// psp: RE3 rain: each drop as a shaded line to the OT
+Rain_trans = 0x80048E34; // type:func
+// psp: scatter the drops around the camera view centre
+Rain_drop_set = 0x80048FF4; // type:func
+// psp: wind: G.Unk75E4/75E6 drift to random targets
+Rain_wind_move = 0x80049218; // type:func
+Psp_id = 0x800DEB08; // UCHAR[] Cut_flg bit (group) per room sprite
+Psp_otz = 0x800DEB0C; // SHORT[] OT z per room sprite
+pPsp_prim = 0x800DEB10; // PSP_PRIM * two prims per room sprite (double buffer), RE2 pPsp_prim
+Rain_work = 0x800DEB18; // RAIN_WORK
+// spl_sce: interpolated frame of the scenario motion set picked by Routine_1 (J_seq_hokan)
+Spl_sce_hokan = 0x8006037C; // type:func
+// spl_sce: step the scenario motion back a frame and set up the interpolation (Hokan_key_set)
+Spl_sce_hokan_set = 0x80060464; // type:func
+// spl_sce: footstep sound from the current seq frame (unless Unk144 0x100)
+Spl_sce_foot_se = 0x8006055C; // type:func
+// spl_sce: Routine_2 = low byte of Dest_x
+Spl_sce0a_init = 0x80061964; // type:func
+// spl_sce: Spl_sce0b motion: struggle, bleed, break free
+Spl_sce0b_move = 0x800623C4; // type:func
+// spl_sce: Spl_sce slot 0x14, empty
+Spl_sce14 = 0x80062970; // type:func
+// spl_sce: Spl_sce slot 0x15: turn to Dest_x, then scenario flag Set_flg_no
+Spl_sce15 = 0x80062978; // type:func
+// spl_sce: Spl_sce0a sub-routine 0 (and 5)
+Spl_sce0a_00 = 0x800619F0; // type:func
+// spl_sce: Spl_sce0a sub-routine 1 (and 6)
+Spl_sce0a_01 = 0x80061AD0; // type:func
+// spl_sce: Spl_sce0a sub-routine 2
+Spl_sce0a_02 = 0x80061BC4; // type:func
+// spl_sce: Spl_sce0a sub-routine 3 (and 8)
+Spl_sce0a_03 = 0x800621F0; // type:func
+// spl_sce: Spl_sce0a sub-routine 4
+Spl_sce0a_04 = 0x800622D8; // type:func
+// spl_sce: Spl_sce0a sub-routine 7
+Spl_sce0a_07 = 0x80061DF4; // type:func
+// spl_sce: Spl_sce_mv00 with the upper body played separately (Id 0)
+Spl_sce_mv00_sp = 0x80062F64; // type:func
+// spl_sce: Spl_sce_mv02 with split upper/lower body motions
+Spl_sce_mv02_sp = 0x80063198; // type:func
+// spl_sce: Pl_slope_dir for the sub player
+Spl_slope_dir = 0x800632B8; // type:func
+// spl_sce: Pl_slope_dir_run for the sub player
+Spl_slope_dir_run = 0x800634F4; // type:func
+// spl_sce: motion set of the sub player: 0 (Unk4B 0 or Id < 8), 1 (Id < 0x10), else Id - 0x4E
+Spl_mot_set_no = 0x80063690; // type:func
+Spl_sce0a_tbl = 0x8009EEA4; // SPL_FUNC[9] Spl_sce0a sub-routines by Routine_2
+Spl_slope_dir_tbl = 0x8009EEC8; // SHORT[8] uphill direction of a slope (sub player copy of Slope_dir_tbl)
+// spl_auto: Aida_Move_type slot 0xB
+Aida_Move_type0b = 0x8005A16C; // type:func
+// spl_auto: Aida_Move_type slot 0xF
+Aida_Move_type0f = 0x8005A1F0; // type:func
+// spl_auto: Aida_em_at00_pl slot 2: no reaction
+Aida_em_at00_pl_2 = 0x8005A5AC; // type:func
+// spl_auto: Aida_em_at00_spl slot 2: no reaction
+Aida_em_at00_spl_2 = 0x8005A5B4; // type:func
+// spl_auto: Aida_em_at00_pl slot 3: no reaction
+Aida_em_at00_pl_3 = 0x8005A5BC; // type:func
+// spl_auto: Aida_em_at00_spl slot 3: no reaction
+Aida_em_at00_spl_3 = 0x8005A5C4; // type:func
+// spl_auto: Aida_em_at01 slot 2: no reaction
+Aida_em_at01_2 = 0x8005ADBC; // type:func
+// spl_auto: Aida_em_at01 slot 3: no reaction
+Aida_em_at01_3 = 0x8005ADC4; // type:func
+// spl_auto: stand-state branch of Aida_mv_br_type0c
+Aida_mv00_br_2 = 0x8005AB14; // type:func
+// spl_auto: stand-state branch of Aida_mv_br_type0b: life state, fight the nearest enemy
+Aida_mv00_br_t0b = 0x8005A948; // type:func
+// spl_auto: walk-state branch of Aida_mv_br_type0b
+Aida_mv01_br_t0b = 0x8005B2CC; // type:func
+// spl_auto: run-state branch of Aida_mv_br_type0b
+Aida_mv02_br_t0b = 0x8005B9D0; // type:func
+// spl_auto: Aida_mv_br_type0b slot 0xB: turn to the nearest enemy
+Aida_mv0b_br_t0b = 0x8005D208; // type:func
+// spl_auto: Aida_em_at05 slot 3
+Aida_em_at05_3 = 0x8005C2F8; // type:func
+// spl_auto: Aida_mv05_w1_br_tbl slot 2, empty
+Aida_mv05_w1_t2_br = 0x8005C730; // type:func
+// spl_auto: Aida_mv05_w1_tbl slot 2
+Aida_mv05_w1_t2 = 0x8005C738; // type:func
+// spl_auto: Aida_mv05_w1_br_tbl slot 3, empty
+Aida_mv05_w1_t3_br = 0x8005C81C; // type:func
+// spl_auto: Aida_mv05_w1_tbl slot 3
+Aida_mv05_w1_t3 = 0x8005C824; // type:func
+// spl_auto: Aida_mv05_w1_br_tbl slot 4, empty
+Aida_mv05_w1_t4_br = 0x8005C8D0; // type:func
+// spl_auto: Aida_mv05_w1_tbl slot 4
+Aida_mv05_w1_t4 = 0x8005C8D8; // type:func
+// spl_auto: Aida_mv05_w1_br_tbl slot 5, empty
+Aida_mv05_w1_t5_br = 0x8005C96C; // type:func
+// spl_auto: Aida_mv05_w1_tbl slot 5
+Aida_mv05_w1_t5 = 0x8005C974; // type:func
+// spl_auto: Aida_mv05_w1_br_tbl slot 6, empty
+Aida_mv05_w1_t6_br = 0x8005CA0C; // type:func
+// spl_auto: Aida_mv05_w1_tbl slot 6
+Aida_mv05_w1_t6 = 0x8005CA14; // type:func
+// spl_auto: Aida_mv_br slot 0xE
+Aida_mv0e_br = 0x8005D4D8; // type:func
+// spl_auto: Aida_mv_br slot 0xF
+Aida_mv0f_br = 0x8005D554; // type:func
+// spl_auto: Aida_mv_br slot 0x10, empty
+Aida_mv10_br = 0x8005D704; // type:func
+// spl_auto: Aida_mv_br slot 0x11
+Aida_mv11_br = 0x8005DA44; // type:func
+// spl_auto: Aida_mv_br slot 0x12
+Aida_mv12_br = 0x8005DE3C; // type:func
+// spl_auto: Aida_mv_br slot 0x13
+Aida_mv13_br = 0x8005E1D0; // type:func
+// spl_auto: Aida_mv_type00 slot 0x10
+Aida_mv10 = 0x8005D70C; // type:func
+// spl_auto: Aida_mv_type00 slot 0x11
+Aida_mv11 = 0x8005DBCC; // type:func
+// spl_auto: Aida_mv_type00 slot 0x12
+Aida_mv12 = 0x8005DF4C; // type:func
+// spl_auto: Aida_mv_type00 slot 0x13
+Aida_mv13 = 0x8005E40C; // type:func
+// spl_auto: Spl_dm slots 4/6/8: heavy hit
+Spl_dm02 = 0x8005E90C; // type:func
+// spl_auto: Spl_dm slots 5/7/9: heavy hit from behind
+Spl_dm03 = 0x8005EBC0; // type:func
+// spl_auto: take Dmg off the sub player (pEnemy[1]) and its saved life; Flg 1 clamps at 0, Flg 0 returns 2 when dead
+Spl_life_sub = 0x8005F984; // type:func
+// spl_auto: Spl_shot_eff_tbl: muzzle flash, shell and hit check of a shot (first frame)
+Spl_shot_eff = 0x8005FAEC; // type:func
+// spl_auto: Spl_shot_eff_tbl: muzzle effects on frames 0, 4 and 7
+Spl_shot_eff_rapid = 0x8005FC18; // type:func
+// spl_auto: muzzle effects and hit check every third frame
+Spl_shot_eff_auto = 0x8005FEE0; // type:func
+Aida_mv_br_type0b = 0x8009EB9C;
+Aida_mv_br_type0c = 0x8009EBEC;
+Spl_dm = 0x8009ED24; // SPL_FUNC[] sub player damage routines by Routine_1 (Pl_dm counterpart)
+Spl_die = 0x8009ED84; // SPL_FUNC[] sub player death routines by Routine_1
+Aida_em_at_idx = 0x8009EC3C; // UCHAR[] Aida_em_at* table index per enemy Id - 0x10
+Spl_shot_eff_tbl = 0x8009E720; // SPL_FUNC[20] shot effects of the sub player's weapon
+Spl_life_u = 0x8009E70C; // UCHAR life state of the sub player (Pl_life_u counterpart)
+Spl_soba_ofs = 0x8009E770; // SHORT[12] offset triples passed to Spl_soba_pos_set
+Spl_ai_wait = 0x8009E7D8; // countdown (0xF) between AI decisions
+// pl_wep: aim at the next live enemy in view after the current pEnemy_ptr (or the player itself)
+Pl_target_next = 0x8003F79C; // type:func
+// pl_wep: pl_mv05_w0_tbl slot 6: turn to the point pUnk15C, upper body played separately
+pl_mv05_w_turn = 0x8003FA38; // type:func
+// pl_wep: pl_mv05_w0_tbl slot 8
+pl_mv05_w0_t8 = 0x8003FB78; // type:func
+// pl_wep: lower the weapon and go back to standing (no table refers to it)
+pl_mv05_w_end = 0x8003FEFC; // type:func
+// pl_wep: is the point pSv (in pM's space) inside pEm's Hit_area box?
+Hit_area_ck = 0x80044420; // type:func
+// pl_wep: is pEm inside the attack area pA (pPos0 -> pPos1)? used by every enemy module
+Hit_area_em_ck = 0x800445C8; // type:func
+// pl_wep: pV inside the wedge given by the packed shorts A, B, widened by W (y/z)
+Wedge_ck_w = 0x8004470C; // type:func
+// pl_wep: pV inside the wedge given by the packed shorts A, B (y/x)
+Wedge_ck = 0x8004479C; // type:func
+// pl_wep: position of pM1's origin in pM0's space
+Matrix_rel_pos = 0x80044E90; // type:func
+// pl_wep: a dropped weapon part falls to the floor and becomes an item AOT
+Pl_wep_parts_drop = 0x800452E8; // type:func
+// pl_wep: start the weapon effect parts (parts 15..20) of the player
+Pl_wep_eff_parts_set = 0x800455B4; // type:func
+// pl_wep: nearest live enemy within LL of pPos and Lim of the direction Dir
+Em_near_dir_ck = 0x800457A4; // type:func
+// pl_wep: per frame weapon effects (flame, sparks, light polys) and their hits
+Pl_wep_eff_move = 0x80045950; // type:func
+// pl_wep: part of pEm (from the list pTbl) nearest to pM's origin
+Parts_near_get = 0x80046A0C; // type:func
+// pl_wep: y and z angles of the vector pV
+Vec_dir_get = 0x80046B94; // type:func
+// pl_wep: set up the six weapon light polys
+Pl_wep_poly_init = 0x80046C90; // type:func
+// pl_wep: hide a weapon light poly
+Pl_wep_poly_off = 0x80046DF8; // type:func
+// pl_wep: show a weapon light poly at half brightness when its depth is in range
+Pl_wep_poly_ck = 0x80046E00; // type:func
+// pl_wep: draw the visible weapon light polys
+Pl_wep_poly_trans = 0x80046EC4; // type:func
+// pl_wep: flags of the enemies whose parts are within Ll0/Ll1 of pPos
+Em_near_pos_ck = 0x800470F4; // type:func
+// pl_wep: weapon hit check against the object model targets
+Weapon_om_at_ck = 0x80047860; // type:func
+// pl_wep: damage request against the object model targets
+Pos_om_at_ck = 0x80047BD0; // type:func
+// pl_wep: position of the nearest object model target within LL
+Om_target_near = 0x80047DD0; // type:func
+// pl_wep: damage request against one enemy pEm
+Pos_em1_at_ck = 0x80047F70; // type:func
+// pl_wep: score / time bonus for killing enemy Id (Flg: no combo count)
+Em_kill_score = 0x8004834C; // type:func
+Pl_wep_data = 0x8009DBB4; // PL_WEP_DATA *[] per-weapon hit data, index player Id
+Em_score_tbl = 0x8009DDC4; // UCHAR[][2] score / time bonus per enemy Id - 0x10
+Em_kill_combo = 0x8009DE24; // UCHAR kills in a row (Em_kill_score)
+// door: scenario-driven moves of an enemy (Spl_Scenario counterpart): Em_sce[Routine_1], interpolation, feet, neck
+Em_sce_main = 0x80016600; // type:func
+// door: Em_sce slot 0: Em_sce_mv00 with the room kan/seq
+Em_sce00 = 0x800167AC; // type:func
+// door: Em_sce slot 1: Em_sce_mv00 with Kan/Seq
+Em_sce01 = 0x800167E4; // type:func
+// door: Em_sce slot 2: Em_sce_mv00 with Sub0
+Em_sce02 = 0x8001681C; // type:func
+// door: Em_sce slot 3: Em_sce_mv00 with Sub1
+Em_sce03 = 0x80016854; // type:func
+// door: Em_sce slot 4
+Em_sce04 = 0x8001688C; // type:func
+// door: Em_sce slot 5
+Em_sce05 = 0x80016A40; // type:func
+// door: Em_sce slot 6
+Em_sce06 = 0x80016BF4; // type:func
+// door: Em_sce slot 7
+Em_sce07 = 0x80016C9C; // type:func
+// door: Em_sce slot 8
+Em_sce08 = 0x80016DA0; // type:func
+// door: Em_sce slot 9
+Em_sce09 = 0x80016E80; // type:func
+// door: Em_sce slot 0x15
+Em_sce15 = 0x80016F44; // type:func
+// door: play the scenario motion in place (Spl_sce_mv04 counterpart)
+Em_sce_mv04 = 0x80017008; // type:func
+// door: turn towards (Dest_x, Dest_z) while playing the motion; 1 when facing it
+Em_sce_mv01 = 0x80017148; // type:func
+// door: walk to (Dest_x, Dest_z); 1 when there
+Em_sce_mv02 = 0x800171DC; // type:func
+// door: turn to the direction Dest_x; 1 when reached
+Em_sce_mv03 = 0x800172AC; // type:func
+// door: play the scenario motion with its root speed (Spl_sce_mv00 counterpart)
+Em_sce_mv00 = 0x80017318; // type:func
+// door: footstep sound from the current seq frame
+Em_sce_foot_se = 0x80017540; // type:func
+// door: load an enemy model/motion file into its work and relocate it (RE2 EM_SET.C Emd_load)
+Emd_load = 0x8001760C; // type:func
+Em_sce = 0x80097AA0; // EM_PROC[24] enemy scenario routines by Routine_1
+Door_file_tbl = 0x800979D4; // USHORT *[] door file numbers per stage, index Dtex_type
+// oba: empty the collision list and set up the player's COL_OBJ
+Oba_init = 0x80033508; // type:func
+// oba: add pObj to the collision list (once) with shape Id
+Oba_set = 0x80033580; // type:func
+// oba: index of pEm in G.pEnemy[] (0 if absent)
+Em_work_no_get = 0x800336B4; // type:func
+// oba: collect the live collision objects into COL_ENT records (two passes)
+Oba_ent_collect = 0x800336F0; // type:func
+// oba: per object: keep the sticky Hit_flg bits, test it against the records
+Oba_hit_ck_all = 0x800337B8; // type:func
+// oba: resolve the overlaps between objects
+Oba_push_all = 0x8003389C; // type:func
+// oba: per frame: collect, update positions, test, push, write back
+Oba_main = 0x80033B20; // type:func
+// oba: write the resolved positions back to the works
+Oba_pos_back = 0x80033B88; // type:func
+// oba: fill a COL_ENT for pObj (shape 8, all areas) with its floor range
+Oba_ent_set = 0x80033F38; // type:func
+// oba: reset the per-frame hit state and take the positions from the matrices
+Oba_pos_update = 0x80033FBC; // type:func
+// oba: clear the hit state of one object and re-read its position
+Oba_hit_clr = 0x80034124; // type:func
+// oba: floor range of a record from the room shapes around the object
+Oba_ent_floor_set = 0x80034284; // type:func
+// oba: is pT within reach in front of pEm?
+Oba_front_ck = 0x80034448; // type:func
+// oba: does pPos lie inside another live enemy than pEm?
+Oba_pos_em_ck = 0x800345C0; // type:func
+// oba: does pPos lie inside pT (as seen by pEm)?
+Oba_pos_em2_ck = 0x800346AC; // type:func
+// oba: player against a pushable object record (Type 7 / 8)
+Oba_push_obj_ck = 0x80034D74; // type:func
+// oba: records in pEm's floor area matching the shape mask Tbl that touch it
+Oba_area_ck = 0x80035184; // type:func
+// oba: does the move of pObj cross pT?
+Oba_cross_ck = 0x800353CC; // type:func
+// oba: push pObj (and its work) out of pT along x or z
+Oba_push_out = 0x8003553C; // type:func
+// COL_WORK: the collision list and its COL_ENT records
+Oba_work = 0x800DCED0;
+pOba_list = 0x800DCDD0; // COL_OBJ *[] objects of this frame, NULL terminated
+// md_sub: relocate a model file (Md_adr_cnv) and point it at its texture page / CLUT (RE2 Mapping_tmd role)
+Mapping_md = 0x8002AB34; // type:func
+// md_sub: project the vertices flattened onto the floor into screen xy / z tables
+Md_rtp_floor = 0x8002D184; // type:func
+// md_sub: project the vertices of a model object into screen xy / z tables
+Md_rtp = 0x8002D5D8; // type:func
+// md_sub: average the colours of the prims p..pEnd with Rgb
+Rgb_blend = 0x8002D41C; // type:func

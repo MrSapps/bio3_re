@@ -27,7 +27,7 @@ typedef struct tagEM32_FREE {
     SHORT Pos_x_bak;                   /* 0x02 (0x1CE) start position */
     SHORT Pos_y_bak;                   /* 0x04 (0x1D0) */
     SHORT Pos_z_bak;                   /* 0x06 (0x1D2) */
-    SHORT Ground_bak;                  /* 0x08 (0x1D4) Unk122 */
+    SHORT Ground_bak;                  /* 0x08 (0x1D4) Ground */
     SHORT Cdir_y_bak;                  /* 0x0A (0x1D6) */
     SHORT Timer0_bak;                  /* 0x0C (0x1D8) */
     SHORT nFloor_bak;                  /* 0x0E (0x1DA) */
@@ -54,7 +54,7 @@ typedef struct tagEM32_FREE {
 /* shadow polygons: colour + code word of POLY_FT4 */
 #define PRIM_RGBC(p) (*(ULONG *)&(p).r0)
 
-/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c func_8004AC54) */
+/* morph (sabun) data at PARTS_W.pSa_dat_head: key weights, 0x1000 = full (sabun.c func_8004AC54) */
 typedef struct tagEM32_SABUN {
     ULONG Ofs;                         /* 0x00 */
     ULONG Size;                        /* 0x04 */
@@ -65,7 +65,7 @@ typedef struct tagEM32_SABUN {
         SHORT pad;
     } Key[2];
 } EM32_SABUN;
-#define EM32_SABUN_P(pP) ((EM32_SABUN *)(pP)->pUnk98)
+#define EM32_SABUN_P(pP) ((EM32_SABUN *)(pP)->pSa_dat_head)
 
 extern void (*Em32_routine_0[])();
 extern void (*Em32_mv_br[])();

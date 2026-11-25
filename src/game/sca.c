@@ -12,15 +12,15 @@
 
 void func_8004B7E8(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
 {
-    pEm->Unk122 = Y;
+    pEm->Ground = Y;
     pEm->nFloor = Y / -1800;
     if (!(pEm->Be_flg & 0x400)) {
-        pEm->Base_pos_y = pEm->Pos_y = pEm->Unk122;
+        pEm->Base_pos_y = pEm->Pos_y = pEm->Ground;
     }
     if (D_800DEB58.Unk8 != 0) {
         pEm->Pos_y += pEm->Unk1B8;
-        if (pEm->Unk122 < pEm->Pos_y) {
-            pEm->Pos_y = pEm->Unk122;
+        if (pEm->Ground < pEm->Pos_y) {
+            pEm->Pos_y = pEm->Ground;
         }
     } else {
         pEm->Unk1B8 = 0;
@@ -345,7 +345,7 @@ ULONG func_8004D6B8(LONG X, LONG Z)
     return Area | (((1 << ((ULONG)(X - Sx) >> 31)) << (((Z - Sz) & 0x80000000) >> 30)) << 4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D720);
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground);
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004DB10);
 
@@ -592,7 +592,7 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
     if (pT->X0 == 0) {
         return Ret;
     }
-    pT = (SCA_DATA *)D_800DCED0.Ent;
+    pT = (SCA_DATA *)Oba_work.Ent;
     P0 = ((pA->vx >> 1) << 16) | ((pA->vz >> 1) & 0xFFFF);
     P1 = ((pB->vx >> 1) << 16) | ((pB->vz >> 1) & 0xFFFF);
     for (pEnt = (COL_ENT *)pT; ((COL_ENT *)pT)->C.All != -1 && Ret == 0; pEnt = (COL_ENT *)pT) {
@@ -1151,7 +1151,7 @@ LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT)
     LONG Min;
     LONG Max;
 
-    if (func_800502B8((VECTOR *)&pObj->Pos_x, pT) & 1) {
+    if (func_800502B8(POS_V(pObj), pT) & 1) {
         Min = pT->X0;
         Max = pT->X1;
         Pos = pObj->Pos_x;

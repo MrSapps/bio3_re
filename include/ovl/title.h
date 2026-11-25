@@ -66,7 +66,7 @@ extern void (*Title_main_tbl[6])(TITLE_WORK *pTi); /* 0x801974C0 */
 extern void (*Title_sub_tbl[12])(TITLE_WORK *pTi); /* 0x801974D8 */
 extern TITLE_WORK Title_wk; /* 0x80197508 */
 
-extern signed char Title_sin_tbl[256] __asm__("D_80098828"); /* 0x80098828 0..255 sine wave */
+extern signed char Title_sin_tbl[256] __asm__("Rsin_tbl"); /* 0x80098828 0..255 sine wave */
 
 /* overlay functions */
 void func_801940E8(void); /* main loop */

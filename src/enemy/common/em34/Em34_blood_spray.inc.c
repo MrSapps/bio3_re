@@ -1,5 +1,5 @@
 /* shared by em34, em36 */
-/* blood spray of a hit (Unk132 & 0x100 / 0x400) */
+/* blood spray of a hit (Damage_flg & 0x100 / 0x400) */
 void Em34_blood_spray(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
@@ -11,7 +11,7 @@ void Em34_blood_spray(ENEMY_WORK *pEm)
     pEm->Status_flg |= 1;
     Esp_call(0x205, (Rnd() * 16 + 0x1000) << 16, &pP[13].Workm, NULL, NULL);
     Esp_call(0x1001B03, (Rnd() * 16 + 0xA00) << 16, &pP[13].Workm, NULL, NULL);
-    if ((pEm->Unk132 & 3) == 1) {
+    if ((pEm->Damage_flg & 3) == 1) {
         pM = (MATRIX *)pEm->pSin_parts_ptr;
         pM = &((PARTS_W *)pM)[11].Workm;
         Esp_call(0x205, (Rnd() * 16 + 0x1000) << 16, pM, NULL, NULL);

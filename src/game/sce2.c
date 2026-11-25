@@ -281,13 +281,13 @@ ULONG Sce_espr_kill(SCE_TASK *pSce)
     MATRIX *pM;
 
     pM = Get_matrix((s8)pSce->Data[3], (s8)pSce->Data[4]);
-    func_8001B894((pSce->Data[2] << 8) | pSce->Data[1], pM);
+    Esp_kill((pSce->Data[2] << 8) | pSce->Data[1], pM);
     pSce->Data += 5;
     return 1;
 }
 
-/* int-returning view of the void func_8001B894: the caller's register allocation needs v0 clobbered */
-LONG func_8001B894_l(ULONG Id, MATRIX *pM) __asm__("func_8001B894"); /* returns long here (canonical void) */
+/* int-returning view of the void Esp_kill: the caller's register allocation needs v0 clobbered */
+LONG func_8001B894_l(ULONG Id, MATRIX *pM) __asm__("Esp_kill"); /* returns long here (canonical void) */
 
 ULONG Sce_espr_kill2(SCE_TASK *pSce)
 {
@@ -311,7 +311,7 @@ ULONG Sce_espr_task(SCE_TASK *pSce)
             }
         }
     } else {
-        func_8001B894(0x2000000, 0);
+        Esp_kill(0x2000000, 0);
     }
     pSce->Data += 3;
     return 1;
@@ -322,7 +322,7 @@ ULONG Sce_espr_control(SCE_TASK *pSce)
     UCHAR *pData;
 
     pData = pSce->Data;
-    func_8001BA48((pData[2] << 8) | pData[1], Get_matrix((s8)pData[3], (s8)pData[4]),
+    Esp_ctrl((pData[2] << 8) | pData[1], Get_matrix((s8)pData[3], (s8)pData[4]),
                   pData[5] | (pData[6] << 16), pData[7] | (pData[8] << 16));
     pSce->Data = pData + 10;
     return 1;
@@ -434,15 +434,15 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pEm->Id = D_800E0198->Id;
         pEm->Type = D_800E0198->Type;
         pEm->Status_flg = D_800E0198->Status_flg;
-        pEm->Unk147 = D_800E0198->Flg_no;
+        pEm->Em_set_flg = D_800E0198->Flg_no;
         pEm->Unk4B = D_800E0198->UnkA;
         pEm->nFloor = D_800E0198->nFloor;
-        pEm->Unk122 = -(D_800E0198->nFloor * 1800);
+        pEm->Ground = -(D_800E0198->nFloor * 1800);
         pEm->Damage_cnt = 0;
         pEm->UnkC6 = 0;
         pEm->Timer0 = D_800E0198->Timer0;
         pEm->UnkDA = D_800E0198->UnkDA;
-        pEm->Unk12A = 0x1000;
+        pEm->Mot_scale_y = 0x1000;
         pEm->pUnk114 = &Pl_work;
         pEm->UnkE2 = 0;
         pEm->UnkE3 = 0;
@@ -456,15 +456,15 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pEm->Unk152 = 0;
         pEm->Water = 0;
         pEm->Unk1B8 = 0;
-        pEm->Unk1BA = 0;
-        pEm->Unk1BC[0] = 0;
-        pEm->Unk1BC[1] = 0;
+        pEm->Tilt_max = 0;
+        pEm->Tilt[0] = 0;
+        pEm->Tilt[1] = 0;
         pEm->Unk1C0 = 0;
-        pEm->Unk1C1 = 0;
-        pEm->Unk1C2 = 0;
+        pEm->Tilt_flg = 0;
+        pEm->Tilt_spd = 0;
         pEm->Unk1CA = 0;
         pEm->Unk1C8 = 0;
-        pEm->Unk132 = 0;
+        pEm->Damage_flg = 0;
         pEm->Unk158 = 0;
         pEm->Col.Id = 0;
         pEm->UnkD = 0;
@@ -490,8 +490,8 @@ ULONG Plc_motion(SCE_TASK *pSce)
     pW->Move_cnt = 0;
     pW->Move_no = Move_no;
     if (pW->Id == 0) {
-        pW->Unk1A0 = Move_no;
-        pW->Unk1A1 = 0;
+        pW->Sub_move_no = Move_no;
+        pW->Sub_move_cnt = 0;
     }
     pW->Unk144 = Attr;
     pW->Add_dir = 0;
@@ -575,7 +575,7 @@ ULONG Plc_dest(SCE_TASK *pSce)
     Set_no = pData[3];
     pEm->Unk144 = 0;
     pEm->Unk14A = 0;
-    pEm->Unk146 = Set_no;
+    pEm->Set_flg_no = Set_no;
     pEm->Type |= 0x100;
     pEm->Dest_x = ((SHORT *)pData)[2];
     pEm->Dest_z = ((SHORT *)pData)[3];
@@ -628,36 +628,36 @@ ULONG Plc_neck(SCE_TASK *pSce)
     pW = pSce->pWork;
     Kind = pSce->Data[1];
     pParts = pW->pSin_parts_ptr + 1;
-    pW->Unk120 = 0x80;
+    pW->Neck_flg = 0x80;
     A = ((SHORT *)pSce->Data)[1];
     B = ((SHORT *)pSce->Data)[2];
     C = ((SHORT *)pSce->Data)[3];
     D = ((SHORT *)pSce->Data)[4];
     switch (Kind) {
     case 0:
-        pW->Unk120 |= 0x12;
+        pW->Neck_flg |= 0x12;
         break;
     case 2:
-        pW->Unk120 |= 0x8;
+        pW->Neck_flg |= 0x8;
         break;
     case 3:
-        pW->Unk120 |= 0x2A;
+        pW->Neck_flg |= 0x2A;
         break;
     case 4:
-        pW->Unk120 |= 0x58;
+        pW->Neck_flg |= 0x58;
         break;
     case 1:
     case 5:
-        pW->Unk120 |= 0x4;
+        pW->Neck_flg |= 0x4;
         break;
     case 6:
-        pW->Unk120 = 0;
+        pW->Neck_flg = 0;
         break;
     case 7:
-        pW->Unk120 |= 0x1;
+        pW->Neck_flg |= 0x1;
         break;
     case 8:
-        pW->Unk120 |= 0x12;
+        pW->Neck_flg |= 0x12;
         ((SHORT *)&pParts->Unk74)[0] = 0;
         ((SHORT *)&pParts->Unk74)[1] = 0;
         break;
@@ -694,11 +694,11 @@ ULONG Plc_ret(SCE_TASK *pSce)
     if (pW->Id < 0x10) {
         pW->Type &= 0xFFF;
     }
-    pW->Unk120 = 0;
+    pW->Neck_flg = 0;
     pW->Damage_cnt = 0;
     pW->Type &= 0xAEFF;
     pSce->Data++;
-    func_80034124(&pW->Col);
+    Oba_hit_clr(&pW->Col);
     return 1;
 }
 
@@ -767,13 +767,13 @@ ULONG Splc_ret(SCE_TASK *pSce)
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 1;
     pW->pUnk114 = G_PLAYER;
-    pW->Unk120 = 0;
+    pW->Neck_flg = 0;
     pW->Type = (pW->Type & 0xAEFF) | 0x400;
     G.Status_flg |= 0x80000000;
     pW->Life = G.Unk7852;
     pW->Max_life = 200;
     pSce->Data++;
-    func_80034124(&pW->Col);
+    Oba_hit_clr(&pW->Col);
     return 1;
 }
 
@@ -784,7 +784,7 @@ ULONG Splc_sce(SCE_TASK *pSce)
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 0x604;
     pW->pUnk114 = pW;
-    pW->Unk120 = 0x92;
+    pW->Neck_flg = 0x92;
     pW->Type = (pW->Type | 0x5000) & ~0x400;
     G.Status_flg &= 0x7FFFFFFF;
     pSce->Data++;
@@ -798,7 +798,7 @@ ULONG func_800574B8(SCE_TASK *pSce)
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 0x604;
     pW->pUnk114 = pW;
-    pW->Unk120 = 0x92;
+    pW->Neck_flg = 0x92;
     pW->Type |= 0x5000;
     pSce->Data++;
     return 1;
@@ -1221,15 +1221,15 @@ ULONG Sce_parts_down(SCE_TASK *pSce)
 
     pData = pSce->Data;
     pP = &pSce->pWork->pSin_parts_ptr[pData[1]];
-    pP->Unk96 = 0;
+    pP->Timer3 = 0;
     pP->Be_flg |= 0xA;
     pP->Old_x = ((USHORT *)pData)[1];
     pP->Old_z = ((USHORT *)pData)[2];
     pP->Old_y = ((USHORT *)pData)[3];
-    pP->Unk85 = pData[8];
-    pP->Unk90 = ((USHORT *)pData)[5];
-    pP->Unk92 = ((USHORT *)pData)[6];
-    pP->Unk8E = ((USHORT *)pData)[7];
+    pP->Timer1 = pData[8];
+    pP->Rot_spd_x = ((USHORT *)pData)[5];
+    pP->Rot_spd_y = ((USHORT *)pData)[6];
+    pP->Rot_spd_z = ((USHORT *)pData)[7];
     pSce->Data += 16;
     return 1;
 }
@@ -1331,13 +1331,13 @@ ULONG Parts_set(SCE_TASK *pSce)
         pParts->Cdir_z = Val;
         break;
     case 7:
-        pParts->Unk90 = Val;
+        pParts->Rot_spd_x = Val;
         break;
     case 8:
-        pParts->Unk92 = Val;
+        pParts->Rot_spd_y = Val;
         break;
     case 9:
-        pParts->Unk8E = Val;
+        pParts->Rot_spd_z = Val;
         break;
     case 0:
     case 10:
@@ -1370,7 +1370,7 @@ ULONG func_800589FC(SCE_TASK *pSce)
     pW->UnkDA = 0;
     pW->UnkE2 = 0;
     pW->UnkE3 = 0;
-    pW->Unk122 = -(nFloor * 1800);
+    pW->Ground = -(nFloor * 1800);
     if (pW->Kage.pKw != NULL) {
         pW->Kage.pKw->Be_flg = 0;
     }
@@ -1380,19 +1380,19 @@ ULONG func_800589FC(SCE_TASK *pSce)
     pW->Unk14C = 0;
     pW->Unk14E = 0;
     pW->Water = 0;
-    pW->Unk1C2 = 0;
-    pW->Unk1C1 = 0;
+    pW->Tilt_spd = 0;
+    pW->Tilt_flg = 0;
     pW->Unk1C0 = 0;
-    pW->Unk1BC[1] = 0;
-    pW->Unk1BC[0] = 0;
-    pW->Unk1BA = 0;
+    pW->Tilt[1] = 0;
+    pW->Tilt[0] = 0;
+    pW->Tilt_max = 0;
     pW->Unk1B8 = 0;
-    pW->Unk12A = 0x1000;
+    pW->Mot_scale_y = 0x1000;
     pW->Unk1CA = 0;
     pW->Unk1C8 = 0;
-    pW->Unk132 = 0;
+    pW->Damage_flg = 0;
     pW->Unk158 = 0;
-    func_800261AC(pW, 0, pW->pUnk10C);
+    PartsWork_link(pW, 0, pW->pUnk10C);
     pSce->Data += 2;
     return 1;
 }

@@ -1,10 +1,10 @@
 /* shared by em10, em16 */
-/* hit that may kill outright: stagger (dm01), or blow the head off (die03) unless Unk132 & 0xC */
+/* hit that may kill outright: stagger (dm01), or blow the head off (die03) unless Damage_flg & 0xC */
 void Em10_dm_sel01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Routine_3 = 0;
-        if (!(pEm->Unk132 & 0xC))
+        if (!(pEm->Damage_flg & 0xC))
             pEm->Routine_3 = 1;
     }
     switch (pEm->Routine_3) {

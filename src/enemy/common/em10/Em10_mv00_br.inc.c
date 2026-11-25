@@ -8,7 +8,7 @@ void Em10_mv00_br(ENEMY_WORK *pEm)
     ENEMY_WORK *pPl;
 
     pPl = &Pl_work;
-    LL = pEm->Unk154;
+    LL = pEm->L_pl;
     Dir0 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     Dir1 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x514);
     if (pEm->Type & 0x10)

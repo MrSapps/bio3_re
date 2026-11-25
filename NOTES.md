@@ -63,6 +63,19 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   but fields used together must come from the same symbol for gcc to share the &G base.
 
 ## Process notes
+- Cleanup pass (clean/gameA: em_sub, joint, player, pl_wep, spl_*, om, door, esp_r, psp, oba): names
+  go to symbol_addrs.txt (so the main asm uses them after a re-split: rm asm/{nonmatchings,matchings,data}/game,
+  asm/data/*.s, asm/*.s, then `make split`) and to syms/*.txt (PROVIDE for the overlay links). Renaming an
+  INCLUDE_ASM function also renames its INCLUDE_ASM line. ENEMY_WORK/PARTS_W field renames were fixed through
+  the compiler (cpp with line markers + cc1 -fsyntax-only), so same-named fields of other structs stay.
+- bio3.h vector views replace the casts: CDIR_SV, POS_V, EM_SPD_SV, EM_WORKM, PW_M, WORKM_POS_V (gcc 2.8 has
+  no anonymous unions, so a named SVECTOR member would mean renaming every Cdir_x use). Free-work views:
+  PW_NECK, PW_RGB, PW_BOMB (joint.h). The game files use enemy/em_common.h's EM_SET_RTN / EM_SET_MOVE for the
+  Routine / Move word stores (moving those macros to bio3.h would be cleaner).
+- Aliases removed by fixing the canonical prototype: Cdir_ck/Cdir_ck_pos/Cdir_ck2/Dir_ck return LONG,
+  Parts_hokan takes LONG Rate (narrowed inside), Parts_sort_simple and Spl_sce07 take the arguments their
+  callers pass, Rnd_tbl is read with (signed char) casts. Kept on purpose (comment says why): Add_speedXZ3
+  (3 args), Joint_trans_om / Sca_get_ground3 (om.c), the Rnd return-type views, spl_auto's unprototyped calls.
 - Never run a full `make` while agents edit src/: it rebuilds build/ objects from half-edited files and
   breaks every other agent's linkcheck (which links against build/). Restore from a clean worktree build.
 - fdiff.py used to leak one /tmp dir per run (36k dirs, 3 GB, filled the disk); fixed.

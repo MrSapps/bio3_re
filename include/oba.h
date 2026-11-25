@@ -34,7 +34,7 @@ typedef struct tagCOL_WORK {
     COL_OBJ *pTail;                    /* 0x04 */
     COL_ENT Ent[1];                    /* 0x08 */
 } COL_WORK;
-extern COL_WORK D_800DCED0;
+extern COL_WORK Oba_work;
 
 /* C.All = High << 16 | Floor_hi << 8 | Floor_lo, both floor bytes set to Floor.
  * The do/while wrappers are load-bearing (they change register allocation). */
@@ -51,32 +51,32 @@ extern COL_WORK D_800DCED0;
     } while (0)
 
 extern ULONG D_8009CBC8[];
-extern COL_OBJ *D_800DCDD0[]; /* objects collected this frame, NULL terminated */
+extern COL_OBJ *pOba_list[]; /* objects collected this frame, NULL terminated */
 
-void func_80033508(void);
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id);
-LONG func_800336B4(ENEMY_WORK *pEm); /* collision index of a work */
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt);
-LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt);
-void func_80033B20(void);
-void func_80033B88(COL_OBJ *pTop);
+void Oba_init(void);
+UCHAR Oba_set(COL_OBJ *pObj, ULONG Id);
+LONG Em_work_no_get(ENEMY_WORK *pEm); /* collision index of a work */
+void Oba_ent_collect(COL_OBJ *pTop, COL_ENT *pEnt);
+void Oba_hit_ck_all(COL_OBJ *pTop, COL_ENT *pEnt);
+LONG Oba_push_all(COL_OBJ *pTop, COL_ENT *pEnt);
+void Oba_main(void);
+void Oba_pos_back(COL_OBJ *pTop);
 COL_ENT *func_80033CF4(COL_OBJ *pObj, COL_ENT *pEnt);
-void func_80033F38(COL_OBJ *pObj, COL_ENT *pEnt, LONG n);
-void func_80033FBC(COL_OBJ *pTop);
-void func_80034124(COL_OBJ *pObj);
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt);
-LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT);
-LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm);
-LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT);
+void Oba_ent_set(COL_OBJ *pObj, COL_ENT *pEnt, LONG n);
+void Oba_pos_update(COL_OBJ *pTop);
+void Oba_hit_clr(COL_OBJ *pObj);
+void Oba_ent_floor_set(COL_OBJ *pObj, COL_ENT *pEnt);
+LONG Oba_front_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT);
+LONG Oba_pos_em_ck(VECTOR *pPos, ENEMY_WORK *pEm);
+LONG Oba_pos_em2_ck(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT);
 void func_80034814(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
-void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type);
+void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type);
 struct tagSCA_DATA;                    /* SCA_DATA (sca.h includes this header) */
 void func_80034E78(COL_OBJ *pObj, struct tagSCA_DATA *pT); /* shape of an object as SCA_DATA */
 void func_80034F08(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj);
-LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
-LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT);
-LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT);
+LONG Oba_area_ck(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG Oba_cross_ck(COL_OBJ *pObj, COL_OBJ *pT);
+LONG Oba_push_out(COL_OBJ *pObj, COL_OBJ *pT);
 ULONG func_80035678(COL_OBJ *pObj, LONG W, struct tagSCA_DATA *pSca, ULONG Old);
 
 #endif /* OBA_H */

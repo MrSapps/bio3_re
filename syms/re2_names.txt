@@ -1,312 +1,617 @@
 // RE2 names identified by code comparison (pass 4). Evidence after the module name.
-Cd_read = 0x80012818; // type:func cd: 4-arg (File_no, Addr, Mode, Mess) DsFlush/DsIntToPos/DsCommand reader; Esp_init_C calls it with "CORE00.ESP" exactly like RE2
-DoorSort = 0x80015D98; // type:func door: only callee of Door_Trans (after SetRot/TransMatrix), uses DivideGT3 like RE2 DoorSort
-Em_move_tbl_set = 0x80017ADC; // type:func door(EM_SET part): follows Enemy_work_set, no calls, writes block of overlay (0x801000xx) entry pointers into G table, called once at init
-Sikai_ck = 0x800185D0; // type:func em_sub: between Gacha_ch and Set_base_pos, same 4 args and identical locals/Direction_ck+SquareRoot0 opening
-Kage_work_sort = 0x80019B3C; // type:func em_sub: RotMatrixY/CompM/SetRot/SetTrans/Hit_ck_point4 per shadow; Game_loop calls it right before Kage_work9_sort as in RE2
-Kage_work9_sort = 0x80019DF4; // type:func em_sub: same as Kage_work_sort plus RotAverageNclip4; second of the pair in Game_loop
-Rot_neck = 0x8001A248; // type:func em_sub: (pEm, Cdir_y) called as func_8001A248(pEm, pEm->Cdir_y); calls Neck_Dir_ZY then RotMatrix, largest of the 3 neck funcs
-Rot_neck_em = 0x8001A808; // type:func em_sub: calls Neck_Dir_ZY then RotMatrix(_gte), follows Rot_neck as in RE2
-Rot_neck_em_n = 0x8001AA3C; // type:func em_sub: calls only Neck_Dir_ZY (no RotMatrix), matching RE2 Rot_neck_em_n
-Neck_Dir_ZY = 0x8001AC58; // type:func em_sub: (pSv0,pSv1,pRot,Front_dir_y) SquareRoot0 + catan, 0x400/0xC00 defaults, identical to RE2
-Esp_init_C = 0x8001B08C; // type:func em_sub(ESP): clears 96 Esp Be_flg, Cd_read "CORE00.ESP" to 0x801FC200, word-rounded end, Esp_data_set0(...,0)
-Esp_init_R = 0x8001B148; // type:func em_sub(ESP): clears 96 entries, reads pRoom esp head (!= -1) then Esp_data_set0(...,1) + Esp_data_set1
-Esp_data_set0 = 0x8001B204; // type:func em_sub(ESP): id byte list until 0xFF, ofs table walked backward, move ptr = data + ((*p&0xFFFF)*2 + (*p>>16) + 2) words
-Esp_data_set1 = 0x8001B2A4; // type:func em_sub(ESP): LoadImage loop over room ESP TIMs + DrawSync, called after Esp_data_set0 in Esp_init_R
-Eff_sprt_trans = 0x80022990; // type:func trans: 0xA000/0x1000/0x200 Be_flg tests, Hit_ck_point4, dispatches to Esp_trans_main / RotMatrix+CompM+Esp_trans_3d
-Esp_trans_main = 0x80022CCC; // type:func trans: callee on the (Be_flg & 0x200)==0 path of Eff_sprt_trans
-Esp_trans_3d = 0x80022FA8; // type:func trans: callee on the RotMatrix/CompM path of Eff_sprt_trans
-Game_loop = 0x80023268; // type:func game: main loop with Cut_check/SquareRoot0/SetSpadStack, MulKage, Gun_light_set/reset, Kage_work_sort/9_sort sequence
-Set_door = 0x800248E4; // type:func game: Task_execute(1, Door_main), Door_snd_trans, copies pSce_aot_on Next_pos/cdir/floor/cut/room, Next_stage % 9 -> Set_stage, Cut_check(1)
-HMatrix = 0x80026728; // type:func joint: (pM0,pM1,pM2,Rate) gpf12/gpl12 lerp of rotation + MatrixNormal_0, identical to RE2
-HMatrix1 = 0x80026900; // type:func joint: HMatrix variant that also lerps the translation t[0..2]
-Joint_move = 0x80026BE8; // type:func joint: (pEm,Kan,Seq,Late) seq frame lookup with Late&0xFFFF0000 reverse, sets pNow_seq, calls J_seq
-J_seq = 0x80026CF4; // type:func joint: sequencer called at the end of Joint_move (RotMatrix_gte per part)
-hokan_svec = 0x8002720C; // type:func joint: masks sv0 with 0xFFF0FFF / vz&0xFFF, +0x800 wrap fix, gpf12/gpl12, identical to RE2
-Joint_move2 = 0x80027940; // type:func joint: same frame lookup as Joint_move, calls J_seq2 variant
-J_seq2 = 0x80027A54; // type:func joint: called by Joint_move2, uses HMatrix and hokan_svec as RE2 J_seq2
-Scr_effect = 0x80028B1C; // type:func line_scr: G.Status_flg quake bits pick Amp 1/2, calls Scr_quake(Amp); precedes line_trans like RE2
-Scr_quake = 0x80028BE8; // type:func line_scr: 16-step ctr into quake_tbl1/quake_tbl2, loops line_trans
-main = 0x80028F38; // type:func main: frame loop; ClearOTagR x4, Pad_set, Moji_mode_init, Scheduler, Fade_out_reset, System_trans_all, Swap_Cbuff, Cd_system_control, Soft_reset
-Swap_Cbuff = 0x80029294; // type:func main: PutDrawEnv/PutDispEnv, Movie(), Bg_draw(), 4x SetDefDrawEnv/SetDefDispEnv swap, LoadImage scroll
-Init_system = 0x800297FC; // type:func main: ResetCallback, SetGraphDebug, Cd_init, Init_scheduler, SetDefDraw/DispEnv, _bu_init, PadInitDirect, Init_global, Moji_init, Line_work_init, Task_execute, ResetGraph
-Init_global = 0x80029988; // type:func main: Memclr(G), Cut_no_old/Room_no_old=-1, Padd_data=0xFFFF0000, Random 0xD2706CA4, Fade_off loop; called by Init_system and Soft_reset
-Init_main = 0x80029B94; // type:func main: Task_execute'd by Init_system; Card_event_set, Cd_read TEX_TIM, Mapping_tim, SetTile, PadSetMainMode, Task_lchain(0)
-Bg_draw = 0x80029E3C; // type:func main: pad_save0/1, Ccut_search, "BS" read with Fsum/floc, DecDCTvlc, 20 LoadImage strips, StoreImage, Set_view
-PresetObjectGT3_neo = 0x8002AC98; // type:func md_sub: double-buffered POLY_GT3 preset, 0x34808080, (Attr&0xC)<<19 abr, gt3[1]=gt3[0] (no Flg cache arg in RE3)
-PresetObjectGT4_neo = 0x8002ADB8; // type:func md_sub: same as GT3 version for POLY_GT4, 4 uv words
-MulLMatrix = 0x8002AEE8; // type:func md_sub: TransposeMatrix + MulMatrix0 + (klwm.t-lwm.t) rotated, identical to RE2
-Print_main = 0x8002F440; // type:func mojidisp: backend of Print8/Print14 (xy, attr, va args)
-Mess_disp = 0x8002FEE0; // type:func mojidisp: called first by Moji_trans_main when Mess_flg&0x80; calls Branch_disp, name_ptr_set, Cut_change
-Branch_disp = 0x800303EC; // type:func mojidisp: Print14 "&" cursor (RE2 s_Moji_sel_cursor=38) + Mess_print of choices
-mess_trans = 0x80030CB8; // type:func mojidisp: Moji_trans_main's second call with pMoji; name_ptr_set, msg width, GetClut, AddPrim
-Name_disp = 0x8003114C; // type:func mojidisp: (x,y,Attr,Item_id) -> GetClut(Attr), name_ptr_set(Item_id&0xFF), glyph loop
-Mess_print = 0x80031504; // type:func mojidisp: (x,y,pStr,Attr) glyph printer called by Branch_disp
-name_ptr_set = 0x800318DC; // type:func mojidisp: Item tbl attribute + Flg_ck -> alternate name ofs, returns name text ptr
-Init_movie_work = 0x800321C4; // type:func movie: precedes Movie; Pad_vib_init, sets Vm_work/Vm_disp/pAtv
-Movie_init = 0x800325A4; // type:func movie: Set_movie_volume2, StoreImage, DrawSync, Open_movie, Movie_end, Fade_off, Bg_set_mode
-Movie_main = 0x800327A4; // type:func movie: DrawSync, VSync, PutDrawEnv/PutDispEnv, ClearImage, Movie_xa_start, Play_movie, Pad_set, Movie_end
-Movie_end = 0x800329E4; // type:func movie: Close_movie then Bg_set_mode per Attribute bits
-Movie_exit = 0x80032AD4; // type:func movie: LoadImage x2, DrawSync, Bg_set_mode, Bg_draw
-Open_movie = 0x80032D18; // type:func movie: Movie_xa_stop, StSetRing, StSetStream, DsIntToPos, DsCommand x3, DsRead2, StGetNext, DecDCTvlc, StFreeRing
-Play_movie = 0x80032F58; // type:func movie: StGetNext, VSync, RuntoImage, DecDCTvlc, StFreeRing
-CdReset2 = 0x80033394; // type:func movie: last in file after Set_movie_volume2; DsControlB x5 + VSync
-Col_chg_init = 0x80035C18; // type:func om: GetClut(...,Col_wk_no+0x1E0), patch clut in GT3/GT4 packets, rect y=D0 w=0x10 h=1; precedes Tex_chg_init
-Col_chg = 0x80035D9C; // type:func om: (pCcp,pRect,Ctr) switch 0..4 with cnt/wait <<4, identical to RE2
-Om_move = 0x800364A4; // type:func om: Stop_flg&0x8000000 return, Status_flg &= ~0x10, Tex_ctr(), per-object routine loop
-Om_set_fall_dir = 0x8003664C; // type:func om: abs(Pos_x-Pl_x)<900 picks Z vs X fall dir (sign|1), saves Cdir_x/Cdir_z
-Om_trans = 0x800378C8; // type:func om: RotMatrix, Set_light_pos, SetColorMatrix, MulMatrix0(LIGHTMATRIX), SetLightMatrix, GsWSMATRIX
-Pad_set = 0x80037FA0; // type:func pad: first in PAD; PadGetState/PadInfoMode/SetPadActData/PadSetAct; called from main and Movie_main like RE2
-Player_set = 0x80038AAC; // type:func player: PLD load -> Cd_read/Mapping_tim/DrawSync/Memcpy/Mapping_tmd/PartsWork_set/PartsWork_link/Pl_weapon_ch like RE2; called from Set_room
-Player_move = 0x80038C7C; // type:func player: Stop_flg<0 return, clears Room_player_flg&0xffe0, Pl_routine[Routine_0] dispatch, Pl_neck(7000,1500), Rot_neck(Cdir_y)
-Pl_init = 0x80038E50; // type:func player: Pl_routine slot 0 (RE2 slot 0 = Pl_init); Routine=1, pEnemy_ptr/pEnemy_neck=pEm
-pl_mv00 = 0x80039294; // type:func player: Pl_mv slot 0, follows pl_mv00_pad
-pl_mv01 = 0x800397DC; // type:func player: Pl_mv slot 1; walk: Snd_se_walk(0,..), Room_player_flg|=2, Spd_get+Joint_move like RE2
-pl_mv02_pad = 0x80039924; // type:func player: Pl_mv_pad slot 2; life-level D_life_u block, run pad (Key&0x201)
-pl_mv02 = 0x80039B84; // type:func player: Pl_mv slot 2; run: Snd_se_walk(1,..), Room_player_flg|=4 like RE2
-pl_mv03_pad = 0x80039CCC; // type:func player: Pl_mv_pad slot 3; backwalk pad (Key&4), D_life_u block
-pl_mv03 = 0x80039F08; // type:func player: Pl_mv slot 3, between pl_mv03_pad and Lim_dir_ck as in RE2
-Lim_dir_ck = 0x8003A1E0; // type:func player: enemy loop Type&0xE000, SquareRoot0, Sca_ck_line, Goto00_ck, Cdir_ck, sets pEnemy_ptr
-pl_mv04_pad = 0x8003A398; // type:func player: Pl_mv_pad slot 4; identical Routine 0x1/0x301/0x101/0x201/0x501 logic to RE2
-pl_mv04 = 0x8003A574; // type:func player: Pl_mv slot 4; Move_no=walk_mot+0x70000, Joint_move 0x200, Snd_se_walk
-pl_mv0a_pad = 0x8003B1C4; // type:func player: push pad: Key&0x10, Routine_2 5->6, Hokan_flg 7, Snd_se_stad, Pad_vib_init (RE2 pl_mv0a_pad; RE3 slot 9)
-pl_mv0a = 0x8003B244; // type:func player: push move: 0x70007, Pad_vib_set0/set1/fade_set, Foot_set, 0x10200 like RE2 pl_mv0a
-pl_dm00 = 0x8003D1A8; // type:func player: Pl_dm slots 0,1 (same as RE2 table)
-pl_dm01 = 0x8003D2D8; // type:func player: Pl_dm slots 2,3 (same as RE2 table)
-pl_dm02 = 0x8003D4C0; // type:func player: Pl_dm slot 4 (same as RE2 table)
-pl_dm03 = 0x8003D780; // type:func player: Pl_dm slot 5 (same as RE2 table)
-pl_die00 = 0x8003DA3C; // type:func player: sole entry of Pl_die_t (RE2 Pl_die_t[0])
-Pl_neck = 0x8003DEA4; // type:func pl_wep: timer 0x2D, min 0x7FFFFFFF, Type&0xC000/0x2000, Sca_ck_line, Goto00_ck; called (pEm,7000,1500) from Player_move
-Pl_water = 0x8003E088; // type:func pl_wep: CompM + 2x Rnd + Esp_call splash at Water height; called when Water < Unk122-500
-pl_mv05_w0_t2 = 0x8003E4D0; // type:func pl_wep: pl_mv05_w0_tbl slot 2 (w1 tbl has a different slot 2), follows pl_mv05_w0
-pl_mv05_w0_t6 = 0x8003EA5C; // type:func pl_wep: Joint_move(..,0x400) -> Routine_2=1 like RE2; after w0_t2, before pl_mv05_w1
-pl_mv05_w1_t0 = 0x8003EB64; // type:func pl_wep: slot 0 of all w*_tbl (RE2 w1_t0 in every table); calls Em_ck
-pl_mv05_w1_t1 = 0x8003EF08; // type:func pl_wep: slot 1 of w0/w1 tbl (RE2 w1_t1)
-pl_mv05_w1_t2 = 0x8003F208; // type:func pl_wep: slot 2 of pl_mv05_w1_tbl only
-pl_mv05_w1_t3 = 0x8003F414; // type:func pl_wep: slot 3 of all w*_tbl (RE2 w1_t3 shared everywhere)
-pl_mv05_w1_t4 = 0x8003F520; // type:func pl_wep: slot 4 of w0/w1 tbl; Esp_call+Mag_set+Snd_se_stad like RE2
-pl_mv05_w1_t5 = 0x8003F6B0; // type:func pl_wep: slot 5 of all tbls; Goto00/Goto00_ck like RE2
-pl_mv05_w2_t1 = 0x8003FFD8; // type:func pl_wep: pl_mv05_w2_tbl slot 1 (RE2 w2_t1), follows pl_mv05_w2
-pl_mv05_w2_t2 = 0x800402F4; // type:func pl_wep: pl_mv05_w2_tbl slot 2; Pad_vib_fade_set like RE2 w2_t2
-pl_mv05_w2_t4 = 0x80040764; // type:func pl_wep: pl_mv05_w2_tbl slot 4; Mag_set+Snd_se_stad like RE2 w2_t4
-Pl_weapon_ch = 0x80043BE4; // type:func pl_wep: Cd_read WEP file by table[Id]+Type, LoadImage TIM, Mapping_tmd; called from Player_set
-Em_ck = 0x800441CC; // type:func pl_wep: enemy scan with Sca_ck_line+SquareRoot0, 0x2000/0xC000 type masks; called from pl_mv05_w1_t0
-Mag_set = 0x80044F34; // type:func pl_wep: CompM + 2x RotMatrix + ApplyMatrixSV, called from w1_t4/w2_t4 as RE2
-Mag_down = 0x80045094; // type:func pl_wep: MulMatrix2/RotMatrix/Rnd/Snd_se_stad, called each frame from Player_move
-Psp_set = 0x800486F0; // type:func 80048520: pRoom->pRcut[Cut_no].pSp, -1 -> nSprite=0, fills sprite work
-Psp_trans = 0x80048844; // type:func 80048520: sprite loop with Flg_ck(Pri_be_flg[cut], id), AddPrim to OT
-Set_room = 0x800493EC; // type:func 80048520: Player_set, Cut_change, Kage_work_init, Sce_model_init, Sce_scheduler_set, Em_init_move
-Set_stage = 0x80049898; // type:func 80048520: Task_lexecute + Task_sleep, 0x58 bytes as RE2
-Em_init_move = 0x80049A50; // type:func 80048520: Stop_flg 0x20000000 save/restore, enemy routine call, Timer0 -> Routine/Move_no
-Root_ck = 0x80049BA8; // type:func 80048520: Sca_ck_line, 2x Guide_check, kara_rootck2
-Rnd_area = 0x80049E80; // type:func 80048520: pRoom->pBlock count==0 -> 0xFF else Rnd()%count
-Guide_check = 0x80049ED8; // type:func 80048520: backward scan of pRoom->pBlock with unsigned range tests, 0xFF if none
-kara_rootck2 = 0x8004A080; // type:func 80048520: called by Root_ck, 2x SquareRoot0
-Sa_dat_set = 0x8004A8BC; // type:func sabun: stores pSa_dat, per-part bitmask loop assigning Sa head pointers
-Sca_ck_line = 0x8004E830; // type:func sca: called (VECTOR*,VECTOR*,Att,1) from Lim_dir_ck/Pl_neck/Em_ck/Root_ck where RE2 calls Sca_ck_line
-Sca_search = 0x80050208; // type:func sca: pRoom->pSca scan by Type&Area, Id&Att, Floor; list capped at 32 entries
-Sce_at_check = 0x800505AC; // type:func sce_at: called 5x by Sce_at; first function of module
-Sce_at = 0x80050B58; // type:func sce_at: calls Sce_at_check 5 times (player x2, enemies, objects, sub player) as RE2
-Nothing = 0x80050D00; // type:func sce_at: Sce_at_jump_tbl slot 0; restores Old_Fatari/Old_Uatari
-Sce_Door = 0x80050D28; // type:func sce_at: slot 1; Key_id&0x80, Flg_ck(Key_flg,id&0x3F), Search_item_id, Flg_on, Mess_set
-Key_lost = 0x80050FE0; // type:func sce_at: Front_func_rtn-1 key index, Mess_flg&0x80, item decrement, Mess_set
-Sce_Item = 0x8005111C; // type:func sce_at: slot 2; pAot_data=pCAot, kneel flag -> Routine_1/2 return 1
-Sce_Normal = 0x8005127C; // type:func sce_at: slot 3; return 0
-Sce_Message = 0x80051284; // type:func sce_at: slot 4; Mess_set(0, d[1]|x, d[0], d[2]<<16)
-Sce_Event = 0x800512BC; // type:func sce_at: slot 5; Stop_flg&0x2000000 check then Event_exec(d[0], d[3])
-Sce_Flg_chg = 0x800512FC; // type:func sce_at: slot 6; Flg_addr[d0] bit set/clear
-Sce_Water = 0x8005136C; // type:func sce_at: slot 7; pEm->Water = d[0]
-Sce_Save = 0x80051388; // type:func sce_at: Back_func = Save_entrance, Save_area, Stop_bak
-Save_entrance = 0x800513CC; // type:func sce_at: Search_item_id check, Mess_set 1/0, save system flag
-Sce_Itembox = 0x800514C4; // type:func sce_at: Back_func = Item_box_entrance
-Item_box_entrance = 0x800514F0; // type:func sce_at: static Dir_spd/Spd_add/pOwork, Ob_model[0] Cdir spin
-Sce_Hikidashi = 0x800516A4; // type:func sce_at: 2x Flg_ck, Search_item_id, Cut_change, Mess_set like RE2
-Hikidashi_entrance = 0x8005190C; // type:func sce_at: Flg_on key flag, Mess_set, Cut_change; follows Sce_Hikidashi
-Sce_Damage = 0x80051B40; // type:func sce_at: Damage_cnt 0x80, Life -= d[1], Direction_ck/Add_speedXZ, Pad_vib_set0(4)/set1(10,0x96)
-Water_ck = 0x80051E48; // type:func sce_at: AOT scan Id 7 (water), Hit_ck_point4/Hit_ck_box, returns water height
-Em_kind_search = 0x80052094; // type:func sce0: table scan until 0xFF returning p[1], default 0x80
-Sce_model_init = 0x80052194; // type:func sce0: called from Set_room; 32-entry Ob_model clear, Mapping_tim
-Sce_work_clr = 0x80052294; // type:func sce0: F_atari/U_atari/Use_id/Get_id=-1, Use_flg[0..3]=0
-Sce_work_clr_at = 0x800522D0; // type:func sce0: called right after Sce_work_clr in Sce_scheduler_main (RE3 stub), between work_clr and work_clr_set
-Sce_work_clr_set = 0x800522D8; // type:func sce0: task init loop + Sce_aot_init
-Sce_rnd_set = 0x800523C4; // type:func sce0: first call after memcpy16(ScratchPad,Sce_jmp_tbl) in both schedulers, uses Rnd
-Sce_kirakira_set = 0x80052588; // type:func sce0: Ob_model loop Free0&0x80, (&0x60), Esp_call 0x...2800; last call of Sce_scheduler_set
-Sce_scheduler_set = 0x80052A94; // type:func sce0: memcpy16 jmp tbl, rnd_set, work_clr, work_clr_set, Event_exec(1,0), scheduler_main; called from Set_room
-Sce_scheduler = 0x80052B18; // type:func sce0: Stop_flg&0x2000000, memcpy16, rnd_set, Event_exec(0,1), scheduler_main
-Sce_scheduler_main = 0x80052BA4; // type:func sce0: task loop dispatching ScratchPad jmp table, Ifel_ctr stack pop
-Ck = 0x800546CC; // type:func sce1: Flg_addr[d1] bit test xor (d>>8)==0, +4, RE2 Ck body
-Set = 0x8005472C; // type:func sce1: Flg_addr bit clear/set/xor (0/1/7), +4, RE2 Set
-Cmp = 0x800547F0; // type:func sce1: Sce_work compare switch 0..6, +6, RE2 Cmp
-Sce_rnd = 0x8005489C; // type:func sce1: Data++ then calls rnd-set, between Cmp and Cut_chg as RE2
-Cut_chg = 0x800548C8; // type:func sce1: Status_flg|=0x80, Cut_chg_main(d&0x7f), d&0x80 bg flag, +2
-Cut_old = 0x80054960; // type:func sce1: Cut_chg_main(old cut), Status_flg |0x400000 &~0x80, +1
-Cut_chg_main = 0x800549C4; // type:func sce1: saves old Cut_no, sets new, bg flag=1, Cut_change(cut)
-Cut_auto = 0x80054A04; // type:func sce1: data[1]==1 clears STAT 0x80 else sets, +2
-Cut_replace = 0x80054A68; // type:func sce1: swaps Fcut/Tcut in pVcut until 0xff, Cut_change if Cccut_next, +3
-Cut_be_set = 0x80054B48; // type:func sce1: walk pVcut to data[1], set Be_flg of [data[2]] = data[3], +4
-Pos_set = 0x80054BC0; // type:func sce1: three SHORTs at +2/+4/+6 to pWork Pos_xyz, +8
-Dir_set = 0x80054C28; // type:func sce1: three SHORTs to pWork Cdir_xyz, +8
-Vib_set0 = 0x80054C58; // type:func sce1: Pad_vib_set0(u16[1],u16[2]), +6
-Vib_set1 = 0x80054CA4; // type:func sce1: Pad_vib_set1, +6
-Vib_fade_set = 0x80054CF4; // type:func sce1: Pad_vib_fade_set, +8
-Message_on = 0x80054D74; // type:func sce1: Mess_set(0,..,data[1],u16[2]<<16) and stop flag |=, +6
-Sce_shake_on = 0x80054E70; // type:func sce1: line_mode_set + 240 line_trans + line_scr_end, +3
-Sce_line_start = 0x80054F40; // type:func sce1: Line.Rect 320x240 + line_mode_set, +4
-Sce_line_main = 0x80054FAC; // type:func sce1: line_trans(..., Draw.ofs[1]), +6
-Sce_line_end = 0x80055004; // type:func sce1: line_scr_end, +1
-Se_on = 0x80055038; // type:func sce1: 5-way work-type switch (pos/pl/spl/em/obj) + VECTOR offset, calls SE request, +12
-Sce_bgm_control = 0x8005518C; // type:func sce1: reads pData[1..5] as RE2 and drives seq stop/play, +6
-Xa_on = 0x800554C8; // type:func sce1: STAT_XA_VOICE + Xa_play(data[1],u16[1]), +4
-Movie_on = 0x80055520; // type:func sce1: movie init(data[1]), +2, RE2 Movie_on shape
-Keep_Item_ck = 0x80055620; // type:func sce1: Search_item_id(data[1]) >= 0, +2
-Sce_key_ck = 0x80055660; // type:func sce1: G.Key & mask ? Res : Res^1, +4
-Sce_trg_ck = 0x800556A0; // type:func sce1: G.Key_trg & mask, +4
-Sca_id_set = 0x800556E0; // type:func sce1: pSca[data[1]+1].Id high bits from u16[1], +4
-Light_pos_set2 = 0x80055884; // type:func sce1: light[data[1]].Pos[data[2]] axis switch 9/10/11, +6
-Light_kido_set2 = 0x80055944; // type:func sce1: light[data[2]].L[data[3]] = u16[2], +6
-Light_color_set2 = 0x800559A0; // type:func sce1: light[data[1]].Col[data[2]] = data[3..5], +6
-Door_aot_set = 0x80055B5C; // type:func sce2: Sce_aot slot set, nSce_aot++, record size 0x20
-Door_aot_set_4p = 0x80055BBC; // type:func sce2: same with data[3]|=0x80, size 0x28
-Aot_set = 0x80055C34; // type:func sce2: Sce_aot slot set, size 0x14
-Aot_set_4p = 0x80055C94; // type:func sce2: data[3]|=0x80, size 0x1C
-Aot_reset = 0x80055D0C; // type:func sce2: (s8)data[1] aot, keeps 0x80 bit, +0xC/+0x14 data part, +10
-Aot_on = 0x80055D7C; // type:func sce2: pCAot = Sce_aot[..], calls Sce_at_jump_tbl[Id]
-Get_matrix = 0x80055E38; // type:func sce2: work-kind switch returning GsIDMATRIX/work matrices; called by all espr handlers
-Sce_espr_on = 0x80056004; // type:func sce2: Get_matrix(data[4],u16[2]>>8) + Svec + esp call, +16
-Sce_espr_on2 = 0x800560B8; // type:func sce2: on2 variant with extra byte packed, Get_matrix, esp call
-Sce_espr3d_on = 0x80056178; // type:func sce2: Get_matrix + Svec + Svec2, +22
-Sce_espr3d_on2 = 0x8005624C; // type:func sce2: 3d on2 variant, two SVECTORs
-Sce_espr_kill = 0x8005632C; // type:func sce2: Get_matrix(data[3],data[4]) + esp kill(data[1],data[2]), +5
-Sce_espr_kill2 = 0x80056394; // type:func sce2: esp kill by data[1], +2
-Sce_espr_task = 0x800563E4; // type:func sce2: kill-all if kind 6 else clear 0x60 Esp entries with pMat, +3
-Sce_espr_control = 0x8005648C; // type:func sce2: Get_matrix + esp ctrl, after Sce_espr_task as RE2
-Obj_model_set = 0x80056510; // type:func sce2: Sup_mode 0xC0 switch with GsIDMATRIX, RotMatrix, Cc_work entry, Om init
-Mizu_div_set = 0x80056950; // type:func sce2: Sce.Mizu_div_max/pMizu_div from pEm_mem, POLY_GT4 13x2 fill
-Sce_em_set = 0x80056A2C; // type:func sce2: enemy-flag Flg_ck, pFree_work alloc, Enemy_num++, ppEnemy_end update
-Plc_motion = 0x80056DC0; // type:func sce2: Move_cnt=0, Move_no=data[2], flags=data[3], +4
-Plc_dest = 0x80056E5C; // type:func sce2: uses Subpl_walk/run/back/ato/dir tables, Set_no=data[3]
-Plc_gun = 0x80057008; // type:func sce2: Routine=(data[1]<<8)|4, clears Sce_free0/1, +2
-Plc_gun_eff = 0x80057040; // type:func sce2: identical dead stores 0x8C/0x25D/0x91/0x1F4/-0x19/0x109/-0x32, +1
-Plc_neck = 0x8005709C; // type:func sce2: Neck_flg |= 0x12/8/0x2A/0x58/4, trace mode remap, +10
-Plc_ret = 0x80057210; // type:func sce2: Id<0x10 Type&=0xfff, Neck_flg=0, Type&=0xAxxx, +1
-Plc_stop = 0x80057280; // type:func sce2: toggles Routine 0x1404 / R_no_bak, +1
-Plc_flg = 0x800572C8; // type:func sce2: Sce_flg =,|=,^= by mode, +4
-Plc_rot = 0x8005734C; // type:func sce2: Sce_free0/Sce_free1 set by data[1], +4
-Plc_cnt = 0x800573B0; // type:func sce2: Move_cnt = data[1], +2
-Splc_ret = 0x800573DC; // type:func sce2: Routine=1, neck->Player, Type|0x400, STAT_SUB_PLAYER, Life=saved, Max_life=200
-Splc_sce = 0x8005745C; // type:func sce2: Routine=0x604, Neck_flg=0x92, Type|0x5000&~0x400, clear STAT_SUB_PLAYER
-Item_aot_set = 0x800574F4; // type:func sce2: lhu 0x12 flag, lbu 0x14/0x15 obj, Flg_ck item flag, +0x16
-Item_aot_set_4p = 0x800576C4; // type:func sce2: lhu 0x1A, lbu 0x1C/0x1D, data[3]|=0x80, +0x1E
-Kage_set = 0x800578A0; // type:func sce2: kage of pl/spl/em, Kage_work_color_set + Half/Off xz, +14
-Super_set = 0x80057A00; // type:func sce2: pSuper by 0xC0 switch (ID/pl/em/om), pos+cdir, +16
-Weapon_chg = 0x80057BD0; // type:func sce2: Type low=id, Search_item_id -> equip no/id, Weapon_cls
-Flr_set = 0x80057E74; // type:func sce2: pFloor count check, 12-byte entries, mode 1 clears flag else sets, +3
-Sce_Item_lost = 0x80057EF4; // type:func sce2: item remove(Search_item_id(data[1])), +2; opcode 0x3E item_lost
-Sce_parts_bomb = 0x8005863C; // type:func sce2: parts[data[2]] Be_flg, Poly_rgb from data[3..5], 5 USHORT params, +16
-Sce_parts_down = 0x800586F4; // type:func sce2: parts[data[1]] Old_x/z/y, Timer byte, 3 more SHORTs, +16
-Parts_set = 0x80058918; // type:func sce2: parts[(s8)data[2]] field switch on (s8)data[3] (Be_flg/Cdir/Poly_rgb), +6
-Spl = 0x80058DD4; // type:func 80058DD4: per-frame update, Root-ck call then Spl_routine_0[Routine_0](pEm,Kan,Seq); Spl_set stores it
-Spl_Init = 0x80058F68; // type:func 80058DD4: slot 0 of routine table D_8009E6EC (RE2 Spl_routine_0[0])
-Spl_set = 0x80059460; // type:func 80058DD4: fills move table entries with Spl (RE2 Spl_set)
-Spl_Auto = 0x800597F0; // type:func 800597F0: slot 1 of D_8009E6EC (RE2 Spl_routine_0[1]); timer dec + Aida_move
-Spl_Root_ck_sys = 0x80059824; // type:func 800597F0: sub-player check, Spl_soba_pos_set x2 modes, Guide_check 0xFF fallback, Root_ck, SquareRoot0 dist
-Aida_move = 0x80059A20; // type:func 800597F0: Spl_enemy_ck, Spl_em_pos_ck(3000), 0xF timer, Move_type table dispatch
-Aida_Move_type00 = 0x80059BC0; // type:func 800597F0: D_8009E788[0]; br table[Routine_1](pEm) then mv table
-Aida_Move_type01 = 0x80059C44; // type:func 800597F0: D_8009E788[1]
-Aida_Move_type02 = 0x80059CC8; // type:func 800597F0: D_8009E788[2]
-Aida_Move_type03 = 0x80059D4C; // type:func 800597F0: D_8009E788[3]
-Aida_Move_type04 = 0x80059DD0; // type:func 800597F0: D_8009E788[4]
-Aida_Move_type05 = 0x80059E54; // type:func 800597F0: D_8009E788[5]
-Aida_Move_type06 = 0x80059ED8; // type:func 800597F0: D_8009E788[6]
-Aida_Move_type07 = 0x80059F5C; // type:func 800597F0: D_8009E788[7]
-Aida_Move_type08 = 0x80059FE0; // type:func 800597F0: D_8009E788[8]
-Aida_Move_type09 = 0x8005A064; // type:func 800597F0: D_8009E788[9]
-Aida_Move_type0a = 0x8005A0E8; // type:func 800597F0: D_8009E788[10]
-Aida_em10_at00_pl = 0x8005A274; // type:func 800597F0: (pEm,Type), type 10 -> Spl_em_cdir_ck/Spl_pllock_get, Routine 0x501
-Aida_em10_at00_spl = 0x8005A35C; // type:func 800597F0: near[0] then near[1] with dist<3000, Routine 0x501
-Aida_em25_at00_pl = 0x8005A418; // type:func 800597F0: (pEm,Type), dist<0x5DC and dy window, Routine 0x501
-Aida_em25_at00_spl = 0x8005A4D8; // type:func 800597F0: near[0]/near[1] dy window, Routine 0x501
-Aida_mv00_br = 0x8005A5CC; // type:func 800597F0: slot 0 of type00 br table D_8009E7DC
-Aida_mv00_br_1 = 0x8005A844; // type:func 800597F0: slot 0 of type01 br table; life-rate state, at00 table, Goto00_ck, 0x101/0xC01/0x201/0xD01
-Aida_mv00 = 0x8005ABC4; // type:func 800597F0: slot 0 of mv table D_8009E82C; taiki motion, Joint_move 0x200
-Aida_em10_at01 = 0x8005AC9C; // type:func 800597F0: near[0] dist<0x9C4 lock, Routine 0x501 (after Aida_mv00 as RE2)
-Aida_em25_at01 = 0x8005AD48; // type:func 800597F0: near[0] dy window + dist<0x9C4, Routine 0x501
-Aida_mv01_br = 0x8005ADCC; // type:func 800597F0: slot 1 of type01 br table
-Aida_mv01_br_1 = 0x8005B0D0; // type:func 800597F0: slot 1 of type00 br table
-Aida_mv01 = 0x8005B438; // type:func 800597F0: slot 1 of mv table
-Aida_mv02_br = 0x8005B614; // type:func 800597F0: slot 2 of type01 br table
-Aida_mv02_br_1 = 0x8005B824; // type:func 800597F0: slot 2 of type00 br table
-Aida_mv02 = 0x8005BAD4; // type:func 800597F0: slot 2 of mv table
-Aida_mv03_br = 0x8005BC28; // type:func 800597F0: slot 3 of all br tables
-Aida_mv03 = 0x8005BD24; // type:func 800597F0: mv slots 3 and 12 (RE2 mv slots 3/12 are Aida_mv03)
-Aida_mv04_br = 0x8005BE84; // type:func 800597F0: slot 4 of br tables
-Aida_mv04 = 0x8005BEE8; // type:func 800597F0: mv slots 4,11,13 (RE2 mv slots 4/11/13 are Aida_mv04)
-Aida_mv05_br = 0x8005BFC0; // type:func 800597F0: br slot 5, dispatches w1_br table by Routine_2
-Aida_mv05 = 0x8005BFFC; // type:func 800597F0: mv slot 5, calls Aida_mv05_w1 with Sub0 kan/seq then foot set
-Aida_mv05_w1 = 0x8005C098; // type:func 800597F0: dispatches w1 table D_8009ECF8 by Routine_2
-Aida_mv05_w1_t0_br = 0x8005C0D4; // type:func 800597F0: empty, slot 0 of w1_br table D_8009ECDC
-Aida_mv05_w1_t0 = 0x8005C0DC; // type:func 800597F0: slot 0 of w1 table D_8009ECF8
-Aida_mv05_w1_t1_br = 0x8005C3F0; // type:func 800597F0: slot 1 of w1_br table (only non-empty br, as RE2)
-Aida_mv05_w1_t1 = 0x8005C638; // type:func 800597F0: slot 1 of w1 table
-Aida_mv06_br = 0x8005CB24; // type:func 800597F0: empty, br slot 6
-Aida_mv06 = 0x8005CB2C; // type:func 800597F0: mv slot 6
-Aida_mv07_br = 0x8005CBF0; // type:func 800597F0: empty, br slot 7
-Aida_mv07 = 0x8005CBF8; // type:func 800597F0: mv slot 7 (emptied in RE3)
-Aida_mv08_br = 0x8005CC00; // type:func 800597F0: empty, br slot 8
-Aida_mv08 = 0x8005CC08; // type:func 800597F0: mv slot 8
-Aida_mv09_br = 0x8005CE7C; // type:func 800597F0: empty, br slot 9
-Aida_mv09 = 0x8005CE84; // type:func 800597F0: mv slot 9
-Aida_mv0a_br = 0x8005D138; // type:func 800597F0: empty, br slot 10
-Aida_mv_nop_br = 0x8005D140; // type:func 800597F0: empty, mv slot 10
-Aida_mv0a = 0x8005D148; // type:func 800597F0: br slot 11 of type00/01/02 tables
-Aida_mv0b_br = 0x8005D1A4; // type:func 800597F0: br slot 11 of type03/04 tables
-Aida_mv0b_br_1 = 0x8005D298; // type:func 800597F0: br slot 12 of type01+ tables
-Aida_mv0b = 0x8005D3B4; // type:func 800597F0: br slot 12 of type00 table
-Aida_mv0c_br = 0x8005D484; // type:func 800597F0: br slot 13 of all tables
-Spl_Damage = 0x8005E688; // type:func 800597F0: slot 2 of D_8009E6EC; Spl_dm[Routine_1] dispatch
-Spl_dm00 = 0x8005E6CC; // type:func 800597F0: Spl_dm table slots 0/1; Move 0x3000x, Damage_cnt|=0x80, Neck|=0x12, se 0, Joint_move 0x400
-Spl_dm01 = 0x8005E7C8; // type:func 800597F0: Spl_dm slots 2/3; Spd_x=(R1&1)*400-200, Add_speedXZ, Joint_move 0x400
-Spl_Die = 0x8005EE14; // type:func 800597F0: slot 3 of D_8009E6EC; Spl_die[Routine_1] dispatch
-Spl_die00 = 0x8005EE70; // type:func 800597F0: only entry of Spl_die table D_8009ED84
-Spl_Dead = 0x8005F01C; // type:func 800597F0: slot 7 of D_8009E6EC (RE2 Spl_routine_0[7])
-Spl_soba_pos_set = 0x8005F0BC; // type:func 800597F0: (len,dir,dir2,SVECTOR*) two RotMatrix/ApplyMatrixSV/SquareRoot0 candidates, nearer wins
-Spl_enemy_ck = 0x8005F298; // type:func 800597F0: SquareRoot0, Sca_ck_line, 3x Direction_ck nearest-3 enemies
-Spl_em_pos_ck = 0x8005F660; // type:func 800597F0: (pEm,Lim) 2x Goto00_ck over near list, called with 3000
-Spl_em_cdir_ck = 0x8005F7E8; // type:func 800597F0: near list Goto00_ck 0x400, returns ok/ng nearest
-Spl_pllock_get = 0x8005F8F0; // type:func 800597F0: (pEm,pYo) skips player's locked enemy, returns other or it
-Spl_life_down = 0x8005FA10; // type:func 800597F0: (pEm,Down,Mode) Life-=, saved life-=, Routine 2, Mode&2, Cdir_ck, Routine 3 on death
-Spl_Scenario = 0x800601F0; // type:func 800601F0: slot 4 of D_8009E6EC; Type|=0x5000, Root_ck when !0x1000, Spl_sce[Routine_1], foot sets
-Spl_sce00 = 0x800605C0; // type:func 800601F0: Spl_sce slot 0, Spl_sce_mv00 with room kan/seq
-Spl_sce01 = 0x800605F8; // type:func 800601F0: slot 1, Spl_sce_mv00 with Kan/Seq
-Spl_sce02 = 0x80060630; // type:func 800601F0: slot 2, Spl_sce_mv00 with Sub0
-Spl_sce03 = 0x80060668; // type:func 800601F0: slot 3, Spl_sce_mv00 with Sub1
-Spl_sce04 = 0x800606A0; // type:func 800601F0: Spl_sce slot 4, walk, sets Routine_1=4 on repeat
-Spl_sce05 = 0x80060BF0; // type:func 800601F0: slot 5, run (motion 1), Routine_1=5 on repeat
-Spl_sce06 = 0x80061108; // type:func 800601F0: slot 6, taiki motion 2 + Joint_move 0x200
-Spl_sce07 = 0x800611E0; // type:func 800601F0: slot 7, Routine_1=7 on repeat
-Spl_sce08 = 0x800616B4; // type:func 800601F0: slot 8, Routine_1=8 on repeat
-Spl_sce09 = 0x80061830; // type:func 800601F0: slot 9, Routine_1=9 on repeat
-Spl_sce_mv00 = 0x80062D3C; // type:func 800601F0: callee of Spl_sce00..03 with the four kan/seq sets
-Search_item_id = 0x8006CC8C; // type:func 800636D4: item list search by id; Keep_Item_ck/Weapon_chg/item_lost call it as RE2
-Snd_se_stad = 0x800746C0; // type:func snd: positional SE request (code, VECTOR*); called by Se_on as RE2 Se_on->Snd_se_stad
-Snd_se_enem = 0x800775A0; // type:func snd: (no,pEm) enemy SE, no+=0x10 on flag; Spl_dm00 calls (0,pEm) like RE2
-Snd_se_walk = 0x800776B0; // type:func snd: footstep SE (kind, foot part, pEm); callers pass seq&0x2000-derived part as RE2
-Mapping_tim = 0x800784E0; // type:func sub: OpenTIM/ReadTIM, x from tpage*64 (-0x400 if >=16), clut y+0x1E0, DrawSync
+// cd: 4-arg (File_no, Addr, Mode, Mess) DsFlush/DsIntToPos/DsCommand reader; Esp_init_C calls it with "CORE00.ESP" exactly like RE2
+Cd_read = 0x80012818; // type:func
+// door: only callee of Door_Trans (after SetRot/TransMatrix), uses DivideGT3 like RE2 DoorSort
+DoorSort = 0x80015D98; // type:func
+// door(EM_SET part): follows Enemy_work_set, no calls, writes block of overlay (0x801000xx) entry pointers into G table, called once at init
+Em_move_tbl_set = 0x80017ADC; // type:func
+// em_sub: between Gacha_ch and Set_base_pos, same 4 args and identical locals/Direction_ck+SquareRoot0 opening
+Sikai_ck = 0x800185D0; // type:func
+// em_sub: RotMatrixY/CompM/SetRot/SetTrans/Hit_ck_point4 per shadow; Game_loop calls it right before Kage_work9_sort as in RE2
+Kage_work_sort = 0x80019B3C; // type:func
+// em_sub: same as Kage_work_sort plus RotAverageNclip4; second of the pair in Game_loop
+Kage_work9_sort = 0x80019DF4; // type:func
+// em_sub: (pEm, Cdir_y) called as func_8001A248(pEm, pEm->Cdir_y); calls Neck_Dir_ZY then RotMatrix, largest of the 3 neck funcs
+Rot_neck = 0x8001A248; // type:func
+// em_sub: calls Neck_Dir_ZY then RotMatrix(_gte), follows Rot_neck as in RE2
+Rot_neck_em = 0x8001A808; // type:func
+// em_sub: calls only Neck_Dir_ZY (no RotMatrix), matching RE2 Rot_neck_em_n
+Rot_neck_em_n = 0x8001AA3C; // type:func
+// em_sub: (pSv0,pSv1,pRot,Front_dir_y) SquareRoot0 + catan, 0x400/0xC00 defaults, identical to RE2
+Neck_Dir_ZY = 0x8001AC58; // type:func
+// em_sub(ESP): clears 96 Esp Be_flg, Cd_read "CORE00.ESP" to 0x801FC200, word-rounded end, Esp_data_set0(...,0)
+Esp_init_C = 0x8001B08C; // type:func
+// em_sub(ESP): clears 96 entries, reads pRoom esp head (!= -1) then Esp_data_set0(...,1) + Esp_data_set1
+Esp_init_R = 0x8001B148; // type:func
+// em_sub(ESP): id byte list until 0xFF, ofs table walked backward, move ptr = data + ((*p&0xFFFF)*2 + (*p>>16) + 2) words
+Esp_data_set0 = 0x8001B204; // type:func
+// em_sub(ESP): LoadImage loop over room ESP TIMs + DrawSync, called after Esp_data_set0 in Esp_init_R
+Esp_data_set1 = 0x8001B2A4; // type:func
+// trans: 0xA000/0x1000/0x200 Be_flg tests, Hit_ck_point4, dispatches to Esp_trans_main / RotMatrix+CompM+Esp_trans_3d
+Eff_sprt_trans = 0x80022990; // type:func
+// trans: callee on the (Be_flg & 0x200)==0 path of Eff_sprt_trans
+Esp_trans_main = 0x80022CCC; // type:func
+// trans: callee on the RotMatrix/CompM path of Eff_sprt_trans
+Esp_trans_3d = 0x80022FA8; // type:func
+// game: main loop with Cut_check/SquareRoot0/SetSpadStack, MulKage, Gun_light_set/reset, Kage_work_sort/9_sort sequence
+Game_loop = 0x80023268; // type:func
+// game: Task_execute(1, Door_main), Door_snd_trans, copies pSce_aot_on Next_pos/cdir/floor/cut/room, Next_stage % 9 -> Set_stage, Cut_check(1)
+Set_door = 0x800248E4; // type:func
+// joint: (pM0,pM1,pM2,Rate) gpf12/gpl12 lerp of rotation + MatrixNormal_0, identical to RE2
+HMatrix = 0x80026728; // type:func
+// joint: HMatrix variant that also lerps the translation t[0..2]
+HMatrix1 = 0x80026900; // type:func
+// joint: (pEm,Kan,Seq,Late) seq frame lookup with Late&0xFFFF0000 reverse, sets pNow_seq, calls J_seq
+Joint_move = 0x80026BE8; // type:func
+// joint: sequencer called at the end of Joint_move (RotMatrix_gte per part)
+J_seq = 0x80026CF4; // type:func
+// joint: masks sv0 with 0xFFF0FFF / vz&0xFFF, +0x800 wrap fix, gpf12/gpl12, identical to RE2
+hokan_svec = 0x8002720C; // type:func
+// joint: same frame lookup as Joint_move, calls J_seq2 variant
+Joint_move2 = 0x80027940; // type:func
+// joint: called by Joint_move2, uses HMatrix and hokan_svec as RE2 J_seq2
+J_seq2 = 0x80027A54; // type:func
+// line_scr: G.Status_flg quake bits pick Amp 1/2, calls Scr_quake(Amp); precedes line_trans like RE2
+Scr_effect = 0x80028B1C; // type:func
+// line_scr: 16-step ctr into quake_tbl1/quake_tbl2, loops line_trans
+Scr_quake = 0x80028BE8; // type:func
+// main: frame loop; ClearOTagR x4, Pad_set, Moji_mode_init, Scheduler, Fade_out_reset, System_trans_all, Swap_Cbuff, Cd_system_control, Soft_reset
+main = 0x80028F38; // type:func
+// main: PutDrawEnv/PutDispEnv, Movie(), Bg_draw(), 4x SetDefDrawEnv/SetDefDispEnv swap, LoadImage scroll
+Swap_Cbuff = 0x80029294; // type:func
+// main: ResetCallback, SetGraphDebug, Cd_init, Init_scheduler, SetDefDraw/DispEnv, _bu_init, PadInitDirect, Init_global, Moji_init, Line_work_init, Task_execute, ResetGraph
+Init_system = 0x800297FC; // type:func
+// main: Memclr(G), Cut_no_old/Room_no_old=-1, Padd_data=0xFFFF0000, Random 0xD2706CA4, Fade_off loop; called by Init_system and Soft_reset
+Init_global = 0x80029988; // type:func
+// main: Task_execute'd by Init_system; Card_event_set, Cd_read TEX_TIM, Mapping_tim, SetTile, PadSetMainMode, Task_lchain(0)
+Init_main = 0x80029B94; // type:func
+// main: pad_save0/1, Ccut_search, "BS" read with Fsum/floc, DecDCTvlc, 20 LoadImage strips, StoreImage, Set_view
+Bg_draw = 0x80029E3C; // type:func
+// md_sub: double-buffered POLY_GT3 preset, 0x34808080, (Attr&0xC)<<19 abr, gt3[1]=gt3[0] (no Flg cache arg in RE3)
+PresetObjectGT3_neo = 0x8002AC98; // type:func
+// md_sub: same as GT3 version for POLY_GT4, 4 uv words
+PresetObjectGT4_neo = 0x8002ADB8; // type:func
+// md_sub: TransposeMatrix + MulMatrix0 + (klwm.t-lwm.t) rotated, identical to RE2
+MulLMatrix = 0x8002AEE8; // type:func
+// mojidisp: backend of Print8/Print14 (xy, attr, va args)
+Print_main = 0x8002F440; // type:func
+// mojidisp: called first by Moji_trans_main when Mess_flg&0x80; calls Branch_disp, name_ptr_set, Cut_change
+Mess_disp = 0x8002FEE0; // type:func
+// mojidisp: Print14 "&" cursor (RE2 s_Moji_sel_cursor=38) + Mess_print of choices
+Branch_disp = 0x800303EC; // type:func
+// mojidisp: Moji_trans_main's second call with pMoji; name_ptr_set, msg width, GetClut, AddPrim
+mess_trans = 0x80030CB8; // type:func
+// mojidisp: (x,y,Attr,Item_id) -> GetClut(Attr), name_ptr_set(Item_id&0xFF), glyph loop
+Name_disp = 0x8003114C; // type:func
+// mojidisp: (x,y,pStr,Attr) glyph printer called by Branch_disp
+Mess_print = 0x80031504; // type:func
+// mojidisp: Item tbl attribute + Flg_ck -> alternate name ofs, returns name text ptr
+name_ptr_set = 0x800318DC; // type:func
+// movie: precedes Movie; Pad_vib_init, sets Vm_work/Vm_disp/pAtv
+Init_movie_work = 0x800321C4; // type:func
+// movie: Set_movie_volume2, StoreImage, DrawSync, Open_movie, Movie_end, Fade_off, Bg_set_mode
+Movie_init = 0x800325A4; // type:func
+// movie: DrawSync, VSync, PutDrawEnv/PutDispEnv, ClearImage, Movie_xa_start, Play_movie, Pad_set, Movie_end
+Movie_main = 0x800327A4; // type:func
+// movie: Close_movie then Bg_set_mode per Attribute bits
+Movie_end = 0x800329E4; // type:func
+// movie: LoadImage x2, DrawSync, Bg_set_mode, Bg_draw
+Movie_exit = 0x80032AD4; // type:func
+// movie: Movie_xa_stop, StSetRing, StSetStream, DsIntToPos, DsCommand x3, DsRead2, StGetNext, DecDCTvlc, StFreeRing
+Open_movie = 0x80032D18; // type:func
+// movie: StGetNext, VSync, RuntoImage, DecDCTvlc, StFreeRing
+Play_movie = 0x80032F58; // type:func
+// movie: last in file after Set_movie_volume2; DsControlB x5 + VSync
+CdReset2 = 0x80033394; // type:func
+// om: GetClut(...,Col_wk_no+0x1E0), patch clut in GT3/GT4 packets, rect y=D0 w=0x10 h=1; precedes Tex_chg_init
+Col_chg_init = 0x80035C18; // type:func
+// om: (pCcp,pRect,Ctr) switch 0..4 with cnt/wait <<4, identical to RE2
+Col_chg = 0x80035D9C; // type:func
+// om: Stop_flg&0x8000000 return, Status_flg &= ~0x10, Tex_ctr(), per-object routine loop
+Om_move = 0x800364A4; // type:func
+// om: abs(Pos_x-Pl_x)<900 picks Z vs X fall dir (sign|1), saves Cdir_x/Cdir_z
+Om_set_fall_dir = 0x8003664C; // type:func
+// om: RotMatrix, Set_light_pos, SetColorMatrix, MulMatrix0(LIGHTMATRIX), SetLightMatrix, GsWSMATRIX
+Om_trans = 0x800378C8; // type:func
+// pad: first in PAD; PadGetState/PadInfoMode/SetPadActData/PadSetAct; called from main and Movie_main like RE2
+Pad_set = 0x80037FA0; // type:func
+// player: PLD load -> Cd_read/Mapping_tim/DrawSync/Memcpy/Mapping_tmd/PartsWork_set/PartsWork_link/Pl_weapon_ch like RE2; called from Set_room
+Player_set = 0x80038AAC; // type:func
+// player: Stop_flg<0 return, clears Room_player_flg&0xffe0, Pl_routine[Routine_0] dispatch, Pl_neck(7000,1500), Rot_neck(Cdir_y)
+Player_move = 0x80038C7C; // type:func
+// player: Pl_routine slot 0 (RE2 slot 0 = Pl_init); Routine=1, pEnemy_ptr/pEnemy_neck=pEm
+Pl_init = 0x80038E50; // type:func
+// player: Pl_mv slot 0, follows pl_mv00_pad
+pl_mv00 = 0x80039294; // type:func
+// player: Pl_mv slot 1; walk: Snd_se_walk(0,..), Room_player_flg|=2, Spd_get+Joint_move like RE2
+pl_mv01 = 0x800397DC; // type:func
+// player: Pl_mv_pad slot 2; life-level D_life_u block, run pad (Key&0x201)
+pl_mv02_pad = 0x80039924; // type:func
+// player: Pl_mv slot 2; run: Snd_se_walk(1,..), Room_player_flg|=4 like RE2
+pl_mv02 = 0x80039B84; // type:func
+// player: Pl_mv_pad slot 3; backwalk pad (Key&4), D_life_u block
+pl_mv03_pad = 0x80039CCC; // type:func
+// player: Pl_mv slot 3, between pl_mv03_pad and Lim_dir_ck as in RE2
+pl_mv03 = 0x80039F08; // type:func
+// player: enemy loop Type&0xE000, SquareRoot0, Sca_ck_line, Goto00_ck, Cdir_ck, sets pEnemy_ptr
+Lim_dir_ck = 0x8003A1E0; // type:func
+// player: Pl_mv_pad slot 4; identical Routine 0x1/0x301/0x101/0x201/0x501 logic to RE2
+pl_mv04_pad = 0x8003A398; // type:func
+// player: Pl_mv slot 4; Move_no=walk_mot+0x70000, Joint_move 0x200, Snd_se_walk
+pl_mv04 = 0x8003A574; // type:func
+// player: push pad: Key&0x10, Routine_2 5->6, Hokan_flg 7, Snd_se_stad, Pad_vib_init (RE2 pl_mv0a_pad; RE3 slot 9)
+pl_mv0a_pad = 0x8003B1C4; // type:func
+// player: push move: 0x70007, Pad_vib_set0/set1/fade_set, Foot_set, 0x10200 like RE2 pl_mv0a
+pl_mv0a = 0x8003B244; // type:func
+// player: Pl_dm slots 0,1 (same as RE2 table)
+pl_dm00 = 0x8003D1A8; // type:func
+// player: Pl_dm slots 2,3 (same as RE2 table)
+pl_dm01 = 0x8003D2D8; // type:func
+// player: Pl_dm slot 4 (same as RE2 table)
+pl_dm02 = 0x8003D4C0; // type:func
+// player: Pl_dm slot 5 (same as RE2 table)
+pl_dm03 = 0x8003D780; // type:func
+// player: sole entry of Pl_die_t (RE2 Pl_die_t[0])
+pl_die00 = 0x8003DA3C; // type:func
+// pl_wep: timer 0x2D, min 0x7FFFFFFF, Type&0xC000/0x2000, Sca_ck_line, Goto00_ck; called (pEm,7000,1500) from Player_move
+Pl_neck = 0x8003DEA4; // type:func
+// pl_wep: CompM + 2x Rnd + Esp_call splash at Water height; called when Water < Unk122-500
+Pl_water = 0x8003E088; // type:func
+// pl_wep: pl_mv05_w0_tbl slot 2 (w1 tbl has a different slot 2), follows pl_mv05_w0
+pl_mv05_w0_t2 = 0x8003E4D0; // type:func
+// pl_wep: Joint_move(..,0x400) -> Routine_2=1 like RE2; after w0_t2, before pl_mv05_w1
+pl_mv05_w0_t6 = 0x8003EA5C; // type:func
+// pl_wep: slot 0 of all w*_tbl (RE2 w1_t0 in every table); calls Em_ck
+pl_mv05_w1_t0 = 0x8003EB64; // type:func
+// pl_wep: slot 1 of w0/w1 tbl (RE2 w1_t1)
+pl_mv05_w1_t1 = 0x8003EF08; // type:func
+// pl_wep: slot 2 of pl_mv05_w1_tbl only
+pl_mv05_w1_t2 = 0x8003F208; // type:func
+// pl_wep: slot 3 of all w*_tbl (RE2 w1_t3 shared everywhere)
+pl_mv05_w1_t3 = 0x8003F414; // type:func
+// pl_wep: slot 4 of w0/w1 tbl; Esp_call+Mag_set+Snd_se_stad like RE2
+pl_mv05_w1_t4 = 0x8003F520; // type:func
+// pl_wep: slot 5 of all tbls; Goto00/Goto00_ck like RE2
+pl_mv05_w1_t5 = 0x8003F6B0; // type:func
+// pl_wep: pl_mv05_w2_tbl slot 1 (RE2 w2_t1), follows pl_mv05_w2
+pl_mv05_w2_t1 = 0x8003FFD8; // type:func
+// pl_wep: pl_mv05_w2_tbl slot 2; Pad_vib_fade_set like RE2 w2_t2
+pl_mv05_w2_t2 = 0x800402F4; // type:func
+// pl_wep: pl_mv05_w2_tbl slot 4; Mag_set+Snd_se_stad like RE2 w2_t4
+pl_mv05_w2_t4 = 0x80040764; // type:func
+// pl_wep: Cd_read WEP file by table[Id]+Type, LoadImage TIM, Mapping_tmd; called from Player_set
+Pl_weapon_ch = 0x80043BE4; // type:func
+// pl_wep: enemy scan with Sca_ck_line+SquareRoot0, 0x2000/0xC000 type masks; called from pl_mv05_w1_t0
+Em_ck = 0x800441CC; // type:func
+// pl_wep: CompM + 2x RotMatrix + ApplyMatrixSV, called from w1_t4/w2_t4 as RE2
+Mag_set = 0x80044F34; // type:func
+// pl_wep: MulMatrix2/RotMatrix/Rnd/Snd_se_stad, called each frame from Player_move
+Mag_down = 0x80045094; // type:func
+// 80048520: pRoom->pRcut[Cut_no].pSp, -1 -> nSprite=0, fills sprite work
+Psp_set = 0x800486F0; // type:func
+// 80048520: sprite loop with Flg_ck(Pri_be_flg[cut], id), AddPrim to OT
+Psp_trans = 0x80048844; // type:func
+// 80048520: Player_set, Cut_change, Kage_work_init, Sce_model_init, Sce_scheduler_set, Em_init_move
+Set_room = 0x800493EC; // type:func
+// 80048520: Task_lexecute + Task_sleep, 0x58 bytes as RE2
+Set_stage = 0x80049898; // type:func
+// 80048520: Stop_flg 0x20000000 save/restore, enemy routine call, Timer0 -> Routine/Move_no
+Em_init_move = 0x80049A50; // type:func
+// 80048520: Sca_ck_line, 2x Guide_check, kara_rootck2
+Root_ck = 0x80049BA8; // type:func
+// 80048520: pRoom->pBlock count==0 -> 0xFF else Rnd()%count
+Rnd_area = 0x80049E80; // type:func
+// 80048520: backward scan of pRoom->pBlock with unsigned range tests, 0xFF if none
+Guide_check = 0x80049ED8; // type:func
+// 80048520: called by Root_ck, 2x SquareRoot0
+kara_rootck2 = 0x8004A080; // type:func
+// sabun: stores pSa_dat, per-part bitmask loop assigning Sa head pointers
+Sa_dat_set = 0x8004A8BC; // type:func
+// sca: called (VECTOR*,VECTOR*,Att,1) from Lim_dir_ck/Pl_neck/Em_ck/Root_ck where RE2 calls Sca_ck_line
+Sca_ck_line = 0x8004E830; // type:func
+// sca: pRoom->pSca scan by Type&Area, Id&Att, Floor; list capped at 32 entries
+Sca_search = 0x80050208; // type:func
+// sce_at: called 5x by Sce_at; first function of module
+Sce_at_check = 0x800505AC; // type:func
+// sce_at: calls Sce_at_check 5 times (player x2, enemies, objects, sub player) as RE2
+Sce_at = 0x80050B58; // type:func
+// sce_at: Sce_at_jump_tbl slot 0; restores Old_Fatari/Old_Uatari
+Nothing = 0x80050D00; // type:func
+// sce_at: slot 1; Key_id&0x80, Flg_ck(Key_flg,id&0x3F), Search_item_id, Flg_on, Mess_set
+Sce_Door = 0x80050D28; // type:func
+// sce_at: Front_func_rtn-1 key index, Mess_flg&0x80, item decrement, Mess_set
+Key_lost = 0x80050FE0; // type:func
+// sce_at: slot 2; pAot_data=pCAot, kneel flag -> Routine_1/2 return 1
+Sce_Item = 0x8005111C; // type:func
+// sce_at: slot 3; return 0
+Sce_Normal = 0x8005127C; // type:func
+// sce_at: slot 4; Mess_set(0, d[1]|x, d[0], d[2]<<16)
+Sce_Message = 0x80051284; // type:func
+// sce_at: slot 5; Stop_flg&0x2000000 check then Event_exec(d[0], d[3])
+Sce_Event = 0x800512BC; // type:func
+// sce_at: slot 6; Flg_addr[d0] bit set/clear
+Sce_Flg_chg = 0x800512FC; // type:func
+// sce_at: slot 7; pEm->Water = d[0]
+Sce_Water = 0x8005136C; // type:func
+// sce_at: Back_func = Save_entrance, Save_area, Stop_bak
+Sce_Save = 0x80051388; // type:func
+// sce_at: Search_item_id check, Mess_set 1/0, save system flag
+Save_entrance = 0x800513CC; // type:func
+// sce_at: Back_func = Item_box_entrance
+Sce_Itembox = 0x800514C4; // type:func
+// sce_at: static Dir_spd/Spd_add/pOwork, Ob_model[0] Cdir spin
+Item_box_entrance = 0x800514F0; // type:func
+// sce_at: 2x Flg_ck, Search_item_id, Cut_change, Mess_set like RE2
+Sce_Hikidashi = 0x800516A4; // type:func
+// sce_at: Flg_on key flag, Mess_set, Cut_change; follows Sce_Hikidashi
+Hikidashi_entrance = 0x8005190C; // type:func
+// sce_at: Damage_cnt 0x80, Life -= d[1], Direction_ck/Add_speedXZ, Pad_vib_set0(4)/set1(10,0x96)
+Sce_Damage = 0x80051B40; // type:func
+// sce_at: AOT scan Id 7 (water), Hit_ck_point4/Hit_ck_box, returns water height
+Water_ck = 0x80051E48; // type:func
+// sce0: table scan until 0xFF returning p[1], default 0x80
+Em_kind_search = 0x80052094; // type:func
+// sce0: called from Set_room; 32-entry Ob_model clear, Mapping_tim
+Sce_model_init = 0x80052194; // type:func
+// sce0: F_atari/U_atari/Use_id/Get_id=-1, Use_flg[0..3]=0
+Sce_work_clr = 0x80052294; // type:func
+// sce0: called right after Sce_work_clr in Sce_scheduler_main (RE3 stub), between work_clr and work_clr_set
+Sce_work_clr_at = 0x800522D0; // type:func
+// sce0: task init loop + Sce_aot_init
+Sce_work_clr_set = 0x800522D8; // type:func
+// sce0: first call after memcpy16(ScratchPad,Sce_jmp_tbl) in both schedulers, uses Rnd
+Sce_rnd_set = 0x800523C4; // type:func
+// sce0: Ob_model loop Free0&0x80, (&0x60), Esp_call 0x...2800; last call of Sce_scheduler_set
+Sce_kirakira_set = 0x80052588; // type:func
+// sce0: memcpy16 jmp tbl, rnd_set, work_clr, work_clr_set, Event_exec(1,0), scheduler_main; called from Set_room
+Sce_scheduler_set = 0x80052A94; // type:func
+// sce0: Stop_flg&0x2000000, memcpy16, rnd_set, Event_exec(0,1), scheduler_main
+Sce_scheduler = 0x80052B18; // type:func
+// sce0: task loop dispatching ScratchPad jmp table, Ifel_ctr stack pop
+Sce_scheduler_main = 0x80052BA4; // type:func
+// sce1: Flg_addr[d1] bit test xor (d>>8)==0, +4, RE2 Ck body
+Ck = 0x800546CC; // type:func
+// sce1: Flg_addr bit clear/set/xor (0/1/7), +4, RE2 Set
+Set = 0x8005472C; // type:func
+// sce1: Sce_work compare switch 0..6, +6, RE2 Cmp
+Cmp = 0x800547F0; // type:func
+// sce1: Data++ then calls rnd-set, between Cmp and Cut_chg as RE2
+Sce_rnd = 0x8005489C; // type:func
+// sce1: Status_flg|=0x80, Cut_chg_main(d&0x7f), d&0x80 bg flag, +2
+Cut_chg = 0x800548C8; // type:func
+// sce1: Cut_chg_main(old cut), Status_flg |0x400000 &~0x80, +1
+Cut_old = 0x80054960; // type:func
+// sce1: saves old Cut_no, sets new, bg flag=1, Cut_change(cut)
+Cut_chg_main = 0x800549C4; // type:func
+// sce1: data[1]==1 clears STAT 0x80 else sets, +2
+Cut_auto = 0x80054A04; // type:func
+// sce1: swaps Fcut/Tcut in pVcut until 0xff, Cut_change if Cccut_next, +3
+Cut_replace = 0x80054A68; // type:func
+// sce1: walk pVcut to data[1], set Be_flg of [data[2]] = data[3], +4
+Cut_be_set = 0x80054B48; // type:func
+// sce1: three SHORTs at +2/+4/+6 to pWork Pos_xyz, +8
+Pos_set = 0x80054BC0; // type:func
+// sce1: three SHORTs to pWork Cdir_xyz, +8
+Dir_set = 0x80054C28; // type:func
+// sce1: Pad_vib_set0(u16[1],u16[2]), +6
+Vib_set0 = 0x80054C58; // type:func
+// sce1: Pad_vib_set1, +6
+Vib_set1 = 0x80054CA4; // type:func
+// sce1: Pad_vib_fade_set, +8
+Vib_fade_set = 0x80054CF4; // type:func
+// sce1: Mess_set(0,..,data[1],u16[2]<<16) and stop flag |=, +6
+Message_on = 0x80054D74; // type:func
+// sce1: line_mode_set + 240 line_trans + line_scr_end, +3
+Sce_shake_on = 0x80054E70; // type:func
+// sce1: Line.Rect 320x240 + line_mode_set, +4
+Sce_line_start = 0x80054F40; // type:func
+// sce1: line_trans(..., Draw.ofs[1]), +6
+Sce_line_main = 0x80054FAC; // type:func
+// sce1: line_scr_end, +1
+Sce_line_end = 0x80055004; // type:func
+// sce1: 5-way work-type switch (pos/pl/spl/em/obj) + VECTOR offset, calls SE request, +12
+Se_on = 0x80055038; // type:func
+// sce1: reads pData[1..5] as RE2 and drives seq stop/play, +6
+Sce_bgm_control = 0x8005518C; // type:func
+// sce1: STAT_XA_VOICE + Xa_play(data[1],u16[1]), +4
+Xa_on = 0x800554C8; // type:func
+// sce1: movie init(data[1]), +2, RE2 Movie_on shape
+Movie_on = 0x80055520; // type:func
+// sce1: Search_item_id(data[1]) >= 0, +2
+Keep_Item_ck = 0x80055620; // type:func
+// sce1: G.Key & mask ? Res : Res^1, +4
+Sce_key_ck = 0x80055660; // type:func
+// sce1: G.Key_trg & mask, +4
+Sce_trg_ck = 0x800556A0; // type:func
+// sce1: pSca[data[1]+1].Id high bits from u16[1], +4
+Sca_id_set = 0x800556E0; // type:func
+// sce1: light[data[1]].Pos[data[2]] axis switch 9/10/11, +6
+Light_pos_set2 = 0x80055884; // type:func
+// sce1: light[data[2]].L[data[3]] = u16[2], +6
+Light_kido_set2 = 0x80055944; // type:func
+// sce1: light[data[1]].Col[data[2]] = data[3..5], +6
+Light_color_set2 = 0x800559A0; // type:func
+// sce2: Sce_aot slot set, nSce_aot++, record size 0x20
+Door_aot_set = 0x80055B5C; // type:func
+// sce2: same with data[3]|=0x80, size 0x28
+Door_aot_set_4p = 0x80055BBC; // type:func
+// sce2: Sce_aot slot set, size 0x14
+Aot_set = 0x80055C34; // type:func
+// sce2: data[3]|=0x80, size 0x1C
+Aot_set_4p = 0x80055C94; // type:func
+// sce2: (s8)data[1] aot, keeps 0x80 bit, +0xC/+0x14 data part, +10
+Aot_reset = 0x80055D0C; // type:func
+// sce2: pCAot = Sce_aot[..], calls Sce_at_jump_tbl[Id]
+Aot_on = 0x80055D7C; // type:func
+// sce2: work-kind switch returning GsIDMATRIX/work matrices; called by all espr handlers
+Get_matrix = 0x80055E38; // type:func
+// sce2: Get_matrix(data[4],u16[2]>>8) + Svec + esp call, +16
+Sce_espr_on = 0x80056004; // type:func
+// sce2: on2 variant with extra byte packed, Get_matrix, esp call
+Sce_espr_on2 = 0x800560B8; // type:func
+// sce2: Get_matrix + Svec + Svec2, +22
+Sce_espr3d_on = 0x80056178; // type:func
+// sce2: 3d on2 variant, two SVECTORs
+Sce_espr3d_on2 = 0x8005624C; // type:func
+// sce2: Get_matrix(data[3],data[4]) + esp kill(data[1],data[2]), +5
+Sce_espr_kill = 0x8005632C; // type:func
+// sce2: esp kill by data[1], +2
+Sce_espr_kill2 = 0x80056394; // type:func
+// sce2: kill-all if kind 6 else clear 0x60 Esp entries with pMat, +3
+Sce_espr_task = 0x800563E4; // type:func
+// sce2: Get_matrix + esp ctrl, after Sce_espr_task as RE2
+Sce_espr_control = 0x8005648C; // type:func
+// sce2: Sup_mode 0xC0 switch with GsIDMATRIX, RotMatrix, Cc_work entry, Om init
+Obj_model_set = 0x80056510; // type:func
+// sce2: Sce.Mizu_div_max/pMizu_div from pEm_mem, POLY_GT4 13x2 fill
+Mizu_div_set = 0x80056950; // type:func
+// sce2: enemy-flag Flg_ck, pFree_work alloc, Enemy_num++, ppEnemy_end update
+Sce_em_set = 0x80056A2C; // type:func
+// sce2: Move_cnt=0, Move_no=data[2], flags=data[3], +4
+Plc_motion = 0x80056DC0; // type:func
+// sce2: uses Subpl_walk/run/back/ato/dir tables, Set_no=data[3]
+Plc_dest = 0x80056E5C; // type:func
+// sce2: Routine=(data[1]<<8)|4, clears Sce_free0/1, +2
+Plc_gun = 0x80057008; // type:func
+// sce2: identical dead stores 0x8C/0x25D/0x91/0x1F4/-0x19/0x109/-0x32, +1
+Plc_gun_eff = 0x80057040; // type:func
+// sce2: Neck_flg |= 0x12/8/0x2A/0x58/4, trace mode remap, +10
+Plc_neck = 0x8005709C; // type:func
+// sce2: Id<0x10 Type&=0xfff, Neck_flg=0, Type&=0xAxxx, +1
+Plc_ret = 0x80057210; // type:func
+// sce2: toggles Routine 0x1404 / R_no_bak, +1
+Plc_stop = 0x80057280; // type:func
+// sce2: Sce_flg =,|=,^= by mode, +4
+Plc_flg = 0x800572C8; // type:func
+// sce2: Sce_free0/Sce_free1 set by data[1], +4
+Plc_rot = 0x8005734C; // type:func
+// sce2: Move_cnt = data[1], +2
+Plc_cnt = 0x800573B0; // type:func
+// sce2: Routine=1, neck->Player, Type|0x400, STAT_SUB_PLAYER, Life=saved, Max_life=200
+Splc_ret = 0x800573DC; // type:func
+// sce2: Routine=0x604, Neck_flg=0x92, Type|0x5000&~0x400, clear STAT_SUB_PLAYER
+Splc_sce = 0x8005745C; // type:func
+// sce2: lhu 0x12 flag, lbu 0x14/0x15 obj, Flg_ck item flag, +0x16
+Item_aot_set = 0x800574F4; // type:func
+// sce2: lhu 0x1A, lbu 0x1C/0x1D, data[3]|=0x80, +0x1E
+Item_aot_set_4p = 0x800576C4; // type:func
+// sce2: kage of pl/spl/em, Kage_work_color_set + Half/Off xz, +14
+Kage_set = 0x800578A0; // type:func
+// sce2: pSuper by 0xC0 switch (ID/pl/em/om), pos+cdir, +16
+Super_set = 0x80057A00; // type:func
+// sce2: Type low=id, Search_item_id -> equip no/id, Weapon_cls
+Weapon_chg = 0x80057BD0; // type:func
+// sce2: pFloor count check, 12-byte entries, mode 1 clears flag else sets, +3
+Flr_set = 0x80057E74; // type:func
+// sce2: item remove(Search_item_id(data[1])), +2; opcode 0x3E item_lost
+Sce_Item_lost = 0x80057EF4; // type:func
+// sce2: parts[data[2]] Be_flg, Poly_rgb from data[3..5], 5 USHORT params, +16
+Sce_parts_bomb = 0x8005863C; // type:func
+// sce2: parts[data[1]] Old_x/z/y, Timer byte, 3 more SHORTs, +16
+Sce_parts_down = 0x800586F4; // type:func
+// sce2: parts[(s8)data[2]] field switch on (s8)data[3] (Be_flg/Cdir/Poly_rgb), +6
+Parts_set = 0x80058918; // type:func
+// 80058DD4: per-frame update, Root-ck call then Spl_routine_0[Routine_0](pEm,Kan,Seq); Spl_set stores it
+Spl = 0x80058DD4; // type:func
+// 80058DD4: slot 0 of routine table D_8009E6EC (RE2 Spl_routine_0[0])
+Spl_Init = 0x80058F68; // type:func
+// 80058DD4: fills move table entries with Spl (RE2 Spl_set)
+Spl_set = 0x80059460; // type:func
+// 800597F0: slot 1 of D_8009E6EC (RE2 Spl_routine_0[1]); timer dec + Aida_move
+Spl_Auto = 0x800597F0; // type:func
+// 800597F0: sub-player check, Spl_soba_pos_set x2 modes, Guide_check 0xFF fallback, Root_ck, SquareRoot0 dist
+Spl_Root_ck_sys = 0x80059824; // type:func
+// 800597F0: Spl_enemy_ck, Spl_em_pos_ck(3000), 0xF timer, Move_type table dispatch
+Aida_move = 0x80059A20; // type:func
+// 800597F0: D_8009E788[0]; br table[Routine_1](pEm) then mv table
+Aida_Move_type00 = 0x80059BC0; // type:func
+// 800597F0: D_8009E788[1]
+Aida_Move_type01 = 0x80059C44; // type:func
+// 800597F0: D_8009E788[2]
+Aida_Move_type02 = 0x80059CC8; // type:func
+// 800597F0: D_8009E788[3]
+Aida_Move_type03 = 0x80059D4C; // type:func
+// 800597F0: D_8009E788[4]
+Aida_Move_type04 = 0x80059DD0; // type:func
+// 800597F0: D_8009E788[5]
+Aida_Move_type05 = 0x80059E54; // type:func
+// 800597F0: D_8009E788[6]
+Aida_Move_type06 = 0x80059ED8; // type:func
+// 800597F0: D_8009E788[7]
+Aida_Move_type07 = 0x80059F5C; // type:func
+// 800597F0: D_8009E788[8]
+Aida_Move_type08 = 0x80059FE0; // type:func
+// 800597F0: D_8009E788[9]
+Aida_Move_type09 = 0x8005A064; // type:func
+// 800597F0: D_8009E788[10]
+Aida_Move_type0a = 0x8005A0E8; // type:func
+// 800597F0: (pEm,Type), type 10 -> Spl_em_cdir_ck/Spl_pllock_get, Routine 0x501
+Aida_em10_at00_pl = 0x8005A274; // type:func
+// 800597F0: near[0] then near[1] with dist<3000, Routine 0x501
+Aida_em10_at00_spl = 0x8005A35C; // type:func
+// 800597F0: (pEm,Type), dist<0x5DC and dy window, Routine 0x501
+Aida_em25_at00_pl = 0x8005A418; // type:func
+// 800597F0: near[0]/near[1] dy window, Routine 0x501
+Aida_em25_at00_spl = 0x8005A4D8; // type:func
+// 800597F0: slot 0 of type00 br table D_8009E7DC
+Aida_mv00_br = 0x8005A5CC; // type:func
+// 800597F0: slot 0 of type01 br table; life-rate state, at00 table, Goto00_ck, 0x101/0xC01/0x201/0xD01
+Aida_mv00_br_1 = 0x8005A844; // type:func
+// 800597F0: slot 0 of mv table D_8009E82C; taiki motion, Joint_move 0x200
+Aida_mv00 = 0x8005ABC4; // type:func
+// 800597F0: near[0] dist<0x9C4 lock, Routine 0x501 (after Aida_mv00 as RE2)
+Aida_em10_at01 = 0x8005AC9C; // type:func
+// 800597F0: near[0] dy window + dist<0x9C4, Routine 0x501
+Aida_em25_at01 = 0x8005AD48; // type:func
+// 800597F0: slot 1 of type01 br table
+Aida_mv01_br = 0x8005ADCC; // type:func
+// 800597F0: slot 1 of type00 br table
+Aida_mv01_br_1 = 0x8005B0D0; // type:func
+// 800597F0: slot 1 of mv table
+Aida_mv01 = 0x8005B438; // type:func
+// 800597F0: slot 2 of type01 br table
+Aida_mv02_br = 0x8005B614; // type:func
+// 800597F0: slot 2 of type00 br table
+Aida_mv02_br_1 = 0x8005B824; // type:func
+// 800597F0: slot 2 of mv table
+Aida_mv02 = 0x8005BAD4; // type:func
+// 800597F0: slot 3 of all br tables
+Aida_mv03_br = 0x8005BC28; // type:func
+// 800597F0: mv slots 3 and 12 (RE2 mv slots 3/12 are Aida_mv03)
+Aida_mv03 = 0x8005BD24; // type:func
+// 800597F0: slot 4 of br tables
+Aida_mv04_br = 0x8005BE84; // type:func
+// 800597F0: mv slots 4,11,13 (RE2 mv slots 4/11/13 are Aida_mv04)
+Aida_mv04 = 0x8005BEE8; // type:func
+// 800597F0: br slot 5, dispatches w1_br table by Routine_2
+Aida_mv05_br = 0x8005BFC0; // type:func
+// 800597F0: mv slot 5, calls Aida_mv05_w1 with Sub0 kan/seq then foot set
+Aida_mv05 = 0x8005BFFC; // type:func
+// 800597F0: dispatches w1 table D_8009ECF8 by Routine_2
+Aida_mv05_w1 = 0x8005C098; // type:func
+// 800597F0: empty, slot 0 of w1_br table D_8009ECDC
+Aida_mv05_w1_t0_br = 0x8005C0D4; // type:func
+// 800597F0: slot 0 of w1 table D_8009ECF8
+Aida_mv05_w1_t0 = 0x8005C0DC; // type:func
+// 800597F0: slot 1 of w1_br table (only non-empty br, as RE2)
+Aida_mv05_w1_t1_br = 0x8005C3F0; // type:func
+// 800597F0: slot 1 of w1 table
+Aida_mv05_w1_t1 = 0x8005C638; // type:func
+// 800597F0: empty, br slot 6
+Aida_mv06_br = 0x8005CB24; // type:func
+// 800597F0: mv slot 6
+Aida_mv06 = 0x8005CB2C; // type:func
+// 800597F0: empty, br slot 7
+Aida_mv07_br = 0x8005CBF0; // type:func
+// 800597F0: mv slot 7 (emptied in RE3)
+Aida_mv07 = 0x8005CBF8; // type:func
+// 800597F0: empty, br slot 8
+Aida_mv08_br = 0x8005CC00; // type:func
+// 800597F0: mv slot 8
+Aida_mv08 = 0x8005CC08; // type:func
+// 800597F0: empty, br slot 9
+Aida_mv09_br = 0x8005CE7C; // type:func
+// 800597F0: mv slot 9
+Aida_mv09 = 0x8005CE84; // type:func
+// 800597F0: empty, br slot 10
+Aida_mv0a_br = 0x8005D138; // type:func
+// 800597F0: empty, mv slot 10
+Aida_mv_nop_br = 0x8005D140; // type:func
+// 800597F0: br slot 11 of type00/01/02 tables
+Aida_mv0a = 0x8005D148; // type:func
+// 800597F0: br slot 11 of type03/04 tables
+Aida_mv0b_br = 0x8005D1A4; // type:func
+// 800597F0: br slot 12 of type01+ tables
+Aida_mv0b_br_1 = 0x8005D298; // type:func
+// 800597F0: br slot 12 of type00 table
+Aida_mv0b = 0x8005D3B4; // type:func
+// 800597F0: br slot 13 of all tables
+Aida_mv0c_br = 0x8005D484; // type:func
+// 800597F0: slot 2 of D_8009E6EC; Spl_dm[Routine_1] dispatch
+Spl_Damage = 0x8005E688; // type:func
+// 800597F0: Spl_dm table slots 0/1; Move 0x3000x, Damage_cnt|=0x80, Neck|=0x12, se 0, Joint_move 0x400
+Spl_dm00 = 0x8005E6CC; // type:func
+// 800597F0: Spl_dm slots 2/3; Spd_x=(R1&1)*400-200, Add_speedXZ, Joint_move 0x400
+Spl_dm01 = 0x8005E7C8; // type:func
+// 800597F0: slot 3 of D_8009E6EC; Spl_die[Routine_1] dispatch
+Spl_Die = 0x8005EE14; // type:func
+// 800597F0: only entry of Spl_die table D_8009ED84
+Spl_die00 = 0x8005EE70; // type:func
+// 800597F0: slot 7 of D_8009E6EC (RE2 Spl_routine_0[7])
+Spl_Dead = 0x8005F01C; // type:func
+// 800597F0: (len,dir,dir2,SVECTOR*) two RotMatrix/ApplyMatrixSV/SquareRoot0 candidates, nearer wins
+Spl_soba_pos_set = 0x8005F0BC; // type:func
+// 800597F0: SquareRoot0, Sca_ck_line, 3x Direction_ck nearest-3 enemies
+Spl_enemy_ck = 0x8005F298; // type:func
+// 800597F0: (pEm,Lim) 2x Goto00_ck over near list, called with 3000
+Spl_em_pos_ck = 0x8005F660; // type:func
+// 800597F0: near list Goto00_ck 0x400, returns ok/ng nearest
+Spl_em_cdir_ck = 0x8005F7E8; // type:func
+// 800597F0: (pEm,pYo) skips player's locked enemy, returns other or it
+Spl_pllock_get = 0x8005F8F0; // type:func
+// 800597F0: (pEm,Down,Mode) Life-=, saved life-=, Routine 2, Mode&2, Cdir_ck, Routine 3 on death
+Spl_life_down = 0x8005FA10; // type:func
+// 800601F0: slot 4 of D_8009E6EC; Type|=0x5000, Root_ck when !0x1000, Spl_sce[Routine_1], foot sets
+Spl_Scenario = 0x800601F0; // type:func
+// 800601F0: Spl_sce slot 0, Spl_sce_mv00 with room kan/seq
+Spl_sce00 = 0x800605C0; // type:func
+// 800601F0: slot 1, Spl_sce_mv00 with Kan/Seq
+Spl_sce01 = 0x800605F8; // type:func
+// 800601F0: slot 2, Spl_sce_mv00 with Sub0
+Spl_sce02 = 0x80060630; // type:func
+// 800601F0: slot 3, Spl_sce_mv00 with Sub1
+Spl_sce03 = 0x80060668; // type:func
+// 800601F0: Spl_sce slot 4, walk, sets Routine_1=4 on repeat
+Spl_sce04 = 0x800606A0; // type:func
+// 800601F0: slot 5, run (motion 1), Routine_1=5 on repeat
+Spl_sce05 = 0x80060BF0; // type:func
+// 800601F0: slot 6, taiki motion 2 + Joint_move 0x200
+Spl_sce06 = 0x80061108; // type:func
+// 800601F0: slot 7, Routine_1=7 on repeat
+Spl_sce07 = 0x800611E0; // type:func
+// 800601F0: slot 8, Routine_1=8 on repeat
+Spl_sce08 = 0x800616B4; // type:func
+// 800601F0: slot 9, Routine_1=9 on repeat
+Spl_sce09 = 0x80061830; // type:func
+// 800601F0: callee of Spl_sce00..03 with the four kan/seq sets
+Spl_sce_mv00 = 0x80062D3C; // type:func
+// 800636D4: item list search by id; Keep_Item_ck/Weapon_chg/item_lost call it as RE2
+Search_item_id = 0x8006CC8C; // type:func
+// snd: positional SE request (code, VECTOR*); called by Se_on as RE2 Se_on->Snd_se_stad
+Snd_se_stad = 0x800746C0; // type:func
+// snd: (no,pEm) enemy SE, no+=0x10 on flag; Spl_dm00 calls (0,pEm) like RE2
+Snd_se_enem = 0x800775A0; // type:func
+// snd: footstep SE (kind, foot part, pEm); callers pass seq&0x2000-derived part as RE2
+Snd_se_walk = 0x800776B0; // type:func
+// sub: OpenTIM/ReadTIM, x from tpage*64 (-0x400 if >=16), clut y+0x1E0, DrawSync
+Mapping_tim = 0x800784E0; // type:func
 
 // Phase 4 (naming pass). Not merged into symbol_addrs.txt yet: the main asm still carries func_/D_ labels, so these are
 // linked as PROVIDE() (main and overlay links) until the next main split (tools/apply_syms.py, then make split).
-Memcpy = 0x800100A4; // type:func sld.s: RE2 Memcpy role (CD.C Read_adr/Work_buf/Fsize_now, GAME.C Plight_bak 0x28 copies use it), RE3 copies 32-byte blocks then bytes
-Memclr = 0x80010150; // type:func sld.s: Init_global clears G with it like RE2 MAIN.C Memclr(&G.Status_flg, ...), RE3 takes a byte count
-setexmask = 0x800101A0; // type:func sld.s: `break 0x406` + return, identical to RE2 SLD.S setexmask
-Hit_ck_point4 = 0x8001020C; // type:func sld.s: (VECTOR *p, VCUT *cp) four cross-product edge tests of the cut quad, RE2 MAIN.C Hit_ck_point4 moved to asm, callers Kage_work9_sort/Water_ck as in RE2
-Rnd = 0x800102E8; // type:func sld.s: G.Random LFSR (Random>>7 & 0xFF added to the low byte, <<8), 8-bit result, identical to RE2 EM_SUB.C Rnd
-Cd_ready_cb = 0x80013C1C; // type:func cd: (intr, result) DsReadyCallback handler installed during Cd_read/Cd_read_s, RE2 CD.C Cd_ready_cb
-Esp_call = 0x8001B484; // type:func esp: (Id, Dir, MATRIX *, SVECTOR *pos, SVECTOR *spd) starts an effect from Esp[], called as RE2 Esp_call by Pl_water and the enemy modules
-Joint_move_p = 0x80028308; // type:func joint: (JOINT_P *, Kan, Seq, Late_flg) same signature and frame lookup as RE2 JOINT.C Joint_move_p
-Bomb_Parts_SortGT3 = 0x8002BA3C; // type:func md_sub: pushes every GT3 polygon out along its normal by Bomb_tbl, RE2 MD_SUB.C Bomb_Parts_SortGT3
-Bomb_Parts_SortGT4 = 0x8002C068; // type:func md_sub: GT4 version of Bomb_Parts_SortGT3, RE2 Bomb_Parts_SortGT4
-CompM = 0x8002D4B0; // type:func md_sub: (m0, m1, m2) used exactly as RE2 CompM in Kage_work_sort (pSuper, &M, &Tm) and the parts chain (&Mat, pP[8].M, &Mat)
-Sca_get_dir = 0x800502B8; // type:func sca: (VECTOR *, SCA_DATA *) 2 floor/corner else wall side, RE2 SCA.C Sca_get_dir. C keeps func_800502B8 until the main split (sabun asm calls it)
+// sld.s: RE2 Memcpy role (CD.C Read_adr/Work_buf/Fsize_now, GAME.C Plight_bak 0x28 copies use it), RE3 copies 32-byte blocks then bytes
+Memcpy = 0x800100A4; // type:func
+// sld.s: Init_global clears G with it like RE2 MAIN.C Memclr(&G.Status_flg, ...), RE3 takes a byte count
+Memclr = 0x80010150; // type:func
+// sld.s: `break 0x406` + return, identical to RE2 SLD.S setexmask
+setexmask = 0x800101A0; // type:func
+// sld.s: (VECTOR *p, VCUT *cp) four cross-product edge tests of the cut quad, RE2 MAIN.C Hit_ck_point4 moved to asm, callers Kage_work9_sort/Water_ck as in RE2
+Hit_ck_point4 = 0x8001020C; // type:func
+// sld.s: G.Random LFSR (Random>>7 & 0xFF added to the low byte, <<8), 8-bit result, identical to RE2 EM_SUB.C Rnd
+Rnd = 0x800102E8; // type:func
+// cd: (intr, result) DsReadyCallback handler installed during Cd_read/Cd_read_s, RE2 CD.C Cd_ready_cb
+Cd_ready_cb = 0x80013C1C; // type:func
+// esp: (Id, Dir, MATRIX *, SVECTOR *pos, SVECTOR *spd) starts an effect from Esp[], called as RE2 Esp_call by Pl_water and the enemy modules
+Esp_call = 0x8001B484; // type:func
+// joint: (JOINT_P *, Kan, Seq, Late_flg) same signature and frame lookup as RE2 JOINT.C Joint_move_p
+Joint_move_p = 0x80028308; // type:func
+// md_sub: pushes every GT3 polygon out along its normal by Bomb_tbl, RE2 MD_SUB.C Bomb_Parts_SortGT3
+Bomb_Parts_SortGT3 = 0x8002BA3C; // type:func
+// md_sub: GT4 version of Bomb_Parts_SortGT3, RE2 Bomb_Parts_SortGT4
+Bomb_Parts_SortGT4 = 0x8002C068; // type:func
+// md_sub: (m0, m1, m2) used exactly as RE2 CompM in Kage_work_sort (pSuper, &M, &Tm) and the parts chain (&Mat, pP[8].M, &Mat)
+CompM = 0x8002D4B0; // type:func
+// sca: (VECTOR *, SCA_DATA *) 2 floor/corner else wall side, RE2 SCA.C Sca_get_dir. C keeps func_800502B8 until the main split (sabun asm calls it)
+Sca_get_dir = 0x800502B8; // type:func
 Dinfo = 0x800971E4; // DOOR_INFO[], indexed by pSce_aot_on->Dtex_type in Door_init as RE2 DOOR.C Dinfo
 Bomb_tbl = 0x80098A88; // SHORT[2][30] push-out distance per frame read by Bomb_Parts_SortGT3/GT4, RE2 Bomb_tbl
 pMovie_proc_tbl = 0x8009CBB4; // Movie_init, Movie_main, Movie_exit, indexed by Vm_work.Rno as RE2 MOVIE.C pMovie_proc_tbl
@@ -319,5 +624,239 @@ Esp = 0x800BA8A8; // ESP_WORK[96] effect pool scanned by Esp_call, RE2 ESP.H Esp
 Tmp_Sca = 0x800DEB48; // SCA_DATA temporary shape passed to the hit routines, RE2 SCA.C Tmp_Sca
 Em_dir = 0x800E01A0; // SHORT[3] direction to the three nearest enemies (Spl_enemy_ck), RE2 SPL.H Em_dir
 Em_l = 0x800E01B4; // USHORT[3] distance to the three nearest enemies (Spl_enemy_ck), RE2 SPL.H Em_l
-Pad_rep_set = 0x80038634; // type:func pad: (Mask, Val) right after Pad_set, stores the wait/repeat byte pair as one halfword like RE2 PAD.C Pad_rep_set(Mask, Data), RE3 expands Mask into a key table
-Sce_fade_set = 0x80054384; // type:func sce1: SCE opcode handler, pData[1] fade index and colours passed to Fade_set, RE2 SCE2.C Sce_fade_set. C keeps func_80054384 until the main split (Sce_jmp_tbl in asm data)
+// pad: (Mask, Val) right after Pad_set, stores the wait/repeat byte pair as one halfword like RE2 PAD.C Pad_rep_set(Mask, Data), RE3 expands Mask into a key table
+Pad_rep_set = 0x80038634; // type:func
+// sce1: SCE opcode handler, pData[1] fade index and colours passed to Fade_set, RE2 SCE2.C Sce_fade_set. C keeps func_80054384 until the main split (Sce_jmp_tbl in asm data)
+Sce_fade_set = 0x80054384; // type:func
+// esp: RE2 Esp_kill(id, tp, pmat); RE3 packs id/type/mode in one word
+Esp_kill = 0x8001B894; // type:func
+// esp: RE2 Esp_ctrl: set Routine_0..3 of the effects of Id on pMat
+Esp_ctrl = 0x8001BA48; // type:func
+// esp: world position from Mov/Dir_y and pMat, RE2 Esp_pos_matrix
+Esp_pos_matrix = 0x8001BCFC; // type:func
+Esp_tblj = 0x80097BD4; // EFF_PROC[64] effect routines by Routine_0, RE2 ESP_R.C Esp_tblj
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_00 = 0x8001C384; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_01 = 0x8001C38C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_02 = 0x8001C46C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_03 = 0x8001C49C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_04 = 0x8001C5BC; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_05 = 0x8001C98C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_06 = 0x8001CB04; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_07 = 0x8001CC60; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_08 = 0x8001CD64; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_09 = 0x8001CD6C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_0a = 0x8001CD74; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_0b = 0x8001CD7C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_0c = 0x8001CD84; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_0d = 0x8001CD8C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_0e = 0x8001CD94; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_0f = 0x8001CD9C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_10 = 0x8001D210; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_11 = 0x8001D480; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_12 = 0x8001D534; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_13 = 0x8001D7C0; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_14 = 0x8001D7C8; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_15 = 0x8001D7D0; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_16 = 0x8001E0F4; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_17 = 0x8001E444; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_18 = 0x8001F208; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_19 = 0x8001F378; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_1a = 0x8001F4A8; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_1b = 0x8001F4F4; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_1c = 0x8001F674; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_1d = 0x8001F824; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_1e = 0x8001FA90; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_1f = 0x8001FDD0; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_20 = 0x8001FF6C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_21 = 0x80020298; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_22 = 0x800204B8; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_23 = 0x80020700; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_24 = 0x80020820; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_25 = 0x800209D8; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_26 = 0x80020B6C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_27 = 0x80020C0C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_28 = 0x80020DBC; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_29 = 0x80020EB8; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_2a = 0x80021548; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_2b = 0x8002174C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_2c = 0x80021784; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_2d = 0x8002178C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_2e = 0x80021794; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_2f = 0x8002179C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_30 = 0x800217A4; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_31 = 0x800217AC; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_32 = 0x800217B4; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_33 = 0x800218BC; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_34 = 0x8002198C; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_35 = 0x80021D58; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_36 = 0x80021EA4; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_37 = 0x80021EAC; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_38 = 0x800221F0; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_39 = 0x80022398; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_3a = 0x800223A0; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_3b = 0x800223A8; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_3c = 0x80022500; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_3d = 0x80022660; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_3e = 0x80022668; // type:func
+// esp: effect routine, slot of Esp_tblj (RE2 ESP_R.C naming)
+Esp_3f = 0x8002289C; // type:func
+// joint: draw the parts of a work (culled by pPos), RE2 JOINT.C Joint_trans2
+Joint_trans2 = 0x800254AC; // type:func
+// joint: light matrix and sort of one part, RE2 JOINT.C ko_joint_trans2
+ko_joint_trans2 = 0x80025610; // type:func
+// joint: link the part tree of a work from its kan (parents, rest positions), RE2 JOINT.C PartsWork_link
+PartsWork_link = 0x800261AC; // type:func
+// joint: falling part: bounces on the floor, blends into its fall rotation, RE2 JOINT.C Parts_down
+Parts_down = 0x80027568; // type:func
+// joint: part flying off in an explosion, RE2 JOINT.C Parts_bomb
+Parts_bomb = 0x8002783C; // type:func
+// om: object model setup: map its model once (G.pOld_tmd), parts or packet work (RE2 OM.C Om_init)
+Om_init = 0x80035790; // type:func
+// om: Om_routine 2: a pushed box tips over the edge (RE2 OM.C Om_move_box statics)
+Om_move_box = 0x8003749C; // type:func
+// om: Om_routine 3: parts fly apart (PW_BOMB) and hurt around (RE2 OM.C Om_explosion_set)
+Om_explosion_set = 0x80037680; // type:func
+// sca: floor height under pPos (RE2 SCA.C Sca_get_ground, same arguments in Parts_down)
+Sca_get_ground = 0x8004D720; // type:func
+pSpl_near_em = 0x800E01A8; // ENEMY_WORK *[3] the three nearest enemies (Spl_enemy_ck), RE2 SPL.H pSpl_near_em
+// spl_sce: Spl_sce slot 0xA: sub-routine table D_8009EEA4 by Routine_2
+Spl_sce0a = 0x80061970; // type:func
+// spl_sce: Spl_sce slot 0xB: held by the enemy pEnemy[Dest_z + 2], plays its Sub1 motions
+Spl_sce0b = 0x8006236C; // type:func
+// spl_sce: Spl_sce slot 0xC
+Spl_sce0c = 0x800608C8; // type:func
+// spl_sce: Spl_sce slot 0xD
+Spl_sce0d = 0x80060E90; // type:func
+// spl_sce: Spl_sce slot 0xE
+Spl_sce0e = 0x80061390; // type:func
+// spl_sce: play the scenario motion in place (RE2 Spl_sce_mv04)
+Spl_sce_mv04 = 0x80062A28; // type:func
+// spl_sce: turn towards (Dest_x, Dest_z) while playing the motion; 1 when facing it (RE2 Spl_sce_mv01)
+Spl_sce_mv01 = 0x80062B68; // type:func
+// spl_sce: walk to (Dest_x, Dest_z); 1 when there (RE2 Spl_sce_mv02)
+Spl_sce_mv02 = 0x80062BFC; // type:func
+// spl_sce: turn to the direction Dest_x; 1 when reached (RE2 Spl_sce_mv03)
+Spl_sce_mv03 = 0x80062CD0; // type:func
+Spl_sce = 0x8009EE44; // SPL_FUNC[24] scenario routines by Routine_1, RE2 SPL_SCE.C Spl_sce[]
+// spl_auto: Aida_em_at05 slots 0..2 (RE2 Aida_em10_at05)
+Aida_em10_at05 = 0x8005C210; // type:func
+Aida_Move_type = 0x8009E788; // SPL_FUNC[16] sub player AI by Type & 0xF, RE2 Aida_Move_type
+Aida_mv_br_type00 = 0x8009E7DC; // branch (pad) routines by Routine_1, RE2 SPL_AUTO.C
+Aida_mv_type00 = 0x8009E82C; // move routines by Routine_1
+Aida_mv_br_type01 = 0x8009E87C;
+Aida_em_at00_pl = 0x8009EC9C; // reaction to an enemy attacking the player, by Aida_em_at_idx
+Aida_em_at00_spl = 0x8009ECAC; // reaction to an enemy attacking the sub player
+Aida_em_at01 = 0x8009ECCC;
+Aida_mv05_w1_br_tbl = 0x8009ECDC;
+Aida_mv05_w1_tbl = 0x8009ECF8;
+Aida_em_at05 = 0x8009ED14;
+Aida_mv_br_type02 = 0x8009E8CC;
+Aida_mv_br_type03 = 0x8009E91C;
+Aida_mv_br_type04 = 0x8009E96C;
+Aida_mv_br_type05 = 0x8009E9BC;
+Aida_mv_br_type06 = 0x8009EA0C;
+Aida_mv_br_type07 = 0x8009EA5C;
+Aida_mv_br_type08 = 0x8009EAAC;
+Aida_mv_br_type09 = 0x8009EAFC;
+Aida_mv_br_type0a = 0x8009EB4C;
+// pl_wep: pl_mv05_t2_spr slot 2 (weapon 3): firing motion, RE2 naming
+pl_w03_t2_move = 0x800410F8; // type:func
+// pl_wep: firing motion of weapon 4
+pl_w04_t2_move = 0x80041594; // type:func
+// pl_wep: firing motion of weapon 5
+pl_w05_t2_move = 0x800418CC; // type:func
+// pl_wep: firing motion of weapon 6
+pl_w06_t2_move = 0x80041A80; // type:func
+// pl_wep: firing motion of weapon 7
+pl_w07_t2_move = 0x80041C34; // type:func
+// pl_wep: firing motion of weapon 8
+pl_w08_t2_move = 0x80041DE8; // type:func
+// pl_wep: firing motion of weapon 9
+pl_w09_t2_move = 0x80041F9C; // type:func
+// pl_wep: firing motion of weapon 0xA
+pl_w0a_t2_move = 0x800421F8; // type:func
+// pl_wep: firing motion of weapon 0xB
+pl_w0b_t2_move = 0x80042474; // type:func
+// pl_wep: firing motion of weapon 0xC
+pl_w0c_t2_move = 0x80042660; // type:func
+// pl_wep: firing motion of weapon 0xD
+pl_w0d_t2_move = 0x800427D8; // type:func
+// pl_wep: firing motion of weapon 0xE
+pl_w0e_t2_move = 0x80042AE4; // type:func
+// pl_wep: firing motion of weapon 0xF
+pl_w0f_t2_move = 0x80042E34; // type:func
+// pl_wep: firing motion of weapon 0x10
+pl_w10_t2_move = 0x80043328; // type:func
+// pl_wep: firing motion of weapon 0x11
+pl_w11_t2_move = 0x800434F8; // type:func
+// pl_wep: firing motion of weapon 0x12
+pl_w12_t2_move = 0x800439F8; // type:func
+// pl_wep: weapon hit check against the enemies from pM along the weapon data pW; the enemy hit (RE2 PL_WEP.C Weapon_at_ck)
+Weapon_at_ck = 0x80044804; // type:func
+// pl_wep: damage request pReq with attack pAttr against enemies and player (RE2 Pos_em_at_ck)
+Pos_em_at_ck = 0x800472EC; // type:func
+pDoor = 0x800BA6F8; // DOOR * RE2 pDoor[0]
+pDwork = 0x800BA700; // DOOR_WORK *[10] RE2 pDwork[]

@@ -12,7 +12,7 @@ void Gear_main(void)
         Gear_om_set();
         if (Gear_wk.Exit)
             break;
-        func_80037C38();
+        Ot_set_all();
         pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
@@ -239,7 +239,7 @@ void Gear_turn(void)
 
     for (t = 0; t < 10; ) {
         t++;
-        func_80037C38();
+        Ot_set_all();
         G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
@@ -276,7 +276,7 @@ void Gear_turn(void)
                 Spd = -Spd;
         }
         t++;
-        func_80037C38();
+        Ot_set_all();
         G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);

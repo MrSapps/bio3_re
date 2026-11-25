@@ -508,16 +508,16 @@ LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Fl
     ULONG w2;
     MATRIX *pM;
 
-    pS = (UCHAR *)(pEm->Unk1A0 * 8 + (ULONG)pSeq);
+    pS = (UCHAR *)(pEm->Sub_move_no * 8 + (ULONG)pSeq);
     n = *(ULONG *)pS;
     base = *(USHORT *)(pS + 4);
     pSeq += (n >> 17) * 2;
     pM = D_800E1200;
     n &= 0xFFFF;
     if (Flg & 0xFFFF0000) {
-        pSeq += (n - pEm->Unk1A1) * 2 - 2;
+        pSeq += (n - pEm->Sub_move_cnt) * 2 - 2;
     } else {
-        pSeq += pEm->Unk1A1 * 2;
+        pSeq += pEm->Sub_move_cnt * 2;
     }
     pKan += ((USHORT *)pKan)[1] & 0xFFFC;
     pKan += (*pSeq + (SHORT)base) * 32;
@@ -532,14 +532,14 @@ LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Fl
     w2 = pF->W[2];
     *(ULONG *)&pP->Cdir_x = ((w2 >> 12) & 0xFFF) | (((w2 >> 24) | ((pF->H[6] & 0xF) << 8)) << 16);
     pP->Cdir_z = (pF->W[3] & 0xFFF0) >> 4;
-    RotMatrixZYX_gte((SVECTOR *)&pP->Cdir_x, &pM[2]);
+    RotMatrixZYX_gte(CDIR_SV(pP), &pM[2]);
     pP = &pEm->pSin_parts_ptr[14];
     *(ULONG *)&pP->Cdir_x = (pF->W[3] >> 28) | (pF->B[0x10] << 4) | (((pF->W[4] >> 8) & 0xFFF) << 16);
     pP->Cdir_z = pF->W[4] >> 20;
-    RotMatrixZYX_gte((SVECTOR *)&pP->Cdir_x, &pM[5]);
-    pEm->Unk1A1++;
-    if (pEm->Unk1A1 >= n) {
-        pEm->Unk1A1 = 0;
+    RotMatrixZYX_gte(CDIR_SV(pP), &pM[5]);
+    pEm->Sub_move_cnt++;
+    if (pEm->Sub_move_cnt >= n) {
+        pEm->Sub_move_cnt = 0;
         return 1;
     }
     return 0;
@@ -566,10 +566,10 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
 
     pW = (MATRIX *)pEm->Workm_m;
     pP0 = pEm->pSin_parts_ptr;
-    cnt = pEm->Unk1A2;
+    cnt = pEm->Sub_hokan_flg;
     pM = D_800E1200;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, pW);
-    CompM(pW, (MATRIX *)pP0->M, &m4);
+    RotMatrix(CDIR_SV(pEm), pW);
+    CompM(pW, PW_M(pP0), &m4);
     CompM(&m4, (MATRIX *)pP0[8].M, &pP0[8].Workm);
     pP0 = &pEm->pSin_parts_ptr[8];
     Copy_rot_matrix(&pP0->Workm, &m0);
@@ -578,8 +578,8 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     m0.t[2] = (pP0->Workm.t[2] - pEm->Pos_z) << 3;
     j = *(MY_JNT *)pEm->pUnk1B4;
     pP = pEm->pSin_parts_ptr;
-    RotMatrix_gte((SVECTOR *)&pP[9].Cdir_x, pM);
-    RotMatrix_gte((SVECTOR *)&pP[12].Cdir_x, &D_800E1260);
+    RotMatrix_gte(CDIR_SV(&pP[9]), pM);
+    RotMatrix_gte(CDIR_SV(&pP[12]), &D_800E1260);
     Copy_rot_matrix(pW, &m3);
     Copy_rot_matrix(pM, &m4);
     Copy_rot_matrix(&D_800E1260, &m5);
@@ -622,7 +622,7 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
         HMatrix((MATRIX *)pP[12].M, &D_800E1260, (MATRIX *)pP[12].M, w);
         HMatrix((MATRIX *)pP[13].M, &D_800E1280, (MATRIX *)pP[13].M, w);
         HMatrix((MATRIX *)pP[14].M, &pM[5], (MATRIX *)pP[14].M, 0xFFF - r);
-        pEm->Unk1A2--;
+        pEm->Sub_hokan_flg--;
     }
 }
 
@@ -654,7 +654,7 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
     v.vx = pEm->Pos_x + ((SHORT)s0.vx >> 3);
     v.vz = pEm->Pos_z + ((SHORT)s0.vz >> 3);
     v.vy = pEm->Pos_y;
-    d = func_8004D720(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
+    d = Sca_get_ground(&v.vx, 0x320, 0x8000, 0x69) - pEm->Ground;
     n = 0;
     if (h < d) {
         y = pEm->Unk1A4[1];
@@ -669,7 +669,7 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
     v.vx = pEm->Pos_x + ((SHORT)s1.vx >> 3);
     v.vz = pEm->Pos_z + ((SHORT)s1.vz >> 3);
     v.vy = pEm->Pos_y;
-    d = func_8004D720(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
+    d = Sca_get_ground(&v.vx, 0x320, 0x8000, 0x69) - pEm->Ground;
     if (h < d) {
         y = pEm->Unk1AC[1];
         d <<= 3;

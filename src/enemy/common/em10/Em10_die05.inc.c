@@ -22,7 +22,7 @@ void Em10_die05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         pP = &pEm->pSin_parts_ptr[1];
         pEm->Routine_2 = 1;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         Sv.vx = pP->Pos_x;
         Sv.vy = pP->Pos_y + 300;

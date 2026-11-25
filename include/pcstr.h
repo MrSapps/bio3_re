@@ -60,7 +60,7 @@ extern PCSTR_WORK Pcstr;               /* 0x800E12C0 */
 
 void Pcstr_read_frame(ULONG *pBuf);
 
-extern MATRIX *D_800C79F0; /* current work matrices (func_80025A28) */
+extern MATRIX *D_800C79F0; /* current work matrices (ko_joint_trans3) */
 extern VECTOR *D_800C79F4;
 extern UCHAR D_800CC848;
 extern SHORT D_800D1F80;

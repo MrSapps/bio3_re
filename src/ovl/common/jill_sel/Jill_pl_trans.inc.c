@@ -8,7 +8,7 @@ void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos)
         n = pEm->Parts_num;
     loop:
         if ((pParts->Be_flg & 1) && (pParts->UnkA2 & 1)) {
-            func_80025610(pEm, pParts, pParts->UnkA2, &pParts->Workm);
+            ko_joint_trans2(pEm, pParts, pParts->UnkA2, &pParts->Workm);
         }
         n--;
         pParts++;

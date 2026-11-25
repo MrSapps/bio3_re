@@ -10,7 +10,7 @@ void Em30_part_hang_sink(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate
     LONG Ang;
 
     pP1->Be_flg |= 2;
-    ApplyMatrixLV(&pP0->Workm, (VECTOR *)&pP1->Pos_x, &Pos);
+    ApplyMatrixLV(&pP0->Workm, POS_V(pP1), &Pos);
     Pos.vx = pP0->Workm.t[0] + Pos.vx * Rate / 4096;
     Pos.vy = pP0->Workm.t[1] + Pos.vy * Rate / 4096;
     Pos.vz = pP0->Workm.t[2] + Pos.vz * Rate / 4096;

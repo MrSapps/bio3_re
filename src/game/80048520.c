@@ -27,7 +27,7 @@ void func_80048520(void)
         }
         D_8009DE26 = pG->Unk2118;
     } else {
-        D_8009DE24 = 0;
+        Em_kill_combo = 0;
         D_8009DE26 = 0;
         pG->Unk2118 = 0;
         D_8009DE28 = 0;

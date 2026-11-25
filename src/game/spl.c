@@ -35,7 +35,7 @@ void Spl(ENEMY_WORK *pEm)
     }
     Spl_Root_ck_sys(pEm);
     D_8009E6EC[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 0x1F4) {
+    if (pEm->Water != 0 && pEm->Water < pEm->Ground - 0x1F4) {
         pP = pEm->pSin_parts_ptr;
         Sv0.vx = pP->Workm.t[0];
         Sv0.vy = pEm->Water;
@@ -65,12 +65,12 @@ void Spl_Init(ENEMY_WORK *pEm)
     USHORT *pSize;
 
     *(ULONG *)&pEm->Routine_0 = 1;
-    pEm->Unk12A = Neck_dir[pEm->Id - 0x50];
+    pEm->Mot_scale_y = Neck_dir[pEm->Id - 0x50];
     pEm->pEnemy_ptr = pEm;
     pEm->pUnk114 = pEm;
     *(LONG *)&pEm->Move_no = 2;
     Joint_move(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x100);
-    Kage_work9_set(&pEm->Kage.pKw9, 0, 0x22601C2, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    Kage_work9_set(&pEm->Kage.pKw9, 0, 0x22601C2, 0, pEm->pSin_parts_ptr->Workm.t);
     pCol = &pEm->Col;
     pCol->pEm = pEm;
     pSize = D_8009E374[pEm->Id];
@@ -85,16 +85,16 @@ void Spl_Init(ENEMY_WORK *pEm)
     } else {
         pCol->Type = 2;
     }
-    func_80033580(&pEm->Col, 0);
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    Oba_set(&pEm->Col, 0);
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
-    pEm->Unk134 = 1500;
-    pEm->Unk136 = -1000;
-    pEm->Unk138 = 0x54;
-    pEm->Unk139 = 0xA0;
-    pEm->Unk13A = 450;
+    pEm->Hit_area.Top = 1500;
+    pEm->Hit_area.Bottom = -1000;
+    pEm->Hit_area.Rate0 = 0x54;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 450;
     pEm->Unk140 = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
     PW_NECK(pP)->Add_dir_y = 0x40;
     PW_NECK(pP)->Add_dir_z = 0x40;
@@ -117,7 +117,7 @@ void Spl_Init(ENEMY_WORK *pEm)
         G.Status_flg |= 0x80000000;
         pEm->Max_life = 200;
         pEm->pUnk114 = G_PLAYER;
-        pEm->Unk120 = 0;
+        pEm->Neck_flg = 0;
         pEm->Routine_0 = 1;
         pEm->Routine_1 = 0;
     } else {
@@ -128,7 +128,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     }
     SPL_W(pEm)->Unk1D7 = 0;
     SPL_W(pEm)->Unk1DE = 0;
-    D_8009E70C[0] = 0;
+    Spl_life_u[0] = 0;
     SPL_W(pEm)->Unk1D0 = 0;
     SPL_W(pEm)->Unk1D8 = 0;
     SPL_W(pEm)->Unk1D4 = 0;
@@ -192,9 +192,9 @@ void func_800594D4(ENEMY_WORK *pEm)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->Unk12C = 0;
+        pEm->Damage_no = 0;
         *(LONG *)&pEm->Move_no = pEm->Add_dir + 0x70000;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         pEm->Be_flg |= 0x2000;
     case 1:
         Goto01(pEm, pTg->Cdir_y + 0x800, 0x800);

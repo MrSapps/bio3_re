@@ -4,54 +4,54 @@
 #include "bio3.h"
 #include "em_sub.h"
 
-extern UCHAR D_8009ED88[]; /* move offset by func_80063690 result */
+extern UCHAR D_8009ED88[]; /* move offset by Spl_mot_set_no result */
 extern SHORT D_8009EDA4[];
 extern SHORT D_8009EDCC[];
 extern SHORT D_8009EDF4[];
 extern SHORT D_8009EE1C[];
-extern void (*D_8009EE44[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern void (*D_8009EEA4[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-extern SHORT D_8009EEC8[]; /* direction by Col.Unk39 & 7 */
+extern void (*Spl_sce[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+extern void (*Spl_sce0a_tbl[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+extern SHORT Spl_slope_dir_tbl[]; /* direction by Col.Unk39 & 7 */
 extern ULONG D_800D1FC0[];
 
 void Spl_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_8006037C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void func_80060464(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8006055C(ENEMY_WORK *pEm);
+LONG Spl_sce_hokan(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+void Spl_sce_hokan_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce_foot_se(ENEMY_WORK *pEm);
 void Spl_sce00(ENEMY_WORK *pEm);
 void Spl_sce01(ENEMY_WORK *pEm);
 void Spl_sce02(ENEMY_WORK *pEm);
 void Spl_sce03(ENEMY_WORK *pEm);
 void Spl_sce04(ENEMY_WORK *pEm);
-void func_800608C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce05(ENEMY_WORK *pEm);
-void func_80060E90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce06(ENEMY_WORK *pEm);
-void Spl_sce07(ENEMY_WORK *pEm);
-void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* pKan, pSeq unused; Spl_sce06 passes them */
+void Spl_sce0e(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce09(ENEMY_WORK *pEm);
-void func_80061964(ENEMY_WORK *pEm);
-void func_80061970(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_800619F0(ENEMY_WORK *pEm);
-void func_80061AD0(ENEMY_WORK *pEm);
-void func_80061BC4(ENEMY_WORK *pEm);
-void func_80061DF4(ENEMY_WORK *pEm);
-void func_800621F0(ENEMY_WORK *pEm);
-void func_800622D8(ENEMY_WORK *pEm);
-void func_8006236C(ENEMY_WORK *pEm);
-void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80062970(void);
-void func_80062978(ENEMY_WORK *pEm);
-void func_80062A28(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_80062B68(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_80062BFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-UCHAR func_80062CD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce0a_init(ENEMY_WORK *pEm);
+void Spl_sce0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce0a_00(ENEMY_WORK *pEm);
+void Spl_sce0a_01(ENEMY_WORK *pEm);
+void Spl_sce0a_02(ENEMY_WORK *pEm);
+void Spl_sce0a_07(ENEMY_WORK *pEm);
+void Spl_sce0a_03(ENEMY_WORK *pEm);
+void Spl_sce0a_04(ENEMY_WORK *pEm);
+void Spl_sce0b(ENEMY_WORK *pEm);
+void Spl_sce0b_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Spl_sce14(void);
+void Spl_sce15(ENEMY_WORK *pEm);
+void Spl_sce_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+LONG Spl_sce_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+LONG Spl_sce_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
+UCHAR Spl_sce_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80062F64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_80063198(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
-LONG func_800632B8(ENEMY_WORK *pEm, LONG f);
-LONG func_800634F4(ENEMY_WORK *pEm, LONG f);
-LONG func_80063690(ENEMY_WORK *pEm);
+void Spl_sce_mv00_sp(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+LONG Spl_sce_mv02_sp(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG d);
+LONG Spl_slope_dir(ENEMY_WORK *pEm, LONG f);
+LONG Spl_slope_dir_run(ENEMY_WORK *pEm, LONG f);
+LONG Spl_mot_set_no(ENEMY_WORK *pEm);
 
 #endif /* SPL_SCE_H */

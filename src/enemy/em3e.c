@@ -25,13 +25,13 @@ void Em3e_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM_SET_MOVE(pEm, 0, 0, 7);
     EM_SET_RTN(pEm, 4, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
-    pEm->Unk134 = 1800;
-    pEm->Unk136 = -2700;
-    pEm->Unk138 = 0x78;
-    pEm->Unk139 = 0xBC;
-    pEm->Unk13A = 2700;
+    pEm->Hit_area.Top = 1800;
+    pEm->Hit_area.Bottom = -2700;
+    pEm->Hit_area.Rate0 = 0x78;
+    pEm->Hit_area.Rate1 = 0xBC;
+    pEm->Hit_area.R = 2700;
     pEm->Unk140 = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[4].Workm;
+    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr[4].Workm;
     pCol = &pEm->Col;
     pCol->H = 4500;
     pCol->pEm = pEm;
@@ -42,7 +42,7 @@ void Em3e_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk26 = 1800;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     EM3E_W(pEm)->Sway_rtn = 0;
     EM3E_W(pEm)->Bob_rtn = 0;
     EM3E_W(pEm)->Time = 0;
@@ -57,7 +57,7 @@ void Em3e_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pP = pEm->pSin_parts_ptr;
     pP->Cdir_x = 0;
     pP = &pEm->pSin_parts_ptr[1];
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 4;
     PW_NECK(pP)->Add_dir_y = 0x40;
     PW_NECK(pP)->Add_dir_z = 0x40;
@@ -137,10 +137,10 @@ void Em3e_fly_dest(ENEMY_WORK *pEm)
     }
 }
 
-/* Routine_0 2, 3: damage by the hit kind (Em3e_damage_tbl[Unk12C - 1]) */
+/* Routine_0 2, 3: damage by the hit kind (Em3e_damage_tbl[Damage_no - 1]) */
 void Em3e_Damage(ENEMY_WORK *pEm)
 {
-    Em3e_damage_tbl[pEm->Unk12C - 1](pEm);
+    Em3e_damage_tbl[pEm->Damage_no - 1](pEm);
     Em3e_add_speed(pEm);
     Em3e_retarget(pEm);
     if (pEm->Life < 0) {
@@ -168,7 +168,7 @@ void Em3e_dm_spark0(ENEMY_WORK *pEm)
     Ofs.vy = (signed char)Rnd() << 2;
     Ofs.vz = (signed char)Rnd() << 2;
     Esp_call(1, 0x14000000, &pP->Workm, &Ofs, NULL);
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
 }
 
 /* damage: sparks */
@@ -182,7 +182,7 @@ void Em3e_dm_spark(ENEMY_WORK *pEm)
     Ofs.vy = (signed char)Rnd() << 2;
     Ofs.vz = (signed char)Rnd() << 2;
     Esp_call(1, 0x1C000000, &pP->Workm, &Ofs, NULL);
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
 }
 
 /* damage: spin around and back */
@@ -211,7 +211,7 @@ void Em3e_dm_spin(ENEMY_WORK *pEm)
     case 3:
         pEm->Damage_cnt = 0;
         pEm->Cdir_y = 0xC00;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         break;
     }
 }
@@ -220,13 +220,13 @@ void Em3e_dm_spin(ENEMY_WORK *pEm)
 void Em3e_dm_none(ENEMY_WORK *pEm)
 {
     EM3E_W(pEm)->Time += 60;
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
 }
 
 /* Routine_0 4: scenario routine by Routine_1 */
 void Em3e_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+    Root_ck(pEm, POS_V(&G.Player), 0, 0);
     Em3e_sce_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
@@ -414,10 +414,10 @@ void Em3e_rotor(ENEMY_WORK *pEm)
 
     pP = &pEm->pSin_parts_ptr[EM3E_W(pEm)->Rotor0];
     pP->Cdir_y += pEm->Unk14E;
-    RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+    RotMatrix(CDIR_SV(pP), PW_M(pP));
     pP = &pEm->pSin_parts_ptr[EM3E_W(pEm)->Rotor1];
     pP->Cdir_y += pEm->Unk14E;
-    RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+    RotMatrix(CDIR_SV(pP), PW_M(pP));
 }
 
 /* fire when inside the firing zone (Mode 0: never, 2: both guns in the middle) */
@@ -453,7 +453,7 @@ void Em3e_shot_r(ENEMY_WORK *pEm)
     Ofs.vz = 0x80C;
     pP = &pEm->pSin_parts_ptr[1];
     Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
-    Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+    Snd_se_stad(0x1020F, POS_V(pEm), 0, 0);
 }
 
 /* muzzle flash and shot sound of the left gun */
@@ -467,7 +467,7 @@ void Em3e_shot_l(ENEMY_WORK *pEm)
     Ofs.vz = -0x80C;
     pP = &pEm->pSin_parts_ptr[1];
     Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
-    Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+    Snd_se_stad(0x1020F, POS_V(pEm), 0, 0);
 }
 
 /* explosion effects and sound on the body */
@@ -591,7 +591,7 @@ void Em3e_hover(ENEMY_WORK *pEm)
     Rot.vx = pP->Cdir_x + EM3E_W(pEm)->Tilt;
     Rot.vy = 0;
     Rot.vz = 0;
-    RotMatrix(&Rot, (MATRIX *)pP->M);
+    RotMatrix(&Rot, PW_M(pP));
 }
 
 /* set Routine_0 / Routine_1, clear Routine_2 / Routine_3 */

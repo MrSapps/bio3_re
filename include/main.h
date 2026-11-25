@@ -22,7 +22,7 @@ typedef struct tagROOM_WORK {
     UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
     UCHAR pad3[6 - 3];
     UCHAR Unk6;                        /* 0x06 sound bank voice base / 4 (func_80078204) */
-    UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (func_80048630) */
+    UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (Psp_init) */
     ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room; room sound table, -1 terminated (func_80078204) */
     UCHAR padC[0x20 - 0xC];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */

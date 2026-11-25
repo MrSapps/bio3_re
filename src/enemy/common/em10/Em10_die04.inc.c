@@ -12,12 +12,12 @@ void Em10_die04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         func_8002646C_(pEm, 400, 80, pEm->Col.Unk39);
         pEm->Life = -1;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         pEm->Timer0 = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z);
         n = (Rnd_l() & 3) + 1;
         pEm->UnkE3 = 0;
-        if (pEm->Unk132 & 0x200)
+        if (pEm->Damage_flg & 0x200)
             pEm->UnkE3 = 5;
         pP = pEm->pSin_parts_ptr;
         Sv.vx = 0;
@@ -28,7 +28,7 @@ void Em10_die04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Sv.vy = -100;
         Sv.vz = 0;
         Esp_call((pEm->UnkE3 & 0xF) << 24, (USHORT)pEm->Timer0 | 0x17D00000, &pP->Workm, &Sv, 0);
-        if (!(pEm->Unk132 & 0xA00)) {
+        if (!(pEm->Damage_flg & 0xA00)) {
             do {
                 n--;
                 Sv.vx = 0x100 - (Rnd_l() << 1);

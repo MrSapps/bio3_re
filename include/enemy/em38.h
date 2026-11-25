@@ -10,7 +10,7 @@
  * The routine frame is RE2's G-type enemy (EM34.C / EM37.C): Em_routine_0 =
  * Init/Move/Damage/Die/Scenario/-/-/Dead, Move picks Em38_Move_type[Type & 3],
  * which runs a brain routine (mv_br) and a motion routine (mv) of 16, both
- * indexed by Routine_1. Damage is indexed by the hit kind (Unk12C), the
+ * indexed by Routine_1. Damage is indexed by the hit kind (Damage_no), the
  * scenario routines by Routine_1; PLDAMEGE_EM/PLDIE_EM tables for the player.
  */
 #include "bio3.h"
@@ -51,7 +51,7 @@ typedef struct tagEM38_FREE {
     SHORT Lost_cnt;                    /* 0x20 (0x1EC) frames the player has been out of sight */
 } EM38_FREE;
 
-/* morph (sabun) data at PARTS_W.pUnk98 (sabun.c) */
+/* morph (sabun) data at PARTS_W.pSa_dat_head (sabun.c) */
 typedef struct tagEM38_SABUN {
     ULONG Ofs;                         /* 0x00 */
     ULONG Size;                        /* 0x04 */
@@ -62,7 +62,7 @@ typedef struct tagEM38_SABUN {
         SHORT pad;
     } Key[7];                          /* 0x0C */
 } EM38_SABUN;
-#define EM38_SA(p) ((EM38_SABUN *)(p)->pUnk98)
+#define EM38_SA(p) ((EM38_SABUN *)(p)->pSa_dat_head)
 
 #define EM38_W(p) ((EM38_FREE *)(p)->Unk1CC)
 /* Spd_x/Spd_y cleared as one word */

@@ -2,8 +2,14 @@
 #include "psp.h"
 #include "sld.h"
 
+/*
+ * PSP.C (RE2 PSP.C): the room sprites of the current cut (Psp_init, Psp_set, Psp_trans), plus RE3's
+ * rain effect (Rain_init .. Rain_wind_move).
+ */
+
 #define RND() ((signed char)Rnd())
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
+/* Rnd (SLD.S) with the int result this file used (no zero-extension of the canonical ULONG/byte) */
+LONG Rnd_l(void) __asm__("Rnd");
 
 typedef struct {
     USHORT Uv;
@@ -14,7 +20,8 @@ typedef struct {
     ULONG Size;
 } PSP_REC;
 
-void func_80048630(void)
+/* room sprite work: OT z and group per sprite, two prims per sprite (RE2 Psp_init0 + Psp_init1) */
+void Psp_init(void)
 {
     tagGLOBAL *pG;
     UCHAR *p;
@@ -25,10 +32,10 @@ void func_80048630(void)
     pG = &G;
     n = pG->pRoom->nSprite_max;
     p = (UCHAR *)pG->pEm_mem;
-    D_800DEB0C = (USHORT *)p;
+    Psp_otz = (USHORT *)p;
     p += n * 2;
-    D_800DEB08 = p;
-    D_800DEB10 = pPrim = (PSP_PRIM *)(((ULONG)(p + n) + 3) & ~3);
+    Psp_id = p;
+    pPsp_prim = pPrim = (PSP_PRIM *)(((ULONG)(p + n) + 3) & ~3);
     n *= 2;
     pG->pEm_mem = (struct tagENEMY_WORK *)(pPrim + n);
     pP = pPrim;
@@ -49,6 +56,7 @@ void func_800486C8(void)
     } while (--i != 0);
 }
 
+/* unpack the sprite table of the current cut into the prims (RE2 Psp_set) */
 void Psp_set(void)
 {
     ROOM_WORK *pRoom;
@@ -73,9 +81,9 @@ void Psp_set(void)
         pRoom->nSprite = 0;
         return;
     }
-    pOtz = D_800DEB0C;
-    pId = D_800DEB08;
-    pPrim = D_800DEB10;
+    pOtz = Psp_otz;
+    pId = Psp_id;
+    pPrim = pPsp_prim;
     nGrp = pSp[0];
     pRoom->nSprite = ((UCHAR *)pSp)[2];
     pSp += 2;
@@ -110,6 +118,7 @@ void Psp_set(void)
     }
 }
 
+/* add the sprites whose group flag is on to the OT (RE2 Psp_trans) */
 void Psp_trans(void)
 {
     tagGLOBAL *pG;
@@ -121,11 +130,11 @@ void Psp_trans(void)
     ULONG n;
     ULONG Tag;
 
-    pOtz = D_800DEB0C;
+    pOtz = Psp_otz;
     pG = &G;
     n = pG->pRoom->nSprite;
-    pId = D_800DEB08;
-    pPrim = &D_800DEB10[pG->Cbuf_id];
+    pId = Psp_id;
+    pPrim = &pPsp_prim[pG->Cbuf_id];
     pFlg = &pG->Cut_flg[pG->Cut_no];
     while (n--) {
         if (Flg_ck(pFlg, *pId)) {
@@ -144,23 +153,23 @@ void Psp_trans(void)
     }
 }
 
-extern s8 D_80098728_[] __asm__("D_80098728"); /* type differs from the canonical extern */
 
-void func_80048974(SHORT Arg)
+/* rain: drop work and prims for Arg drops, first scatter; Status_flg 0x1000 */
+void Rain_init(SHORT Arg)
 {
     UCHAR *p;
-    PRIM_1C *pPr;
+    RAIN_PRIM *pPr;
     LONG i;
-    W_DEB18 *pW = &D_800DEB18;
+    RAIN_WORK *pW = &Rain_work;
 
     p = (UCHAR *)G.pEm_mem;
-    D_800DEB18.p0 = p;
+    Rain_work.p0 = p;
     p += 0x64;
     pW->pPos = (PSP_POS *)p;
     p += 0x4B0;
-    pW->pPrim = (PRIM_1C *)p;
+    pW->pPrim = (RAIN_PRIM *)p;
     p += 0x1900;
-    Memclr(D_800DEB18.p0, p - D_800DEB18.p0);
+    Memclr(Rain_work.p0, p - Rain_work.p0);
     i = 200;
     G.pEm_mem = (struct tagENEMY_WORK *)p;
     pPr = pW->pPrim;
@@ -172,11 +181,11 @@ void func_80048974(SHORT Arg)
     pW->Unk20 = 0;
     pW->Unk21 = 0;
     pW->Unk16 = Arg;
-    func_80048FF4();
+    Rain_drop_set();
     G.Status_flg |= 0x1000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048A3C);
+INCLUDE_ASM("asm/nonmatchings/game/psp", Rain_move);
 
 #define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_rtpt() __asm__ volatile("nop; nop; .word 0x4A280030")
@@ -185,7 +194,7 @@ INCLUDE_ASM("asm/nonmatchings/game/psp", func_80048A3C);
 #define gte_stsxy2(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
 
 /* rain: each live drop is a line from its position to position + (Dx, 900, Dz), shaded by depth */
-void func_80048E34(void)
+void Rain_trans(void)
 {
     SVECTOR Sv0;
     SVECTOR Sv1;
@@ -193,16 +202,16 @@ void func_80048E34(void)
     ULONG Otz;
     PSP_POS *pV;
     UCHAR *pFlg;
-    PRIM_1C *pPr;
+    RAIN_PRIM *pPr;
     ULONG *pOt;
     ULONG i;
     LONG D0;
     LONG y, z;
     ULONG *pT;
 
-    pV = D_800DEB18.pPos;
-    pFlg = D_800DEB18.p0;
-    pPr = D_800DEB18.pPrim;
+    pV = Rain_work.pPos;
+    pFlg = Rain_work.p0;
+    pPr = Rain_work.pPrim;
     Sv2.vx = 0;
     Sv2.vy = 0;
     Sv2.vz = 0;
@@ -222,9 +231,9 @@ void func_80048E34(void)
             Sv0.vx = D0;
             Sv0.vy = y;
             Sv0.vz = z;
-            D0 += D_800DEB18.Dx;
+            D0 += Rain_work.Dx;
             y += 900;
-            z += D_800DEB18.Dz;
+            z += Rain_work.Dz;
             Sv1.vx = D0;
             Sv1.vy = y;
             Sv1.vz = z;
@@ -251,7 +260,8 @@ void func_80048E34(void)
     } while (i != 0);
 }
 
-void func_80048FF4(void)
+/* scatter the drops around the centre of the camera view (radius 9000..19800) */
+void Rain_drop_set(void)
 {
     LONG *pP;
     LONG *pR;
@@ -271,8 +281,8 @@ void func_80048FF4(void)
     pR = G.pRoom->pRcut[G.Cut_no].View_r;
     dx = pR[0] - pP[0];
     dz = pR[2] - pP[2];
-    D_800DEB18.Cx = (pP[0] + pR[0]) >> 1;
-    D_800DEB18.Cz = (pP[2] + pR[2]) >> 1;
+    Rain_work.Cx = (pP[0] + pR[0]) >> 1;
+    Rain_work.Cz = (pP[2] + pR[2]) >> 1;
     d = SquareRoot0(dx * dx + dz * dz);
     if (d >= 9000) {
         if (d < 19801) {
@@ -286,29 +296,30 @@ void func_80048FF4(void)
     do {
         i = 0;
     } while (0); /* needed for register allocation */
-    pFlg = D_800DEB18.p0;
-    cx = D_800DEB18.Cx;
-    D_800DEB18.R = R;
+    pFlg = Rain_work.p0;
+    cx = Rain_work.Cx;
+    Rain_work.R = R;
     y = G.Player.Pos_y;
-    cz = D_800DEB18.Cz;
+    cz = Rain_work.Cz;
     Memclr(pFlg, 100);
-    pV = D_800DEB18.pPos;
-    if (D_800DEB18.Num != 0) {
+    pV = Rain_work.pPos;
+    if (Rain_work.Num != 0) {
         do {
             *pFlg = 1;
             r = RND();
-            pV->x = ((r + D_80098728_[D_800DEB18.Unk20++]) * D_800DEB18.R >> 8) + cx;
+            pV->x = ((r + (signed char)Rnd_tbl[Rain_work.Unk20++]) * Rain_work.R >> 8) + cx;
             pV->y = y - (UCHAR)Rnd_l() * 40;
             r = RND();
-            pV->z = ((r + D_80098728_[D_800DEB18.Unk20++]) * D_800DEB18.R >> 8) + cz;
+            pV->z = ((r + (signed char)Rnd_tbl[Rain_work.Unk20++]) * Rain_work.R >> 8) + cz;
             pFlg++;
             i++;
             pV++;
-        } while (i != 100 && i < D_800DEB18.Num);
+        } while (i != 100 && i < Rain_work.Num);
     }
 }
 
-void func_80049218(W_DEB18 *pW)
+/* wind: G.Unk75E4/75E6 drift to random targets over random times */
+void Rain_wind_move(RAIN_WORK *pW)
 {
     tagGLOBAL *pG;
 

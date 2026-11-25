@@ -12,9 +12,9 @@ void Em10_dm06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 7, Rnd_l() & 7, 3);
         pEm->Routine_2 = 1;
         Mode = 0;
-        if (pEm->Unk132 & 0x200)
+        if (pEm->Damage_flg & 0x200)
             Mode = 5;
-        if (pEm->Unk12C != 0x1A) {
+        if (pEm->Damage_no != 0x1A) {
             pP = pEm->pSin_parts_ptr;
             Sv.vx = 0;
             Sv.vy = 0;

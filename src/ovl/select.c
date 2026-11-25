@@ -1,7 +1,7 @@
 #include "ovl/select.h"
 #include "cd.h"
 
-void func_800251FC_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC"); /* 4 args here (canonical 3) */
+void func_800251FC_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos) __asm__("Joint_trans"); /* 4 args here (canonical 3) */
 
 /* RE2 Select_main */
 void func_801C2094(void)
@@ -137,20 +137,20 @@ void func_801C235C(void)
         pEm->Pos_y = Select_pl_init[i].Pos_y;
         pEm->Cdir_x = Select_pl_init[i].Cdir_x;
         pEm->Cdir_z = Select_pl_init[i].Cdir_z;
-        pEm->Unk12A = Select_pl_init[i].Unk18;
+        pEm->Mot_scale_y = Select_pl_init[i].Unk18;
         *(ULONG *)&pEm->Move_no = 0x70000;
         pWork = func_801C3830(pEm, (5 + i * 2) | ((i * 2) << 16), (ULONG *)pWork);
         pWork = Jill_wep_load(pEm, (ULONG *)pWork, i);
         pEm->Routine_0 = i;
         pEm->Routine_1 = 0;
         pEm->Routine_2 = 0;
-        pEm->Unk154 = Select_dir_L[pSel->Cursor_no][i];
+        pEm->L_pl = Select_dir_L[pSel->Cursor_no][i];
         pEm->Unk158 = Select_dir_L[pSel->Cursor_no][i];
         pEm->Cdir_y = Select_dir_fpos[pSel->Cursor_no][i];
-        pEm->Pos_x = (rsin(pEm->Unk154) * 2000) >> 12;
-        pEm->Pos_z = (rcos(pEm->Unk154) * 2000) >> 12;
+        pEm->Pos_x = (rsin(pEm->L_pl) * 2000) >> 12;
+        pEm->Pos_z = (rcos(pEm->L_pl) * 2000) >> 12;
         pEm->Spd_y = 0;
-        pEm->Unk1BC[0] = Select_dir_fpos[1][i];
+        pEm->Tilt[0] = Select_dir_fpos[1][i];
         func_801C2B34(pEm);
     }
     pSel->pHeap = pWork;
@@ -542,14 +542,14 @@ void func_801C35C8(void)
     for (i = 0; i < 3; i++) {
         pEm = (&pG->pEnemy[0])[i];
         pEm->Unk158 = Select_dir_L[pSel->Cursor_no][i];
-        pEm->Unk1BC[0] = Select_dir_fpos[pSel->Cursor_no][i];
+        pEm->Tilt[0] = Select_dir_fpos[pSel->Cursor_no][i];
         pEm->Spd_y = 0;
     }
     pSel->Moji_no = 0;
     pSel->Flg |= 1;
 }
 
-/* RE2 Select_pl_rot: turntable (Unk154 angle -> Unk158) and Cdir_y -> Unk1BC[0] */
+/* RE2 Select_pl_rot: turntable (L_pl angle -> Unk158) and Cdir_y ->Tilt[0] */
 void func_801C3660(void)
 {
     SELECT_WORK *pSel = &Select_wk;
@@ -562,35 +562,35 @@ void func_801C3660(void)
     for (i = 0; i < 3; i++) {
         pG = &G;
         pEm = (&pG->pEnemy[0])[i];
-        pEm->Unk154 &= 0xFFF;
+        pEm->L_pl &= 0xFFF;
         pEm->Unk158 &= 0xFFF;
-        if (pEm->Unk154 == pEm->Unk158) {
+        if (pEm->L_pl == pEm->Unk158) {
             pSel->Flg &= 0xFE;
         } else {
-            L = pEm->Unk154;
-            Dir = ((USHORT)pEm->Unk158 - (USHORT)pEm->Unk154) & 0xFFF;
-            pEm->Unk154 = L - 0x40;
+            L = pEm->L_pl;
+            Dir = ((USHORT)pEm->Unk158 - (USHORT)pEm->L_pl) & 0xFFF;
+            pEm->L_pl = L - 0x40;
             if (Dir <= 0x800) {
-                pEm->Unk154 = L + 0x40;
+                pEm->L_pl = L + 0x40;
             }
-            pEm->Pos_x = (rsin(pEm->Unk154) * 2000) >> 12;
-            pEm->Pos_z = (rcos(pEm->Unk154) * 2000) >> 12;
+            pEm->Pos_x = (rsin(pEm->L_pl) * 2000) >> 12;
+            pEm->Pos_z = (rcos(pEm->L_pl) * 2000) >> 12;
         }
-        if (pEm->Cdir_y == pEm->Unk1BC[0]) {
+        if (pEm->Cdir_y == pEm->Tilt[0]) {
             if (pEm->Cdir_y == 0x1000) {
                 pEm->Cdir_y = 0;
-                pEm->Unk1BC[0] = 0;
+                pEm->Tilt[0] = 0;
             }
             pEm->Spd_y = 0;
         } else {
-            if (pEm->Unk1BC[0] == 0 && pEm->Cdir_y > 3000) {
-                pEm->Unk1BC[0] = 0x1000;
+            if (pEm->Tilt[0] == 0 && pEm->Cdir_y > 3000) {
+                pEm->Tilt[0] = 0x1000;
             }
-            if (pEm->Cdir_y == 0 && pEm->Unk1BC[0] > 3000) {
+            if (pEm->Cdir_y == 0 && pEm->Tilt[0] > 3000) {
                 pEm->Cdir_y = 0x1000;
             }
             if (pEm->Spd_y == 0) {
-                pEm->Spd_y = (pEm->Unk1BC[0] - pEm->Cdir_y) / 16;
+                pEm->Spd_y = (pEm->Tilt[0] - pEm->Cdir_y) / 16;
             }
             pEm->Cdir_y += pEm->Spd_y;
         }

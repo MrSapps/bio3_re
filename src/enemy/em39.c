@@ -60,11 +60,11 @@ void Em39_main(ENEMY_WORK *pEm)
                     pP->Size_y = pEm->Spd_x;
             }
         }
-        Under = (SHORT)func_8004D720(pP[3].Workm.t, 500, 0x2000, 0) < pP[3].Workm.t[1];
+        Under = (SHORT)Sca_get_ground(pP[3].Workm.t, 500, 0x2000, 0) < pP[3].Workm.t[1];
         n = Under;
-        if ((SHORT)func_8004D720(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
+        if ((SHORT)Sca_get_ground(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
             n = Under + 1;
-        if ((SHORT)func_8004D720(pP[5].Workm.t, 500, 0x2000, 0) < pP[5].Workm.t[1])
+        if ((SHORT)Sca_get_ground(pP[5].Workm.t, 500, 0x2000, 0) < pP[5].Workm.t[1])
             n++;
         pP->Size_y -= (SHORT)n * 0x80;
         if (pP->Size_y > 0x1000)
@@ -101,18 +101,18 @@ void Em39_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM39_W(pEm)->Flg = 0;
     pEm->Spd_y = 0;
     pEm->Spd_z = 0;
-    pEm->Unk134 = 0;
-    pEm->Unk136 = 0;
-    pEm->Unk138 = 0;
-    pEm->Unk139 = 0;
-    pEm->Unk13A = 0;
+    pEm->Hit_area.Top = 0;
+    pEm->Hit_area.Bottom = 0;
+    pEm->Hit_area.Rate0 = 0;
+    pEm->Hit_area.Rate1 = 0;
+    pEm->Hit_area.R = 0;
     pEm->Unk140 = 0;
     pEm->Spd_x = 0;
     pEm->Spd_y = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
     EM_SET_MOVE(pEm, 0, 0, 0);
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     Joint_move(pEm, pKan, pSeq, 0x400);
     EM39_W(pEm)->pParent = NULL;
     ppEm = &pG->pEnemy[2];
@@ -176,7 +176,7 @@ void Em39_wait_br(ENEMY_WORK *pEm)
     ULONG Dist;
     SHORT Turn;
 
-    Dist = pEm->Unk154;
+    Dist = pEm->L_pl;
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     Turn = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x280);
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);
@@ -255,10 +255,10 @@ void Em39_lash(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 0;
             Sv.pad = 1200;
-            Hit = func_80044420(&pP[2].Workm, &Sv, pPl);
-            Hit |= func_80044420(&pP[3].Workm, &Sv, pPl);
-            Hit |= func_80044420(&pP[4].Workm, &Sv, pPl);
-            Hit |= func_80044420(&pP[5].Workm, &Sv, pPl);
+            Hit = Hit_area_ck(&pP[2].Workm, &Sv, pPl);
+            Hit |= Hit_area_ck(&pP[3].Workm, &Sv, pPl);
+            Hit |= Hit_area_ck(&pP[4].Workm, &Sv, pPl);
+            Hit |= Hit_area_ck(&pP[5].Workm, &Sv, pPl);
             if (Hit) {
                 Dir_old = pEm->Cdir_y;
                 d = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z);
@@ -288,47 +288,47 @@ void Em39_lash(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (!EM39_W(pEm)->pParent->Pos_y) {
         if (pEm->UnkE2 == 1) {
             if (pEm->Move_cnt >= 12 && pEm->Move_cnt < 18) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box1;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 17 && pEm->Move_cnt < 21) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box2;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 20 && pEm->Move_cnt < 24) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box0;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
         } else {
             if (pEm->Move_cnt >= 12 && pEm->Move_cnt < 18) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box0;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 17 && pEm->Move_cnt < 21) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box2;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 20 && pEm->Move_cnt < 24) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box1;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
         }
         if (pEm->Cdir_z < 0) {

@@ -8,7 +8,7 @@ void Em10_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pPl;
 
     pPl = &Pl_work;
-    LL = pEm->Unk154;
+    LL = pEm->L_pl;
     switch (pEm->Routine_2) {
     case 0:
         EM_SET_MOVE(pEm, (Rnd_l() & 1) + 6, 0, 0xF);
@@ -45,7 +45,7 @@ void Em10_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->Hokan_flg) >> 4;
         Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x100);
         Add_speedXZ(pEm, 0);
-        if (pEm->Timer0-- == 0 || (pPl->Damage_cnt && (LONG)pEm->Unk154 < 3500))
+        if (pEm->Timer0-- == 0 || (pPl->Damage_cnt && (LONG)pEm->L_pl < 3500))
             EM_SET_RTN(pEm, 1, 1, 0, 0);
         break;
     }

@@ -50,7 +50,7 @@ void R214_main(void)
     Cut_change(pRw->Cut_old);
     G.Status_flg |= 0x400000;
     G.Status_flg &= ~0x80;
-    func_8001B894(0x1030000, NULL);
+    Esp_kill(0x1030000, NULL);
     Task_signal(0);
     Task_exit();
 }
@@ -116,7 +116,7 @@ void R214_ctr(void)
             pRw->Val[0] = 50;
             for (i = 0; i < 4; i++)
                 pRw->Sel[i] = 0;
-            func_8001B894(0x1030000, NULL);
+            Esp_kill(0x1030000, NULL);
             return;
         case 3:
             Snd_se_stad(5, NULL, 0, 0);
@@ -156,7 +156,7 @@ void R214_ctr(void)
         Snd_se_stad(0x204, NULL, 0, 0);
         Flg_on(&G.Unk7888, 0);
         pRw->Routine = 6;
-        func_8001B894(0x1010000, NULL);
+        Esp_kill(0x1010000, NULL);
         pPos = R214_pos_ok0;
         Spd.vx = 0x400;
         Spd.vy = 0x300;
@@ -170,7 +170,7 @@ void R214_ctr(void)
         Snd_se_stad(0x204, NULL, 0, 0);
         Flg_on(&G.Unk7888, 1);
         pRw->Routine = 6;
-        func_8001B894(0x1020000, NULL);
+        Esp_kill(0x1020000, NULL);
         pPos = R214_pos_ok1;
         Spd.vx = 0x400;
         Spd.vy = 0x300;

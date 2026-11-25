@@ -111,10 +111,10 @@ void Set_room(void)
     Esp_init_R();
     func_80078204();
     Cut_change(pG->Cut_no);
-    func_80033508();
+    Oba_init();
     func_800486C8();
     Sce_model_init();
-    func_80037E80();
+    Ot_sub_init();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
@@ -125,7 +125,7 @@ void Set_room(void)
         Cd_read(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
-    func_80048630();
+    Psp_init();
     func_80078450();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
@@ -207,7 +207,7 @@ void Em_init_move(void)
     } else {
         Stop_save = 0;
     }
-    func_80038F98(G_PLAYER);
+    Pl_reset(G_PLAYER);
     ppEm = &G.pEnemy[1];
     if (G.ppEnemy_end != ppEm) {
         do {

@@ -68,7 +68,7 @@ LONG func_8004D404(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old);
 ULONG func_8004D590(COL_OBJ *pObj, LONG R, ULONG P0);
 LONG func_8004D6B0(void);
 ULONG func_8004D6B8(LONG X, LONG Z); /* area bits of a point */
-LONG func_8004D720(LONG *pPos, ULONG a1, ULONG a2, ULONG a3); /* ground height */
+LONG Sca_get_ground(LONG *pPos, ULONG a1, ULONG a2, ULONG a3); /* ground height */
 void func_8004DB10(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
 ULONG func_8004DDC4(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut);
 ULONG Sca_ck_circle2(VECTOR *pPos, LONG R, SCA_DATA *pT);

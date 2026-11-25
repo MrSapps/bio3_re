@@ -20,7 +20,7 @@ void Em21_main(ENEMY_WORK *pEm)
         pEm->Damage_cnt--;
     pEm->nFloor = pEm->Pos_y / -1800;
     if (!(EF(pEm)->Flg & 0x100))
-        pEm->Unk122 = func_8004D720(&pEm->Pos_x, 350, 0x200, 1);
+        pEm->Ground = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
     Vec0.vx = pEm->Pos_x;
     Vec0.vy = pEm->Pos_y;
     Vec0.vz = pEm->Pos_z;
@@ -31,7 +31,7 @@ void Em21_main(ENEMY_WORK *pEm)
         EF(pEm)->Flg |= 2;
     else
         EF(pEm)->Flg &= ~2;
-    if ((LONG)pEm->Unk154 < 1100)
+    if ((LONG)pEm->L_pl < 1100)
         pEm->Col.Unk26 = 180;
     else
         pEm->Col.Unk26 = 530;
@@ -57,7 +57,7 @@ void Em21_kage_set(ENEMY_WORK *pEm)
     LONG Half;
 
     if (pEm->Routine_0 != 7) {
-        Dy = pEm->Unk122 - pEm->Pos_y - 250;
+        Dy = pEm->Ground - pEm->Pos_y - 250;
         if (Dy > 0) {
             Half = 0x57E40 / ((Dy + 0x708) >> 1);
             *(ULONG *)&pK->Half_x = Half | (Half << 16);
@@ -98,7 +98,7 @@ void Em21_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Be_flg |= 0x400;
     Joint_move(pEm, pKan, pSeq, 0x200);
     pP = &pEm->pSin_parts_ptr[2];
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 8;
     PW_NECK(pP)->N_rot_y = 0;
     PW_NECK(pP)->N_rot_z = 0;
@@ -106,14 +106,14 @@ void Em21_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     PW_NECK(pP)->Add_dir_z = 0x60;
     PW_NECK(pP)->L_rot_y = 0x200;
     PW_NECK(pP)->L_rot_z = 0x138;
-    pEm->Unk134 = 400;
-    pEm->Unk136 = -400;
-    pEm->Unk13A = 400;
-    pEm->Unk138 = 0x54;
-    pEm->Unk139 = 0xA8;
+    pEm->Hit_area.Top = 400;
+    pEm->Hit_area.Bottom = -400;
+    pEm->Hit_area.R = 400;
+    pEm->Hit_area.Rate0 = 0x54;
+    pEm->Hit_area.Rate1 = 0xA8;
     pEm->Col.Unk26 = 0x212;
     pEm->Col.H = 0x424;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pEm->Unk140 = 0;
     pEm->Col.pEm = pEm;
     pEm->Col.Unk24 = 0;
@@ -121,8 +121,8 @@ void Em21_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
     Em21_atd_set(pEm, 350);
-    func_80033580(&pEm->Col, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
+    Oba_set(&pEm->Col, 0);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, POS_V(pEm));
     if (pEm->Type & 0x4000) {
         pEm->Routine_0 = 4;
         pEm->Type &= ~0x4000;
@@ -160,11 +160,11 @@ void Em21_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Flg = 1;
     }
     if (Flg) {
-        Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, EF(pEm)->Idly_flg, 1);
+        Root_ck(pEm, POS_V(&G.Player), EF(pEm)->Idly_flg, 1);
         if (EF(pEm)->Idly_cnt-- == 0)
             EF(pEm)->Idly_flg = 0;
     } else {
-        Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+        Root_ck(pEm, POS_V(&G.Player), 0, 0);
     }
     if (pEm->Type & 0x80) {
         Em21_outdoor_br[pEm->Routine_1](pEm);
@@ -174,14 +174,14 @@ void Em21_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em21_indoor_mv[pEm->Routine_1](pEm, pKan, pSeq);
     }
     if (EF(pEm)->Atck) {
-        Em21_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
+        Em21_hit_area.pPos = POS_V(pEm);
         Em21_hit_area.pBox = Em21_peck_box0;
         Em21_hit_area.Dir = pEm->Cdir_y;
         Em21_hit_area.Id = 1;
-        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
         Em21_hit_area.pBox = Em21_peck_box1;
         Em21_hit_area.Id = 2;
-        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
     }
 }
 
@@ -191,11 +191,11 @@ void Em21_br_wait_i(ENEMY_WORK *pEm)
     LONG D0;
 
     D0 = 0;
-    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0 && (LONG)pEm->Unk154 < 1800)
+    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0 && (LONG)pEm->L_pl < 1800)
         return;
-    if ((LONG)pEm->Unk154 <= 1800)
+    if ((LONG)pEm->L_pl <= 1800)
         D0 = 1;
-    if ((G.Unk75E8 & 4) && (LONG)pEm->Unk154 <= 5400)
+    if ((G.Unk75E8 & 4) && (LONG)pEm->L_pl <= 5400)
         D0 = 1;
     if (G.Unk75E8 & 1)
         D0 = 1;
@@ -445,13 +445,13 @@ void Em21_mv_glide_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Em21_br_flight_i(ENEMY_WORK *pEm)
 {
     if (pEm->Type & 0x80) {
-        if ((LONG)pEm->Unk154 > 10800) {
+        if ((LONG)pEm->L_pl > 10800) {
             if (Rnd_l() & 0xF)
                 Em21_r1_set(pEm, 8);
             else
                 Em21_r1_set(pEm, 7);
         }
-    } else if ((LONG)pEm->Unk154 > 7200) {
+    } else if ((LONG)pEm->L_pl > 7200) {
         if (Rnd_l() & 3)
             Em21_r1_set(pEm, 8);
         else
@@ -461,13 +461,13 @@ void Em21_br_flight_i(ENEMY_WORK *pEm)
         pEm->Timer0 = Rnd_l() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
         Em21_r1_set(pEm, 5);
-    } else if (pEm->Pos_y - pEm->Unk122 > -1800) {
+    } else if (pEm->Pos_y - pEm->Ground > -1800) {
         pEm->Timer0 = Rnd_l() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
         Em21_r1_set(pEm, 5);
     } else if (!(Rnd_l() & 0xF)) {
         pEm->Timer0 = Rnd_l() & 0x3F;
-        if (pEm->Unk122 - 3600 < pEm->Pos_y) {
+        if (pEm->Ground - 3600 < pEm->Pos_y) {
             EF(pEm)->Tmp_0 = -40;
             Em21_r1_set(pEm, 5);
         } else {
@@ -517,9 +517,9 @@ void Em21_mv_flight_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void Em21_br_up_i(ENEMY_WORK *pEm)
 {
     if (pEm->Type & 0x80) {
-        if (pEm->Pos_y < pEm->Unk122 - 6000)
+        if (pEm->Pos_y < pEm->Ground - 6000)
             Em21_r1_set(pEm, 4);
-    } else if (pEm->Pos_y < pEm->Unk122 - 4800) {
+    } else if (pEm->Pos_y < pEm->Ground - 4800) {
         Em21_r1_set(pEm, 4);
     }
     if (pEm->Timer0-- == 0)
@@ -556,7 +556,7 @@ void Em21_mv_up_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_br_down_i: descending until low enough, then fly on; obstacle and attack checks */
 void Em21_br_down_i(ENEMY_WORK *pEm)
 {
-    if (pEm->Unk122 - 1800 < pEm->Pos_y)
+    if (pEm->Ground - 1800 < pEm->Pos_y)
         Em21_r1_set(pEm, 4);
     if (pEm->Timer0-- == 0)
         Em21_r1_set(pEm, 4);
@@ -618,7 +618,7 @@ void Em21_mv_landing_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
         Add_speedXYZ(pEm, 0, 0);
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (pEm->Pos_y - D0 > -300)
             pEm->Routine_2 = 2;
         Joint_move(pEm, pKan, pSeq, 0x200);
@@ -644,7 +644,7 @@ void Em21_mv_landing_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 4:
         pEm->Spd_x = 10;
         pEm->Spd_y = 0;
-        pEm->Pos_y = pEm->Unk122 - 250;
+        pEm->Pos_y = pEm->Ground - 250;
         EF(pEm)->Cnt = 0xFF;
         pEm->Routine_2 = 5;
     case 5:
@@ -656,7 +656,7 @@ void Em21_mv_landing_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
         Add_speedXYZ(pEm, 0, 0);
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y)
             pEm->Pos_y = D0;
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
@@ -668,7 +668,7 @@ void Em21_mv_landing_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 6:
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x80);
         Add_speedXYZ(pEm, 0, 0);
-        pEm->Pos_y = pEm->Unk122 - 250;
+        pEm->Pos_y = pEm->Ground - 250;
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EF(pEm)->Flg &= ~0x100;
             if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
@@ -706,7 +706,7 @@ void Em21_mv_quick_turn_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (EF(pEm)->Cnt2-- == 0)
             EF(pEm)->Cnt2 = 14;
-        if ((LONG)pEm->Unk154 < 900 && G.Player.Pos_y - 3700 < pEm->Pos_y)
+        if ((LONG)pEm->L_pl < 900 && G.Player.Pos_y - 3700 < pEm->Pos_y)
             pEm->Pos_y -= 50;
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x80);
         pEm->Cdir_y += (signed char)EF(pEm)->Tmp;
@@ -767,7 +767,7 @@ void Em21_mv_fall_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vx = pEm->Pos_x;
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -806,7 +806,7 @@ void Em21_mv_crash_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         EM_SET_MOVE(pEm, 4, 0, 7);
-        EF(pEm)->Tmp_0 = G.Player.Unk122 - 2800;
+        EF(pEm)->Tmp_0 = G.Player.Ground - 2800;
         D0 = EF(pEm)->Tmp_0 - pEm->Pos_y;
         if (D0 < 0)
             EF(pEm)->Tmp = 0;
@@ -824,14 +824,14 @@ void Em21_mv_crash_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Spd_x < 300)
             pEm->Spd_x += 5;
         Joint_move(pEm, pKan, pSeq, 0x200);
-        D0 = G.Player.Unk122 - 2800;
+        D0 = G.Player.Ground - 2800;
         if (EF(pEm)->Tmp == 0) {
             if (D0 < pEm->Pos_y)
                 pEm->Pos_y -= 40;
         } else if (pEm->Pos_y < D0) {
             pEm->Pos_y += 40;
         }
-        if ((LONG)pEm->Unk154 < 900) {
+        if ((LONG)pEm->L_pl < 900) {
             D0 = D0 - pEm->Pos_y;
             if (D0 > -360 && D0 < 360 && pEm->Spd_x > 230) {
                 Em21_r1_set(pEm, 12);
@@ -882,7 +882,7 @@ void Em21_mv_crash_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vx = pEm->Pos_x;
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -944,7 +944,7 @@ void Em21_mv_peck_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x80);
             if (pEm->Spd_x < 300)
                 pEm->Spd_x += 4;
-            if ((LONG)pEm->Unk154 < 2300) {
+            if ((LONG)pEm->L_pl < 2300) {
                 if (EF(pEm)->Atck == 0) {
                     if (EF(pEm)->Atck_se == 0)
                         Snd_se_enem(6, pEm);
@@ -952,7 +952,7 @@ void Em21_mv_peck_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     EF(pEm)->Atck = 1;
                 }
             }
-            if ((LONG)pEm->Unk154 >= 2300) {
+            if ((LONG)pEm->L_pl >= 2300) {
                 if (EF(pEm)->Atck == 1)
                     EF(pEm)->Atck = 0;
             }
@@ -962,7 +962,7 @@ void Em21_mv_peck_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Spd_x += 12;
         }
         Joint_move(pEm, pKan, pSeq, 0x200);
-        EF(pEm)->Tmp_0 = G.Player.Unk122 - 2800;
+        EF(pEm)->Tmp_0 = G.Player.Ground - 2800;
         D1 = EF(pEm)->Tmp_0 - pEm->Pos_y;
         if (D1 < -60 || D1 > 60) {
             if (D1 < -60)
@@ -970,9 +970,9 @@ void Em21_mv_peck_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             else if (D1 > 60)
                 pEm->Pos_y += 60;
         }
-        if ((LONG)pEm->Unk154 < 900)
+        if ((LONG)pEm->L_pl < 900)
             Em21_atd_set(pEm, 100);
-        if ((LONG)pEm->Unk154 < 650) {
+        if ((LONG)pEm->L_pl < 650) {
             if (D1 > -100 && D1 < 100)
                 Em21_r1_set(pEm, 14);
         } else {
@@ -1105,8 +1105,8 @@ void Em21_mv_peck_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_Damage: hit (Em21_dm by damage kind); also used as the Die routine */
 void Em21_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
-    Em21_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
+    Root_ck(pEm, POS_V(&G.Player), 0, 0);
+    Em21_dm[pEm->Damage_no - 1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em21_dm00: hit: knocked away from the player, falls and dies */
@@ -1157,7 +1157,7 @@ void Em21_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vx = pEm->Pos_x;
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -1264,13 +1264,13 @@ void Em21_parts_fall_set(PARTS_W *pP, LONG D_y)
 {
     pP->Be_flg |= 0xA;
     pP->Old_x = D_y + (Rnd_l() << 2);
-    pP->Unk96 = 0;
+    pP->Timer3 = 0;
     pP->Old_z = (Rnd_l() & 0x7F) + 100;
     pP->Old_y = 0;
-    pP->Unk85 = 20;
-    pP->Unk90 = 0;
-    pP->Unk92 = Rnd_l() << 4;
-    pP->Unk8E = 0;
+    pP->Timer1 = 20;
+    pP->Rot_spd_x = 0;
+    pP->Rot_spd_y = Rnd_l() << 4;
+    pP->Rot_spd_z = 0;
 }
 
 /* RE2 Em21_dm03 (RE3 slot dm02): knocked away along the player's facing */
@@ -1299,7 +1299,7 @@ void Em21_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ_n(pEm, 0, 0);
         pEm->Pos_y += pEm->Spd_y;
         pEm->Spd_y += 20;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -1311,7 +1311,7 @@ void Em21_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_x = EF(pEm)->Old_x;
             pEm->Pos_y = EF(pEm)->Old_y;
             pEm->Pos_z = EF(pEm)->Old_z;
-            pEm->Unk122 = func_8004D720(&pEm->Pos_x, 350, 0x200, 1);
+            pEm->Ground = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
             Snd_se_enem(3, pEm);
             Em_21_blood_call(pEm);
             pEm->Spd_y = 0;
@@ -1330,7 +1330,7 @@ void Em21_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_y += pEm->Spd_y;
         pEm->Spd_y += 20;
         Add_speedXZ_n(pEm, 0, 0);
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Em21_atd_set(pEm, 350);
             Snd_se_enem(5, pEm);
@@ -1349,7 +1349,7 @@ void Em21_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_Scenario: scenario routines (Em21_sce_mv by Routine_1) */
 void Em21_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+    Root_ck(pEm, POS_V(&G.Player), 0, 0);
     Em21_sce_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
@@ -1716,8 +1716,8 @@ void Em21_foot_set(ENEMY_WORK *pEm)
     MATRIX M;
 
     pP = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &M);
     CompM(&M, (MATRIX *)pP[9].M, &M);
     pEm->Pos_x -= M.t[0] - pP[9].Workm.t[0];
 }
@@ -1795,7 +1795,7 @@ void Em21_attack_ck(ENEMY_WORK *pEm)
         return;
     }
     Dy = -(pEm->Pos_y + 2800) + G.Player.Pos_y;
-    if ((LONG)pEm->Unk154 > 900 && (LONG)pEm->Unk154 < 7200 && !(G.Unk75EA & 1) && (EF(pEm)->Flg & 2)
+    if ((LONG)pEm->L_pl > 900 && (LONG)pEm->L_pl < 7200 && !(G.Unk75EA & 1) && (EF(pEm)->Flg & 2)
         && Dy < 1800 && Dy > -1800 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100)) {
         G.Unk75EA |= 1;
         EF(pEm)->Flg |= 4;
@@ -1805,7 +1805,7 @@ void Em21_attack_ck(ENEMY_WORK *pEm)
             Em21_r1_set(pEm, 13);
         return;
     }
-    if ((LONG)pEm->Unk154 < 900 && Dy < 900 && Dy > -1800) {
+    if ((LONG)pEm->L_pl < 900 && Dy < 900 && Dy > -1800) {
         if (!EF(pEm)->Obj_cnt && pEm->Spd_x > 230 && !(G.Unk75EA & 1)) {
             if (!Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100))
                 Em21_r1_set(pEm, 12);
@@ -1840,7 +1840,7 @@ void Em21_run_away_ck(ENEMY_WORK *pEm)
 /* RE2 Em21_pl_dead_ck: player close: land next to him (Routine_1 7) */
 void Em21_pl_dead_ck(ENEMY_WORK *pEm)
 {
-    if ((LONG)pEm->Unk154 < 1800)
+    if ((LONG)pEm->L_pl < 1800)
         Em21_r1_set(pEm, 7);
 }
 
@@ -1857,7 +1857,7 @@ void Em21_lock_off_ck(ENEMY_WORK *pEm)
             G.Unk75EA &= ~1;
             EF(pEm)->Flg &= ~4;
         }
-        if ((LONG)pEm->Unk154 > 14400) {
+        if ((LONG)pEm->L_pl > 14400) {
             EF(pEm)->Atck = 0;
             EF(pEm)->Atck_se = 0;
             G.Unk75EA &= ~1;
@@ -1956,7 +1956,7 @@ void Pldamege_Em21(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em21_attacker_off();
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pT->Be_flg &= ~0x800;
         Em21_set_flg_all(0x10);
         pEm->Be_flg &= ~0x8800;
@@ -1973,7 +1973,7 @@ void Em21_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 0, 0, 7);
         pEm->Routine_2 = 1;
-        pEm->Unk12C = 0;
+        pEm->Damage_no = 0;
     case 1:
         Spd_get(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {

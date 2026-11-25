@@ -7,7 +7,7 @@ void Em10_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         pEm->Col.W0 = pEm->Col.D0 = 100;
         pEm->Damage_cnt |= 0x80;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
     case 1:
         if (!(pEm->Type & 0x4000))
             pEm->Routine_2 = 2;
@@ -37,7 +37,7 @@ void Em10_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt &= 0x7F;
         if (EM10_W(pEm)->Etc_flg & 4)
             EM10_W(pEm)->Mot_dm = 0;
-        pEm->Unk132 |= 0x8000;
+        pEm->Damage_flg |= 0x8000;
     case 3:
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             pEm->Routine_2 = 4;
@@ -48,14 +48,14 @@ void Em10_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Col.D0 > 500)
             pEm->Col.W0 = pEm->Col.D0 = 500;
         if (pEm->Move_cnt == 0x37)
-            pEm->Unk132 &= 0x7FFF;
+            pEm->Damage_flg &= 0x7FFF;
         break;
     case 4:
         EM_SET_RTN(pEm, 1, 1, 0, 0);
         pEm->Col.W0 = pEm->Col.D0 = 500;
         pEm->Damage_cnt &= 0x7F;
         EM10_W(pEm)->Etc_flg &= 0xFFEF;
-        pEm->Unk120 &= 0xFE;
+        pEm->Neck_flg &= 0xFE;
         break;
     }
 }

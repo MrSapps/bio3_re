@@ -19,7 +19,7 @@ typedef struct tagEM27_FREE {
     SHORT Dir;                         /* 0x00 (0x1CC) hold angle relative to the player's Cdir_y */
     SHORT Wait;                        /* 0x02 (0x1CE) frames before the next move */
     SHORT Pop;                         /* 0x04 (0x1D0) part 2 pop-up state (Em27_popup) */
-    SHORT Floor;                       /* 0x06 (0x1D2) last Pl_work.Unk122 (Em27_pos_set) */
+    SHORT Floor;                       /* 0x06 (0x1D2) last Pl_work.Ground (Em27_pos_set) */
 } EM27_FREE;
 
 #define EM27_W(p) ((EM27_FREE *)(p)->Unk1CC)

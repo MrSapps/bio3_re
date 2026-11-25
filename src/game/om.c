@@ -5,14 +5,15 @@
 #include "sld.h"
 #include "sub.h"
 
-static __inline__ UCHAR *Msg_get_80031BDC(ULONG No)
-{
-    return D_80098E88 + D_80099654[No];
-}
+/*
+ * OM.C (RE2 OM.C, reworked): object models (G.Ob_model[]): setup (Om_init), the per-kind
+ * routines Om_routine[Routine_0] (wait/trigger, drop, tipping box, explosion, fall, target off),
+ * the colour/texture change works (Col_chg*, Tex_chg*, Uv_chg*), drawing (Om_trans), and the
+ * ordering-table helpers (Ot_get_pos: the OT of the room block a position is in).
+ */
 
-#define PW_FREE(p) ((USHORT *)&(p)->Unk74)  /* PARTS_W 0x74..0x7F */
-
-void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
+/* object model setup: map its model once (G.pOld_tmd), then its parts (or packet) work */
+void Om_init(ENEMY_WORK *pEm, ULONG *pData)
 {
     if (pEm->Id != 1) {
         pEm->pUnk184_kan_t_ptr = pData + 1;
@@ -20,7 +21,7 @@ void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
     }
     if (G.pOld_tmd != pData) {
         G.pOld_tmd = pData;
-        func_8002AB34(pData, pEm->Tpage, pEm->Clut);
+        Mapping_md(pData, pEm->Tpage, pEm->Clut);
     }
     *(ULONG *)&pEm->Routine_0 = 0;
     pEm->pTmd = pData + 2;
@@ -28,21 +29,23 @@ void func_80035790(ENEMY_WORK *pEm, ULONG *pData)
     if (pEm->Id == 1) {
         G.pEm_mem = (ENEMY_WORK *)func_8002E61C((MD_WORK2 *)pEm, (POLY_GT4 *)G.pEm_mem); /* MD_WORK2: the model view of the work */
     } else {
-        G.pEm_mem = (ENEMY_WORK *)func_80035868(pEm, (PARTS_W *)G.pEm_mem);
-        func_8003589C((OBJ_MODEL_WORK *)pEm, pEm->pUnk184_kan_t_ptr);
+        G.pEm_mem = (ENEMY_WORK *)Om_parts_work_set(pEm, (PARTS_W *)G.pEm_mem);
+        Om_parts_link((OBJ_MODEL_WORK *)pEm, pEm->pUnk184_kan_t_ptr);
     }
 }
 
-PARTS_W *func_80035868(ENEMY_WORK *pEm, PARTS_W *pParts)
+/* take Parts_num PARTS_W for an object model; returns the next free address */
+PARTS_W *Om_parts_work_set(ENEMY_WORK *pEm, PARTS_W *pParts)
 {
     pEm->Parts_num = ((UCHAR *)pEm->pTmd)[-4];
     *(PARTS_W **)&pEm->Spd_z = pParts;
     return pParts + pEm->Parts_num;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", func_8003589C);
+INCLUDE_ASM("asm/nonmatchings/game/om", Om_parts_link);
 
-void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
+/* draw the parts of an object model unless pPos is outside the cut (Be_flg 0x40: always) */
+void Om_joint_trans2(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
 {
     ULONG n;
 
@@ -50,7 +53,7 @@ void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
         n = pOm->Parts_num;
     loop:
         if (pParts->Be_flg & 1) {
-            func_800288C8((ENEMY_WORK *)pOm, pParts, (SHORT)pParts->UnkA2, &pParts->Workm);
+            Om_joint_trans((ENEMY_WORK *)pOm, pParts, (SHORT)pParts->UnkA2, &pParts->Workm);
         }
         pParts++;
         if (--n != 0) {
@@ -59,6 +62,7 @@ void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
     }
 }
 
+/* colour change: point every polygon at the colour-change CLUT row (RE2 Col_chg_init) */
 void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
 {
     ULONG Poly_num;
@@ -107,6 +111,7 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     }
 }
 
+/* colour change step: CLUT source rect for Ctr (RE2 Col_chg) */
 void Col_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
 {
     switch (Ctr)
@@ -146,6 +151,7 @@ void Col_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
     }
 }
 
+/* texture change init (RE2 Tex_chg_init) */
 void Tex_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
 {
     ULONG i;
@@ -170,6 +176,7 @@ void Tex_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     }
 }
 
+/* texture change step: source rect for Ctr (RE2 Tex_chg) */
 ULONG Tex_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
 {
     switch (Ctr)
@@ -214,7 +221,8 @@ ULONG Tex_chg(CC_PARTS_WORK *pCcp, RECT *pRect, ULONG Ctr)
     }
 }
 
-void Om_chg_init_80036234(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
+/* init of the texture scroll + bob change */
+void Uv_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
 {
     pCcp->Cc_ctr = 1;
     pCcp->Cc_pos_x = 0;
@@ -223,7 +231,7 @@ void Om_chg_init_80036234(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
 
 /* RE3 colour change: scroll the texture v of every quad by Cc_num (every Cc_cnt + 1 frames)
  * and bob the model up and down by Cc_wait, reversing every 0x33 frames */
-void Col_chg_ctr_80036248(CC_PARTS_WORK *pCcp)
+void Uv_chg_ctr(CC_PARTS_WORK *pCcp)
 {
     OBJ_MODEL_WORK *pOm = pCcp->pOm;
     POLY_GT4 *pPrim0;
@@ -265,6 +273,7 @@ move:
         pOm->M.t[1] -= pCcp->Cc_wait;
 }
 
+/* run the colour/texture change works: DR_MOVE copies and Uv_chg_ctr (RE2 Tex_ctr) */
 void Tex_ctr(void)
 {
     CC_PARTS_WORK *pCcp;
@@ -292,13 +301,14 @@ void Tex_ctr(void)
             AddPrim(pOt, pMove);
         }
         if (pCcp->Cc_flg & 0x20) {
-            Col_chg_ctr_80036248(pCcp);
+            Uv_chg_ctr(pCcp);
         }
         pCcp++;
         i++;
     } while (i < D1);
 }
 
+/* run Om_routine[Routine_0] of every object model, then the push check (RE2 Om_move) */
 void Om_move(void)
 {
     OBJ_MODEL_WORK *pOm;
@@ -309,25 +319,25 @@ void Om_move(void)
     if (G.Unk2468 & 0x8000000) {
         return;
     }
-    D_800DD4AC = 0;
-    D_800DD4B0 = NULL;
+    Om_push_num = 0;
+    pOm_push = NULL;
     G.Status_flg &= ~0x10;
     Tex_ctr();
     for (pOm = G.Ob_model; pOm != G.pObj_work_end; pOm++) {
-        D_8009CC64[pOm->Routine_0](pOm);
+        Om_routine[pOm->Routine_0](pOm);
     }
-    func_80036570();
+    Om_push_ck();
 }
 
 /* a pushable object model stays in place while the player pushes it; after 6 frames the push starts */
-void func_80036570(void)
+void Om_push_ck(void)
 {
     OBJ_MODEL_WORK *pOm;
     SHORT Pos_x;
     SHORT Pos_z;
 
-    if (D_800DD4AC == 1 && D_800DD4B0 != NULL) {
-        pOm = D_800DD4B0;
+    if (Om_push_num == 1 && pOm_push != NULL) {
+        pOm = pOm_push;
         if (!(pOm->Be_flg & 0x4000)) {
             if (pOm->Be_flg & 0x100) {
                 Pos_x = pOm->M.t[0];
@@ -336,7 +346,7 @@ void func_80036570(void)
                     if (pOm->UnkAE & 0x20) {
                         pOm->Push_cnt = 0;
                     } else {
-                        D_800DD4AC = 0;
+                        Om_push_num = 0;
                         G.Status_flg |= 0x10;
                         if (pOm->Push_cnt != 6) {
                             pOm->Push_cnt = 7;
@@ -351,11 +361,13 @@ void func_80036570(void)
     }
 }
 
-void Em_routine0_set1_80036640(OBJ_MODEL_WORK *pOm)
+/* Om_routine 1 from now on */
+void Om_move_start(OBJ_MODEL_WORK *pOm)
 {
     pOm->Routine_0 = 1;
 }
 
+/* direction a pushed box tips over: away from the player along the nearer axis (RE2 Om_set_fall_dir) */
 void Om_set_fall_dir(ENEMY_WORK *pEm)
 {
     SHORT dx;
@@ -364,20 +376,21 @@ void Om_set_fall_dir(ENEMY_WORK *pEm)
     dx = pEm->Pos_x - G.Player.Pos_x;
     dz = pEm->Pos_z - G.Player.Pos_z;
     if (__builtin_abs(dx) < 900) {
-        D_800DE61A = 0;
-        D_800DE61E = (dz >> 31) | 1;
+        Om_fall_dir_x = 0;
+        Om_fall_dir_z = (dz >> 31) | 1;
     } else {
-        D_800DE61E = 0;
-        D_800DE61A = (dz >> 31) | 1;
+        Om_fall_dir_z = 0;
+        Om_fall_dir_x = (dz >> 31) | 1;
     }
-    D_800DE614 = pEm->Cdir_x;
-    D_800DE618 = pEm->Cdir_z;
+    Om_fall_cdir_x = pEm->Cdir_x;
+    Om_fall_cdir_z = pEm->Cdir_z;
     pEm->Routine_0 = 2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", func_800366EC);
+INCLUDE_ASM("asm/nonmatchings/game/om", Om_explosion);
 
-void func_80036C60(OBJ_MODEL_WORK *pOm)
+/* Om_routine 0: push bookkeeping; when its target flag is set, explode or start moving by Type */
+void Om_rtn_wait(OBJ_MODEL_WORK *pOm)
 {
     tagGLOBAL *pG;
 
@@ -389,18 +402,18 @@ void func_80036C60(OBJ_MODEL_WORK *pOm)
         pOm->Push_cnt = 0;
     }
     if ((pOm->UnkAE & 0x10) && (pOm->UnkBA & 0x8000)) {
-        D_800DD4AC++;
+        Om_push_num++;
         if (pG->Player.nFloor == pOm->nFloor) {
-            D_800DD4B0 = pOm;
+            pOm_push = pOm;
         }
     }
     if ((pOm->Unk4A & 4) && *G.pUnk75AC[pOm->UnkC1] == 0xFF) {
         switch (pOm->Type & 0xC0) {
         case 0:
-            func_800366EC(pOm, 1, 1);
+            Om_explosion(pOm, 1, 1);
             break;
         case 0x40:
-            Em_routine0_set1_80036640(pOm);
+            Om_move_start(pOm);
             break;
         case 0x80:
             break;
@@ -409,9 +422,11 @@ void func_80036C60(OBJ_MODEL_WORK *pOm)
     }
 }
 
-LONG func_8004D720_3(VECTOR *pV, ULONG W, ULONG Arg2) __asm__("func_8004D720"); /* 3 args here (canonical 4) */
+/* OM.C called the ground check with three arguments (its own declaration); the canonical one has four */
+LONG Sca_get_ground3(LONG *pPos, ULONG W, ULONG Arg2) __asm__("Sca_get_ground");
 
-void func_80036D94(OBJ_MODEL_WORK *pOm)
+/* Om_routine 1: drop to the ground and land */
+void Om_rtn_drop(OBJ_MODEL_WORK *pOm)
 {
     switch (pOm->Routine_1) {
     case 0:
@@ -427,7 +442,7 @@ void func_80036D94(OBJ_MODEL_WORK *pOm)
             pOm->M.t[1] += pOm->Unk190;
             pOm->Unk190 += 0x2D;
             if (pOm->Routine_2 == 13) {
-                pOm->Unk192 = func_8004D720_3((VECTOR *)pOm->M.t, 0x1C2, 0);
+                pOm->Unk192 = Sca_get_ground3(pOm->M.t, 0x1C2, 0);
                 pOm->Old_x = pOm->M.t[0];
                 pOm->Old_z = pOm->M.t[2];
                 pOm->nFloor = pOm->Unk192 / -1800;
@@ -440,13 +455,13 @@ void func_80036D94(OBJ_MODEL_WORK *pOm)
             pOm->M.t[1] += (SHORT)(pOm->Unk18C / 3);
         }
         if (pOm->UnkBA != 0) {
-            func_800366EC(pOm, 0, 0);
+            Om_explosion(pOm, 0, 0);
         }
         break;
     case 2:
         pOm->M.t[1] -= 30;
         pOm->Routine_1++;
-        func_800366EC(pOm, 0, 0);
+        Om_explosion(pOm, 0, 0);
         pOm->Routine_1 = 0;
         break;
     case 3:
@@ -458,54 +473,55 @@ void func_80036D94(OBJ_MODEL_WORK *pOm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", func_80036F78);
+INCLUDE_ASM("asm/nonmatchings/game/om", Om_rtn_fall);
 
-void func_8003749C(OBJ_MODEL_WORK *pOm)
+/* Om_routine 2: a pushed box tips over the edge (RE2 Om_move_box) */
+void Om_move_box(OBJ_MODEL_WORK *pOm)
 {
     SHORT n;
     LONG Dummy[4];
 
     switch (pOm->Routine_1) {
     case 0:
-        D_800DD49C = 0;
-        D_800DD492 = D_800DD494 = 13;
-        D_800DD496 = 0;
-        D_800DD498 = 16;
-        D_800DD4A0.vx = 0;
-        D_800DD4A0.vy = 0;
-        D_800DD4A0.vz = 0;
-        D_800DD49A = 0;
-        D_800DD4A8 = 0;
+        Om_dir_sum = 0;
+        Om_pos_spd = Om_pos_spd_add = 13;
+        Om_dir_spd = 0;
+        Om_dir_spd_add = 16;
+        Om_add_dir.vx = 0;
+        Om_add_dir.vy = 0;
+        Om_add_dir.vz = 0;
+        Om_fall_spd = 0;
+        Om_in_water_flg = 0;
         pOm->Routine_1 = 1;
         pOm->Routine_2 = 0;
     case 1:
-        pOm->M.t[0] += D_800DD492 * D_800DE61A;
-        pOm->M.t[2] += D_800DD492 * D_800DE61E;
-        if (D_800DD49C < 0x400) {
-            n = D_800DD49C + D_800DD496;
-            D_800DD49C = n;
+        pOm->M.t[0] += Om_pos_spd * Om_fall_dir_x;
+        pOm->M.t[2] += Om_pos_spd * Om_fall_dir_z;
+        if (Om_dir_sum < 0x400) {
+            n = Om_dir_sum + Om_dir_spd;
+            Om_dir_sum = n;
             if (n > 0x400) {
-                D_800DD496 -= n - 0x400;
+                Om_dir_spd -= n - 0x400;
             }
-            D_800DD4A0.vx = D_800DD496 * -D_800DE61E;
-            D_800DD4A0.vz = D_800DD496 * D_800DE61A;
+            Om_add_dir.vx = Om_dir_spd * -Om_fall_dir_z;
+            Om_add_dir.vz = Om_dir_spd * Om_fall_dir_x;
         } else {
-            D_800DD4A0.vz = 0;
-            D_800DD4A0.vx = 0;
+            Om_add_dir.vz = 0;
+            Om_add_dir.vx = 0;
         }
-        D_800DD496 += D_800DD498;
-        D_800DD492 += D_800DD494;
+        Om_dir_spd += Om_dir_spd_add;
+        Om_pos_spd += Om_pos_spd_add;
         if (++pOm->Routine_2 >= 16) {
-            D_800DD494 = 0;
+            Om_pos_spd_add = 0;
             pOm->Routine_0 = 0;
             pOm->Routine_1 = 0;
         }
         break;
     }
-    Rot_add_matrix(pOm->M.t, &pOm->Cdir.vx, &pOm->M, &D_800DD4A0);
+    Rot_add_matrix(pOm->M.t, &pOm->Cdir.vx, &pOm->M, &Om_add_dir);
 }
 
-typedef struct {                       /* object model part, 0xBC bytes (func_80037680) */
+typedef struct {                       /* object model part, 0xBC bytes (Om_explosion_set) */
     ULONG Be_flg;                      /* 0x00 */
     UCHAR pad4[0x74 - 0x4];
     SHORT Cdir_y;                      /* 0x74 */
@@ -520,18 +536,19 @@ typedef struct {                       /* object model part, 0xBC bytes (func_80
     UCHAR padA4[0xBC - 0xA4];
 } OM_PARTS;
 
-void func_80037680(OBJ_MODEL_WORK *pOm)
+/* Om_routine 3: the parts fly apart (PW_BOMB) and hurt around for 10 frames (RE2 Om_explosion_set) */
+void Om_explosion_set(OBJ_MODEL_WORK *pOm)
 {
     HIT_REQ Req;
-    OM_PARTS *pP;
+    PARTS_W *pP;
     UCHAR Num;
     UCHAR Idx;
     ULONG k;
     ULONG n;
 
-    pP = (OM_PARTS *)pOm->pParts;
-    Num = D_8009CBEC[pOm->Type & 0x1F].Num;
-    Idx = D_8009CBEC[pOm->Type & 0x1F].Idx;
+    pP = pOm->pParts;
+    Num = Om_bomb_parts[pOm->Type & 0x1F].Num;
+    Idx = Om_bomb_parts[pOm->Type & 0x1F].Idx;
     k = 0;
     if (pOm->Routine_1 != 0) {
         pOm->Routine_1--;
@@ -554,12 +571,12 @@ void func_80037680(OBJ_MODEL_WORK *pOm)
                 pP->Be_flg |= 2;
                 pP->UnkA2 |= 0x23;
             }
-            pP->Cdir_y = pOm->Cdir.vy + 0x800;
-            pP->Unk7C = 0x8000;
-            pP->Unk78 = 0;
-            pP->Unk76 = 0;
-            pP->Unk7A = 0;
-            pP->Unk80 = 0;
+            PW_BOMB(pP)->V0_x = pOm->Cdir.vy + 0x800;
+            PW_BOMB(pP)->Cnt0 = 0x8000;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->V0_y = 0;
+            PW_BOMB(pP)->G = 0;
+            PW_BOMB(pP)->Gxz = 0;
             pP++;
         } while (--n != 0);
         pOm->Unk130 = 0x101020;
@@ -573,8 +590,8 @@ void func_80037680(OBJ_MODEL_WORK *pOm)
             Req.H = 0;
             Req.D = 0;
             Req.R = 0;
-            func_800472EC(&Req, D_8009CC54[pOm->Type & 0xF]);
-            func_80047BD0(&Req, D_8009CC54[pOm->Type & 0xF]);
+            Pos_em_at_ck(&Req, Om_at_tbl[pOm->Type & 0xF]);
+            Pos_om_at_ck(&Req, Om_at_tbl[pOm->Type & 0xF]);
         } else {
             pOm->Routine_2 = 2;
         }
@@ -584,7 +601,8 @@ void func_80037680(OBJ_MODEL_WORK *pOm)
     }
 }
 
-void func_8003783C(OBJ_MODEL_WORK *pOm)
+/* Om_routine 5: aim target off while Routine_1 is 1 */
+void Om_rtn_target_off(OBJ_MODEL_WORK *pOm)
 {
     switch (pOm->Routine_1) {
     case 0:
@@ -601,8 +619,11 @@ void func_8003783C(OBJ_MODEL_WORK *pOm)
     }
 }
 
-void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC"); /* 4 args here (canonical 3) */
+/* OM.C passed Joint_trans an object model and a fourth argument (pPos), which the 3-argument canonical
+ * prototype cannot express without changing every other caller */
+void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("Joint_trans");
 
+/* matrices and drawing of every visible object model (RE2 Om_trans) */
 void Om_trans(void)
 {
     MATRIX M;
@@ -625,7 +646,7 @@ void Om_trans(void)
             continue;
         RotMatrix(&pOm->Cdir, &pOm->M);
         CompM(pOm->pSuper, &pOm->M, &pOm->Workm);
-        Set_light_pos((VECTOR *)pOm->Workm.t);
+        Set_light_pos(WORKM_POS_V(pOm));
         SetColorMatrix(&COLORMATRIX);
         if (pOm->Unk4A == 2)
             pOm->Workm.t[1] -= 900;
@@ -638,7 +659,7 @@ void Om_trans(void)
             func_8002E74C((ENEMY_WORK *)pOm, 1); /* the model work shares the ENEMY_WORK head */
         } else {
             Joint_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
-            func_80035B84(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
+            Om_joint_trans2(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
             pOm->Be_flg &= 0xF0FFFFFF;
         }
         pOm->Old_x = pOm->M.t[0];
@@ -647,7 +668,8 @@ void Om_trans(void)
     }
 }
 
-void func_80037A90(ENEMY_WORK *pEm, ULONG Arg1)
+/* the object model of kind 8 falls where pEm is (Om_routine 4); logged in G.Unk7DC0 */
+void Om_drop_set(ENEMY_WORK *pEm, ULONG Arg1)
 {
     ENEMY_WORK **pp;
     OBJ_MODEL_WORK *p;
@@ -679,7 +701,8 @@ void func_80037A90(ENEMY_WORK *pEm, ULONG Arg1)
     G.Unk7E20++;
 }
 
-void func_80037C38(void)
+/* ordering table of every live work and object model: by position, or the fixed one (Be_flg 0x80) */
+void Ot_set_all(void)
 {
     tagGLOBAL *pG;
     ENEMY_WORK **pp;
@@ -695,7 +718,7 @@ void func_80037C38(void)
             if (pEm->Be_flg & 0x80) {
                 pEm->pUnk7C = pG->pOt_sub[pG->Cbuf_id][pEm->UnkD];
             } else {
-                pEm->pUnk7C = func_80037D50((VECTOR *)&pEm->Pos_x);
+                pEm->pUnk7C = Ot_get_pos(&pEm->Pos_x);
             }
         }
     }
@@ -704,13 +727,14 @@ void func_80037C38(void)
             if (pOm->Be_flg & 0x80) {
                 pOm->pUnk7C = pG->pOt_sub[pG->Cbuf_id][pOm->UnkD];
             } else {
-                pOm->pUnk7C = func_80037D50((VECTOR *)pOm->M.t);
+                pOm->pUnk7C = Ot_get_pos(pOm->M.t);
             }
         }
     }
 }
 
-ULONG *func_80037D50(VECTOR *pPos)
+/* ordering table of the room block that holds pPos (G.pOt1 if none) */
+ULONG *Ot_get_pos(LONG *pPos)
 {
     tagGLOBAL *pG;
     USHORT *pHead;
@@ -735,12 +759,12 @@ start:
     p = (UCHAR *)(pBlk + 2);
     for (; n != 0; n--) {
         if (p[1] == 0) {
-            if (!(p[0] & 2) && func_800101C8(&pPos->vx, (SHORT *)(p + 4))) {
+            if (!(p[0] & 2) && func_800101C8(pPos, (SHORT *)(p + 4))) {
                 goto found;
             }
             p += 12;
         } else {
-            if (!(p[0] & 2) && Hit_ck_point4(&pPos->vx, (VCUT *)p)) {
+            if (!(p[0] & 2) && Hit_ck_point4(pPos, (VCUT *)p)) {
                 goto found;
             }
             p += 20;
@@ -750,4 +774,4 @@ end:
     return pG->pOt1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", func_80037E80);
+INCLUDE_ASM("asm/nonmatchings/game/om", Ot_sub_init);

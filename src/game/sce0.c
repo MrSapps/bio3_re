@@ -5,7 +5,6 @@
 #include "pad.h"
 #include "sld.h"
 
-extern s8 D_80098728_[] __asm__("D_80098728"); /* type differs from the canonical extern */
 UCHAR Rnd_uc(void) __asm__("Rnd"); /* returns unsigned char here (canonical unsigned long) */
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
@@ -22,7 +21,7 @@ struct tagSCE_AOT {
     PARTS_W *pParts;                   /* 0x14 */
 };
 
-/* AOT for a dropped part (func_800452E8: a part landing on the floor) */
+/* AOT for a dropped part (Pl_wep_parts_drop: a part landing on the floor) */
 void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
 {
     struct tagSCE_AOT *pAot;
@@ -225,7 +224,7 @@ void Sce_rnd_set(void)
     LONG D0;
 
     D0 = (s8)Rnd_uc() << 8;
-    D0 += Rnd_uc() + D_80098728_[Sce.Unk149E++];
+    D0 += Rnd_uc() + (signed char)Rnd_tbl[Sce.Unk149E++];
     D_800D1F82 = D0;
 }
 
@@ -362,7 +361,7 @@ void func_80052644(void)
             Flg_off(&G.Status_flg, 0x1E);
             Event_exec(1, Sce.Unk149D);
             Sce.Unk149B = 8;
-            func_8001B894(0xFF02, 0);
+            Esp_kill(0xFF02, 0);
         }
         break;
     }

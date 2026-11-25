@@ -38,7 +38,7 @@ typedef struct tagMD_WORK2 {
     POLY_GT4 *pPrim4;                  /* 0x188 */
 } MD_WORK2;
 
-/* 0x68 byte prim work (func_8002D41C) */
+/* 0x68 byte prim work (Rgb_blend) */
 typedef struct tagRGB_BLEND_WORK {
     UCHAR pad0[0x10];
     ULONG Rgb0;                        /* 0x10 */
@@ -49,7 +49,7 @@ typedef struct tagRGB_BLEND_WORK {
     UCHAR pad2C[0x68 - 0x2C];
 } RGB_BLEND_WORK;
 
-/* primitive sort parameters (func_80025FB0 -> func_8002DC98 / func_8002DE0C) */
+/* primitive sort parameters (Parts_sort_ex -> func_8002DC98 / func_8002DE0C) */
 typedef struct tagSORT_PARAM {
     MD_OBJ *pObj;                      /* 0x0 */
     union {
@@ -66,7 +66,7 @@ typedef struct tagSORT_PARAM {
 } SORT_PARAM;
 
 void Md_adr_cnv(MD_HEAD *pMd); /* relocate MD_OBJ offsets */
-ULONG func_8002AB34(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
+ULONG Mapping_md(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd counterpart */
 void Md_set_abr(MD_OBJ *pObj, ULONG Abr); /* set semi-trans rate of all prims */
 
 extern SHORT Bomb_tbl[2][30]; /* RE2 Bomb_tbl: push-out distance per frame */
@@ -83,8 +83,8 @@ POLY_GT3 *PresetObjectGT3_neo(MD_WORK *pW, POLY_GT3 *pPrim);
 POLY_GT4 *PresetObjectGT4_neo(MD_WORK *pW, POLY_GT4 *pPrim);
 void MulLMatrix(MATRIX *lwm, MATRIX *klwm, MATRIX *nlm); /* libgte (not in libgte.h) */
 void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
+void Parts_hokan(ULONG n, PARTS_W *pP, ULONG Late, LONG Rate);
+void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
 POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
@@ -95,10 +95,10 @@ POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
 POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
 POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void func_8002D184(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
+void Md_rtp_floor(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
+void Rgb_blend(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
 void CompM(MATRIX *m0, MATRIX *m1, MATRIX *m2);
-void func_8002D5D8(ULONG *pSxy, USHORT *pSz, MD_OBJ *pObj);
+void Md_rtp(ULONG *pSxy, USHORT *pSz, MD_OBJ *pObj);
 POLY_GT4 *func_8002D6D8(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002D898(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 void func_8002DAAC(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */

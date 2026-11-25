@@ -236,8 +236,8 @@ void func_80063CAC(ST_WORK *pSt)
             } else {
                 Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
-            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
-            func_8001B894(0x905, 0);
+            Esp_kill(0x705, &G.Ob_model[n & 0xFF].M);
+            Esp_kill(0x905, 0);
             if (!(n & 0x80)) {
                 G.Ob_model[n & 0xFF].Be_flg = 0;
             }
@@ -1424,7 +1424,7 @@ void func_80067C14(ST_WORK *pSt)
                             return;
                         }
                         Pl_wep_eff_parts_init(PLAYER_EM(pG));
-                        func_80046C90();
+                        Pl_wep_poly_init();
                     } else {
                         Mess_set(0, 0x1000, 10, 0);
                         pSt->Rtn2 = 2;
@@ -1490,7 +1490,7 @@ void func_80068AB4(ST_WORK *pSt)
         switch (G.Unk7848) {
         case 0:
             Pl_wep_eff_parts_init(G_PLAYER);
-            func_80046C90();
+            Pl_wep_poly_init();
             func_80068024(pSt);
             break;
         case 1:
@@ -1648,7 +1648,7 @@ void func_80068BC0(ST_WORK *pSt)
             pA->Flg = 7;
             pG->pUnk7C7C->Unk129 = pA->Id;
             Pl_wep_eff_parts_init(&Pl_work);
-            func_80046C90();
+            Pl_wep_poly_init();
         }
         break;
     case 7:
@@ -2090,8 +2090,8 @@ void func_80069C3C(ST_WORK *pSt)
             } else {
                 Flg_on(G.Unk78F0, pD->Flg);
             }
-            func_8001B894(0x705, &G.Ob_model[m].M);
-            func_8001B894(0x905, 0);
+            Esp_kill(0x705, &G.Ob_model[m].M);
+            Esp_kill(0x905, 0);
             if (!(m & 0x80)) {
                 G.Ob_model[m].Be_flg = 0;
             }
@@ -4302,8 +4302,8 @@ void func_80070024(ST_WORK *pSt)
             } else {
                 Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
-            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
-            func_8001B894(0x905, 0);
+            Esp_kill(0x705, &G.Ob_model[n & 0xFF].M);
+            Esp_kill(0x905, 0);
             if (!(n & 0x80)) {
                 G.Ob_model[n & 0xFF].Be_flg = 0;
             }

@@ -128,7 +128,7 @@ void func_800245A0(void)
             pPl->Pos_z = pPl->Old_z = -22736;
             pPl->Cdir_y = 0x4A8;
             pPl->Pos_y = pPl->Old_y = 0;
-            pPl->Unk122 = 0;
+            pPl->Ground = 0;
             pPl->nFloor = 0;
             pG->Unk783E = 6;
             pG->Unk7840 = 12;
@@ -139,7 +139,7 @@ void func_800245A0(void)
             pPl->Pos_z = pPl->Old_z = -12537;
             pPl->Cdir_y = 0x720;
             pPl->Pos_y = pPl->Old_y = 0;
-            pPl->Unk122 = 0;
+            pPl->Ground = 0;
             pPl->nFloor = 0;
             pPl->Status_flg = 0;
             pG->Unk7840 = 13;
@@ -157,7 +157,7 @@ void func_800245A0(void)
         pPl->Old_x = pPl->Pos_x;
         pPl->Old_y = pPl->Pos_y;
         pPl->Old_z = pPl->Pos_z;
-        pPl->Unk122 = pPl->Pos_y;
+        pPl->Ground = pPl->Pos_y;
         pPl->nFloor = (SHORT)pPl->Pos_y / -1800;
     }
 set:
@@ -233,7 +233,7 @@ void Set_door(void)
     Door_snd_trans();
     pAot = (DOOR_NEXT *)pG->pSce_aot_on;
     pG->Player.Pos_x = pG->Player.Old_x = pAot->Next_pos_x;
-    pG->Player.Unk122 = pG->Player.Pos_y = pG->Player.Old_y = pAot->Next_pos_y;
+    pG->Player.Ground = pG->Player.Pos_y = pG->Player.Old_y = pAot->Next_pos_y;
     pG->Player.Pos_z = pG->Player.Old_z = pAot->Next_pos_z;
     pG->Player.Cdir_y = pAot->Next_cdir_y;
     pG->Player.nFloor = pAot->Next_nfloor;
@@ -283,7 +283,7 @@ void func_80024B34(void)
     Memcpy(&pG->Game_time, pSave, 0x708);
     pPl->Pos_x = pPl->Old_x = pSave->Pos_x;
     pPl->Pos_y = pPl->Old_y = pSave->Pos_y;
-    pPl->Pos_z = pPl->Old_z = pPl->Unk122 = pSave->Pos_z;
+    pPl->Pos_z = pPl->Old_z = pPl->Ground = pSave->Pos_z;
     pPl->nFloor = pSave->Pos_y / -1800;
     pPl->Cdir_y = pSave->Cdir_y;
     pPl->Life = pSave->Life;

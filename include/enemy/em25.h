@@ -67,7 +67,7 @@ typedef struct tagEM25_BLOOD_TBL {
     UCHAR Type;                        /* 0x1 */
     USHORT Dir;                        /* 0x2 */
     USHORT Zoom;                       /* 0x4 */
-    USHORT Clut;                       /* 0x6 code bits 24..27; 0xFF: 1, or 6 when Unk132 & 0x200 */
+    USHORT Clut;                       /* 0x6 code bits 24..27; 0xFF: 1, or 6 when Damage_flg & 0x200 */
 } EM25_BLOOD_TBL;
 
 /* room collision header as em25 reads it (RE2 SCA_HEAD layout: shape count word at 4) */

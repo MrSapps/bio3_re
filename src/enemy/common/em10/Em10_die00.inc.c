@@ -16,11 +16,11 @@ void Em10_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->UnkE2)
             EM10_W(pEm)->Etc_flg |= 4;
         EM_MOVE(pEm) = pEm->UnkE2 * 0xA00 + 0xF0000 + Mot[pEm->UnkE2];
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         pEm->Routine_2 = 1;
         pEm->UnkE3 = 0;
-        if (pEm->Unk132 & 0x200)
+        if (pEm->Damage_flg & 0x200)
             pEm->UnkE3 = 5;
         Em10_blood_set(pEm);
         if (Rnd_l() & 1)
@@ -29,7 +29,7 @@ void Em10_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_enem(14, pEm);
         Em_dead_flg_on_cand(pEm);
     case 1:
-        if ((pEm->Unk132 & 3) != 1) {
+        if ((pEm->Damage_flg & 3) != 1) {
             T = pEm->UnkE2 * 10;
             if (pEm->Move_cnt >= T + 4 && pEm->Move_cnt <= T + 16 && (pEm->Move_cnt & 1)) {
                 pP = &pEm->pSin_parts_ptr[1];

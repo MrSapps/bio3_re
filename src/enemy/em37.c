@@ -44,9 +44,9 @@ void Em37_main(ENEMY_WORK *pEm)
         }
         Em37_splash(pEm);
     }
-    Under = (SHORT)func_8004D720(pP[2].Workm.t, 500, 0x2000, 0) < pP[2].Workm.t[1];
+    Under = (SHORT)Sca_get_ground(pP[2].Workm.t, 500, 0x2000, 0) < pP[2].Workm.t[1];
     n = Under;
-    if ((SHORT)func_8004D720(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
+    if ((SHORT)Sca_get_ground(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
         n = Under + 1;
     if (EM37_W(pEm)->pParent->Damage_cnt & 0x80)
         n = 0;
@@ -82,18 +82,18 @@ void Em37_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Max_life = -1;
     pG = &G;
     EM37_W(pEm)->Size = 0;
-    pEm->Unk134 = 0;
-    pEm->Unk136 = 0;
-    pEm->Unk138 = 0;
-    pEm->Unk139 = 0;
-    pEm->Unk13A = 0;
+    pEm->Hit_area.Top = 0;
+    pEm->Hit_area.Bottom = 0;
+    pEm->Hit_area.Rate0 = 0;
+    pEm->Hit_area.Rate1 = 0;
+    pEm->Hit_area.R = 0;
     pEm->Unk140 = 0;
     pEm->Spd_x = 0;
     pEm->Spd_y = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
     EM_SET_MOVE(pEm, 0, 0, 0);
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     Joint_move(pEm, pKan, pSeq, 0x400);
     EM37_W(pEm)->pParent = NULL;
     ppEm = &pG->pEnemy[2];
@@ -583,8 +583,8 @@ void Em37_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move(pEm, pKan, pSeq, 0x40);
         Joint_move(pEm, pKan, pSeq, 0x40);
         pP = pEm->pSin_parts_ptr;
-        RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        RotMatrix(CDIR_SV(pEm), &M);
+        MulMatrix(PW_M(pP), &M);
         pP = pEm->pSin_parts_ptr;
         if (pP->Size_y == 0)
             pEm->Spd_x = 0;
@@ -636,8 +636,8 @@ void Em37_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move(pEm, pKan, pSeq, 0x40);
         Joint_move(pEm, pKan, pSeq, 0x40);
         pP = pEm->pSin_parts_ptr;
-        RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        RotMatrix(CDIR_SV(pEm), &M);
+        MulMatrix(PW_M(pP), &M);
         break;
     }
 }
@@ -657,7 +657,7 @@ void Em37_Die(void)
 void Em37_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100)
-        func_80016600(pEm, pKan, pSeq);
+        Em_sce_main(pEm, pKan, pSeq);
     else
         Em37_sce[pEm->Routine_1](pEm, pKan, pSeq);
 }

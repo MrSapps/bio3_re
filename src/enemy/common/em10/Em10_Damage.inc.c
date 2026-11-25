@@ -6,17 +6,17 @@ void Em10_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     LONG Lim;
 
     if (!pEm->Routine_2) {
-        if ((pEm->Unk132 & 0x100) && !(pEm->Status_flg & 1))
+        if ((pEm->Damage_flg & 0x100) && !(pEm->Status_flg & 1))
             Em10_Firedm(pEm);
-        if ((pEm->Unk132 & 0x400) && !(pEm->Status_flg & 1))
+        if ((pEm->Damage_flg & 0x400) && !(pEm->Status_flg & 1))
             Em10_Tudm(pEm);
-        if ((pEm->Unk132 & 0x200) && !(pEm->Status_flg & 2))
+        if ((pEm->Damage_flg & 0x200) && !(pEm->Status_flg & 2))
             Em10_Spdm(pEm);
-        if ((pEm->Unk132 & 0x800) && !(pEm->Status_flg & 2))
+        if ((pEm->Damage_flg & 0x800) && !(pEm->Status_flg & 2))
             Em10_Ryudm(pEm);
     }
     if (pEm->Type & 1) {
-        Em10_haidm[pEm->Unk12C - 1](pEm, pKan, pSeq);
+        Em10_haidm[pEm->Damage_no - 1](pEm, pKan, pSeq);
         return;
     }
     if (EM10_W(pEm)->Etc_flg & 0x10) {
@@ -29,7 +29,7 @@ void Em10_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     Lim = 0;
     if (!pEm->Routine_2 && EM10_W(pEm)->Dm_cnt <= Lim) {
-        if (EM10_W(pEm)->Dm_r0 == 1 || (pEm->Unk12C == 1 && (LONG)G.Status_flg >= 0)) {
+        if (EM10_W(pEm)->Dm_r0 == 1 || (pEm->Damage_no == 1 && (LONG)G.Status_flg >= 0)) {
             Em10_blood_set(pEm);
             EM10_W(pEm)->Dm_r0 = 1;
             EM_SET_RTN(pEm, 1, 5, 0, 0);
@@ -43,5 +43,5 @@ void Em10_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_RTN(pEm, 1, 5, 6, 0);
         return;
     }
-    Em10_dm[pEm->Unk12C - 1][pEm->Routine_1](pEm, pKan, pSeq);
+    Em10_dm[pEm->Damage_no - 1][pEm->Routine_1](pEm, pKan, pSeq);
 }

@@ -27,19 +27,19 @@ void Em2c_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     Joint_move(pEm, pKan, pSeq, 0x100);
     if (!(pEm->Type & 0xF)) {
-        Kage_work_set(&pEm->Kage.pKw, 0, 0x2260226, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x2260226, 0xBFBF10, pEm->pSin_parts_ptr->Workm.t);
     } else {
-        Kage_work_set(&pEm->Kage.pKw, 0, 0x44C044C, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x44C044C, 0xBFBF10, pEm->pSin_parts_ptr->Workm.t);
     }
-    pEm->Unk134 = 1500;
-    pEm->Unk136 = -1000;
-    pEm->Unk138 = 0x54;
-    pEm->Unk139 = 0xA0;
-    pEm->Unk13A = 450;
+    pEm->Hit_area.Top = 1500;
+    pEm->Hit_area.Bottom = -1000;
+    pEm->Hit_area.Rate0 = 0x54;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 450;
     pEm->Unk140 = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     PW_NECK(pP)->Add_dir_y = 0x40;
     PW_NECK(pP)->Add_dir_z = 0x40;
@@ -62,35 +62,35 @@ void Em2c_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if ((pEm->Type & 0xF) >= 3) {
         pEm->Cdir_y -= 0x200;
-        RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+        RotMatrix_gte(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[5];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[6];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP->Be_flg |= 2;
         pEm->Cdir_y += 0x200;
     }
     if ((pEm->Type & 0xF) >= 6) {
         pEm->Cdir_y += 0x200;
-        RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+        RotMatrix_gte(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[8];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[12];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[13];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP->Be_flg |= 2;
         pEm->Cdir_y -= 0x200;
     }
     if ((pEm->Type & 0xF) >= 8) {
         pEm->Cdir_y -= 0x200;
-        RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+        RotMatrix_gte(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pEm->pSin_parts_ptr[8].Be_flg |= 2;
         pEm->Cdir_y += 0x200;
     }

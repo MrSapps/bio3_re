@@ -99,7 +99,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (pPl->Id >= 8) {
                 if (pEm->Move_cnt == 0x16) {
                     pW = &pEm->pSin_parts_ptr[1];
-                    pEm->Unk120 |= 1;
+                    pEm->Neck_flg |= 1;
                     pW->UnkA2 |= 4;
                     PW_RGB(pW)->Rgb0 = 0x40;
                     PW_RGB(pW)->Rgb1 = 0x202030;
@@ -114,7 +114,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             } else {
                 if (pEm->Move_cnt == 0x1C) {
                     pW = &pEm->pSin_parts_ptr[1];
-                    pEm->Unk120 |= 1;
+                    pEm->Neck_flg |= 1;
                     pW->UnkA2 |= 4;
                     PW_RGB(pW)->Rgb0 = 0x40;
                     PW_RGB(pW)->Rgb1 = 0x202030;
@@ -140,11 +140,11 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt |= 0x80;
         break;
     case 7:
-        func_80018EC8(pEm, pKan, pSeq, 0);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_2 = 8;
     case 8:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
         pEm->Spd_x -= 10;
         Add_speedXZ(pEm, 0);
