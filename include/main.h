@@ -79,7 +79,7 @@ typedef struct tagMAIN {
     RECT Rect;                         /* 0x184 RE2 Main.Rect */
     UCHAR Vloop;                       /* 0x18C RE2 Main.Vloop (Door_exit) */
     UCHAR Bg_mode;                     /* 0x18D */
-    UCHAR Unk18E;                      /* 0x18E flash request (func_80024F74) */
+    UCHAR Unk18E;                      /* 0x18E flash request (Live_select_flash) */
     UCHAR Pollhost_flg;                /* 0x18F RE2 Pollhost_flg: main loop breaks into the debugger */
     UCHAR pad190;
     UCHAR Unk191;                      /* 0x191 bg image +0x14 offset (Swap_Cbuff) */
@@ -94,7 +94,7 @@ typedef struct tagMAIN {
 } tagMAIN;
 extern tagMAIN Main;                   /* 0x800D42A0 */
 
-/* save block kept by Game.pSave (func_80024B34): the save image, the player state,
+/* save block kept by Game.pSave (Game_save_load): the save image, the player state,
  * then the demo pad data (RE2 struct PDEMO) */
 typedef struct tagSAVE_POS {
     UCHAR Data[0x708];                 /* 0x000 copied to G+0x77F0 */
@@ -123,7 +123,7 @@ typedef struct tagGAME {
     VECTOR Plight_pos;                 /* 0x30 */
     UCHAR pad40[0x44 - 0x40];
     ULONG Stop_bak;                    /* 0x44 RE2 Game.Stop_bak */
-    SAVE_POS *pSave;                   /* 0x48 (func_80024B34) */
+    SAVE_POS *pSave;                   /* 0x48 (Game_save_load) */
     UCHAR Unk4C;                       /* 0x4C */
     UCHAR Unk4D;                       /* 0x4D */
     UCHAR Unk4E;                       /* 0x4E (Set_door) */

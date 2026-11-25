@@ -40,8 +40,10 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
+/* RE2 Game_loop: game task: per frame player, enemies, scenario, drawing, room changes */
 INCLUDE_ASM("asm/nonmatchings/game/game", Game_loop);
 
+/* RE2 Gun_light_set: muzzle flash light */
 void Gun_light_set(void)
 {
     LIGHT_CUT_DATA *pLight;
@@ -100,6 +102,7 @@ void Gun_light_set(void)
     pLight->L[2] = 6000;
 }
 
+/* RE2 Gun_light_reset */
 void Gun_light_reset(void)
 {
     Memcpy(Get_light_cut(&G.Player.Pos_x), Game.Plight_bak, 0x28);
@@ -109,8 +112,9 @@ void Gun_light_reset(void)
     }
 }
 
+/* game start: places the player (new game, Mercenaries, or a loaded save), sets the stage and room */
 /* game start: place the player (new game, demo or loaded save), load the stage and room */
-void func_800245A0(void)
+void Game_init(void)
 {
     tagGLOBAL *pG = &G;
     tagMAIN *pMain = &Main;
@@ -149,7 +153,7 @@ void func_800245A0(void)
             pG->Unk784E = 0;
         }
     } else if (pG->System_flg & 0x10000000) {
-        func_80024B34();
+        Game_save_load();
         pG->pItem_set = &G.Item_work[G.Item_work_no];
         goto set;
     } else {
@@ -212,6 +216,7 @@ typedef struct tagDOOR_NEXT {
     UCHAR Next_nfloor;                 /* 0xB */
 } DOOR_NEXT;
 
+/* RE2 Set_door: next position, stage, room and cut from the door AOT */
 void Set_door(void)
 {
     tagGLOBAL *pG;
@@ -221,7 +226,7 @@ void Set_door(void)
     pG = &G;
     pG->Unk2470 = 0;
     if (pG->Status_flg & 0x40000000) {
-        func_80024C58();
+        Chaser_data_save();
     }
     pG->Player.Damage_cnt = 0;
     pG->Player.Be_flg &= 0x9F4F;
@@ -267,7 +272,8 @@ void Set_door(void)
     Task_sleep(1);
 }
 
-void func_80024B34(void)
+/* restores G and the player from a loaded save (System_flg 0x10000000) */
+void Game_save_load(void)
 {
     ENEMY_WORK *pPl;
     SAVE_POS *pSave;
@@ -294,10 +300,12 @@ void func_80024B34(void)
     pMain->Unk195 = pSave->Unk713;
 }
 
-void func_80024C50(void) {
+/* empty */
+void Game_dummy(void) {
 }
 
-void func_80024C58(void)
+/* keeps Nemesis' life, type and free work in G (enemy ids 0x34..0x36) */
+void Chaser_data_save(void)
 {
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pEm;
@@ -315,7 +323,8 @@ void func_80024C58(void)
     }
 }
 
-void func_80024CE8(void)
+/* live selection task: flashes, shows the choice and waits (two Live_select_flash rounds) */
+void Live_select(void)
 {
     ULONG i;
 
@@ -328,51 +337,52 @@ void func_80024CE8(void)
     Flash_fade_in();
     Fade_set(2, 0, 0, 2, 0xFFFFFF, 0xFFFFFF, 1);
     Task_sleep(1);
-    D_800C703C.Flg = 1;
+    Live_sel.Negate = 1;
     Flash_fade_out();
     Flash_fade_in();
-    Mess_set(0, 0x2001, D_800C703C.Mess_no, 0);
-    D_800C703C.Unk3 = 0x62;
-    D_800C703C.Cnt = 0;
+    Mess_set(0, 0x2001, Live_sel.Mess_no, 0);
+    Live_sel.Mess_y = 0x62;
+    Live_sel.Step = 0;
     Flash_fade_out();
     Flash_fade_in();
     Fade_set(2, 0, 0, 1, 0xFFFFFF, 0xFFFFFF, 1);
-    D_800C703C.Unk3 = 0xB3;
+    Live_sel.Mess_y = 0xB3;
     Task_sleep(1);
-    D_800C703C.Flg = 0;
+    Live_sel.Negate = 0;
     Fade_set(2, 0, 0, 1, 0xFFFFFF, 0, 4);
     while (Fade_status(2) != 0) {
         Task_sleep(1);
     }
-    D_800C703C.Unk1 = 1;
+    Live_sel.Wait = 1;
     Ctrl_mode = 2;
     G.System_flg &= ~0x400;
-    if (!func_80024F74() && !func_80024F74()) {
-        D_800C703C.Cnt++;
+    if (!Live_select_flash() && !Live_select_flash()) {
+        Live_sel.Step++;
         while (G.Status_flg & 0x10000000) {
             Task_sleep(1);
         }
     }
     G.System_flg |= 0x400;
-    D_800C703C.Flg = 1;
+    Live_sel.Negate = 1;
     func_8003884C(Vib_data_tbl, 0);
     Snd_se_stad(0x22E, NULL, 0, 0);
     i = 7;
     do {
         Task_sleep(1);
     } while (i-- != 0);
-    D_800C703C.Flg = 0;
+    Live_sel.Negate = 0;
     Ctrl_mode = 2;
-    D_800C703C.Unk1 = 0;
+    Live_sel.Wait = 0;
     G.System_flg &= ~0x400;
     Task_exit();
 }
 
-ULONG func_80024F74(void)
+/* one flash of the live selection; returns 1 once the choice was made */
+ULONG Live_select_flash(void)
 {
     ULONG i;
 
-    D_800C703C.Cnt++;
+    Live_sel.Step++;
     if (Main.Unk18E == 0) {
         do {
             Task_sleep(1);
@@ -382,7 +392,7 @@ ULONG func_80024F74(void)
         } while (Main.Unk18E == 0);
     }
     Main.Unk18E = 0;
-    D_800C703C.Flg = 1;
+    Live_sel.Negate = 1;
     G.System_flg |= 0x400;
     func_8003884C(Vib_data_tbl, 0);
     Snd_se_stad(0x22E, NULL, 0, 0);
@@ -399,10 +409,11 @@ ULONG func_80024F74(void)
     if (!(G.Status_flg & 0x10000000)) {
         return 1;
     }
-    D_800C703C.Flg = 0;
+    Live_sel.Negate = 0;
     return 0;
 }
 
+/* white flash in, with vibration and sound */
 void Flash_fade_in(void)
 {
     func_8003884C(Vib_data_tbl, 0);
@@ -413,6 +424,7 @@ void Flash_fade_in(void)
     }
 }
 
+/* white flash out */
 void Flash_fade_out(void)
 {
     ULONG i;

@@ -133,7 +133,7 @@ int main(void)
 /* RE2 Swap_Cbuff: waits for the frame, swaps the draw/display buffers and starts drawing */
 INCLUDE_ASM("asm/nonmatchings/game/main", Swap_Cbuff);
 
-/* inverts the colours of the displayed frame in VRAM (Swap_Cbuff, while D_800C703C is set) */
+/* inverts the colours of the displayed frame in VRAM (Swap_Cbuff, while Live_sel is set) */
 void Scrn_negate(void)
 {
     RECT Rect;

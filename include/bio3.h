@@ -179,7 +179,7 @@ typedef struct tagCOL_OBJ {
     LONG Pos_x;                        /* 0x034 */                            \
     LONG Pos_y;                        /* 0x038 */                            \
     LONG Pos_z;                        /* 0x03C */                            \
-    SHORT Old_x;                       /* 0x040 RE2 Old_x: position of the last frame (func_80024B34) */ \
+    SHORT Old_x;                       /* 0x040 RE2 Old_x: position of the last frame (Game_save_load) */ \
     SHORT Old_y;                       /* 0x042 */                            \
     SHORT Old_z;                       /* 0x044 */                            \
     USHORT Type;                       /* 0x046 low byte = player weapon (RE2 Type & 0xfff) */ \
@@ -314,7 +314,7 @@ typedef struct tagPLAYER_WORK {
 
 typedef struct tagENEMY_WORK {
     EM_WORK_HEAD
-    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Unk7D90 (func_80024C58) */
+    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Unk7D90 (Chaser_data_save) */
 } ENEMY_WORK;
 STATIC_ASSERT(player_work_size, sizeof(PLAYER_WORK) == 0x1CC);
 STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
@@ -487,7 +487,7 @@ typedef struct tagGLOBAL {
     UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Vol.Bgm */
     UCHAR Save_mono;                   /* 0x7D8E Snd_work.Mono */
     UCHAR pad7D8F;
-    ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (func_80024C58) */
+    ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (Chaser_data_save) */
     struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (func_80037A90) */
         UCHAR Unk0;
         UCHAR Unk1;

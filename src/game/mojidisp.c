@@ -254,7 +254,7 @@ void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
     if (pMoji->Timer != 0) {
         pMoji->Timer--;
     }
-    if (D_800C703C.Cnt != 0) {
+    if (Live_sel.Step != 0) {
         if (G.Key_trg & 0x1000) {
             if (pMoji->Timer == 0) {
                 G.Key = 0xFFFF;
@@ -347,10 +347,10 @@ void func_80030764(MOJIDISP *pMoji, UCHAR *pData)
         Mess_print(X, Y + i * 0x16, pLine[i], pMoji->Mess_attr2);
     }
     Y += Sel * 0x16;
-    if (D_800C703C.Cnt == 0) {
+    if (Live_sel.Step == 0) {
         return;
     }
-    switch (D_800C703C.Cnt) {
+    switch (Live_sel.Step) {
     case 1:
         Col0 = 0x48E02020;
         Col1 = 0x48600000;
