@@ -5,7 +5,7 @@
 
 /* Capcom's declarations in this module differ from the exe's: Dir_pos_ck takes int directions
    (no narrowing at the call) and Cdir_ck returns int (no andi after the call) */
-LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
+LONG Dir_pos_ck_l(LONG *pPos, LONG *pTg, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 
 /* per-frame entry (RE2 EM_MAIN): follow the parent part, then grow/shrink with the ground under parts 3..5 */
@@ -180,7 +180,7 @@ void Em39_wait_br(ENEMY_WORK *pEm)
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     Turn = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x280);
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);
-    Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x400, 0x264);
+    Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x400, 0x264);
     if (Dist < 7000 && !Turn && !EM39_W(pEm)->Wait && !pEm->Spd_z)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
 }

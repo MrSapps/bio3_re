@@ -7,7 +7,7 @@ void Em30_part_hang(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate)
     SVECTOR Rot;
     LONG Dx;
     LONG Dz;
-    LONG a;
+    LONG Ang;
 
     pP1->Be_flg |= 2;
     ApplyMatrixLV(&pP0->Workm, (VECTOR *)&pP1->Pos_x, &Pos);
@@ -24,11 +24,11 @@ void Em30_part_hang(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate)
     Dx = Pos.vx - Tip.vx;
     Dz = Pos.vz - Tip.vz;
     if (Dx) {
-        a = catan((Dz << 12) / Dx);
+        Ang = catan((Dz << 12) / Dx);
         if (Dx < 0)
-            Rot.vy = 0x800 - a;
+            Rot.vy = 0x800 - Ang;
         else
-            Rot.vy = 0x1000 - a;
+            Rot.vy = 0x1000 - Ang;
     } else if (Dz > 0)
         Rot.vy = 0xC00;
     else

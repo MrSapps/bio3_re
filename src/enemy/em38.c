@@ -10,7 +10,7 @@
    arithmetic on Rnd, no andi after Cdir_ck), Dir_pos_ck takes int directions (no narrowing at the
    call), and func_800251FC (RE2 Joint_trans) is called with a fourth argument */
 LONG Rnd_l(void) __asm__("Rnd");
-LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
+LONG Dir_pos_ck_l(LONG *pPos, LONG *pTg, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 void func_800251FC_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC");
 
@@ -537,8 +537,8 @@ void Em38_walk_br(ENEMY_WORK *pEm)
     Ck_100 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100);
     Ck_280 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x280);
     Ck_600 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);
-    Ck_l = Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x600, 0x200);
-    Ck_r = Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y - 0x600, 0x200);
+    Ck_l = Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x600, 0x200);
+    Ck_r = Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y - 0x600, 0x200);
     Ck_400 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     if (L_pl < 2500 && !Ck_280)
         EM_SET_RTN(pEm, 1, 3, 0, 0);
