@@ -33,3 +33,7 @@ Em36_sce = 0x8010CF0C;
 Em36_die = 0x8010CF3C;
 Em36_die2 = 0x8010CF4C;
 Em36_hit_area = 0x8010CF5C;
+Em34_foot_set = 0x8010B4F8; // type:func
+Em34_blood_spray = 0x8010B9EC; // type:func
+Em34_sce05 = 0x8010935C; // type:func
+Em34_blood_set = 0x8010B5EC; // type:func

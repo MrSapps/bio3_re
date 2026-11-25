@@ -2067,9 +2067,9 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     if (!pEm->Routine_2) {
         if (pEm->Unk132 & 0x100)
-            func_8010B9EC(pEm);
+            Em34_blood_spray(pEm);
         if (pEm->Unk132 & 0x400)
-            func_8010B9EC(pEm);
+            Em34_blood_spray(pEm);
         if (pEm->Unk132 & 0x200)
             func_8010BBE8(pEm);
         if (pEm->Unk132 & 0x800)
@@ -2091,7 +2091,7 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (EM36_W(pEm)->Flg & 1) {
             EM36_W(pEm)->Unk0C = 1;
             EM_RTN(pEm) = pEm->Unk1C4;
-            func_8010B5EC(pEm);
+            Em34_blood_set(pEm);
             if (pEm->Routine_0 == 4)
                 func_80108EA4(pEm, pKan, pSeq);
             else
@@ -2126,7 +2126,7 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (EM36_W(pEm)->Flg & 1) {
             EM36_W(pEm)->Unk0C = 1;
             EM_RTN(pEm) = pEm->Unk1C4;
-            func_8010B5EC(pEm);
+            Em34_blood_set(pEm);
             if (pEm->Routine_0 == 4)
                 func_80108EA4(pEm, pKan, pSeq);
             else
@@ -2146,7 +2146,7 @@ void func_80107724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_MOVE(pEm) = (Rnd_l() & 1) + 0x7000B;
         pEm->Routine_2 = 1;
-        func_8010B5EC(pEm);
+        Em34_blood_set(pEm);
         if (pEm->Unk132 & 0x10)
             EM_MOVE(pEm) = 0x7000F;
         if (EM36_W(pEm)->pSub) {
@@ -2215,7 +2215,7 @@ void func_80107990(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Type |= 0x4000;
         }
         pEm->Damage_cnt |= 0x80;
-        func_8010B5EC(pEm);
+        Em34_blood_set(pEm);
         EM36_W(pEm)->Flg |= 8;
         if ((UCHAR)pEm->Type != 3)
             Snd_se_enem(12, pEm);
@@ -2275,7 +2275,7 @@ void func_80107C60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
     }
     EM_RTN(pEm) = pEm->Unk1C4;
-    func_8010B5EC(pEm);
+    Em34_blood_set(pEm);
     if (pEm->Routine_0 == 2) {
         EM_RTN(pEm) = 0x101;
         if (!(EM36_W(pEm)->Flg & 0x800) && Rnd_l() & 1)
@@ -2381,7 +2381,7 @@ void func_80108134(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_MOVE(pEm) = 0x3001F;
         pEm->Routine_2 = 1;
         pEm->Damage_cnt |= 0x80;
-        func_8010B5EC(pEm);
+        Em34_blood_set(pEm);
         EM36_W(pEm)->Flg |= 8;
         Snd_se_enem(12, pEm);
         pEm->Type |= 0x2000;
@@ -2609,9 +2609,9 @@ void func_80108988(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         if (pEm->Unk132 & 0x100)
-            func_8010B9EC(pEm);
+            Em34_blood_spray(pEm);
         if (pEm->Unk132 & 0x400)
-            func_8010B9EC(pEm);
+            Em34_blood_spray(pEm);
         if (pEm->Unk132 & 0x200)
             func_8010BBE8(pEm);
         if (pEm->Unk132 & 0x800)
@@ -2626,7 +2626,7 @@ void func_80108988(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Life = 0;
             pEm->Damage_cnt &= 0x7F;
             EM_RTN(pEm) = pEm->Unk1C4;
-            func_8010B5EC(pEm);
+            Em34_blood_set(pEm);
             func_8010105C(pEm, pKan, pSeq);
         }
     } else {
@@ -2813,26 +2813,7 @@ void func_80109224(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* sce: play motion Add_dir */
-void func_8010935C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
-{
-    switch (pEm->Routine_2) {
-    case 0:
-        pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir;
-    case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
-        pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x400);
-        Add_speedXZ(pEm, 0);
-        break;
-    case 2:
-        if (pEm->Unk14A) {
-            EM_RTN(pEm) = 0x101;
-            pEm->Spd_x = 0;
-            pEm->Spd_z = 0;
-        }
-    }
-}
+#include "ovl/shared/em34/Em34_sce05.inc.c"
 
 /* sce: jump forward, then slide to a stop */
 void func_80109440(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
@@ -3691,60 +3672,9 @@ void func_8010B308(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em2a_foot_set: keep foot Leg on the ground */
-void func_8010B4F8(ENEMY_WORK *pEm, ULONG Unused, ULONG Leg)
-{
-    PARTS_W *pP;
-    MATRIX M;
+#include "ovl/shared/em34/Em34_foot_set.inc.c"
 
-    pP = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
-    CompM(&M, (MATRIX *)pP[9].M, &M);
-    pP += Leg * 3 + 12;
-    CompM(&M, (MATRIX *)pP[-2].M, &M);
-    CompM(&M, (MATRIX *)pP[-1].M, &M);
-    CompM(&M, (MATRIX *)pP->M, &M);
-    pEm->Pos_x -= M.t[0] - pP->Workm.t[0];
-    pEm->Pos_z -= M.t[2] - pP->Workm.t[2];
-}
-
-/* blood effect of a hit (RE2 Em2a_blood_set) */
-void func_8010B5EC(ENEMY_WORK *pEm)
-{
-    PARTS_W *pP;
-    LONG Dir;
-    LONG Dir2;
-    SVECTOR Ofs;
-
-    Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z) - (USHORT)pEm->Cdir_y;
-    if (pEm->Unk132 & 0xA00)
-        return;
-    if ((pEm->Unk132 & 3) == 1) {
-        pP = pEm->pSin_parts_ptr;
-        Ofs.vx = 0x40 - (Rnd_l() & 0x7F);
-        Ofs.vy = 1500;
-        Ofs.vz = 0x40 - (Rnd_l() & 0x7F);
-        Esp_call(0x700, (Dir & 0xFFFF) | 0x10000000, &pP->Workm, &Ofs, NULL);
-    } else if ((pEm->Unk132 & 3) == 3) {
-        pP = &pEm->pSin_parts_ptr[2];
-        Ofs.vx = 0x40 - (Rnd_l() & 0x7F);
-        Ofs.vy = 0;
-        Ofs.vz = 0x40 - (Rnd_l() & 0x7F);
-        Esp_call(0x700, (Dir & 0xFFFF) | 0x10000000, &pP->Workm, &Ofs, NULL);
-    } else {
-        pP = pEm->pSin_parts_ptr;
-        Ofs.vx = 0x40 - (Rnd_l() & 0x7F);
-        Ofs.vy = 200;
-        Ofs.vz = 0x40 - (Rnd_l() & 0x7F);
-        Esp_call(0x700, ((Rnd_l() * 2 + 0x1000) << 16) | (Dir & 0xFFFF), &pP->Workm, &Ofs, NULL);
-    }
-    if (pEm->Unk12C == 5) {
-        Dir2 = Dir + 0x80;
-        Esp_call(0x100, ((Rnd_l() * 2 + 0x1800) << 16) | ((Dir2 - Rnd_l()) & 0xFFFF), &pP->Workm, &Ofs, NULL);
-        Esp_call(0x100, ((Rnd_l() * 2 + 0x1800) << 16) | ((Dir2 - Rnd_l()) & 0xFFFF), &pP->Workm, &Ofs, NULL);
-    }
-}
+#include "ovl/shared/em34/Em34_blood_set.inc.c"
 
 void func_8010B7FC(void) {
 }
@@ -3791,41 +3721,7 @@ void func_8010B804(ENEMY_WORK *pEm)
     pP3->UnkA2 |= 0x40;
 }
 
-/* blood spray of a hit (Unk132 & 0x100) */
-void func_8010B9EC(ENEMY_WORK *pEm)
-{
-    PARTS_W *pP;
-    MATRIX *pM;
-    MATRIX *pM2;
-    SVECTOR Ofs;
-
-    pP = pEm->pSin_parts_ptr;
-    pEm->Status_flg |= 1;
-    Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, &pP[13].Workm, NULL, NULL);
-    Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, &pP[13].Workm, NULL, NULL);
-    if ((pEm->Unk132 & 3) == 1) {
-        pM = (MATRIX *)pEm->pSin_parts_ptr;
-        pM = &((PARTS_W *)pM)[11].Workm;
-        Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, pM, NULL, NULL);
-        Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, pM, NULL, NULL);
-        pM = (MATRIX *)pEm->pSin_parts_ptr;
-        pM = &((PARTS_W *)pM)[14].Workm;
-        Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, pM, NULL, NULL);
-        Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, pM, NULL, NULL);
-    } else {
-        pM2 = (MATRIX *)pEm->pSin_parts_ptr;
-        pM2 = &((PARTS_W *)pM2)[9].Workm;
-        Ofs.vx = 0x80 - Rnd_l();
-        Ofs.vy = -300;
-        Ofs.vz = 0x80 - Rnd_l();
-        Esp_call(0x205, (Rnd_l() * 16 + 0x1F00) << 16, pM2, &Ofs, NULL);
-        Esp_call(0x1001B03, (Rnd_l() * 16 + 0x1000) << 16, pM2, &Ofs, NULL);
-        pM = (MATRIX *)pEm->pSin_parts_ptr;
-        pM = &((PARTS_W *)pM)[3].Workm;
-        Esp_call(0x205, (Rnd_l() * 16 + 0x1000) << 16, pM, NULL, NULL);
-        Esp_call(0x1001B03, (Rnd_l() * 16 + 0xA00) << 16, pM, NULL, NULL);
-    }
-}
+#include "ovl/shared/em34/Em34_blood_spray.inc.c"
 
 /* knocked back (weaker variant of func_8010B804) */
 void func_8010BBE8(ENEMY_WORK *pEm)
