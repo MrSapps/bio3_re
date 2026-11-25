@@ -5,9 +5,12 @@
 #include "sca.h"
 #include "snd.h"
 
-void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("func_8004A934"); /* 3 args here (canonical 2) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* returns long here (canonical UC) */
-LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* arg 3 long (canonical short); arg 4 long (canonical short) */
+/* Capcom's declarations in this module differ from the exe's: the sabun call func_8004A934 is
+   passed a third argument, Cdir_ck returns int (no andi after the call), and Dir_pos_ck takes int
+   directions (no narrowing at the call) */
+void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("func_8004A934");
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
+LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
 
 /* RE2 Em12a: enemy main routine */
 void func_801000F8(ENEMY_WORK *pEm)

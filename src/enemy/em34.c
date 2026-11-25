@@ -6,13 +6,10 @@
 #include "snd.h"
 #include "spl_auto.h"
 
-extern LONG D_800D1F2C_ __asm__("D_800D1F2C"); /* type differs from the canonical extern */
-void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
-
-/* module .data (names after RE2 EM2A.C) */
-/* arm models: the claw arm from pUnk174 and the original arm, parts 5 and 8 */
-      /* .rodata, shared by two motions */    /* .rodata, shared by two player routines */
+/* Capcom's declarations in this module differ from the exe's: func_8002646C takes int arguments
+   (no narrowing at the call) and Cdir_ck returns int (no andi after the call) */
+void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C");
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 
 /* @aliases-end */
 
@@ -102,7 +99,7 @@ void Em134(ENEMY_WORK *pEm)
         EM34_W(pEm)->Seek_timer--;
     if (EM34_W(pEm)->Run_timer)
         EM34_W(pEm)->Run_timer--;
-    if (D_800D1F2C_ < 0) {
+    if ((LONG)D_800D1F2C < 0) {
         if (EM34_W(pEm)->Punch_timer)
             EM34_W(pEm)->Punch_timer--;
         if (EM34_W(pEm)->Shoot_timer)
@@ -149,7 +146,7 @@ void Em34_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
 void Em34_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (D_800D1F2C_ >= 0)
+    if ((LONG)D_800D1F2C >= 0)
         Em34_mv_br_type00[pEm->Routine_1](pEm);
     else
         Em34_mv_br_type00h[pEm->Routine_1](pEm);
@@ -158,7 +155,7 @@ void Em34_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
 void Em34_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (D_800D1F2C_ >= 0)
+    if ((LONG)D_800D1F2C >= 0)
         Em34_mv_br_type01[pEm->Routine_1](pEm);
     else
         Em34_mv_br_type01h[pEm->Routine_1](pEm);
@@ -1009,7 +1006,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (func_80047F70(pEm, &At, &Em34_at_data))
                     Snd_se_enem(4, pEm);
             }
-            if (D_800D1F2C_ < 0 && !pSpl->Damage_cnt) {
+            if ((LONG)D_800D1F2C < 0 && !pSpl->Damage_cnt) {
                 Mat = pP->Workm;
                 Ofs.vy = 100;
                 Ofs.vx = 0;
@@ -1128,7 +1125,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (func_80047F70(pEm, &At, &Em34_at_data))
                     Snd_se_enem(4, pEm);
             }
-            if (D_800D1F2C_ < 0 && !pSpl->Damage_cnt) {
+            if ((LONG)D_800D1F2C < 0 && !pSpl->Damage_cnt) {
                 Ofs.vy = 300;
                 Ofs.vx = 0;
                 Ofs.vz = 0;
@@ -2473,7 +2470,7 @@ void Em34_sce02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x100);
         if (!(pEm->Unk14A & 0x10))
             Add_speedXZ(pEm, 0);
-        if ((pEm->Unk14A & 8) && (D_800D1F2C_ & 0x2000))
+        if ((pEm->Unk14A & 8) && (D_800D1F2C & 0x2000))
             func_80037A90(pEm, 30);
         break;
     case 2:
@@ -2517,7 +2514,7 @@ void Em34_sce04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM34_W(pEm)->Flg |= 1;
         pEm->Unk120 |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
-        if ((pEm->Unk14A & 8) && (D_800D1F2C_ & 0x2000))
+        if ((pEm->Unk14A & 8) && (D_800D1F2C & 0x2000))
             func_80037A90(pEm, 0);
     case 1:
         Spd_get(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
