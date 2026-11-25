@@ -28,30 +28,30 @@ void func_801C20FC(void)
     ULONG n;
     ENEMY_WORK *pEm;
 
-    func_801C4944(&Select_obj[0], 5);
-    func_801C4944(&Select_obj[1], 5);
-    func_801C4944(&Select_obj[2], 5);
-    func_801C4944(&Select_obj[3], 5);
-    func_801C4944(&Select_obj[4], 5);
-    func_801C4944(&Select_obj[5], 5);
-    func_801C4944(&Select_obj[21], 6);
-    func_801C4944(&Select_obj[22], 6);
-    func_801C4944(&Select_obj[23], 6);
+    Jill_obj_draw(&Select_obj[0], 5);
+    Jill_obj_draw(&Select_obj[1], 5);
+    Jill_obj_draw(&Select_obj[2], 5);
+    Jill_obj_draw(&Select_obj[3], 5);
+    Jill_obj_draw(&Select_obj[4], 5);
+    Jill_obj_draw(&Select_obj[5], 5);
+    Jill_obj_draw(&Select_obj[21], 6);
+    Jill_obj_draw(&Select_obj[22], 6);
+    Jill_obj_draw(&Select_obj[23], 6);
     func_801C2E1C();
     pSel = &Select_wk;
     if (pSel->Main_no < 3) {
         func_801C41E0();
-        func_801C4944(&Select_obj[6], 5);
-        func_801C4944(&Select_obj[7], 5);
+        Jill_obj_draw(&Select_obj[6], 5);
+        Jill_obj_draw(&Select_obj[7], 5);
         for (n = 6, i = 0; n != 0; i++, n--) {
             func_801C4BAC(&Select_obj[8 + i], &Select_name_def[Select_name_idx[pSel->Cursor_no][i]], 0x1F10017);
         }
-        func_801C4944(&Select_obj[8], 3);
-        func_801C4944(&Select_obj[9], 3);
-        func_801C4944(&Select_obj[10], 3);
-        func_801C4944(&Select_obj[11], 3);
-        func_801C4944(&Select_obj[12], 3);
-        func_801C4944(&Select_obj[13], 3);
+        Jill_obj_draw(&Select_obj[8], 3);
+        Jill_obj_draw(&Select_obj[9], 3);
+        Jill_obj_draw(&Select_obj[10], 3);
+        Jill_obj_draw(&Select_obj[11], 3);
+        Jill_obj_draw(&Select_obj[12], 3);
+        Jill_obj_draw(&Select_obj[13], 3);
     } else {
         Select_obj[3].Y += 10;
     }
@@ -63,7 +63,7 @@ void func_801C20FC(void)
         pEm->pUnk7C = pG->pOt1;
         func_801C28D0(pEm);
         func_800251FC_(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
-        func_801C39A4(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
+        Jill_pl_trans(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
     }
 }
 
@@ -93,29 +93,29 @@ void func_801C235C(void)
     SetGeomScreen(300);
     pSel->pHeap = (UCHAR *)0x80100000;
     pSel->Cursor_no = 1;
-    func_801C47D4(&Select_obj[0], &Select_sprt_def[0], 0x1EF0015, 0x808080);
-    func_801C47D4(&Select_obj[1], &Select_sprt_def[1], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[0], &Select_sprt_def[0], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[1], &Select_sprt_def[1], 0x1EF0015, 0x808080);
     Select_obj[1].pOya = &Select_obj[0];
-    func_801C47D4(&Select_obj[2], &Select_sprt_def[2], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[2], &Select_sprt_def[2], 0x1EF0015, 0x808080);
     Select_obj[2].pOya = &Select_obj[1];
-    func_801C47D4(&Select_obj[3], &Select_sprt_def[3], 0x1EF0015, 0x808080);
-    func_801C47D4(&Select_obj[4], &Select_sprt_def[4], 0x1EF0016, 0x808080);
+    Jill_obj_init(&Select_obj[3], &Select_sprt_def[3], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[4], &Select_sprt_def[4], 0x1EF0016, 0x808080);
     Select_obj[4].pOya = &Select_obj[3];
-    func_801C47D4(&Select_obj[5], &Select_sprt_def[5], 0x1EF0016, 0x808080);
+    Jill_obj_init(&Select_obj[5], &Select_sprt_def[5], 0x1EF0016, 0x808080);
     Select_obj[5].pOya = &Select_obj[4];
-    func_801C47D4(&Select_obj[6], &Select_sprt_def[6], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[6], &Select_sprt_def[6], 0x1EF0015, 0x808080);
     Select_obj[6].Flg |= 0xC;
-    func_801C47D4(&Select_obj[7], &Select_sprt_def[7], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[7], &Select_sprt_def[7], 0x1EF0015, 0x808080);
     Select_obj[7].Flg |= 0xC;
-    func_801C47D4(&Select_obj[8], &Select_sprt_def[8], 0x1F10017, 0x808080);
-    func_801C47D4(&Select_obj[9], &Select_sprt_def[9], 0x1F10017, 0x808080);
-    func_801C47D4(&Select_obj[10], &Select_sprt_def[10], 0x1F10017, 0x808080);
-    func_801C47D4(&Select_obj[11], &Select_sprt_def[11], 0x1F10017, 0x808080);
-    func_801C47D4(&Select_obj[12], &Select_sprt_def[12], 0x1F10017, 0x808080);
-    func_801C47D4(&Select_obj[13], &Select_sprt_def[13], 0x1F10017, 0x808080);
-    func_801C47D4(&Select_obj[21], &Select_sprt_def[21], 0x1EF0015, 0x808080);
-    func_801C47D4(&Select_obj[22], &Select_sprt_def[22], 0x1EF0015, 0x808080);
-    func_801C47D4(&Select_obj[23], &Select_sprt_def[23], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[8], &Select_sprt_def[8], 0x1F10017, 0x808080);
+    Jill_obj_init(&Select_obj[9], &Select_sprt_def[9], 0x1F10017, 0x808080);
+    Jill_obj_init(&Select_obj[10], &Select_sprt_def[10], 0x1F10017, 0x808080);
+    Jill_obj_init(&Select_obj[11], &Select_sprt_def[11], 0x1F10017, 0x808080);
+    Jill_obj_init(&Select_obj[12], &Select_sprt_def[12], 0x1F10017, 0x808080);
+    Jill_obj_init(&Select_obj[13], &Select_sprt_def[13], 0x1F10017, 0x808080);
+    Jill_obj_init(&Select_obj[21], &Select_sprt_def[21], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[22], &Select_sprt_def[22], 0x1EF0015, 0x808080);
+    Jill_obj_init(&Select_obj[23], &Select_sprt_def[23], 0x1EF0015, 0x808080);
 
     /* message window work, then the three player works */
     pWork = pSel->pHeap + sizeof(SELECT_MOJI);
@@ -140,7 +140,7 @@ void func_801C235C(void)
         pEm->Unk12A = Select_pl_init[i].Unk18;
         *(ULONG *)&pEm->Move_no = 0x70000;
         pWork = func_801C3830(pEm, (5 + i * 2) | ((i * 2) << 16), (ULONG *)pWork);
-        pWork = func_801C3AE4(pEm, (ULONG *)pWork, i);
+        pWork = Jill_wep_load(pEm, (ULONG *)pWork, i);
         pEm->Routine_0 = i;
         pEm->Routine_1 = 0;
         pEm->Routine_2 = 0;
@@ -599,44 +599,11 @@ void func_801C3660(void)
 
 INCLUDE_ASM("asm/nonmatchings/ovl/select/select", func_801C3830);
 
-/* RE2 Select_pl_trans */
-void func_801C39A4(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos)
-{
-    ULONG n;
+#include "ovl/shared/jill_sel/Jill_pl_trans.inc.c"
 
-    if (!(Be_flg & 0x10)) {
-        n = pEm->Parts_num;
-    loop:
-        if ((pParts->Be_flg & 1) && (pParts->UnkA2 & 1)) {
-            func_80025610(pEm, pParts, pParts->UnkA2, &pParts->Workm);
-        }
-        n--;
-        pParts++;
-        if (n != 0) {
-            goto loop;
-        }
-    }
-}
+#include "ovl/shared/jill_sel/Jill_light_set.inc.c"
 
-/* light No of LIGHTMATRIX/COLORMATRIX from a direction and a 0xBBGGRR colour (unused) */
-void func_801C3A2C(ULONG No, VECTOR *pVec, ULONG Rgb)
-{
-    SHORT *pL;
-    SHORT *pC;
-    VECTOR nrm;
-
-    pL = LIGHTMATRIX.m[No];
-    pC = &COLORMATRIX.m[0][No];
-    VectorNormal(pVec, &nrm);
-    pL[0] = nrm.vx * -1;
-    pL[1] = nrm.vy * -1;
-    pL[2] = nrm.vz * -1;
-    pC[0] = (Rgb & 0xFF) << 4;
-    pC[3] = (Rgb & 0xFF00) >> 4;
-    pC[6] = (Rgb >> 12) & 0xFF0;
-}
-
-INCLUDE_ASM("asm/nonmatchings/ovl/select/select", func_801C3AE4);
+INCLUDE_ASM("asm/nonmatchings/ovl/select/select", Jill_wep_load);
 
 /* RE2 Select_moji_set */
 void func_801C3DB8(ULONG *pDst, SELECT_MOJI_REC *pSrc)
@@ -910,112 +877,10 @@ void func_801C4774(void)
 /* "Select"; the 0x11 is the original linker's fill before .text, kept for the byte match */
 const char Select_str_sel[8] = { 'S', 'e', 'l', 'e', 'c', 't', 0, 0x11 };
 
-/* sprite init from a definition; TpClut = texture page | clut row << 16 */
-void func_801C47D4(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
-{
-    SEL_SPRT *pSp;
-    DR_MODE *pDr;
-    ULONG Tp;
-    LONG X;
+#include "ovl/shared/jill_sel/Jill_obj_init.inc.c"
 
-    pObj->Flg = 1;
-    pObj->Timer = 0;
-    pObj->pOya = NULL;
-    pObj->X = pDef->X;
-    pObj->Y = pDef->Y;
-    pSp = &pObj->Sp[0];
-    pObj->Ofs_x = pDef->Ofs_x;
-    pObj->Ofs_y = pDef->Ofs_y;
-    pObj->Mode = 0xFF;
-    pSp->Rgb = Rgb;
-    pSp->X = pDef->X;
-    pSp->Y = pDef->Y;
-    pSp->W = pDef->W;
-    pSp->H = pDef->H;
-    pSp->U = pDef->U;
-    pDr = &pObj->Dr[0];
-    pSp->V = pDef->V;
-    pSp->Clut = (TpClut >> 16) << 6;
-    SetSprt((SPRT *)pSp);
-    SetSemiTrans(pSp, pDef->Abr);
-    Tp = TpClut & 0xFFFF;
-    X = Tp << 6;
-    if (Tp >= 16) {
-        X -= 0x400;
-    }
-    SetDrawMode(pDr, 0, 0, GetTPage(1, pDef->Tp, X, (Tp >= 16) << 8), NULL);
-    pObj->Sp[1] = pObj->Sp[0];
-    pObj->Dr[1] = pObj->Dr[0];
-}
-
-/* sprite update and draw: Mode 0/1 pulse up/down, 2 shown, 3 hidden (blink) */
-void func_801C4944(SEL_OBJ *pObj, LONG Ot)
-{
-    SEL_SPRT *pSp;
-    DR_MODE *pDr;
-    SEL_OBJ *pOya;
-    UCHAR Flg;
-
-    Flg = pObj->Flg;
-    if (!(Flg & 1)) {
-        return;
-    }
-    if (Flg & 8) {
-        pObj->Flg = Flg & ~8;
-        if (Flg & 4) {
-            pObj->Mode = 0;
-        }
-        if (pObj->Flg & 2) {
-            pObj->Mode = 2;
-            pObj->Timer = 10;
-        }
-    }
-    switch (pObj->Mode) {
-    case 0:
-        pObj->Sp[0].Rgb += 0x80808;
-        pObj->Sp[1].Rgb += 0x80808;
-        if ((UCHAR)pObj->Sp[1].Rgb == 0xB0) {
-            pObj->Mode = 1;
-        }
-        break;
-    case 1:
-        pObj->Sp[0].Rgb -= 0x80808;
-        pObj->Sp[1].Rgb -= 0x80808;
-        if ((UCHAR)pObj->Sp[1].Rgb == 0x50) {
-            pObj->Mode = 0;
-        }
-        break;
-    case 2:
-        if (--pObj->Timer == 0xFF) {
-            pObj->Timer = 10;
-            pObj->Mode = 3;
-        }
-        break;
-    case 3:
-        if (--pObj->Timer == 0xFF) {
-            pObj->Timer = 10;
-            pObj->Mode = 2;
-        }
-        return;
-    }
-    pSp = &pObj->Sp[G.Cbuf_id];
-    pDr = &pObj->Dr[G.Cbuf_id];
-    pOya = pObj->pOya;
-    if (pOya != NULL) {
-        pObj->X = pObj->Ofs_x + (pOya->X + pOya->Sp[0].W);
-        pObj->Y = pOya->Y + pObj->Ofs_y;
-    }
-    pSp->X = pObj->X;
-    pSp->Y = pObj->Y;
-    AddPrim(&G.Ot0[G.Cbuf_id][Ot], pSp);
-    AddPrim(&G.Ot0[G.Cbuf_id][Ot], pDr);
-}
-
-void func_801C4B78(SEL_OBJ *pObj, ULONG Rgb)
-{
-    pObj->Sp[0].Rgb = (pObj->Sp[0].Rgb & 0xFF000000) | Rgb;
-    pObj->Sp[1].Rgb = (pObj->Sp[1].Rgb & 0xFF000000) | Rgb;
-}
+#include "ovl/shared/jill_sel/Jill_obj_draw.inc.c"
+#include "ovl/shared/jill_sel/Jill_obj_rgb.inc.c"
 
 void func_801C4BA0(SEL_OBJ *pObj, SHORT X, SHORT Y)
 {

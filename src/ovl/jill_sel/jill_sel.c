@@ -240,44 +240,11 @@ UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
     return p;
 }
 
-/* RE2 Select_pl_trans */
-void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos)
-{
-    ULONG n;
-
-    if (!(Be_flg & 0x10)) {
-        n = pEm->Parts_num;
-    loop:
-        if ((pParts->Be_flg & 1) && (pParts->UnkA2 & 1)) {
-            func_80025610(pEm, pParts, pParts->UnkA2, &pParts->Workm);
-        }
-        n--;
-        pParts++;
-        if (n != 0) {
-            goto loop;
-        }
-    }
-}
+#include "ovl/shared/jill_sel/Jill_pl_trans.inc.c"
 
 INCLUDE_ASM("asm/nonmatchings/ovl/jill_sel/jill_sel", Jill_wep_load);
 
-/* light No of LIGHTMATRIX/COLORMATRIX from a direction and a 0xBBGGRR colour (unused) */
-void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb)
-{
-    SHORT *pL;
-    SHORT *pC;
-    VECTOR nrm;
-
-    pL = LIGHTMATRIX.m[No];
-    pC = &COLORMATRIX.m[0][No];
-    VectorNormal(pVec, &nrm);
-    pL[0] = nrm.vx * -1;
-    pL[1] = nrm.vy * -1;
-    pL[2] = nrm.vz * -1;
-    pC[0] = (Rgb & 0xFF) << 4;
-    pC[3] = (Rgb & 0xFF00) >> 4;
-    pC[6] = (Rgb >> 12) & 0xFF0;
-}
+#include "ovl/shared/jill_sel/Jill_light_set.inc.c"
 
 /* background load */
 void Jill_bg_load(void)
@@ -291,109 +258,7 @@ void Jill_bg_load(void)
 /* "JIll"; the bytes after it are the original linker's fill before .text */
 const char Jill_str[8] = { 'J', 'I', 'l', 'l', 0, 0x0E, 0x03, 0xD3 };
 
-/* sprite init from a definition; TpClut = texture page | clut row << 16 */
-void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
-{
-    SEL_SPRT *pSp;
-    DR_MODE *pDr;
-    ULONG Tp;
-    LONG X;
+#include "ovl/shared/jill_sel/Jill_obj_init.inc.c"
 
-    pObj->Flg = 1;
-    pObj->Timer = 0;
-    pObj->pOya = NULL;
-    pObj->X = pDef->X;
-    pObj->Y = pDef->Y;
-    pSp = &pObj->Sp[0];
-    pObj->Ofs_x = pDef->Ofs_x;
-    pObj->Ofs_y = pDef->Ofs_y;
-    pObj->Mode = 0xFF;
-    pSp->Rgb = Rgb;
-    pSp->X = pDef->X;
-    pSp->Y = pDef->Y;
-    pSp->W = pDef->W;
-    pSp->H = pDef->H;
-    pSp->U = pDef->U;
-    pDr = &pObj->Dr[0];
-    pSp->V = pDef->V;
-    pSp->Clut = (TpClut >> 16) << 6;
-    SetSprt((SPRT *)pSp);
-    SetSemiTrans(pSp, pDef->Abr);
-    Tp = TpClut & 0xFFFF;
-    X = Tp << 6;
-    if (Tp >= 16) {
-        X -= 0x400;
-    }
-    SetDrawMode(pDr, 0, 0, GetTPage(1, pDef->Tp, X, (Tp >= 16) << 8), NULL);
-    pObj->Sp[1] = pObj->Sp[0];
-    pObj->Dr[1] = pObj->Dr[0];
-}
-
-/* sprite update and draw: Mode 0/1 pulse up/down, 2 shown, 3 hidden (blink) */
-void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot)
-{
-    SEL_SPRT *pSp;
-    DR_MODE *pDr;
-    SEL_OBJ *pOya;
-    UCHAR Flg;
-
-    Flg = pObj->Flg;
-    if (!(Flg & 1)) {
-        return;
-    }
-    if (Flg & 8) {
-        pObj->Flg = Flg & ~8;
-        if (Flg & 4) {
-            pObj->Mode = 0;
-        }
-        if (pObj->Flg & 2) {
-            pObj->Mode = 2;
-            pObj->Timer = 10;
-        }
-    }
-    switch (pObj->Mode) {
-    case 0:
-        pObj->Sp[0].Rgb += 0x80808;
-        pObj->Sp[1].Rgb += 0x80808;
-        if ((UCHAR)pObj->Sp[1].Rgb == 0xB0) {
-            pObj->Mode = 1;
-        }
-        break;
-    case 1:
-        pObj->Sp[0].Rgb -= 0x80808;
-        pObj->Sp[1].Rgb -= 0x80808;
-        if ((UCHAR)pObj->Sp[1].Rgb == 0x50) {
-            pObj->Mode = 0;
-        }
-        break;
-    case 2:
-        if (--pObj->Timer == 0xFF) {
-            pObj->Timer = 10;
-            pObj->Mode = 3;
-        }
-        break;
-    case 3:
-        if (--pObj->Timer == 0xFF) {
-            pObj->Timer = 10;
-            pObj->Mode = 2;
-        }
-        return;
-    }
-    pSp = &pObj->Sp[G.Cbuf_id];
-    pDr = &pObj->Dr[G.Cbuf_id];
-    pOya = pObj->pOya;
-    if (pOya != NULL) {
-        pObj->X = pObj->Ofs_x + (pOya->X + pOya->Sp[0].W);
-        pObj->Y = pOya->Y + pObj->Ofs_y;
-    }
-    pSp->X = pObj->X;
-    pSp->Y = pObj->Y;
-    AddPrim(&G.Ot0[G.Cbuf_id][Ot], pSp);
-    AddPrim(&G.Ot0[G.Cbuf_id][Ot], pDr);
-}
-
-void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb)
-{
-    pObj->Sp[0].Rgb = (pObj->Sp[0].Rgb & 0xFF000000) | Rgb;
-    pObj->Sp[1].Rgb = (pObj->Sp[1].Rgb & 0xFF000000) | Rgb;
-}
+#include "ovl/shared/jill_sel/Jill_obj_draw.inc.c"
+#include "ovl/shared/jill_sel/Jill_obj_rgb.inc.c"

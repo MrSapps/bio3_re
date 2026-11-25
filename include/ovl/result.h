@@ -190,9 +190,9 @@ void func_801C5BCC(RESULT_WORK *pWk);
 void func_801C5CD8(RESULT_WORK *pWk);
 void func_801C605C(RESULT_WORK *pWk);
 void func_801C6114(void);
-void func_801C6140(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb);
-void func_801C62B0(RESULT_SPR *pSpr, ULONG Pri);
-void func_801C64E4(RESULT_SPR *pSpr, ULONG Rgb);
+void Jill_obj_init(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb);
+void Jill_obj_draw(RESULT_SPR *pSpr, ULONG Pri);
+void Jill_obj_rgb(RESULT_SPR *pSpr, ULONG Rgb);
 void func_801C650C(RESULT_WORK *pWk);
 void func_801C678C(RESULT_WORK *pWk);
 

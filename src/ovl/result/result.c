@@ -54,20 +54,20 @@ LONG func_801C229C(RESULT_WORK *pWk)
     LONG Sec;
 
     Print_color(0xFF, 0, 0x107);
-    func_801C62B0(&D_801C6D60[0], 7);
-    func_801C62B0(&D_801C6D60[1], 7);
+    Jill_obj_draw(&D_801C6D60[0], 7);
+    Jill_obj_draw(&D_801C6D60[1], 7);
     if (!(pWk->Flg & 0x20)) {
-        func_801C62B0(&D_801C6D60[2], 7);
-        func_801C62B0(&D_801C6D60[3], 7);
-        func_801C62B0(&D_801C6D60[4], 7);
-        func_801C62B0(&D_801C6D60[6], 7);
-        func_801C62B0(&D_801C6D60[13], 7);
-        func_801C62B0(&D_801C6D60[14], 7);
-        func_801C62B0(&D_801C6D60[15], 7);
-        func_801C62B0(&D_801C6D60[16], 7);
-        func_801C62B0(&D_801C6D60[17], 7);
-        func_801C62B0(&D_801C6D60[18], 7);
-        func_801C62B0(&D_801C6D60[19], 7);
+        Jill_obj_draw(&D_801C6D60[2], 7);
+        Jill_obj_draw(&D_801C6D60[3], 7);
+        Jill_obj_draw(&D_801C6D60[4], 7);
+        Jill_obj_draw(&D_801C6D60[6], 7);
+        Jill_obj_draw(&D_801C6D60[13], 7);
+        Jill_obj_draw(&D_801C6D60[14], 7);
+        Jill_obj_draw(&D_801C6D60[15], 7);
+        Jill_obj_draw(&D_801C6D60[16], 7);
+        Jill_obj_draw(&D_801C6D60[17], 7);
+        Jill_obj_draw(&D_801C6D60[18], 7);
+        Jill_obj_draw(&D_801C6D60[19], 7);
         Print14_s(D_801C69E0[0].X, D_801C69E0[0].Y, D_801C2010);
         Print14_s(D_801C69E0[1].X, D_801C69E0[1].Y, D_801C2018);
         Print14_s(D_801C69E0[2].X, D_801C69E0[2].Y, D_801C2024);
@@ -135,19 +135,19 @@ LONG func_801C229C(RESULT_WORK *pWk)
         Print14_s(D_801C69E0[13].X + 7, D_801C69E0[13].Y, D_801C2068);
         Print14_s(D_801C69E0[14].X, D_801C69E0[14].Y, D_801C206C);
     }
-    func_801C62B0(&D_801C6D60[20], 5);
-    func_801C62B0(&D_801C6D60[5], 5);
-    func_801C62B0(&D_801C6D60[7], 5);
-    func_801C62B0(&D_801C6D60[8], 5);
-    func_801C62B0(&D_801C6D60[9], 5);
-    func_801C62B0(&D_801C6D60[10], 5);
-    func_801C62B0(&D_801C6D60[11], 5);
-    func_801C62B0(&D_801C6D60[12], 2);
+    Jill_obj_draw(&D_801C6D60[20], 5);
+    Jill_obj_draw(&D_801C6D60[5], 5);
+    Jill_obj_draw(&D_801C6D60[7], 5);
+    Jill_obj_draw(&D_801C6D60[8], 5);
+    Jill_obj_draw(&D_801C6D60[9], 5);
+    Jill_obj_draw(&D_801C6D60[10], 5);
+    Jill_obj_draw(&D_801C6D60[11], 5);
+    Jill_obj_draw(&D_801C6D60[12], 2);
     if (pWk->Flg & 8) {
-        func_801C62B0(&D_801C6D60[21], 2);
-        func_801C62B0(&D_801C6D60[22], 2);
-        func_801C62B0(&D_801C6D60[23], 2);
-        func_801C62B0(&D_801C6D60[24], 2);
+        Jill_obj_draw(&D_801C6D60[21], 2);
+        Jill_obj_draw(&D_801C6D60[22], 2);
+        Jill_obj_draw(&D_801C6D60[23], 2);
+        Jill_obj_draw(&D_801C6D60[24], 2);
         Print_color(0xFF, 0, 0x4105);
         return Print14_l(D_801C69E0[12].X, D_801C69E0[12].Y, D_801C2060, Gr.Money);
     }
@@ -176,63 +176,63 @@ void func_801C2ABC(RESULT_WORK *pWk)
     func_801C3294();
     Bg_set_mode(2, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
-    func_801C6140(&D_801C6D60[0], &D_801C6A1C[0], 0x01EF0015, 0x808080);
-    func_801C6140(&D_801C6D60[1], &D_801C6A1C[1], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[0], &D_801C6A1C[0], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[1], &D_801C6A1C[1], 0x01EF0015, 0x808080);
     D_801C6D60[1].pParent = &D_801C6D60[0];
-    func_801C6140(&D_801C6D60[2], &D_801C6A1C[5], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[3], &D_801C6A1C[6], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[4], &D_801C6A1C[7], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[5], &D_801C6A1C[8], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[2], &D_801C6A1C[5], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[3], &D_801C6A1C[6], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[4], &D_801C6A1C[7], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[5], &D_801C6A1C[8], 0x01F00016, 0x808080);
     D_801C6D60[5].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[20], &D_801C6A1C[17], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[20], &D_801C6A1C[17], 0x01F00016, 0x808080);
     D_801C6D60[20].pParent = &D_801C6D60[5];
     D_801C6D60[20].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[6], &D_801C6A1C[9], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[6], &D_801C6A1C[9], 0x01F00016, 0x808080);
     D_801C6D60[6].Flg |= RSPR_PULSE | RSPR_RESET;
-    func_801C6140(&D_801C6D60[21], &D_801C6A1C[25], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[21], &D_801C6A1C[25], 0x01F10017, 0x808080);
     D_801C6D60[21].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[22], &D_801C6A1C[26], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[22], &D_801C6A1C[26], 0x01F10017, 0x808080);
     D_801C6D60[22].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[23], &D_801C6A1C[27], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[23], &D_801C6A1C[27], 0x01F10017, 0x808080);
     D_801C6D60[23].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[24], &D_801C6A1C[28], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[24], &D_801C6A1C[28], 0x01F10017, 0x808080);
     D_801C6D60[24].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[7], &D_801C6A1C[10], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[7], &D_801C6A1C[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
-        func_801C64E4(&D_801C6D60[7], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[7], 0x404040);
         D_801C6D60[21].Flg |= RSPR_ON;
     }
     D_801C6D60[7].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[8], &D_801C6A1C[11], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[8], &D_801C6A1C[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
-        func_801C64E4(&D_801C6D60[8], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[8], 0x404040);
         D_801C6D60[22].Flg |= RSPR_ON;
     }
     D_801C6D60[8].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[9], &D_801C6A1C[12], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[9], &D_801C6A1C[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
-        func_801C64E4(&D_801C6D60[9], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[9], 0x404040);
         D_801C6D60[23].Flg |= RSPR_ON;
     }
     D_801C6D60[9].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[10], &D_801C6A1C[13], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[10], &D_801C6A1C[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
-        func_801C64E4(&D_801C6D60[10], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[10], 0x404040);
         D_801C6D60[24].Flg |= RSPR_ON;
     }
     D_801C6D60[10].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[11], &D_801C6A1C[14], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[11], &D_801C6A1C[14], 0x01F10017, 0x808080);
     D_801C6D60[11].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[12], &D_801C6A1C[15], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[12], &D_801C6A1C[15], 0x01F10017, 0x808080);
     D_801C6D60[12].Flg = (D_801C6D60[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
-    func_801C6140(&D_801C6D60[13], &D_801C6A1C[19], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[14], &D_801C6A1C[20], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[15], &D_801C6A1C[21], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[16], &D_801C6A1C[22], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[17], &D_801C6A1C[23], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[18], &D_801C6A1C[24], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[13], &D_801C6A1C[19], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[14], &D_801C6A1C[20], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[15], &D_801C6A1C[21], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[16], &D_801C6A1C[22], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[17], &D_801C6A1C[23], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[18], &D_801C6A1C[24], 0x01F00016, 0x808080);
     D_801C6A1C[18].Y++;
-    func_801C6140(&D_801C6D60[19], &D_801C6A1C[18], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[19], &D_801C6A1C[18], 0x01F00016, 0x808080);
     D_801C6D60[19].Flg |= RSPR_BLINK | RSPR_RESET;
 }
 
@@ -329,27 +329,27 @@ LONG func_801C3344(RESULT_WORK *pWk)
     LONG Min;
 
     Print_color(0xFF, 0, 0x102);
-    func_801C62B0(&D_801C6D60[0], 7);
-    func_801C62B0(&D_801C6D60[1], 7);
-    func_801C62B0(&D_801C6D60[2], 7);
-    func_801C62B0(&D_801C6D60[3], 7);
-    func_801C62B0(&D_801C6D60[4], 7);
-    func_801C62B0(&D_801C6D60[5], 7);
-    func_801C62B0(&D_801C6D60[6], 7);
-    func_801C62B0(&D_801C6D60[7], 7);
-    func_801C62B0(&D_801C6D60[8], 7);
-    func_801C62B0(&D_801C6D60[9], 7);
-    func_801C62B0(&D_801C6D60[10], 7);
-    func_801C62B0(&D_801C6D60[11], 7);
-    func_801C62B0(&D_801C6D60[12], 6);
-    func_801C62B0(&D_801C6D60[13], 7);
-    func_801C62B0(&D_801C6D60[14], 7);
-    func_801C62B0(&D_801C6D60[15], 7);
-    func_801C62B0(&D_801C6D60[16], 7);
-    func_801C62B0(&D_801C6D60[21], 2);
-    func_801C62B0(&D_801C6D60[22], 2);
-    func_801C62B0(&D_801C6D60[23], 2);
-    func_801C62B0(&D_801C6D60[24], 2);
+    Jill_obj_draw(&D_801C6D60[0], 7);
+    Jill_obj_draw(&D_801C6D60[1], 7);
+    Jill_obj_draw(&D_801C6D60[2], 7);
+    Jill_obj_draw(&D_801C6D60[3], 7);
+    Jill_obj_draw(&D_801C6D60[4], 7);
+    Jill_obj_draw(&D_801C6D60[5], 7);
+    Jill_obj_draw(&D_801C6D60[6], 7);
+    Jill_obj_draw(&D_801C6D60[7], 7);
+    Jill_obj_draw(&D_801C6D60[8], 7);
+    Jill_obj_draw(&D_801C6D60[9], 7);
+    Jill_obj_draw(&D_801C6D60[10], 7);
+    Jill_obj_draw(&D_801C6D60[11], 7);
+    Jill_obj_draw(&D_801C6D60[12], 6);
+    Jill_obj_draw(&D_801C6D60[13], 7);
+    Jill_obj_draw(&D_801C6D60[14], 7);
+    Jill_obj_draw(&D_801C6D60[15], 7);
+    Jill_obj_draw(&D_801C6D60[16], 7);
+    Jill_obj_draw(&D_801C6D60[21], 2);
+    Jill_obj_draw(&D_801C6D60[22], 2);
+    Jill_obj_draw(&D_801C6D60[23], 2);
+    Jill_obj_draw(&D_801C6D60[24], 2);
     switch (pG->Player.Id) {
     case 8:
         Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2010);
@@ -397,53 +397,53 @@ void func_801C3724(RESULT_WORK *pWk)
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
-    func_801C6140(&D_801C6D60[0], &D_801C6BD4[0], 0x01EF0015, 0x808080);
-    func_801C6140(&D_801C6D60[1], &D_801C6BD4[1], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[0], &D_801C6BD4[0], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[1], &D_801C6BD4[1], 0x01EF0015, 0x808080);
     D_801C6D60[1].pParent = &D_801C6D60[0];
-    func_801C6140(&D_801C6D60[2], &D_801C6BD4[5], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[3], &D_801C6BD4[6], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[4], &D_801C6BD4[7], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[5], &D_801C6BD4[8], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[6], &D_801C6BD4[2], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[2], &D_801C6BD4[5], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[3], &D_801C6BD4[6], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[4], &D_801C6BD4[7], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[5], &D_801C6BD4[8], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[6], &D_801C6BD4[2], 0x01EF0015, 0x808080);
     D_801C6D60[6].Flg = (D_801C6D60[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
-    func_801C6140(&D_801C6D60[21], &D_801C6BD4[18], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[21], &D_801C6BD4[18], 0x01F10017, 0x808080);
     D_801C6D60[21].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[22], &D_801C6BD4[19], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[22], &D_801C6BD4[19], 0x01F10017, 0x808080);
     D_801C6D60[22].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[23], &D_801C6BD4[20], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[23], &D_801C6BD4[20], 0x01F10017, 0x808080);
     D_801C6D60[23].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[24], &D_801C6BD4[21], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[24], &D_801C6BD4[21], 0x01F10017, 0x808080);
     D_801C6D60[24].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[7], &D_801C6BD4[10], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[7], &D_801C6BD4[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
-        func_801C64E4(&D_801C6D60[7], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[7], 0x404040);
         D_801C6D60[21].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[8], &D_801C6BD4[11], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[8], &D_801C6BD4[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
-        func_801C64E4(&D_801C6D60[8], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[8], 0x404040);
         D_801C6D60[22].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[9], &D_801C6BD4[12], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[9], &D_801C6BD4[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
-        func_801C64E4(&D_801C6D60[9], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[9], 0x404040);
         D_801C6D60[23].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[10], &D_801C6BD4[13], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[10], &D_801C6BD4[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
-        func_801C64E4(&D_801C6D60[10], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[10], 0x404040);
         D_801C6D60[24].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[11], &D_801C6BD4[14], 0x01F10017, 0x808080);
-    func_801C6140(&D_801C6D60[12], &D_801C6BD4[15], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[11], &D_801C6BD4[14], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[12], &D_801C6BD4[15], 0x01F10017, 0x808080);
     D_801C6D60[12].Flg = (D_801C6D60[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
-    func_801C6140(&D_801C6D60[13], &D_801C6BD4[16], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[13], &D_801C6BD4[16], 0x01F00016, 0x808080);
     D_801C6D60[13].pParent = &D_801C6D60[2];
-    func_801C6140(&D_801C6D60[14], &D_801C6BD4[16], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[14], &D_801C6BD4[16], 0x01F00016, 0x808080);
     D_801C6D60[14].pParent = &D_801C6D60[3];
-    func_801C6140(&D_801C6D60[15], &D_801C6BD4[16], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[15], &D_801C6BD4[16], 0x01F00016, 0x808080);
     D_801C6D60[15].pParent = &D_801C6D60[4];
-    func_801C6140(&D_801C6D60[16], &D_801C6BD4[17], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[16], &D_801C6BD4[17], 0x01F00016, 0x808080);
     D_801C6D60[16].pParent = &D_801C6D60[5];
     pWk->Bonus = 0;
     if (Flg_ck(G.Unk7868, 0x18)) {
@@ -642,7 +642,7 @@ void func_801C4188(RESULT_WORK *pWk)
                 pWk->Count = D_801C6D08[pWk->Cursor];
                 pWk->Timer = 0;
                 Flg_on(Gr.Unk77F8, D_801C6D10[pWk->Cursor]);
-                func_801C64E4(&D_801C6D60[pWk->Cursor + 7], 0x404040);
+                Jill_obj_rgb(&D_801C6D60[pWk->Cursor + 7], 0x404040);
                 D_801C6D60[pWk->Cursor + 21].Flg |= RSPR_ON;
                 Snd_se_stad(0xB, 0, 0, 0);
                 break;
@@ -693,27 +693,27 @@ void func_801C473C(RESULT_WORK *pWk)
     tagGLOBAL *pG = &G;
 
     Print_color(0xFF, 0, 0x102);
-    func_801C62B0(&D_801C6D60[0], 7);
-    func_801C62B0(&D_801C6D60[1], 7);
-    func_801C62B0(&D_801C6D60[2], 7);
-    func_801C62B0(&D_801C6D60[3], 7);
-    func_801C62B0(&D_801C6D60[4], 7);
-    func_801C62B0(&D_801C6D60[5], 7);
-    func_801C62B0(&D_801C6D60[6], 7);
-    func_801C62B0(&D_801C6D60[7], 7);
-    func_801C62B0(&D_801C6D60[8], 7);
-    func_801C62B0(&D_801C6D60[9], 7);
-    func_801C62B0(&D_801C6D60[10], 7);
-    func_801C62B0(&D_801C6D60[11], 7);
-    func_801C62B0(&D_801C6D60[12], 6);
-    func_801C62B0(&D_801C6D60[13], 7);
-    func_801C62B0(&D_801C6D60[14], 7);
-    func_801C62B0(&D_801C6D60[15], 7);
-    func_801C62B0(&D_801C6D60[16], 7);
-    func_801C62B0(&D_801C6D60[21], 2);
-    func_801C62B0(&D_801C6D60[22], 2);
-    func_801C62B0(&D_801C6D60[23], 2);
-    func_801C62B0(&D_801C6D60[24], 2);
+    Jill_obj_draw(&D_801C6D60[0], 7);
+    Jill_obj_draw(&D_801C6D60[1], 7);
+    Jill_obj_draw(&D_801C6D60[2], 7);
+    Jill_obj_draw(&D_801C6D60[3], 7);
+    Jill_obj_draw(&D_801C6D60[4], 7);
+    Jill_obj_draw(&D_801C6D60[5], 7);
+    Jill_obj_draw(&D_801C6D60[6], 7);
+    Jill_obj_draw(&D_801C6D60[7], 7);
+    Jill_obj_draw(&D_801C6D60[8], 7);
+    Jill_obj_draw(&D_801C6D60[9], 7);
+    Jill_obj_draw(&D_801C6D60[10], 7);
+    Jill_obj_draw(&D_801C6D60[11], 7);
+    Jill_obj_draw(&D_801C6D60[12], 6);
+    Jill_obj_draw(&D_801C6D60[13], 7);
+    Jill_obj_draw(&D_801C6D60[14], 7);
+    Jill_obj_draw(&D_801C6D60[15], 7);
+    Jill_obj_draw(&D_801C6D60[16], 7);
+    Jill_obj_draw(&D_801C6D60[21], 2);
+    Jill_obj_draw(&D_801C6D60[22], 2);
+    Jill_obj_draw(&D_801C6D60[23], 2);
+    Jill_obj_draw(&D_801C6D60[24], 2);
     switch (pG->Player.Id) {
     case 8:
         Print14_s(D_801C6BC0[0].X, D_801C6BC0[0].Y, D_801C2010);
@@ -757,53 +757,53 @@ void func_801C49FC(RESULT_WORK *pWk)
     Snd_se_stad(0x500, 0, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     pWk->Flg = 0;
-    func_801C6140(&D_801C6D60[0], &D_801C6BD4[0], 0x01EF0015, 0x808080);
-    func_801C6140(&D_801C6D60[1], &D_801C6BD4[1], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[0], &D_801C6BD4[0], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[1], &D_801C6BD4[1], 0x01EF0015, 0x808080);
     D_801C6D60[1].pParent = &D_801C6D60[0];
-    func_801C6140(&D_801C6D60[2], &D_801C6BD4[5], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[3], &D_801C6BD4[6], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[4], &D_801C6BD4[7], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[5], &D_801C6BD4[8], 0x01F00016, 0x808080);
-    func_801C6140(&D_801C6D60[6], &D_801C6BD4[2], 0x01EF0015, 0x808080);
+    Jill_obj_init(&D_801C6D60[2], &D_801C6BD4[5], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[3], &D_801C6BD4[6], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[4], &D_801C6BD4[7], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[5], &D_801C6BD4[8], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[6], &D_801C6BD4[2], 0x01EF0015, 0x808080);
     D_801C6D60[6].Flg = (D_801C6D60[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
-    func_801C6140(&D_801C6D60[21], &D_801C6BD4[18], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[21], &D_801C6BD4[18], 0x01F10017, 0x808080);
     D_801C6D60[21].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[22], &D_801C6BD4[19], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[22], &D_801C6BD4[19], 0x01F10017, 0x808080);
     D_801C6D60[22].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[23], &D_801C6BD4[20], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[23], &D_801C6BD4[20], 0x01F10017, 0x808080);
     D_801C6D60[23].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[24], &D_801C6BD4[21], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[24], &D_801C6BD4[21], 0x01F10017, 0x808080);
     D_801C6D60[24].Flg &= ~RSPR_ON;
-    func_801C6140(&D_801C6D60[7], &D_801C6BD4[10], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[7], &D_801C6BD4[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
-        func_801C64E4(&D_801C6D60[7], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[7], 0x404040);
         D_801C6D60[21].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[8], &D_801C6BD4[11], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[8], &D_801C6BD4[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
-        func_801C64E4(&D_801C6D60[8], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[8], 0x404040);
         D_801C6D60[22].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[9], &D_801C6BD4[12], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[9], &D_801C6BD4[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
-        func_801C64E4(&D_801C6D60[9], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[9], 0x404040);
         D_801C6D60[23].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[10], &D_801C6BD4[13], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[10], &D_801C6BD4[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
-        func_801C64E4(&D_801C6D60[10], 0x404040);
+        Jill_obj_rgb(&D_801C6D60[10], 0x404040);
         D_801C6D60[24].Flg |= RSPR_ON;
     }
-    func_801C6140(&D_801C6D60[11], &D_801C6BD4[14], 0x01F10017, 0x808080);
-    func_801C6140(&D_801C6D60[12], &D_801C6BD4[15], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[11], &D_801C6BD4[14], 0x01F10017, 0x808080);
+    Jill_obj_init(&D_801C6D60[12], &D_801C6BD4[15], 0x01F10017, 0x808080);
     D_801C6D60[12].Flg = (D_801C6D60[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
-    func_801C6140(&D_801C6D60[13], &D_801C6BD4[16], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[13], &D_801C6BD4[16], 0x01F00016, 0x808080);
     D_801C6D60[13].pParent = &D_801C6D60[2];
-    func_801C6140(&D_801C6D60[14], &D_801C6BD4[16], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[14], &D_801C6BD4[16], 0x01F00016, 0x808080);
     D_801C6D60[14].pParent = &D_801C6D60[3];
-    func_801C6140(&D_801C6D60[15], &D_801C6BD4[16], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[15], &D_801C6BD4[16], 0x01F00016, 0x808080);
     D_801C6D60[15].pParent = &D_801C6D60[4];
-    func_801C6140(&D_801C6D60[16], &D_801C6BD4[17], 0x01F00016, 0x808080);
+    Jill_obj_init(&D_801C6D60[16], &D_801C6BD4[17], 0x01F00016, 0x808080);
     D_801C6D60[16].pParent = &D_801C6D60[5];
     func_801C678C(pWk);
 }
@@ -1220,7 +1220,7 @@ void func_801C6114(void)
 }
 
 /* sets up a sprite object; Tp_clut: clut row << 16 | texture page */
-void func_801C6140(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb)
+void Jill_obj_init(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb)
 {
     RESULT_SPRT *pSprt;
     DR_MODE *pDm;
@@ -1260,7 +1260,7 @@ void func_801C6140(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULON
 }
 
 /* updates the fade / blink state of a sprite object and adds it to OT entry Pri */
-void func_801C62B0(RESULT_SPR *pSpr, ULONG Pri)
+void Jill_obj_draw(RESULT_SPR *pSpr, ULONG Pri)
 {
     RESULT_SPR *pParent;
     SPRT *pSprt;
@@ -1320,7 +1320,7 @@ void func_801C62B0(RESULT_SPR *pSpr, ULONG Pri)
     AddPrim(&G.Ot0[G.Cbuf_id][Pri], pDm);
 }
 
-void func_801C64E4(RESULT_SPR *pSpr, ULONG Rgb)
+void Jill_obj_rgb(RESULT_SPR *pSpr, ULONG Rgb)
 {
     pSpr->Sprt[0].W.Rgbc = (pSpr->Sprt[0].W.Rgbc & 0xFF000000) | Rgb;
     pSpr->Sprt[1].W.Rgbc = (pSpr->Sprt[1].W.Rgbc & 0xFF000000) | Rgb;

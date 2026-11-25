@@ -19,3 +19,10 @@ Select_view = 0x801C5CF8;
 Select_obj = 0x801C5D20;
 Select_wk = 0x801C6680;
 Select_pMoji = 0x801C6E10;
+// names shared with jill_sel (same code, src/ovl/shared/jill_sel)
+Jill_wep_load = 0x801C3AE4; // type:func
+Jill_pl_trans = 0x801C39A4; // type:func
+Jill_light_set = 0x801C3A2C; // type:func
+Jill_obj_draw = 0x801C4944; // type:func
+Jill_obj_init = 0x801C47D4; // type:func
+Jill_obj_rgb = 0x801C4B78; // type:func

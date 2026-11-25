@@ -190,9 +190,9 @@ void func_801C354C(void); /* Select_exit */
 void func_801C35C8(void); /* Select_pl_dir_set */
 void func_801C3660(void); /* Select_pl_rot */
 UCHAR *func_801C3830(ENEMY_WORK *pEm, ULONG TpClut, ULONG *pWork); /* Select_pl_load */
-void func_801C39A4(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
-void func_801C3A2C(ULONG No, VECTOR *pVec, ULONG Rgb);
-UCHAR *func_801C3AE4(ENEMY_WORK *pEm, ULONG *pWork, LONG No); /* weapon load */
+void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
+void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb);
+UCHAR *Jill_wep_load(ENEMY_WORK *pEm, ULONG *pWork, LONG No); /* weapon load */
 void func_801C3DB8(ULONG *pDst, SELECT_MOJI_REC *pSrc); /* Select_moji_set */
 void func_801C3E3C(void); /* Select_moji_dm_set */
 void func_801C3F00(void); /* Select_moji_init */
@@ -202,9 +202,9 @@ void func_801C44A4(void); /* Select_moji_clear */
 void func_801C44E8(LONG Disp); /* Select_moji_update */
 void func_801C4644(LONG Num); /* Select_moji_trans */
 void func_801C4774(void); /* Select_bg_load */
-void func_801C47D4(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
-void func_801C4944(SEL_OBJ *pObj, LONG Ot);
-void func_801C4B78(SEL_OBJ *pObj, ULONG Rgb);
+void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
+void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot);
+void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb);
 void func_801C4BA0(SEL_OBJ *pObj, SHORT X, SHORT Y);
 void func_801C4BAC(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut);
 
