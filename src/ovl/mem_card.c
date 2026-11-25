@@ -5,14 +5,14 @@
 #include "sce1.h"
 #include "sld.h"
 
-LONG Search_item_id_(LONG Id, LONG i) __asm__("Search_item_id"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char) */
-LONG func_8006CCF0_(LONG No, LONG N, LONG F) __asm__("Item_decrease"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char); arg 3 long (canonical UC) */
+LONG Search_item_id_i(LONG Id, LONG i) __asm__("Search_item_id"); /* called undeclared (implicit int): int arguments and result, no masks */
+LONG Item_decrease_i(LONG No, LONG N, LONG F) __asm__("Item_decrease"); /* called undeclared (implicit int): int arguments and result, no masks */
 #include <strings.h>
 
 #define MESS(n) (&Mess_text[Mess_offs[n]])
 
 /* Print14 called with int coordinates (no USHORT truncation in the caller) */
-void Print14_l(LONG X, LONG Y, UCHAR *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short) */
+void Print14_l(LONG X, LONG Y, UCHAR *pFmt, ...) __asm__("Print14"); /* called undeclared: int coordinates, no USHORT masks */
 
 /* Mem_card: task entry */
 void Mem_card(void)
@@ -542,7 +542,7 @@ void Card_rno09_save(MWORK *pMw)
     Memcpy(Mc_item_bak, G.pItem_set, sizeof(Mc_item_bak));
     pMw->Item_bak = G.pItem_set->Equip_no;
     if (!(G.System_flg & 0x4080)) {
-        func_8006CCF0_(Search_item_id_(0x81, 0), 1, 0);
+        Item_decrease_i(Search_item_id_i(0x81, 0), 1, 0);
     }
     Save_cnt = G.Save_cnt;
     if ((Save_cnt < 99 || (G.System_flg & 0x4000)) && !(G.System_flg & 0x80)) {

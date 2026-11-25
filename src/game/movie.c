@@ -5,7 +5,7 @@
 
 /* MOVIE.C: STR movie playback (DS streaming + MDEC), RE2 MOVIE.C reworked for RE3 */
 
-LONG Pad_vib_init_l(void) __asm__("Pad_vib_init"); /* int-returning alias */
+LONG Pad_vib_init_l(void) __asm__("Pad_vib_init"); /* implicit int in Capcom's file: its "result" is returned */
 
 /* Returns Pad_vib_init's v0 (the sce*.c callers declare it LONG): that explicit v0 use is what makes
    reload put the /127 mfhi in t0 (see NOTES.md). */

@@ -13,7 +13,7 @@
 #define RND() ((signed char)Rnd())
 
 
-void func_80071510_(LONG Stage, LONG Room) __asm__("Map_visit_set"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
+void Map_visit_set_i(LONG Stage, LONG Room) __asm__("Map_visit_set"); /* Set_room passes int stage/room (implicit declaration, no UCHAR masks) */
 
 /* load and set up the room (RE2 Set_room) */
 void Set_room(void)
@@ -133,7 +133,7 @@ void Set_room(void)
         D_800E0186[0] = 0;
     }
     Em_init_move();
-    func_80071510_(Stage, Room);
+    Map_visit_set_i(Stage, Room);
 }
 
 void Set_stage(void)

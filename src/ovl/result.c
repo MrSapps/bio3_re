@@ -5,8 +5,8 @@
 #include "ovl/result.h"
 #include "sub.h"
 
-void Print14_s(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short); arg 3 char* (canonical UC*) */
-LONG Print14_l(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* int-returning alias */
+void Print14_s(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* called undeclared: int coordinates (no USHORT masks), char strings */
+LONG Print14_l(LONG X, LONG Y, char *pFmt, ...) __asm__("Print14"); /* the same, where the caller returns its (implicit int) result */
 
 /* reads piece No of OMBG.TIM (CD file 0x3C) to pAdr */
 void Result_ombg_load(ULONG *pAdr, UCHAR No)
