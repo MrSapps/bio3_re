@@ -4,6 +4,9 @@
 #include "joint.h"
 #include "sld.h"
 #include "sub.h"
+#include "snd.h"
+#include "pad.h"
+#include "sca.h"
 
 /*
  * OM.C (RE2 OM.C, reworked): object models (G.Ob_model[]): setup (Om_init), the per-kind
@@ -42,7 +45,106 @@ PARTS_W *Om_parts_work_set(ENEMY_WORK *pEm, PARTS_W *pParts)
     return pParts + pEm->Parts_num;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", Om_parts_link);
+#define PW_FREE(p) ((USHORT *)&(p)->Unk74)
+
+/* RE2 PartsWork_link for an object model: reset the parts and link them by the kan tree;
+ * a bomb model (Id 4) starts with one part hidden (Om_bomb_parts) */
+void Om_parts_link(OBJ_MODEL_WORK *pOm, ULONG *pKan)
+{
+    LONG Unused[28];
+    ULONG Link_cnt;
+    ULONG Part_no;
+    PARTS_W *pTop;
+    PARTS_W *pCur;
+    UCHAR *pLink_top;
+    UCHAR *pChild;
+    MD_OBJ *pTmd_cur;
+    ULONG *pLink;
+    ULONG n;
+    ULONG Cnt;
+    SHORT *pPos;
+    UCHAR Hide;
+    UCHAR Hide_no;
+
+    Part_no = 0;
+    n = pOm->Parts_num;
+    pCur = pOm->pParts;
+    pTmd_cur = pOm->pTmd;
+    pTop = pCur;
+    if (pOm->Unk4A == 4) {
+        Hide = Om_bomb_parts[pOm->Type & 0x1F].Unk0;
+        Hide_no = Om_bomb_parts[pOm->Type & 0x1F].Unk1;
+    } else {
+        Hide = 0;
+    }
+    pPos = (SHORT *)pKan + 4;
+    Link_cnt = ((USHORT *)pKan)[2];
+    pLink_top = (UCHAR *)pKan + (*(USHORT *)pKan & 0xFFFC);
+    pLink = (ULONG *)pLink_top;
+    pCur->pSuper = &pOm->Workm;
+    pCur->pOya_parts = (PARTS_W *)pOm;
+    while (n-- != 0) {
+        pCur->Poly_rgb = 0x808080;
+        *(LONG *)&pCur->Workm.m[0][0] = 0x1000;
+        *(LONG *)&pCur->Workm.m[0][2] = 0;
+        *(LONG *)&pCur->Workm.m[1][1] = 0x1000;
+        *(LONG *)&pCur->Workm.m[2][0] = 0;
+        *(LONG *)&pCur->Workm.m[2][2] = 0x1000;
+        pCur->Workm.t[0] = 0;
+        pCur->Workm.t[1] = 0;
+        pCur->Workm.t[2] = 0;
+        *(LONG *)&pCur->M[0][0] = 0x1000;
+        *(LONG *)&pCur->M[0][2] = 0;
+        *(LONG *)&pCur->M[1][1] = 0x1000;
+        *(LONG *)&pCur->M[2][0] = 0;
+        *(LONG *)&pCur->M[2][2] = 0x1000;
+        pCur->Attribute = 0;
+        *(ULONG *)&pCur->Cdir_x = 0;
+        pCur->Cdir_z = 0;
+        PW_FREE(pCur)[0] = 0;
+        PW_FREE(pCur)[1] = 0;
+        PW_FREE(pCur)[2] = 0;
+        PW_FREE(pCur)[3] = 0;
+        PW_FREE(pCur)[4] = 0;
+        PW_FREE(pCur)[5] = 0;
+        pCur->Be_flg = 1;
+        *(SHORT *)&pCur->Workm.t[0] = 0;
+        pCur->Parts_no = Part_no;
+        pCur->UnkA2 = 3;
+        if (Hide && Hide_no == Part_no) {
+            pCur->UnkA2 = 0;
+        }
+        pCur->pTmd = pTmd_cur;
+        if (!(pOm->Attribute & 0x10)) {
+            pCur->UnkA2 |= 8;
+        }
+        if (pOm->Attribute & 2) {
+            pCur->UnkA2 |= 0x100;
+            Md_set_abr(pCur->pTmd, (pOm->Attribute & 0xC) >> 2);
+        }
+        pCur->Old_x = pCur->Pos_x = pPos[0];
+        pCur->Old_y = pCur->Pos_y = pPos[1];
+        pCur->Old_z = pCur->Pos_z = pPos[2];
+        pPos += 3;
+        if (Link_cnt != 0) {
+            pChild = pLink_top + (*pLink >> 16);
+            Cnt = *pLink & 0xFFFF;
+            while (Cnt-- != 0) {
+                pTop[*pChild].pSuper = &pCur->Workm;
+                pTop[*pChild].pOya_parts = pCur;
+                pChild++;
+            }
+            pLink++;
+            Link_cnt--;
+        } else {
+            pCur->pSuper = pOm->pSuper;
+            pCur->pOya_parts = NULL;
+        }
+        pCur++;
+        Part_no++;
+        pTmd_cur++;
+    }
+}
 
 /* draw the parts of an object model unless pPos is outside the cut (Be_flg 0x40: always) */
 void Om_joint_trans2(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
@@ -387,7 +489,108 @@ void Om_set_fall_dir(ENEMY_WORK *pEm)
     pEm->Routine_0 = 2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", Om_explosion);
+/* OM.C called the shadow scaler without the SHORT prototype (no truncation of the ground height) */
+void MulKage_om(KAGE_WORK *pKw, LONG Grand, LONG Dir_y, ULONG Flg) __asm__("MulKage");
+
+/* start the explosion effects of an object model by Type (Arg1/Arg2 unused) and switch it to Om_routine 3 */
+void Om_explosion(OBJ_MODEL_WORK *pOm, ULONG Arg1, ULONG Arg2)
+{
+    SVECTOR Sv;
+    HIT_REQ Req;
+    KAGE_WORK *pKw;
+    PARTS_W *pP;
+    MATRIX *pM;
+    MATRIX *pM2;
+    USHORT Dir;
+    LONG Rot_x;
+
+    pP = pOm->pParts;
+    Sv.vx = pP->Pos_x;
+    Sv.vy = pP->Pos_y - 1000;
+    Sv.vz = pP->Pos_z;
+    pP = pOm->pParts;
+    switch (pOm->Type & 0x1F) {
+    case 0:
+        Esp_call(0xC, (USHORT)pOm->Cdir.vy | 0x10000000, &pP->Workm, &Sv, NULL);
+        Kage_work_set(&pKw, 0, 0x3E803E8, 0, pOm->Workm.t);
+        MulKage_om(pKw, pOm->nFloor * -1800, 0, 0);
+        break;
+    case 1:
+        Esp_call(0x30C, (USHORT)pOm->Cdir.vy | 0x10000000, &pP->Workm, &Sv, NULL);
+        break;
+    case 2:
+        Sv.vx = pP->Pos_x;
+        Sv.vy = pP->Pos_y;
+        Sv.vz = pP->Pos_z;
+        Dir = pOm->Cdir.vy;
+        pM2 = &pP->Workm;
+        Rot_x = ((signed char)Rnd() << 3) + 0x3000;
+        Esp_call(0xA27, (Rot_x << 16) | Dir, pM2, &Sv, NULL);
+        Rnd();
+        Rot_x = ((signed char)Rnd() << 3) + 0x3000;
+        Esp_call(0xC27, (Rot_x << 16) | (USHORT)(Dir + 0x554), pM2, &Sv, NULL);
+        Rot_x = ((signed char)Rnd() << 3) + 0x2000;
+        Esp_call(0xA27, (Rot_x << 16) | (USHORT)(Dir + 0x7FE), pM2, &Sv, NULL);
+        Dir += 0xD52;
+        Rnd();
+        Rot_x = ((signed char)Rnd() << 3) + 0x2000;
+        Esp_call(0xC27, (Rot_x << 16) | Dir, pM2, &Sv, NULL);
+        Snd_se_stad(0x10213, pOm->M.t, 0, 0);
+        break;
+    case 3:
+        pM = &pP->Workm;
+        Sv.vx = pP->Pos_x + 800;
+        Sv.vy = pP->Pos_y;
+        Sv.vz = pP->Pos_z;
+        Esp_call(0x2903, 0x30000000, pM, &Sv, NULL);
+        Esp_call(0x4002503, 0x40000000, pM, &Sv, NULL);
+        Sv.vx = pP->Pos_x;
+        Sv.vy = pP->Pos_y;
+        Sv.vz = pP->Pos_z + 800;
+        Esp_call(0x2903, 0x3000072C, pM, &Sv, NULL);
+        Esp_call(0x4002503, 0x4000072C, pM, &Sv, NULL);
+        Sv.vx = pP->Pos_x;
+        Sv.vy = pP->Pos_y;
+        Sv.vz = pP->Pos_z - 1200;
+        Esp_call(0x2903, 0x30000800, pM, &Sv, NULL);
+        Esp_call(0x4002503, 0x40000800, pM, &Sv, NULL);
+        Sv.vx = pP->Pos_x - 800;
+        Sv.vy = pP->Pos_y;
+        Sv.vz = pP->Pos_z;
+        Esp_call(0x2903, 0x30000B1C, pM, &Sv, NULL);
+        Esp_call(0x4002503, 0x40000B1C, pM, &Sv, NULL);
+        Sv.vx = pP->Pos_x - 500;
+        Sv.vy = pP->Pos_y - 800;
+        Sv.vz = pP->Pos_z + 500;
+        Esp_call(0x1503, 0x30000600, pM, &Sv, NULL);
+        Esp_call(0x4001103, 0x40000600, pM, &Sv, NULL);
+        Sv.vx = pP->Pos_x + 500;
+        Sv.vy = pP->Pos_y - 800;
+        Sv.vz = pP->Pos_z - 500;
+        Esp_call(0x1503, 0x30000800, pM, &Sv, NULL);
+        Esp_call(0x4001103, 0x40000800, pM, &Sv, NULL);
+        Sv.vx = pOm->M.t[0];
+        Sv.vy = pOm->M.t[1];
+        Sv.vz = pOm->M.t[2];
+        Snd_se_stad(0x10202, pOm->M.t, 0, 0);
+        Pad_vib_set0(3, 3);
+        Pad_vib_set1(4, 0x60, 0);
+        Pad_vib_set1(8, 0xFF, 4);
+        Pad_vib_fade_set(8, 0xC0, 0, 0xC);
+        Req.pPos = (VECTOR *)pOm->M.t;
+        Req.W = 0;
+        Req.H = 0;
+        Req.D = 0;
+        Req.R = 0;
+        Pos_em_at_ck(&Req, Om_at_tbl[pOm->Type & 0xF]);
+        Pos_om_at_ck(&Req, Om_at_tbl[pOm->Type & 0xF]);
+        break;
+    }
+    pOm->Routine_0 = 3;
+    pOm->Col.Id = 0;
+    pOm->Routine_1 = 1;
+    pOm->Routine_2 = 0;
+}
 
 /* Om_routine 0: push bookkeeping; when its target flag is set, explode or start moving by Type */
 void Om_rtn_wait(OBJ_MODEL_WORK *pOm)
@@ -473,7 +676,130 @@ void Om_rtn_drop(OBJ_MODEL_WORK *pOm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", Om_rtn_fall);
+/* AOT entry (RE2 struct tagSCE_AOT; sce_at.c) */
+struct tagSCE_AOT {
+    UCHAR Id;                          /* 0x00 */
+    UCHAR Type;                        /* 0x01 */
+    UCHAR nFloor;                      /* 0x02 */
+    UCHAR Super;                       /* 0x03 */
+    SHORT X;                           /* 0x04 */
+    SHORT Z;                           /* 0x06 */
+    USHORT W;                          /* 0x08 */
+    USHORT D;                          /* 0x0A */
+    USHORT Data;                       /* 0x0C */
+    USHORT Data1;                      /* 0x0E */
+};
+
+/* state of the falling object model (Om_rtn_fall; like the Om_move_box set) */
+extern SHORT Om_fall_pos_spd;       /* 0x800DD478 */
+extern SHORT Om_fall_pos_spd_add;   /* 0x800DD47A */
+extern SHORT Om_fall_dir_spd;       /* 0x800DD47C */
+extern SHORT Om_fall_dir_spd_add;   /* 0x800DD47E */
+extern SHORT Om_fall_y_spd;         /* 0x800DD480 */
+extern SHORT Om_fall_dir_sum;       /* 0x800DD482 */
+extern SHORT Om_fall_ground;        /* 0x800DD484 */
+extern SVECTOR Om_fall_add_dir;     /* 0x800DD488 */
+extern UCHAR Om_fall_water_flg;     /* 0x800DD490 */
+
+/* Om_routine 4: the model falls off its stand, lands, and leaves an item AOT (Sce_aot[31]) where it lies */
+void Om_rtn_fall(OBJ_MODEL_WORK *pOm)
+{
+    SVECTOR Sv;
+    struct tagSCE_AOT *pAot;
+    SHORT n;
+    LONG Dummy[4];
+
+    pAot = G.Sce_aot[31];
+    switch (pOm->Routine_1) {
+    case 0:
+        if (pOm->Routine_2 != 0) {
+            pOm->Routine_2--;
+            break;
+        }
+        pOm->Be_flg &= ~0x10;
+        pOm->Routine_1++;
+        break;
+    case 1:
+        Om_fall_dir_sum = 0;
+        Om_fall_pos_spd = Om_fall_pos_spd_add = 13;
+        Om_fall_dir_spd = 0;
+        Om_fall_add_dir.vx = 0;
+        Om_fall_add_dir.vy = 0;
+        Om_fall_add_dir.vz = 0;
+        pOm->pSuper = &GsIDMATRIX;
+        pOm->pParts->pOya_parts = (PARTS_W *)&GsIDMATRIX;
+        Om_fall_dir_spd_add = 8;
+        Om_fall_y_spd = 0;
+        pOm->M.t[0] = pOm->pParts->Workm.t[0];
+        pOm->M.t[1] = pOm->pParts->Workm.t[1];
+        pOm->M.t[2] = pOm->pParts->Workm.t[2];
+        Om_fall_water_flg = 0;
+        pOm->Routine_1 = 2;
+        pOm->Routine_2 = 0;
+    case 2:
+        pOm->M.t[0] += Om_fall_pos_spd * Om_fall_dir_x;
+        pOm->M.t[2] += Om_fall_pos_spd * Om_fall_dir_z;
+        if (Om_fall_dir_sum < 0x400) {
+            n = Om_fall_dir_sum + Om_fall_dir_spd;
+            Om_fall_dir_sum = n;
+            if (n > 0x400) {
+                Om_fall_dir_spd -= n - 0x400;
+            }
+            Om_fall_add_dir.vx = Om_fall_dir_spd * -Om_fall_dir_z;
+            Om_fall_add_dir.vz = Om_fall_dir_spd * Om_fall_dir_x;
+        } else {
+            Om_fall_add_dir.vz = 0;
+            Om_fall_add_dir.vx = 0;
+        }
+        Om_fall_dir_spd += Om_fall_dir_spd_add;
+        Om_fall_pos_spd += Om_fall_pos_spd_add;
+        if (++pOm->Routine_2 >= 13) {
+            Om_fall_pos_spd_add = 0;
+            pOm->M.t[1] += Om_fall_y_spd;
+            Om_fall_y_spd += 0xA0;
+            if (pOm->Routine_2 == 13) {
+                Om_fall_ground = Sca_get_ground(pOm->M.t, 0x1C2, 0x200, 0);
+                pOm->Old_x = pOm->M.t[0];
+                pOm->Old_z = pOm->M.t[2];
+                pOm->nFloor = Om_fall_ground / -1800;
+            }
+            if (Om_fall_ground < pOm->M.t[1]) {
+                pOm->M.t[1] = Om_fall_ground;
+                pOm->Routine_1 = 3;
+            }
+        } else {
+            pOm->M.t[1] += (SHORT)(Om_fall_pos_spd / 3);
+        }
+        break;
+    case 3:
+        pOm->M.t[1] -= 30;
+        pOm->M.t[0] += Om_fall_dir_x * 20;
+        pOm->M.t[2] += Om_fall_dir_z * 20;
+        Om_fall_add_dir.vx = -(Om_fall_dir_z * 30);
+        Om_fall_add_dir.vz = Om_fall_dir_x * 30;
+        pOm->Routine_1++;
+        break;
+    case 4:
+        pOm->M.t[1] += 30;
+        pOm->M.t[0] += Om_fall_dir_x * 20;
+        pOm->M.t[2] += Om_fall_dir_z * 20;
+        Om_fall_add_dir.vx = Om_fall_dir_z * 30;
+        Om_fall_add_dir.vz = -(Om_fall_dir_x * 30);
+        Sv.vx = 0;
+        Sv.vy = -400;
+        Sv.vz = 0;
+        Esp_call(0x705, 0x28000000, &pOm->M, &Sv, NULL);
+        pAot->Id = 2;
+        pAot->nFloor = pOm->M.t[1] / -1800;
+        G.Chaser_drop[G.Chaser_drop_num - 1].Pos_x = pOm->M.t[0];
+        G.Chaser_drop[G.Chaser_drop_num - 1].Pos_y = pOm->M.t[1];
+        G.Chaser_drop[G.Chaser_drop_num - 1].Pos_z = pOm->M.t[2];
+        pOm->Routine_0 = 0;
+        pOm->Routine_1 = 0;
+        break;
+    }
+    Rot_add_matrix(pOm->M.t, &pOm->Cdir.vx, &pOm->M, &Om_fall_add_dir);
+}
 
 /* Om_routine 2: a pushed box tips over the edge (RE2 Om_move_box) */
 void Om_move_box(OBJ_MODEL_WORK *pOm)
