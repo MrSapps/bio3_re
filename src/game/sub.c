@@ -308,7 +308,7 @@ void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight)
     pCm[6] = pRgb[2] << 4;
 }
 
-/* light data of the current cut */
+/* light of the cut zone pPos is in (the cut's default zone, its last entry, if none) */
 INCLUDE_ASM("asm/nonmatchings/game/sub", Get_light_cut);
 
 /* saves the G fields that survive a retry (Init_global clears G) */

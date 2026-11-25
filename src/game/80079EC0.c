@@ -235,15 +235,18 @@ void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 /* blended vertices of the first skin list */
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t2,a0,zero` / `addu t3,a1,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx0);
 
 /* blended vertices of the second skin list */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
 
 /* blended vertices of the third skin list */
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2);
 
 /* lit colours of the first skin list */
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t8,a0,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light0);
 
 /* lit colours of the second skin list */
@@ -365,6 +368,7 @@ typedef struct tagSORT_PRM {
 } SORT_PRM;
 
 /* (no callers) skin triangle sort */
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t7/t8 from a2/a3 */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_sort_gt3);
 
 /* textured gouraud quad of a sort list: the vertex numbers are the top two bytes of W[2] and W[3] */
@@ -373,6 +377,7 @@ typedef struct tagSORT_GT4 {
 } SORT_GT4;
 
 /* (no callers) skin quad sort */
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t8/t9 from a2/a3 */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_sort_gt4);
 
 /* Skin_vtx0 for the alternate routines */
@@ -479,4 +484,5 @@ void Skin_vtx0_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1_alt);
 
 /* Skin_vtx2 for the alternate routines */
+/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);
