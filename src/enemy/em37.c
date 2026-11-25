@@ -6,8 +6,8 @@
 
 const EM37_MOTION Em37_motion  = { { 2, 4, 4, 2, 4, 2, 4, 2 } };
 
-/* RE2 EM_MAIN: follow the parent, grow/shrink part 0 towards Size, sink into the ground under parts 3 and 5 */
-void func_8010003C(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 EM_MAIN): follow the parent, grow/shrink part 0 towards Size, sink into the ground under parts 3 and 5 */
+void Em37_main(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     USHORT n;
@@ -42,7 +42,7 @@ void func_8010003C(ENEMY_WORK *pEm)
             if (pP[-1].Size_y >= EM37_W(pEm)->Size)
                 pP[-1].Size_y = EM37_W(pEm)->Size;
         }
-        func_80101854(pEm);
+        Em37_splash(pEm);
     }
     Under = (SHORT)func_8004D720(pP[2].Workm.t, 500, 0x2000, 0) < pP[2].Workm.t[1];
     n = Under;
@@ -69,7 +69,7 @@ void func_8010003C(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em37_Init: find the parent (id 0x35 or 0x36) and hang part 0 on its part 5 */
-void func_80100370(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em37_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     tagGLOBAL *pG;
     ENEMY_WORK **ppEm;
@@ -154,27 +154,31 @@ void func_80100370(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em37_move */
-void func_801005A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 1: move routine set by Type */
+void Em37_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em37_move_type[(UCHAR)pEm->Type](pEm, pKan, pSeq);
 }
 
-void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* motion routine by Routine_1 */
+void Em37_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em37_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-void func_80100618(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* scenario routine by Routine_1 (unreferenced) */
+void Em37_Move_sce(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em37_sce[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-void func_80100654(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv00_br(ENEMY_WORK *pEm)
+{
 }
 
 /* mv[0]: idle, random sways; follows the parent's state */
-void func_8010065C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em37_idle(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM37_MOTION Tbl = Em37_motion;
     UCHAR *pMotion = Tbl.No;
@@ -219,11 +223,13 @@ void func_8010065C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100894(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv01_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[1] */
-void func_8010089C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[1]: motion 1, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -242,11 +248,13 @@ void func_8010089C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_8010094C(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv02_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[2] */
-void func_80100954(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[2]: motion 2, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -262,11 +270,13 @@ void func_80100954(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801009E4(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv03_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[3] */
-void func_801009EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[3]: motion 3, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -289,11 +299,13 @@ void func_801009EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100AB4(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv04_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[4] */
-void func_80100ABC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[4]: motion 4, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -319,11 +331,13 @@ void func_80100ABC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100B8C(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv05_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[5] */
-void func_80100B94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[5]: motion 5, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -351,11 +365,13 @@ void func_80100B94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100CBC(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv06_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[6] */
-void func_80100CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[6]: motion 6, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -374,11 +390,13 @@ void func_80100CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100D5C(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv07_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[7] */
-void func_80100D64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[7]: motion 7, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -396,11 +414,13 @@ void func_80100D64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100DF0(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv08_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[8] */
-void func_80100DF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[8]: motion 8, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -425,11 +445,13 @@ void func_80100DF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100EB0(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv09_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[9] */
-void func_80100EB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[9]: motion 9, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -450,11 +472,13 @@ void func_80100EB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100F58(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_mv10_br(ENEMY_WORK *pEm)
+{
 }
 
-/* mv[10] */
-void func_80100F60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* mv[10]: motion 10, started by the parent's attack (it sets Routine_1, Timer0 = reach) */
+void Em37_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -470,11 +494,13 @@ void func_80100F60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100FD8(void) {
+/* brain slot (Em37_mv_br, unused: Em37_Move_type00 only runs Em37_mv) */
+void Em37_grab_br(ENEMY_WORK *pEm)
+{
 }
 
 /* mv[11]: grab (UnkE3 picks one of six holds on the parent), then struggle with splash effects */
-void func_80100FE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em37_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM37_MOTION Tbl = Em37_motion;
     PARTS_W *pP;
@@ -616,16 +642,19 @@ void func_80100FE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80101598(void)
+/* Routine_0 2: no damage */
+void Em37_Damage(void)
 {
     SVECTOR Unused;
 }
 
-void func_801015A8(void) {
+/* Routine_0 3: nothing */
+void Em37_Die(void)
+{
 }
 
-/* RE2 Em37_Scenario */
-void func_801015B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 4: scenario (Type 0x100: the exe's common scenario routine) */
+void Em37_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100)
         func_80016600(pEm, pKan, pSeq);
@@ -634,7 +663,7 @@ void func_801015B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* Routine_0 7: shrink back, idle sways (parts 3..5 scaled 1:1) */
-void func_8010160C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em37_Retract(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM37_MOTION Tbl = Em37_motion;
     PARTS_W *pP;
@@ -686,14 +715,18 @@ void func_8010160C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80101844(void) {
+/* unused */
+void Em37_dummy0(void)
+{
 }
 
-void func_8010184C(void) {
+/* unused */
+void Em37_dummy1(void)
+{
 }
 
 /* splash effects while the part moves (non-void without a return value: v0 stays out of the last delay slot) */
-LONG func_80101854(ENEMY_WORK *pEm)
+LONG Em37_splash(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     SVECTOR Pos;

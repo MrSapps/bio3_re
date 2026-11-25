@@ -1,8 +1,11 @@
 #ifndef OVL_EM37_H
 #define OVL_EM37_H
 /*
- * Enemy module em37 (enemy ids 0x37, 0x3B). Loaded at 0x80100000 (slot 1) or
- * 0x8010D000 (slot 2).
+ * Enemy module em37 (enemy ids 0x37, 0x3B): Nemesis' tentacle. A separate work
+ * that hangs on part 5 of its parent (Nemesis, em34/em36, ids 0x35/0x36) and
+ * plays the motion the parent's attacks start (Routine_1), growing part 0
+ * towards Size; mv 11 grabs the player.
+ * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"
 #include "enemy/em_common.h"
@@ -25,48 +28,49 @@ typedef struct tagEM37_MOTION {
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
 extern void (*Em37_routine_0[])();
-extern void (*Em37_move_type[])();
+extern void (*Em37_move_type[])();    /* by Type: Em37_Move_type00 */
+extern void (*Em37_mv_br[])();         /* brain slots, unreferenced */
 extern void (*Em37_mv[])();
 extern void (*Em37_sce[])();
 
-LONG func_80101854(ENEMY_WORK *pEm); /* splash effects */
 
 extern const EM37_MOTION Em37_motion;
 
-void func_8010003C(ENEMY_WORK *pEm);
-void func_80100370(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801005A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100618(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100654(void);
-void func_8010065C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100894(void);
-void func_8010089C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010094C(void);
-void func_80100954(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801009E4(void);
-void func_801009EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100AB4(void);
-void func_80100ABC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100B8C(void);
-void func_80100B94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100CBC(void);
-void func_80100CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100D5C(void);
-void func_80100D64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100DF0(void);
-void func_80100DF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100EB0(void);
-void func_80100EB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100F58(void);
-void func_80100F60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100FD8(void);
-void func_80100FE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101598(void);
-void func_801015A8(void);
-void func_801015B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010160C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101844(void);
-void func_8010184C(void);
+void Em37_main(ENEMY_WORK *pEm);
+void Em37_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_Move_sce(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv00_br(ENEMY_WORK *pEm);
+void Em37_idle(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv01_br(ENEMY_WORK *pEm);
+void Em37_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv02_br(ENEMY_WORK *pEm);
+void Em37_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv03_br(ENEMY_WORK *pEm);
+void Em37_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv04_br(ENEMY_WORK *pEm);
+void Em37_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv05_br(ENEMY_WORK *pEm);
+void Em37_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv06_br(ENEMY_WORK *pEm);
+void Em37_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv07_br(ENEMY_WORK *pEm);
+void Em37_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv08_br(ENEMY_WORK *pEm);
+void Em37_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv09_br(ENEMY_WORK *pEm);
+void Em37_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_mv10_br(ENEMY_WORK *pEm);
+void Em37_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_grab_br(ENEMY_WORK *pEm);
+void Em37_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_Damage(void);
+void Em37_Die(void);
+void Em37_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_Retract(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em37_dummy0(void);
+void Em37_dummy1(void);
+LONG Em37_splash(ENEMY_WORK *pEm);
 
 #endif /* OVL_EM37_H */
