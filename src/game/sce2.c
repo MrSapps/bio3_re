@@ -341,7 +341,186 @@ ULONG Sce_espr_control(SCE_TASK *pSce)
 }
 
 /* RE2 Obj_model_set: sets up a room object model (OBJ_MODEL_WORK) from the opcode record */
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Obj_model_set);
+/* Obj_model_set opcode record (0x28 bytes; RE2 is 0x26, no Flg_no / Cc fields) */
+typedef struct tagSCE_OM_SET {
+    UCHAR Opcode;                      /* 0x00 */
+    UCHAR Om_no;                       /* 0x01 */
+    UCHAR Id;                          /* 0x02 */
+    UCHAR Cc_ctr;                      /* 0x03 0x40 texture change, 0x20 uv change, low 5 bits Cc_ctr */
+    USHORT Cc_wait;                    /* 0x04 high byte: Cc_wait */
+    USHORT Cc_num;                     /* 0x06 high byte: Cc_num (uv change: low nibble count, top nibble start) */
+    UCHAR nFloor;                      /* 0x08 */
+    UCHAR Super;                       /* 0x09 0xC0: parent kind, 0x3F: parent number */
+    UCHAR Type;                        /* 0x0A */
+    UCHAR Flg_no;                      /* 0x0B G.Om_flg bit (0xFF none) */
+    USHORT Be_flg;                     /* 0x0C */
+    SHORT Attribute;                   /* 0x0E */
+    SHORT Pos_x;                       /* 0x10 */
+    SHORT Pos_y;                       /* 0x12 */
+    SHORT Pos_z;                       /* 0x14 */
+    SHORT Cdir_x;                      /* 0x16 */
+    SHORT Cdir_y;                      /* 0x18 */
+    SHORT Cdir_z;                      /* 0x1A */
+    SHORT Ofs_x;                       /* 0x1C */
+    SHORT Ofs_y;                       /* 0x1E */
+    SHORT Ofs_z;                       /* 0x20 */
+    SHORT W;                           /* 0x22 */
+    SHORT H;                           /* 0x24 */
+    SHORT D;                           /* 0x26 */
+} SCE_OM_SET;
+
+ULONG Obj_model_set(SCE_TASK *pSce)
+{
+    tagGLOBAL *pG;
+    SCE_OM_SET *pData;
+    OBJ_MODEL_WORK *pOm;
+    CC_PARTS_WORK *pCc;
+    OM_TARGET *pT;
+    ULONG *pTmd;
+    ULONG Om_no;
+    ULONG Sup_flg;
+    LONG Work_a;
+    LONG Work_b;
+    LONG Work_c;
+    LONG Work_d;
+    ULONG *pFlg;
+    ULONG Old_be_flg;
+
+    pG = &G;
+    pData = (SCE_OM_SET *)pSce->Data;
+    pFlg = pG->Om_flg;
+    Om_no = pData->Flg_no;
+    if (Om_no == 0xFF || !Flg_ck(pFlg, Om_no)) {
+        Om_no = pData->Om_no;
+        Work_a = pData->Id;
+        Work_b = pData->nFloor;
+        Work_c = pData->Type;
+        Work_d = pData->Flg_no;
+        pOm = pG->Ob_model + Om_no;
+        Old_be_flg = pOm->Be_flg;
+        pOm->Unk4A = Work_a;
+        pOm->nFloor = Work_b;
+        pOm->Type = Work_c;
+        pOm->UnkC2 = Work_d;
+        Sup_flg = pData->Super;
+        if (Old_be_flg) {
+            pOm->Be_flg = 0;
+        } else {
+            pOm->Be_flg = pData->Be_flg | 1;
+        }
+        if (G.pObj_work_end < pOm + 1) {
+            G.pObj_work_end = pOm + 1;
+        }
+        Work_a = pData->Attribute;
+        Work_b = pData->Pos_x;
+        Work_c = pData->Pos_y;
+        Work_d = pData->Pos_z;
+        pOm->Attribute = Work_a;
+        pOm->M.t[0] = Work_b;
+        pOm->M.t[1] = Work_c;
+        pOm->M.t[2] = Work_d;
+        if (Work_a & 0x20) {
+            pOm->Be_flg &= ~1;
+        }
+        Work_a = pData->Cdir_x;
+        Work_b = pData->Cdir_y;
+        Work_c = pData->Cdir_z;
+        pOm->Cdir.vx = Work_a;
+        pOm->Cdir.vy = Work_b;
+        pOm->Cdir.vz = Work_c;
+        Work_a = pData->Ofs_x;
+        Work_b = pData->Ofs_y;
+        Work_c = pData->Ofs_z;
+        pOm->Col.Unk24 = Work_a;
+        pOm->Col.Unk26 = Work_b;
+        pOm->Col.Unk28 = Work_c;
+        Work_a = pData->W;
+        Work_b = pData->H;
+        Work_c = pData->D;
+        pOm->Parts.Be_flg = 1;
+        pOm->UnkD = 0;
+        pOm->Col.W0 = Work_a;
+        pOm->Col.H = Work_b;
+        pOm->Col.D0 = Work_c;
+        switch (Sup_flg & 0xC0) {
+        case 0:
+            pOm->pSuper = &GsIDMATRIX;
+            break;
+        case 0x40:
+            pOm->pSuper = EM_WORKM(&pG->Player);
+            break;
+        case 0x80:
+            pOm->pSuper = EM_WORKM(pG->pEnemy[Sup_flg & 0x3F]);
+            break;
+        case 0xC0:
+            pOm->pSuper = &pG->Ob_model[Sup_flg & 0x3F].M;
+            break;
+        }
+        pTmd = pG->pRoom->pOmodel[Om_no].Tmd_adr;
+        if (pTmd != (ULONG *)pG->pRoom) {
+            Om_init((ENEMY_WORK *)pOm, pTmd); /* the model work shares the ENEMY_WORK head */
+        } else {
+            pOm->Be_flg = 0;
+        }
+        RotMatrix(&pOm->Cdir, &pOm->M);
+        CompM(pOm->pSuper, &pOm->M, &pOm->Workm);
+        Work_a = pData->Cc_ctr;
+        Work_b = pData->Cc_wait;
+        Work_c = pData->Cc_num;
+        pCc = &Cc_work.Cc_parts[Cc_work.Ccol_no];
+        pCc->Cc_flg = 0;
+        if (Work_a & 0x40) {
+            pCc->Cc_flg = 0x40;
+            pCc->Cc_ctr = Work_a & 0x1F;
+            pCc->Cc_wait = Work_b >> 8;
+            pCc->Cc_num = Work_c >> 8;
+            pCc->Cc_cnt = 0;
+            pCc->pOm = pOm;
+            Tex_chg_init(Cc_work.Ccol_no, pCc);
+        }
+        if (Work_a & 0x20) {
+            pCc->Cc_wait = Work_b >> 8;
+            pCc->Cc_num = (Work_c >> 8) & 0xF;
+            pCc->Cc_cnt = Work_c >> 12;
+            pCc->pOm = pOm;
+            pCc->Cc_flg |= 0x20;
+            Uv_chg_init(Cc_work.Ccol_no, pCc);
+        }
+        if (Work_a & 0xE0) {
+            Cc_work.Ccol_no++;
+        }
+        if (pOm->Unk4A != 1) {
+            pOm->Col.pEm = (ENEMY_WORK *)pOm;
+            if (pOm->Attribute & 0x4000) {
+                pOm->Col.Flg = 1;
+            } else {
+                pOm->Col.Flg = 0;
+            }
+            if (pOm->Type & 0x40) {
+                pOm->Col.Type = 4;
+            } else {
+                pOm->Col.Type = 3;
+            }
+            Oba_set(&pOm->Col, 0);
+        }
+        if (pOm->Unk4A & 4) {
+            pT = (OM_TARGET *)G.pEm_mem;
+            G.pOm_target[G.Om_target_num] = pT;
+            G.pEm_mem = (ENEMY_WORK *)((UCHAR *)G.pEm_mem + sizeof(OM_TARGET));
+            pT->Area.Bottom = -1800;
+            pT->Area.Rate1 = pT->Area.Rate0 = 0x40;
+            pT->Area.R = 400;
+            pT->Flg = 0;
+            pT->pOm = pOm;
+            pT->Area.Top = 0;
+            pT->Area.pM = &pOm->Workm;
+            pT->Unk14 = 0;
+            pOm->UnkC1 = G.Om_target_num++;
+        }
+    }
+    pSce->Data = (UCHAR *)(pData + 1);
+    return 1;
+}
 
 /* RE2 Mizu_div_set */
 ULONG Mizu_div_set(SCE_TASK *pSce)
