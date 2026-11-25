@@ -4,8 +4,8 @@
 #include "sld.h"
 
 
-/* RE2 EM_MAIN */
-void func_80100020(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 EM_MAIN) */
+void Em2d_main(ENEMY_WORK *pEm)
 {
     SVECTOR Sv; /* unused, as in RE2 */
 
@@ -45,12 +45,12 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP_ptr = pEm->pSin_parts_ptr + P_hand[1][0];
         pEm->Unk120 = 0;
         pEm->Neck_no = P_hand[1][0];
-        PW_FREE(pP_ptr)[2] = 0x60;
-        PW_FREE(pP_ptr)[3] = 0x60;
-        PW_FREE(pP_ptr)[4] = 0x200;
-        PW_FREE(pP_ptr)[0] = 0;
-        PW_FREE(pP_ptr)[1] = 0;
-        PW_FREE(pP_ptr)[5] = 0x138;
+        PW_NECK(pP_ptr)->Add_dir_y = 0x60;
+        PW_NECK(pP_ptr)->Add_dir_z = 0x60;
+        PW_NECK(pP_ptr)->L_rot_y = 0x200;
+        PW_NECK(pP_ptr)->N_rot_y = 0;
+        PW_NECK(pP_ptr)->N_rot_z = 0;
+        PW_NECK(pP_ptr)->L_rot_z = 0x138;
         i = 7;
         do {
             pP_ptr = pEm->pSin_parts_ptr + P_hand[0][i - 1];
@@ -61,12 +61,12 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP_ptr = pEm->pSin_parts_ptr + P_hand[0][0];
         pEm->Unk120 = 0;
         pEm->Neck_no = P_hand[0][0];
-        PW_FREE(pP_ptr)[2] = 0x60;
-        PW_FREE(pP_ptr)[3] = 0x60;
-        PW_FREE(pP_ptr)[4] = 0x200;
-        PW_FREE(pP_ptr)[0] = 0;
-        PW_FREE(pP_ptr)[1] = 0;
-        PW_FREE(pP_ptr)[5] = 0x138;
+        PW_NECK(pP_ptr)->Add_dir_y = 0x60;
+        PW_NECK(pP_ptr)->Add_dir_z = 0x60;
+        PW_NECK(pP_ptr)->L_rot_y = 0x200;
+        PW_NECK(pP_ptr)->N_rot_y = 0;
+        PW_NECK(pP_ptr)->N_rot_z = 0;
+        PW_NECK(pP_ptr)->L_rot_z = 0x138;
         i = 7;
         do {
             pP_ptr = pEm->pSin_parts_ptr + P_hand[1][i - 1];
@@ -88,27 +88,27 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_Move */
-void func_80100334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em2d_Move_type[pEm->Type & 1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em2d_Move_type00 */
-void func_80100374(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em2d_mv_br_type00[pEm->Routine_1](pEm);
     Em2d_mv_type00[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em2d_Move_type01 */
-void func_801003F8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em2d_mv_br_type01[pEm->Routine_1](pEm);
     Em2d_mv_type01[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em2d_mv00_br (RE3 dropped the grab branch but kept its Goto00_ck call) */
-void func_8010047C(ENEMY_WORK *pEm)
+void Em2d_mv00_br(ENEMY_WORK *pEm)
 {
     ULONG LL;
     SHORT Dir1;
@@ -132,7 +132,7 @@ void func_8010047C(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em2d_mv00 */
-void func_80100554(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -188,7 +188,7 @@ void func_80100554(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_mv01_br */
-void func_80100780(ENEMY_WORK *pEm)
+void Em2d_mv01_br(ENEMY_WORK *pEm)
 {
     PARTS_W *pPt;
     SVECTOR Sv; /* unused, as in RE2 */
@@ -201,7 +201,7 @@ void func_80100780(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em2d_mv01 */
-void func_80100800(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Move_tbl[4] = { 1, 2, 3, 5 };
 
@@ -246,7 +246,7 @@ void Em2d_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_mv03_br */
-void func_80100A10(ENEMY_WORK *pEm)
+void Em2d_mv03_br(ENEMY_WORK *pEm)
 {
     PARTS_W *pPt;
     SVECTOR Sv; /* unused, as in RE2 */
@@ -265,7 +265,7 @@ void func_80100A10(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em2d_mv03 */
-void func_80100AEC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -281,12 +281,12 @@ void func_80100AEC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_mv04_br */
-void func_80100BB4(ENEMY_WORK *pEm)
+void Em2d_mv04_br(ENEMY_WORK *pEm)
 {
 }
 
 /* RE2 Em2d_mv04: grab the player */
-void func_80100BBC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pPt;
 
@@ -347,12 +347,12 @@ void func_80100BBC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_mv05_br */
-void func_80100E70(ENEMY_WORK *pEm)
+void Em2d_mv05_br(ENEMY_WORK *pEm)
 {
 }
 
 /* RE2 Em2d_mv05: pull back */
-void func_80100E78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -388,12 +388,12 @@ void func_80100E78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_mv06_br */
-void func_80101008(ENEMY_WORK *pEm)
+void Em2d_mv06_br(ENEMY_WORK *pEm)
 {
 }
 
 /* RE2 Em2d_mv06 */
-void func_80101010(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -411,17 +411,17 @@ void func_80101010(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_mv07_br */
-void func_801010AC(ENEMY_WORK *pEm)
+void Em2d_mv07_br(ENEMY_WORK *pEm)
 {
 }
 
 /* RE2 Em2d_mv07 */
-void func_801010B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
 }
 
 /* RE2 Em2d_Damage (RE3 calls Em2d_dm00 directly) */
-void func_801010BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv; /* unused, as in RE2 */
 
@@ -445,7 +445,7 @@ void Em2d_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_Die (RE3 calls Em2d_die00 directly) */
-void func_8010112C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em2d_die00(pEm, pKan, pSeq);
 }
@@ -469,23 +469,23 @@ void Em2d_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_Scenario */
-void func_801011B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em2d_sce[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em2d_sce00 */
-void func_801011EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
 }
 
 /* RE2 Em2d_Dead */
-void func_801011F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
 }
 
 /* RE2 PLDIE_EM */
-void func_801011FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Pldie_Em2d_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
@@ -533,7 +533,7 @@ void PLDAMEGE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em2d_pldm00 */
-void func_8010138C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em2d_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:

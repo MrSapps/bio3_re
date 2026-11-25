@@ -12,6 +12,7 @@
 #include "bio3.h"
 #include "enemy/em_common.h"
 #include "em_sub.h"
+#include "joint.h"
 #include "pad.h"
 #include "pl_wep.h"
 
@@ -27,8 +28,6 @@ typedef struct tagEM2D_FREE {
 } EM2D_FREE;
 
 #define EF(p) ((EM2D_FREE *)(p)->Unk1CC)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
 extern UCHAR P_hand[2][7];
 extern void (*Em2d_routine_0[])();
@@ -43,39 +42,39 @@ extern void (*Em2d_sce[])() __asm__("Pldamage_Em2d_tbl");
 extern void (*Pldie_Em2d_tbl[])() __asm__("Pldamage_Em2d_tbl");
 extern UCHAR Se_call;
 
-void func_80100020(ENEMY_WORK *pEm);
+void Em2d_main(ENEMY_WORK *pEm);
 void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100374(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801003F8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010047C(ENEMY_WORK *pEm);
-void func_80100554(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100780(ENEMY_WORK *pEm);
-void func_80100800(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv00_br(ENEMY_WORK *pEm);
+void Em2d_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv01_br(ENEMY_WORK *pEm);
+void Em2d_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em2d_mv02_br(ENEMY_WORK *pEm);
 void Em2d_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100A10(ENEMY_WORK *pEm);
-void func_80100AEC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100BB4(ENEMY_WORK *pEm);
-void func_80100BBC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100E70(ENEMY_WORK *pEm);
-void func_80100E78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101008(ENEMY_WORK *pEm);
-void func_80101010(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801010AC(ENEMY_WORK *pEm);
-void func_801010B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801010BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv03_br(ENEMY_WORK *pEm);
+void Em2d_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv04_br(ENEMY_WORK *pEm);
+void Em2d_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv05_br(ENEMY_WORK *pEm);
+void Em2d_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv06_br(ENEMY_WORK *pEm);
+void Em2d_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_mv07_br(ENEMY_WORK *pEm);
+void Em2d_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em2d_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010112C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em2d_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801011B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801011EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801011F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801011FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Hand_display(ENEMY_WORK *pEm, UCHAR L_r, UCHAR On_off);
 void Em2d_hand_rgb(ENEMY_WORK *pEm, UCHAR L_r, LONG Rgb);
 void PLDAMEGE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010138C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em2d_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em2d_spd_rot(ENEMY_WORK *pEm, LONG Add_y, LONG Add_z);
 
 #endif /* OVL_EM2D_H */
