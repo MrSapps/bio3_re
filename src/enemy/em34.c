@@ -144,6 +144,7 @@ void Em34_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em34_Move_type[(UCHAR)pEm->Type](pEm, pKan, pSeq);
 }
 
+/* Type 0: brain (the hard-mode set when D_800D1F2C bit 31 is set), then motion, by Routine_1 */
 void Em34_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if ((LONG)D_800D1F2C >= 0)
@@ -153,6 +154,7 @@ void Em34_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em34_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
+/* Type 1: as Type 0 with the type-1 brains */
 void Em34_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if ((LONG)D_800D1F2C >= 0)
@@ -162,6 +164,7 @@ void Em34_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em34_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
+/* Type 2: brain and motion by Routine_1 */
 void Em34_Move_type02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em34_mv_br_type02[pEm->Routine_1](pEm);
@@ -223,6 +226,7 @@ void Em34_taiki_br(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
 }
 
+/* mv_br[0] (hard mode): start when the target is close and in front */
 void Em34_taiki_br_h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -2863,6 +2867,7 @@ void Em34_sce10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em34_foot_set(pEm, 0, 1);
 }
 
+/* sce11: stand (motion 1), then motion 6 */
 void Em34_sce11(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {

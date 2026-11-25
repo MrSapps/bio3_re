@@ -647,6 +647,7 @@ void Em36_turn_br(ENEMY_WORK *pEm)
     }
 }
 
+/* mv_br[2] (Type 2): walk again when the player is within 3000 */
 void Em36_turn_br02(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
@@ -658,6 +659,7 @@ void Em36_turn_br02(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
 }
 
+/* mv_br[2] (route types): walk again when the waypoint is within 6000 */
 void Em36_turn_br04(ENEMY_WORK *pEm)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
@@ -738,6 +740,7 @@ void Em36_back_br(ENEMY_WORK *pEm)
     }
 }
 
+/* mv_br[3] (route types): walk again when the waypoint is over 3000 away */
 void Em36_back_br04(ENEMY_WORK *pEm)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
@@ -978,6 +981,7 @@ void Em36_mv06_br(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 0x12, 0, 0);
 }
 
+/* mv[6]: lumber forwards growling (motion 0x1C) */
 void Em36_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Old;
