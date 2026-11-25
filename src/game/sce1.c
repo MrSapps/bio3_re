@@ -10,6 +10,19 @@
 extern UCHAR Rbj_id_a[] __asm__("Rbj_id"); /* Sce_rbj_set stores through an array: pSce->Data is reloaded after it */
 extern UCHAR D_800D442E_a[] __asm__("D_800D442E"); /* stored through an array view here (see Rbj_id_a) */
 LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* Capcom called it undeclared here (implicit int): Add_vspeed needs the int return */
+/* opcode records read by field (layouts as in the SCD data) */
+typedef struct { UCHAR Op; UCHAR pad1; USHORT Size; } SCE_ELSE_REC;          /* Else_ck: Size skips the else block */
+typedef struct { UCHAR Op; UCHAR Power; USHORT Time; USHORT Attr; } SCE_VIB_REC; /* Vib_set0/Vib_set1 */
+typedef struct { UCHAR Op; UCHAR pad1; UCHAR Pow_st; UCHAR Pow_ed; USHORT Time; USHORT Attr; } SCE_VIB_FADE_REC;
+typedef struct { UCHAR Op; UCHAR Mess; USHORT Id; USHORT Flg; } SCE_MESSAGE_REC; /* Message_on */
+typedef struct { UCHAR Op; UCHAR Ot_no; USHORT Prio; } SCE_LINE_START_REC;
+typedef struct { UCHAR Op; UCHAR Line_no; SHORT Slide_ofs; SHORT Copy_ofs; } SCE_LINE_MAIN_REC;
+typedef struct { UCHAR Op; UCHAR No; USHORT Ofs; } SCE_XA_REC;                 /* Xa_on */
+
+/* Capcom called the LINE_SCR functions undeclared in the Sce_line_* handlers (implicit int: v0 stays live) */
+LONG line_mode_set_i(ULONG Ot_no, ULONG Prio) __asm__("line_mode_set");
+LONG line_trans_i(LONG Line_no, LONG Slide_ofs, LONG Copy_ofs, LONG Draw_ofs) __asm__("line_trans");
+LONG line_scr_end_i(void) __asm__("line_scr_end");
 
 /* RE2 Nop / Break_point */
 ULONG Nop(SCE_TASK *pSce)
@@ -114,7 +127,7 @@ ULONG Ifel_ck(SCE_TASK *pSce)
 ULONG Else_ck(SCE_TASK *pSce)
 {
     pSce->pS_SP--;
-    pSce->Data += ((USHORT *)pSce->Data)[1];
+    pSce->Data += ((SCE_ELSE_REC *)pSce->Data)->Size;
     pSce->Ifel_ctr[pSce->Sub_ctr]--;
     return 1;
 }
@@ -1440,7 +1453,7 @@ ULONG Dir_set(SCE_TASK *pSce)
 /* RE2 Vib_set0 */
 ULONG Vib_set0(SCE_TASK *pSce)
 {
-    Pad_vib_set0(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set0(((SCE_VIB_REC *)pSce->Data)->Time, ((SCE_VIB_REC *)pSce->Data)->Attr);
     pSce->Data += 6;
     return 1;
 }
@@ -1448,7 +1461,7 @@ ULONG Vib_set0(SCE_TASK *pSce)
 /* RE2 Vib_set1 */
 ULONG Vib_set1(SCE_TASK *pSce)
 {
-    Pad_vib_set1(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set1(((SCE_VIB_REC *)pSce->Data)->Time, ((SCE_VIB_REC *)pSce->Data)->Power, ((SCE_VIB_REC *)pSce->Data)->Attr);
     pSce->Data += 6;
     return 1;
 }
@@ -1456,7 +1469,8 @@ ULONG Vib_set1(SCE_TASK *pSce)
 /* RE2 Vib_fade_set */
 ULONG Vib_fade_set(SCE_TASK *pSce)
 {
-    Pad_vib_fade_set(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
+    Pad_vib_fade_set(((SCE_VIB_FADE_REC *)pSce->Data)->Time, ((SCE_VIB_FADE_REC *)pSce->Data)->Pow_st,
+                     ((SCE_VIB_FADE_REC *)pSce->Data)->Pow_ed, ((SCE_VIB_FADE_REC *)pSce->Data)->Attr);
     pSce->Data += 8;
     return 1;
 }
@@ -1473,8 +1487,8 @@ ULONG Message_on(SCE_TASK *pSce)
 {
     ULONG Flg;
 
-    Flg = ((USHORT *)pSce->Data)[2] << 16;
-    Mess_set(0, ((USHORT *)pSce->Data)[1] | 0x2000, pSce->Data[1], Flg);
+    Flg = ((SCE_MESSAGE_REC *)pSce->Data)->Flg << 16;
+    Mess_set(0, ((SCE_MESSAGE_REC *)pSce->Data)->Id | 0x2000, ((SCE_MESSAGE_REC *)pSce->Data)->Mess, Flg);
     G.Unk2468 |= Flg;
     pSce->Data += 6;
     return 1;
@@ -1514,19 +1528,19 @@ ULONG Sce_shake_on(SCE_TASK *pSce)
     for (Line_no = 0; Line_no != 0xF0; Line_no++) {
         line_trans(Line_no, Amp, Dir, Ofs);
     }
-    ((LONG (*)(void))line_scr_end)();
+    line_scr_end_i();
     pSce->Data += 3;
     return 1;
 }
 
-/* RE2 Sce_line_start; the line functions are called as int-returning (no prototype in the original) */
+/* RE2 Sce_line_start */
 ULONG Sce_line_start(SCE_TASK *pSce)
 {
     Line.Rect.x = 0;
     Line.Rect.y = 0;
     Line.Rect.w = 320;
     Line.Rect.h = 240;
-    ((LONG (*)(ULONG, ULONG))line_mode_set)(pSce->Data[1], ((USHORT *)pSce->Data)[1]);
+    line_mode_set_i(((SCE_LINE_START_REC *)pSce->Data)->Ot_no, ((SCE_LINE_START_REC *)pSce->Data)->Prio);
     pSce->Data += 4;
     return 1;
 }
@@ -1539,7 +1553,8 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 /* RE2 Sce_line_main */
 ULONG Sce_line_main(SCE_TASK *pSce)
 {
-    ((LONG (*)(LONG, LONG, LONG, LONG))line_trans)(pSce->Data[1], ((SHORT *)pSce->Data)[1], ((SHORT *)pSce->Data)[2], Main.pDb->Draw.ofs[1]);
+    line_trans_i(((SCE_LINE_MAIN_REC *)pSce->Data)->Line_no, ((SCE_LINE_MAIN_REC *)pSce->Data)->Slide_ofs,
+                 ((SCE_LINE_MAIN_REC *)pSce->Data)->Copy_ofs, Main.pDb->Draw.ofs[1]);
     pSce->Data += 6;
     return 1;
 }
@@ -1547,7 +1562,7 @@ ULONG Sce_line_main(SCE_TASK *pSce)
 /* RE2 Sce_line_end */
 ULONG Sce_line_end(SCE_TASK *pSce)
 {
-    ((LONG (*)(void))line_scr_end)();
+    line_scr_end_i();
     pSce->Data++;
     return 1;
 }
@@ -1703,8 +1718,8 @@ ULONG Xa_on(SCE_TASK *pSce)
     ULONG No;
     ULONG Ofs;
 
-    No = pSce->Data[1];
-    Ofs = ((USHORT *)pSce->Data)[1];
+    No = ((SCE_XA_REC *)pSce->Data)->No;
+    Ofs = ((SCE_XA_REC *)pSce->Data)->Ofs;
     G.Status_flg |= STAT_XA_VOICE;
     Xa_play(No, Ofs);
     pSce->Data += 4;
