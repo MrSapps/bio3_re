@@ -392,10 +392,9 @@ overlay that has it (the name comes from the family's first module, e.g. `Em10_m
   (em30 Unk12 signed, em33 UCHAR), so a merged header must be checked by building both.
 - em34/em36: Em34_foot_set, Em34_blood_set, Em34_blood_spray, Em34_sce05 shared. em36 is not a copy of em34;
   the small dispatchers that em34/em36/em37/em39 all have (Em34_Move, Em34_Sce, Em34_Move_type02) were left alone.
-- jill_sel/select/result: select shares Jill_pl_trans, Jill_light_set, Jill_obj_init/draw/rgb. result has
-  the same routines (now Jill_* names) on RESULT_SPR/RESULT_SPR_DATA, the same layout as SEL_OBJ/SEL_SPRT_DEF
-  but with other field names (0xA/0xB: Semi/Abr vs Abr/Tp); unify the types to share them.
-  Jill_wep_load (= select's copy) is still unmatched in both.
+- jill_sel/select/result: Jill_pl_trans, Jill_light_set and Jill_obj_init/draw/rgb are shared; the sprite object types
+  (SEL_OBJ, SEL_SPRT, SEL_SPRT_DEF, SEL_OBJ_* flags) live in include/ovl/jill_obj.h. SEL_SPRT_DEF 0xA/0xB are Semi/Abr
+  (SetSemiTrans / GetTPage abr). Jill_wep_load (= select's copy) is still unmatched in both.
 - em20/em25: Ck_em_id.
 
 tools/ovlshare: `asmgrp.py` lists asm-identical functions across overlays (writes build/ovlshare_groups.json);

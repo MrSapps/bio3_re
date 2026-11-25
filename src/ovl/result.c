@@ -181,53 +181,53 @@ void Result_merc_menu_init(RESULT_WORK *pWk)
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     Jill_obj_init(&Result_obj[0], &Result_merc_menu_spr[0], 0x01EF0015, 0x808080);
     Jill_obj_init(&Result_obj[1], &Result_merc_menu_spr[1], 0x01EF0015, 0x808080);
-    Result_obj[1].pParent = &Result_obj[0];
+    Result_obj[1].pOya = &Result_obj[0];
     Jill_obj_init(&Result_obj[2], &Result_merc_menu_spr[5], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[3], &Result_merc_menu_spr[6], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[4], &Result_merc_menu_spr[7], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[5], &Result_merc_menu_spr[8], 0x01F00016, 0x808080);
-    Result_obj[5].Flg &= ~RSPR_ON;
+    Result_obj[5].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[20], &Result_merc_menu_spr[17], 0x01F00016, 0x808080);
-    Result_obj[20].pParent = &Result_obj[5];
-    Result_obj[20].Flg &= ~RSPR_ON;
+    Result_obj[20].pOya = &Result_obj[5];
+    Result_obj[20].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[6], &Result_merc_menu_spr[9], 0x01F00016, 0x808080);
-    Result_obj[6].Flg |= RSPR_PULSE | RSPR_RESET;
+    Result_obj[6].Flg |= SEL_OBJ_PULSE | SEL_OBJ_REQ;
     Jill_obj_init(&Result_obj[21], &Result_merc_menu_spr[25], 0x01F10017, 0x808080);
-    Result_obj[21].Flg &= ~RSPR_ON;
+    Result_obj[21].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[22], &Result_merc_menu_spr[26], 0x01F10017, 0x808080);
-    Result_obj[22].Flg &= ~RSPR_ON;
+    Result_obj[22].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[23], &Result_merc_menu_spr[27], 0x01F10017, 0x808080);
-    Result_obj[23].Flg &= ~RSPR_ON;
+    Result_obj[23].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[24], &Result_merc_menu_spr[28], 0x01F10017, 0x808080);
-    Result_obj[24].Flg &= ~RSPR_ON;
+    Result_obj[24].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[7], &Result_merc_menu_spr[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
         Jill_obj_rgb(&Result_obj[7], 0x404040);
-        Result_obj[21].Flg |= RSPR_ON;
+        Result_obj[21].Flg |= SEL_OBJ_ON;
     }
-    Result_obj[7].Flg &= ~RSPR_ON;
+    Result_obj[7].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[8], &Result_merc_menu_spr[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
         Jill_obj_rgb(&Result_obj[8], 0x404040);
-        Result_obj[22].Flg |= RSPR_ON;
+        Result_obj[22].Flg |= SEL_OBJ_ON;
     }
-    Result_obj[8].Flg &= ~RSPR_ON;
+    Result_obj[8].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[9], &Result_merc_menu_spr[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
         Jill_obj_rgb(&Result_obj[9], 0x404040);
-        Result_obj[23].Flg |= RSPR_ON;
+        Result_obj[23].Flg |= SEL_OBJ_ON;
     }
-    Result_obj[9].Flg &= ~RSPR_ON;
+    Result_obj[9].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[10], &Result_merc_menu_spr[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
         Jill_obj_rgb(&Result_obj[10], 0x404040);
-        Result_obj[24].Flg |= RSPR_ON;
+        Result_obj[24].Flg |= SEL_OBJ_ON;
     }
-    Result_obj[10].Flg &= ~RSPR_ON;
+    Result_obj[10].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[11], &Result_merc_menu_spr[14], 0x01F10017, 0x808080);
-    Result_obj[11].Flg &= ~RSPR_ON;
+    Result_obj[11].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[12], &Result_merc_menu_spr[15], 0x01F10017, 0x808080);
-    Result_obj[12].Flg = (Result_obj[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
+    Result_obj[12].Flg = (Result_obj[12].Flg | SEL_OBJ_BLINK | SEL_OBJ_REQ) & ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[13], &Result_merc_menu_spr[19], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[14], &Result_merc_menu_spr[20], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[15], &Result_merc_menu_spr[21], 0x01F00016, 0x808080);
@@ -236,7 +236,7 @@ void Result_merc_menu_init(RESULT_WORK *pWk)
     Jill_obj_init(&Result_obj[18], &Result_merc_menu_spr[24], 0x01F00016, 0x808080);
     Result_merc_menu_spr[18].Y++;
     Jill_obj_init(&Result_obj[19], &Result_merc_menu_spr[18], 0x01F00016, 0x808080);
-    Result_obj[19].Flg |= RSPR_BLINK | RSPR_RESET;
+    Result_obj[19].Flg |= SEL_OBJ_BLINK | SEL_OBJ_REQ;
 }
 
 /* routine 0: BUY / EXIT selection */
@@ -251,7 +251,7 @@ void Result_merc_menu_sel(RESULT_WORK *pWk)
     case 1:
         if (Gr.Key_rep & 0xA000) {
             pWk->Timer = (pWk->Timer + 1) & 1;
-            Result_obj[19].Flg |= RSPR_BLINK | RSPR_RESET;
+            Result_obj[19].Flg |= SEL_OBJ_BLINK | SEL_OBJ_REQ;
             Snd_se_stad(4, 0, 0, 0);
         }
         Result_obj[19].X = pWk->Timer * 0x74 + 0x4A;
@@ -264,11 +264,11 @@ void Result_merc_menu_sel(RESULT_WORK *pWk)
                 pWk->Routine_0 = 2;
             } else {
                 pWk->Routine_1 = 2;
-                Result_obj[19].Flg &= ~RSPR_ON;
-                Result_obj[5].Flg |= RSPR_ON;
-                Result_obj[20].Flg |= RSPR_ON;
+                Result_obj[19].Flg &= ~SEL_OBJ_ON;
+                Result_obj[5].Flg |= SEL_OBJ_ON;
+                Result_obj[20].Flg |= SEL_OBJ_ON;
                 for (i = 6; i != 0; i--) {
-                    Result_obj[i + 6].Flg |= RSPR_ON;
+                    Result_obj[i + 6].Flg |= SEL_OBJ_ON;
                 }
                 pWk->Flg |= 0x28;
             }
@@ -280,11 +280,11 @@ void Result_merc_menu_sel(RESULT_WORK *pWk)
             pWk->Routine_0 = 1;
             pWk->Routine_1 = 0;
             pWk->Routine_2 = 0;
-            Result_obj[19].Flg |= RSPR_ON;
-            Result_obj[5].Flg &= ~RSPR_ON;
-            Result_obj[20].Flg &= ~RSPR_ON;
+            Result_obj[19].Flg |= SEL_OBJ_ON;
+            Result_obj[5].Flg &= ~SEL_OBJ_ON;
+            Result_obj[20].Flg &= ~SEL_OBJ_ON;
             for (i = 6; i != 0; i--) {
-                Result_obj[i + 6].Flg &= ~RSPR_ON;
+                Result_obj[i + 6].Flg &= ~SEL_OBJ_ON;
             }
             pWk->Flg &= ~0x28;
         }
@@ -404,52 +404,52 @@ void Result_merc_clear_init(RESULT_WORK *pWk)
     pWk->Flg = 0;
     Jill_obj_init(&Result_obj[0], &Result_merc_spr[0], 0x01EF0015, 0x808080);
     Jill_obj_init(&Result_obj[1], &Result_merc_spr[1], 0x01EF0015, 0x808080);
-    Result_obj[1].pParent = &Result_obj[0];
+    Result_obj[1].pOya = &Result_obj[0];
     Jill_obj_init(&Result_obj[2], &Result_merc_spr[5], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[3], &Result_merc_spr[6], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[4], &Result_merc_spr[7], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[5], &Result_merc_spr[8], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[6], &Result_merc_spr[2], 0x01EF0015, 0x808080);
-    Result_obj[6].Flg = (Result_obj[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
+    Result_obj[6].Flg = (Result_obj[6].Flg | SEL_OBJ_PULSE | SEL_OBJ_REQ) & ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[21], &Result_merc_spr[18], 0x01F10017, 0x808080);
-    Result_obj[21].Flg &= ~RSPR_ON;
+    Result_obj[21].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[22], &Result_merc_spr[19], 0x01F10017, 0x808080);
-    Result_obj[22].Flg &= ~RSPR_ON;
+    Result_obj[22].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[23], &Result_merc_spr[20], 0x01F10017, 0x808080);
-    Result_obj[23].Flg &= ~RSPR_ON;
+    Result_obj[23].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[24], &Result_merc_spr[21], 0x01F10017, 0x808080);
-    Result_obj[24].Flg &= ~RSPR_ON;
+    Result_obj[24].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[7], &Result_merc_spr[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
         Jill_obj_rgb(&Result_obj[7], 0x404040);
-        Result_obj[21].Flg |= RSPR_ON;
+        Result_obj[21].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[8], &Result_merc_spr[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
         Jill_obj_rgb(&Result_obj[8], 0x404040);
-        Result_obj[22].Flg |= RSPR_ON;
+        Result_obj[22].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[9], &Result_merc_spr[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
         Jill_obj_rgb(&Result_obj[9], 0x404040);
-        Result_obj[23].Flg |= RSPR_ON;
+        Result_obj[23].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[10], &Result_merc_spr[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
         Jill_obj_rgb(&Result_obj[10], 0x404040);
-        Result_obj[24].Flg |= RSPR_ON;
+        Result_obj[24].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[11], &Result_merc_spr[14], 0x01F10017, 0x808080);
     Jill_obj_init(&Result_obj[12], &Result_merc_spr[15], 0x01F10017, 0x808080);
-    Result_obj[12].Flg = (Result_obj[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
+    Result_obj[12].Flg = (Result_obj[12].Flg | SEL_OBJ_BLINK | SEL_OBJ_REQ) & ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[13], &Result_merc_spr[16], 0x01F00016, 0x808080);
-    Result_obj[13].pParent = &Result_obj[2];
+    Result_obj[13].pOya = &Result_obj[2];
     Jill_obj_init(&Result_obj[14], &Result_merc_spr[16], 0x01F00016, 0x808080);
-    Result_obj[14].pParent = &Result_obj[3];
+    Result_obj[14].pOya = &Result_obj[3];
     Jill_obj_init(&Result_obj[15], &Result_merc_spr[16], 0x01F00016, 0x808080);
-    Result_obj[15].pParent = &Result_obj[4];
+    Result_obj[15].pOya = &Result_obj[4];
     Jill_obj_init(&Result_obj[16], &Result_merc_spr[17], 0x01F00016, 0x808080);
-    Result_obj[16].pParent = &Result_obj[5];
+    Result_obj[16].pOya = &Result_obj[5];
     pWk->Bonus = 0;
     if (Flg_ck(G.Unk7868, 0x18)) {
         pWk->Bonus = 100;
@@ -546,11 +546,11 @@ void Result_merc_clear_count(RESULT_WORK *pWk)
         break;
     case 7:
         pWk->Routine_1 = 8;
-        Result_obj[12].Flg |= RSPR_ON;
+        Result_obj[12].Flg |= SEL_OBJ_ON;
         Snd_se_stad(0xD, 0, 0, 0);
         Idx = Gr.Pl_id - 8;
         if (Gr.Merc_money[Idx] < Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus) {
-            Result_obj[6].Flg |= RSPR_ON;
+            Result_obj[6].Flg |= SEL_OBJ_ON;
             Gr.Merc_time[Idx] = (SHORT)Gr.Time;
             Gr.Merc_grade[Idx] = pWk->Grade;
             Gr.Merc_money[Idx] = Gr.Score + (SHORT)Gr.Time / 2 + pWk->Bonus;
@@ -602,7 +602,7 @@ void Result_shop(RESULT_WORK *pWk)
             Moji.Mess_flg = 0;
             Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[pWk->Cursor + 1]], 0);
             Result_obj[12].X = pWk->Cursor * 0x38 + 0x14;
-            Result_obj[12].Flg |= RSPR_BLINK | RSPR_RESET;
+            Result_obj[12].Flg |= SEL_OBJ_BLINK | SEL_OBJ_REQ;
             Snd_se_stad(4, 0, 0, 0);
         }
         if (G.Unk20FC & 0x2000) {
@@ -612,7 +612,7 @@ void Result_shop(RESULT_WORK *pWk)
             Moji.Mess_flg = 0;
             Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[pWk->Cursor + 1]], 0);
             Result_obj[12].X = pWk->Cursor * 0x38 + 0x14;
-            Result_obj[12].Flg |= RSPR_BLINK | RSPR_RESET;
+            Result_obj[12].Flg |= SEL_OBJ_BLINK | SEL_OBJ_REQ;
             Snd_se_stad(4, 0, 0, 0);
         }
         if (Gr.Key_trg & 0x2000) {
@@ -649,7 +649,7 @@ void Result_shop(RESULT_WORK *pWk)
                 pWk->Timer = 0;
                 Flg_on(Gr.Unk77F8, Result_shop_flg[pWk->Cursor]);
                 Jill_obj_rgb(&Result_obj[pWk->Cursor + 7], 0x404040);
-                Result_obj[pWk->Cursor + 21].Flg |= RSPR_ON;
+                Result_obj[pWk->Cursor + 21].Flg |= SEL_OBJ_ON;
                 Snd_se_stad(0xB, 0, 0, 0);
                 break;
             case 1:
@@ -766,52 +766,52 @@ void Result_merc_fail_init(RESULT_WORK *pWk)
     pWk->Flg = 0;
     Jill_obj_init(&Result_obj[0], &Result_merc_spr[0], 0x01EF0015, 0x808080);
     Jill_obj_init(&Result_obj[1], &Result_merc_spr[1], 0x01EF0015, 0x808080);
-    Result_obj[1].pParent = &Result_obj[0];
+    Result_obj[1].pOya = &Result_obj[0];
     Jill_obj_init(&Result_obj[2], &Result_merc_spr[5], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[3], &Result_merc_spr[6], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[4], &Result_merc_spr[7], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[5], &Result_merc_spr[8], 0x01F00016, 0x808080);
     Jill_obj_init(&Result_obj[6], &Result_merc_spr[2], 0x01EF0015, 0x808080);
-    Result_obj[6].Flg = (Result_obj[6].Flg | RSPR_PULSE | RSPR_RESET) & ~RSPR_ON;
+    Result_obj[6].Flg = (Result_obj[6].Flg | SEL_OBJ_PULSE | SEL_OBJ_REQ) & ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[21], &Result_merc_spr[18], 0x01F10017, 0x808080);
-    Result_obj[21].Flg &= ~RSPR_ON;
+    Result_obj[21].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[22], &Result_merc_spr[19], 0x01F10017, 0x808080);
-    Result_obj[22].Flg &= ~RSPR_ON;
+    Result_obj[22].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[23], &Result_merc_spr[20], 0x01F10017, 0x808080);
-    Result_obj[23].Flg &= ~RSPR_ON;
+    Result_obj[23].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[24], &Result_merc_spr[21], 0x01F10017, 0x808080);
-    Result_obj[24].Flg &= ~RSPR_ON;
+    Result_obj[24].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[7], &Result_merc_spr[10], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 8)) {
         Jill_obj_rgb(&Result_obj[7], 0x404040);
-        Result_obj[21].Flg |= RSPR_ON;
+        Result_obj[21].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[8], &Result_merc_spr[11], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 7)) {
         Jill_obj_rgb(&Result_obj[8], 0x404040);
-        Result_obj[22].Flg |= RSPR_ON;
+        Result_obj[22].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[9], &Result_merc_spr[12], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 6)) {
         Jill_obj_rgb(&Result_obj[9], 0x404040);
-        Result_obj[23].Flg |= RSPR_ON;
+        Result_obj[23].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[10], &Result_merc_spr[13], 0x01F10017, 0x808080);
     if (Flg_ck(G.Unk77F8, 9)) {
         Jill_obj_rgb(&Result_obj[10], 0x404040);
-        Result_obj[24].Flg |= RSPR_ON;
+        Result_obj[24].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[11], &Result_merc_spr[14], 0x01F10017, 0x808080);
     Jill_obj_init(&Result_obj[12], &Result_merc_spr[15], 0x01F10017, 0x808080);
-    Result_obj[12].Flg = (Result_obj[12].Flg | RSPR_BLINK | RSPR_RESET) & ~RSPR_ON;
+    Result_obj[12].Flg = (Result_obj[12].Flg | SEL_OBJ_BLINK | SEL_OBJ_REQ) & ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[13], &Result_merc_spr[16], 0x01F00016, 0x808080);
-    Result_obj[13].pParent = &Result_obj[2];
+    Result_obj[13].pOya = &Result_obj[2];
     Jill_obj_init(&Result_obj[14], &Result_merc_spr[16], 0x01F00016, 0x808080);
-    Result_obj[14].pParent = &Result_obj[3];
+    Result_obj[14].pOya = &Result_obj[3];
     Jill_obj_init(&Result_obj[15], &Result_merc_spr[16], 0x01F00016, 0x808080);
-    Result_obj[15].pParent = &Result_obj[4];
+    Result_obj[15].pOya = &Result_obj[4];
     Jill_obj_init(&Result_obj[16], &Result_merc_spr[17], 0x01F00016, 0x808080);
-    Result_obj[16].pParent = &Result_obj[5];
+    Result_obj[16].pOya = &Result_obj[5];
     Result_merc_grade_set(pWk);
 }
 
@@ -901,7 +901,7 @@ void Result_merc_fail_count(RESULT_WORK *pWk)
         break;
     case 7:
         pWk->Routine_1 = 8;
-        Result_obj[12].Flg |= RSPR_ON;
+        Result_obj[12].Flg |= SEL_OBJ_ON;
         Snd_se_stad(0xD, 0, 0, 0);
     case 8:
         Result_shop(pWk);
@@ -1232,113 +1232,11 @@ void Result_epilogue_bg_load(void)
     Result_ombg_load((ULONG *)0x8019C000, G.Unk7806);
 }
 
-/* sets up a sprite object; Tp_clut: clut row << 16 | texture page */
-void Jill_obj_init(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb)
-{
-    RESULT_SPRT *pSprt;
-    DR_MODE *pDm;
-    ULONG Tp;
-    LONG Lower;
-    LONG Tx;
+#include "ovl/common/jill_sel/Jill_obj_init.inc.c"
 
-    pSpr->Flg = RSPR_ON;
-    pSpr->Timer = 0;
-    pSpr->pParent = NULL;
-    pSpr->X = pData->X;
-    pSpr->Y = pData->Y;
-    pSpr->Ofs_x = pData->Ofs_x;
-    pSpr->Ofs_y = pData->Ofs_y;
-    pSpr->Mode = 0xFF;
-    pSprt = &pSpr->Sprt[0];
-    pDm = &pSpr->Dm[0];
-    pSprt->W.Rgbc = Rgb;
-    pSprt->Prim.x0 = pData->X;
-    pSprt->Prim.y0 = pData->Y;
-    pSprt->Prim.w = pData->W;
-    pSprt->Prim.h = pData->H;
-    pSprt->Prim.u0 = pData->U;
-    pSprt->Prim.v0 = pData->V;
-    pSprt->Prim.clut = (Tp_clut >> 16) << 6;
-    SetSprt(&pSprt->Prim);
-    SetSemiTrans(&pSprt->Prim, pData->Semi);
-    Tp = Tp_clut & 0xFFFF;
-    Lower = Tp < 16;
-    Tx = Tp << 6;
-    if (!Lower) {
-        Tx -= 0x400;
-    }
-    SetDrawMode(pDm, 0, 0, GetTPage(1, pData->Abr, Tx, (Tp >= 16) << 8), NULL);
-    pSpr->Sprt[1] = pSpr->Sprt[0];
-    pSpr->Dm[1] = pSpr->Dm[0];
-}
+#include "ovl/common/jill_sel/Jill_obj_draw.inc.c"
 
-/* updates the fade / blink state of a sprite object and adds it to OT entry Pri */
-void Jill_obj_draw(RESULT_SPR *pSpr, ULONG Pri)
-{
-    RESULT_SPR *pParent;
-    SPRT *pSprt;
-    DR_MODE *pDm;
-
-    if (!(pSpr->Flg & RSPR_ON)) {
-        return;
-    }
-    if (pSpr->Flg & RSPR_RESET) {
-        pSpr->Flg &= ~RSPR_RESET;
-        if (pSpr->Flg & RSPR_PULSE) {
-            pSpr->Mode = 0;
-        }
-        if (pSpr->Flg & RSPR_BLINK) {
-            pSpr->Mode = 2;
-            pSpr->Timer = 10;
-        }
-    }
-    switch (pSpr->Mode) {
-    case 0:
-        pSpr->Sprt[0].W.Rgbc += 0x80808;
-        pSpr->Sprt[1].W.Rgbc += 0x80808;
-        if (pSpr->Sprt[1].Prim.r0 == 0xB0) {
-            pSpr->Mode = 1;
-        }
-        break;
-    case 1:
-        pSpr->Sprt[0].W.Rgbc -= 0x80808;
-        pSpr->Sprt[1].W.Rgbc -= 0x80808;
-        if (pSpr->Sprt[1].Prim.r0 == 0x50) {
-            pSpr->Mode = 0;
-        }
-        break;
-    case 2:
-        if (--pSpr->Timer == 0xFF) {
-            pSpr->Timer = 10;
-            pSpr->Mode = 3;
-        }
-        break;
-    case 3:
-        if (--pSpr->Timer == 0xFF) {
-            pSpr->Timer = 10;
-            pSpr->Mode = 2;
-        }
-        return;
-    }
-    pSprt = &pSpr->Sprt[G.Cbuf_id].Prim;
-    pDm = &pSpr->Dm[G.Cbuf_id];
-    pParent = pSpr->pParent;
-    if (pParent != NULL) {
-        pSpr->X = pSpr->Ofs_x + (pParent->X + pParent->Sprt[0].Prim.w);
-        pSpr->Y = pParent->Y + pSpr->Ofs_y;
-    }
-    pSprt->x0 = pSpr->X;
-    pSprt->y0 = pSpr->Y;
-    AddPrim(&G.Ot0[G.Cbuf_id][Pri], pSprt);
-    AddPrim(&G.Ot0[G.Cbuf_id][Pri], pDm);
-}
-
-/* sets the colour of a sprite object */
-void Jill_obj_rgb(RESULT_SPR *pSpr, ULONG Rgb)
-{
-    pSpr->Sprt[0].W.Rgbc = (pSpr->Sprt[0].W.Rgbc & 0xFF000000) | Rgb;
-    pSpr->Sprt[1].W.Rgbc = (pSpr->Sprt[1].W.Rgbc & 0xFF000000) | Rgb;
-}
+#include "ovl/common/jill_sel/Jill_obj_rgb.inc.c"
 
 /* main game grade from the number of saves, the play time and Unk7E94 */
 void Result_grade_set(RESULT_WORK *pWk)

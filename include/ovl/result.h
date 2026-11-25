@@ -6,6 +6,7 @@
  * Data/bss of the overlay stay in asm (asm/data/ovl/result/data.data.s).
  */
 #include "bio3.h"
+#include "ovl/jill_obj.h"
 #include "cd.h"
 #include "main.h"
 #include "monitor.h"
@@ -18,48 +19,6 @@ typedef struct tagRESULT_BG {
     ULONG Size;                        /* 0x4 */
 } RESULT_BG;
 
-/* SPRT with its colour+code word addressable as one (fades add to all three components) */
-typedef union tagRESULT_SPRT {
-    SPRT Prim;
-    struct {
-        ULONG Tag;
-        ULONG Rgbc;                    /* r0 g0 b0 code */
-    } W;
-} RESULT_SPRT;
-
-/* 2D sprite object: one SPRT + DR_MODE per display buffer (0x50 bytes) */
-typedef struct tagRESULT_SPR {
-    UCHAR Flg;                         /* 0x00 RSPR_* bits */
-    UCHAR Timer;                       /* 0x01 blink timer */
-    UCHAR Ofs_x;                       /* 0x02 offset from the parent's right edge */
-    UCHAR Ofs_y;                       /* 0x03 offset from the parent's top */
-    UCHAR Mode;                        /* 0x04 0 fade in, 1 fade out, 2/3 blink, 0xFF none */
-    UCHAR pad5[3];
-    SHORT X;                           /* 0x08 */
-    SHORT Y;                           /* 0x0A */
-    RESULT_SPRT Sprt[2];               /* 0x0C */
-    DR_MODE Dm[2];                     /* 0x34 */
-    struct tagRESULT_SPR *pParent;     /* 0x4C position is relative to this one */
-} RESULT_SPR;
-
-#define RSPR_ON     0x01
-#define RSPR_BLINK  0x02
-#define RSPR_PULSE  0x04
-#define RSPR_RESET  0x08
-
-/* sprite init data (0xE bytes) */
-typedef struct tagRESULT_SPR_DATA {
-    SHORT X;                           /* 0x0 */
-    SHORT Y;                           /* 0x2 */
-    SHORT W;                           /* 0x4 */
-    SHORT H;                           /* 0x6 */
-    UCHAR U;                           /* 0x8 */
-    UCHAR V;                           /* 0x9 */
-    UCHAR Semi;                        /* 0xA */
-    UCHAR Abr;                         /* 0xB */
-    UCHAR Ofs_x;                       /* 0xC */
-    UCHAR Ofs_y;                       /* 0xD */
-} RESULT_SPR_DATA;
 
 /* screen position for a printed value */
 typedef struct tagRESULT_POS {
@@ -137,10 +96,10 @@ extern UCHAR Result_grade_chr[]; /* grade letters "FEDCBA" */
 extern void (*Result_proc_tbl[])(void); /* task routines, index G.Unk2115 */
 extern void (*Result_merc_menu_tbl[])(RESULT_WORK *pWk); /* Mercenaries result routines */
 extern RESULT_POS Result_merc_menu_pos[]; /* Mercenaries result text positions */
-extern RESULT_SPR_DATA Result_merc_menu_spr[]; /* Mercenaries result sprites */
+extern SEL_SPRT_DEF Result_merc_menu_spr[]; /* Mercenaries result sprites */
 extern void (*Result_merc_clear_tbl[])(RESULT_WORK *pWk); /* Mercenaries shop routines */
 extern RESULT_POS Result_merc_pos[]; /* shop text positions */
-extern RESULT_SPR_DATA Result_merc_spr[]; /* shop sprites */
+extern SEL_SPRT_DEF Result_merc_spr[]; /* shop sprites */
 extern SHORT Result_shop_price[]; /* shop item prices */
 extern signed char Result_shop_flg[]; /* shop item flag bits (G.Unk77F8) */
 extern void (*Result_merc_fail_tbl[])(RESULT_WORK *pWk); /* routine 2 routines */
@@ -148,7 +107,7 @@ extern void (*Result_main_tbl[])(RESULT_WORK *pWk); /* routine 3 routines */
 extern RESULT_POS Result_main_pos[]; /* main game result text positions */
 extern void (*Result_bonus_tbl[])(RESULT_WORK *pWk); /* routine 4 routines */
 extern void (*Result_epilogue_tbl[])(RESULT_WORK *pWk); /* routine 5 routines */
-extern RESULT_SPR Result_obj[]; /* sprite objects (30) */
+extern SEL_OBJ Result_obj[]; /* sprite objects (30) */
 extern RESULT_WORK Result_wk; /* result screen work */
 
 void Result_ombg_load(ULONG *pAdr, UCHAR No);
@@ -190,9 +149,6 @@ void Result_epilogue_init(RESULT_WORK *pWk);
 void Result_epilogue_main(RESULT_WORK *pWk);
 void Result_epilogue_exit(RESULT_WORK *pWk);
 void Result_epilogue_bg_load(void);
-void Jill_obj_init(RESULT_SPR *pSpr, RESULT_SPR_DATA *pData, ULONG Tp_clut, ULONG Rgb);
-void Jill_obj_draw(RESULT_SPR *pSpr, ULONG Pri);
-void Jill_obj_rgb(RESULT_SPR *pSpr, ULONG Rgb);
 void Result_grade_set(RESULT_WORK *pWk);
 void Result_merc_grade_set(RESULT_WORK *pWk);
 

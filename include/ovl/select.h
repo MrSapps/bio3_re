@@ -7,6 +7,7 @@
  * Select_moji_*) cut down to three players and with a new sprite system.
  */
 #include "bio3.h"
+#include "ovl/jill_obj.h"
 #include "em_sub.h"
 #include "joint.h"
 #include "main.h"
@@ -19,47 +20,6 @@
 /* a SHORT [3][3] rotation matrix written as words (identity init) */
 #define MAT_WORD(m, i) (((ULONG *)(m))[i])
 
-/* one draw buffer of a sprite: SPRT with the colour/code as one word */
-typedef struct tagSEL_SPRT {
-    ULONG Tag;                         /* 0x00 */
-    ULONG Rgb;                         /* 0x04 r0 g0 b0 code */
-    SHORT X;                           /* 0x08 */
-    SHORT Y;                           /* 0x0A */
-    UCHAR U;                           /* 0x0C */
-    UCHAR V;                           /* 0x0D */
-    USHORT Clut;                       /* 0x0E */
-    SHORT W;                           /* 0x10 */
-    SHORT H;                           /* 0x12 */
-} SEL_SPRT;
-
-/* sprite object (0x50 bytes, Select_obj[30]) */
-typedef struct tagSEL_OBJ {
-    UCHAR Flg;                         /* 0x00 1 on, 2 start blinking, 4 fade in, 8 request */
-    UCHAR Timer;                       /* 0x01 blink timer */
-    UCHAR Ofs_x;                       /* 0x02 offset from the parent's right edge */
-    UCHAR Ofs_y;                       /* 0x03 offset from the parent's y */
-    UCHAR Mode;                        /* 0x04 0 fade in, 1 fade out, 2 shown, 3 hidden */
-    UCHAR pad5[3];
-    SHORT X;                           /* 0x08 */
-    SHORT Y;                           /* 0x0A */
-    SEL_SPRT Sp[2];                    /* 0x0C */
-    DR_MODE Dr[2];                     /* 0x34 */
-    struct tagSEL_OBJ *pOya;           /* 0x4C parent sprite */
-} SEL_OBJ;
-
-/* sprite definition (14 bytes) */
-typedef struct tagSEL_SPRT_DEF {
-    SHORT X;                           /* 0x0 */
-    SHORT Y;                           /* 0x2 */
-    SHORT W;                           /* 0x4 */
-    SHORT H;                           /* 0x6 */
-    UCHAR U;                           /* 0x8 */
-    UCHAR V;                           /* 0x9 */
-    UCHAR Abr;                         /* 0xA */
-    UCHAR Tp;                          /* 0xB */
-    UCHAR Ofs_x;                       /* 0xC */
-    UCHAR Ofs_y;                       /* 0xD */
-} SEL_SPRT_DEF;
 
 /* spot light (RE2 tagSELECT_LIGHT, 16 bytes) */
 typedef struct tagSELECT_LIGHT {
@@ -202,9 +162,6 @@ void func_801C44A4(void); /* Select_moji_clear */
 void func_801C44E8(LONG Disp); /* Select_moji_update */
 void func_801C4644(LONG Num); /* Select_moji_trans */
 void func_801C4774(void); /* Select_bg_load */
-void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
-void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot);
-void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb);
 void func_801C4BA0(SEL_OBJ *pObj, SHORT X, SHORT Y);
 void func_801C4BAC(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut);
 

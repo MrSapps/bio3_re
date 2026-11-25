@@ -47,8 +47,5 @@ void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
 UCHAR *Jill_wep_load(ENEMY_WORK *pEm, ULONG *pWork, LONG No);
 void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb);
 void Jill_bg_load(void); /* background load */
-void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
-void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot);
-void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb);
 
 #endif /* OVL_JILL_SEL_H */

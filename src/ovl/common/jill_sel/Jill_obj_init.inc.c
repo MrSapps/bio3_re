@@ -1,4 +1,4 @@
-/* shared by jill_sel, select */
+/* shared by jill_sel, select, result */
 /* sprite init from a definition; TpClut = texture page | clut row << 16 */
 void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
 {
@@ -26,13 +26,13 @@ void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb)
     pSp->V = pDef->V;
     pSp->Clut = (TpClut >> 16) << 6;
     SetSprt((SPRT *)pSp);
-    SetSemiTrans(pSp, pDef->Abr);
+    SetSemiTrans(pSp, pDef->Semi);
     Tp = TpClut & 0xFFFF;
     X = Tp << 6;
     if (Tp >= 16) {
         X -= 0x400;
     }
-    SetDrawMode(pDr, 0, 0, GetTPage(1, pDef->Tp, X, (Tp >= 16) << 8), NULL);
+    SetDrawMode(pDr, 0, 0, GetTPage(1, pDef->Abr, X, (Tp >= 16) << 8), NULL);
     pObj->Sp[1] = pObj->Sp[0];
     pObj->Dr[1] = pObj->Dr[0];
 }

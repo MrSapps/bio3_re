@@ -1,4 +1,4 @@
-/* shared by jill_sel, select */
+/* shared by jill_sel, select, result */
 
 void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb)
 {
