@@ -70,7 +70,7 @@ ULONG Gacha_ch(void);
 ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi);
 void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, LONG Flg);
 void Spd_get2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
-void Spd_get_sub(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
+void Spd_get_sub(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg); /* Spd_get on the second motion slot (Sub_move_no/Sub_move_cnt, 32-byte bone records) */
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
 void Kage_work_init(void);
 void Kage_work9_init(void);
