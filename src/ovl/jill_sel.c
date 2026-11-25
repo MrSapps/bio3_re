@@ -233,7 +233,7 @@ UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
     Ofs = pHdr[3];
     p = (UCHAR *)func_800261AC(pEm, PartsWork_set(pEm, (ULONG)(p + pHdr[4])), pEm->pKan_t_ptr);
     if (*(ULONG *)(0x801D5C00 + Ofs) != 0) {   /* fixed address of the model file (select reads pWork + Ofs) */
-        func_8007A2D4(pEm, (ULONG *)(pWork + Ofs));
+        Skin_set(pEm, (ULONG *)(pWork + Ofs));
     }
     pEm->Be_flg = 1;
     pEm->Unk12A = 0x1000;

@@ -4,7 +4,7 @@
 #include "em_sub.h"
 #include <libsn.h>
 
-/* model vertex/normal lists (Arg2 of func_8007A350) */
+/* model vertex/normal lists (Arg2 of Skin_sort) */
 typedef struct tagSORT_MDL {
     SVECTOR *pVtx;                     /* 0x00 */
     SVECTOR *pNor;                     /* 0x04 */
@@ -65,11 +65,11 @@ extern VECTOR *D_800C79F4;
 extern UCHAR D_800CC848;
 extern SHORT D_800D1F80;
 extern ULONG *D_800E01C8;
-extern ULONG D_800E1388[]; /* per-vertex colours of the model being sorted */
-extern SVECTOR D_800E1568[6]; /* normals of the two bones being blended (func_8007B824) */
-extern ULONG D_800E1598; /* its current offset word */
-extern SORT_ENV D_800E15A0;
-extern UCHAR *D_800E15C8; /* sort data of the part being drawn (func_8007A490) */
+extern ULONG Skin_rgb[]; /* per-vertex colours of the model being sorted */
+extern SVECTOR Skin_nor[6]; /* normals of the two bones being blended (Skin_light2) */
+extern ULONG Skin_ofs; /* its current offset word */
+extern SORT_ENV Skin_env;
+extern UCHAR *pSkin_head; /* sort data of the part being drawn (Skin_sort_alt) */
 
 void Pcstr_set_buf(ULONG *pBuf, LONG size);
 LONG Pcstr_open(char *pName);
@@ -77,19 +77,19 @@ void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), vo
 void Pcstr_close(void);
 LONG Pcstr_next(void);
 LONG Pcstr_get(ULONG **ppBuf, PCSTR_HEADER **ppHead);
-void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pD);
-void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
-void func_8007A600(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007A918(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007AC8C(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007B2FC(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007B518(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-LONG func_8007BC7C(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
-LONG func_8007BDF8(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
-void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007C434(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
-void func_8007C91C(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_set(ENEMY_WORK *pEm, ULONG *pD);
+void Skin_sort(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
+void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP);
+void Skin_vtx0(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_vtx1(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_vtx2(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_light0(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_light1(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_light2(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
+LONG Skin_sort_gt3(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
+LONG Skin_sort_gt4(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
+void Skin_vtx0_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
+void Skin_vtx2_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 
 #endif /* PCSTR_H */

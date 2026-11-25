@@ -698,7 +698,7 @@ void Cd_data_trans(tagCD *pCd)
             return;
         }
         if (*Sce.pEmd_sce != 0) {
-            func_8007A2D4(pEm, Sce.pEmd_sce);
+            Skin_set(pEm, Sce.pEmd_sce);
         }
     }
 }
@@ -1301,7 +1301,7 @@ void Cd_em_share(void)
     Second = pCd->Em_id[1] >= 0x50;
     if (&pG->pEnemy[i] == pG->ppEnemy_end && Second) {
         if (*pSrc->pUnk11C != 0) {
-            func_8007A2D4(pSrc, pSrc->pUnk11C);
+            Skin_set(pSrc, pSrc->pUnk11C);
         }
         return;
     }
@@ -1345,7 +1345,7 @@ copy:
     }
     for (i = 2; &pG->pEnemy[i] != pG->ppEnemy_end; i++) {
         if ((pG->pEnemy[i]->Be_flg & 1) && *pG->pEnemy[i]->pUnk11C != 0) {
-            func_8007A2D4(pG->pEnemy[i], pG->pEnemy[i]->pUnk11C);
+            Skin_set(pG->pEnemy[i], pG->pEnemy[i]->pUnk11C);
         }
     }
     pCd->Work_adr = Work;

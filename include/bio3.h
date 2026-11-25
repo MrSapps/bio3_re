@@ -573,7 +573,7 @@ typedef struct tagPARTS_W {
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */
     SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
     struct tagPARTS_W *pOya_parts;     /* 0xA4 */
-    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (func_8007A2D4, func_8007A350) */
+    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (Skin_set, Skin_sort) */
     SHORT UnkAC;                       /* 0xAC Pos_x base (get_null_pos2) */
     SHORT UnkAE;                       /* 0xAE Pos_y base (func_80027338) */
     SHORT UnkB0;                       /* 0xB0 Pos_z base */
