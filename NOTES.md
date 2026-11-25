@@ -386,6 +386,10 @@ overlay that has it (the name comes from the family's first module, e.g. `Em10_m
 - em10/em16: em16 is a near copy of em10. All its routines, tables and its free work (include/enemy/em10_free.h)
   take the em10 names (RE2 slot names: Em10_mvXX(_br), Em10_dmXX, Em10_dieXX, ...). em16's own versions:
   Em10_dm_sel00 (no knock-down), and empty Em10_sce02 / Em10_ude_down; it lacks Em10_Kahannsin_walk.
+  58 routines are shared (src/enemy/common/em10); same-asm pairs whose C still differs: Em10_dm07,
+  Em10_die03, Em10_foot_set and a few more (em10's text does not build in em16 as is).
+- Enemy ids: em26 = the young spiders em25 releases (Em25_Set_child, id 0x26 type 0x6000), em27 = the larva
+  em23 spawns (Em23_child_set, id 0x27).
 - em30/em33: 13 common routines named Em30_*; 6 shared. The other 7 differ only in the free-work views
   (EM30_W/EM30_SUB/EM30_SABUN_P vs EM33_W/EM33_B/EM33_SABUN_P). The layouts agree but signedness differs
   (em30 Unk12 signed, em33 UCHAR), so a merged header must be checked by building both.
