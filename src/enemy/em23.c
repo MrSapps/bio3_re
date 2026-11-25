@@ -1909,7 +1909,7 @@ void Em23_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         break;
     }
-    if (EM_RTN01(pPl) != 0x701)
+    if (EM_RTN01_S(pPl) != 0x701)
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 40);
     else
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 10);
@@ -2752,7 +2752,7 @@ LONG Em23_rtn_free_ck(ENEMY_WORK *pEm, USHORT Rtn0, USHORT Rtn1)
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pE = *ppEm;
         if (pE != pEm && (pE->Be_flg & 1)) {
-            if ((USHORT)EM_RTN01(pE) == Rtn0 || (USHORT)EM_RTN01(pE) == Rtn1)
+            if ((USHORT)EM_RTN01_S(pE) == Rtn0 || (USHORT)EM_RTN01_S(pE) == Rtn1)
                 return 0;
         }
     }

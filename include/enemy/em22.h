@@ -60,7 +60,6 @@ typedef struct tagEM22_FREE {
 
 #define EM22_W(p) ((EM22_FREE *)(p)->Unk1CC)
 /* Routine_0..1 read as one halfword */
-#define EM_RTN01(p) (*(SHORT *)&(p)->Routine_0)
 
 extern USHORT Em22_life[16];
 extern USHORT Em22_life_easy[16];

@@ -863,7 +863,7 @@ void Em22_mv_jump_atck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE2++;
         Em22_water(pEm);
     }
-    if (EM_RTN01(pPl) != 0x701 && EM22_W(pEm)->Unk13)
+    if (EM_RTN01_S(pPl) != 0x701 && EM22_W(pEm)->Unk13)
         Goto00(pEm, EM22_W(pEm)->Way1_x, EM22_W(pEm)->Way1_z, 0x18);
     Add_speedXZ(pEm, 0);
 }
@@ -2988,7 +2988,7 @@ LONG Em22_rtn_free_ck(ENEMY_WORK *pEm, ULONG Rtn)
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pT = *ppEm;
         if (pT != pEm && (pT->Id == 0x22 || pT->Id == 0x24) && (pT->Be_flg & 1)
-            && (USHORT)EM_RTN01(pT) == (USHORT)Rtn)
+            && (USHORT)EM_RTN01_S(pT) == (USHORT)Rtn)
             return 0;
     }
     return 1;

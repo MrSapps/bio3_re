@@ -23,7 +23,6 @@ typedef struct tagEM27_FREE {
 } EM27_FREE;
 
 #define EM27_W(p) ((EM27_FREE *)(p)->Unk1CC)
-#define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */
 extern void (*Em27_routine_0[])();
