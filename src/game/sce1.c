@@ -8,7 +8,7 @@
 #include "sce1.h"
 
 extern UCHAR Rbj_id_a[] __asm__("Rbj_id"); /* Sce_rbj_set stores through an array: pSce->Data is reloaded after it */
-extern UCHAR D_800D442E_a[] __asm__("D_800D442E"); /* stored through an array view here (see Rbj_id_a) */
+extern UCHAR Main_bg_chg_flg_a[] __asm__("Main_bg_chg_flg"); /* stored through an array view here (see Rbj_id_a) */
 LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* Capcom called it undeclared here (implicit int): Add_vspeed needs the int return */
 /* opcode records read by field (layouts as in the SCD data) */
 typedef struct { UCHAR Op; UCHAR pad1; USHORT Size; } SCE_ELSE_REC;          /* Else_ck: Size skips the else block */
@@ -1346,7 +1346,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
     Cut_chg_main(Cut & 0x7F);
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
-        D_800D442E_a[0] = 0;
+        Main_bg_chg_flg_a[0] = 0;
         St_hiki_flg_a[0] = 1;
     }
     pSce->Data += 2;
@@ -1369,7 +1369,7 @@ void Cut_chg_main(ULONG Cut)
 
     Old = G.Cut_no;
     G.Cut_no = Cut;
-    D_800D442E_a[0] = 1;
+    Main_bg_chg_flg_a[0] = 1;
     D_800E0175[0] = Old;
     Cut_change(Cut);
 }

@@ -239,9 +239,12 @@ typedef struct tagST_WORK {
 } ST_WORK;
 extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 
-extern char D_80010DCC[];
-extern char D_80010F84[];
-extern char D_80010FEC[];
+/* "FILEG.PIX" (file viewer pages) */
+extern char Str_fileg_pix[];
+/* "ITEMI.PIX" (item icons) */
+extern char Str_itemi_pix[];
+/* "ITEMA.SLD" (status textures) */
+extern char Str_itema_sld[];
 extern UCHAR File_page_sum[];
 extern ULONG File_page_size[];
 extern USHORT File_page_top[];
@@ -251,74 +254,117 @@ extern ST_SPR_DEF File_page2_spr[];
 extern ST_SPR_DEF File_prev_spr[];
 extern ST_SPR_DEF File_next_spr[];
 extern ST_SPR_DEF File_exit_spr[];
-extern ST_SPR_DEF D_8009F328[];
-extern ST_SPR_DEF D_8009F34C[];
-extern ST_FT4_DEF D_8009F388[];
-extern ST_FT4_DEF D_8009F3E8[];
-extern ST_SPR_DEF D_8009F3F4[];
-extern ST_SPR_DEF D_8009F418[];
-extern ST_FT4_DEF D_8009F424[];
-extern ST_SPR_DEF D_8009F448[];
-extern ST_TILE_DEF D_8009F49C[];
-extern ST_SPR_DEF D_8009F4A8[];
-extern ST_SPR_DEF D_8009F4B4[];
-extern ST_TILE_DEF D_8009F4C0[];
-extern ST_SPR_DEF D_8009F4CC[];
-extern ST_SPR_DEF D_8009F4D8[];
+/* item box: right/bottom edges of the inventory grid frame */
+extern ST_SPR_DEF Box_inv_frame_spr[];
+/* item box: box list frame and the top-right panel */
+extern ST_SPR_DEF Box_frame_spr[];
+/* item box: message window border (8 pieces, as Mess_win_ft4) */
+extern ST_FT4_DEF Box_mess_win_ft4[];
+/* item box: message window fill */
+extern ST_FT4_DEF Box_mess_bg_ft4[];
+/* item box: inventory icon grid (8 slots, then slots 9/10) */
+extern ST_SPR_DEF Box_inv_icon_spr[];
+/* item box: equipped item icon */
+extern ST_SPR_DEF Box_equip_icon_spr[];
+/* item box: 3-piece strip on the left edge of the grid (as Item_edge_ft4) */
+extern ST_FT4_DEF Box_inv_edge_ft4[];
+/* item box: covers of slots 9/10 for an 8-slot inventory */
+extern ST_SPR_DEF Box_slot_lock_spr[];
+/* item box: tile behind Box_slot_lock_spr */
+extern ST_TILE_DEF Box_slot_lock_tile[];
+/* item box: inventory cursor */
+extern ST_SPR_DEF Box_inv_cursor_spr[];
+/* item box: label on the top-right panel (Clut_box) */
+extern ST_SPR_DEF Box_label_spr[];
+/* item box: tile over the top of the scrolling list */
+extern ST_TILE_DEF Box_top_mask_tile[];
+/* item box: scroll bar top cap / up arrow */
+extern ST_SPR_DEF Box_scroll_up_spr[];
+/* item box: scroll bar bottom cap / down arrow */
+extern ST_SPR_DEF Box_scroll_down_spr[];
 extern void (*St_box_tbl[])(ST_WORK *pSt);
 extern USHORT Box_pix_pos[][2];
 extern UCHAR Box_ng_item[];
 extern UCHAR Itemi_sum[];
 extern UCHAR Itemg_sum[];
 extern ULONG Item_pix_ofs[];
-extern ST_SPR_DEF D_8009F890[];
-extern ST_SPR_DEF D_8009F8A8[];
-extern ST_SPR_DEF D_8009F8B4[];
-extern ST_SPR_DEF D_8009F8C0[];
-extern ST_SPR_DEF D_8009F8CC[];
-extern ST_SPR_DEF D_8009F908[];
-extern ST_SPR_DEF D_8009F95C[];
-extern ST_FT4_DEF D_8009F9B0[];
-extern ST_SPR_DEF D_8009F9D4[];
+/* status: portrait frame and condition (ECG) panel */
+extern ST_SPR_DEF Cond_frame_spr[];
+/* status: portrait for G.Item_work_no 0 */
+extern ST_SPR_DEF Face_jill_spr[];
+/* status: portrait for G.Item_work_no 1 */
+extern ST_SPR_DEF Face_carlos_spr[];
+/* status: portrait for G.Item_work_no 2 */
+extern ST_SPR_DEF Face_extra_spr[];
+/* status: equip box, menu panel and inventory grid frame */
+extern ST_SPR_DEF Item_frame_spr[];
+/* status: covers of slots 9/10 when the inventory has 8 slots */
+extern ST_SPR_DEF Slot_lock_spr[];
+/* status: same for players 8-10 (different icons in two cells) */
+extern ST_SPR_DEF Slot_lock_ex_spr[];
+/* status: 3-piece strip on the left edge of the inventory grid */
+extern ST_FT4_DEF Item_edge_ft4[];
+/* status: inventory icon grid (8 slots, then slots 9/10) */
+extern ST_SPR_DEF Item_icon_spr[];
 extern ST_SPR_DEF File_icon_tbl[];
-extern ST_SPR_DEF D_8009FB78[];
-extern ST_SPR_DEF D_8009FB84[];
-extern ST_TILE_DEF D_8009FB90[];
-extern ST_SPR_DEF D_8009FBA8[];
-extern ST_SPR_DEF D_8009FBC0[];
-extern ST_SPR_DEF D_8009FBCC[];
-extern ST_SPR_DEF D_8009FBFC[];
-extern ST_SPR_DEF D_8009FC2C[];
-extern ST_SPR_DEF D_8009FC38[];
-extern ST_SPR_DEF D_8009FC44[];
-extern ST_SPR_DEF D_8009FC50[];
-extern ST_FT4_DEF D_8009FC5C[];
-extern ST_FT4_DEF D_8009FCBC[];
-extern ST_FT4_DEF D_8009FD1C[];
-extern ST_FT4_DEF D_8009FD7C[];
-extern ST_FT4_DEF D_8009FDDC[];
-extern ST_FT4_DEF D_8009FE0C[];
-extern ST_FT4_DEF D_8009FE3C[];
-extern ST_FT4_DEF D_8009FE6C[];
-extern ST_FT4_DEF D_8009FE9C[];
-extern ST_FT4_DEF D_8009FECC[];
-extern ST_FT4_DEF D_8009FEFC[];
-extern ST_FT4_DEF D_8009FF2C[];
-extern ST_FT4_DEF D_8009FF38[];
-extern ST_FT4_DEF D_8009FF44[];
-extern ST_FT4_DEF D_8009FF50[];
-extern ST_TILE_DEF D_8009FF5C[];
-extern ST_SPR_DEF D_8009FF68[];
-extern ST_SPR_DEF D_8009FF74[];
-extern ST_SPR_DEF D_8009FF80[];
-extern ST_SPR_DEF D_8009FF8C[];
-extern ST_SPR_DEF D_8009FFB0[];
-extern ST_SPR_DEF D_8009FFBC[];
-extern ST_SPR_DEF D_8009FFC8[];
-extern ST_SPR_DEF D_8009FFD4[];
-extern ST_SPR_DEF D_8009FFE0[];
-extern ST_SPR_DEF D_8009FFEC[];
-extern ST_SPR_DEF D_8009FFF8[];
+/* file list page arrows */
+extern ST_SPR_DEF File_list_prev_spr[];
+extern ST_SPR_DEF File_list_next_spr[];
+/* file list: tiles left and right of the list window */
+extern ST_TILE_DEF File_list_mask_tile[];
+/* examined item picture (Clut_zoom) */
+extern ST_SPR_DEF Zoom_pic_spr[];
+/* equipped item icon */
+extern ST_SPR_DEF Equip_icon_spr[];
+/* command window with 4 commands (Sel_item.Flg 0x10) */
+extern ST_SPR_DEF Cmd_win4_spr[];
+/* command window with 3 commands */
+extern ST_SPR_DEF Cmd_win3_spr[];
+/* command slot backgrounds: use/equip, combine, check, mode switch */
+extern ST_SPR_DEF Cmd_use_bg_spr[];
+extern ST_SPR_DEF Cmd_mix_bg_spr[];
+extern ST_SPR_DEF Cmd_check_bg_spr[];
+extern ST_SPR_DEF Cmd_switch_bg_spr[];
+/* window around the item picture border (8 pieces; the fill is the matching _bg_ft4 record) */
+extern ST_FT4_DEF Zoom_win_ft4[];
+/* file list window border (8 pieces; the fill is the matching _bg_ft4 record) */
+extern ST_FT4_DEF File_list_win_ft4[];
+/* file name window border (8 pieces; the fill is the matching _bg_ft4 record) */
+extern ST_FT4_DEF File_name_win_ft4[];
+/* message (item name) window border (8 pieces; the fill is the matching _bg_ft4 record) */
+extern ST_FT4_DEF Mess_win_ft4[];
+/* menu buttons (Cursor -2 FILE, -1 MAP, < -2 EXIT); records 2-3 are the highlighted look */
+extern ST_FT4_DEF Btn_file_ft4[];
+extern ST_FT4_DEF Btn_map_ft4[];
+extern ST_FT4_DEF Btn_exit_ft4[];
+/* command buttons (Cmd_cursor 0..3); records 2-3 are the highlighted look */
+extern ST_FT4_DEF Cmd_use_ft4[];
+extern ST_FT4_DEF Cmd_mix_ft4[];
+extern ST_FT4_DEF Cmd_check_ft4[];
+extern ST_FT4_DEF Cmd_switch_ft4[];
+extern ST_FT4_DEF Zoom_win_bg_ft4[];
+extern ST_FT4_DEF File_list_bg_ft4[];
+extern ST_FT4_DEF File_name_bg_ft4[];
+extern ST_FT4_DEF Mess_win_bg_ft4[];
+/* tile behind Slot_lock_spr */
+extern ST_TILE_DEF Slot_lock_tile[];
+/* inventory cursor */
+extern ST_SPR_DEF Item_cursor_spr[];
+/* second cursor while combining */
+extern ST_SPR_DEF Mix_cursor_spr[];
+/* file list cursor */
+extern ST_SPR_DEF File_cursor_spr[];
+/* FILE / MAP / EXIT labels */
+extern ST_SPR_DEF Btn_text_spr[];
+/* command labels: EQUIP (weapons), USE, COMBINE, COMBINE (alt, set up only), CHECK */
+extern ST_SPR_DEF Cmd_equip_spr[];
+extern ST_SPR_DEF Cmd_use_spr[];
+extern ST_SPR_DEF Cmd_mix_spr[];
+extern ST_SPR_DEF Cmd_mix2_spr[];
+extern ST_SPR_DEF Cmd_check_spr[];
+/* mode switch label (item Flg 0x100 clear / set, St_item_switch) */
+extern ST_SPR_DEF Cmd_switch_spr[];
+extern ST_SPR_DEF Cmd_switch2_spr[];
 extern ST_SPR_DEF Cond_spr_tbl[]; /* condition text, one per St_condition_get value */
 extern USHORT Item_pix_pos[][2];
 extern USHORT Item_num_pos[][2];
@@ -359,8 +405,10 @@ extern ULONG Map_area_flg[];
 extern UCHAR Item_work0_num; /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
 extern ITEM_WORK *pItem_slot; /* G.pItem_set as one ITEM_WORK array: [0..9] inventory, [10..73] box */
 extern LONG St_pl_kind;
-extern UCHAR D_800D442D;
-extern UCHAR D_800D442E;
+/* Main.Bg_mode under its own symbol */
+extern UCHAR Main_bg_mode;
+/* Main.Unk18E under its own symbol (RE2 Main.Bg_chg_flg, set by Cut_chg_main) */
+extern UCHAR Main_bg_chg_flg;
 
 void St_file_load(ST_WORK *pSt);
 void St_file_read(ST_WORK *pSt);

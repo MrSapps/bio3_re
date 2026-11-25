@@ -81,7 +81,7 @@ void St_file_load(ST_WORK *pSt)
     }
     CD.Fsector += Ofs >> 11;
     CD.Fsum = File_page_sum[Top - 1];
-    Cd_read(0x1C, pSt->pBuf, 2, D_80010DCC);
+    Cd_read(0x1C, pSt->pBuf, 2, Str_fileg_pix);
     p = pSt->pBuf;
     Mapping_tpage_clut = 0xA17;
     St_mapping_tim(p);
@@ -99,7 +99,7 @@ void St_file_load(ST_WORK *pSt)
     St_file_prim_init(pSt);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010DCC);
+INCLUDE_RODATA("asm/nonmatchings/game/status", Str_fileg_pix);
 
 /* Rtn0 8: file viewer: left/right turn the pages (slide animation), cancel/confirm leaves */
 void St_file_read(ST_WORK *pSt)
@@ -348,7 +348,7 @@ void St_file_page_load(ST_WORK *pSt, UCHAR File_no, UCHAR Page)
     }
     CD.Fsector += sum >> 11;
     CD.Fsum = File_page_sum[Idx];
-    Cd_read(0x1C, pSt->pBuf, 2, D_80010DCC);
+    Cd_read(0x1C, pSt->pBuf, 2, Str_fileg_pix);
     p = pSt->pBuf;
     Mapping_tpage_clut = 0xB18;
     Mapping_tim(p);
@@ -754,26 +754,26 @@ void St_box_prim_set(ST_WORK *pSt)
     }
     i = pSt->Clut_frame;
     i <<= 8;
-    St_sprt_init(pSt, (void *)0x8019C000, D_8009F328, i | 3);
-    St_sprt_init(pSt, (void *)0x8019C1E0, D_8009F448, i | 7);
-    St_tile_init(pSt, (TILE *)0x8019D478, D_8009F49C, 1);
+    St_sprt_init(pSt, (void *)0x8019C000, Box_inv_frame_spr, i | 3);
+    St_sprt_init(pSt, (void *)0x8019C1E0, Box_slot_lock_spr, i | 7);
+    St_tile_init(pSt, (TILE *)0x8019D478, Box_slot_lock_tile, 1);
     i = pSt->Clut_icon;
     i <<= 8;
-    St_sprt_init(pSt, (void *)0x8019C140, D_8009F3F4, i | 3);
-    St_sprt_init(pSt, (void *)0x8019C1B8, D_8009F418, i | 1);
-    St_sprt_init(pSt, (void *)0x8019C2F8, D_8009F4A8, ((UCHAR)(pSt->Clut_parts + 3) << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x8019C320, D_8009F4B4, (pSt->Clut_box << 8) | 1);
+    St_sprt_init(pSt, (void *)0x8019C140, Box_inv_icon_spr, i | 3);
+    St_sprt_init(pSt, (void *)0x8019C1B8, Box_equip_icon_spr, i | 1);
+    St_sprt_init(pSt, (void *)0x8019C2F8, Box_inv_cursor_spr, ((UCHAR)(pSt->Clut_parts + 3) << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x8019C320, Box_label_spr, (pSt->Clut_box << 8) | 1);
     i = pSt->Clut_box;
     i <<= 8;
-    St_sprt_init(pSt, (void *)0x8019C078, D_8009F34C, i | 5);
-    St_sprt_init(pSt, (void *)0x8019D068, D_8009F4CC, i | 1);
-    St_sprt_init(pSt, (void *)0x8019D090, D_8009F4D8, i | 1);
+    St_sprt_init(pSt, (void *)0x8019C078, Box_frame_spr, i | 5);
+    St_sprt_init(pSt, (void *)0x8019D068, Box_scroll_up_spr, i | 1);
+    St_sprt_init(pSt, (void *)0x8019D090, Box_scroll_down_spr, i | 1);
     i = pSt->Clut_frame;
     i <<= 8;
-    St_ft4_init(pSt, (POLY_FT4 *)0x8019D0B8, D_8009F388, i | 0x07000008);
-    St_ft4_init(pSt, (POLY_FT4 *)0x8019D338, D_8009F3E8, i | 0x07000001);
-    St_ft4_init(pSt, (POLY_FT4 *)0x8019D388, D_8009F424, i | 0x04000003);
-    St_tile_init(pSt, (TILE *)0x8019D748, D_8009F4C0, 1);
+    St_ft4_init(pSt, (POLY_FT4 *)0x8019D0B8, Box_mess_win_ft4, i | 0x07000008);
+    St_ft4_init(pSt, (POLY_FT4 *)0x8019D338, Box_mess_bg_ft4, i | 0x07000001);
+    St_ft4_init(pSt, (POLY_FT4 *)0x8019D388, Box_inv_edge_ft4, i | 0x04000003);
+    St_tile_init(pSt, (TILE *)0x8019D748, Box_top_mask_tile, 1);
     St_box_prim_init(pSt);
 }
 
@@ -1128,7 +1128,7 @@ void St_map_open(ST_WORK *pSt)
 
 extern UCHAR File_order_tbl_b[][2] __asm__("File_order_tbl"); /* File_order_tbl read with lbu here (low byte of each entry) */
 
-static const char D_80010DFC[] = "FILEI.TIM";
+static const char Str_filei_tim[] = "FILEI.TIM";
 
 /* Rtn1 5: file list (5x3 grid, two pages); opens the viewer for a file you own */
 void St_file_list(ST_WORK *pSt)
@@ -1139,7 +1139,7 @@ void St_file_list(ST_WORK *pSt)
 
     switch (pSt->Rtn2) {
     case 0:
-        Cd_read(0x1D, pSt->pBuf, 0, D_80010DFC);
+        Cd_read(0x1D, pSt->pBuf, 0, Str_filei_tim);
         p = pSt->pBuf;
         Mapping_tpage_clut = 0x917;
         Mapping_tim(p);
@@ -2374,7 +2374,7 @@ void Pix_load(UCHAR no, UCHAR idx)
     CD.Fsize = 0x800;
     CD.Fsector = (floc[0x34].sec_high << 16) + floc[0x34].sector + idx;
     CD.Fsum = Itemi_sum[idx];
-    Cd_read(0x34, pSt->pBuf, 2, D_80010F84);
+    Cd_read(0x34, pSt->pBuf, 2, Str_itemi_pix);
     r.x = Item_pix_pos[no][0];
     r.y = Item_pix_pos[no][1];
     r.w = 0x14;
@@ -2391,7 +2391,7 @@ void Pix_read(UCHAR no)
     CD.Fsize = 0x800;
     CD.Fsector = (floc[0x34].sec_high << 16) + floc[0x34].sector + no;
     CD.Fsum = Itemi_sum[no];
-    Cd_read(0x34, St.pBuf, 2, D_80010F84);
+    Cd_read(0x34, St.pBuf, 2, Str_itemi_pix);
 }
 
 /* uploads St.pBuf to icon slot no (RE2 Pix_trans) */
@@ -2432,7 +2432,7 @@ void Pix_unpack_box(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
     LoadImage(&r, pBuf);
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010F84);
+INCLUDE_RODATA("asm/nonmatchings/game/status", Str_itemi_pix);
 
 /* reads the examine picture of an item from ITEMG.PIX and maps it */
 void Itemg_load(UCHAR no)
@@ -2516,68 +2516,68 @@ void St_prim_init(ST_WORK *pSt)
         SetDrawTPage(&pSt->Ot[1][i], 0, 0, 0x17);
     }
     c = pSt->Clut_frame;
-    St_sprt_init(pSt, (void *)0x801AC000, D_8009F890, (c << 8) | 2);
-    St_sprt_init(pSt, (void *)0x801AC1B8, D_8009F8CC, (c << 8) | 5);
+    St_sprt_init(pSt, (void *)0x801AC000, Cond_frame_spr, (c << 8) | 2);
+    St_sprt_init(pSt, (void *)0x801AC1B8, Item_frame_spr, (c << 8) | 5);
     switch (G.Player.Id) {
     case 8:
     case 9:
     case 10:
-        St_sprt_init(pSt, (void *)0x801AC280, D_8009F95C, (c << 8) | 7);
+        St_sprt_init(pSt, (void *)0x801AC280, Slot_lock_ex_spr, (c << 8) | 7);
         break;
     default:
-        St_sprt_init(pSt, (void *)0x801AC280, D_8009F908, (c << 8) | 7);
+        St_sprt_init(pSt, (void *)0x801AC280, Slot_lock_spr, (c << 8) | 7);
         break;
     }
-    St_sprt_init(pSt, (void *)0x801ACA78, D_8009FBCC, (c << 8) | 4);
-    St_sprt_init(pSt, (void *)0x801ACB18, D_8009FBFC, (c << 8) | 4);
-    St_sprt_init(pSt, (void *)0x801ACBB8, D_8009FC2C, (c << 8) | 1);
-    St_sprt_init(pSt, (void *)0x801ACBE0, D_8009FC38, (c << 8) | 1);
-    St_sprt_init(pSt, (void *)0x801ACC08, D_8009FC44, (c << 8) | 1);
-    St_sprt_init(pSt, (void *)0x801ACC30, D_8009FC50, (c << 8) | 1);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801ADBA8, D_8009FC5C, (c << 8) | 0x7000008);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801ADE28, D_8009FCBC, (c << 8) | 0x7000008);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AE0A8, D_8009FD1C, (c << 8) | 0x7000008);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AE328, D_8009FD7C, (c << 8) | 0x7000008);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AE5A8, D_8009F9B0, (c << 8) | 0x4000003);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AE698, D_8009FDDC, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AE7D8, D_8009FE0C, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AE918, D_8009FE3C, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AEAA8, D_8009FE6C, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AEBE8, D_8009FE9C, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AED28, D_8009FECC, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AEE68, D_8009FEFC, (c << 8) | 0x7000004);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AEFA8, D_8009FF2C, (c << 8) | 0x7000001);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AEFF8, D_8009FF38, (c << 8) | 0x7000001);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AF048, D_8009FF44, (c << 8) | 0x7000001);
-    St_ft4_init(pSt, (POLY_FT4 *)0x801AF098, D_8009FF50, (c << 8) | 0x7000001);
-    St_tile_init(pSt, (TILE *)0x801AF4E8, D_8009FF5C, 1);
-    St_tile_init(pSt, (TILE *)0x801AF508, D_8009FB90, 2);
+    St_sprt_init(pSt, (void *)0x801ACA78, Cmd_win4_spr, (c << 8) | 4);
+    St_sprt_init(pSt, (void *)0x801ACB18, Cmd_win3_spr, (c << 8) | 4);
+    St_sprt_init(pSt, (void *)0x801ACBB8, Cmd_use_bg_spr, (c << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801ACBE0, Cmd_mix_bg_spr, (c << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801ACC08, Cmd_check_bg_spr, (c << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801ACC30, Cmd_switch_bg_spr, (c << 8) | 1);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801ADBA8, Zoom_win_ft4, (c << 8) | 0x7000008);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801ADE28, File_list_win_ft4, (c << 8) | 0x7000008);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AE0A8, File_name_win_ft4, (c << 8) | 0x7000008);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AE328, Mess_win_ft4, (c << 8) | 0x7000008);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AE5A8, Item_edge_ft4, (c << 8) | 0x4000003);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AE698, Btn_file_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AE7D8, Btn_map_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AE918, Btn_exit_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AEAA8, Cmd_use_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AEBE8, Cmd_mix_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AED28, Cmd_check_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AEE68, Cmd_switch_ft4, (c << 8) | 0x7000004);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AEFA8, Zoom_win_bg_ft4, (c << 8) | 0x7000001);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AEFF8, File_list_bg_ft4, (c << 8) | 0x7000001);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AF048, File_name_bg_ft4, (c << 8) | 0x7000001);
+    St_ft4_init(pSt, (POLY_FT4 *)0x801AF098, Mess_win_bg_ft4, (c << 8) | 0x7000001);
+    St_tile_init(pSt, (TILE *)0x801AF4E8, Slot_lock_tile, 1);
+    St_tile_init(pSt, (TILE *)0x801AF508, File_list_mask_tile, 2);
     c = pSt->Clut_icon;
-    St_sprt_init(pSt, (void *)0x801AC398, D_8009F9D4, (c << 8) | 3);
-    St_sprt_init(pSt, (void *)0x801AC460, D_8009FBC0, (c << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801AC398, Item_icon_spr, (c << 8) | 3);
+    St_sprt_init(pSt, (void *)0x801AC460, Equip_icon_spr, (c << 8) | 1);
     c = pSt->Clut_face;
-    St_sprt_init(pSt, (void *)0x801AC050, D_8009F8A8, (c << 8) | 1);
-    St_sprt_init(pSt, (void *)0x801AC078, D_8009F8B4, ((UCHAR)(c + 1) << 8) | 1);
-    St_sprt_init(pSt, (void *)0x801AC0A0, D_8009F8C0, ((UCHAR)(c + 2) << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801AC050, Face_jill_spr, (c << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801AC078, Face_carlos_spr, ((UCHAR)(c + 1) << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801AC0A0, Face_extra_spr, ((UCHAR)(c + 2) << 8) | 1);
     c = pSt->Clut_parts + 2;
-    St_sprt_init(pSt, (void *)0x801ACA28, D_8009FF74, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ADB58, D_8009FB78, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ADB30, D_8009FB84, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACA28, Mix_cursor_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ADB58, File_list_prev_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ADB30, File_list_next_spr, (c << 8) | 0x10001);
     c = pSt->Clut_parts + 3;
-    St_sprt_init(pSt, (void *)0x801ACA00, D_8009FF68, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACA50, D_8009FF80, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACA00, Item_cursor_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACA50, File_cursor_spr, (c << 8) | 0x10001);
     c = pSt->Clut_parts;
-    St_sprt_init(pSt, (void *)0x801AC488, D_8009FF8C, (c << 8) | 0x10003);
-    St_sprt_init(pSt, (void *)0x801ACC58, D_8009FFB0, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACC80, D_8009FFBC, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACCA8, D_8009FFC8, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACCD0, D_8009FFD4, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACCF8, D_8009FFE0, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACD20, D_8009FFEC, (c << 8) | 0x10001);
-    St_sprt_init(pSt, (void *)0x801ACD48, D_8009FFF8, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801AC488, Btn_text_spr, (c << 8) | 0x10003);
+    St_sprt_init(pSt, (void *)0x801ACC58, Cmd_equip_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACC80, Cmd_use_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACCA8, Cmd_mix_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACCD0, Cmd_mix2_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACCF8, Cmd_check_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACD20, Cmd_switch_spr, (c << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ACD48, Cmd_switch2_spr, (c << 8) | 0x10001);
     c = pSt->Clut_parts + 1;
     St_sprt_init(pSt, (void *)0x801AC0C8, Cond_spr_tbl, (c << 8) | 0x10006);
-    St_sprt_init(pSt, (void *)0x801AC410, D_8009FBA8, (pSt->Clut_zoom << 8) | 2);
+    St_sprt_init(pSt, (void *)0x801AC410, Zoom_pic_spr, (pSt->Clut_zoom << 8) | 2);
     St_line_init(pSt);
 }
 
@@ -2642,39 +2642,39 @@ void St_item_disp(ST_WORK *pSt)
     }
     pI = &G.pItem_set->Item[pSt->Cursor];
     pData = &Item_data_tbl[pI->Id];
-    St_sprt_draw(pSt, (SPRT *)0x801AC000, D_8009F890, 0x30002);
+    St_sprt_draw(pSt, (SPRT *)0x801AC000, Cond_frame_spr, 0x30002);
     switch ((ULONG)G.Item_work_no) {
     case 0:
-        St_sprt_draw(pSt, (SPRT *)0x801AC050, D_8009F8A8, ((n | 4) << 16) | 1);
+        St_sprt_draw(pSt, (SPRT *)0x801AC050, Face_jill_spr, ((n | 4) << 16) | 1);
         break;
     case 1:
-        St_sprt_draw(pSt, (SPRT *)0x801AC078, D_8009F8B4, ((n | 4) << 16) | 1);
+        St_sprt_draw(pSt, (SPRT *)0x801AC078, Face_carlos_spr, ((n | 4) << 16) | 1);
         break;
     case 2:
-        St_sprt_draw(pSt, (SPRT *)0x801AC0A0, D_8009F8C0, ((n | 4) << 16) | 1);
+        St_sprt_draw(pSt, (SPRT *)0x801AC0A0, Face_extra_spr, ((n | 4) << 16) | 1);
         break;
     }
     St_sprt_draw(pSt, (SPRT *)0x801AC0C8 + pSt->Condition * 2, &Cond_spr_tbl[pSt->Condition], ((n * 2 + 2) << 16) | 1);
-    St_sprt_draw(pSt, (SPRT *)0x801AC460, D_8009FBC0, ((n | 2) << 16) | 0x101);
-    St_sprt_draw(pSt, (SPRT *)0x801AC1B8, D_8009F8CC, 0x30105);
-    St_sprt_draw(pSt, (SPRT *)0x801AC398, D_8009F9D4, ((n | 2) << 16) | 0x103);
-    St_sprt_draw(pSt, (SPRT *)0x801AC488, D_8009FF8C, ((n * 2 + 2) << 16) | 0x103);
-    St_ft4_draw(pSt, (void *)0x801AE5A8, D_8009F9B0, 0x70103);
-    St_ft4_draw(pSt, (void *)0x801ADBA8, D_8009FC5C, 0x70808);
-    St_ft4_draw(pSt, (void *)0x801AEFA8, D_8009FF2C, 0x70801);
-    St_sprt_draw(pSt, (SPRT *)0x801AC410, D_8009FBA8, (((n * 3) | 1) << 16) | 0x802);
+    St_sprt_draw(pSt, (SPRT *)0x801AC460, Equip_icon_spr, ((n | 2) << 16) | 0x101);
+    St_sprt_draw(pSt, (SPRT *)0x801AC1B8, Item_frame_spr, 0x30105);
+    St_sprt_draw(pSt, (SPRT *)0x801AC398, Item_icon_spr, ((n | 2) << 16) | 0x103);
+    St_sprt_draw(pSt, (SPRT *)0x801AC488, Btn_text_spr, ((n * 2 + 2) << 16) | 0x103);
+    St_ft4_draw(pSt, (void *)0x801AE5A8, Item_edge_ft4, 0x70103);
+    St_ft4_draw(pSt, (void *)0x801ADBA8, Zoom_win_ft4, 0x70808);
+    St_ft4_draw(pSt, (void *)0x801AEFA8, Zoom_win_bg_ft4, 0x70801);
+    St_sprt_draw(pSt, (SPRT *)0x801AC410, Zoom_pic_spr, (((n * 3) | 1) << 16) | 0x802);
     if (pSt->Flg & 0x1000) {
-        St_tile_draw(pSt, (TILE *)0x801AF508, D_8009FB90, 0x70902);
-        St_ft4_draw(pSt, (void *)0x801ADE28, D_8009FCBC, 0x70908);
+        St_tile_draw(pSt, (TILE *)0x801AF508, File_list_mask_tile, 0x70902);
+        St_ft4_draw(pSt, (void *)0x801ADE28, File_list_win_ft4, 0x70908);
         St_file_icon_disp(pSt);
         if (pSt->Flg & 0x2000) {
-            St_sprt_draw(pSt, (SPRT *)0x801ADB58, D_8009FB78, ((n * 2 + 1) << 16) | 0x1701);
+            St_sprt_draw(pSt, (SPRT *)0x801ADB58, File_list_prev_spr, ((n * 2 + 1) << 16) | 0x1701);
         }
         if (pSt->Flg & 0x4000) {
-            St_sprt_draw(pSt, (SPRT *)0x801ADB30, D_8009FB84, ((n * 2 + 1) << 16) | 0x1601);
+            St_sprt_draw(pSt, (SPRT *)0x801ADB30, File_list_next_spr, ((n * 2 + 1) << 16) | 0x1601);
         }
         if (pSt->Flg & 0x1000000) {
-            St_sprt_draw(pSt, (SPRT *)0x801ACA50, D_8009FF80, ((n * 2 + 1) << 16) | 0xE01);
+            St_sprt_draw(pSt, (SPRT *)0x801ACA50, File_cursor_spr, ((n * 2 + 1) << 16) | 0xE01);
             k = pSt->File_cursor;
             id = File_order_tbl[k];
             if (G.Unk79EC[3] == 30 && k == 0) {
@@ -2684,54 +2684,54 @@ void St_item_disp(ST_WORK *pSt)
                 Name_disp(0xE, 0xC8, 0x501, id + 0x85);
             }
         }
-        St_ft4_draw(pSt, (void *)0x801AE0A8, D_8009FD1C, 0x70A08);
-        St_ft4_draw(pSt, (void *)0x801AF048, D_8009FF44, 0x70A01);
+        St_ft4_draw(pSt, (void *)0x801AE0A8, File_name_win_ft4, 0x70A08);
+        St_ft4_draw(pSt, (void *)0x801AF048, File_name_bg_ft4, 0x70A01);
     }
     if (pSt->Flg & 0x400000) {
         St_zoom_icon_disp(pSt);
     }
-    St_ft4_draw(pSt, (void *)0x801AE328, D_8009FD7C, 0x70B08);
-    St_ft4_draw(pSt, (void *)0x801AF098, D_8009FF50, 0x70B01);
+    St_ft4_draw(pSt, (void *)0x801AE328, Mess_win_ft4, 0x70B08);
+    St_ft4_draw(pSt, (void *)0x801AF098, Mess_win_bg_ft4, 0x70B01);
     if (pSt->Sel_item.Flg & 0x10) {
-        St_sprt_draw(pSt, (SPRT *)0x801ACA78, D_8009FBCC, 0x60304);
+        St_sprt_draw(pSt, (SPRT *)0x801ACA78, Cmd_win4_spr, 0x60304);
     } else {
-        St_sprt_draw(pSt, (SPRT *)0x801ACB18, D_8009FBFC, 0x60304);
+        St_sprt_draw(pSt, (SPRT *)0x801ACB18, Cmd_win3_spr, 0x60304);
     }
-    St_sprt_draw(pSt, (SPRT *)0x801ACBB8, D_8009FC2C, 0x40401);
-    St_sprt_draw(pSt, (SPRT *)0x801ACBE0, D_8009FC38, 0x40501);
-    St_sprt_draw(pSt, (SPRT *)0x801ACC08, D_8009FC44, 0x40601);
+    St_sprt_draw(pSt, (SPRT *)0x801ACBB8, Cmd_use_bg_spr, 0x40401);
+    St_sprt_draw(pSt, (SPRT *)0x801ACBE0, Cmd_mix_bg_spr, 0x40501);
+    St_sprt_draw(pSt, (SPRT *)0x801ACC08, Cmd_check_bg_spr, 0x40601);
     if (pSt->Sel_item.Flg & 0x10) {
-        St_sprt_draw(pSt, (SPRT *)0x801ACC30, D_8009FC50, 0x40701);
+        St_sprt_draw(pSt, (SPRT *)0x801ACC30, Cmd_switch_bg_spr, 0x40701);
     }
     if (pData->Type == 1) {
-        St_sprt_draw(pSt, (SPRT *)0x801ACC58, D_8009FFB0, ((n * 2 + 4) << 16) | 0x401);
+        St_sprt_draw(pSt, (SPRT *)0x801ACC58, Cmd_equip_spr, ((n * 2 + 4) << 16) | 0x401);
     } else {
-        St_sprt_draw(pSt, (SPRT *)0x801ACC80, D_8009FFBC, ((n * 2 + 4) << 16) | 0x401);
+        St_sprt_draw(pSt, (SPRT *)0x801ACC80, Cmd_use_spr, ((n * 2 + 4) << 16) | 0x401);
     }
-    St_sprt_draw(pSt, (SPRT *)0x801ACCA8, D_8009FFC8, ((n * 2 + 4) << 16) | 0x501);
-    St_sprt_draw(pSt, (SPRT *)0x801ACCF8, D_8009FFE0, ((n * 2 + 4) << 16) | 0x601);
+    St_sprt_draw(pSt, (SPRT *)0x801ACCA8, Cmd_mix_spr, ((n * 2 + 4) << 16) | 0x501);
+    St_sprt_draw(pSt, (SPRT *)0x801ACCF8, Cmd_check_spr, ((n * 2 + 4) << 16) | 0x601);
     if (pSt->Sel_item.Flg & 0x10) {
         if (pI->Flg & 0x100) {
-            St_sprt_draw(pSt, (SPRT *)0x801ACD48, D_8009FFF8, ((n * 2 + 4) << 16) | 0x701);
+            St_sprt_draw(pSt, (SPRT *)0x801ACD48, Cmd_switch2_spr, ((n * 2 + 4) << 16) | 0x701);
         } else {
-            St_sprt_draw(pSt, (SPRT *)0x801ACD20, D_8009FFEC, ((n * 2 + 4) << 16) | 0x701);
+            St_sprt_draw(pSt, (SPRT *)0x801ACD20, Cmd_switch_spr, ((n * 2 + 4) << 16) | 0x701);
         }
     }
-    pT = D_8009FE6C;
+    pT = Cmd_use_ft4;
     pFt = (POLY_FT4 *)0x801AEAA8;
     if ((signed char)pSt->Cmd_cursor == 0) {
         pT += 2;
         pFt = (POLY_FT4 *)0x801AEB48;
     }
     St_ft4_draw(pSt, pFt, pT, 0x50402);
-    pT = D_8009FE9C;
+    pT = Cmd_mix_ft4;
     pFt = (POLY_FT4 *)0x801AEBE8;
     if ((signed char)pSt->Cmd_cursor == 1) {
         pT += 2;
         pFt = (POLY_FT4 *)0x801AEC88;
     }
     St_ft4_draw(pSt, pFt, pT, 0x50502);
-    pT = D_8009FECC;
+    pT = Cmd_check_ft4;
     pFt = (POLY_FT4 *)0x801AED28;
     if ((signed char)pSt->Cmd_cursor == 2) {
         pT += 2;
@@ -2739,7 +2739,7 @@ void St_item_disp(ST_WORK *pSt)
     }
     St_ft4_draw(pSt, pFt, pT, 0x50602);
     if (pSt->Sel_item.Flg & 0x10) {
-        pT = D_8009FEFC;
+        pT = Cmd_switch_ft4;
         pFt = (POLY_FT4 *)0x801AEE68;
         if ((signed char)pSt->Cmd_cursor == 3) {
             pT += 2;
@@ -2769,21 +2769,21 @@ void St_item_disp(ST_WORK *pSt)
         y = Item_num_pos[10][1] + pSt->Pos[1].Y;
         St_num_disp(p, pI->Num, x | (y << 16), c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
     }
-    pT = D_8009FDDC;
+    pT = Btn_file_ft4;
     pFt = (POLY_FT4 *)0x801AE698;
     if (pSt->Cursor == -2) {
         pT += 2;
         pFt = (POLY_FT4 *)0x801AE738;
     }
     St_ft4_draw(pSt, pFt, pT, 0x40102);
-    pT = D_8009FE0C;
+    pT = Btn_map_ft4;
     pFt = (POLY_FT4 *)0x801AE7D8;
     if (pSt->Cursor == -1) {
         pT += 2;
         pFt = (POLY_FT4 *)0x801AE878;
     }
     St_ft4_draw(pSt, pFt, pT, 0x40102);
-    pT = D_8009FE3C;
+    pT = Btn_exit_ft4;
     pFt = (POLY_FT4 *)0x801AE918;
     if (pSt->Cursor < -2) {
         pT += 2;
@@ -2791,15 +2791,15 @@ void St_item_disp(ST_WORK *pSt)
     }
     St_ft4_draw(pSt, pFt, pT, 0x40102);
     if ((pSt->Flg & 0x4000000) && pSt->Cursor >= 0) {
-        St_sprt_draw(pSt, (SPRT *)0x801ACA00, D_8009FF68, ((n * 2 + 1) << 16) | 0xC01);
+        St_sprt_draw(pSt, (SPRT *)0x801ACA00, Item_cursor_spr, ((n * 2 + 1) << 16) | 0xC01);
     }
     pG2 = &G;
     if (pSt->Flg & 0x2000000) {
-        St_sprt_draw(pSt, (SPRT *)0x801ACA28, D_8009FF74, ((n * 2 + 1) << 16) | 0xD01);
+        St_sprt_draw(pSt, (SPRT *)0x801ACA28, Mix_cursor_spr, ((n * 2 + 1) << 16) | 0xD01);
     }
     if (pG2->pItem_set->Num == 8) {
-        St_sprt_draw(pSt, (SPRT *)0x801AC280, D_8009F908, 0x10207);
-        St_tile_draw(pSt, (TILE *)0x801AF4E8, D_8009FF5C, 0x10201);
+        St_sprt_draw(pSt, (SPRT *)0x801AC280, Slot_lock_spr, 0x10207);
+        St_tile_draw(pSt, (TILE *)0x801AF4E8, Slot_lock_tile, 0x10201);
     }
     if (pSt->Flg & 0x20000000) {
         if (pSt->Flg & 0x2000000) {
@@ -3337,7 +3337,7 @@ void St_tex_load(void)
     Cd_read(0x60, (ULONG *)0x801B1500, 0, "STMOJI.TIM");
     FLD(&G, 0x2484, SHORT) = 0x1A;
     Mapping_tim((ULONG *)0x801B1500);
-    Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
+    Cd_read(0x32, (ULONG *)0x801B1500, 0, Str_itema_sld);
     p = G.pItem_set->Item;
     for (i = 0; i < 10; i++, p++) {
         Pix_unpack(i, p->Id, 0x801B1500, (ULONG *)0x801B1000);
@@ -3363,7 +3363,7 @@ void St_tex_load(void)
     pSt->Equip_id_old = n;
 }
 
-INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010FEC);
+INCLUDE_RODATA("asm/nonmatchings/game/status", Str_itema_sld);
 
 /* status task start: pauses the game, saves VRAM, sets up the screen for St_type, fades in */
 void St_init(ST_WORK *pSt)
@@ -3395,7 +3395,7 @@ void St_init(ST_WORK *pSt)
     pW->Fade_step = 0xB00;
     Cd_seek(0x34, 0, "SEEK ITEMI.PIX");
     if (pSt->Flg14 & 0x40000000) {
-        Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
+        Cd_read(0x32, (ULONG *)0x801B1500, 0, Str_itema_sld);
         p = (UCHAR *)pG->pItem_set->Item;
         for (i = 0; i < 10; i++, p += 4) {
             Pix_unpack(i, *p, 0x801B1500, (ULONG *)0x801B1000);
@@ -3498,7 +3498,7 @@ void St_init(ST_WORK *pSt)
         StoreImage(&r, (ULONG *)0x80194000);
         DrawSync(0);
         St_box_prim_set(pSt);
-        i = Cd_read(0x32, pSt->pBuf, 0, D_80010FEC);
+        i = Cd_read(0x32, pSt->pBuf, 0, Str_itema_sld);
         pSt->Box_cursor = 0x20;
         pSt->pBuf = (ULONG *)((UCHAR *)pSt->pBuf + i);
         p = (UCHAR *)&G.pItem_set->Item[40];
@@ -3604,12 +3604,12 @@ void St_exit(ST_WORK *pSt)
         LoadImage(&r, (ULONG *)0x8019C000);
         DrawSync(0);
         if (pSt->Hiki_flg) {
-            D_800D442E = 1;
+            Main_bg_chg_flg = 1;
         } else {
-            D_800D442E = 2;
+            Main_bg_chg_flg = 2;
         }
         pSt->Hiki_flg = 0;
-        D_800D442D = 2;
+        Main_bg_mode = 2;
         break;
     }
     pSt->St_type = 0;
