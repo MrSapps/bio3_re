@@ -1423,7 +1423,7 @@ ULONG func_80058B84(SCE_TASK *pSce)
         if (!(Key & 0x100) || (UCHAR)pG->Player.Type == 0) {
             if (Key & 0x80) {
                 if (!(pG->Status_flg & 0x100)) {
-                    if (!(D_800DBB58 & 0xC0) && D_800C7961 == 0) {
+                    if (!(Moji.Mess_flg & 0xC0) && D_800C7961 == 0) {
                         return 1;
                     }
                 }

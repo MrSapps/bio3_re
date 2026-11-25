@@ -559,7 +559,7 @@ ULONG Sce_Damage(void *pAot)
 ULONG func_80051CB0(void *pAot)
 {
     if ((G.Status_flg & 0x400000) == 0 && G.Player.Damage_cnt == 0 && (G.Status_flg & 0x100) == 0 &&
-        (D_800DBB58 & 0xC0) == 0) {
+        (Moji.Mess_flg & 0xC0) == 0) {
         Game.Doordemo_flg = 1;
         G.pSce_aot_on = pAot;
         G.Unk2468 |= 0xff000000;

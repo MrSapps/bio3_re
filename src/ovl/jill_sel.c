@@ -103,7 +103,7 @@ void Jill_init(JILL_WORK *pW)
             n--;
         }
     }
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     pW->Routine = 1;
     pW->Flg = 0;
     if (!Flg_ck(G.Unk77F8, 10)) {
@@ -198,7 +198,7 @@ void Jill_exit(JILL_WORK *pW)
         Jill_sprt_draw(pW);
         Task_sleep(1);
     }
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     Main.Vloop = pW->Vloop_bak;
     Task_signal(0);
     Task_exit();

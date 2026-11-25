@@ -256,14 +256,14 @@ void St_file_end(ST_WORK *pSt)
             if (!(Model_no & 0x80)) {
                 G.Ob_model[Model_no & 0xFF].Be_flg = 0;
             }
-            D_800DBB5B = pItem[0];
+            Moji.Mess_item = pItem[0];
             Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn1++;
             break;
         }
         break;
     case 1:
-        if (!(D_800DBB58 & 0x80)) {
+        if (!(Moji.Mess_flg & 0x80)) {
             pSt->Rtn0 = 0xD;
             pSt->Rtn1 = 0;
             Snd_se_stad(5, NULL, 0, 0);
@@ -718,7 +718,7 @@ void St_box_scroll(ST_WORK *pSt)
 /* box Rtn1 4: waits for the message to close */
 void St_box_mess_wait(ST_WORK *pSt)
 {
-    if (!(D_800DBB58 & 0x80)) {
+    if (!(Moji.Mess_flg & 0x80)) {
         pSt->Rtn1 = 0;
         pSt->Blink = 0;
         pSt->Blink_dir = 0;
@@ -1525,7 +1525,7 @@ INCLUDE_ASM("asm/nonmatchings/game/status", St_mix_exec);
 /* combine Rtn2 2: waits for the "can't combine" message */
 void St_mix_mess_wait(ST_WORK *pSt)
 {
-    if (!(D_800DBB58 & 0x80)) {
+    if (!(Moji.Mess_flg & 0x80)) {
         pSt->Rtn1 = 3;
         Snd_se_stad(5, 0, 0, 0);
         pSt->Flg &= ~0x2000000;
@@ -1535,7 +1535,7 @@ void St_mix_mess_wait(ST_WORK *pSt)
 /* combine Rtn2 4: yes/no answer to the weapon part question */
 void St_mix_yesno(ST_WORK *pSt)
 {
-    if (!(D_800DBB58 & 0x80)) {
+    if (!(Moji.Mess_flg & 0x80)) {
         switch (G.Unk7848) {
         case 0:
             Pl_wep_eff_parts_init(G_PLAYER);
@@ -1554,7 +1554,7 @@ void St_mix_yesno(ST_WORK *pSt)
 /* combine Rtn2 5: on yes tries the next combine record */
 void St_mix_next(ST_WORK *pSt)
 {
-    if (!(D_800DBB58 & 0x80)) {
+    if (!(Moji.Mess_flg & 0x80)) {
         switch (G.Unk7848) {
         case 0:
             pSt->pMix++;
@@ -1775,7 +1775,7 @@ void St_item_check(ST_WORK *pSt)
         }
         break;
     case 2:
-        if (!(D_800DBB58 & 0x80)) {
+        if (!(Moji.Mess_flg & 0x80)) {
             pSt->Rtn2 = 3;
             pSt->Timer = 0;
             p = &pG->pItem_set->Item[pSt->Cursor];
@@ -2049,7 +2049,7 @@ void St_item_get(ST_WORK *pSt)
                 if (Item_data_tbl[p->Id].Max >= p->Num + pGet->Num) {
                     pSt->Get_slot = Slot;
                     pSt->Get_stack = 1;
-                    D_800DBB5B = pGet->Id;
+                    Moji.Mess_item = pGet->Id;
                     Mess_set(0, 0x1400, 0, 0);
                     pSt->Rtn2 = 2;
                     break;
@@ -2067,22 +2067,22 @@ void St_item_get(ST_WORK *pSt)
             }
             pSt->Get_slot = Slot;
             if (Flg_ck(G.Unk77F8, 9) && (UCHAR)pGet->Id == 0xC) {
-                D_800DBB5B = 0x14;
+                Moji.Mess_item = 0x14;
             } else {
-                D_800DBB5B = pGet->Id;
+                Moji.Mess_item = pGet->Id;
             }
             Mess_set(0, 0x1400, 0, 0);
             pSt->Rtn2 = 2;
         }
         break;
     case 1:
-        if (!(D_800DBB58 & 0x80)) {
+        if (!(Moji.Mess_flg & 0x80)) {
             pSt->Rtn0++;
             Snd_se_stad(5, 0, 0, 0);
         }
         break;
     case 2:
-        if (!(D_800DBB58 & 0x80)) {
+        if (!(Moji.Mess_flg & 0x80)) {
             switch (G.Unk7848) {
             case 0: {
                 UCHAR k;
@@ -2192,7 +2192,7 @@ void St_item_change(ST_WORK *pSt)
         pSt->Timer++;
         break;
     case 2:
-        if (D_800CC840 & 0x3000) {
+        if (G.Key_trg & 0x3000) {
             Snd_se_stad(6, NULL, 0, 0);
             n = pSt->Chg_slot;
             pSt->Zoom_w = 0x38;
@@ -2227,7 +2227,7 @@ void St_item_change(ST_WORK *pSt)
         pSt->Flg &= ~0x400000;
         break;
     case 4:
-        if (D_800CC840 & 0x3000) {
+        if (G.Key_trg & 0x3000) {
             Snd_se_stad(5, NULL, 0, 0);
             pSt->Timer = 0;
             pSt->Rtn2++;
@@ -4413,14 +4413,14 @@ void St_map_exit(ST_WORK *pSt)
             if (!(Model_no & 0x80)) {
                 G.Ob_model[Model_no & 0xFF].Be_flg = 0;
             }
-            D_800DBB5B = pItem[0];
+            Moji.Mess_item = pItem[0];
             Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn1++;
             break;
         }
         break;
     case 2:
-        if (!(D_800DBB58 & 0x80)) {
+        if (!(Moji.Mess_flg & 0x80)) {
             pSt->Rtn0 = 0xD;
             pSt->Rtn1 = 0;
             Snd_se_stad(5, NULL, 0, 0);

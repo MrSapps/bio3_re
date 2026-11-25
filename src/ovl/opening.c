@@ -111,7 +111,7 @@ void Opening_exit(void)
     if (CD.Xa_rtn_no) {
         CD.Xa_rtn_no = 3;
     }
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     Task_sleep(10);
     Task_signal(0);
     Task_exit();
@@ -308,7 +308,7 @@ LONG Opening_op_wait(OPN_WORK *pWk)
 /* wait for the XA voice */
 LONG Opening_op_xa_wait(OPN_WORK *pWk)
 {
-    if ((G.Status_flg & STAT_XA_VOICE) || (D_800DBB58 & 0x80)) {
+    if ((G.Status_flg & STAT_XA_VOICE) || (Moji.Mess_flg & 0x80)) {
         return 0;
     }
     pWk->pScript++;

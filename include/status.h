@@ -351,7 +351,6 @@ extern ITEM_MIX Item_mix_tbl[];        /* Id_a 0xFF ends it */
 extern ITEM_CHECK Item_check_tbl[];    /* Id 0xFF ends it */
 extern ITEM_TAMA Item_tama_tbl[];      /* Wep_id 0xFF ends it */
 extern LONG D_800C79CC; /* extra game character (Status_init) */
-extern ULONG D_800CC840;
 extern SHORT Mapping_tpage_clut;
 extern ULONG D_800D1FA0[];
 extern ULONG Map_visit_flg[];
@@ -362,8 +361,6 @@ extern ITEM_WORK *D_800D23B4;
 extern LONG St_pl_kind;
 extern UCHAR D_800D442D;
 extern UCHAR D_800D442E;
-extern UCHAR D_800DBB58; /* status flags (0x80 tested by the status screen code) */
-extern UCHAR D_800DBB5B;
 
 void St_file_load(ST_WORK *pSt);
 void St_file_read(ST_WORK *pSt);

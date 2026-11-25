@@ -26,7 +26,7 @@ void Ending_game(void)
     Ending_movie();
     Task_lexecute(1, 0xB);
     Task_sleep(1);
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     G.Unk2115 = 3;
     Task_lexecute(1, 8);
     Task_sleep(1);

@@ -1,4 +1,5 @@
 #include "ovl/diedemo.h"
+#include "mojidisp.h"
 #include "sld.h"
 #include "status.h"
 
@@ -69,7 +70,7 @@ void Die_move_set(void)
     if (G.Status_flg & STAT_XA_VOICE) {
         Xa_error();
     }
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     G.Player.Damage_cnt = 0x80;
     G.Next_cut_no = G.Cut_no;
     G.pEnemy[1]->Damage_cnt = 0x80;

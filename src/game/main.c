@@ -242,7 +242,7 @@ void Init_global(void)
     *(ULONG *)pG->Padd_data[1] = 0xFFFF0000;
     pG->Room_no_old = -1;
     pG->Cut_no_old = -1;
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     Main.Unk194 = 0;
     G.System_flg &= 0x80;
     D_80098700 = 0xD2706CA4;
