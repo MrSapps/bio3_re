@@ -1489,7 +1489,147 @@ void Em36_mv12_br(ENEMY_WORK *pEm)
 {
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em36", Em36_mv12);
+/* motion 0x12: arm attack; a hit by parts 1-4 of the sub work starts the catch (Routine_1 0xD), part 5 knocks the player aside */
+void Em36_mv12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    SVECTOR Ofs;
+    PARTS_W *pP;
+    LONG Hit;
+    LONG Side;
+    LONG Dir;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_SET_MOVE(pEm, 0x16, 0, 0xF);
+        if (pEm->Type & 1)
+            pEm->Move_no++;
+        EM36_W(pEm)->Flg |= 1;
+        pEm->Routine_2 = 1;
+        pEm->UnkE2 = 0;
+        pEm->UnkE3 = 0;
+        pEm->Neck_flg |= 3;
+        PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
+        EM36_W(pEm)->pSub->Routine_0 = 1;
+        EM36_W(pEm)->pSub->Routine_1 = 5;
+        EM36_W(pEm)->pSub->Routine_2 = 0;
+        if ((UCHAR)pEm->Type != 3) {
+            if ((Rnd() & 3) == 1)
+                Snd_se_enem(14, pEm);
+            else if (Rnd() & 3 == 2) /* sic: always false */
+                Snd_se_enem(11, pEm);
+        } else {
+            Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+        }
+    case 1:
+        if (pEm->Move_cnt < 46)
+            EM36_W(pEm)->pSub->Timer0 = pEm->L_pl - 2753;
+        if (pEm->Move_cnt < 30) {
+            if (!(EM36_W(pEm)->Flg & 0x80)) {
+                if (EM36_W(pEm)->Flg & 0x800)
+                    Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 32);
+            } else {
+                Goto01(pEm, EM36_W(pEm)->Lost_dir, 32);
+            }
+        }
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (!pEm->Move_cnt) {
+            pEm->Spd_x = 0;
+            pEm->Spd_y = 0;
+        }
+        if (Joint_move(pEm, pKan, pSeq, 0x100)) {
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
+            if (Rnd() & 3 == 1) /* sic: always false */
+                EM_SET_RTN(pEm, 1, 0xF, 0, 0);
+            EM36_W(pEm)->Mv12_timer = 45;
+            pEm->Neck_flg &= ~3;
+            EM36_W(pEm)->Flg &= ~1;
+            EM36_W(pEm)->Lunge_timer += 5;
+            EM36_W(pEm)->Punch_timer += 20;
+            if (pEm->Type & 1) {
+                EM36_W(pEm)->Punch_timer += 10;
+                EM36_W(pEm)->Mv12_timer += 10;
+            }
+            pEm->Spd_x = 0;
+            pEm->Spd_z = 0;
+            if (!Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000
+                && Rnd() & 1 && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Room_flg, 0x1F))
+                EM_SET_RTN(pEm, 1, 0xF, 0, 0);
+            if (!(pEm->UnkE3 & 0x80))
+                EM36_W(pEm)->Hit_cnt++;
+        }
+        Add_speedXZ(pEm, 0);
+        if (*pEm->pNow_seq & 0x200 && !pPl->Damage_cnt && !(pPl->Col.Hit_flg & 0x40) && !(pEm->Col.Hit_flg & 0x40)) {
+            pEm->UnkE3 = 0x81;
+            Ofs.vx = 0;
+            Ofs.vy = 0;
+            Ofs.vz = 0;
+            Ofs.pad = 400;
+            pP = EM36_W(pEm)->pSub->pSin_parts_ptr;
+            Side = Hit_area_ck(&pP[1].Workm, &Ofs, pPl);
+            Hit = Side | Hit_area_ck(&pP[2].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[3].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[4].Workm, &Ofs, pPl);
+            if (Hit) {
+                EM_SET_RTN(pEm, 1, 0xD, 0, 0);
+                pEm->Damage_cnt |= 0x80;
+                pPl->Damage_cnt |= 0x80;
+                EM36_W(pEm)->Flg &= ~1;
+                Snd_se_enem(0, pEm);
+                Pad_vib_set0(2, 0);
+                Pad_vib_set1(6, 150, 0);
+            }
+        }
+        if (pEm->Move_cnt >= 32 && pEm->Move_cnt < 35 && !pPl->Damage_cnt && !(pPl->Col.Hit_flg & 0x40) && !(pEm->Col.Hit_flg & 0x40)) {
+            Ofs.vx = 0;
+            Ofs.vy = 0;
+            Ofs.vz = 0;
+            Ofs.pad = 800;
+            if (Hit_area_ck(&pEm->pSin_parts_ptr[5].Workm, &Ofs, pPl)) {
+                pEm->Cdir_y += 0x400;
+                Side = Cdir_ck(pEm, pPl);
+                pEm->Cdir_y -= 0x400;
+                pPl->Damage_cnt |= 0x80;
+                EM_RTN(pPl) = (Side << 8) | 2;
+                Dir = Direction_ck(pPl->Pos_x, pPl->Pos_z, pEm->Pos_x, pEm->Pos_z);
+                Dir += 0x400;
+                if (Side)
+                    Dir -= 0x800;
+                Goto01(pPl, Dir, 0x200);
+                Snd_se_enem(4, pEm);
+                Pl_life_down(5, 1);
+                Pad_vib_set0(2, 0);
+                Pad_vib_set1(4, 150, 0);
+            }
+        }
+        if (pEm->Move_cnt >= 10 && pEm->Move_cnt < 18
+            && (Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 712) || (LONG)pEm->L_pl > 7000) && !(EM36_W(pEm)->Flg & 0x80)) {
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
+            EM36_W(pEm)->Mv12_timer = 10;
+            EM36_W(pEm)->Flg &= ~1;
+            EM36_W(pEm)->pSub->Routine_0 = 1;
+            EM36_W(pEm)->pSub->Routine_1 = 0;
+            EM36_W(pEm)->pSub->Routine_2 = 0;
+            pEm->Neck_flg &= ~3;
+            if (!Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000
+                && Rnd() & 1 && !Flg_ck(&G.Room_flg, 0x1F))
+                EM_SET_RTN(pEm, 1, 0xF, 0, 0);
+            EM36_W(pEm)->Hit_cnt += 2;
+            return;
+        }
+    }
+    if (*pEm->pNow_seq & 0x400) {
+        Em36_hit_area.pPos = (VECTOR *)EM36_W(pEm)->pSub->pSin_parts_ptr[2].Workm.t;
+        Em36_hit_area.pBox = Em36_grab_box0;
+        Em36_hit_area.Dir = pEm->Cdir_y;
+        Em36_hit_area.Id = 0;
+        if (Rnd() & 1)
+            Em36_hit_area.Id = 5;
+        Hit_area_em_ck(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em36_hit_area, &Pl_work);
+        Em36_hit_area.pBox = Em36_grab_box1;
+        Hit_area_em_ck(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em36_hit_area, &Pl_work);
+    }
+}
 
 /* no brain step for this move */
 void Em36_grab_br(ENEMY_WORK *pEm)
