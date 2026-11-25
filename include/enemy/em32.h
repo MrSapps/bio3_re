@@ -1,9 +1,12 @@
 #ifndef OVL_EM32_H
 #define OVL_EM32_H
 /*
- * Enemy module em32 (enemy id 0x32). Loaded at 0x80100000 (slot 1) or
- * 0x8010D000 (slot 2). A small six-part jumping enemy that respawns at its
- * start position (Type & 0xF != 0). Structure as RE2's EM23.C: routine table
+ * Enemy module em32 (enemy id 0x32): small six-part leaping creatures (most
+ * likely the Grave Digger's young worms) that come out of the ground or the
+ * water, hop around the player, jump up and down floors, leap onto the
+ * player's back and bite; three on the back bring the player down. They
+ * respawn at their start position (Type & 0xF != 0).
+ * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2). Structure as RE2's EM23.C: routine table
  * Init/Move/-/Damage/(exe)/Die/-/Dead, paired move tables mv_br[]/mv[]
  * (Routine_1), a player-damage table of 4 entries hooked into
  * G.pPldamage_Em[Id - 0x10].
@@ -11,6 +14,7 @@
 #include "bio3.h"
 #include "enemy/em_common.h"
 #include "em_sub.h"
+#include "joint.h"
 #include "oba.h"
 #include "player.h"
 #include "sca.h"
@@ -28,26 +32,24 @@ typedef struct tagEM32_FREE {
     SHORT Timer0_bak;                  /* 0x0C (0x1D8) */
     SHORT nFloor_bak;                  /* 0x0E (0x1DA) */
     ULONG Be_flg_bak;                  /* 0x10 (0x1DC) Be_flg & ~0x10 */
-    UCHAR Unk14;                       /* 0x14 (0x1E0) */
+    UCHAR Floor_old;                   /* 0x14 (0x1E0) nFloor before a jump up/down */
     UCHAR pad15;
-    SHORT Unk16;                       /* 0x16 (0x1E2) */
+    SHORT Back_dir;                    /* 0x16 (0x1E2) place on the player's back, relative to Cdir_y */
     SHORT Red;                         /* 0x18 (0x1E4) hit flash: subtracted from the part colours */
     UCHAR Red_cnt;                     /* 0x1A (0x1E6) */
-    signed char Unk1B;                 /* 0x1B (0x1E7) */
-    SHORT Unk1C;                       /* 0x1C (0x1E8) */
+    signed char On_back;               /* 0x1B (0x1E7) on the player's back */
+    SHORT Back_num;                    /* 0x1C (0x1E8) em32 works on the player's back */
     SHORT Atck_cnt;                    /* 0x1E (0x1EA) frames near the player, attack at 31 */
-    SHORT Unk20;                       /* 0x20 (0x1EC) */
-    SHORT Unk22;                       /* 0x22 (0x1EE) 0: Type 3, waits for the player */
-    SHORT Unk24;                       /* 0x24 (0x1F0) */
-    SHORT Unk26;                       /* 0x26 (0x1F2) */
-    signed char Unk28;                 /* 0x28 (0x1F4) 0: Type 4 */
+    SHORT Turn_timer;                  /* 0x20 (0x1EC) no turning leap while set */
+    SHORT Wait_pl;                     /* 0x22 (0x1EE) wait for the player (cleared for Type 3) */
+    SHORT Near_cnt;                    /* 0x24 (0x1F0) frames hopping next to the player */
+    SHORT Pl_ground;                   /* 0x26 (0x1F2) player's ground height while on the back */
+    signed char Can_jump;              /* 0x28 (0x1F4) may jump floors (cleared for Type 4) */
     signed char Rev;                   /* 0x29 (0x1F5) turn the other way */
 } EM32_FREE;
 
 #define EM32_W(p) ((EM32_FREE *)(p)->Unk1CC)
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
 /* shadow polygons: colour + code word of POLY_FT4 */
 #define PRIM_RGBC(p) (*(ULONG *)&(p).r0)
@@ -71,47 +73,47 @@ extern void (*Em32_mv[])();
 extern SHORT Em32_leap_dir[];
 extern SHORT Em32_leap_spd[];
 extern SHORT Em32_leap2_spd[];
-extern void (*Em32_dm_tbl[])();
+extern void (*Em32_appear_tbl[])();   /* Routine_0 5 by Routine_1: out of the ground, of the water */
 extern void (*Em32_pldm_tbl[])();
 
-void func_801000C4(ENEMY_WORK *pEm);
+void Em32_main(ENEMY_WORK *pEm);
 void Em32_red(ENEMY_WORK *pEm);
-void func_801001F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801005D0(ENEMY_WORK *pEm);
-void func_80100888(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_hop_br(ENEMY_WORK *pEm);
+void Em32_hop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 LONG Em32_fall_ck(ENEMY_WORK *pEm);
-void func_80100CE8(ENEMY_WORK *pEm);
-void func_80100D4C(void);
-void func_80100D54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-LONG func_80100F84(ENEMY_WORK *pEm);
-void func_80101144(ENEMY_WORK *pEm);
-void func_80101178(void);
-void func_80101180(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101438(void);
-void func_80101440(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101818(ENEMY_WORK *pEm);
-void func_80101928(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101A7C(ENEMY_WORK *pEm);
-void func_80101AAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101C00(ENEMY_WORK *pEm);
-void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_jump_down_spd(ENEMY_WORK *pEm);
+void Em32_jump_down_br(ENEMY_WORK *pEm);
+void Em32_jump_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+LONG Em32_rise_ck(ENEMY_WORK *pEm);
+void Em32_jump_up_spd(ENEMY_WORK *pEm);
+void Em32_jump_up_br(ENEMY_WORK *pEm);
+void Em32_jump_up(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_grab_br(ENEMY_WORK *pEm);
+void Em32_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_leap_br(ENEMY_WORK *pEm);
+void Em32_leap(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_turn_leap_br(ENEMY_WORK *pEm);
+void Em32_turn_leap(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_back_br(ENEMY_WORK *pEm);
+void Em32_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Em32_on_back(ENEMY_WORK *pEm, SHORT L, SHORT Dir, VECTOR *pPos);
-void func_8010268C(void);
-void func_80102694(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102800(ENEMY_WORK *pEm);
-void func_80102A00(ENEMY_WORK *pEm, LONG Spd_flg, LONG Parts);
-void func_80102B14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102B50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102CE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102FD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010356C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_drop_br(ENEMY_WORK *pEm);
+void Em32_drop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_morph(ENEMY_WORK *pEm);
+void Em32_part_follow(ENEMY_WORK *pEm, LONG Spd_flg, LONG Parts);
+void Em32_Appear(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_appear_ground(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_appear_water(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em32_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 LONG Em32_alone_ck(ENEMY_WORK *pEm, USHORT Rtn);
 void Em32_Pldm(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
-void func_80103930(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
-void func_80103D60(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
-void func_80103E3C(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
-void func_801040B0(void);
-void func_8010413C(SHORT Num);
+void Em32_pldm_shake(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
+void Em32_pldm_knock(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
+void Em32_pldm_down(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq);
+void Em32_knock_off_all(void);
+void Em32_back_num_set(SHORT Num);
 
 #endif /* OVL_EM32_H */
