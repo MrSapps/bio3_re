@@ -244,21 +244,219 @@ void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 #define gte_stsv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 2(%0); sh $14, 4(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
 #define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#define gte_ldrgb(r0) __asm__ volatile("lwc2 $6, 0(%0)" : : "r"(r0))
 
-/* parameters copied into t-regs at entry (`addu t2,a0,zero` / `addu t3,a1,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx0);
+/* projected vertices of the first skin list: per bone, matrix = world * bone (CompM) moved to the bone's joint
+   offset, then rtpt over the vertex index triplets; z clamped to 0x7FFF one triplet late */
+void Skin_vtx0(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    JOINT_OFS *pOfs;
+    ENEMY_WORK *pEm;
+    MATRIX *pWs;
+    SXY Sz0; /* 4-byte unions: three stack words (no 8-aligned array) whose stores stay after the loads */
+    SXY Sz1;
+    SXY Sz2;
+    MATRIX *pM;
+    VECTOR *pV;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SHORT *pZ0;
+    SHORT *pZ1;
+    SHORT *pZ2;
+
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pEm = pEnv->pEm;
+    pOfs = (JOINT_OFS *)pEm->pUnk11C;
+    pVtx = pEnv->pMdl->pVtx;
+    Sz0.l = 0;
+    Sz1.l = 0;
+    Sz2.l = 0;
+    do {
+        n = *pData;
+        CompM(pWs, &pEm->pSin_parts_ptr[n].Workm, pM);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+    loop:
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        pData += 3;
+        n--;
+        gte_rtpt_b();
+        if (Sz0.l > 0x7FFF) {
+            *pZ0 = 0x7FFF;
+        }
+        if (Sz1.l > 0x7FFF) {
+            *pZ1 = 0x7FFF;
+        }
+        if (Sz2.l > 0x7FFF) {
+            *pZ2 = 0x7FFF;
+        }
+        pZ0 = &pSz[i0];
+        pZ1 = &pSz[i1];
+        pZ2 = &pSz[i2];
+        gte_stsxy3(&pSxy[i0], &pSxy[i1], &pSxy[i2]);
+        gte_stsz3(&Sz0.l, &Sz1.l, &Sz2.l);
+        *pZ0 = Sz0.l;
+        *pZ1 = Sz1.l;
+        *pZ2 = Sz2.l;
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+    if (Sz0.l > 0x7FFF) {
+        *pZ0 = 0x7FFF;
+    }
+    if (Sz1.l > 0x7FFF) {
+        *pZ1 = 0x7FFF;
+    }
+    if (Sz2.l > 0x7FFF) {
+        *pZ2 = 0x7FFF;
+    }
+}
 
 /* blended vertices of the second skin list */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
 
-/* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
+/* blended vertices of the third skin list (each vertex rotated by two bones, mixed with gpf/gpl by weight, like
+   Skin_light2). C: reload uses s4 as a spill register (pOfs/pSxy/pSz reloads, &Skin_nor[k] rematerialised).
+   Draft (agentxC best/Skin_vtx2.c) is structurally complete; the target has more register pressure (pSxy/pSz
+   spilled to their home slots) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2);
 
-/* parameters copied into t-regs at entry (`addu t8,a0,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light0);
+/* lit colours of the first skin list: per bone, light matrix = LIGHTMATRIX * bone rotation, then ncct over
+   the vertex index triplets (count, triplets...; list ends with 0xFF). The inner loop is a goto loop: loop.c then
+   keeps one pData + 2 giv for both the count read and the triplets (a do/while makes a second giv) */
+void Skin_light0(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
+{
+    MATRIX M;
+    ENEMY_WORK *pEm;
+    SVECTOR *pNor;
+    PARTS_W *pParts;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    ULONG *p0;
+    ULONG *p1;
+    ULONG *p2;
 
-/* lit colours of the second skin list */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light1);
+    pNor = pEnv->pMdl->pNor;
+    pEm = pEnv->pEm;
+    gte_ldrgb(&pP->Poly_rgb);
+    gte_SetRotMatrix(&LIGHTMATRIX);
+    do {
+        pParts = &pEm->pSin_parts_ptr[pData[0]];
+        gte_ldclmv(&pParts->Workm.m[0][0]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][0]);
+        gte_ldclmv(&pParts->Workm.m[0][1]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][1]);
+        gte_ldclmv(&pParts->Workm.m[0][2]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][2]);
+        gte_SetLightMatrix(&M);
+        n = pData[1];
+        pData += 2;
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+    inner:
+        gte_ldv3(&pNor[i0], &pNor[i1], &pNor[i2]);
+        pData += 3;
+        n--;
+        gte_ncct_b();
+        p0 = &pRgb[i0];
+        p1 = &pRgb[i1];
+        p2 = &pRgb[i2];
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_strgb3(p0, p1, p2);
+        if (n != 0)
+            goto inner;
+    } while (*pData != 0xFF);
+}
+
+/* lit colours of the second skin list: like Skin_light0 (no ldrgb), the ncct colours are averaged into pRgb
+   (vertices whose list byte is 0xFF skip the blend for the 2nd/3rd vertex) */
+void Skin_light1(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
+{
+    MATRIX M;
+    ULONG Rgb[3];
+    ENEMY_WORK *pEm;
+    SVECTOR *pNor;
+    PARTS_W *pParts;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    ULONG *p0;
+    ULONG *p1;
+    ULONG *p2;
+    ULONG Hi;
+
+    pEm = pEnv->pEm;
+    pNor = pEnv->pMdl->pNor;
+    gte_SetRotMatrix(&LIGHTMATRIX);
+    do {
+        pParts = &pEm->pSin_parts_ptr[pData[0]];
+        gte_ldclmv(&pParts->Workm.m[0][0]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][0]);
+        gte_ldclmv(&pParts->Workm.m[0][1]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][1]);
+        gte_ldclmv(&pParts->Workm.m[0][2]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][2]);
+        gte_SetLightMatrix(&M);
+        n = pData[1];
+        pData += 2;
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+    inner:
+        gte_ldv3(&pNor[i0], &pNor[i1], &pNor[i2]);
+        pData += 3;
+        n--;
+        gte_ncct_b();
+        p0 = &pRgb[i0];
+        p1 = &pRgb[i1];
+        p2 = &pRgb[i2];
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_strgb3(&Rgb[0], &Rgb[1], &Rgb[2]);
+        Hi = ((*p0 & 0xFF00) + (Rgb[0] & 0xFF00)) >> 1;
+        *p0 = (Hi & 0xFF00) | (((*p0 & 0xFF00FF) + (Rgb[0] & 0xFF00FF)) >> 1 & 0xFF00FF);
+        if (pData[-2] != 0xFF) {
+            Hi = ((*p1 & 0xFF00) + (Rgb[1] & 0xFF00)) >> 1;
+            *p1 = (Hi & 0xFF00) | (((*p1 & 0xFF00FF) + (Rgb[1] & 0xFF00FF)) >> 1 & 0xFF00FF);
+        }
+        if (pData[-1] != 0xFF) {
+            Hi = ((*p2 & 0xFF00) + (Rgb[2] & 0xFF00)) >> 1;
+            *p2 = (Hi & 0xFF00) | (((*p2 & 0xFF00FF) + (Rgb[2] & 0xFF00FF)) >> 1 & 0xFF00FF);
+        }
+        if (n != 0)
+            goto inner;
+    } while (*pData != 0xFF);
+}
 
 /* lit colours of the third skin list: normals rotated by both parts, blended by weight */
 void Skin_light2(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
@@ -595,8 +793,104 @@ void Skin_vtx0_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
     }
 }
 
-/* Skin_vtx1 for the alternate routines */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1_alt);
+/* Skin_vtx1 for the alternate routines: the bone matrix is copied (no CompM), the vertices are rotated by the
+   bone, flattened (vy > 0 -> 0), then projected with the world matrix and averaged into pSxy/pSz */
+void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    SVECTOR W[3];
+    struct {
+        SXY Sxy[3];
+        LONG Sz[3];
+    } S; /* one 24-byte block at 0x18 (two 12-byte arrays would each be padded to 16) */
+    MATRIX *pM;
+    MATRIX *pWs;
+    VECTOR *pV;
+    JOINT_OFS *pOfs;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SXY *p0;
+    SXY *p1;
+    SXY *p2;
 
-/* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEnv->pEm->pUnk11C;
+    do {
+        n = *pData;
+        do {
+            *pM = pEnv->pEm->pSin_parts_ptr[n].Workm;
+        } while (0); /* raises the refs of n over p1 (t0/t1) */
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+    loop:
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        pData += 3;
+        n--;
+        gte_rtv0tr();
+        gte_stsv(&W[0]);
+        gte_rtv1tr();
+        gte_stsv(&W[1]);
+        gte_rtv2tr();
+        gte_stsv(&W[2]);
+        if (W[0].vy > 0) {
+            W[0].vy = 0;
+        }
+        if (W[1].vy > 0) {
+            W[1].vy = 0;
+        }
+        if (W[2].vy > 0) {
+            W[2].vy = 0;
+        }
+        gte_ldv3c(W);
+        gte_SetRotMatrix(pWs);
+        gte_SetTransMatrix(pWs);
+        gte_rtpt();
+        p0 = &pSxy[i0];
+        p1 = &pSxy[i1];
+        p2 = &pSxy[i2];
+        gte_stsxy3(&S.Sxy[0], &S.Sxy[1], &S.Sxy[2]);
+        gte_stsz3(&S.Sz[0], &S.Sz[1], &S.Sz[2]);
+        p0->l = ((p0->s.x + S.Sxy[0].s.x) >> 1 & 0xFFFF) | ((p0->s.y + S.Sxy[0].s.y) >> 1) << 16;
+        if (S.Sz[0] > 0x7FFF) {
+            S.Sz[0] = 0x7FFF;
+        }
+        pSz[i0] = (S.Sz[0] + pSz[i0]) >> 1;
+        if (i1 != 0xFF) {
+            p1->l = ((p1->s.x + S.Sxy[1].s.x) >> 1 & 0xFFFF) | ((p1->s.y + S.Sxy[1].s.y) >> 1) << 16;
+            if (S.Sz[1] > 0x7FFF) {
+                S.Sz[1] = 0x7FFF;
+            }
+            pSz[i1] = (S.Sz[1] + pSz[i1]) >> 1;
+        }
+        if (i2 != 0xFF) {
+            p2->l = ((p2->s.x + S.Sxy[2].s.x) >> 1 & 0xFFFF) | ((p2->s.y + S.Sxy[2].s.y) >> 1) << 16;
+            if (S.Sz[2] > 0x7FFF) {
+                S.Sz[2] = 0x7FFF;
+            }
+            pSz[i2] = (S.Sz[2] + pSz[i2]) >> 1;
+        }
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+}
+
+/* Skin_vtx2 for the alternate routines. C like Skin_vtx1_alt (reload rematerialises constants into spill regs) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);

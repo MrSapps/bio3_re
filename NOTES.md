@@ -756,3 +756,53 @@ Near misses:
   qtys in block 0, so prio.sh shows only three of them), Sca_hit_box, Sca_hit_line: not improved this round.
 - Not attempted for lack of time: Sca_hit_hishi (559 insns, divides by 18 via 0x38E38E39), root_ck kara_rootck2
   (477 insns, heavy spilling: ~8 values live in sp slots).
+## Matching round agentN (worktree clean/xC; drafts in the session scratchpad agentxC/best)
+Matched (80079EC0.c): Skin_light0, Skin_light1, Skin_vtx0, Skin_vtx1_alt (was labelled hand-written).
+Proven hand-written / hand-edited (stay INCLUDE_ASM, evidence in the md_sub.c comments):
+- Frames that are not a multiple of 8: of ~2390 functions only SortGT3_neo_uv (-0x1C), SortGT4_neo_uv (-0x24),
+  SortGT4_col, SortGT3_sabun, SortGT4_sabun (-0x1C). gcc 2.8 always rounds to 8.
+- CompM: leaf loading into t0..t7 while v0/v1/a3 are free, columns software-pipelined across mvmva; not PsyQ's
+  CompMatrix. Md_rtp: s0/s1 used in a leaf with every t-reg free, pipelined z clamp. SortGT3_neo: a C load between
+  the two lwc2 of one vertex (the only split lwc2 pair in the game). Skin_vtx0_old: macro text split (ctc2 from v0/v1)
+  and C insns inside the GTE slots.
+- Not hand-written: Skin_vtx1_alt/Skin_vtx2_alt/Skin_vtx2 (reload rematerialises constants/addresses into a spill
+  register, `sw a0,0x60(sp)` parameter home-slot spills); Sa_morph_step (s3 used as a reload register).
+Rules learnt:
+- Inner loops written as `label: ... if (n) goto label;` inside an outer do/while: loop.c then reduces the outer
+  pData+k givs once (Skin_light0: one pData+2 giv for the count and the triplets; a do/while inner loop makes its own
+  giv and hoists the &local addresses). Sa_joint_blend needs the same for both inner loops.
+- loop.c giv reduction rule (loop.c:3914): reduced only if lifetime * threshold * benefit >= insn_count, threshold =
+  (call in loop ? 1 : 2) * (3 + 59). With a call (CompM) the combined pData+1/+2 givs need the loop to have < 187
+  RTL insns; Skin_vtx1's target does not reduce them, so its source is longer than ours (or the count read is no giv).
+- 12-byte arrays (BLKmode) are padded to 16 in the frame. Three address-taken scalars give 12 contiguous bytes;
+  but scalar (non-struct) stack stores do not alias struct loads, so sched moves `Sz = 0` stores up. 4-byte unions
+  (SXY Sz0..2, `.l`) give both: 12 bytes and MEM_IN_STRUCT stores ordered after the pEnv/pEm loads (Skin_vtx0).
+  A 24-byte struct {SXY Sxy[3]; LONG Sz[3];} gives the 0x18-aligned block of Skin_vtx1(_alt).
+- One temp for half of an expression (`Hi = (a & 0xFF00) + (b & 0xFF00) >> 1; *p = (Hi & 0xFF00) | ...`) changed
+  local-alloc priorities enough to fix a v0/v1/a0 rotation (Skin_light1, found by the permuter, then cleaned up).
+- `do { stmt; } while (0);` around a single statement (agentF dwgen sweep) fixed a t0/t1 swap in Skin_vtx1_alt.
+- flow.c (last_mem_set) deletes a store only if the next store in program order hits the same address with no MEM
+  read or other store in between: two consecutive stores to an address-taken scratch local survive only with another
+  store/load between them in the source (Esp_trans_main's D0/D1/D2 dead stores).
+- A product assigned straight to a user variable (`x0 = a * b; x0 += c;`) is mflo'd into a GR; as a temp inside an
+  expression it prefers LO and is copied out through a reload register (often a call-saved one that is then saved but
+  never used, as in Esp_trans_3d/Esp_trans_main/Sa_joint_blend's targets).
+- Disk: the root fs filled up during this round (another agent's scratchpad held 3.6 GB); a full disk silently
+  truncates drafts and makes score.py report "196 / 0 insns". Check `df -h /tmp` when scores look absurd.
+Near misses (agentxC/best):
+- Skin_vtx1 (16 words): W struct layout and Sz blend right. Left: (1) the count read: target `lbu 1(s1); addiu s1,2`
+  without the pData+2 giv (ours reduces it, see the giv rule; `pData++; n = *pData++;` avoids the giv but gives two
+  addiu); (2) stsxy3 operand regs: &W.Sxy[0] is the bare virtual-stack-vars reg, so instantiate_virtual_regs emits its
+  `addiu sp,16` after the other two operands (target computes it first).
+- Sa_joint_blend (dscore 37, agentJ ~90): both inner loops as goto loops fix the GTE loop (one pS register, no second
+  giv); `Inv = 0xFFF - Rate` before the inner loop. Left: first loop (target: pS biv with 0/2/4 and pPos at Pos_z with
+  -8/-4/0, i = n - 1 decremented from its own register, not folded to n - 2 by cse) and t-reg numbering.
+- Esp_trans_main (dscore 56, first draft): RE2 TRANS.C shape with address-taken D0/D1/D2 scratch words, range tests
+  as separate ifs on (SHORT)D1 / (D1 >> 16), `D1 = (LONG)pP` before the D0 >> 9 test, `*(ULONG *)D1` tag store. Left:
+  Def_size stays in a2 in the target (ours copies it to t1 because a loop local takes a2), pP t1 vs t0.
+- Esp_trans_3d (63, agentJ 70): products into user variables Px/Py move them from LO/s2 to v1/v0 like the target;
+  `Def_size--` in place. Left: X/Y registers and the uv block register choice.
+- Skin_vtx2 (dscore 175): structure complete; target has higher pressure (pSxy/pSz spilled to the home slots,
+  &Skin_nor[1..5] rematerialised into s4); none of pN[k] / Skin_nor[k] / six pointer locals reproduces it.
+- Not attempted this round: J_seq, Rain_move, Sca_hit_all, Pl_floor_ck, Sa_morph_step (C, ~200 insns), SortGT3_col
+  (agentJ draft unchanged), Skin_vtx2_alt.
