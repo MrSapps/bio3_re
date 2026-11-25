@@ -2094,3 +2094,4 @@ Door_dummy = 0x80017D9C; // type:func
 Pl_wep_dummy = 0x800452E0; // type:func
 Pl_wep_dummy2 = 0x80045514; // type:func
 Spl_auto_dummy = 0x8005D290; // type:func
+Sca_high_tbl = 0x8009E020;
