@@ -2,7 +2,7 @@
 #include "sca.h"
 #include "snd.h"
 
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
+LONG Rnd_l(void) __asm__("Rnd"); /* Capcom called Rnd unprototyped: int result, no masking */
 void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector");  /* main.c, called with an int angle */
 
 /* RE2 EM_MAIN */
