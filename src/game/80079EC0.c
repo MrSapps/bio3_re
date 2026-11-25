@@ -231,15 +231,15 @@ void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 #define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
-/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t2,a0,zero` / `addu t3,a1,zero` */
+/* parameters copied into t-regs at entry (`addu t2,a0,zero` / `addu t3,a1,zero`): not proof of hand editing, func_8007BC7C has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A600);
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A918);
 
-/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
+/* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, func_8007BC7C has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007AC8C);
 
-/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t8,a0,zero` */
+/* parameters copied into t-regs at entry (`addu t8,a0,zero`): not proof of hand editing, func_8007BC7C has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B2FC);
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B518);
@@ -579,5 +579,5 @@ void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007C434);
 
-/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
+/* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, func_8007BC7C has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007C91C);
