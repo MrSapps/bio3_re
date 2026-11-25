@@ -35,7 +35,7 @@ typedef struct tagEM23_FREE {
     UCHAR Unk11;                       /* 0x11 (0x1DD) */
     SHORT Wall_x;                      /* 0x12 (0x1DE) wall point to stick to */
     SHORT Wall_z;                      /* 0x14 (0x1E0) */
-    SHORT Unk16;                       /* 0x16 (0x1E2) */
+    SHORT Step_y;                      /* 0x16 (0x1E2) vertical step of a fall / jump (doubles each frame up to 800) */
     SHORT Timer;                       /* 0x18 (0x1E4) */
     SHORT Unk1A;                       /* 0x1A (0x1E6) */
     struct tagSCA_DATA *pSca;          /* 0x1C (0x1E8) wall shape to climb (copy of pSca_hit_data) */
@@ -43,11 +43,11 @@ typedef struct tagEM23_FREE {
     signed char Unk21;                 /* 0x21 (0x1ED) */
     SHORT Jump_x;                      /* 0x22 (0x1EE) target of the jump onto the wall (Em23_mv12) */
     SHORT Jump_z;                      /* 0x24 (0x1F0) */
-    SHORT Unk26;                       /* 0x26 (0x1F2) */
-    SHORT Unk28;                       /* 0x28 (0x1F4) */
+    SHORT Step_x;                      /* 0x26 (0x1F2) per-frame step of a jump */
+    SHORT Step_z;                      /* 0x28 (0x1F4) */
     SHORT Unk2A;                       /* 0x2A (0x1F6) */
-    USHORT Unk2C;                      /* 0x2C (0x1F8) */
-    SHORT Unk2E;                       /* 0x2E (0x1FA) */
+    USHORT Leg_off;                    /* 0x2C (0x1F8) legs torn off (bits 0 and 1, one per side) */
+    SHORT Atck_wait;                   /* 0x2E (0x1FA) frames before the next attack (id 0x28) */
 } EM23_FREE;
 
 #define EF(p) ((EM23_FREE *)(p)->Unk1CC)

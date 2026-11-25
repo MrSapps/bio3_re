@@ -62,7 +62,7 @@ void Em23_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     EM_SET_RTN(pEm, 1, 0, 0, 0);
     pEm->Damage_cnt = 0;
-    EF(pEm)->Unk2C = 0;
+    EF(pEm)->Leg_off = 0;
     EF(pEm)->Side = 0;
     EF(pEm)->Unk01 = 0;
     EF(pEm)->Mode = 0;
@@ -76,13 +76,13 @@ void Em23_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pF = EF(pEm);
     pF->Jump_z = 0;
     EF(pEm)->Jump_x = 0;
-    pF->Unk28 = 0;
-    EF(pEm)->Unk26 = 0;
+    pF->Step_z = 0;
+    EF(pEm)->Step_x = 0;
     pEm->Cdir_x = 0;
     pEm->Cdir_z = 0;
     pEm->Col.pSca_hit_data = 0;
     EF(pEm)->Unk11 = 0;
-    EF(pEm)->Unk2E = 0;
+    EF(pEm)->Atck_wait = 0;
     EF(pEm)->Wall_dir = 0;
     EF(pEm)->Unk1A = 0;
     Kage_work_set(&pEm->Kage.pKw, 0, 0x4B004B0, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
@@ -224,8 +224,8 @@ void Em23_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em23_Move: decision (Em23_mv_br) then action (Em23_mv) by Routine_1 */
 void Em23_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (EF(pEm)->Unk2E)
-        EF(pEm)->Unk2E--;
+    if (EF(pEm)->Atck_wait)
+        EF(pEm)->Atck_wait--;
     Em23_kage_set(pEm);
     Em23_mv_br[pEm->Routine_1](pEm);
     if ((pEm->Col.Hit_flg & 0x40) && !EF(pEm)->Unk01 && !(pEm->Be_flg & 0x400) && EF(pEm)->Unk03 != 1
@@ -422,7 +422,7 @@ void Em23_mv01_br_lead(ENEMY_WORK *pEm)
     }
     if ((Rnd_l() & 0x1F) == 1 && Em23_child_find(&G.pEnemy[1]) && (LONG)pEm->Unk154 > 8000 && !(pEm->Col.Hit_flg & 0x20))
         EM_SET_RTN(pEm, 1, 0x15, 0, 0);
-    if (EF(pEm)->Unk2E && pEm->Id == 0x28 && (LONG)pEm->Unk154 < 6000 && !Ck2 && (LONG)pEm->Unk154 > 1000) {
+    if (EF(pEm)->Atck_wait && pEm->Id == 0x28 && (LONG)pEm->Unk154 < 6000 && !Ck2 && (LONG)pEm->Unk154 > 1000) {
         if (Rnd_l() & 1)
             EM_SET_RTN(pEm, 1, 0x14, 0, 0);
     }
@@ -470,7 +470,7 @@ void Em23_mv01_br_follow(ENEMY_WORK *pEm)
     }
     if ((Rnd_l() & 0xF) == 1 && Em23_child_find(&G.pEnemy[1]) && (LONG)pEm->Unk154 > 8000 && !(pEm->Col.Hit_flg & 0x20))
         EM_SET_RTN(pEm, 1, 0x15, 0, 0);
-    if (EF(pEm)->Unk2E && pEm->Id == 0x28 && (LONG)pEm->Unk154 < 6000 && !Ck2 && (LONG)pEm->Unk154 > 1000) {
+    if (EF(pEm)->Atck_wait && pEm->Id == 0x28 && (LONG)pEm->Unk154 < 6000 && !Ck2 && (LONG)pEm->Unk154 > 1000) {
         if (Rnd_l() & 1)
             EM_SET_RTN(pEm, 1, 0x14, 0, 0);
     }
@@ -483,7 +483,7 @@ void Em23_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        if (!(Rnd_l() & 3) && !EF(pEm)->Unk2E)
+        if (!(Rnd_l() & 3) && !EF(pEm)->Atck_wait)
             EM_SET_MOVE(pEm, 0, 0, 7);
         else
             EM_SET_MOVE(pEm, 1, 0, 7);
@@ -558,14 +558,14 @@ void Em23_mv02_br_lead(ENEMY_WORK *pEm)
     }
     if ((Rnd_l() & 0x3F) == 1 && Em23_child_find(&G.pEnemy[1]) && (LONG)pEm->Unk154 > 8000 && !(pEm->Col.Hit_flg & 0x20))
         EM_SET_RTN(pEm, 1, 0x15, 0, 0);
-    if (EF(pEm)->Unk2E && pEm->Id == 0x28 && pEm->Unk154 - 1001 < 4999 && (Rnd_l() & 1))
+    if (EF(pEm)->Atck_wait && pEm->Id == 0x28 && pEm->Unk154 - 1001 < 4999 && (Rnd_l() & 1))
         EM_SET_RTN(pEm, 1, 0x14, 0, 0);
     if (pEm->Col.Unk3A & 0x3FFF) {
         if (++EF(pEm)->Unk21 >= 11) {
             EF(pEm)->Unk21 = 0;
             if ((LONG)pEm->Unk154 < 5000 && !Ck && !(pEm->Col.Hit_flg & 0x40) && Free
                 && (EM_D0W(pEm) & 0x20020000) == 0x20000000) {
-                EF(pEm)->Unk2E = 0;
+                EF(pEm)->Atck_wait = 0;
                 pEm->UnkE2 = 0;
                 EM_SET_RTN(pEm, 1, 0xB, 0, 0);
             } else {
@@ -595,7 +595,7 @@ void Em23_mv02_br_follow(ENEMY_WORK *pEm)
     if (!EF(pEm)->Timer) {
         if ((LONG)pEm->Unk154 < 4000 && !Ck && !(pEm->Col.Hit_flg & 0x40) && Free
             && (EM_D0W(pEm) & 0x20020000) == 0x20000000) {
-            EF(pEm)->Unk2E = 0;
+            EF(pEm)->Atck_wait = 0;
             pEm->UnkE2 = 0;
             EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
@@ -2126,8 +2126,8 @@ void Em23_jump_target_set(ENEMY_WORK *pEm)
         EF(pEm)->Jump_x = pPl->Pos_x + Sv.vx;
         EF(pEm)->Jump_z = pPl->Pos_z + Sv.vz;
     }
-    EF(pEm)->Unk26 = (EF(pEm)->Jump_x - pEm->Pos_x) / 12;
-    EF(pEm)->Unk28 = (EF(pEm)->Jump_z - pEm->Pos_z) / 12;
+    EF(pEm)->Step_x = (EF(pEm)->Jump_x - pEm->Pos_x) / 12;
+    EF(pEm)->Step_z = (EF(pEm)->Jump_z - pEm->Pos_z) / 12;
 }
 
 /* mv0d decision: on the wall above the floor: drop off when low enough or the floor is near */
@@ -2343,15 +2343,15 @@ void Em23_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkDA = 0;
         pEm->UnkE2 = 0;
         pEm->UnkE3 = 0;
-        EF(pEm)->Unk16 = 2;
+        EF(pEm)->Step_y = 2;
     case 1:
-        pEm->Pos_y += EF(pEm)->Unk16;
+        pEm->Pos_y += EF(pEm)->Step_y;
         if (pEm->Move_cnt & 1) {
-            EF(pEm)->Unk16 += EF(pEm)->Unk16;
-            if (EF(pEm)->Unk16 > 800)
-                EF(pEm)->Unk16 = 800;
+            EF(pEm)->Step_y += EF(pEm)->Step_y;
+            if (EF(pEm)->Step_y > 800)
+                EF(pEm)->Step_y = 800;
         }
-        if (EF(pEm)->Unk16 > 128 && pEm->Timer0) {
+        if (EF(pEm)->Step_y > 128 && pEm->Timer0) {
             pEm->Cdir_z += 0x100;
             pEm->Timer0 -= 0x100;
             pEm->Col.Unk26 += 250;
@@ -2391,7 +2391,7 @@ void Em23_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_enem(4, pEm);
         }
         if (pEm->Pos_y > pEm->Unk122) {
-            EF(pEm)->Unk16 = 0;
+            EF(pEm)->Step_y = 0;
             EF(pEm)->Mode = 0;
             pEm->Pos_y = pEm->Unk122;
             if (pEm->Water && G.Unk783E == 4 && G.Unk7840 == 7) {
@@ -2471,7 +2471,7 @@ void Em23_mv12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         EM_SET_MOVE(pEm, 7, 0, 7);
-        EF(pEm)->Unk16 = -800;
+        EF(pEm)->Step_y = -800;
         pEm->Routine_2++;
     case 1:
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 16);
@@ -2490,8 +2490,8 @@ void Em23_mv12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Goto00(pEm, EF(pEm)->Jump_x, EF(pEm)->Jump_z, 16);
         Spd_get(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
-            EF(pEm)->Unk26 = (EF(pEm)->Wall_x - pEm->Pos_x) / 9;
-            EF(pEm)->Unk28 = (EF(pEm)->Wall_z - pEm->Pos_z) / 9;
+            EF(pEm)->Step_x = (EF(pEm)->Wall_x - pEm->Pos_x) / 9;
+            EF(pEm)->Step_z = (EF(pEm)->Wall_z - pEm->Pos_z) / 9;
             if (EF(pEm)->Side != 2) {
                 EF(pEm)->Base_dir_y = pEm->Cdir_y & 0xFFF;
                 if (EF(pEm)->Base_dir_y > 0x800)
@@ -2525,19 +2525,19 @@ void Em23_mv12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt >= 10)
             pEm->Move_cnt = 9;
         pEm->UnkDA++;
-        pEm->Pos_y += EF(pEm)->Unk16;
+        pEm->Pos_y += EF(pEm)->Step_y;
         if (pEm->Timer0) {
-            EF(pEm)->Unk16 = 0;
+            EF(pEm)->Step_y = 0;
             pEm->Routine_2++;
         }
-        pEm->Pos_x += EF(pEm)->Unk26;
-        pEm->Pos_z += EF(pEm)->Unk28;
+        pEm->Pos_x += EF(pEm)->Step_x;
+        pEm->Pos_z += EF(pEm)->Step_z;
         pEm->Cdir_y += EF(pEm)->Base_dir_y;
         if (pEm->Col.W0 > 100) {
             pEm->Col.W0 -= 100;
             pEm->Col.D0 = pEm->Col.W0;
         }
-        EF(pEm)->Unk16 += 100;
+        EF(pEm)->Step_y += 100;
         break;
     case 6:
         EM_SET_MOVE(pEm, 0xA, 0, 7);
@@ -2687,7 +2687,7 @@ void Em23_mv14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 2:
         EM_SET_RTN(pEm, 1, 2, 0, 0);
-        EF(pEm)->Unk2E = 0;
+        EF(pEm)->Atck_wait = 0;
         break;
     }
 }
@@ -2876,7 +2876,7 @@ void Em23_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (!pEm->Routine_2)
         Em23_dm_status(pEm);
     Em23_die_blood(pEm);
-    if (!pEm->Unk1A4[1] && !pEm->Unk1AC[1] && pEm->Unk12C != 0x18 && (pEm->Unk1C4 & 0xF) == 1 && EF(pEm)->Unk2E) {
+    if (!pEm->Unk1A4[1] && !pEm->Unk1AC[1] && pEm->Unk12C != 0x18 && (pEm->Unk1C4 & 0xF) == 1 && EF(pEm)->Atck_wait) {
         EM_RTN(pEm) = pEm->Unk1C4;
         Em23_Move(pEm, pKan, pSeq);
         return;
@@ -2935,7 +2935,7 @@ void Em23_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             goto next;
         }
         if (!pEm->Unk1A4[1]) {
-            EF(pEm)->Unk16 = 2;
+            EF(pEm)->Step_y = 2;
             pEm->Col.Unk28 = 0;
             pEm->Col.Unk26 = 0;
             pEm->Col.Unk24 = 0;
@@ -2959,10 +2959,10 @@ void Em23_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!pEm->Unk1A4[0])
             pEm->Unk1A4[0] = Joint_move(pEm, pKan, pSeq, 0x200);
         if (!pEm->Unk1A4[2]) {
-            pEm->Pos_y += EF(pEm)->Unk16;
-            EF(pEm)->Unk16 += EF(pEm)->Unk16;
+            pEm->Pos_y += EF(pEm)->Step_y;
+            EF(pEm)->Step_y += EF(pEm)->Step_y;
             if (pEm->Pos_y > pEm->Unk122) {
-                EF(pEm)->Unk16 = 0;
+                EF(pEm)->Step_y = 0;
                 pEm->Col.D0 = 800;
                 pEm->Col.W0 = 800;
                 pEm->Pos_y = pEm->Unk122;
@@ -3001,8 +3001,8 @@ void Em23_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Unk01 = 0;
         pEm->UnkDA = (Rnd_l() & 0x1F) + 30;
         pEm->Damage_cnt &= 0x7F;
-        if (!EF(pEm)->Unk2E) {
-            EF(pEm)->Unk2E = (Rnd_l() & 0x1F) + 15;
+        if (!EF(pEm)->Atck_wait) {
+            EF(pEm)->Atck_wait = (Rnd_l() & 0x1F) + 15;
             EM_SET_RTN(pEm, 1, 2, 0, 0);
         }
         EM_SET_RTN(pEm, 1, 1, 0, 0);
@@ -3041,13 +3041,13 @@ void Em23_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     Sv.vx = -200;
                 }
                 Sv.vz = 0;
-                EF(pEm)->Unk26 = Sv.vx;
-                EF(pEm)->Unk28 = Sv.vz;
+                EF(pEm)->Step_x = Sv.vx;
+                EF(pEm)->Step_z = Sv.vz;
             }
             goto next;
         }
         if (!pEm->Unk1AC[1]) {
-            EF(pEm)->Unk16 = 2;
+            EF(pEm)->Step_y = 2;
             pEm->Col.Unk28 = 0;
             pEm->Col.Unk26 = 0;
             pEm->Col.Unk24 = 0;
@@ -3067,8 +3067,8 @@ void Em23_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         pEm->Routine_2 = 1;
     case 1:
-        pEm->Pos_y += EF(pEm)->Unk16;
-        EF(pEm)->Unk16 += EF(pEm)->Unk16;
+        pEm->Pos_y += EF(pEm)->Step_y;
+        EF(pEm)->Step_y += EF(pEm)->Step_y;
         if (pEm->Col.W0 < 800) {
             pEm->Col.W0++;
             pEm->Col.D0 = pEm->Col.W0;
@@ -3076,7 +3076,7 @@ void Em23_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!pEm->Unk1AC[0])
             pEm->Unk1AC[0] = Joint_move(pEm, pKan, pSeq, 0x200);
         if (!pEm->Unk1AC[2] && pEm->Pos_y >= pEm->Unk122) {
-            EF(pEm)->Unk16 = 0;
+            EF(pEm)->Step_y = 0;
             pEm->Cdir_z = 0;
             pEm->Cdir_x = 0;
             pEm->Pos_y = pEm->Unk122;
@@ -3105,30 +3105,30 @@ void Em23_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Damage_cnt |= 0x80;
             pEm->Routine_2++;
         }
-        pEm->Spd_x = EF(pEm)->Unk26;
-        pEm->Spd_z = EF(pEm)->Unk28;
-        Spd = EF(pEm)->Unk26;
+        pEm->Spd_x = EF(pEm)->Step_x;
+        pEm->Spd_z = EF(pEm)->Step_z;
+        Spd = EF(pEm)->Step_x;
         if (Spd) {
             if (__builtin_abs(Spd) > 10) {
                 if (Spd <= 0)
                     N = Spd + 10;
                 else
                     N = Spd - 10;
-                EF(pEm)->Unk26 = N;
+                EF(pEm)->Step_x = N;
             } else {
-                EF(pEm)->Unk26 = 0;
+                EF(pEm)->Step_x = 0;
             }
         }
-        SpdZ = EF(pEm)->Unk28;
+        SpdZ = EF(pEm)->Step_z;
         if (SpdZ) {
             if (__builtin_abs(SpdZ) > 10) {
                 if (SpdZ <= 0)
                     N = SpdZ + 10;
                 else
                     N = SpdZ - 10;
-                EF(pEm)->Unk28 = N;
+                EF(pEm)->Step_z = N;
             } else {
-                EF(pEm)->Unk28 = 0;
+                EF(pEm)->Step_z = 0;
             }
         }
         Add_speedXZ(pEm, 0);
@@ -3271,10 +3271,10 @@ void Em23_leg_off(ENEMY_WORK *pEm)
     PARTS_W *pP;
     LONG i;
 
-    EF(pEm)->Unk2C = 0;
+    EF(pEm)->Leg_off = 0;
     if (!(pEm->Unk132 & 0xC)) {
         if (Rnd_l() & 1) {
-            if (!(EF(pEm)->Unk2C & 1)) {
+            if (!(EF(pEm)->Leg_off & 1)) {
                 i = 2;
                 pP = &pEm->pSin_parts_ptr[2];
                 pP->UnkA2 |= 0x20;
@@ -3298,9 +3298,9 @@ void Em23_leg_off(ENEMY_WORK *pEm)
                     pP->Unk92 = pEm->Cdir_y;
                     pP->Unk8E = 0x400;
                 }
-                EF(pEm)->Unk2C |= 1;
+                EF(pEm)->Leg_off |= 1;
             }
-        } else if (!(EF(pEm)->Unk2C & 2)) {
+        } else if (!(EF(pEm)->Leg_off & 2)) {
             i = 5;
             pP = &pEm->pSin_parts_ptr[5];
             pP->UnkA2 |= 0x20;
@@ -3324,7 +3324,7 @@ void Em23_leg_off(ENEMY_WORK *pEm)
                 pP->Unk92 = pEm->Cdir_y;
                 pP->Unk8E = 0x400;
             }
-            EF(pEm)->Unk2C |= 2;
+            EF(pEm)->Leg_off |= 2;
         }
     }
     for (i = 0; i < 21; i++) {
@@ -3340,7 +3340,7 @@ void Em23_claw_off(ENEMY_WORK *pEm)
 
     if (!(pEm->Unk132 & 0xC)) {
         if (Rnd_l() & 1) {
-            if (!(EF(pEm)->Unk2C & 1)) {
+            if (!(EF(pEm)->Leg_off & 1)) {
                 pP = &pEm->pSin_parts_ptr[2];
                 pEm->pSin_parts_ptr[2].Be_flg |= 0xA;
                 pP->Old_x = pEm->Cdir_y + 0x800;
@@ -3351,9 +3351,9 @@ void Em23_claw_off(ENEMY_WORK *pEm)
                 pP->Unk90 = 0;
                 pP->Unk92 = pEm->Cdir_y;
                 pP->Unk8E = 0x400;
-                EF(pEm)->Unk2C |= 1;
+                EF(pEm)->Leg_off |= 1;
             }
-        } else if (!(EF(pEm)->Unk2C & 2)) {
+        } else if (!(EF(pEm)->Leg_off & 2)) {
             pP = &pEm->pSin_parts_ptr[5];
             pEm->pSin_parts_ptr[5].Be_flg |= 0xA;
             pP->Old_x = pEm->Cdir_y + 0x800;
@@ -3364,7 +3364,7 @@ void Em23_claw_off(ENEMY_WORK *pEm)
             pP->Unk90 = 0;
             pP->Unk92 = pEm->Cdir_y;
             pP->Unk8E = 0x400;
-            EF(pEm)->Unk2C |= 2;
+            EF(pEm)->Leg_off |= 2;
         }
     }
 }
@@ -3445,8 +3445,8 @@ void Em23_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.vx = -200;
             }
             Sv.vz = 0;
-            EF(pEm)->Unk26 = Sv.vx;
-            EF(pEm)->Unk28 = Sv.vz;
+            EF(pEm)->Step_x = Sv.vx;
+            EF(pEm)->Step_z = Sv.vz;
             pEm->Routine_3 = 1;
             goto next;
         }
@@ -3456,22 +3456,22 @@ void Em23_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_x = pEm->pSin_parts_ptr->Workm.t[0];
         pEm->Pos_z = pEm->pSin_parts_ptr->Workm.t[2];
         pEm->Routine_2 = 1;
-        EF(pEm)->Unk16 = 2;
+        EF(pEm)->Step_y = 2;
         EM_SET_MOVE(pEm, 0x18, 0, 7);
         pEm->Cdir_z = 0;
         pEm->Cdir_x = 0;
         pEm->Cdir_y = (EF(pEm)->Mode == 4) ? pEm->Cdir_y - 0x800 : EF(pEm)->Side * 0x400;
         pEm->Timer0 = 0;
-        EF(pEm)->Unk26 = 0;
-        EF(pEm)->Unk28 = 0;
+        EF(pEm)->Step_x = 0;
+        EF(pEm)->Step_z = 0;
         pEm->Routine_3 = 0;
     case 1:
         if (!pEm->Timer0)
             pEm->Timer0 = Joint_move(pEm, pKan, pSeq, 0x200);
-        pEm->Pos_y += EF(pEm)->Unk16;
-        EF(pEm)->Unk16 += EF(pEm)->Unk16;
+        pEm->Pos_y += EF(pEm)->Step_y;
+        EF(pEm)->Step_y += EF(pEm)->Step_y;
         if (pEm->Pos_y > pEm->Unk122) {
-            EF(pEm)->Unk16 = 0;
+            EF(pEm)->Step_y = 0;
             EF(pEm)->Mode = 0;
             pEm->Col.D0 = 800;
             pEm->Col.W0 = 800;
@@ -3492,30 +3492,30 @@ void Em23_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!pEm->Routine_3) {
             Spd_get(pEm, pKan, pSeq, 0);
         } else {
-            pEm->Spd_x = EF(pEm)->Unk26;
-            pEm->Spd_z = EF(pEm)->Unk28;
-            Spd = EF(pEm)->Unk26;
+            pEm->Spd_x = EF(pEm)->Step_x;
+            pEm->Spd_z = EF(pEm)->Step_z;
+            Spd = EF(pEm)->Step_x;
             if (Spd) {
                 if (__builtin_abs(Spd) > 10) {
                     if (Spd <= 0)
                         N = Spd + 10;
                     else
                         N = Spd - 10;
-                    EF(pEm)->Unk26 = N;
+                    EF(pEm)->Step_x = N;
                 } else {
-                    EF(pEm)->Unk26 = 0;
+                    EF(pEm)->Step_x = 0;
                 }
             }
-            SpdZ = EF(pEm)->Unk28;
+            SpdZ = EF(pEm)->Step_z;
             if (SpdZ) {
                 if (__builtin_abs(SpdZ) > 10) {
                     if (SpdZ <= 0)
                         N = SpdZ + 10;
                     else
                         N = SpdZ - 10;
-                    EF(pEm)->Unk28 = N;
+                    EF(pEm)->Step_z = N;
                 } else {
-                    EF(pEm)->Unk28 = 0;
+                    EF(pEm)->Step_z = 0;
                 }
             }
         }
@@ -3642,7 +3642,7 @@ void Em23_die_leg_off(ENEMY_WORK *pEm)
 
     switch ((pEm->Unk132 & 0xC) >> 2) {
     case 0:
-        if (!(EF(pEm)->Unk2C & 1)) {
+        if (!(EF(pEm)->Leg_off & 1)) {
             i = 2;
             pP = &pEm->pSin_parts_ptr[2];
             pP->UnkA2 |= 0x20;
@@ -3666,10 +3666,10 @@ void Em23_die_leg_off(ENEMY_WORK *pEm)
                 pP->Unk92 = pEm->Cdir_y;
                 pP->Unk8E = 0x400;
             }
-            EF(pEm)->Unk2C |= 1;
+            EF(pEm)->Leg_off |= 1;
         }
     case 1:
-        if (!(EF(pEm)->Unk2C & 4)) {
+        if (!(EF(pEm)->Leg_off & 4)) {
             i = 11;
             pP = &pEm->pSin_parts_ptr[11];
             pP->UnkA2 |= 0x20;
@@ -3693,10 +3693,10 @@ void Em23_die_leg_off(ENEMY_WORK *pEm)
                 pP->Unk92 = pEm->Cdir_y;
                 pP->Unk8E = 0x400;
             }
-            EF(pEm)->Unk2C |= 4;
+            EF(pEm)->Leg_off |= 4;
         }
     case 2:
-        if (!(EF(pEm)->Unk2C & 8)) {
+        if (!(EF(pEm)->Leg_off & 8)) {
             pP = &pEm->pSin_parts_ptr[15];
             pP->UnkA2 |= 0x20;
             pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
@@ -3719,7 +3719,7 @@ void Em23_die_leg_off(ENEMY_WORK *pEm)
                 pP->Unk92 = pEm->Cdir_y;
                 pP->Unk8E = 0x400;
             }
-            EF(pEm)->Unk2C |= 8;
+            EF(pEm)->Leg_off |= 8;
         }
     }
     for (i = 0; i < 21; i++) {
@@ -3769,22 +3769,22 @@ void Em23_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_x = pEm->pSin_parts_ptr->Workm.t[0];
         pEm->Pos_z = pEm->pSin_parts_ptr->Workm.t[2];
         pEm->Routine_2 = 3;
-        EF(pEm)->Unk16 = 2;
+        EF(pEm)->Step_y = 2;
         EM_SET_MOVE(pEm, 0x18, 0, 7);
         pEm->Cdir_z = 0;
         pEm->Cdir_x = 0;
         pEm->Cdir_y = (EF(pEm)->Mode == 4) ? pEm->Cdir_y - 0x800 : EF(pEm)->Side * 0x400;
         pEm->Timer0 = 0;
-        EF(pEm)->Unk26 = 0;
-        EF(pEm)->Unk28 = 0;
+        EF(pEm)->Step_x = 0;
+        EF(pEm)->Step_z = 0;
         pEm->Routine_3 = 0;
     case 3:
         if (!pEm->Timer0)
             pEm->Timer0 = Joint_move(pEm, pKan, pSeq, 0x200);
-        pEm->Pos_y += EF(pEm)->Unk16;
-        EF(pEm)->Unk16 += EF(pEm)->Unk16;
+        pEm->Pos_y += EF(pEm)->Step_y;
+        EF(pEm)->Step_y += EF(pEm)->Step_y;
         if (pEm->Pos_y > pEm->Unk122) {
-            EF(pEm)->Unk16 = 0;
+            EF(pEm)->Step_y = 0;
             EF(pEm)->Mode = 0;
             pEm->Col.D0 = 800;
             pEm->Col.W0 = 800;
@@ -3814,9 +3814,9 @@ void Em23_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EF(pEm)->Jump_x = -2400;
     EF(pEm)->Jump_z = -1300;
-    EF(pEm)->Unk26 = (EF(pEm)->Jump_x - pEm->Pos_x) / 16;
-    EF(pEm)->Unk28 = (EF(pEm)->Jump_z - pEm->Pos_z) / 16;
-    EF(pEm)->Unk16 = -200;
+    EF(pEm)->Step_x = (EF(pEm)->Jump_x - pEm->Pos_x) / 16;
+    EF(pEm)->Step_z = (EF(pEm)->Jump_z - pEm->Pos_z) / 16;
+    EF(pEm)->Step_y = -200;
     EM_SET_RTN(pEm, 1, 0xB, 1, 0);
     pEm->Type = 0x4000;
     EM_SET_MOVE(pEm, 7, 0, 7);
