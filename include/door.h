@@ -61,14 +61,19 @@ typedef struct tagDOOR_WORK {
     USHORT Free2;                      /* 0xC6 current brightness */
 } DOOR_WORK;
 
-/* door system work (RE2 struct tagDOOR, pDoor[0]; RE3 layout, only the used fields) */
+/* door system work (RE2 struct tagDOOR, pDoor[0]); RE3 dropped RE2's pEdh_offset/pVb_offset */
 typedef struct tagDOOR {
     POLY_GT3 *pPrepacket;              /* 0x000 next free prims (Door_model_init) */
     ULONG *pTmd_adr;                   /* 0x004 door models, 6 words each */
-    UCHAR pad8[0x226 - 0x8];
-    USHORT Unk226;                     /* 0x226 frame counter (Door_move) */
-    UCHAR pad228[0x240 - 0x228];
+    POLY_GT3 *pPackettop;              /* 0x008 */
+    DIVPOLYGON3 Divp;                  /* 0x00C */
+    USHORT Ctr1;                       /* 0x224 */
+    USHORT Ctr2;                       /* 0x226 frame counter (Door_move) */
+    SVECTOR V0;                        /* 0x228 */
+    SVECTOR V1;                        /* 0x230 */
+    SVECTOR V2;                        /* 0x238 */
     USHORT Sound_flg;                  /* 0x240 RE2 Sound_flg: play the exit sound (Door_exit) */
+    USHORT Div_max;                    /* 0x242 */
 } DOOR;
 
 void Door_main(void);
