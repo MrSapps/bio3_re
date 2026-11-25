@@ -3,7 +3,6 @@
 #include "status.h"
 #include "sub.h"
 
-void *Memcpy_r(void *pDst, void *pSrc, ULONG Size) __asm__("Memcpy"); /* returns void* here (canonical void) */
 
 /* task entry: run the script until it ends or start/select is pressed */
 void Opening_main(void)
@@ -318,7 +317,7 @@ LONG Opening_op_xa_wait(OPN_WORK *pWk)
 /* show picture */
 LONG Opening_op_pic(OPN_WORK *pWk)
 {
-    Memcpy_r((void *)0x8019C000, D_801C2F0C[pWk->pScript[1]], 0x25814);
+    Memcpy((void *)0x8019C000, D_801C2F0C[pWk->pScript[1]], 0x25814);
     Bg_set_mode(2, 0);
     pWk->pScript += 2;
     return 1;
