@@ -104,7 +104,7 @@ LONG func_8004FE70(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
 LONG func_8005003C(VECTOR *pA, VECTOR *pB, SCA_DATA *pT);
 void Sca_search(ULONG Type, ULONG Id, ULONG Floor);
 USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT); /* RE2 Sca_get_dir: 2 floor/corner, else wall side */
-LONG func_800503E8(LONG Arg0, SCA_DATA *pT); /* args from the asm */
+USHORT func_800503E8(VECTOR *pPos, SCA_DATA *pT); /* quadrant of the shape the point is in */
 LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT);
 
 #endif /* SCA_H */

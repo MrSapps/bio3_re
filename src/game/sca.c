@@ -1215,7 +1215,50 @@ USHORT func_800502B8(VECTOR *pPos, SCA_DATA *pT)
     return Dir;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_800503E8);
+/* quadrant of the shape the point is in (45 degree shapes are rotated first): bit 0 left of the centre,
+ * bit 2 right, bit 3 in front, bit 1 behind (on a centre line both bits of that axis) */
+USHORT func_800503E8(VECTOR *pPos, SCA_DATA *pT)
+{
+    VECTOR Pos;
+    VECTOR *pP;
+    ULONG Dir;
+    LONG X; /* offset from the corner, then the centre */
+    LONG Z;
+
+    pP = &Pos;
+    if (pT->Type & 0x1000) {
+        X = pPos->vx - pT->X0;
+        Z = pPos->vz - pT->Z0;
+        Pos.vx = (X - Z) * 181 >> 8;
+        Pos.vz = (X + Z) * 181 >> 8;
+        Pos.vx += pT->X0;
+        Pos.vz += pT->Z0;
+    } else {
+        Pos.vx = pPos->vx;
+        Pos.vz = pPos->vz;
+    }
+    X = pT->X0 + ((pT->X1 - pT->X0) >> 1);
+    Z = pT->Z0 + ((pT->Z1 - pT->Z0) >> 1);
+    if (pP->vx >= X) {
+        if (pP->vx == X) {
+            Dir = 5;
+        } else {
+            Dir = 4;
+        }
+    } else {
+        Dir = 1;
+    }
+    if (pP->vz >= Z) {
+        if (pP->vz == Z) {
+            Dir |= 0xA;
+        } else {
+            Dir |= 2;
+        }
+    } else {
+        Dir |= 8;
+    }
+    return Dir;
+}
 
 /* is the object inside the extent of the wall it hit, along the wall's axis (func_800502B8 = RE2 Sca_get_dir) */
 LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT)
