@@ -46,26 +46,26 @@ typedef struct tagST_MAP_HDR {
 
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
-/* local prototypes (this module) */
+/* Rtn0 7: reads the first page of file File_no from FILEG.PIX and sets up the file viewer */
 void St_file_load(ST_WORK *pSt)
 {
-    ULONG i, sum, n;
-    ULONG t;
+    ULONG i, Ofs, n;
+    ULONG Top;
     ULONG *p;
 
     i = 0;
-    sum = 0;
-    t = File_page_top[pSt->File_no];
+    Ofs = 0;
+    Top = File_page_top[pSt->File_no];
     pSt->Page_no = 0;
     CD.Fno = 0x1C;
-    n = t - 1;
+    n = Top - 1;
     CD.Fsize = File_page_size[n];
     CD.Fsector = (floc[0x1C].sec_high << 16) + floc[0x1C].sector;
     for (; i < n; i++) {
-        sum += File_page_size[i];
+        Ofs += File_page_size[i];
     }
-    CD.Fsector += sum >> 11;
-    CD.Fsum = File_page_sum[t - 1];
+    CD.Fsector += Ofs >> 11;
+    CD.Fsum = File_page_sum[Top - 1];
     Cd_read(0x1C, pSt->pBuf, 2, D_80010DCC);
     p = pSt->pBuf;
     Mapping_tpage_clut = 0xA17;
@@ -86,6 +86,7 @@ void St_file_load(ST_WORK *pSt)
 
 INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010DCC);
 
+/* Rtn0 8: file viewer: left/right turn the pages (slide animation), cancel/confirm leaves */
 void St_file_read(ST_WORK *pSt)
 {
     switch (pSt->Rtn1) {
@@ -200,13 +201,15 @@ void St_file_read(ST_WORK *pSt)
     }
 }
 
+/* Rtn0 9: back to the file list, or for a file picked up in a room: clears the AOT, sets its flag and shows the
+ * "got" message */
 void St_file_end(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
-    UCHAR *pA = pG->pAot_data;
-    UCHAR *pD = (UCHAR *)pG->pUnk21DC;
-    UCHAR n;
-    ULONG f;
+    UCHAR *pAot = pG->pAot_data;
+    UCHAR *pItem = (UCHAR *)pG->pUnk21DC;
+    UCHAR Model_no;
+    ULONG Item_flg;
     ULONG *p;
 
     switch (pSt->Rtn1) {
@@ -217,8 +220,8 @@ void St_file_end(ST_WORK *pSt)
             pSt->Rtn1 = 5;
             pSt->Rtn2 = 5;
             pSt->Timer = 0;
-            f = pSt->Flg | 0x40000000;
-            pSt->Flg = (f | 0x80000000) & ~0x100000;
+            Item_flg = pSt->Flg | 0x40000000;
+            pSt->Flg = (Item_flg | 0x80000000) & ~0x100000;
             Cd_read(0x1D, pSt->pBuf, 0, "FILEI.TIM");
             p = pSt->pBuf;
             pG->Ctp.Tpage_clut = 0x917;
@@ -226,19 +229,19 @@ void St_file_end(ST_WORK *pSt)
             break;
         case 3:
             pSt->Flg &= ~0x100000;
-            *pA = 0;
-            n = pD[6];
+            *pAot = 0;
+            Model_no = pItem[6];
             if (pG->Unk783E < 2) {
-                Flg_on(pG->Unk78D0, *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78D0, *(USHORT *)(pItem + 4));
             } else {
-                Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78F0, *(USHORT *)(pItem + 4));
             }
-            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
+            func_8001B894(0x705, &G.Ob_model[Model_no & 0xFF].M);
             func_8001B894(0x905, 0);
-            if (!(n & 0x80)) {
-                G.Ob_model[n & 0xFF].Be_flg = 0;
+            if (!(Model_no & 0x80)) {
+                G.Ob_model[Model_no & 0xFF].Be_flg = 0;
             }
-            D_800DBB5B = pD[0];
+            D_800DBB5B = pItem[0];
             Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn1++;
             break;
@@ -254,29 +257,31 @@ void St_file_end(ST_WORK *pSt)
     }
 }
 
+/* sets up the tpages and sprites of the file viewer */
 void St_file_prim_init(ST_WORK *pSt)
 {
     ULONG f;
-    UCHAR c;
+    UCHAR Clut;
 
     SetDrawTPage(&pSt->Tpage[0][0], 0, 0, 0x97);
     SetDrawTPage(&pSt->Tpage[1][0], 0, 0, 0x97);
     SetDrawTPage(&pSt->Tpage[0][1], 0, 0, 0x18);
     SetDrawTPage(&pSt->Tpage[1][1], 0, 0, 0x18);
     St_sprt_init(pSt, (void *)0x801ADA90, D_8009F2EC, (pSt->Clut_page << 8) | 1);
-    c = pSt->Clut_page + 1;
-    St_sprt_init(pSt, (void *)0x801ADAB8, D_8009F2F8, (c << 8) | 1);
-    c = pSt->Clut_parts + 2;
-    f = (c << 8) | 0x10001;
+    Clut = pSt->Clut_page + 1;
+    St_sprt_init(pSt, (void *)0x801ADAB8, D_8009F2F8, (Clut << 8) | 1);
+    Clut = pSt->Clut_parts + 2;
+    f = (Clut << 8) | 0x10001;
     St_sprt_init(pSt, (void *)0x801ADAE0, D_8009F310, f);
     St_sprt_init(pSt, (void *)0x801ADB08, D_8009F304, f);
     St_sprt_init(pSt, (void *)0x801ADB80, D_8009F31C, (pSt->Clut_parts << 8) | 0x10001);
 }
 
+/* adds the file viewer prims (page, prev/next arrows, exit marker) */
 void St_file_draw(ST_WORK *pSt)
 {
     SPRT *p;
-    UCHAR c;
+    UCHAR Clut;
 
     AddPrim(G.pOt0 + 4, pSt->Tpage[G.Cbuf_id]);
     AddPrim(G.pOt0 + 3, &pSt->Tpage[G.Cbuf_id][1]);
@@ -302,57 +307,60 @@ void St_file_draw(ST_WORK *pSt)
             p = (SPRT *)0x801ADB94;
         }
         if (pSt->File_exit == 0) {
-            c = pSt->Clut_parts + 7;
+            Clut = pSt->Clut_parts + 7;
         } else {
-            c = pSt->Clut_parts;
+            Clut = pSt->Clut_parts;
         }
-        p->clut = ((c + 0x1E0) << 6) | 0x13;
+        p->clut = ((Clut + 0x1E0) << 6) | 0x13;
         St_sprt_draw(pSt, (SPRT *)0x801ADB80, D_8009F31C, 0x101501);
     }
 }
 
-void St_file_page_load(ST_WORK *pSt, UCHAR a, UCHAR b)
+/* reads page Page of file File_no (sector, size and sum from the File_page_* tables) and maps its TIM */
+void St_file_page_load(ST_WORK *pSt, UCHAR File_no, UCHAR Page)
 {
-    ULONG i, sum, n;
+    ULONG i, sum, Idx;
     ULONG *p;
 
     i = 0;
     sum = 0;
-    n = File_page_top[a] + b;
+    Idx = File_page_top[File_no] + Page;
     CD.Fno = 0x1C;
-    CD.Fsize = File_page_size[n];
+    CD.Fsize = File_page_size[Idx];
     CD.Fsector = (floc[0x1C].sec_high << 16) + floc[0x1C].sector;
-    for (; i < n; i++) {
+    for (; i < Idx; i++) {
         sum += File_page_size[i];
     }
     CD.Fsector += sum >> 11;
-    CD.Fsum = File_page_sum[n];
+    CD.Fsum = File_page_sum[Idx];
     Cd_read(0x1C, pSt->pBuf, 2, D_80010DCC);
     p = pSt->pBuf;
     Mapping_tpage_clut = 0xB18;
     Mapping_tim(p);
 }
 
+/* positions n sprite pairs at their definition + St.Pos[prm >> 8], linked under St.Tpage[buf][prm >> 16] */
 void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
-    UCHAR ofs = prm >> 8;
-    UCHAR ot = prm >> 16;
-    ULONG n = prm;
+    UCHAR Pos_no = prm >> 8;
+    UCHAR Ot_no = prm >> 16;
+    ULONG Num = prm;
 
     if (G.Cbuf_id) {
         p++;
     }
-    ox = pSt->Pos[ofs].X;
-    oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, pDef++) {
+    ox = pSt->Pos[Pos_no].X;
+    oy = pSt->Pos[Pos_no].Y;
+    for (i = 0; i < (UCHAR)Num; i++, p += 2, pDef++) {
         p->x0 = pDef->X + ox;
         p->y0 = pDef->Y + oy;
-        AddPrim(&pSt->Tpage[G.Cbuf_id][ot], p);
+        AddPrim(&pSt->Tpage[G.Cbuf_id][Ot_no], p);
     }
 }
 
+/* Rtn0 10: item box entry */
 void St_box_init(ST_WORK *pSt)
 {
     ULONG a[2];
@@ -365,21 +373,24 @@ void St_box_init(ST_WORK *pSt)
     pSt->Flg |= 0x20000000;
 }
 
+/* Rtn0 11: item box, runs St_box_tbl[Rtn1] */
 void St_box_main(ST_WORK *pSt)
 {
     St_box_tbl[pSt->Rtn1](pSt);
 }
 
+/* Rtn0 12: leaves the item box (fade out) */
 void St_box_exit(ST_WORK *pSt)
 {
     pSt->Rtn0 = 0xD;
 }
 
+/* box Rtn1 0: picks the inventory slot to store or swap */
 void St_box_inv_select(ST_WORK *pSt)
 {
     ULONG i;
     UCHAR id;
-    LONG f;
+    LONG Moved;
 
     if ((G.Unk20FC & 0x20) | (G.Key_trg & 0x2000)) {
         pSt->Rtn0++;
@@ -405,32 +416,32 @@ void St_box_inv_select(ST_WORK *pSt)
             Snd_se_stad(5, 0, 0, 0);
         }
     } else {
-        f = 0;
+        Moved = 0;
         if ((G.Unk2100 & 0x1000) && (signed char)pSt->Cursor >= 0) {
             pSt->Cursor -= 2;
-            f = 1;
+            Moved = 1;
         }
         if (G.Unk2100 & 0x4000) {
             if ((signed char)pSt->Cursor < G.pItem_set->Num - 2) {
                 pSt->Cursor += 2;
-                f = 1;
+                Moved = 1;
             }
         }
         if (G.Unk2100 & 0x8000) {
             if (pSt->Cursor & 1) {
                 if ((signed char)--pSt->Cursor >= 0) {
-                    f = 1;
+                    Moved = 1;
                 }
             }
         }
         if (G.Unk2100 & 0x2000) {
             if (!(pSt->Cursor & 1)) {
                 if ((signed char)++pSt->Cursor >= 0) {
-                    f = 1;
+                    Moved = 1;
                 }
             }
         }
-        if (f == 1) {
+        if (Moved == 1) {
             Snd_se_stad(4, 0, 0, 0);
         }
         if ((signed char)pSt->Cursor >= 0) {
@@ -444,19 +455,20 @@ void St_box_inv_select(ST_WORK *pSt)
     }
 }
 
+/* box Rtn1 1: picks the box slot and swaps or merges; scrolls the 64-slot ring */
 void St_box_select(ST_WORK *pSt)
 {
     ITEM_WORK tmp;
     RECT r;
-    ITEM_WORK *pI;
-    ITEM_WORK *pB;
+    ITEM_WORK *pInv;
+    ITEM_WORK *pBox;
     tagGLOBAL *pG;
-    signed char n;
+    signed char Load_no;
     ITEM_DATA *pData;
-    signed char no;
+    signed char Inv_no;
     signed char i;
-    UCHAR f;
-    UCHAR m;
+    UCHAR Stack;
+    UCHAR Merge;
 
     if (G.Key_trg & 0x2000) {
         pSt->Rtn1 = 0;
@@ -466,73 +478,73 @@ void St_box_select(ST_WORK *pSt)
         return;
     }
     if (G.Key_trg & 0x1000) {
-        no = pSt->Cursor;
-        pI = &G.pItem_set->Item[no];
-        if (pI->Id == 0) {
-            no = Search_item_id(0, 0);
+        Inv_no = pSt->Cursor;
+        pInv = &G.pItem_set->Item[Inv_no];
+        if (pInv->Id == 0) {
+            Inv_no = Search_item_id(0, 0);
         }
         do {
-            if (G.pItem_set->Equip_no == no) {
+            if (G.pItem_set->Equip_no == Inv_no) {
                 G.pItem_set->Equip_id = 0;
                 G.pItem_set->Equip_no = 0xFF;
                 Pix_move(10, 11);
             }
-            pData = &Item_data_tbl[pI->Id];
+            pData = &Item_data_tbl[pInv->Id];
             switch (pData->Type) {
             case 2:
             case 5:
             case 6:
-                f = 1;
+                Stack = 1;
                 break;
             default:
-                f = 0;
+                Stack = 0;
                 break;
             }
-            pI = &D_800D23B4[no];
-            pB = &D_800D23B4[pSt->Box_cursor + 10];
-            m = 0;
-            if (pI->Id == pB->Id && f == 1) {
-                m = pData->Max >= pI->Num + pB->Num;
+            pInv = &D_800D23B4[Inv_no];
+            pBox = &D_800D23B4[pSt->Box_cursor + 10];
+            Merge = 0;
+            if (pInv->Id == pBox->Id && Stack == 1) {
+                Merge = pData->Max >= pInv->Num + pBox->Num;
             }
-            if (pI->Id == 0x20 && pB->Id == 0x2A && pI->Num + pB->Num < 4) {
-                m = 2;
+            if (pInv->Id == 0x20 && pBox->Id == 0x2A && pInv->Num + pBox->Num < 4) {
+                Merge = 2;
             }
-            if (pI->Id == 0x2A && pB->Id == 0x20 && pI->Num + pB->Num < 4) {
-                m = 3;
+            if (pInv->Id == 0x2A && pBox->Id == 0x20 && pInv->Num + pBox->Num < 4) {
+                Merge = 3;
             }
-            switch (m) {
+            switch (Merge) {
             case 0:
-                St_icon_swap(no, pSt->Box_cursor % 8);
-                tmp.Id = pB->Id;
-                tmp.Num = pB->Num;
-                tmp.Flg = pB->Flg;
-                pB->Id = pI->Id;
-                pB->Num = pI->Num;
-                pB->Flg = pI->Flg;
-                pI->Id = tmp.Id;
-                pI->Num = tmp.Num;
-                pI->Flg = tmp.Flg;
+                St_icon_swap(Inv_no, pSt->Box_cursor % 8);
+                tmp.Id = pBox->Id;
+                tmp.Num = pBox->Num;
+                tmp.Flg = pBox->Flg;
+                pBox->Id = pInv->Id;
+                pBox->Num = pInv->Num;
+                pBox->Flg = pInv->Flg;
+                pInv->Id = tmp.Id;
+                pInv->Num = tmp.Num;
+                pInv->Flg = tmp.Flg;
                 break;
             case 2:
-                pI->Id = pB->Id;
-                pI->Num += pB->Num;
-                pI->Flg = pB->Flg;
-                St_icon_swap(no, pSt->Box_cursor % 8);
+                pInv->Id = pBox->Id;
+                pInv->Num += pBox->Num;
+                pInv->Flg = pBox->Flg;
+                St_icon_swap(Inv_no, pSt->Box_cursor % 8);
                 goto clear;
             case 1:
             case 3:
-                pI->Num += pB->Num;
+                pInv->Num += pBox->Num;
             clear:
                 St_icon_copy(pSt->Box_cursor % 8, 11);
-                pB->Id = 0;
-                pB->Num = 0;
-                pB->Flg = 0;
+                pBox->Id = 0;
+                pBox->Num = 0;
+                pBox->Flg = 0;
                 break;
             }
         } while (0);
-        if (pI->Id == 0 && pB->Id != 0) {
+        if (pInv->Id == 0 && pBox->Id != 0) {
             pSt->Rtn1 = 2;
-            pSt->Rtn2 = no;
+            pSt->Rtn2 = Inv_no;
             pSt->Timer = 2;
         } else {
             pSt->Rtn1 = 0;
@@ -548,9 +560,9 @@ void St_box_select(ST_WORK *pSt)
         if (--pSt->Box_cursor < 0) {
             pSt->Box_cursor = 0x3F;
         }
-        n = pSt->Box_cursor - 2;
-        if (n < 0) {
-            n = pSt->Box_cursor + 0x3E;
+        Load_no = pSt->Box_cursor - 2;
+        if (Load_no < 0) {
+            Load_no = pSt->Box_cursor + 0x3E;
         }
         Snd_se_stad(0x215, 0, 0, 0);
         pSt->Box_scroll = -0x14;
@@ -562,9 +574,9 @@ void St_box_select(ST_WORK *pSt)
         if (++pSt->Box_cursor >= 0x40) {
             pSt->Box_cursor = 0;
         }
-        n = pSt->Box_cursor + 2;
-        if (n >= 0x40) {
-            n = pSt->Box_cursor - 0x3E;
+        Load_no = pSt->Box_cursor + 2;
+        if (Load_no >= 0x40) {
+            Load_no = pSt->Box_cursor - 0x3E;
         }
         Snd_se_stad(0x215, 0, 0, 0);
         pSt->Box_scroll_dir = 1;
@@ -573,8 +585,8 @@ void St_box_select(ST_WORK *pSt)
         pSt->Flg |= 0x8000;
     }
     if (G.Unk20F8 & 0x5000) {
-        pI = &G.pItem_set->Item[n + 10];
-        Pix_unpack_box(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
+        pInv = &G.pItem_set->Item[Load_no + 10];
+        Pix_unpack_box(Load_no, pInv->Id, 0x801A1500, (ULONG *)0x801A1000);
         DrawSync(0);
     }
     if (pSt->Rtn1 == 3) {
@@ -615,21 +627,22 @@ void St_box_select(ST_WORK *pSt)
     if (*(ULONG *)&pG->Unk2100 & 0xC) {
         r.w = 20;
         r.h = 30;
-        n = pSt->Box_cursor - 2;
-        if (n < 0) {
-            n = pSt->Box_cursor + 0x3E;
+        Load_no = pSt->Box_cursor - 2;
+        if (Load_no < 0) {
+            Load_no = pSt->Box_cursor + 0x3E;
         }
         for (i = 0; i < 5; i++) {
-            pI = &G.pItem_set->Item[n + 10];
-        Pix_unpack_box(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
+            pInv = &G.pItem_set->Item[Load_no + 10];
+        Pix_unpack_box(Load_no, pInv->Id, 0x801A1500, (ULONG *)0x801A1000);
             DrawSync(0);
-            if (++n >= 0x40) {
-                n = 0;
+            if (++Load_no >= 0x40) {
+                Load_no = 0;
             }
         }
     }
 }
 
+/* box Rtn1 2: closes the gap a stored item left in the inventory, one slot every 2 frames */
 void St_box_pack(ST_WORK *pSt)
 {
     UCHAR no;
@@ -671,6 +684,7 @@ void St_box_pack(ST_WORK *pSt)
     pSt->Timer--;
 }
 
+/* box Rtn1 3: box scroll animation */
 void St_box_scroll(ST_WORK *pSt)
 {
     if (pSt->Box_scroll_dir == 0) {
@@ -686,6 +700,7 @@ void St_box_scroll(ST_WORK *pSt)
     }
 }
 
+/* box Rtn1 4: waits for the message to close */
 void St_box_mess_wait(ST_WORK *pSt)
 {
     if (!(D_800DBB58 & 0x80)) {
@@ -697,6 +712,7 @@ void St_box_mess_wait(ST_WORK *pSt)
     }
 }
 
+/* item box screen: tpage nodes and all its SPRT/POLY_FT4/TILE prims */
 void St_box_prim_set(ST_WORK *pSt)
 {
     ULONG i;
@@ -746,14 +762,16 @@ void St_box_prim_set(ST_WORK *pSt)
     St_box_prim_init(pSt);
 }
 
+/* draws the item box screen */
 INCLUDE_ASM("asm/nonmatchings/game/status", St_box_draw);
 
-void St_icon_swap(UCHAR a, UCHAR b)
+/* swaps inventory icon Inv_no and box icon Box_no in VRAM */
+void St_icon_swap(UCHAR Inv_no, UCHAR Box_no)
 {
     RECT r;
     ST_WORK *pSt = &St;
     USHORT (*tbl)[2] = Item_pix_pos;
-    USHORT *pa = tbl[a];
+    USHORT *pa = tbl[Inv_no];
     USHORT *pb;
     USHORT (*tbl2)[2];
 
@@ -764,7 +782,7 @@ void St_icon_swap(UCHAR a, UCHAR b)
     StoreImage(&r, pSt->pBuf);
     DrawSync(0);
     tbl2 = Box_pix_pos;
-    pb = tbl2[b];
+    pb = tbl2[Box_no];
     r.x = pb[0];
     r.y = pb[1];
     MoveImage(&r, pa[0], pa[1]);
@@ -775,22 +793,24 @@ void St_icon_swap(UCHAR a, UCHAR b)
     DrawSync(0);
 }
 
-void St_icon_copy(UCHAR dst, UCHAR src)
+/* copies inventory icon Inv_no to box icon Box_no in VRAM */
+void St_icon_copy(UCHAR Box_no, UCHAR Inv_no)
 {
     RECT r;
 
-    r.x = Item_pix_pos[src][0];
-    r.y = Item_pix_pos[src][1];
+    r.x = Item_pix_pos[Inv_no][0];
+    r.y = Item_pix_pos[Inv_no][1];
     r.w = 0x14;
     r.h = 0x1E;
-    MoveImage(&r, Box_pix_pos[dst][0], Box_pix_pos[dst][1]);
+    MoveImage(&r, Box_pix_pos[Box_no][0], Box_pix_pos[Box_no][1]);
     DrawSync(0);
 }
 
-void St_box_list_draw(ST_WORK *pSt, UCHAR no, SHORT y0)
+/* draws the 7 visible box icons around Box_cursor, shifted by Ofs_y */
+void St_box_list_draw(ST_WORK *pSt, UCHAR Box_cursor, SHORT Ofs_y)
 {
     POLY_FT4 *p = (POLY_FT4 *)0x8019D4C8;
-    signed char n = no - 3;
+    signed char Icon = Box_cursor - 3;
     UCHAR clut;
     SHORT y;
     ULONG i;
@@ -803,30 +823,31 @@ void St_box_list_draw(ST_WORK *pSt, UCHAR no, SHORT y0)
     h = 0x16;
     w = 0x1D;
     clut = pSt->Clut_icon;
-    y = y0 + 0x19;
-    if (n < 0) {
-        n = no + 0x3D;
+    y = Ofs_y + 0x19;
+    if (Icon < 0) {
+        Icon = Box_cursor + 0x3D;
     }
-    n %= 8;
+    Icon %= 8;
     if (G.Cbuf_id) {
         p++;
     }
     for (i = 0; i < 7; i++) {
         setPolyFT4(p);
         setRGB0(p, 0x80, 0x80, 0x80);
-        v = n * 30;
+        v = Icon * 30;
         setUV4(p, 0, v, 0x28, v, 0, v + 30, 0x28, v + 30);
         p->tpage = getTPage(1, 0, (tp & 0xF) << 6, (tp & 0x10) << 4);
         p->clut = (clut + 0x1E0) << 6;
         setXY4(p, x, y + i * 24, x + w, y + i * 24, x, y + h + i * 24, x + w, y + h + i * 24);
         AddPrim(G.pOt0 + ot, p);
         p += 2;
-        if (++n >= 8) {
-            n = 0;
+        if (++Icon >= 8) {
+            Icon = 0;
         }
     }
 }
 
+/* item box frame: tiles, lines and scroll bar */
 void St_box_prim_init(ST_WORK *pSt)
 {
     ULONG i, j;
@@ -887,22 +908,26 @@ void St_box_prim_init(ST_WORK *pSt)
     }
 }
 
+/* adds the item box frame prims set up by St_box_prim_init */
 INCLUDE_ASM("asm/nonmatchings/game/status", St_box_frame_draw);
 
+/* Rtn0 1: status screen entry (St_type 1 goes straight to the item pickup) */
 void St_status_init(ST_WORK *pSt)
 {
 switch (pSt->St_type) { case 1: pSt->Rtn1 = 0xB; pSt->Rtn2 = 0; pSt->Rtn0++; break; case 0: pSt->Pos[3].X = 0x48; pSt->Pos[4].X = 0x48; pSt->Pos[5].X = 0x48; pSt->Pos[6].X = 0x48; pSt->Pos[7].X = 0x48; pSt->Pos[8].X = -0xD8; pSt->Pos[9].X = -0xD8; pSt->Pos[14].X = -0xD8; pSt->Pos[24].X = -0xD8; pSt->Pos[10].Y = 0x30; pSt->Rtn1 = 0; pSt->Blink = 0; pSt->Blink_dir = 0; pSt->Flg |= 0x20000000; pSt->Flg |= 0x40000000; pSt->Rtn0++; break; }
 }
 
+/* Rtn0 2: status screen, runs St_status_tbl[Rtn1] */
 void St_status_main(ST_WORK *pSt)
 {
     St_status_tbl[pSt->Rtn1](pSt);
 }
 
+/* Rtn1 0: inventory cursor; MAP/FILE/EXIT buttons below the items */
 void St_item_select(ST_WORK *pSt)
 {
     UCHAR *p;
-    LONG se;
+    LONG Moved;
 
     if ((G.Unk20FC & 0x20) | (G.Key_trg & 0x2000)) {
         pSt->Rtn0++;
@@ -939,24 +964,24 @@ void St_item_select(ST_WORK *pSt)
                 Snd_se_stad(5, 0, 0, 0);
             }
         } else {
-            se = 0;
+            Moved = 0;
             if (G.Unk2100 & 0x1000) {
                 if ((signed char)pSt->Cursor >= -2) {
                     pSt->Cursor -= 2;
-                    se = 1;
+                    Moved = 1;
                 }
             }
             if (G.Unk2100 & 0x4000) {
                 if ((signed char)pSt->Cursor < G.pItem_set->Num - 2) {
                     pSt->Cursor += 2;
-                    se = 1;
+                    Moved = 1;
                 }
             }
             if (G.Unk2100 & 0x8000) {
                 if (pSt->Cursor & 1) {
                     pSt->Cursor--;
                     if ((signed char)pSt->Cursor >= -2) {
-                        se = 1;
+                        Moved = 1;
                     }
                 }
             }
@@ -964,11 +989,11 @@ void St_item_select(ST_WORK *pSt)
                 if (!(pSt->Cursor & 1)) {
                     pSt->Cursor++;
                     if ((signed char)pSt->Cursor >= -2) {
-                        se = 1;
+                        Moved = 1;
                     }
                 }
             }
-            if (se == 1) {
+            if (Moved == 1) {
                 Snd_se_stad(4, 0, 0, 0);
             }
             if ((signed char)pSt->Cursor >= 0) {
@@ -979,6 +1004,7 @@ void St_item_select(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 1: opens the command window */
 void St_cmd_open(ST_WORK *pSt)
 {
     if (St_cmd_slide(pSt, 0)) {
@@ -987,19 +1013,20 @@ void St_cmd_open(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 2: command cursor (equip/use, check, combine) */
 void St_cmd_select(ST_WORK *pSt)
 {
-    ITEM_WORK *e = &G.pItem_set->Item[pSt->Cursor];
-    LONG n = 3;
+    ITEM_WORK *pItem = &G.pItem_set->Item[pSt->Cursor];
+    LONG Cmd_num = 3;
 
-    if (e->Flg & 0x10) {
-        n = 4;
+    if (pItem->Flg & 0x10) {
+        Cmd_num = 4;
     }
     if (G.Key_trg & 0x2000) {
         pSt->Rtn1 = 3;
         Snd_se_stad(5, 0, 0, 0);
     } else if (G.Key_trg & 0x1000) {
-        if ((signed char)pSt->Cmd_cursor == 0 && (UCHAR)(e->Id + 0x7D) < 2) {
+        if ((signed char)pSt->Cmd_cursor == 0 && (UCHAR)(pItem->Id + 0x7D) < 2) {
             pSt->Rtn1 = 8;
         } else {
             pSt->Rtn1 = pSt->Cmd_cursor + 6;
@@ -1015,9 +1042,9 @@ void St_cmd_select(ST_WORK *pSt)
             pSt->Cmd_cursor++;
         }
         if ((signed char)pSt->Cmd_cursor < 0) {
-            pSt->Cmd_cursor = n - 1;
+            pSt->Cmd_cursor = Cmd_num - 1;
         }
-        if ((signed char)pSt->Cmd_cursor >= n) {
+        if ((signed char)pSt->Cmd_cursor >= Cmd_num) {
             pSt->Cmd_cursor = 0;
         }
         if (*(ULONG *)&G.Unk2100 & 0x5000) {
@@ -1026,6 +1053,7 @@ void St_cmd_select(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 3: closes the command window */
 void St_cmd_close(ST_WORK *pSt)
 {
     if (St_cmd_slide(pSt, 1)) {
@@ -1036,6 +1064,7 @@ void St_cmd_close(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 4: slides the panels out and opens the map */
 void St_map_open(ST_WORK *pSt)
 {
     switch (pSt->Rtn2) {
@@ -1086,11 +1115,12 @@ extern UCHAR File_order_tbl_b[][2] __asm__("File_order_tbl"); /* File_order_tbl 
 
 static const char D_80010DFC[] = "FILEI.TIM";
 
+/* Rtn1 5: file list (5x3 grid, two pages); opens the viewer for a file you own */
 void St_file_list(ST_WORK *pSt)
 {
-    UCHAR no;
+    UCHAR Sel_no;
     ULONG *p;
-    UCHAR se;
+    UCHAR Moved;
 
     switch (pSt->Rtn2) {
     case 0:
@@ -1144,29 +1174,29 @@ void St_file_list(ST_WORK *pSt)
             break;
         }
         if (G.Key_trg & 0x1000) {
-            no = File_order_tbl_b[pSt->File_cursor][0];
+            Sel_no = File_order_tbl_b[pSt->File_cursor][0];
             if (G.Unk79EC[3] == 0x1E && pSt->File_cursor == 0) {
-                no = 0x1E;
+                Sel_no = 0x1E;
             }
-            if (Flg_ck(&G.Unk79EC[2], no)) {
+            if (Flg_ck(&G.Unk79EC[2], Sel_no)) {
                 pSt->Timer = 0;
                 pSt->Rtn2++;
                 pSt->Flg &= ~0x1000000;
                 pSt->Flg &= ~0x2000;
                 pSt->Flg &= ~0x4000;
                 Snd_se_stad(6, 0, 0, 0);
-                pSt->File_no = no;
+                pSt->File_no = Sel_no;
                 pSt->Page_no = 0;
             } else {
                 Snd_se_stad(7, 0, 0, 0);
             }
             break;
         }
-        se = 0;
+        Moved = 0;
         if (pSt->File_page == 0) {
             if (G.Unk2100 & 0x2000) {
                 if ((signed char)(pSt->File_cursor % 5) == 4) {
-                    se = 1;
+                    Moved = 1;
                     pSt->File_cursor += 11;
                     pSt->File_page = 1;
                     pSt->Rtn2 = 8;
@@ -1174,13 +1204,13 @@ void St_file_list(ST_WORK *pSt)
             }
         } else if (G.Unk2100 & 0x8000) {
             if ((signed char)(pSt->File_cursor % 5) == 0) {
-                se = 1;
+                Moved = 1;
                 pSt->File_cursor -= 11;
                 pSt->File_page = 0;
                 pSt->Rtn2 = 9;
             }
         }
-        if (se) {
+        if (Moved) {
             pSt->Timer = 0;
             pSt->Flg &= ~0x2000;
             pSt->Flg &= ~0x4000;
@@ -1196,28 +1226,28 @@ void St_file_list(ST_WORK *pSt)
         if (G.Unk2100 & 0x1000) {
             if ((signed char)(pSt->File_cursor % 15) >= 5) {
                 pSt->File_cursor -= 5;
-                se = 1;
+                Moved = 1;
             }
         }
         if (G.Unk2100 & 0x4000) {
             if ((signed char)(pSt->File_cursor % 15) < 10) {
                 pSt->File_cursor += 5;
-                se = 1;
+                Moved = 1;
             }
         }
         if (G.Unk2100 & 0x8000) {
             if ((signed char)(pSt->File_cursor % 5) != 0) {
                 pSt->File_cursor--;
-                se = 1;
+                Moved = 1;
             }
         }
         if (G.Unk2100 & 0x2000) {
             if ((signed char)(pSt->File_cursor % 5) != 4) {
                 pSt->File_cursor++;
-                se = 1;
+                Moved = 1;
             }
         }
-        if (se == 1) {
+        if (Moved == 1) {
             Snd_se_stad(4, 0, 0, 0);
         }
         pSt->Pos[14].X = (signed char)(pSt->File_cursor % 5) * 32;
@@ -1336,13 +1366,16 @@ void St_file_list(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 6: equip or use the item */
 INCLUDE_ASM("asm/nonmatchings/game/status", St_item_use);
 
+/* Rtn1 7: combine, runs St_mix_tbl[Rtn2] */
 void St_mix_main(ST_WORK *pSt)
 {
     St_mix_tbl[pSt->Rtn2](pSt);
 }
 
+/* combine Rtn2 0: second cursor on the first item */
 void St_mix_init(ST_WORK *pSt)
 {
     UCHAR v = pSt->Cursor;
@@ -1359,19 +1392,20 @@ void St_mix_init(ST_WORK *pSt)
 
 LONG Pl_wep_eff_parts_cnt_l(void) __asm__("Pl_wep_eff_parts_cnt"); /* Capcom called it undeclared here: the UCHAR result is used without a mask */
 
+/* combine Rtn2 1: picks the second item and looks up the combine record */
 void St_mix_select(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
-    ITEM_WORK *p;
-    ITEM_WORK *q;
+    ITEM_WORK *pA;
+    ITEM_WORK *pB;
     ITEM_MIX *pMix;
-    SHORT n;
+    SHORT Max;
     LONG i;
-    UCHAR c;
-    LONG se;
+    UCHAR Kind;
+    LONG Moved;
 
-    p = &pG->pItem_set->Item[pSt->Cursor];
-    n = 0;
+    pA = &pG->pItem_set->Item[pSt->Cursor];
+    Max = 0;
     if (pG->Key_trg & 0x2000) {
         pSt->Rtn1 = 3;
         pSt->Flg &= ~0x2000000;
@@ -1380,10 +1414,10 @@ void St_mix_select(ST_WORK *pSt)
         return;
     }
     if (pG->Key_trg & 0x1000) {
-        q = &pG->pItem_set->Item[(signed char)pSt->Cursor2];
-        pMix = Search_item_mix(pSt, p->Id, q->Id);
-        pSt->pMix_a = p;
-        pSt->pMix_b = q;
+        pB = &pG->pItem_set->Item[(signed char)pSt->Cursor2];
+        pMix = Search_item_mix(pSt, pA->Id, pB->Id);
+        pSt->pMix_a = pA;
+        pSt->pMix_b = pB;
         pSt->pMix = pMix;
         if (pMix != (ITEM_MIX *)-1 && pSt->Cursor != (signed char)pSt->Cursor2) {
             switch (pMix->Type) {
@@ -1393,15 +1427,15 @@ void St_mix_select(ST_WORK *pSt)
                         break;
                     }
                 }
-                c = pSt->Mix_tama_type = Mix_tama_tbl[i][1];
-                switch (c) {
+                Kind = pSt->Mix_tama_type = Mix_tama_tbl[i][1];
+                switch (Kind) {
                 case 0:
                 case 1:
-                    n = 6;
+                    Max = 6;
                     break;
                 }
-                i = n;
-                if (i != 0 && i < pG->pItem_set->Tama_mix_cnt[c]) {
+                i = Max;
+                if (i != 0 && i < pG->pItem_set->Tama_mix_cnt[Kind]) {
                     Mess_set(0, 0x1400, 13, 0);
                     pSt->Rtn2 = 5;
                     pSt->Flg &= ~0x20000000;
@@ -1410,10 +1444,10 @@ void St_mix_select(ST_WORK *pSt)
                 break;
             case 0:
                 if (pMix->Id_a == 12) {
-                    if (p->Id != 12) {
-                        p = q;
+                    if (pA->Id != 12) {
+                        pA = pB;
                     }
-                    if (p->Num == 0) {
+                    if (pA->Num == 0) {
                         if (Pl_wep_eff_parts_cnt_l()) {
                             Mess_set(0, 0x1400, 9, 0);
                             pSt->Rtn2 = 4;
@@ -1438,40 +1472,42 @@ void St_mix_select(ST_WORK *pSt)
         }
         return;
     }
-    se = 0;
+    Moved = 0;
     if (pG->Unk2100 & 0x1000) {
         if ((signed char)pSt->Cursor2 >= 2) {
             pSt->Cursor2 -= 2;
-            se = 1;
+            Moved = 1;
         }
     }
     if (G.Unk2100 & 0x4000) {
         if ((signed char)pSt->Cursor2 < G.pItem_set->Num - 2) {
             pSt->Cursor2 += 2;
-            se = 1;
+            Moved = 1;
         }
     }
     if (G.Unk2100 & 0x8000) {
         if (pSt->Cursor2 & 1) {
             pSt->Cursor2--;
-            se = 1;
+            Moved = 1;
         }
     }
     if (G.Unk2100 & 0x2000) {
         if (!(pSt->Cursor2 & 1)) {
             pSt->Cursor2++;
-            se = 1;
+            Moved = 1;
         }
     }
-    if (se == 1) {
+    if (Moved == 1) {
         Snd_se_stad(4, 0, 0, 0);
     }
     pSt->Pos[13].X = (pSt->Cursor2 & 1) * 40;
     pSt->Pos[13].Y = ((signed char)pSt->Cursor2 >> 1) * 30;
 }
 
+/* decides the combine result kind and count (Mix_type, Mix_num) */
 INCLUDE_ASM("asm/nonmatchings/game/status", St_mix_exec);
 
+/* combine Rtn2 2: waits for the "can't combine" message */
 void St_mix_mess_wait(ST_WORK *pSt)
 {
     if (!(D_800DBB58 & 0x80)) {
@@ -1481,6 +1517,7 @@ void St_mix_mess_wait(ST_WORK *pSt)
     }
 }
 
+/* combine Rtn2 4: yes/no answer to the weapon part question */
 void St_mix_yesno(ST_WORK *pSt)
 {
     if (!(D_800DBB58 & 0x80)) {
@@ -1499,6 +1536,7 @@ void St_mix_yesno(ST_WORK *pSt)
     }
 }
 
+/* combine Rtn2 5: on yes tries the next combine record */
 void St_mix_next(ST_WORK *pSt)
 {
     if (!(D_800DBB58 & 0x80)) {
@@ -1512,14 +1550,15 @@ void St_mix_next(ST_WORK *pSt)
     }
 }
 
+/* combine Rtn2 3: slides the icons together, then applies the record to items A and B */
 void St_mix_result(ST_WORK *pSt)
 {
-    USHORT f = 0;
+    USHORT Inf = 0;
     ITEM_WORK *pA = pSt->pMix_a;
     ITEM_WORK *pB = pSt->pMix_b;
     ITEM_MIX *pMix = pSt->pMix;
-    UCHAR *pN = pSt->pMix_cur_a;
-    UCHAR *pM = pSt->pMix_cur_b;
+    UCHAR *pCur_a = pSt->pMix_cur_a;
+    UCHAR *pCur_b = pSt->pMix_cur_b;
     tagGLOBAL *pG = &G;
     ITEM_DATA *pData;
 
@@ -1529,7 +1568,7 @@ void St_mix_result(ST_WORK *pSt)
             pSt->Pos[13].Y += pSt->Mix_dy;
             pSt->Pos[12].X += pSt->Mix_dx;
             pSt->Pos[12].Y += pSt->Mix_dy;
-        } else if (&pSt->Cursor2 == pM) {
+        } else if (&pSt->Cursor2 == pCur_b) {
             pSt->Pos[13].X += pSt->Mix_dx;
             pSt->Pos[13].Y += pSt->Mix_dy;
         } else {
@@ -1541,16 +1580,16 @@ void St_mix_result(ST_WORK *pSt)
     }
     pSt->Flg &= ~0x2000000;
     if ((pA->Flg & 3) == 3) {
-        f = 3;
+        Inf = 3;
     }
     switch (pSt->Mix_type) {
     case 0:
         pSt->Rtn1 = 10;
-        pSt->Rtn2 = *pM;
+        pSt->Rtn2 = *pCur_b;
         pSt->Timer = 2;
-        *pM = *pN;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        *pCur_b = *pCur_a;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         pA->Id = pMix->New_id;
         pData = &Item_data_tbl[pA->Id];
         pA->Num = pMix->New_num;
@@ -1558,19 +1597,19 @@ void St_mix_result(ST_WORK *pSt)
         if (Flg_ck(G.Unk77F8, 9) && (pA->Id == 0xD || pA->Id == 0x10)) {
             pA->Flg |= 3;
         }
-        Pix_trans(*pN);
+        Pix_trans(*pCur_a);
         break;
     case 1:
         pSt->Rtn1 = 10;
-        pSt->Rtn2 = *pM;
+        pSt->Rtn2 = *pCur_b;
         pSt->Timer = 2;
-        *pM = *pN;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        *pCur_b = *pCur_a;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         if (pMix->Type == 3 || pMix->Type == 4) {
             pA->Id = pMix->New_id;
             pA->Flg = Item_data_tbl[pMix->New_id].Attr | (pA->Flg & 0xFF00);
-            if (pG->pItem_set->Equip_no == (signed char)*pN) {
+            if (pG->pItem_set->Equip_no == (signed char)*pCur_a) {
                 pG->pItem_set->Equip_id = pMix->New_id;
             }
         }
@@ -1578,13 +1617,13 @@ void St_mix_result(ST_WORK *pSt)
         break;
     case 2:
         pSt->Rtn1 = 3;
-        *pM = *pN;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        *pCur_b = *pCur_a;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         if (pMix->Type == 3) {
             pA->Id = pMix->New_id;
             pA->Flg = Item_data_tbl[pMix->New_id].Attr | (pA->Flg & 0xFF00);
-            if (pG->pItem_set->Equip_no == (signed char)*pN) {
+            if (pG->pItem_set->Equip_no == (signed char)*pCur_a) {
                 pG->pItem_set->Equip_id = pMix->New_id;
             }
         }
@@ -1592,53 +1631,53 @@ void St_mix_result(ST_WORK *pSt)
         break;
     case 3:
         pSt->Rtn1 = 10;
-        pSt->Rtn2 = *pM;
+        pSt->Rtn2 = *pCur_b;
         pSt->Timer = 2;
-        *pM = *pN;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        *pCur_b = *pCur_a;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         pA->Id = pMix->New_id;
         pData = &Item_data_tbl[pA->Id];
         pA->Num = pSt->Mix_num;
         pA->Flg = pData->Attr;
-        Pix_trans(*pN);
+        Pix_trans(*pCur_a);
         break;
     case 4:
         pSt->Rtn1 = 3;
-        *pM = *pN;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        *pCur_b = *pCur_a;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         pA->Id = pMix->New_id;
         pData = &Item_data_tbl[pA->Id];
         pA->Num = pSt->Mix_num;
         pA->Flg = pData->Attr;
-        Pix_trans(*pN);
+        Pix_trans(*pCur_a);
         break;
     case 5:
         pSt->Rtn1 = 3;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         pB->Id = pMix->New_num;
         pData = &Item_data_tbl[pMix->New_num];
         pB->Flg = pData->Attr | (pB->Flg & 0xFF00);
         pB->Num = pA->Num;
-        Pix_trans(*pM);
+        Pix_trans(*pCur_b);
         pA->Id = pMix->New_id;
         pData = &Item_data_tbl[pMix->New_id];
         pA->Flg = pData->Attr | (pA->Flg & 0xFF00);
-        if (pG->pItem_set->Equip_no == (signed char)*pN) {
+        if (pG->pItem_set->Equip_no == (signed char)*pCur_a) {
             pG->pItem_set->Equip_id = pMix->New_id;
         }
         pA->Num = pSt->Mix_num;
-        *pM = *pN;
+        *pCur_b = *pCur_a;
         break;
     case 6:
         pSt->Rtn1 = 10;
-        pSt->Rtn2 = *pM;
+        pSt->Rtn2 = *pCur_b;
         pSt->Timer = 2;
-        *pM = *pN;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        *pCur_b = *pCur_a;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         pA->Flg |= 3;
         if (pA->Id == 0xC) {
             pA->Id = 0x14;
@@ -1650,8 +1689,8 @@ void St_mix_result(ST_WORK *pSt)
         break;
     case 7:
         pSt->Rtn1 = 3;
-        pSt->Pos[12].X = (*pN & 1) * 40;
-        pSt->Pos[12].Y = ((signed char)*pN >> 1) * 30;
+        pSt->Pos[12].X = (*pCur_a & 1) * 40;
+        pSt->Pos[12].Y = ((signed char)*pCur_a >> 1) * 30;
         switch (pA->Id) {
         case 2:
             pB->Id = 0x15;
@@ -1675,20 +1714,21 @@ void St_mix_result(ST_WORK *pSt)
         pData = &Item_data_tbl[pB->Id];
         pB->Flg = pData->Attr | (pB->Flg & 0xFF00);
         pB->Num = pA->Num;
-        Pix_trans(*pM);
+        Pix_trans(*pCur_b);
         pA->Id = pMix->New_id;
         pData = &Item_data_tbl[pMix->New_id];
         pA->Flg = pData->Attr | (pA->Flg & 0xFF00);
-        if (pG->pItem_set->Equip_no == (signed char)*pN) {
+        if (pG->pItem_set->Equip_no == (signed char)*pCur_a) {
             pG->pItem_set->Equip_id = pMix->New_id;
         }
         pA->Num = pSt->Mix_num;
-        *pM = *pN;
+        *pCur_b = *pCur_a;
         break;
     }
-    pA->Flg |= f;
+    pA->Flg |= Inf;
 }
 
+/* Rtn1 8: examines an item (zoom picture, "checked" flag, message, may change into another item or a file) */
 void St_item_check(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
@@ -1763,43 +1803,45 @@ void St_item_check(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 9: toggles item 0x0E <-> 0x0F and keeps the equip in step */
 void St_item_switch(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     ITEM_WORK *p = &pG->pItem_set->Item[pSt->Cursor];
-    USHORT w = p->Flg;
-    UCHAR id = p->Id;
-    USHORT n;
+    USHORT Flg_old = p->Flg;
+    UCHAR Id_old = p->Id;
+    USHORT Flg_new;
 
-    if (w & 0x100) {
-        p->Flg = w & ~0x100;
+    if (Flg_old & 0x100) {
+        p->Flg = Flg_old & ~0x100;
         p->Id = 0xF;
     } else {
-        p->Flg = w | 0x100;
+        p->Flg = Flg_old | 0x100;
         p->Id = 0xE;
     }
-    n = Item_data_tbl[p->Id].Attr | (p->Flg & 0xFF00);
-    p->Flg = n;
-    if ((w & 3) == 3) {
-        p->Flg = n | 3;
+    Flg_new = Item_data_tbl[p->Id].Attr | (p->Flg & 0xFF00);
+    p->Flg = Flg_new;
+    if ((Flg_old & 3) == 3) {
+        p->Flg = Flg_new | 3;
     }
-    if (id == pG->pItem_set->Equip_id && pSt->Cursor == pG->pItem_set->Equip_no) {
+    if (Id_old == pG->pItem_set->Equip_id && pSt->Cursor == pG->pItem_set->Equip_no) {
         pG->pItem_set->Equip_id = p->Id;
     }
     pSt->Rtn1 = 2;
 }
 
-UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1)
+/* opens (Close 0) or closes (1) the command panel; returns 1 when done */
+UCHAR St_cmd_slide(ST_WORK *pSt, LONG Close)
 {
     POLY_FT4 *p;
     ULONG i;
-    USHORT f;
+    USHORT Item_flg;
     ITEM_WORK *pI;
 
-    if (a1 == 0) {
+    if (Close == 0) {
         pI = &G.pItem_set->Item[pSt->Cursor];
         pSt->Sel_item = *pI;
-        f = pSt->Sel_item.Flg;
+        Item_flg = pSt->Sel_item.Flg;
         if (pSt->Slide_step == 0) {
             p = (POLY_FT4 *)0x801AE5A8;
             if (G.Cbuf_id) {
@@ -1829,7 +1871,7 @@ UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1)
             if (pSt->Slide_no >= 3 && pSt->Slide_no < 6) {
                 pSt->Pos[6].X -= 24;
             }
-            if (f & 0x10) {
+            if (Item_flg & 0x10) {
                 if (pSt->Slide_no >= 4 && pSt->Slide_no < 7) {
                     pSt->Pos[7].X -= 24;
                 }
@@ -1850,7 +1892,7 @@ UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1)
         }
         return 0;
     }
-    f = pSt->Sel_item.Flg;
+    Item_flg = pSt->Sel_item.Flg;
     switch (pSt->Slide_step) {
     case 0:
         if ((signed char)++pSt->Slide_cnt >= 4) {
@@ -1888,7 +1930,7 @@ UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1)
         if (pSt->Slide_no >= 2 && pSt->Slide_no < 5) {
             pSt->Pos[6].X += 24;
         }
-        if (f & 0x10) {
+        if (Item_flg & 0x10) {
             if (pSt->Slide_no >= 3 && pSt->Slide_no < 6) {
                 pSt->Pos[7].X += 24;
             }
@@ -1910,6 +1952,7 @@ UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1)
     return 0;
 }
 
+/* Rtn1 10: moves the items after slot Rtn2 up one slot every 2 frames */
 void St_item_shift(ST_WORK *pSt)
 {
     tagGLOBAL *pG;
@@ -1954,14 +1997,15 @@ void St_item_shift(ST_WORK *pSt)
 
 signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id"); /* this file passes the start slot unsigned (andi, not sll/sra) */
 
+/* Rtn1 11: picks up the room item (G.pUnk21DC): yes/no, fly-in icon, flags, model hidden */
 void St_item_get(ST_WORK *pSt)
 {
-    UCHAR *pA = G.pAot_data;
-    ST_AOT_ITEM *pD = G.pUnk21DC;
+    UCHAR *pAot = G.pAot_data;
+    ST_AOT_ITEM *pGet = G.pUnk21DC;
     ITEM_WORK *p;
     UCHAR id;
-    signed char n;
-    UCHAR m;
+    signed char Slot;
+    UCHAR Model_no;
     LONG dx, dy;
     ITEM_DATA *pData;
     USHORT f;
@@ -1969,9 +2013,9 @@ void St_item_get(ST_WORK *pSt)
     switch (pSt->Rtn2) {
     case 0:
         pSt->Get_stack = 0;
-        pData = &Item_data_tbl[pD->Id];
-        id = pD->Id;
-        n = 0;
+        pData = &Item_data_tbl[pGet->Id];
+        id = pGet->Id;
+        Slot = 0;
         switch (pData->Type) {
         case 3:
             if (id != 0x20) {
@@ -1982,35 +2026,35 @@ void St_item_get(ST_WORK *pSt)
         case 5:
         case 6:
             do {
-                n = Search_item_id_u(id, n);
-                if (n == -1) {
+                Slot = Search_item_id_u(id, Slot);
+                if (Slot == -1) {
                     break;
                 }
-                p = &G.pItem_set->Item[n];
-                if (Item_data_tbl[p->Id].Max >= p->Num + pD->Num) {
-                    pSt->Get_slot = n;
+                p = &G.pItem_set->Item[Slot];
+                if (Item_data_tbl[p->Id].Max >= p->Num + pGet->Num) {
+                    pSt->Get_slot = Slot;
                     pSt->Get_stack = 1;
-                    D_800DBB5B = pD->Id;
+                    D_800DBB5B = pGet->Id;
                     Mess_set(0, 0x1400, 0, 0);
                     pSt->Rtn2 = 2;
                     break;
                 }
-                n++;
+                Slot++;
             } while (1);
             break;
         }
         if (pSt->Get_stack == 0) {
-            n = Search_item_id_u(0, 0);
-            if (n == -1) {
+            Slot = Search_item_id_u(0, 0);
+            if (Slot == -1) {
                 Mess_set(0, 0x1000, 1, 0);
                 pSt->Rtn2 = 1;
                 break;
             }
-            pSt->Get_slot = n;
-            if (Flg_ck(G.Unk77F8, 9) && (UCHAR)pD->Id == 0xC) {
+            pSt->Get_slot = Slot;
+            if (Flg_ck(G.Unk77F8, 9) && (UCHAR)pGet->Id == 0xC) {
                 D_800DBB5B = 0x14;
             } else {
-                D_800DBB5B = pD->Id;
+                D_800DBB5B = pGet->Id;
             }
             Mess_set(0, 0x1400, 0, 0);
             pSt->Rtn2 = 2;
@@ -2061,9 +2105,9 @@ void St_item_get(ST_WORK *pSt)
             switch (pSt->Get_stack) {
             case 0:
                 Pix_move(pSt->Get_slot, 12);
-                pData = &Item_data_tbl[pD->Id];
-                p->Id = pD->Id;
-                p->Num = pD->Num;
+                pData = &Item_data_tbl[pGet->Id];
+                p->Id = pGet->Id;
+                p->Num = pGet->Num;
                 p->Flg = f = pData->Attr;
                 if (p->Id == 0xE) {
                     p->Flg = f | 0x100;
@@ -2077,24 +2121,24 @@ void St_item_get(ST_WORK *pSt)
                 }
                 break;
             case 1:
-                p->Num += pD->Num;
+                p->Num += pGet->Num;
                 break;
             }
-            G.Sce_work[3] = pD->Id;
-            *pA = 0;
-            m = pD->Md1;
+            G.Sce_work[3] = pGet->Id;
+            *pAot = 0;
+            Model_no = pGet->Md1;
             if ((ULONG)((USHORT)G.Unk783E - 2) >= 3) {
-                Flg_on(G.Unk78D0, pD->Flg);
+                Flg_on(G.Unk78D0, pGet->Flg);
             } else {
-                Flg_on(G.Unk78F0, pD->Flg);
+                Flg_on(G.Unk78F0, pGet->Flg);
             }
-            func_8001B894(0x705, &G.Ob_model[m].M);
+            func_8001B894(0x705, &G.Ob_model[Model_no].M);
             func_8001B894(0x905, 0);
-            if (!(m & 0x80)) {
-                G.Ob_model[m].Be_flg = 0;
+            if (!(Model_no & 0x80)) {
+                G.Ob_model[Model_no].Be_flg = 0;
             }
-            if (pD->Flg >= 0xF0) {
-                G.Unk7DC0[pD->Flg - 0xF0].Unk0 = 0;
+            if (pGet->Flg >= 0xF0) {
+                G.Unk7DC0[pGet->Flg - 0xF0].Unk0 = 0;
             }
             Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn2 = 1;
@@ -2105,6 +2149,7 @@ void St_item_get(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 12: the examined item turns into item Chg_id */
 void St_item_change(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
@@ -2187,11 +2232,12 @@ void St_item_change(ST_WORK *pSt)
     }
 }
 
+/* Rtn1 13: the examined item becomes a file and opens it */
 void St_item_to_file(ST_WORK *pSt)
 {
     ITEM_CHECK *pChk;
     ULONG i;
-    signed char c, n;
+    signed char File, Next;
 
     if (pSt->Timer < 12) {
         pSt->Pos[8].X -= 0x12;
@@ -2210,8 +2256,8 @@ void St_item_to_file(ST_WORK *pSt)
     }
     pChk = pSt->pChk;
     pSt->File_cursor = pChk->File_no;
-    c = File_order_tbl[pSt->File_cursor];
-    pSt->File_no = c;
+    File = File_order_tbl[pSt->File_cursor];
+    pSt->File_no = File;
     pSt->Flg &= ~0x1000000;
     pSt->Flg &= ~0x2000;
     pSt->Flg &= ~0x4000;
@@ -2240,19 +2286,21 @@ void St_item_to_file(ST_WORK *pSt)
         G.Unk79EC[3]++;
     }
     Pix_move(pSt->Cursor, 11);
-    for (c = pSt->Cursor; c < 9; c = n) {
-        n = c + 1;
-        Pix_swap(c, n);
+    for (File = pSt->Cursor; File < 9; File = Next) {
+        Next = File + 1;
+        Pix_swap(File, Next);
     }
     pSt->Cursor = -2;
 }
 
+/* Rtn1 14: leaves the status screen (Rtn0 13) */
 void St_exit_set(ST_WORK *pSt)
 {
     pSt->Rtn0 = 0xD;
     pSt->Rtn1 = 0;
 }
 
+/* combine record for items a and b in either order, or (ITEM_MIX *)-1 */
 ITEM_MIX *Search_item_mix(ST_WORK *pSt, UCHAR a, UCHAR b)
 {
     ITEM_MIX *p = Item_mix_tbl;
@@ -2273,6 +2321,7 @@ ITEM_MIX *Search_item_mix(ST_WORK *pSt, UCHAR a, UCHAR b)
     return (ITEM_MIX *)-1;
 }
 
+/* Item_check_tbl record of item id, or (ITEM_CHECK *)-1 */
 ITEM_CHECK *Search_item_check(ST_WORK *pSt, UCHAR id)
 {
     ITEM_CHECK *p = Item_check_tbl;
@@ -2286,6 +2335,7 @@ ITEM_CHECK *Search_item_check(ST_WORK *pSt, UCHAR id)
     return (ITEM_CHECK *)-1;
 }
 
+/* ammo record of weapon id, or (ITEM_TAMA *)-1 */
 ITEM_TAMA *Search_item_tama(ST_WORK *pSt, UCHAR id)
 {
     ITEM_TAMA *p = Item_tama_tbl;
@@ -2299,6 +2349,7 @@ ITEM_TAMA *Search_item_tama(ST_WORK *pSt, UCHAR id)
     return (ITEM_TAMA *)-1;
 }
 
+/* reads icon idx of ITEMI.PIX and uploads it to icon slot no */
 void Pix_load(UCHAR no, UCHAR idx)
 {
     RECT r;
@@ -2316,6 +2367,7 @@ void Pix_load(UCHAR no, UCHAR idx)
     LoadImage(&r, pSt->pBuf);
 }
 
+/* reads icon idx of ITEMI.PIX into St.pBuf */
 void Pix_read(UCHAR no)
 {
     LONG pad[2];
@@ -2327,6 +2379,7 @@ void Pix_read(UCHAR no)
     Cd_read(0x34, St.pBuf, 2, D_80010F84);
 }
 
+/* uploads St.pBuf to icon slot no (RE2 Pix_trans) */
 void Pix_trans(UCHAR no)
 {
     RECT r;
@@ -2338,6 +2391,7 @@ void Pix_trans(UCHAR no)
     LoadImage(&r, St.pBuf);
 }
 
+/* unpacks icon data (SLD unpacker) and uploads it to inventory icon slot no */
 void Pix_unpack(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
 {
     RECT r;
@@ -2350,6 +2404,7 @@ void Pix_unpack(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
     LoadImage(&r, pBuf);
 }
 
+/* unpacks icon data and uploads it to box icon slot no */
 void Pix_unpack_box(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
 {
     RECT r;
@@ -2364,6 +2419,7 @@ void Pix_unpack_box(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
 
 INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010F84);
 
+/* reads the examine picture of an item from ITEMG.PIX and maps it */
 void Itemg_load(UCHAR no)
 {
     ST_WORK *pSt = &St;
@@ -2379,6 +2435,7 @@ void Itemg_load(UCHAR no)
     pSt->Clut_zoom = 8;
 }
 
+/* swaps icon slots a and b in VRAM */
 void Pix_swap(UCHAR a, UCHAR b)
 {
     RECT r;
@@ -2404,6 +2461,7 @@ void Pix_swap(UCHAR a, UCHAR b)
     DrawSync(0);
 }
 
+/* copies icon slot src to slot dst (RE2 Pix_move, arguments reversed) */
 void Pix_move(UCHAR dst, UCHAR src)
 {
     RECT r;
@@ -2416,6 +2474,7 @@ void Pix_move(UCHAR dst, UCHAR src)
     DrawSync(0);
 }
 
+/* status screen: tpage nodes and all prims */
 void St_prim_init(ST_WORK *pSt)
 {
     ULONG i;
@@ -2508,6 +2567,7 @@ void St_prim_init(ST_WORK *pSt)
 }
 
 
+/* draws the status screen (panels, condition, commands, counts, names) */
 void St_item_disp(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
@@ -2742,6 +2802,7 @@ void St_item_disp(ST_WORK *pSt)
     St_ecg_disp(pSt);
 }
 
+/* draws the flying / zooming item picture */
 void St_zoom_icon_disp(ST_WORK *pSt)
 {
     POLY_FT4 *p;
@@ -2765,6 +2826,7 @@ void St_zoom_icon_disp(ST_WORK *pSt)
     AddPrim(G.pOt0 + 1, p);
 }
 
+/* draws the condition ECG line */
 void St_ecg_disp(ST_WORK *pSt)
 {
     LINE_F2 *p;
@@ -2812,9 +2874,10 @@ void St_ecg_disp(ST_WORK *pSt)
     }
 }
 
+/* draws an item count (prm >> 8: 0 none, 1 number, 2 number + %, 3 infinite); returns the next sprite */
 SPRT *St_num_disp(SPRT *p, SHORT num, ULONG xy, ULONG prm)
 {
-    signed char d[4];
+    signed char Digit[4];
     UCHAR i;
     SHORT n;
     SHORT x = xy;
@@ -2827,43 +2890,43 @@ SPRT *St_num_disp(SPRT *p, SHORT num, ULONG xy, ULONG prm)
     case 0:
         return p;
     case 1:
-        d[0] = num / 100;
-        if (d[0] == 0) {
-            d[0] = -1;
+        Digit[0] = num / 100;
+        if (Digit[0] == 0) {
+            Digit[0] = -1;
         }
         n = num % 100;
-        d[1] = n / 10;
-        if (d[1] == 0 && d[0] == -1) {
-            d[1] = -1;
+        Digit[1] = n / 10;
+        if (Digit[1] == 0 && Digit[0] == -1) {
+            Digit[1] = -1;
         }
-        d[2] = n % 10;
-        d[3] = -1;
+        Digit[2] = n % 10;
+        Digit[3] = -1;
         break;
     case 2:
-        d[0] = num / 100;
-        if (d[0] == 0) {
-            d[0] = -1;
+        Digit[0] = num / 100;
+        if (Digit[0] == 0) {
+            Digit[0] = -1;
         }
         n = num % 100;
-        d[1] = n / 10;
-        if (d[1] == 0 && d[0] == -1) {
-            d[1] = -1;
+        Digit[1] = n / 10;
+        if (Digit[1] == 0 && Digit[0] == -1) {
+            Digit[1] = -1;
         }
-        d[2] = n % 10;
-        d[3] = 10;
+        Digit[2] = n % 10;
+        Digit[3] = 10;
         break;
     case 3:
-        d[0] = 11;
-        d[1] = 12;
-        d[2] = -1;
-        d[3] = -1;
+        Digit[0] = 11;
+        Digit[1] = 12;
+        Digit[2] = -1;
+        Digit[3] = -1;
         break;
     }
     for (i = 0; i < 4; i++) {
-        if (d[i] != -1) {
+        if (Digit[i] != -1) {
             setSprt(p);
             setRGB0(p, 0x80, 0x80, 0x80);
-            p->u0 = d[i] * 8 + 4;
+            p->u0 = Digit[i] * 8 + 4;
             p->x0 = x;
             x += 8;
             p->v0 = 0x13;
@@ -2878,6 +2941,7 @@ SPRT *St_num_disp(SPRT *p, SHORT num, ULONG xy, ULONG prm)
     return p;
 }
 
+/* draws the 30 file icons of the file list */
 void St_file_icon_disp(ST_WORK *pSt)
 {
     SPRT *p;
@@ -2937,6 +3001,7 @@ void St_file_icon_disp(ST_WORK *pSt)
     }
 }
 
+/* RE2 Search_item_id: first inventory slot from i holding item id, or -1 */
 signed char Search_item_id(UCHAR id, signed char i)
 {
     for (; (UCHAR)i < G.pItem_set->Num; i++) {
@@ -2947,20 +3012,21 @@ signed char Search_item_id(UCHAR id, signed char i)
     return -1;
 }
 
-signed char Item_decrease(UCHAR no, signed char n, UCHAR f)
+/* takes Sub off slot no unless infinite; empties the slot at 0 unless Keep; returns the count */
+signed char Item_decrease(UCHAR no, signed char Sub, UCHAR Keep)
 {
     ITEM_WORK *p = &G.pItem_set->Item[no];
 
     if ((p->Flg & 3) != 3) {
-        p->Num -= n;
+        p->Num -= Sub;
     }
-    if (p->Num == 0 && f == 0) {
+    if (p->Num == 0 && Keep == 0) {
         Item_delete(no);
     }
     return (signed char)p->Num;
 }
 
-/* needs ITEM_SET item table typed as ITEM_WORK Item[0x4A] (typedef struct tagST_ITEM { UCHAR Id; UCHAR Num; USHORT Flg; } ITEM_WORK;) */
+/* removes slot no and shifts the rest up, keeping the equip slot right */
 void Item_delete(UCHAR no)
 {
     tagGLOBAL *pG = &G;
@@ -2985,6 +3051,7 @@ void Item_delete(UCHAR no)
     pSt->Flg14 |= 0x40000000;
 }
 
+/* removes the equipped item */
 void Equip_item_delete(void)
 {
     UCHAR no;
@@ -2996,16 +3063,16 @@ void Equip_item_delete(void)
     }
 }
 
-/* needs ITEM_WORK Item[] in ITEM_SET (see Item_delete); Search_item_tama first param changed to ST_WORK *pSt; Item_decrease param n changed to signed char (both still match) */
-signed char Tama_reload(UCHAR f)
+/* RE2 Tama_reload_ck + Tama_reload: -1 when there is no ammo; with Exec reloads the equipped weapon */
+signed char Tama_reload(UCHAR Exec)
 {
     ST_WORK *pSt = &St;
     tagGLOBAL *pG = &G;
     ITEM_TAMA *pTama;
     ITEM_WORK *p;
-    signed char no;
-    signed char n;
-    UCHAR num;
+    signed char Tama_no;
+    signed char Add;
+    UCHAR Cur_num;
     ITEM_DATA *pData;
 
     if (pG->pItem_set->Equip_no == 0xFF) {
@@ -3015,46 +3082,47 @@ signed char Tama_reload(UCHAR f)
     if (pTama == (ITEM_TAMA *)-1) {
         return -1;
     }
-    no = Search_item_id(pTama->Tama_id, 0);
-    if (no == -1) {
+    Tama_no = Search_item_id(pTama->Tama_id, 0);
+    if (Tama_no == -1) {
         return -1;
     }
-    if (f) {
+    if (Exec) {
         p = &pG->pItem_set->Item[pG->pItem_set->Equip_no];
         pData = &Item_data_tbl[p->Id];
-        num = p->Num;
-        n = pData->Max - num;
-        if ((UCHAR)n >= pG->pItem_set->Item[no].Num) {
-            n = pG->pItem_set->Item[no].Num;
+        Cur_num = p->Num;
+        Add = pData->Max - Cur_num;
+        if ((UCHAR)Add >= pG->pItem_set->Item[Tama_no].Num) {
+            Add = pG->pItem_set->Item[Tama_no].Num;
         }
-        p->Num = num + n;
-        Item_decrease(no, n, 0);
+        p->Num = Cur_num + Add;
+        Item_decrease(Tama_no, Add, 0);
         pG->Player.Status_flg |= 0x400;
     }
     return 0;
 }
 
-LONG Tama_decrease(UCHAR f)
+/* RE2 Tama_decrease_i: returns the equipped weapon's rounds (-1 empty, 0xFF infinite); with Exec uses one */
+LONG Tama_decrease(UCHAR Exec)
 {
     ITEM_WORK *p;
-    USHORT w;
-    LONG t;
+    USHORT Flg_w;
+    LONG Mode;
 
     if (G.pItem_set->Equip_no == 0xFF) {
         return -1;
     }
     p = &G.pItem_set->Item[G.pItem_set->Equip_no];
-    w = p->Flg;
-    t = w & 3;
-    if (t == 3) {
+    Flg_w = p->Flg;
+    Mode = Flg_w & 3;
+    if (Mode == 3) {
         return 0xFF;
     }
     if (p->Num == 0) {
         return -1;
     }
-    if (f) {
-        if (t == 2) {
-            p->Flg = w - 0x4000;
+    if (Exec) {
+        if (Mode == 2) {
+            p->Flg = Flg_w - 0x4000;
             if (!(p->Flg & 0xC000)) {
                 p->Num--;
                 p->Flg |= 0xC000;
@@ -3066,6 +3134,7 @@ LONG Tama_decrease(UCHAR f)
     return p->Num;
 }
 
+/* new game: clears both item sets and fills the starting inventory and box (RE2 Status_init) */
 void Status_init(void)
 {
     tagGLOBAL *pG = &G;
@@ -3224,6 +3293,7 @@ void Status_init(void)
     }
 }
 
+/* loads the status screen textures and icons at game start */
 void St_tex_load(void)
 {
     ST_WORK *pSt = &St;
@@ -3280,6 +3350,7 @@ void St_tex_load(void)
 
 INCLUDE_RODATA("asm/nonmatchings/game/status", D_80010FEC);
 
+/* status task start: pauses the game, saves VRAM, sets up the screen for St_type, fades in */
 void St_init(ST_WORK *pSt)
 {
     RECT r;
@@ -3469,6 +3540,7 @@ void St_init(ST_WORK *pSt)
 }
 
 
+/* status screen task (RE2 Status) */
 void Status(void)
 {
     ST_WORK *pSt = &St;
@@ -3487,6 +3559,7 @@ void Status(void)
     Task_exit();
 }
 
+/* status task end: restores VRAM, applies a weapon change, seeks the room's BSS (RE2 St_exit) */
 void St_exit(ST_WORK *pSt)
 {
     RECT r;
@@ -3539,6 +3612,7 @@ void St_exit(ST_WORK *pSt)
     Task_signal(0);
 }
 
+/* per frame: condition, colour pulse and ECG scroll */
 void St_counter_move(ST_WORK *pSt)
 {
     pSt->Condition = St_condition_get();
@@ -3565,6 +3639,7 @@ void St_counter_move(ST_WORK *pSt)
     }
 }
 
+/* draws the current screen */
 void St_draw(ST_WORK *pSt)
 {
     switch (pSt->St_type) {
@@ -3593,6 +3668,7 @@ void St_draw(ST_WORK *pSt)
     }
 }
 
+/* Rtn0 0: waits for the fade and the sound fade, then picks the first step for St_type */
 void St_open_wait(ST_WORK *pSt)
 {
     SND_WORK *pW = &Snd_work;
@@ -3623,6 +3699,7 @@ void St_open_wait(ST_WORK *pSt)
     }
 }
 
+/* Rtn0 13: fades out and ends the task */
 void St_close(ST_WORK *pSt)
 {
     SND_WORK *pW = &Snd_work;
@@ -3644,6 +3721,7 @@ void St_close(ST_WORK *pSt)
     }
 }
 
+/* player condition: 0 fine .. 3 danger, 4 poison, 5 Status_flg 0x100 */
 LONG St_condition_get(void)
 {
     USHORT f = G.Player.Status_flg;
@@ -3667,7 +3745,7 @@ LONG St_condition_get(void)
     return 3;
 }
 
-/* prototype in file changed: void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *pTbl, ULONG f); */
+/* sets up n sprite pairs (prm: n, clut row << 8, semi-transparent << 16) */
 void St_sprt_init(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
 {
     ULONG i, j;
@@ -3695,6 +3773,7 @@ void St_sprt_init(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
     }
 }
 
+/* sets up n POLY_FT4 pairs (prm: n, clut row << 8, tpage << 16, size << 24) */
 void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm)
 {
     ULONG i, j;
@@ -3728,6 +3807,7 @@ void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm)
     }
 }
 
+/* sets up n grey TILE pairs */
 void St_tile_init(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, UCHAR n)
 {
     ULONG i, j;
@@ -3743,6 +3823,7 @@ void St_tile_init(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, UCHAR n)
     }
 }
 
+/* sets up the 32 LINE_F2 pairs of the ECG line */
 void St_line_init(ST_WORK *pSt)
 {
     LINE_F2 *p;
@@ -3760,67 +3841,71 @@ void St_line_init(ST_WORK *pSt)
     }
 }
 
+/* positions n sprite pairs at their definition + St.Pos[prm >> 8], linked under St.Ot[buf][prm >> 16] */
 void St_sprt_draw(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
-    UCHAR ofs = prm >> 8;
-    UCHAR ot = prm >> 16;
-    ULONG n = prm;
+    UCHAR Pos_no = prm >> 8;
+    UCHAR Ot_no = prm >> 16;
+    ULONG Num = prm;
 
     if (G.Cbuf_id) {
         p++;
     }
-    ox = pSt->Pos[ofs].X;
-    oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, pDef++) {
+    ox = pSt->Pos[Pos_no].X;
+    oy = pSt->Pos[Pos_no].Y;
+    for (i = 0; i < (UCHAR)Num; i++, p += 2, pDef++) {
         p->x0 = pDef->X + ox;
         p->y0 = pDef->Y + oy;
-        AddPrim(&pSt->Ot[G.Cbuf_id][ot], p);
+        AddPrim(&pSt->Ot[G.Cbuf_id][Ot_no], p);
     }
 }
 
+/* positions n POLY_FT4 pairs, linked into G.pOt0 */
 void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm)
 {
     ULONG i;
-    UCHAR ofs = prm >> 8;
-    UCHAR ot = prm >> 16;
-    ULONG n = prm;
+    UCHAR Pos_no = prm >> 8;
+    UCHAR Ot_no = prm >> 16;
+    ULONG Num = prm;
     LONG x, y, x1, y1;
 
     if (G.Cbuf_id) {
         p++;
     }
-    for (i = 0; i < (UCHAR)n; p += 2, pDef++, i++) {
-        x = pSt->Pos[ofs].X + pDef->X;
-        y = pSt->Pos[ofs].Y + pDef->Y;
+    for (i = 0; i < (UCHAR)Num; p += 2, pDef++, i++) {
+        x = pSt->Pos[Pos_no].X + pDef->X;
+        y = pSt->Pos[Pos_no].Y + pDef->Y;
         x1 = x + pDef->W;
         y1 = y + pDef->H;
         setXY4(p, x, y, x1, y, x, y1, x1, y1);
-        AddPrim(G.pOt0 + ot, p);
+        AddPrim(G.pOt0 + Ot_no, p);
     }
 }
 
+/* positions n TILE pairs, linked into G.pOt0 */
 void St_tile_draw(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
-    UCHAR ofs = prm >> 8;
-    UCHAR ot = prm >> 16;
-    ULONG n = prm;
+    UCHAR Pos_no = prm >> 8;
+    UCHAR Ot_no = prm >> 16;
+    ULONG Num = prm;
 
     if (G.Cbuf_id) {
         p++;
     }
-    ox = pSt->Pos[ofs].X;
-    oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, pDef++) {
+    ox = pSt->Pos[Pos_no].X;
+    oy = pSt->Pos[Pos_no].Y;
+    for (i = 0; i < (UCHAR)Num; i++, p += 2, pDef++) {
         p->x0 = pDef->X + ox;
         p->y0 = pDef->Y + oy;
-        AddPrim(G.pOt0 + ot, p);
+        AddPrim(G.pOt0 + Ot_no, p);
     }
 }
 
+/* Mapping_tim for status textures: loads a TIM at G.Ctp's texture page and clut row */
 void St_mapping_tim(ULONG *pTim)
 {
     TIM_IMAGE tim;
@@ -3843,6 +3928,7 @@ void St_mapping_tim(ULONG *pTim)
     DrawSync(0);
 }
 
+/* character change: selects the item set (RE2 St_chenge_pl) */
 void St_chenge_pl(ULONG no)
 {
     switch (no) {
@@ -3864,9 +3950,10 @@ void St_chenge_pl(ULONG no)
     St.Flg14 |= 0x40000000;
 }
 
+/* map stage/room the player is in (Map_room_conv) */
 void St_map_pos_init(ST_WORK *pSt)
 {
-    UCHAR c;
+    UCHAR Room;
 
     pSt->Area_cursor = 0;
     pSt->Map_return = 0;
@@ -3874,10 +3961,11 @@ void St_map_pos_init(ST_WORK *pSt)
     pSt->Map_room_cur = (UCHAR)G.Unk7840;
     Map_room_conv(&pSt->Map_stage, &pSt->Map_room_cur);
     pSt->Map_stage_cur = (UCHAR)G.Unk783E;
-    c = (UCHAR)G.Unk7840;
-    Map_room_conv(&pSt->Map_stage_cur, &c);
+    Room = (UCHAR)G.Unk7840;
+    Map_room_conv(&pSt->Map_stage_cur, &Room);
 }
 
+/* Rtn0 4: loads the map of Map_stage and sets up its prims, zoom and scroll */
 void St_map_init(ST_WORK *pSt)
 {
     ULONG i, j;
@@ -4088,11 +4176,13 @@ void St_map_init(ST_WORK *pSt)
     pSt->Map_y_max = pSt->Map_y0 + 0xE0;
 }
 
+/* Rtn0 5: map, runs St_map_tbl[Rtn1] */
 void St_map(ST_WORK *pSt)
 {
     St_map_tbl[pSt->Rtn1](pSt);
 }
 
+/* map Rtn1 0: floors, zoom, scroll, area menu */
 void St_map_ctrl(ST_WORK *pSt)
 {
     tagGLOBAL *pG;
@@ -4194,6 +4284,7 @@ void St_map_ctrl(ST_WORK *pSt)
     }
 }
 
+/* map Rtn1 1: eases the zoom and scroll */
 void St_map_zoom(ST_WORK *pSt)
 {
     if (pSt->Zoom_out_flg) {
@@ -4223,8 +4314,10 @@ void St_map_zoom(ST_WORK *pSt)
     }
 }
 
+/* map Rtn1 2: area menu */
 INCLUDE_ASM("asm/nonmatchings/game/status", St_map_area_select);
 
+/* map Rtn1 3: fades back in after an area change */
 void St_map_fade_in(ST_WORK *pSt)
 {
     switch (pSt->Rtn2) {
@@ -4241,6 +4334,7 @@ void St_map_fade_in(ST_WORK *pSt)
     }
 }
 
+/* map Rtn1 4: fades out and reloads the map of the chosen area */
 void St_map_area_change(ST_WORK *pSt)
 {
     switch (pSt->Rtn2) {
@@ -4262,12 +4356,13 @@ void St_map_area_change(ST_WORK *pSt)
     }
 }
 
+/* Rtn0 6: back to the status screen, close, or for a picked-up map: clear the AOT and show the message */
 void St_map_exit(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
-    UCHAR *pA = pG->pAot_data;
-    UCHAR *pD = (UCHAR *)pG->pUnk21DC;
-    UCHAR n;
+    UCHAR *pAot = pG->pAot_data;
+    UCHAR *pItem = (UCHAR *)pG->pUnk21DC;
+    UCHAR Model_no;
 
     switch (pSt->Rtn1) {
     case 0:
@@ -4291,19 +4386,19 @@ void St_map_exit(ST_WORK *pSt)
             pSt->Rtn1 = 0;
             break;
         case 5:
-            *pA = 0;
-            n = pD[6];
+            *pAot = 0;
+            Model_no = pItem[6];
             if (pG->Unk783E < 2) {
-                Flg_on(pG->Unk78D0, *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78D0, *(USHORT *)(pItem + 4));
             } else {
-                Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
+                Flg_on(pG->Unk78F0, *(USHORT *)(pItem + 4));
             }
-            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
+            func_8001B894(0x705, &G.Ob_model[Model_no & 0xFF].M);
             func_8001B894(0x905, 0);
-            if (!(n & 0x80)) {
-                G.Ob_model[n & 0xFF].Be_flg = 0;
+            if (!(Model_no & 0x80)) {
+                G.Ob_model[Model_no & 0xFF].Be_flg = 0;
             }
-            D_800DBB5B = pD[0];
+            D_800DBB5B = pItem[0];
             Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn1++;
             break;
@@ -4319,6 +4414,7 @@ void St_map_exit(ST_WORK *pSt)
     }
 }
 
+/* draws the map (rooms, player, arrows, grid, header, area menu) */
 void St_map_draw(ST_WORK *pSt)
 {
     ST_MAP_PARTS *pRoom;
@@ -4569,7 +4665,7 @@ void St_map_draw(ST_WORK *pSt)
     }
 }
 
-/* needs ST_MAP_PART (see St_map_draw.c draft) and ST_WORK Unk7C..UnkA4 */
+/* sets up one map part FT4, zoomed and scrolled */
 void Map_part_set(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut)
 {
     LONG x, y, w, h, ox, oy, zoom;
@@ -4592,6 +4688,7 @@ void Map_part_set(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut)
     p->clut = ((pPt->Clut + ((pPt->Tpage & 1) * 8 + 0x1EA) + clut) << 6) | 0x13;
 }
 
+/* reads MAP.MAP entry no and maps its two TIMs */
 void Map_file_load(ST_WORK *pSt, UCHAR no)
 {
     ULONG i, sum;
@@ -4615,90 +4712,94 @@ void Map_file_load(ST_WORK *pSt, UCHAR no)
     St_mapping_tim((ULONG *)(pSt->pMap_file[7] + (ULONG)pSt->pMap_file));
 }
 
-void Map_visit_set(UCHAR a, UCHAR b)
+/* marks a room visited (Set_room) */
+void Map_visit_set(UCHAR Stage, UCHAR Room)
 {
-    ULONG *p;
+    ULONG *pFlg;
 
-    if (a == 0 && b == 16) {
-        Map_visit_flg[0] |= 0x80000000U >> (b & 0x1F);
+    if (Stage == 0 && Room == 16) {
+        Map_visit_flg[0] |= 0x80000000U >> (Room & 0x1F);
     }
-    if (a == 1 && b == 0) {
-        Map_visit_flg[2] |= 0x80000000U >> (b & 0x1F);
+    if (Stage == 1 && Room == 0) {
+        Map_visit_flg[2] |= 0x80000000U >> (Room & 0x1F);
     }
-    if (a == 1 && b == 1) {
+    if (Stage == 1 && Room == 1) {
         Map_visit_flg[1] |= 0x10000;
     }
-    if (a == 3 && b == 21) {
-        Map_visit_flg[6] |= 0x80000000U >> (b & 0x1F);
+    if (Stage == 3 && Room == 21) {
+        Map_visit_flg[6] |= 0x80000000U >> (Room & 0x1F);
     }
-    Map_room_conv(&a, &b);
-    p = &Map_visit_flg[a * 2 + (b >> 5)];
-    *p |= 0x80000000U >> (b & 0x1F);
-    Flg_on(&Map_visit_flg[19], a);
+    Map_room_conv(&Stage, &Room);
+    pFlg = &Map_visit_flg[Stage * 2 + (Room >> 5)];
+    *pFlg |= 0x80000000U >> (Room & 0x1F);
+    Flg_on(&Map_visit_flg[19], Stage);
 }
 
-ULONG Map_visit_ck(UCHAR a, UCHAR b)
+/* room visited? */
+ULONG Map_visit_ck(UCHAR Stage, UCHAR Room)
 {
-    ULONG *p = &Map_visit_flg[a * 2 + (b >> 5)];
+    ULONG *pFlg = &Map_visit_flg[Stage * 2 + (Room >> 5)];
 
-    return *p & (0x80000000U >> (b & 0x1F));
+    return *pFlg & (0x80000000U >> (Room & 0x1F));
 }
 
 
-LONG Map_room_disp_ck(UCHAR st, UCHAR rm)
+/* is the room drawn (exceptions, current floor) */
+LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
 {
     ST_WORK *pSt = &St;
     USHORT code = pSt->Map_room_cur | (pSt->Map_stage_cur << 8);
     LONG f;
 
-    switch (st) {
+    switch (Stage) {
     case 0:
-        if ((UCHAR)(rm - 0x11) < 10) {
+        if ((UCHAR)(Room - 0x11) < 10) {
             return 0;
         }
         break;
     case 1:
-        if ((code == 0x10C || code == 0x115) && Flg_ck(D_800D1FA0, 0x3A) && rm != 0xC) {
+        if ((code == 0x10C || code == 0x115) && Flg_ck(D_800D1FA0, 0x3A) && Room != 0xC) {
             return 0;
         }
-        if ((USHORT)(G.Unk783E - 2) < 3 && rm == 0xC) {
+        if ((USHORT)(G.Unk783E - 2) < 3 && Room == 0xC) {
             return 0;
         }
-        if (rm == (code == 0x10F ? 0x10 : 0xF)) {
+        if (Room == (code == 0x10F ? 0x10 : 0xF)) {
             return 0;
         }
         if (code == 0x112) {
-            if (rm == 0x11) {
+            if (Room == 0x11) {
                 return 0;
             }
-        } else if (rm == 0x12) {
+        } else if (Room == 0x12) {
             return 0;
         }
         break;
     case 3:
         f = Flg_ck(D_800D1FA0, 0xC4);
-        if (rm == (f ? 0x11 : 0x15)) {
+        if (Room == (f ? 0x11 : 0x15)) {
             return 0;
         }
         if (code == 0x310) {
-            if (rm == 0x11 || rm == 0x15) {
+            if (Room == 0x11 || Room == 0x15) {
                 return 0;
             }
-            if (rm == 0xD) {
+            if (Room == 0xD) {
                 return 0;
             }
-        } else if (rm == 0x10) {
+        } else if (Room == 0x10) {
             return 0;
         }
         break;
     }
-    if (St.Floor_flg && (signed char)St.Floor_disp != Map_floor_get(pSt, st, rm)) {
+    if (St.Floor_flg && (signed char)St.Floor_disp != Map_floor_get(pSt, Stage, Room)) {
         return 0;
     }
     return 1;
 }
 
-LONG Map_part_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
+/* is a base part of the room drawn */
+LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     tagGLOBAL *pG = &G;
     UCHAR *p = (UCHAR *)St.pMap_data;
@@ -4711,9 +4812,9 @@ LONG Map_part_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
     ULONG *pF4 = &G.Unk7888;
 
     p += ((LONG *)p)[3];
-    if (!Flg_ck(pG->Unk79EC, st)) {
+    if (!Flg_ck(pG->Unk79EC, Stage)) {
         for (; (signed char)p[0] != -1; p += 4) {
-            if (p[0] == rm && p[1] == cut) {
+            if (p[0] == Room && p[1] == Part) {
                 if (p[3]) {
                     if (!Flg_ck(G.Unk7868, p[2])) {
                         return 0;
@@ -4728,211 +4829,211 @@ LONG Map_part_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
     }
     switch (St.Map_event) {
     case 1:
-        if (st == 0 && rm == 0 && cut == 0) {
+        if (Stage == 0 && Room == 0 && Part == 0) {
             return 0;
         }
-        if (st == 4 && rm == 3 && cut == 2) {
+        if (Stage == 4 && Room == 3 && Part == 2) {
             return 0;
         }
-        if (st == 4 && rm == 3 && cut == 3) {
+        if (Stage == 4 && Room == 3 && Part == 3) {
             return 0;
         }
         break;
     case 2:
-        if (st == 0 && rm == 0 && cut == 1) {
+        if (Stage == 0 && Room == 0 && Part == 1) {
             return 0;
         }
-        if (st == 4 && rm == 3 && cut == 0) {
+        if (Stage == 4 && Room == 3 && Part == 0) {
             return 0;
         }
         break;
     default:
-        if (st == 0 && rm == 0 && cut == 1) {
+        if (Stage == 0 && Room == 0 && Part == 1) {
             return 0;
         }
-        if (st == 4 && rm == 3 && cut == 2) {
+        if (Stage == 4 && Room == 3 && Part == 2) {
             return 0;
         }
-        if (st == 4 && rm == 3 && cut == 3) {
+        if (Stage == 4 && Room == 3 && Part == 3) {
             return 0;
         }
         break;
     }
-    switch (st) {
+    switch (Stage) {
     case 0:
         if (cur == 1 && (signed char)fl < 3) {
-            if (rm == 0 && cut == 0) {
+            if (Room == 0 && Part == 0) {
                 return 0;
             }
-            if (rm == 1 && cut == 1) {
+            if (Room == 1 && Part == 1) {
                 return 0;
             }
-            if (rm == 1 && cut == 2) {
+            if (Room == 1 && Part == 2) {
                 return 0;
             }
         } else {
-            if (rm == 1 && cut == 0) {
+            if (Room == 1 && Part == 0) {
                 return 0;
             }
         }
-        if (cur == 0xD && rm == 0xD && cut == 1) {
+        if (cur == 0xD && Room == 0xD && Part == 1) {
             return 0;
         }
         if (Flg_ck(&G.System_flg, 0x18)) {
             return 1;
         }
         if (cur == 4 || Flg_ck(pF0, 0x3B)) {
-            if (rm == 4 && cut == 2) {
+            if (Room == 4 && Part == 2) {
                 return 0;
             }
-            if (rm == 4 && cut == 3) {
+            if (Room == 4 && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 4 && cut == 1) {
+            if (Room == 4 && Part == 1) {
                 return 0;
             }
         }
         if (cur == 7 || Flg_ck(pF0, 0xC)) {
-            if (rm == 7 && cut == 1) {
+            if (Room == 7 && Part == 1) {
                 return 0;
             }
-            if (rm == 7 && cut == 2) {
+            if (Room == 7 && Part == 2) {
                 return 0;
             }
-            if (rm == 7 && cut == 3) {
+            if (Room == 7 && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 7 && cut == 0) {
+            if (Room == 7 && Part == 0) {
                 return 0;
             }
         }
         if (cur == 0x1B || cur == 0x1C || Flg_ck(pF0, 0x23)) {
-            if (rm == 0x1B && cut == 1) {
+            if (Room == 0x1B && Part == 1) {
                 return 0;
             }
-            if (rm == 0x1B && cut == 2) {
+            if (Room == 0x1B && Part == 2) {
                 return 0;
             }
-            if (rm == 0x1B && cut == 3) {
+            if (Room == 0x1B && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 0x1C && cut == 0) {
+            if (Room == 0x1C && Part == 0) {
                 return 0;
             }
-            if (rm == 0x1B && cut == 0) {
+            if (Room == 0x1B && Part == 0) {
                 return 0;
             }
         }
         if (Flg_ck(pF2, 0x8D)) {
-            if (rm == 0x2F && cut == 0) {
+            if (Room == 0x2F && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 0x2F && cut == 1) {
+            if (Room == 0x2F && Part == 1) {
                 return 0;
             }
         }
         break;
     case 1:
         if (cur == 0x101 && (signed char)fl < 9) {
-            if (rm == 0 && cut == 0) {
+            if (Room == 0 && Part == 0) {
                 return 0;
             }
-            if (rm == 1 && cut == 0) {
+            if (Room == 1 && Part == 0) {
                 return 0;
             }
-            if (rm == 1 && cut == 1) {
+            if (Room == 1 && Part == 1) {
                 return 0;
             }
-            if (rm == 1 && cut == 2) {
+            if (Room == 1 && Part == 2) {
                 return 0;
             }
-            if (rm == 1 && cut == 3) {
+            if (Room == 1 && Part == 3) {
                 return 0;
             }
-            if (rm == 1 && cut == 4) {
+            if (Room == 1 && Part == 4) {
                 return 0;
             }
-            if (rm == 1 && cut == 5) {
+            if (Room == 1 && Part == 5) {
                 return 0;
             }
-            if (rm == 1 && cut == 6) {
+            if (Room == 1 && Part == 6) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xB) {
+            if (Room == 1 && Part == 0xB) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xC) {
+            if (Room == 1 && Part == 0xC) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xD) {
+            if (Room == 1 && Part == 0xD) {
                 return 0;
             }
         } else {
-            if (rm == 0 && cut == 4) {
+            if (Room == 0 && Part == 4) {
                 return 0;
             }
-            if (rm == 1 && cut == 7) {
+            if (Room == 1 && Part == 7) {
                 return 0;
             }
-            if (rm == 1 && cut == 8) {
+            if (Room == 1 && Part == 8) {
                 return 0;
             }
-            if (rm == 1 && cut == 9) {
+            if (Room == 1 && Part == 9) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xA) {
+            if (Room == 1 && Part == 0xA) {
                 return 0;
             }
         }
         if (cur == 0x104) {
-            if (rm == 3 && cut == 1) {
+            if (Room == 3 && Part == 1) {
                 return 0;
             }
         } else {
-            if (rm == 4 && cut == 2) {
+            if (Room == 4 && Part == 2) {
                 return 0;
             }
         }
         if (cur == 0x10A && (signed char)fl < 4) {
-            if (rm == 0xA && cut == 0) {
+            if (Room == 0xA && Part == 0) {
                 return 0;
             }
-            if (rm == 0xA && cut == 2) {
+            if (Room == 0xA && Part == 2) {
                 return 0;
             }
-            if (rm == 0xA && cut == 3) {
+            if (Room == 0xA && Part == 3) {
                 return 0;
             }
-            if (rm == 0xB && cut == 3) {
+            if (Room == 0xB && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 0xA && cut == 1) {
+            if (Room == 0xA && Part == 1) {
                 return 0;
             }
             if (Flg_ck(pF2, 0xD6)) {
-                if (rm == 0xA && cut == 2) {
+                if (Room == 0xA && Part == 2) {
                     return 0;
                 }
             } else {
-                if (rm == 0xA && cut == 3) {
+                if (Room == 0xA && Part == 3) {
                     return 0;
                 }
             }
         }
         if (cur == 0x110 && (signed char)fl >= 4) {
-            if (rm == 0x10 && cut == 0) {
+            if (Room == 0x10 && Part == 0) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 1) {
+            if (Room == 0x10 && Part == 1) {
                 return 0;
             }
         } else {
-            if (rm == 0x10 && cut == 2) {
+            if (Room == 0x10 && Part == 2) {
                 return 0;
             }
         }
@@ -4940,331 +5041,331 @@ LONG Map_part_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
             return 1;
         }
         if (cur == 0x101 || Flg_ck(pF0, 0x2F)) {
-            if (rm == 1 && cut == 1) {
+            if (Room == 1 && Part == 1) {
                 return 0;
             }
-            if (rm == 1 && cut == 2) {
+            if (Room == 1 && Part == 2) {
                 return 0;
             }
-            if (rm == 1 && cut == 3) {
+            if (Room == 1 && Part == 3) {
                 return 0;
             }
-            if (rm == 1 && cut == 4) {
+            if (Room == 1 && Part == 4) {
                 return 0;
             }
-            if (rm == 1 && cut == 5) {
+            if (Room == 1 && Part == 5) {
                 return 0;
             }
-            if (rm == 1 && cut == 6) {
+            if (Room == 1 && Part == 6) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xB) {
+            if (Room == 1 && Part == 0xB) {
                 return 0;
             }
         } else {
-            if (rm == 1 && cut == 0) {
+            if (Room == 1 && Part == 0) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xC) {
+            if (Room == 1 && Part == 0xC) {
                 return 0;
             }
-            if (rm == 1 && cut == 0xD) {
+            if (Room == 1 && Part == 0xD) {
                 return 0;
             }
         }
         if (cur == 0x10C || Flg_ck(pF0, 0x21)) {
-            if (rm == 0xC && cut == 3) {
+            if (Room == 0xC && Part == 3) {
                 return 0;
             }
-            if (rm == 0xC && cut == 4) {
+            if (Room == 0xC && Part == 4) {
                 return 0;
             }
         } else {
-            if (rm == 0xC && cut == 0) {
+            if (Room == 0xC && Part == 0) {
                 return 0;
             }
-            if (rm == 0xC && cut == 1) {
+            if (Room == 0xC && Part == 1) {
                 return 0;
             }
-            if (rm == 0xC && cut == 2) {
+            if (Room == 0xC && Part == 2) {
                 return 0;
             }
         }
         if (cur == 0x10D || Flg_ck(pF0, 0x22)) {
-            if (rm == 0xD && cut == 2) {
+            if (Room == 0xD && Part == 2) {
                 return 0;
             }
-            if (rm == 0xD && cut == 3) {
+            if (Room == 0xD && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 0xD && cut == 0) {
+            if (Room == 0xD && Part == 0) {
                 return 0;
             }
         }
         if (cur == 0x10F || cur == 0x110 || Flg_ck(pF2, 2) || Flg_ck(pF0, 0x5F)) {
-            if (rm == 0x10 && cut == 5) {
+            if (Room == 0x10 && Part == 5) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 6) {
+            if (Room == 0x10 && Part == 6) {
                 return 0;
             }
         } else {
-            if (rm == 0x10 && cut == 0) {
+            if (Room == 0x10 && Part == 0) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 1) {
+            if (Room == 0x10 && Part == 1) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 2) {
+            if (Room == 0x10 && Part == 2) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 3) {
+            if (Room == 0x10 && Part == 3) {
                 return 0;
             }
         }
         if (cur == 0x111 || cur == 0x112 || Flg_ck(pF2, 0xD) || Flg_ck(pF0, 0x40)) {
-            if (rm == 0x11 && cut == 1) {
+            if (Room == 0x11 && Part == 1) {
                 return 0;
             }
-            if (rm == 0x11 && cut == 2) {
+            if (Room == 0x11 && Part == 2) {
                 return 0;
             }
-            if (rm == 0x11 && cut == 3) {
+            if (Room == 0x11 && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 0x11 && cut == 0) {
+            if (Room == 0x11 && Part == 0) {
                 return 0;
             }
         }
         if (cur == 0x113 || cur == 0x114 || Flg_ck(pF0, 0x24)) {
-            if (rm == 0x14 && cut == 4) {
+            if (Room == 0x14 && Part == 4) {
                 return 0;
             }
-            if (rm == 0x14 && cut == 5) {
+            if (Room == 0x14 && Part == 5) {
                 return 0;
             }
-            if (rm == 0x14 && cut == 6) {
+            if (Room == 0x14 && Part == 6) {
                 return 0;
             }
         } else {
-            if (rm == 0x13 && cut == 0) {
+            if (Room == 0x13 && Part == 0) {
                 return 0;
             }
-            if (rm == 0x14 && cut == 0) {
+            if (Room == 0x14 && Part == 0) {
                 return 0;
             }
-            if (rm == 0x14 && cut == 1) {
+            if (Room == 0x14 && Part == 1) {
                 return 0;
             }
-            if (rm == 0x14 && cut == 2) {
+            if (Room == 0x14 && Part == 2) {
                 return 0;
             }
-            if (rm == 0x14 && cut == 3) {
+            if (Room == 0x14 && Part == 3) {
                 return 0;
             }
         }
         if (Flg_ck(pF2, 0x8D)) {
-            if (rm == 1 && cut == 0xC) {
+            if (Room == 1 && Part == 0xC) {
                 return 0;
             }
         } else {
-            if (rm == 1 && cut == 0xD) {
+            if (Room == 1 && Part == 0xD) {
                 return 0;
             }
         }
         if (Flg_ck(pF2, 0x9D)) {
-            if (rm == 0xD && cut == 0) {
+            if (Room == 0xD && Part == 0) {
                 return 0;
             }
-            if (rm == 0xD && cut == 2) {
+            if (Room == 0xD && Part == 2) {
                 return 0;
             }
-            if (rm == 0xD && cut == 3) {
+            if (Room == 0xD && Part == 3) {
                 return 0;
             }
-            if (rm == 0xE && cut == 0) {
+            if (Room == 0xE && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 0xD && cut == 4) {
+            if (Room == 0xD && Part == 4) {
                 return 0;
             }
-            if (rm == 0xE && cut == 2) {
+            if (Room == 0xE && Part == 2) {
                 return 0;
             }
         }
         break;
     case 2:
         if (Flg_ck(pF2, 0xC8)) {
-            if (rm == 2 && cut == 0) {
+            if (Room == 2 && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 1 && cut == 1) {
+            if (Room == 1 && Part == 1) {
                 return 0;
             }
         }
         if (Flg_ck(pF2, 0x37)) {
-            if (rm == 3 && cut == 0) {
+            if (Room == 3 && Part == 0) {
                 return 0;
             }
-            if (rm == 4 && cut == 0) {
+            if (Room == 4 && Part == 0) {
                 return 0;
             }
-            if (rm == 0xA && cut == 0) {
+            if (Room == 0xA && Part == 0) {
                 return 0;
             }
-            if (rm == 0xB && cut == 0) {
+            if (Room == 0xB && Part == 0) {
                 return 0;
             }
-            if (rm == 0xC && cut == 0) {
+            if (Room == 0xC && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 3 && cut == 1) {
+            if (Room == 3 && Part == 1) {
                 return 0;
             }
-            if (rm == 4 && cut == 1) {
+            if (Room == 4 && Part == 1) {
                 return 0;
             }
-            if (rm == 0xA && cut == 1) {
+            if (Room == 0xA && Part == 1) {
                 return 0;
             }
-            if (rm == 0xB && cut == 1) {
+            if (Room == 0xB && Part == 1) {
                 return 0;
             }
-            if (rm == 0xC && cut == 1) {
+            if (Room == 0xC && Part == 1) {
                 return 0;
             }
         }
         break;
     case 3:
         if (cur == 0x316 && (signed char)fl < 10) {
-            if (rm == 0x16 && cut == 0) {
+            if (Room == 0x16 && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 0x16 && cut == 1) {
+            if (Room == 0x16 && Part == 1) {
                 return 0;
             }
-            if (rm == 0x16 && cut == 2) {
+            if (Room == 0x16 && Part == 2) {
                 return 0;
             }
         }
         if (Flg_ck(pF3, 9)) {
-            if (rm == 0 && cut == 8) {
+            if (Room == 0 && Part == 8) {
                 return 0;
             }
-            if (rm == 0 && cut == 9) {
+            if (Room == 0 && Part == 9) {
                 return 0;
             }
-            if (rm == 0 && cut == 0xA) {
+            if (Room == 0 && Part == 0xA) {
                 return 0;
             }
-            if (rm == 0 && cut == 0xB) {
+            if (Room == 0 && Part == 0xB) {
                 return 0;
             }
-            if (rm == 0 && cut == 0xC) {
+            if (Room == 0 && Part == 0xC) {
                 return 0;
             }
         } else {
-            if (rm == 1) {
+            if (Room == 1) {
                 return 0;
             }
-            if (rm == 0xC) {
+            if (Room == 0xC) {
                 return 0;
             }
-            if (rm == 0xD) {
+            if (Room == 0xD) {
                 return 0;
             }
-            if (rm == 0xE) {
+            if (Room == 0xE) {
                 return 0;
             }
-            if (rm == 0xF) {
+            if (Room == 0xF) {
                 return 0;
             }
-            if (rm == 0x10) {
+            if (Room == 0x10) {
                 return 0;
             }
-            if (rm == 0x11) {
+            if (Room == 0x11) {
                 return 0;
             }
-            if (rm == 0x12) {
+            if (Room == 0x12) {
                 return 0;
             }
-            if (rm == 0x13) {
+            if (Room == 0x13) {
                 return 0;
             }
-            if (rm == 0x14) {
+            if (Room == 0x14) {
                 return 0;
             }
-            if (rm == 0x15) {
+            if (Room == 0x15) {
                 return 0;
             }
         }
         if (Flg_ck(pF1, 0x27) && Flg_ck(pF1, 0x36)) {
-            if (rm == 0 && cut == 0x10) {
+            if (Room == 0 && Part == 0x10) {
                 return 0;
             }
-            if (rm == 0 && cut == 0x11) {
+            if (Room == 0 && Part == 0x11) {
                 return 0;
             }
         } else {
-            if (rm == 0 && cut == 0x12) {
+            if (Room == 0 && Part == 0x12) {
                 return 0;
             }
         }
         if (Flg_ck(pF2, 0xBB)) {
-            if (rm == 0 && cut == 0) {
+            if (Room == 0 && Part == 0) {
                 return 0;
             }
-            if (rm == 0 && cut == 0x10) {
+            if (Room == 0 && Part == 0x10) {
                 return 0;
             }
-            if (rm == 0 && cut == 0x11) {
+            if (Room == 0 && Part == 0x11) {
                 return 0;
             }
-            if (rm == 0 && cut == 0x12) {
+            if (Room == 0 && Part == 0x12) {
                 return 0;
             }
         } else {
-            if (rm == 0 && cut == 0xD) {
+            if (Room == 0 && Part == 0xD) {
                 return 0;
             }
-            if (rm == 0 && cut == 0xE) {
+            if (Room == 0 && Part == 0xE) {
                 return 0;
             }
-            if (rm == 0 && cut == 0x13) {
+            if (Room == 0 && Part == 0x13) {
                 return 0;
             }
         }
         if (Flg_ck(G.Unk7868, 0xC4)) {
-            if (rm == 0x10 && cut == 4) {
+            if (Room == 0x10 && Part == 4) {
                 return 0;
             }
         } else {
-            if (rm == 0x10 && cut == 5) {
+            if (Room == 0x10 && Part == 5) {
                 return 0;
             }
         }
         break;
     case 4:
         if ((cur == 0x40D && Flg_ck(pF4, 0x1D)) || cur == 0x40E || cur == 0x40F) {
-            if (rm == 0xD && cut == 0) {
+            if (Room == 0xD && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 0xD && cut == 1) {
+            if (Room == 0xD && Part == 1) {
                 return 0;
             }
         }
         if (!Flg_ck(D_800D258C, 0x45)) {
-            if (rm == 3 && cut == 1) {
+            if (Room == 3 && Part == 1) {
                 return 0;
             }
-            if (rm == 7 && cut == 1) {
+            if (Room == 7 && Part == 1) {
                 return 0;
             }
         }
@@ -5273,58 +5374,59 @@ LONG Map_part_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
     return 1;
 }
 
-LONG Map_part_clut(UCHAR st, UCHAR rm, UCHAR cut)
+/* clut of a base part: 5 not visited, 2 the player's room, 0 normal */
+LONG Map_part_clut(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     ST_WORK *pSt = &St;
     LONG cur = pSt->Map_room_cur | (pSt->Map_stage_cur << 8);
     UCHAR *p;
 
-    if (rm < 0x30 && !Map_visit_ck(st, rm)) {
+    if (Room < 0x30 && !Map_visit_ck(Stage, Room)) {
         return 5;
     }
-    switch (st) {
+    switch (Stage) {
     case 0:
-        if (rm == 0x2F && !Map_visit_ck(1, 1)) {
+        if (Room == 0x2F && !Map_visit_ck(1, 1)) {
             return 5;
         }
-        if (rm == 0x10 && !Map_visit_ck(5, 0)) {
+        if (Room == 0x10 && !Map_visit_ck(5, 0)) {
             return 5;
         }
         break;
     case 1:
-        if (rm == 0 && !Map_visit_ck(0, 0x26)) {
+        if (Room == 0 && !Map_visit_ck(0, 0x26)) {
             return 5;
         }
-        if (rm == 0xC && pSt->Map_room_cur == rm) {
+        if (Room == 0xC && pSt->Map_room_cur == Room) {
             if (G.Player.Pos_x < -0x2D6E) {
-                if (cut == 1) {
+                if (Part == 1) {
                     return 0;
                 }
             } else {
-                if (cut == 0) {
+                if (Part == 0) {
                     return 0;
                 }
             }
         }
         break;
     case 3:
-        if (rm == 0) {
-            if (cut >= 8 && cut <= 0xC) {
+        if (Room == 0) {
+            if (Part >= 8 && Part <= 0xC) {
                 return 0;
             }
-            if (cut == 0xF) {
+            if (Part == 0xF) {
                 return 0;
             }
-            if (cut == 0x10) {
+            if (Part == 0x10) {
                 return 0;
             }
-            if (cut == 0x11) {
+            if (Part == 0x11) {
                 return 0;
             }
-            if (cut == 0x12) {
+            if (Part == 0x12) {
                 return 0;
             }
-            if (cut == 0x13) {
+            if (Part == 0x13) {
                 return 0;
             }
         }
@@ -5333,34 +5435,34 @@ LONG Map_part_clut(UCHAR st, UCHAR rm, UCHAR cut)
         if (cur == 0x403) {
             if (Flg_ck(G.Unk7868, 0xF1)) {
                 if (G.Cut_no_old == 0x503) {
-                    if (rm == 3) {
-                        if (cut == 0) {
+                    if (Room == 3) {
+                        if (Part == 0) {
                             return 0;
                         }
-                        if (cut == 1) {
+                        if (Part == 1) {
                             return 2;
                         }
                     }
                 } else {
-                    if (rm == 3) {
-                        if (cut == 0) {
+                    if (Room == 3) {
+                        if (Part == 0) {
                             return 0;
                         }
-                        if (cut == 1) {
+                        if (Part == 1) {
                             return 0;
                         }
                     }
-                    if (rm == 7 && cut == 1) {
+                    if (Room == 7 && Part == 1) {
                         return 2;
                     }
                 }
             } else {
-                if (rm == 3 && cut == 1) {
+                if (Room == 3 && Part == 1) {
                     return 0;
                 }
             }
         }
-        if (rm == 7 && cut == 1) {
+        if (Room == 7 && Part == 1) {
             return 0;
         }
         break;
@@ -5368,7 +5470,7 @@ LONG Map_part_clut(UCHAR st, UCHAR rm, UCHAR cut)
     if (!Flg_ck(&G.System_flg, 0x18)) {
         p = (UCHAR *)St.pMap_data;
         for (p += ((LONG *)p)[3]; (signed char)p[0] != -1; p += 4) {
-            if (p[0] == rm && p[1] == cut) {
+            if (p[0] == Room && p[1] == Part) {
                 if (p[3]) {
                     if (!Flg_ck(G.Unk7868, p[2])) {
                         return 5;
@@ -5381,22 +5483,23 @@ LONG Map_part_clut(UCHAR st, UCHAR rm, UCHAR cut)
             }
         }
     }
-    if (pSt->Map_stage == pSt->Map_stage_cur && rm == pSt->Map_room_cur) {
+    if (pSt->Map_stage == pSt->Map_stage_cur && Room == pSt->Map_room_cur) {
         return 2;
     }
     return 0;
 }
 
-LONG Map_part_blink_ck(UCHAR st, UCHAR rm, UCHAR cut)
+/* is the part drawn in the pulsing colour (event target) */
+LONG Map_part_blink_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     switch (St.Map_event) {
     case 1:
-        if (st == 0 && rm == 0 && cut == St.Map_event) {
+        if (Stage == 0 && Room == 0 && Part == St.Map_event) {
             return 1;
         }
         break;
     case 2:
-        if (st == 4 && rm == 3 && cut == St.Map_event) {
+        if (Stage == 4 && Room == 3 && Part == St.Map_event) {
             return 1;
         }
         break;
@@ -5404,62 +5507,62 @@ LONG Map_part_blink_ck(UCHAR st, UCHAR rm, UCHAR cut)
     if (Flg_ck(&G.System_flg, 0x18)) {
         return 0;
     }
-    switch (st) {
+    switch (Stage) {
     case 0:
-        if (rm == 4 && cut == 3) {
+        if (Room == 4 && Part == 3) {
             return 1;
         }
-        if (rm == 7 && cut == 3) {
+        if (Room == 7 && Part == 3) {
             return 1;
         }
-        if (rm == 0x1B && cut == 3) {
+        if (Room == 0x1B && Part == 3) {
             return 1;
         }
         break;
     case 1:
-        if (rm == 1 && cut == 4) {
+        if (Room == 1 && Part == 4) {
             return 1;
         }
-        if (rm == 1 && cut == 5) {
+        if (Room == 1 && Part == 5) {
             return 1;
         }
-        if (rm == 1 && cut == 6) {
+        if (Room == 1 && Part == 6) {
             return 1;
         }
-        if (rm == 1 && cut == 0xB) {
+        if (Room == 1 && Part == 0xB) {
             return 1;
         }
-        if (rm == 0xC && cut == 4) {
+        if (Room == 0xC && Part == 4) {
             return 1;
         }
-        if (rm == 0xD && cut == 3) {
+        if (Room == 0xD && Part == 3) {
             return 1;
         }
-        if (rm == 0x10 && cut == 6) {
+        if (Room == 0x10 && Part == 6) {
             return 1;
         }
-        if (rm == 0x11 && cut == 3) {
+        if (Room == 0x11 && Part == 3) {
             return 1;
         }
-        if (rm == 0x14 && cut == 6) {
+        if (Room == 0x14 && Part == 6) {
             return 1;
         }
         break;
     case 3:
-        if (rm == 0) {
-            if (cut == 9) {
+        if (Room == 0) {
+            if (Part == 9) {
                 return 1;
             }
-            if (cut == 0xA) {
+            if (Part == 0xA) {
                 return 1;
             }
-            if (cut == 0xB) {
+            if (Part == 0xB) {
                 return 1;
             }
-            if (cut == 0xC) {
+            if (Part == 0xC) {
                 return 1;
             }
-            if (cut == 0x11) {
+            if (Part == 0x11) {
                 return 1;
             }
         }
@@ -5468,12 +5571,13 @@ LONG Map_part_blink_ck(UCHAR st, UCHAR rm, UCHAR cut)
     return 0;
 }
 
-LONG Map_door_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
+/* is a door / marker part drawn */
+LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     tagGLOBAL *pG = &G;
     UCHAR fl = pG->Player.nFloor;
     LONG cur = St.Map_room_cur | (St.Map_stage_cur << 8);
-    UCHAR f = Flg_ck(pG->Unk79EC, st);
+    UCHAR f = Flg_ck(pG->Unk79EC, Stage);
     ULONG *pF4 = &G.Unk7888;
     ULONG *pF3 = G.Unk7994;
     ULONG *pF0 = pG->Unk78D0;
@@ -5482,320 +5586,320 @@ LONG Map_door_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
     ULONG *pS = &pG->Status_flg;
     UCHAR *p;
 
-    switch (st) {
+    switch (Stage) {
     case 0:
         if (cur == 1 && (signed char)fl < 3) {
-            if (rm == 0 && cut == 0) {
+            if (Room == 0 && Part == 0) {
                 return 0;
             }
-            if (rm == 1 && cut == 0) {
+            if (Room == 1 && Part == 0) {
                 return 0;
             }
         }
-        if (cur != 0xD && rm == 0xD) {
+        if (cur != 0xD && Room == 0xD) {
             return 0;
         }
         if (Flg_ck(&G.System_flg, 0x18)) {
             return 1;
         }
-        if (cur != 7 && !Flg_ck(pF0, 0xC) && rm == 7) {
+        if (cur != 7 && !Flg_ck(pF0, 0xC) && Room == 7) {
             return 0;
         }
         if (cur != 0x1B && cur != 0x1C && !Flg_ck(pF0, 0x23)) {
-            if (rm == 0x1B) {
+            if (Room == 0x1B) {
                 return 0;
             }
-            if (rm == 0x1C) {
+            if (Room == 0x1C) {
                 return 0;
             }
         }
-        if (!Flg_ck(pF2, 0x56) && rm == 0x26 && cut == 2) {
+        if (!Flg_ck(pF2, 0x56) && Room == 0x26 && Part == 2) {
             return 0;
         }
         break;
     case 1:
         if (cur == 0x101 && (signed char)fl < 9) {
-            if (rm == 0 && cut == 0) {
+            if (Room == 0 && Part == 0) {
                 return 0;
             }
-            if (rm == 0 && cut == 1) {
+            if (Room == 0 && Part == 1) {
                 return 0;
             }
-            if (rm == 1 && cut == 0) {
+            if (Room == 1 && Part == 0) {
                 return 0;
             }
-            if (rm == 1 && cut == 1) {
+            if (Room == 1 && Part == 1) {
                 return 0;
             }
         } else {
-            if (rm == 1 && cut == 2) {
+            if (Room == 1 && Part == 2) {
                 return 0;
             }
         }
         if (cur == 0x104) {
-            if (rm == 3 && cut == 1) {
+            if (Room == 3 && Part == 1) {
                 return 0;
             }
         } else {
-            if (rm == 4 && cut == 0) {
+            if (Room == 4 && Part == 0) {
                 return 0;
             }
         }
         if (cur == 0x10A && (signed char)fl < 4) {
-            if (rm == 0xA && cut == 0) {
+            if (Room == 0xA && Part == 0) {
                 return 0;
             }
-            if (rm == 0xA && cut == 1) {
+            if (Room == 0xA && Part == 1) {
                 return 0;
             }
-            if (rm == 0xB && cut == 0) {
+            if (Room == 0xB && Part == 0) {
                 return 0;
             }
-            if (rm == 0xB && cut == 3) {
+            if (Room == 0xB && Part == 3) {
                 return 0;
             }
         } else {
-            if (rm == 0xA && cut == 2) {
+            if (Room == 0xA && Part == 2) {
                 return 0;
             }
         }
-        if (!Flg_ck(pF2, 0xD6) && rm == 0xB && cut == 3) {
+        if (!Flg_ck(pF2, 0xD6) && Room == 0xB && Part == 3) {
             return 0;
         }
         if (cur == 0x110 && (signed char)fl >= 4) {
-            if (rm == 0x10 && cut == 0) {
+            if (Room == 0x10 && Part == 0) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 1) {
+            if (Room == 0x10 && Part == 1) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 2) {
+            if (Room == 0x10 && Part == 2) {
                 return 0;
             }
         } else {
-            if (rm == 0x10 && cut == 3) {
+            if (Room == 0x10 && Part == 3) {
                 return 0;
             }
         }
         if (Flg_ck(&G.System_flg, 0x18)) {
-            if (rm == 0x10 && cut == 1) {
+            if (Room == 0x10 && Part == 1) {
                 return 0;
             }
-            if (rm == 0x10 && cut == 2) {
+            if (Room == 0x10 && Part == 2) {
                 return 0;
             }
             return 1;
         }
-        if (cur != 0x101 && !Flg_ck(pF0, 0x2F) && rm == 1) {
+        if (cur != 0x101 && !Flg_ck(pF0, 0x2F) && Room == 1) {
             return 0;
         }
-        if (cur != 0x10C && !Flg_ck(pF0, 0x21) && rm == 0xC) {
+        if (cur != 0x10C && !Flg_ck(pF0, 0x21) && Room == 0xC) {
             return 0;
         }
-        if (cur != 0x10D && !Flg_ck(pF0, 0x22) && rm == 0xD) {
+        if (cur != 0x10D && !Flg_ck(pF0, 0x22) && Room == 0xD) {
             return 0;
         }
-        if (cur != 0x10F && cur != 0x110 && !Flg_ck(pF2, 2) && !Flg_ck(pF0, 0x5F) && rm == 0x10) {
+        if (cur != 0x10F && cur != 0x110 && !Flg_ck(pF2, 2) && !Flg_ck(pF0, 0x5F) && Room == 0x10) {
             return 0;
         }
-        if (cur != 0x111 && cur != 0x112 && !Flg_ck(pF2, 0xD) && !Flg_ck(pF0, 0x40) && rm == 0x11) {
+        if (cur != 0x111 && cur != 0x112 && !Flg_ck(pF2, 0xD) && !Flg_ck(pF0, 0x40) && Room == 0x11) {
             return 0;
         }
         if (cur != 0x113 && cur != 0x114 && !Flg_ck(pF0, 0x24)) {
-            if (rm == 0x13) {
+            if (Room == 0x13) {
                 return 0;
             }
-            if (rm == 0x14) {
+            if (Room == 0x14) {
                 return 0;
             }
         }
-        if (!Flg_ck(pF2, 0x56) && rm == 0 && cut == 1) {
+        if (!Flg_ck(pF2, 0x56) && Room == 0 && Part == 1) {
             return 0;
         }
         if (Flg_ck(pF2, 0x9D)) {
-            if (rm == 0xD) {
+            if (Room == 0xD) {
                 return 0;
             }
-            if (rm == 0xE && cut == 1) {
+            if (Room == 0xE && Part == 1) {
                 return 0;
             }
         }
-        if (!Flg_ck(pF2, 0x60) && rm == 0x14 && cut == 8) {
+        if (!Flg_ck(pF2, 0x60) && Room == 0x14 && Part == 8) {
             return 0;
         }
         if ((USHORT)G.Unk783E >= 2 && (USHORT)G.Unk783E <= 4) {
-            if (rm == 0xB && cut == 1) {
+            if (Room == 0xB && Part == 1) {
                 return 0;
             }
-            if (rm == 0xB && cut == 2) {
+            if (Room == 0xB && Part == 2) {
                 return 0;
             }
-            if (rm == 0xC) {
+            if (Room == 0xC) {
                 return 0;
             }
         }
         break;
     case 2:
         if (Flg_ck(pF2, 0xC8)) {
-            if (rm == 1 && cut == 2) {
+            if (Room == 1 && Part == 2) {
                 return 0;
             }
-            if (rm == 2 && cut == 0) {
+            if (Room == 2 && Part == 0) {
                 return 0;
             }
         }
         if (Flg_ck(pF2, 0x37)) {
-            if (rm == 1 && cut == 1) {
+            if (Room == 1 && Part == 1) {
                 return 0;
             }
-            if (rm == 3) {
+            if (Room == 3) {
                 return 0;
             }
-            if (rm == 4 && cut == 1) {
+            if (Room == 4 && Part == 1) {
                 return 0;
             }
-            if (rm == 0xA) {
+            if (Room == 0xA) {
                 return 0;
             }
-            if (rm == 0xB) {
+            if (Room == 0xB) {
                 return 0;
             }
-            if (rm == 0xC) {
+            if (Room == 0xC) {
                 return 0;
             }
         }
         break;
     case 3:
-        if (!(cur == 0x316 && (signed char)fl < 10) && rm == 0x16 && cut == 2) {
+        if (!(cur == 0x316 && (signed char)fl < 10) && Room == 0x16 && Part == 2) {
             return 0;
         }
         if (!Flg_ck(pF3, 9)) {
-            if (rm == 1) {
+            if (Room == 1) {
                 return 0;
             }
-            if (rm == 0xC) {
+            if (Room == 0xC) {
                 return 0;
             }
-            if (rm == 0xD) {
+            if (Room == 0xD) {
                 return 0;
             }
-            if (rm == 0xE) {
+            if (Room == 0xE) {
                 return 0;
             }
-            if (rm == 0xF) {
+            if (Room == 0xF) {
                 return 0;
             }
-            if (rm == 0x10) {
+            if (Room == 0x10) {
                 return 0;
             }
-            if (rm == 0x11) {
+            if (Room == 0x11) {
                 return 0;
             }
-            if (rm == 0x12) {
+            if (Room == 0x12) {
                 return 0;
             }
-            if (rm == 0x13) {
+            if (Room == 0x13) {
                 return 0;
             }
-            if (rm == 0x14) {
+            if (Room == 0x14) {
                 return 0;
             }
-            if (rm == 0x15) {
+            if (Room == 0x15) {
                 return 0;
             }
         }
-        if ((!Flg_ck(pF1, 0x27) || !Flg_ck(pF1, 0x36)) && rm == 0 && cut == 4) {
+        if ((!Flg_ck(pF1, 0x27) || !Flg_ck(pF1, 0x36)) && Room == 0 && Part == 4) {
             return 0;
         }
         if (Flg_ck(pF2, 0xBB)) {
-            if (rm == 0 && cut == 3) {
+            if (Room == 0 && Part == 3) {
                 return 0;
             }
-            if (rm == 0 && cut == 4) {
+            if (Room == 0 && Part == 4) {
                 return 0;
             }
         }
         break;
     case 4:
-        if (!Flg_ck(pF2, 0xEA) && rm == 0 && cut == 6) {
+        if (!Flg_ck(pF2, 0xEA) && Room == 0 && Part == 6) {
             return 0;
         }
         if (Flg_ck(pS, 5)) {
-            if (rm == 0 && cut == 4) {
+            if (Room == 0 && Part == 4) {
                 return 0;
             }
-            if (rm == 0 && cut == 5) {
+            if (Room == 0 && Part == 5) {
                 return 0;
             }
-            if (rm == 0xA && cut == 1) {
+            if (Room == 0xA && Part == 1) {
                 return 0;
             }
-            if (rm == 0xB && cut == 0) {
+            if (Room == 0xB && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 0 && cut == 7) {
+            if (Room == 0 && Part == 7) {
                 return 0;
             }
-            if (rm == 0 && cut == 8) {
+            if (Room == 0 && Part == 8) {
                 return 0;
             }
-            if (rm == 0xA && cut == 2) {
+            if (Room == 0xA && Part == 2) {
                 return 0;
             }
-            if (rm == 0xB && cut == 1) {
+            if (Room == 0xB && Part == 1) {
                 return 0;
             }
         }
         if (Flg_ck(pF3, 0x23)) {
-            if (rm == 3 && cut == 1) {
+            if (Room == 3 && Part == 1) {
                 return 0;
             }
-            if (rm == 8 && cut == 0) {
+            if (Room == 8 && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 3 && cut == 3) {
+            if (Room == 3 && Part == 3) {
                 return 0;
             }
-            if (rm == 8 && cut == 2) {
+            if (Room == 8 && Part == 2) {
                 return 0;
             }
         }
         if (cur == 0x409 && Flg_ck(pF4, 0x1A)) {
-            if (rm == 8 && cut == 1) {
+            if (Room == 8 && Part == 1) {
                 return 0;
             }
-            if (rm == 9 && cut == 0) {
+            if (Room == 9 && Part == 0) {
                 return 0;
             }
         } else {
-            if (rm == 8 && cut == 3) {
+            if (Room == 8 && Part == 3) {
                 return 0;
             }
-            if (rm == 9 && cut == 1) {
+            if (Room == 9 && Part == 1) {
                 return 0;
             }
         }
         if (cur == 0x40D) {
-            if (rm == 0xC && cut == 1) {
+            if (Room == 0xC && Part == 1) {
                 return 0;
             }
-            if (rm == 0xD && cut == 0) {
+            if (Room == 0xD && Part == 0) {
                 return 0;
             }
             if (Flg_ck(pF4, 4)) {
-                if (rm == 0xD && cut == 1) {
+                if (Room == 0xD && Part == 1) {
                     return 0;
                 }
-                if (rm == 0xF && cut == 0) {
+                if (Room == 0xF && Part == 0) {
                     return 0;
                 }
             } else {
-                if (rm == 0xD && cut == 2) {
+                if (Room == 0xD && Part == 2) {
                     return 0;
                 }
-                if (rm == 0xF && cut == 1) {
+                if (Room == 0xF && Part == 1) {
                     return 0;
                 }
             }
@@ -5805,7 +5909,7 @@ LONG Map_door_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
     p = (UCHAR *)St.pMap_data;
     p += ((LONG *)p)[4];
     while ((signed char)p[0] != -1) {
-        if (p[0] == rm && p[1] == cut) {
+        if (p[0] == Room && p[1] == Part) {
             if (Flg_ck(&G.System_flg, 0x18)) {
                 return 0;
             }
@@ -5839,61 +5943,62 @@ LONG Map_door_disp_ck(UCHAR st, UCHAR rm, UCHAR cut)
     return 1;
 }
 
-LONG Map_door_mark_ck(UCHAR st, UCHAR rm, UCHAR cut)
+/* is a door / marker highlighted (its flag not set yet) */
+LONG Map_door_mark_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     UCHAR *p;
 
     if (Flg_ck(&G.System_flg, 0x18)) {
-        switch (st) {
+        switch (Stage) {
         case 0:
-            if (rm == 9 && cut == 3) {
+            if (Room == 9 && Part == 3) {
                 return 1;
             }
-            if (rm == 0xC && cut == 0) {
+            if (Room == 0xC && Part == 0) {
                 return 1;
             }
-            if (rm == 6 && cut == 3) {
+            if (Room == 6 && Part == 3) {
                 return 1;
             }
-            if (rm == 0xF && cut == 0) {
+            if (Room == 0xF && Part == 0) {
                 return 1;
             }
-            if (rm == 0xA && cut == 2) {
+            if (Room == 0xA && Part == 2) {
                 return 1;
             }
-            if (rm == 0x10 && cut == 0) {
+            if (Room == 0x10 && Part == 0) {
                 return 1;
             }
             break;
         case 1:
-            if (rm == 0xB && cut == 2) {
+            if (Room == 0xB && Part == 2) {
                 return 1;
             }
-            if (rm == 0xC && cut == 1) {
+            if (Room == 0xC && Part == 1) {
                 return 1;
             }
-            if (rm == 0xC && cut == 2) {
+            if (Room == 0xC && Part == 2) {
                 return 1;
             }
-            if (rm == 0xC && cut == 3) {
+            if (Room == 0xC && Part == 3) {
                 return 1;
             }
-            if (rm == 6 && cut == 1) {
+            if (Room == 6 && Part == 1) {
                 return 1;
             }
-            if (rm == 0x16 && cut == 0) {
+            if (Room == 0x16 && Part == 0) {
                 return 1;
             }
-            if (rm == 4 && cut == 2) {
+            if (Room == 4 && Part == 2) {
                 return 1;
             }
-            if (rm == 0x14 && cut == 1) {
+            if (Room == 0x14 && Part == 1) {
                 return 1;
             }
-            if (rm == 8 && cut == 1) {
+            if (Room == 8 && Part == 1) {
                 return 1;
             }
-            if (rm == 8 && cut == 2) {
+            if (Room == 8 && Part == 2) {
                 return 1;
             }
             break;
@@ -5902,7 +6007,7 @@ LONG Map_door_mark_ck(UCHAR st, UCHAR rm, UCHAR cut)
     }
     p = (UCHAR *)St.pMap_data;
     for (p += ((LONG *)p)[2]; (signed char)p[0] != -1; p += 4) {
-        if (p[0] == rm && p[1] == cut) {
+        if (p[0] == Room && p[1] == Part) {
             switch (p[3]) {
             case 0:
                 if (!Flg_ck(G.Unk7994, p[2])) {
@@ -5930,32 +6035,33 @@ LONG Map_door_mark_ck(UCHAR st, UCHAR rm, UCHAR cut)
     return 0;
 }
 
-UCHAR Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm)
+/* floor of a room on the multi-floor maps */
+UCHAR Map_floor_get(ST_WORK *pSt, UCHAR Stage, UCHAR Room)
 {
-    switch (st) {
+    switch (Stage) {
     case 2:
-        if (rm == 12) {
+        if (Room == 12) {
             return 2;
         }
-        return rm >= 10;
+        return Room >= 10;
     case 4:
-        if (rm < 4 || (rm >= 8 && rm < 11)) {
+        if (Room < 4 || (Room >= 8 && Room < 11)) {
             return 1;
         }
-        if ((rm >= 11 && rm < 18) || rm == 6 || (rm >= 4 && rm < 8)) {
+        if ((Room >= 11 && Room < 18) || Room == 6 || (Room >= 4 && Room < 8)) {
             return 0;
         }
         break;
     case 5:
-        return rm >= 8;
+        return Room >= 8;
     case 6:
-        if (rm >= 5 && rm < 9) {
+        if (Room >= 5 && Room < 9) {
             return 2;
         }
-        if (rm < 5) {
+        if (Room < 5) {
             return 1;
         }
-        if (rm < 9) {
+        if (Room < 9) {
             break;
         }
         return 0;
@@ -5963,36 +6069,38 @@ UCHAR Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm)
     return 0;
 }
 
-void Map_room_conv(UCHAR *pA, UCHAR *pB)
+/* game (stage, room) to map (stage, room) */
+void Map_room_conv(UCHAR *pStage, UCHAR *pRoom)
 {
     LONG i;
 
-    if (*pA == 1 && *pB == 15 && G.Player.Pos_x >= -0x2276) {
-        *pB = 16;
+    if (*pStage == 1 && *pRoom == 15 && G.Player.Pos_x >= -0x2276) {
+        *pRoom = 16;
         return;
     }
-    if (*pA == 3 && *pB == 21 && G.Player.Pos_x >= 800) {
-        *pB = 0x11;
+    if (*pStage == 3 && *pRoom == 21 && G.Player.Pos_x >= 800) {
+        *pRoom = 0x11;
         return;
     }
-    if (*pA == 4 && *pB == 2 && Flg_ck(&G.Unk7888, 0x1F)) {
-        *pB = 0x11;
+    if (*pStage == 4 && *pRoom == 2 && Flg_ck(&G.Unk7888, 0x1F)) {
+        *pRoom = 0x11;
         return;
     }
-    if (*pA == 2 && *pB == 0x17 && G.Player.Pos_z >= -0x2C24 && !Flg_ck(G.Unk7868, 200)) {
-        *pB = 2;
+    if (*pStage == 2 && *pRoom == 0x17 && G.Player.Pos_z >= -0x2C24 && !Flg_ck(G.Unk7868, 200)) {
+        *pRoom = 2;
     }
-    if (*pA >= 5) {
-        *pA -= 5;
+    if (*pStage >= 5) {
+        *pStage -= 5;
     }
     for (i = 0; Map_room_alias[i].A0 != 0xFF; i++) {
-        if (Map_room_alias[i].A0 == *pA && Map_room_alias[i].B0 == *pB) {
-            *pA = Map_room_alias[i].A1;
-            *pB = Map_room_alias[i].B1;
+        if (Map_room_alias[i].A0 == *pStage && Map_room_alias[i].B0 == *pRoom) {
+            *pStage = Map_room_alias[i].A1;
+            *pRoom = Map_room_alias[i].B1;
         }
     }
 }
 
+/* per-frame end hook of the status task (empty) */
 void St_frame_end(ST_WORK *pSt)
 {
 }
