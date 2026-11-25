@@ -924,5 +924,6 @@ void Em_move_tbl_set(void)
     G.Em_ov_mtbl[1][0x30] = Em40_b1;
 }
 
-void func_80017D9C(void) {
+/* empty, unreferenced */
+void Door_dummy(void) {
 }

@@ -2706,12 +2706,14 @@ void Pl_wep_eff_init(ENEMY_WORK *pEm)
     Pl_wep_poly_init();
 }
 
-void func_800452E0(void) {
+/* empty, unreferenced */
+void Pl_wep_dummy(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pl_wep_parts_drop);
 
-void func_80045514(void) {
+/* empty, unreferenced */
+void Pl_wep_dummy2(void) {
 }
 
 LONG Pl_wep_eff_parts_init(ENEMY_WORK *pEm)

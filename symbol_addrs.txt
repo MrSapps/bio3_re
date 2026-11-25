@@ -2090,3 +2090,7 @@ Spl_sce05_spd_x0 = 0x8009EDA4;
 Spl_sce05_spd_z0 = 0x8009EDCC;
 Spl_sce05_spd_x1 = 0x8009EDF4;
 Spl_sce05_spd_z1 = 0x8009EE1C;
+Door_dummy = 0x80017D9C; // type:func
+Pl_wep_dummy = 0x800452E0; // type:func
+Pl_wep_dummy2 = 0x80045514; // type:func
+Spl_auto_dummy = 0x8005D290; // type:func

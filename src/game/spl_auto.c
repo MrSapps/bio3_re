@@ -1651,7 +1651,8 @@ void Aida_mv0b_br_t0b(ENEMY_WORK *pEm)
     }
 }
 
-void func_8005D290(void) {
+/* empty, unreferenced */
+void Spl_auto_dummy(void) {
 }
 
 void Aida_mv0b_br_1(ENEMY_WORK *pEm)

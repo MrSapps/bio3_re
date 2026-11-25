@@ -121,7 +121,7 @@ void Aida_mv_nop_br(void);
 void Aida_mv0a(ENEMY_WORK *pEm);
 void Aida_mv0b_br(ENEMY_WORK *pEm);
 void Aida_mv0b_br_t0b(ENEMY_WORK *pEm);
-void func_8005D290(void);
+void Spl_auto_dummy(void);
 void Aida_mv0b_br_1(ENEMY_WORK *pEm);
 void Aida_mv0b(ENEMY_WORK *pEm);
 void Aida_mv0c_br(ENEMY_WORK *pEm);

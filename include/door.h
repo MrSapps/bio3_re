@@ -115,6 +115,6 @@ void Em_sce_foot_se(ENEMY_WORK *pEm);
 void Enemy_work_set(void);
 ULONG Emd_load(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData);
 void Em_move_tbl_set(void);
-void func_80017D9C(void);
+void Door_dummy(void);
 
 #endif /* DOOR_H */
