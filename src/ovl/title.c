@@ -797,7 +797,7 @@ void func_80195C68(TITLE_WORK *pTi)
 
     if (!(G.System_flg & 0x80)) {
         if (G.System_flg & 0x20) {
-            func_80078FE8();
+            Keep_data_save();
             goto init_tbl;
         }
         if (G.Unk20FC & 0x2000) {
@@ -863,13 +863,13 @@ void func_80195C68(TITLE_WORK *pTi)
     Main.Unk18E = 0;
     G.System_flg |= 0x1000;
     if (G.System_flg & 0x80) {
-        func_80078FE8();
+        Keep_data_save();
         Cd_read(0x2F, (ULONG *)G.Card_head, 0, (char *)Title_str_init_sub);
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
         Snd_seq_data_set(0, 0x39, (ULONG *)0x801F7E00);
         Snd_bank_set(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
-        func_8007906C();
+        Keep_data_load();
         G.Pl_poison_timer = 0;
         G.Player.Status_flg &= ~0x200;
         Task_lexecute(1, 6);
@@ -878,7 +878,7 @@ void func_80195C68(TITLE_WORK *pTi)
     init_tbl:
         Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);
         if (G.System_flg & 0x20) {
-            func_8007906C();
+            Keep_data_load();
             G.Save_cnt = 0;
         } else {
             for (i = 0; i < 3; i++) {
@@ -1002,7 +1002,7 @@ void func_80196528(TITLE_WORK *pTi)
     Task_lexecute(1, 8);
     Task_sleep(1);
     if (Flg != G.Unk77F8[0]) {
-        func_800791F0();
+        Retry_load();
     }
     Main.Vloop = 1;
     Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);

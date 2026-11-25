@@ -279,7 +279,7 @@ typedef struct tagCOL_OBJ {
     struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
     SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */ \
     USHORT Unk17E;                     /* 0x17E */                            \
-    ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */ \
+    ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of Leg_ik_kan (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
     ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
     ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */                            \
@@ -501,7 +501,7 @@ typedef struct tagGLOBAL {
     SHORT Unk7E24[8];                  /* 0x7E24 cleared by Chaser_room_clr */
     UCHAR pad7E34[0x7E94 - 0x7E34];
     LONG Unk7E94;                      /* 0x7E94 total life healed? (status) */
-    LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by func_80078FE8) */
+    LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by Keep_data_save) */
     UCHAR Merc_grade[3];               /* 0x7EA4 best grade per character, 0xFF none */
     UCHAR pad7EA7;
     ULONG Merc_money[3];               /* 0x7EA8 best money per character */

@@ -50,7 +50,7 @@ void Ending_game(void)
     Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
     Ending_next_game();
     Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
-    func_800792FC();
+    Init_sub_load();
     G.System_flg |= 0x4000;
     Task_lexecute(1, 2);
     Task_sleep(1);
@@ -78,7 +78,7 @@ void Ending_load(void)
     G.Unk2115 = 1;
     Task_lexecute(1, 8);
     Task_sleep(1);
-    func_800791F0();
+    Retry_load();
 }
 
 void Ending_next_game(void)
@@ -86,6 +86,6 @@ void Ending_next_game(void)
     G.Save_cnt = 0xFF;
     G.Save_area = 0x1C;
     G.Next_cut_no = G.Cut_no;
-    func_800790F0((ULONG *)0x80100000);
+    Retry_file_load((ULONG *)0x80100000);
     G.Unk7806++;
 }

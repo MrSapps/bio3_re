@@ -219,11 +219,11 @@ void Init_global(void)
 
     pG = &G;
     if (pG->System_flg & 0x80) {
-        func_80078FE8();
+        Keep_data_save();
     }
     Memclr(&pG->Unk2468, 0x5A90);
     if (pG->System_flg & 0x80) {
-        func_8007906C();
+        Keep_data_load();
     }
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 2; j++) {

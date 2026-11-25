@@ -1001,8 +1001,8 @@ void func_8003B784(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
-        func_80079868(pEm, 0x200);
+        Leg_ik_kan(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
+        Leg_ik_set(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
     case 2:
@@ -1120,8 +1120,8 @@ void func_8003BCA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x10200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x10200);
-        func_80079868(pEm, 0x200);
+        Leg_ik_kan(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x10200);
+        Leg_ik_set(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
     case 2:
@@ -1230,8 +1230,8 @@ void func_8003C104(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
-        func_80079868(pEm, 0x200);
+        Leg_ik_kan(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
+        Leg_ik_set(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
     case 2:

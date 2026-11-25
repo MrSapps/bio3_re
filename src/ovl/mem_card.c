@@ -411,17 +411,17 @@ void Card_rno11_after_save(MWORK *pMw)
             break;
         case 2:
             G.System_flg |= 0x80;
-            Memcpy(D_800C7048.Save, G.Card_head, sizeof(D_800C7048.Save));
-            D_800C7048.Pl_id = G.Player.Id;
-            D_800C7048.Pos_x = G.Player.Pos_x;
-            D_800C7048.Pos_y = G.Player.Pos_y;
-            D_800C7048.Pos_z = G.Player.Pos_z;
-            D_800C7048.Cdir_y = G.Player.Cdir_y;
-            D_800C7048.Life = G.Player.Life;
+            Memcpy(Retry_data.Save, G.Card_head, sizeof(Retry_data.Save));
+            Retry_data.Pl_id = G.Player.Id;
+            Retry_data.Pos_x = G.Player.Pos_x;
+            Retry_data.Pos_y = G.Player.Pos_y;
+            Retry_data.Pos_z = G.Player.Pos_z;
+            Retry_data.Cdir_y = G.Player.Cdir_y;
+            Retry_data.Life = G.Player.Life;
             if (G.Player.Status_flg & 0x200) {
-                D_800C7048.Poison = G.Pl_poison_timer | 0x80;
+                Retry_data.Poison = G.Pl_poison_timer | 0x80;
             } else {
-                D_800C7048.Poison = 0;
+                Retry_data.Poison = 0;
             }
             break;
         case 3:

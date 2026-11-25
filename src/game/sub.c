@@ -1,3 +1,7 @@
+/*
+ * SUB.C: shared helpers (RE2 SUB.C lineage): TIM upload, flags, camera/view, lights, matrix copies;
+ * RE3 adds the retry snapshot (Keep_data_*, Retry_*) and the player leg IK (Leg_ik_*).
+ */
 #include "sub.h"
 #include "snd.h"
 #include "cd.h"
@@ -8,13 +12,14 @@
 #include "sld.h"
 #include <memory.h>
 
-/* packed 0x20-byte kan frame record (func_80079690): 12-bit rotations straddle the halfwords */
+/* packed 0x20-byte kan frame record (Leg_ik_kan): 12-bit rotations straddle the halfwords */
 typedef union {
     UCHAR B[0x20];
     USHORT H[0x10];
     ULONG W[8];
 } KAN_REC;
 
+/* RE2 Mapping_tim: loads a TIM to G.Ctp's texture page and clut row */
 void Mapping_tim(ULONG *pAdr)
 {
     TIM_IMAGE tim;
@@ -41,18 +46,21 @@ void Mapping_tim(ULONG *pAdr)
     DrawSync(0);
 }
 
+/* moves the stack to the scratchpad */
 void SetSpadStack(void)
 {
     G.System_flg |= SYS_SPAD_STACK;
     __asm__ volatile("move $8, %0\n\tsw $29, 0($8)\n\tmove $29, %1" : : "r"(&pStack_bak), "r"(0x1f8003fc) : "$8");
 }
 
+/* restores the stack from the scratchpad */
 void ResetSpadStack(void)
 {
     G.System_flg &= ~SYS_SPAD_STACK;
     __asm__ volatile("move $29, %0" : : "r"(pStack_bak));
 }
 
+/* clears a VRAM rectangle */
 void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h)
 {
     RECT Rect;
@@ -64,6 +72,7 @@ void Vram_clr(USHORT x, USHORT y, USHORT w, USHORT h)
     ClearImage(&Rect, 0, 0, 0);
 }
 
+/* RE2 Rot_vector: rotates p by dir around Y into q */
 void Rot_vector(SHORT dir, SVECTOR *p, SVECTOR *q)
 {
     MATRIX *pMat;
@@ -74,6 +83,7 @@ void Rot_vector(SHORT dir, SVECTOR *p, SVECTOR *q)
     ApplyMatrixSV(pMat, p, q);
 }
 
+/* rotates p by dir and the parent matrix pM into q */
 void Rot_vector_super(SHORT dir, MATRIX *pM, SVECTOR *p, SVECTOR *q)
 {
     MATRIX *pMat;
@@ -85,6 +95,7 @@ void Rot_vector_super(SHORT dir, MATRIX *pM, SVECTOR *p, SVECTOR *q)
     ApplyMatrixSV(pMat, p, q);
 }
 
+/* adds rotation Add_dir to matrix pM (at pPos) and returns the resulting Euler angles in pDir */
 void Rot_add_matrix(LONG *pPos, SHORT *pDir, MATRIX *pM, SVECTOR *Add_dir)
 {
     MATRIX Mat;
@@ -140,21 +151,25 @@ void Rot_add_matrix(LONG *pPos, SHORT *pDir, MATRIX *pM, SVECTOR *Add_dir)
     pDir[2] = ang;
 }
 
+/* RE2 Flg_on: sets bit x of a flag array (bit 0 = MSB of word 0) */
 void Flg_on(ULONG *p, ULONG x)
 {
     p[x >> 5] |= 0x80000000U >> (x & 0x1f);
 }
 
+/* RE2 Flg_off: clears bit x */
 void Flg_off(ULONG *p, ULONG x)
 {
     p[x >> 5] &= ~(0x80000000U >> (x & 0x1f));
 }
 
+/* RE2 Flg_ck: tests bit x */
 ULONG Flg_ck(ULONG *p, ULONG x)
 {
     return p[x >> 5] & (0x80000000U >> (x & 0x1f));
 }
 
+/* RE2 Set_view: camera matrix from eye pVp and target pVr */
 void Set_view(LONG *pVp, LONG *pVr)
 {
     MATRIX Mat;
@@ -196,6 +211,7 @@ void Set_view(LONG *pVp, LONG *pVr)
     ApplyMatrixLV(&GsWSMATRIX, &V, (VECTOR *)&GsWSMATRIX.t);
 }
 
+/* lights for position pV (the light cut it is in) */
 void Set_light_pos(VECTOR *pV)
 {
     Set_light(Get_light_cut((LONG *)pV), pV);
@@ -207,7 +223,7 @@ typedef struct tagLIGHT_HEAD {
     ULONG Zone[1];                     /* 0x4 (offset << 16) | count, index cut */
 } LIGHT_HEAD;
 
-/* light of the cut's default zone (its last entry), at the origin */
+/* default lights */
 void Set_light_default(void)
 {
     LIGHT_HEAD *pLight;
@@ -230,6 +246,7 @@ void Set_light_default(void)
     Set_light(pCut, &V);
 }
 
+/* RE2 Set_light: lights of a camera cut, positioned for pV */
 void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV)
 {
     VECTOR Vec;
@@ -273,6 +290,7 @@ void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV)
     SetBackColor(pLightCut->Ambient[0], pLightCut->Ambient[1], pLightCut->Ambient[2]);
 }
 
+/* light No of the light/colour matrices: direction pLig scaled by Mag, colour pRgb */
 void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight)
 {
     VECTOR normVec;
@@ -290,69 +308,74 @@ void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight)
     pCm[6] = pRgb[2] << 4;
 }
 
+/* light data of the current cut */
 INCLUDE_ASM("asm/nonmatchings/game/sub", Get_light_cut);
 
-void func_80078FE8(void)
+/* saves the G fields that survive a retry (Init_global clears G) */
+void Keep_data_save(void)
 {
     ULONG i;
     tagGLOBAL *pG = &G;
-    FI_SAVE *p = &D_800E11D0;
+    KEEP_DATA *p = &Keep_data;
 
     i = 0;
-    p->Unk1 = pG->Save_slot;
-    p->Unk4 = pG->Unk77F8[0];
-    p->Unk2 = pG->Unk7806;
-    D_800E11D0.Unk0 = pG->Save_cnt;
+    p->Save_slot = pG->Save_slot;
+    p->Game_flg = pG->Unk77F8[0];
+    p->G_7806 = pG->Unk7806;
+    Keep_data.Save_cnt = pG->Save_cnt;
     for (; i < 3; i++) {
-        p->Unk8[i] = pG->Merc_time[i];
-        D_800E11D0.Unk14[i] = pG->Merc_grade[i];
-        p->Unk18[i] = pG->Merc_money[i];
+        p->Merc_time[i] = pG->Merc_time[i];
+        Keep_data.Merc_grade[i] = pG->Merc_grade[i];
+        p->Merc_money[i] = pG->Merc_money[i];
     }
-    D_800E11F4 = pG->Money;
+    Keep_money = pG->Money;
 }
 
-void func_8007906C(void)
+/* restores them */
+void Keep_data_load(void)
 {
     ULONG i;
-    FI_SAVE *p = &D_800E11D0;
+    KEEP_DATA *p = &Keep_data;
     tagGLOBAL *pG = &G;
 
     i = 0;
-    pG->Save_slot = p->Unk1;
-    pG->Unk77F8[0] = p->Unk4;
-    pG->Unk7806 = p->Unk2;
-    pG->Save_cnt = D_800E11D0.Unk0;
+    pG->Save_slot = p->Save_slot;
+    pG->Unk77F8[0] = p->Game_flg;
+    pG->Unk7806 = p->G_7806;
+    pG->Save_cnt = Keep_data.Save_cnt;
     for (; i < 3; i++) {
-        pG->Merc_time[i] = p->Unk8[i];
-        pG->Merc_grade[i] = D_800E11D0.Unk14[i];
-        pG->Merc_money[i] = p->Unk18[i];
+        pG->Merc_time[i] = p->Merc_time[i];
+        pG->Merc_grade[i] = Keep_data.Merc_grade[i];
+        pG->Merc_money[i] = p->Merc_money[i];
     }
-    pG->Money = D_800E11F4;
+    pG->Money = Keep_money;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sub", func_800790F0);
+/* reloads the room files after a retry */
+INCLUDE_ASM("asm/nonmatchings/game/sub", Retry_file_load);
 
-void func_800791F0(void)
+/* retry from the snapshot taken at the save point (Retry_data): player, items and room */
+void Retry_load(void)
 {
-    func_80078FE8();
-    Memcpy(G.Card_head, D_800C7048.Save, 0x908);
-    G.Player.Id = D_800C7048.Pl_id;
-    G.Player.Pos_x = D_800C7048.Pos_x;
-    G.Player.Pos_y = D_800C7048.Pos_y;
-    G.Player.Pos_z = D_800C7048.Pos_z;
-    G.Player.Cdir_y = D_800C7048.Cdir_y;
-    G.Player.Life = D_800C7048.Life;
-    if (D_800C7048.Poison & 0x80) {
-        G.Pl_poison_timer = D_800C7048.Poison;
+    Keep_data_save();
+    Memcpy(G.Card_head, Retry_data.Save, 0x908);
+    G.Player.Id = Retry_data.Pl_id;
+    G.Player.Pos_x = Retry_data.Pos_x;
+    G.Player.Pos_y = Retry_data.Pos_y;
+    G.Player.Pos_z = Retry_data.Pos_z;
+    G.Player.Cdir_y = Retry_data.Cdir_y;
+    G.Player.Life = Retry_data.Life;
+    if (Retry_data.Poison & 0x80) {
+        G.Pl_poison_timer = Retry_data.Poison;
         G.Player.Status_flg |= 0x200;
     } else {
         G.Pl_poison_timer = 0;
         G.Player.Status_flg &= ~0x200;
     }
-    func_8007906C();
+    Keep_data_load();
     G.Next_cut_no = G.Cut_no;
-    func_800792FC();
-    func_800790F0((ULONG *)0x80100000);
+    Init_sub_load();
+    Retry_file_load((ULONG *)0x80100000);
     G.System_flg |= 0x4000;
     Task_lexecute(1, 2);
     Task_sleep(1);
@@ -360,14 +383,16 @@ void func_800791F0(void)
     G.System_flg &= ~0x40000;
 }
 
-void func_800792FC(void)
+/* loads the INIT_SUB sound bank (bank 2) */
+void Init_sub_load(void)
 {
     Snd_bank_set(2, Cd_read_s(0x128, 0, (ULONG *)0x80101000, 2, "INIT_SUB"), 0);
     Cd_read(0x127, (ULONG *)0x80101000, 0, "INIT_SUB");
     Snd_vab_head_set(2, (ULONG *)0x80101000);
 }
 
-void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
+/* two-bone IK: rotates the joints in pM0/pM1 so the chain reaches pT (lengths in pJ) */
+void Leg_ik(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
 {
     MATRIX m0;
     MATRIX m1;
@@ -454,6 +479,7 @@ void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ)
     MulMatrix(pM0, &m1);
 }
 
+/* copies the rotation part of m0 to m1 */
 void Copy_rot_matrix(MATRIX *m0, MATRIX *m1)
 {
     LONG r0, r1, r2, r3, r4;
@@ -470,6 +496,7 @@ void Copy_rot_matrix(MATRIX *m0, MATRIX *m1)
     ((LONG *)m1)[4] = r4;
 }
 
+/* copies m0 to m1 */
 void Copy_matrix(MATRIX *m0, MATRIX *m1)
 {
     LONG r0, r1, r2, r3, r4, r5, r6, r7;
@@ -492,7 +519,8 @@ void Copy_matrix(MATRIX *m0, MATRIX *m1)
     ((LONG *)m1)[7] = r7;
 }
 
-LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Flg)
+/* reads the foot targets and hip rotations of the current frame of the leg animation */
+LONG Leg_ik_kan(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Flg)
 {
     UCHAR *pKan = (UCHAR *)Kan_t_ptr;
     UCHAR *pSeq = (UCHAR *)Seq_t_ptr;
@@ -510,7 +538,7 @@ LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Fl
     n = *(ULONG *)pS;
     base = *(USHORT *)(pS + 4);
     pSeq += (n >> 17) * 2;
-    pM = D_800E1200;
+    pM = Ik_mat;
     n &= 0xFFFF;
     if (Flg & 0xFFFF0000) {
         pSeq += (n - pEm->Unk1A1) * 2 - 2;
@@ -543,7 +571,8 @@ LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Fl
     return 0;
 }
 
-void func_80079868(ENEMY_WORK *pEm, LONG rate)
+/* places both legs by IK on the animation targets, blended by rate */
+void Leg_ik_set(ENEMY_WORK *pEm, LONG rate)
 {
     MATRIX m0;
     MATRIX m1;
@@ -565,7 +594,7 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     pW = (MATRIX *)pEm->Workm_m;
     pP0 = pEm->pSin_parts_ptr;
     cnt = pEm->Unk1A2;
-    pM = D_800E1200;
+    pM = Ik_mat;
     RotMatrix((SVECTOR *)&pEm->Cdir_x, pW);
     CompM(pW, (MATRIX *)pP0->M, &m4);
     CompM(&m4, (MATRIX *)pP0[8].M, &pP0[8].Workm);
@@ -577,12 +606,12 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     j = *(MY_JNT *)pEm->pUnk1B4;
     pP = pEm->pSin_parts_ptr;
     RotMatrix_gte((SVECTOR *)&pP[9].Cdir_x, pM);
-    RotMatrix_gte((SVECTOR *)&pP[12].Cdir_x, &D_800E1260);
+    RotMatrix_gte((SVECTOR *)&pP[12].Cdir_x, &Ik_mat3);
     Copy_rot_matrix(pW, &m3);
     Copy_rot_matrix(pM, &m4);
-    Copy_rot_matrix(&D_800E1260, &m5);
-    Copy_rot_matrix(&GsIDMATRIX, &D_800E1220);
-    Copy_rot_matrix(&GsIDMATRIX, &D_800E1280);
+    Copy_rot_matrix(&Ik_mat3, &m5);
+    Copy_rot_matrix(&GsIDMATRIX, &Ik_mat1);
+    Copy_rot_matrix(&GsIDMATRIX, &Ik_mat4);
     m4.t[0] = j.a.vx;
     m4.t[1] = j.a.vy;
     m4.t[2] = j.a.vz;
@@ -592,7 +621,7 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     CompM(&m0, &m5, &m2);
     CompM(&m0, &m4, &m1);
     if (pEm->Col.Hit_flg & 0x40) {
-        func_80079CC0(pEm, pEm->pSin_parts_ptr->Pos_y);
+        Leg_ik_floor(pEm, pEm->pSin_parts_ptr->Pos_y);
     }
     ApplyMatrix(&m3, (SVECTOR *)pEm->Unk1A4, (VECTOR *)m3.t);
     ApplyRotMatrix((SVECTOR *)pEm->Unk1AC, &v);
@@ -601,30 +630,31 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     m3.t[1] = v.vy;
     m3.t[2] = v.vz;
     MulLMatrix(&m2, &m3, &m5);
-    func_80079374(pM, &D_800E1220, m4.t, &j);
-    func_80079374(&D_800E1260, &D_800E1280, m5.t, &j);
+    Leg_ik(pM, &Ik_mat1, m4.t, &j);
+    Leg_ik(&Ik_mat3, &Ik_mat4, m5.t, &j);
     n = cnt;
     if (n == 0) {
         Copy_rot_matrix(pM, (MATRIX *)pP[9].M);
-        Copy_rot_matrix(&D_800E1220, (MATRIX *)pP[10].M);
+        Copy_rot_matrix(&Ik_mat1, (MATRIX *)pP[10].M);
         Copy_rot_matrix(&pM[2], (MATRIX *)pP[11].M);
-        Copy_rot_matrix(&D_800E1260, (MATRIX *)pP[12].M);
-        Copy_rot_matrix(&D_800E1280, (MATRIX *)pP[13].M);
+        Copy_rot_matrix(&Ik_mat3, (MATRIX *)pP[12].M);
+        Copy_rot_matrix(&Ik_mat4, (MATRIX *)pP[13].M);
         Copy_rot_matrix(&pM[5], (MATRIX *)pP[14].M);
     } else {
         r = (rate & 0xFFFF) * n;
         w = 0x1000 - r;
         HMatrix((MATRIX *)pP[9].M, pM, (MATRIX *)pP[9].M, w);
-        HMatrix((MATRIX *)pP[10].M, &D_800E1220, (MATRIX *)pP[10].M, w);
+        HMatrix((MATRIX *)pP[10].M, &Ik_mat1, (MATRIX *)pP[10].M, w);
         HMatrix((MATRIX *)pP[11].M, &pM[2], (MATRIX *)pP[11].M, w);
-        HMatrix((MATRIX *)pP[12].M, &D_800E1260, (MATRIX *)pP[12].M, w);
-        HMatrix((MATRIX *)pP[13].M, &D_800E1280, (MATRIX *)pP[13].M, w);
+        HMatrix((MATRIX *)pP[12].M, &Ik_mat3, (MATRIX *)pP[12].M, w);
+        HMatrix((MATRIX *)pP[13].M, &Ik_mat4, (MATRIX *)pP[13].M, w);
         HMatrix((MATRIX *)pP[14].M, &pM[5], (MATRIX *)pP[14].M, 0xFFF - r);
         pEm->Unk1A2--;
     }
 }
 
-void func_80079C70(UCHAR *p)
+/* multiplies two matrices of the work at p+0x108 by the matrix at p+0x20 (no callers) */
+void Sub_matrix_mul(UCHAR *p)
 {
     UCHAR buf[0xE8];
     UCHAR *q = *(UCHAR **)(p + 0x108);
@@ -633,7 +663,8 @@ void func_80079C70(UCHAR *p)
     MulMatrix0((MATRIX *)(p + 0x20), (MATRIX *)(q + 0xA5C), (MATRIX *)(q + 0xA88));
 }
 
-void func_80079CC0(ENEMY_WORK *pEm, LONG h)
+/* lowers the foot targets onto the floor height under each foot */
+void Leg_ik_floor(ENEMY_WORK *pEm, LONG h)
 {
     MATRIX m;
     SVECTOR s0;
@@ -688,5 +719,6 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
     }
 }
 
-void func_80079EB8(void) {
+/* empty */
+void Sub_dummy(void) {
 }
