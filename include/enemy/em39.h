@@ -1,9 +1,9 @@
 #ifndef OVL_EM39_H
 #define OVL_EM39_H
 /*
- * Enemy module em39 (enemy id 0x39): a tentacle-like part attached to the work
- * of enemy id 0x38 (its parent); it grows out of the parent (part Size_y),
- * sways and lashes at the player. Loaded at 0x80100000 (slot 1) or
+ * Enemy module em39 (enemy id 0x39): one of the two tentacles of em38 (enemy id
+ * 0x38, its parent, which finds them in Em38_Init): it grows out of the parent
+ * (part Size_y), sways (Em39_wait) and lashes at the player (Em39_lash). Loaded at 0x80100000 (slot 1) or
  * 0x8010D000 (slot 2).
  */
 #include "bio3.h"
@@ -34,41 +34,41 @@ extern void (*Em39_mv[])();
 extern void (*Em39_mv_br_unk[])() __asm__("Em39_move_rnd"); /* unused routine; points at Em39_move_rnd */
 extern UCHAR Em39_move_rnd[8]; /* random idle motions */
 
-void func_80100004(ENEMY_WORK *pEm);
-void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100588(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801005C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100648(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801006CC(ENEMY_WORK *pEm);
-void func_8010079C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801008E0(void);
-void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100DB8(void);
-void func_80100DC0(void);
-void func_80100DC8(void);
-void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101094(void);
-void func_8010109C(void);
-void func_801010A4(void);
-void func_801010AC(void);
-void func_801010B4(void);
-void func_801010BC(void);
-void func_801010C4(void);
-void func_801010CC(void);
-void func_801010D4(void);
-void func_801010DC(void);
-void func_801010E4(void);
-void func_801010EC(void);
-void func_801010F4(void);
-void func_801010FC(void);
-void func_80101104(void);
-void func_80101114(void);
-void func_8010111C(void);
-void func_80101124(void);
-void func_8010112C(void);
-void func_80101134(void);
-LONG func_8010113C(ENEMY_WORK *pEm);
-SHORT func_801012A4(ENEMY_WORK *pEm, PARTS_W *pP);
-void func_8010133C(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size);
+void Em39_main(ENEMY_WORK *pEm);
+void Em39_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_Move_type_unk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_wait_br(ENEMY_WORK *pEm);
+void Em39_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_lash_br(ENEMY_WORK *pEm);
+void Em39_lash(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv02_br(ENEMY_WORK *pEm);
+void Em39_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_grow_br(ENEMY_WORK *pEm);
+void Em39_grow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv04_br(ENEMY_WORK *pEm);
+void Em39_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv05_br(ENEMY_WORK *pEm);
+void Em39_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv06_br(ENEMY_WORK *pEm);
+void Em39_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv07_br(ENEMY_WORK *pEm);
+void Em39_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv08_br(ENEMY_WORK *pEm);
+void Em39_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv09_br(ENEMY_WORK *pEm);
+void Em39_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_mv10_br(ENEMY_WORK *pEm);
+void Em39_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em39_Damage(void);
+void Em39_Die(void);
+void Em39_Scenario(void);
+void Em39_Dead(void);
+void Em39_dummy0(void);
+void Em39_dummy1(void);
+LONG Em39_splash(ENEMY_WORK *pEm);
+SHORT Em39_part_dir(ENEMY_WORK *pEm, PARTS_W *pP);
+void Em39_part_scale_pos(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size);
 
 #endif /* OVL_EM39_H */

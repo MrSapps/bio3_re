@@ -3,11 +3,13 @@
 #include "sca.h"
 #include "snd.h"
 
-LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* em_sub.c, called with int args */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
+/* Capcom's declarations in this module differ from the exe's: Dir_pos_ck takes int directions
+   (no narrowing at the call) and Cdir_ck returns int (no andi after the call) */
+LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 
-/* RE2 EM_MAIN: follow the parent part, then grow/shrink with the ground under parts 3..5 */
-void func_80100004(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 EM_MAIN): follow the parent part, then grow/shrink with the ground under parts 3..5 */
+void Em39_main(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     PARTS_W *pP;
@@ -23,12 +25,12 @@ void func_80100004(ENEMY_WORK *pEm)
             Sv.vx = -0x1B8;
             Sv.vy = -0x96;
             Sv.vz = 0x96;
-            pEm->Cdir_y = func_801012A4(EM39_W(pEm)->pParent, &pP[12]) + (SHORT)(EM39_W(pEm)->Dir + 0x200);
+            pEm->Cdir_y = Em39_part_dir(EM39_W(pEm)->pParent, &pP[12]) + (SHORT)(EM39_W(pEm)->Dir + 0x200);
         } else {
             Sv.vx = -0x1B8;
             Sv.vy = -0x96;
             Sv.vz = -0x96;
-            pEm->Cdir_y = func_801012A4(EM39_W(pEm)->pParent, &pP[12]) + (SHORT)(EM39_W(pEm)->Dir - 0x100);
+            pEm->Cdir_y = Em39_part_dir(EM39_W(pEm)->pParent, &pP[12]) + (SHORT)(EM39_W(pEm)->Dir - 0x100);
         }
         EM39_W(pEm)->Dir += Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 8);
         if (EM39_W(pEm)->Dir > 0x100)
@@ -81,8 +83,8 @@ void func_80100004(ENEMY_WORK *pEm)
         Em_seq_sound(pEm);
 }
 
-/* RE2 Em39_init */
-void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 0: find the parent (id 0x38) and set up the parts */
+void Em39_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     tagGLOBAL *pG;
     ENEMY_WORK **ppEm;
@@ -142,33 +144,33 @@ void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP->Size_x = 0x1000;
         pP->Size_y = 0;
         pP->Size_z = 0x1000;
-        func_8010133C(pEm, pP, 0);
+        Em39_part_scale_pos(pEm, pP, 0);
         pP++;
     }
 }
 
-/* RE2 Em39_move */
-void func_80100588(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 1: move routine set by Type */
+void Em39_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em39_move_type[(UCHAR)pEm->Type](pEm, pKan, pSeq);
 }
 
 /* move type 0: pick the next move (mv_br), then run it (mv) */
-void func_801005C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em39_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em39_mv_br[pEm->Routine_1](pEm);
     Em39_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* unused: same as func_801005C4 with a table that does not exist */
-void func_80100648(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* unused: as Em39_Move_type00 with brain table Em39_mv_br_unk */
+void Em39_Move_type_unk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em39_mv_br_unk[pEm->Routine_1](pEm);
     Em39_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* wait for the player in reach: start the attack (Routine_1 = 1) */
-void func_801006CC(ENEMY_WORK *pEm)
+void Em39_wait_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist;
@@ -184,7 +186,7 @@ void func_801006CC(ENEMY_WORK *pEm)
 }
 
 /* idle sway */
-void func_8010079C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em39_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -208,11 +210,13 @@ void func_8010079C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801008E0(void) {
+/* no brain step for this move */
+void Em39_lash_br(ENEMY_WORK *pEm)
+{
 }
 
 /* attack: lash at the player */
-void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em39_lash(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     PARTS_W *pP;
@@ -335,17 +339,23 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100DB8(void) {
+/* no brain step for this move */
+void Em39_mv02_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_80100DC0(void) {
+/* empty move slot */
+void Em39_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_80100DC8(void) {
+/* no brain step for this move */
+void Em39_grow_br(ENEMY_WORK *pEm)
+{
 }
 
 /* grow back out of the parent */
-void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em39_grow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     LONG Size;
@@ -368,17 +378,17 @@ void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->UnkDA = 1;
         }
         pP[0].Size_y = Size;
-        func_8010133C(pEm, &pP[0], Size);
+        Em39_part_scale_pos(pEm, &pP[0], Size);
         pP[1].Size_y = Size;
-        func_8010133C(pEm, &pP[1], Size);
+        Em39_part_scale_pos(pEm, &pP[1], Size);
         pP[2].Size_y = Size;
-        func_8010133C(pEm, &pP[2], Size);
+        Em39_part_scale_pos(pEm, &pP[2], Size);
         pP[3].Size_y = Size;
-        func_8010133C(pEm, &pP[3], Size);
+        Em39_part_scale_pos(pEm, &pP[3], Size);
         pP[4].Size_y = Size;
-        func_8010133C(pEm, &pP[4], Size);
+        Em39_part_scale_pos(pEm, &pP[4], Size);
         pP[5].Size_y = Size;
-        func_8010133C(pEm, &pP[5], Size);
+        Em39_part_scale_pos(pEm, &pP[5], Size);
         if (pEm->UnkDA) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             EM39_W(pEm)->Wait = (Rnd() & 0x7F) + 30;
@@ -404,70 +414,109 @@ void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80101094(void) {
+/* no brain step for this move */
+void Em39_mv04_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_8010109C(void) {
+/* empty move slot */
+void Em39_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_801010A4(void) {
+/* no brain step for this move */
+void Em39_mv05_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_801010AC(void) {
+/* empty move slot */
+void Em39_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_801010B4(void) {
+/* no brain step for this move */
+void Em39_mv06_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_801010BC(void) {
+/* empty move slot */
+void Em39_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_801010C4(void) {
+/* no brain step for this move */
+void Em39_mv07_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_801010CC(void) {
+/* empty move slot */
+void Em39_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_801010D4(void) {
+/* no brain step for this move */
+void Em39_mv08_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_801010DC(void) {
+/* empty move slot */
+void Em39_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_801010E4(void) {
+/* no brain step for this move */
+void Em39_mv09_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_801010EC(void) {
+/* empty move slot */
+void Em39_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_801010F4(void) {
+/* no brain step for this move */
+void Em39_mv10_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_801010FC(void) {
+/* empty move slot */
+void Em39_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_80101104(void)
+/* Routine_0 2: no damage */
+void Em39_Damage(void)
 {
     SVECTOR Unused;
 }
 
-void func_80101114(void) {
+/* Routine_0 3: nothing */
+void Em39_Die(void)
+{
 }
 
-void func_8010111C(void) {
+/* Routine_0 4: nothing */
+void Em39_Scenario(void)
+{
 }
 
-void func_80101124(void) {
+/* Routine_0 7: nothing */
+void Em39_Dead(void)
+{
 }
 
-void func_8010112C(void) {
+/* unused */
+void Em39_dummy0(void)
+{
 }
 
-void func_80101134(void) {
+/* unused */
+void Em39_dummy1(void)
+{
 }
 
 /* splash effects while moving (declared with a result it never returns) */
-LONG func_8010113C(ENEMY_WORK *pEm)
+LONG Em39_splash(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     SVECTOR Sv;
@@ -491,7 +540,7 @@ LONG func_8010113C(ENEMY_WORK *pEm)
 }
 
 /* direction of part pP's x axis */
-SHORT func_801012A4(ENEMY_WORK *pEm, PARTS_W *pP)
+SHORT Em39_part_dir(ENEMY_WORK *pEm, PARTS_W *pP)
 {
     VECTOR Unused;
     VECTOR V;
@@ -520,7 +569,7 @@ SHORT func_801012A4(ENEMY_WORK *pEm, PARTS_W *pP)
 }
 
 /* part position from the kan data, scaled by Size (0x1000 = 1) */
-void func_8010133C(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size)
+void Em39_part_scale_pos(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size)
 {
     SHORT *pPos;
 
