@@ -34,7 +34,7 @@ void Em30_part_hang(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate)
     else
         Rot.vy = 0x400;
     Rot.vx = 0;
-    Rot.vz = PW_FREE(pP1)[0];
+    Rot.vz = EM30_PW(pP1)->Roll_z;
     RotMatrix_gte(&Rot, &pP1->Workm);
     pP1->Workm.t[0] = Pos.vx;
     pP1->Workm.t[1] = Pos.vy;

@@ -387,9 +387,10 @@ overlay that has it (the name comes from the family's first module, e.g. `Em10_m
   take the em10 names; 28 functions shared. Exceptions: em16 has 3 routines of its own (func_80101BBC,
   func_8010208C, func_80103CE4) and lacks Em10_sce02, Em10_Kahannsin_walk and Em10_ude_down. Same-asm pairs
   that are both still func_ (e.g. em10 func_8010C3F0 / em16 func_8010BE98) block a few more.
-- em30/em33: 13 common routines named Em30_*; 6 shared. The other 7 differ only in the free-work views
-  (EM30_W/EM30_SUB/EM30_SABUN_P vs EM33_W/EM33_B/EM33_SABUN_P). The layouts agree but signedness differs
-  (em30 Unk12 signed, em33 UCHAR), so a merged header must be checked by building both.
+- em30/em33 (Grave Digger): one work layout, include/enemy/em30_free.h (EM30_W, EM30_SUB, EM30_PW,
+  EM30_SABUN_P); 13 routines shared. Fields that the two modules use differently are unions (u10, u13).
+  em33 names its Move routine and damage table Em30_Move / Em30_dm because the shared Em30_dm_fire and
+  Em30_Damage call them.
 - em34/em36: Em34_foot_set, Em34_blood_set, Em34_blood_spray, Em34_sce05 shared. em36 is not a copy of em34;
   the small dispatchers that em34/em36/em37/em39 all have (Em34_Move, Em34_Sce, Em34_Move_type02) were left alone.
 - jill_sel/select/result: select shares Jill_pl_trans, Jill_light_set, Jill_obj_init/draw/rgb. result has
