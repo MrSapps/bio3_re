@@ -10,6 +10,7 @@
 #include "bio3.h"
 #include "enemy/em_common.h"
 #include "em_sub.h"
+#include "joint.h"
 #include "oba.h"
 #include "sub.h"
 
@@ -38,8 +39,6 @@ typedef struct tagEM3E_FREE {
 } EM3E_FREE;
 
 #define EM3E_W(p) ((EM3E_FREE *)(p)->Unk1CC)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
 extern signed char Rsin_tbl[256] __asm__("D_80098828"); /* 0x80098828 sine, 256 steps, +-127 */
 
@@ -49,37 +48,37 @@ extern void (*Em3e_fly_tbl[2])();
 extern void (*Em3e_damage_tbl[31])(); /* index weapon Unk12C - 1 */
 extern void (*Em3e_sce_tbl[2])();
 
-void func_80100020(ENEMY_WORK *pEm);
-void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010027C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100360(ENEMY_WORK *pEm);
-void func_801003C4(void);
-void func_801003CC(ENEMY_WORK *pEm);
-void func_801004F4(ENEMY_WORK *pEm);
-void func_801005E4(ENEMY_WORK *pEm);
-void func_80100674(ENEMY_WORK *pEm);
-void func_80100704(ENEMY_WORK *pEm);
-void func_80100788(ENEMY_WORK *pEm);
-void func_80100878(ENEMY_WORK *pEm);
-void func_80100890(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100908(ENEMY_WORK *pEm);
-void func_80100A10(ENEMY_WORK *pEm);
-void func_80100BBC(ENEMY_WORK *pEm);
-void func_80100C0C(ENEMY_WORK *pEm); /* Em3e_parts_hide */
-void func_80100C80(ENEMY_WORK *pEm, ULONG No, LONG Size); /* Em3e_parts_size */
-void func_80100CAC(ENEMY_WORK *pEm); /* Em3e_parts_show */
-void func_80100D24(ENEMY_WORK *pEm); /* Em3e_parts_trans */
-void func_80100D70(ENEMY_WORK *pEm); /* Em3e_parts_trans_off */
-void func_80100DC0(ENEMY_WORK *pEm, ULONG No); /* Em3e_parts_abr */
-void func_80100E0C(ENEMY_WORK *pEm); /* Em3e_rotor */
-void func_80100EAC(ENEMY_WORK *pEm, LONG Mode); /* Em3e_shot_check */
-void func_80100F94(ENEMY_WORK *pEm); /* Em3e_shot_r */
-void func_80101008(ENEMY_WORK *pEm); /* Em3e_shot_l */
-void func_8010107C(ENEMY_WORK *pEm); /* Em3e_explode */
-void func_80101210(ENEMY_WORK *pEm); /* Em3e_hover */
-void func_80101570(ENEMY_WORK *pEm, LONG Rtn0, LONG Rtn1);
-void func_80101580(ENEMY_WORK *pEm, LONG Rtn1); /* Em3e_rtn1_set */
-void func_8010158C(ENEMY_WORK *pEm); /* Em3e_add_speed */
-void func_801015C0(ENEMY_WORK *pEm); /* Em3e_retarget */
+void Em3e_main(ENEMY_WORK *pEm);
+void Em3e_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em3e_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em3e_dest_set(ENEMY_WORK *pEm);
+void Em3e_fly_nop(ENEMY_WORK *pEm);
+void Em3e_fly(ENEMY_WORK *pEm);
+void Em3e_fly_dest(ENEMY_WORK *pEm);
+void Em3e_Damage(ENEMY_WORK *pEm);
+void Em3e_dm_spark0(ENEMY_WORK *pEm);
+void Em3e_dm_spark(ENEMY_WORK *pEm);
+void Em3e_dm_spin(ENEMY_WORK *pEm);
+void Em3e_dm_none(ENEMY_WORK *pEm);
+void Em3e_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em3e_sce_hover(ENEMY_WORK *pEm);
+void Em3e_sce_crash(ENEMY_WORK *pEm);
+void Em3e_Dead(ENEMY_WORK *pEm);
+void Em3e_parts_hide(ENEMY_WORK *pEm);
+void Em3e_parts_size(ENEMY_WORK *pEm, ULONG No, LONG Size);
+void Em3e_parts_show(ENEMY_WORK *pEm);
+void Em3e_parts_trans(ENEMY_WORK *pEm);
+void Em3e_parts_trans_off(ENEMY_WORK *pEm);
+void Em3e_parts_abr(ENEMY_WORK *pEm, ULONG No);
+void Em3e_rotor(ENEMY_WORK *pEm);
+void Em3e_shot_check(ENEMY_WORK *pEm, LONG Mode);
+void Em3e_shot_r(ENEMY_WORK *pEm);
+void Em3e_shot_l(ENEMY_WORK *pEm);
+void Em3e_explode(ENEMY_WORK *pEm);
+void Em3e_hover(ENEMY_WORK *pEm);
+void Em3e_rtn_set(ENEMY_WORK *pEm, LONG Rtn0, LONG Rtn1);
+void Em3e_rtn1_set(ENEMY_WORK *pEm, LONG Rtn1);
+void Em3e_add_speed(ENEMY_WORK *pEm);
+void Em3e_retarget(ENEMY_WORK *pEm);
 
 #endif /* OVL_EM3E_H */

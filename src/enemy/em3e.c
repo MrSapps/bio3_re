@@ -5,19 +5,19 @@
 #include "sld.h"
 #include "snd.h"
 
-/* EM_MAIN */
-void func_80100020(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 EM_MAIN) */
+void Em3e_main(ENEMY_WORK *pEm)
 {
     if (pEm->Damage_cnt & 0x7F)
         pEm->Damage_cnt--;
     Em3e_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    func_80100E0C(pEm);
-    func_80101210(pEm);
+    Em3e_rotor(pEm);
+    Em3e_hover(pEm);
     EM3E_W(pEm)->Old_life = pEm->Life;
 }
 
-/* Em3e_init */
-void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 0: set up the parts, collision and flight zone */
+void Em3e_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     COL_OBJ *pCol;
     PARTS_W *pP;
@@ -59,12 +59,12 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pP = &pEm->pSin_parts_ptr[1];
     pEm->Unk120 = 0;
     pEm->Neck_no = 4;
-    PW_FREE(pP)[2] = 0x40;
-    PW_FREE(pP)[3] = 0x40;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[5] = 0x138;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
+    PW_NECK(pP)->Add_dir_y = 0x40;
+    PW_NECK(pP)->Add_dir_z = 0x40;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->L_rot_z = 0x138;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
     if (G.System_flg & 0x100)
         pEm->Max_life = pEm->Life = 250;
     else
@@ -81,17 +81,17 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM3E_W(pEm)->Abr0 = 3;
         pEm->Routine_1 = 0;
         EM3E_W(pEm)->Rotor1 = 7;
-        func_80100D24(pEm);
+        Em3e_parts_trans(pEm);
     }
     pEm->Unk14E = 0x110;
-    func_80100DC0(pEm, EM3E_W(pEm)->Abr0);
-    func_80100DC0(pEm, EM3E_W(pEm)->Rotor1);
+    Em3e_parts_abr(pEm, EM3E_W(pEm)->Abr0);
+    Em3e_parts_abr(pEm, EM3E_W(pEm)->Rotor1);
     EM_SET_MOVE(pEm, 0, 0, 0);
     Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
 }
 
-/* Em3e_move: Routine_0 1 */
-void func_8010027C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 1: move and fly routines by Routine_1 */
+void Em3e_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (G.System_flg & 0x100) {
         if (EM3E_W(pEm)->Time++ > 1800)
@@ -103,7 +103,7 @@ void func_8010027C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* move 0: pick a destination at the other end of the zone */
-void func_80100360(ENEMY_WORK *pEm)
+void Em3e_dest_set(ENEMY_WORK *pEm)
 {
     if (pEm->Pos_x > 20000) {
         pEm->Dest_x = 10000;
@@ -112,16 +112,18 @@ void func_80100360(ENEMY_WORK *pEm)
         pEm->Dest_x = 27000;
         pEm->Dest_z = Rnd() * -25;
     }
-    func_80101580(pEm, 1);
+    Em3e_rtn1_set(pEm, 1);
 }
 
-void func_801003C4(void) {
+/* fly 0: nothing */
+void Em3e_fly_nop(ENEMY_WORK *pEm)
+{
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em3e", func_801003CC);
+INCLUDE_ASM("asm/nonmatchings/enemy/em3e", Em3e_fly);
 
 /* fly 1: head for the destination */
-void func_801004F4(ENEMY_WORK *pEm)
+void Em3e_fly_dest(ENEMY_WORK *pEm)
 {
 
     switch (pEm->Routine_2) {
@@ -131,16 +133,16 @@ void func_801004F4(ENEMY_WORK *pEm)
         pEm->Spd_z = -(Rsin_tbl[(EM3E_W(pEm)->Dir / 16) & 0xFF] * 240 / 256);
         pEm->Routine_2++;
     case 1:
-        func_8010158C(pEm);
+        Em3e_add_speed(pEm);
     }
 }
 
-/* Em3e_damage: Routine_0 2, 3 */
-void func_801005E4(ENEMY_WORK *pEm)
+/* Routine_0 2, 3: damage by the hit kind (Em3e_damage_tbl[Unk12C - 1]) */
+void Em3e_Damage(ENEMY_WORK *pEm)
 {
     Em3e_damage_tbl[pEm->Unk12C - 1](pEm);
-    func_8010158C(pEm);
-    func_801015C0(pEm);
+    Em3e_add_speed(pEm);
+    Em3e_retarget(pEm);
     if (pEm->Life < 0) {
         Em_dead_flg_on_cand(pEm);
         EM_SET_RTN(pEm, 7, 0, 0, 0);
@@ -154,7 +156,7 @@ void func_801005E4(ENEMY_WORK *pEm)
 }
 
 /* damage without effect on life: sparks */
-void func_80100674(ENEMY_WORK *pEm)
+void Em3e_dm_spark0(ENEMY_WORK *pEm)
 {
     SVECTOR Ofs;
     PARTS_W *pP = pEm->pSin_parts_ptr;
@@ -170,7 +172,7 @@ void func_80100674(ENEMY_WORK *pEm)
 }
 
 /* damage: sparks */
-void func_80100704(ENEMY_WORK *pEm)
+void Em3e_dm_spark(ENEMY_WORK *pEm)
 {
     SVECTOR Ofs;
     PARTS_W *pP = pEm->pSin_parts_ptr;
@@ -184,7 +186,7 @@ void func_80100704(ENEMY_WORK *pEm)
 }
 
 /* damage: spin around and back */
-void func_80100788(ENEMY_WORK *pEm)
+void Em3e_dm_spin(ENEMY_WORK *pEm)
 {
 
     switch (pEm->Routine_3) {
@@ -215,21 +217,21 @@ void func_80100788(ENEMY_WORK *pEm)
 }
 
 /* damage: no reaction */
-void func_80100878(ENEMY_WORK *pEm)
+void Em3e_dm_none(ENEMY_WORK *pEm)
 {
     EM3E_W(pEm)->Time += 60;
     EM_RTN(pEm) = pEm->Unk1C4;
 }
 
-/* Em3e_sce: Routine_0 4 */
-void func_80100890(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 4: scenario routine by Routine_1 */
+void Em3e_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     Em3e_sce_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* sce 0: hover, explode Add_dir times on request, fire on request */
-void func_80100908(ENEMY_WORK *pEm)
+void Em3e_sce_hover(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -245,8 +247,8 @@ void func_80100908(ENEMY_WORK *pEm)
         if (EM3E_W(pEm)->Timer-- != 0)
             break;
         EM3E_W(pEm)->Timer = 2;
-        func_80100D70(pEm);
-        func_8010107C(pEm);
+        Em3e_parts_trans_off(pEm);
+        Em3e_explode(pEm);
         if (--pEm->Add_dir != 0)
             break;
         pEm->Routine_2++;
@@ -254,20 +256,20 @@ void func_80100908(ENEMY_WORK *pEm)
     case 3:
         break;
     case 4:
-        func_80101008(pEm);
+        Em3e_shot_l(pEm);
         pEm->Routine_2 = 3;
         break;
     case 6:
-        func_80101008(pEm);
+        Em3e_shot_l(pEm);
     case 5:
-        func_80100F94(pEm);
+        Em3e_shot_r(pEm);
         pEm->Routine_2 = 3;
         break;
     }
 }
 
 /* sce 1: crash */
-void func_80100A10(ENEMY_WORK *pEm)
+void Em3e_sce_crash(ENEMY_WORK *pEm)
 {
     LONG Range;
     LONG Fall;
@@ -277,7 +279,7 @@ void func_80100A10(ENEMY_WORK *pEm)
     case 0:
         pEm->Be_flg |= 0x2050;
         pEm->Type |= 0x4000;
-        func_80100C0C(pEm);
+        Em3e_parts_hide(pEm);
         pEm->Routine_2++;
     case 1:
         if (pEm->Add_dir != 1)
@@ -296,21 +298,21 @@ void func_80100A10(ENEMY_WORK *pEm)
         Range = EM3E_W(pEm)->Turn + 26000;
         Fall = EM3E_W(pEm)->Turn - pEm->Pos_y;
         Size = (Fall << 12) / Range;
-        func_80100C80(pEm, 0, Size);
-        func_80100C80(pEm, 1, Size);
-        func_80100C80(pEm, 2, Size);
+        Em3e_parts_size(pEm, 0, Size);
+        Em3e_parts_size(pEm, 1, Size);
+        Em3e_parts_size(pEm, 2, Size);
         pEm->Pos_x = EM3E_W(pEm)->Start_x - EM3E_W(pEm)->Fall_x * Fall / Range;
         if (pEm->Pos_y < -25999) {
             pEm->Add_dir = 1;
-            func_80100CAC(pEm);
+            Em3e_parts_show(pEm);
             pEm->Routine_2++;
         }
         break;
     }
 }
 
-/* Em3e_dead: Routine_0 7 */
-void func_80100BBC(ENEMY_WORK *pEm)
+/* Routine_0 7 */
+void Em3e_Dead(ENEMY_WORK *pEm)
 {
     if (!pEm->Routine_2) {
         pEm->Spd_x = 0;
@@ -320,12 +322,12 @@ void func_80100BBC(ENEMY_WORK *pEm)
         pEm->Spd_base_y = 0;
         pEm->Spd_base_z = 0;
         pEm->Routine_2++;
-        func_80100D24(pEm);
+        Em3e_parts_trans(pEm);
     }
 }
 
-/* Em3e_parts_hide */
-void func_80100C0C(ENEMY_WORK *pEm)
+/* shrink parts 0..2 to nothing and toggle parts 3, 4 */
+void Em3e_parts_hide(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     ULONG i;
@@ -343,8 +345,8 @@ void func_80100C0C(ENEMY_WORK *pEm)
     pP->UnkA2 ^= 1;
 }
 
-/* Em3e_parts_size */
-void func_80100C80(ENEMY_WORK *pEm, ULONG No, LONG Size)
+/* scale part No by Size (0x1000 = 1) */
+void Em3e_parts_size(ENEMY_WORK *pEm, ULONG No, LONG Size)
 {
     PARTS_W *pP = &pEm->pSin_parts_ptr[No];
 
@@ -353,8 +355,8 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG No, LONG Size)
     pP->Size_z = Size;
 }
 
-/* Em3e_parts_show */
-void func_80100CAC(ENEMY_WORK *pEm)
+/* parts 0..2 at full size, parts 3 and 4 visible */
+void Em3e_parts_show(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     ULONG i;
@@ -372,8 +374,8 @@ void func_80100CAC(ENEMY_WORK *pEm)
     pP->UnkA2 |= 1;
 }
 
-/* Em3e_parts_trans */
-void func_80100D24(ENEMY_WORK *pEm)
+/* set part flag 0x400 on the first Parts_num parts */
+void Em3e_parts_trans(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     ULONG i;
@@ -384,8 +386,8 @@ void func_80100D24(ENEMY_WORK *pEm)
     }
 }
 
-/* Em3e_parts_trans_off */
-void func_80100D70(ENEMY_WORK *pEm)
+/* clear part flag 0x400 on the first Parts_num parts */
+void Em3e_parts_trans_off(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     ULONG i;
@@ -396,8 +398,8 @@ void func_80100D70(ENEMY_WORK *pEm)
     }
 }
 
-/* Em3e_parts_abr */
-void func_80100DC0(ENEMY_WORK *pEm, ULONG No)
+/* draw part No semi-transparent */
+void Em3e_parts_abr(ENEMY_WORK *pEm, ULONG No)
 {
     PARTS_W *pP = &pEm->pSin_parts_ptr[No];
 
@@ -405,8 +407,8 @@ void func_80100DC0(ENEMY_WORK *pEm, ULONG No)
     Md_set_abr(pP->pTmd, 1);
 }
 
-/* Em3e_rotor */
-void func_80100E0C(ENEMY_WORK *pEm)
+/* turn both rotors by Unk14E */
+void Em3e_rotor(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
 
@@ -419,30 +421,29 @@ void func_80100E0C(ENEMY_WORK *pEm)
 }
 
 /* fire when inside the firing zone (Mode 0: never, 2: both guns in the middle) */
-/* Em3e_shot_check */
-void func_80100EAC(ENEMY_WORK *pEm, LONG Mode)
+void Em3e_shot_check(ENEMY_WORK *pEm, LONG Mode)
 {
     LONG X = pEm->Pos_x;
 
     if (X > 13000 && X < 26000 && pEm->Pos_y > -5200 && pEm->Pos_y < -3600 && Mode) {
         if (X > 13000 && X < 17900)
-            func_80101008(pEm);
+            Em3e_shot_l(pEm);
         if (X > 21400 && X < 26000)
-            func_80100F94(pEm);
+            Em3e_shot_r(pEm);
         if (X > 17900 && X < 21400) {
             if (Mode == 2) {
-                func_80101008(pEm);
-                func_80100F94(pEm);
+                Em3e_shot_l(pEm);
+                Em3e_shot_r(pEm);
             } else if (Rnd() & 0x80)
-                func_80101008(pEm);
+                Em3e_shot_l(pEm);
             else
-                func_80100F94(pEm);
+                Em3e_shot_r(pEm);
         }
     }
 }
 
-/* Em3e_shot_r */
-void func_80100F94(ENEMY_WORK *pEm)
+/* muzzle flash and shot sound of the right gun */
+void Em3e_shot_r(ENEMY_WORK *pEm)
 {
     SVECTOR Ofs;
     PARTS_W *pP;
@@ -455,8 +456,8 @@ void func_80100F94(ENEMY_WORK *pEm)
     Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
 }
 
-/* Em3e_shot_l */
-void func_80101008(ENEMY_WORK *pEm)
+/* muzzle flash and shot sound of the left gun */
+void Em3e_shot_l(ENEMY_WORK *pEm)
 {
     SVECTOR Ofs;
     PARTS_W *pP;
@@ -469,8 +470,8 @@ void func_80101008(ENEMY_WORK *pEm)
     Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
 }
 
-/* Em3e_explode */
-void func_8010107C(ENEMY_WORK *pEm)
+/* explosion effects and sound on the body */
+void Em3e_explode(ENEMY_WORK *pEm)
 {
     SVECTOR Ofs;
     SVECTOR Spd;
@@ -516,8 +517,7 @@ void func_8010107C(ENEMY_WORK *pEm)
 }
 
 /* pitch sway, height bob, speed easing and body tilt */
-/* Em3e_hover */
-void func_80101210(ENEMY_WORK *pEm)
+void Em3e_hover(ENEMY_WORK *pEm)
 {
     PARTS_W *pP = pEm->pSin_parts_ptr;
     SVECTOR Rot;
@@ -594,22 +594,23 @@ void func_80101210(ENEMY_WORK *pEm)
     RotMatrix(&Rot, (MATRIX *)pP->M);
 }
 
-void func_80101570(ENEMY_WORK *pEm, LONG Rtn0, LONG Rtn1)
+/* set Routine_0 / Routine_1, clear Routine_2 / Routine_3 */
+void Em3e_rtn_set(ENEMY_WORK *pEm, LONG Rtn0, LONG Rtn1)
 {
     pEm->Routine_0 = Rtn0;
     pEm->Routine_1 = Rtn1;
     EM_RTN23(pEm) = 0;
 }
 
-/* Em3e_rtn1_set */
-void func_80101580(ENEMY_WORK *pEm, LONG Rtn1)
+/* set Routine_1, clear Routine_2 / Routine_3 */
+void Em3e_rtn1_set(ENEMY_WORK *pEm, LONG Rtn1)
 {
     pEm->Routine_1 = Rtn1;
     EM_RTN23(pEm) = 0;
 }
 
-/* Em3e_add_speed */
-void func_8010158C(ENEMY_WORK *pEm)
+/* move by the speed */
+void Em3e_add_speed(ENEMY_WORK *pEm)
 {
     pEm->Pos_x += pEm->Spd_base_x;
     pEm->Pos_y += pEm->Spd_y;
@@ -617,8 +618,7 @@ void func_8010158C(ENEMY_WORK *pEm)
 }
 
 /* re-aim at a new destination when reached or out of the zone (while damaged) */
-/* Em3e_retarget */
-void func_801015C0(ENEMY_WORK *pEm)
+void Em3e_retarget(ENEMY_WORK *pEm)
 {
     SHORT Zone[4];
     SHORT Area[4];
