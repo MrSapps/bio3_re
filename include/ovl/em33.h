@@ -21,7 +21,7 @@ typedef struct tagEM33_FREE {
     UCHAR Unk00;                       /* 0x00 (0x1CC) */
     UCHAR Unk01;                       /* 0x01 (0x1CD) */
     UCHAR Unk02;                       /* 0x02 (0x1CE) */
-    UCHAR Morph_dir;                   /* 0x03 (0x1CF) morph key 0 direction (func_8010183C) */
+    UCHAR Morph_dir;                   /* 0x03 (0x1CF) morph key 0 direction (Em30_morph_step) */
     SHORT Unk04;                       /* 0x04 (0x1D0) */
     SHORT Unk06;                       /* 0x06 (0x1D2) */
     SHORT Unk08;                       /* 0x08 (0x1D4) */
@@ -113,13 +113,13 @@ void func_80100B5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100B7C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80100C00(ENEMY_WORK *pEm);
 void func_80100C88(void);
-void func_80100C90(ENEMY_WORK *pEm);
-void func_80100E0C(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate);
-void func_80100FC8(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate);
+void Em30_body_chain(ENEMY_WORK *pEm);
+void Em30_part_hang(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate);
+void Em30_part_hang_sink(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate);
 void func_801011C8(ENEMY_WORK *pEm);
-ENEMY_WORK *func_8010138C(ENEMY_WORK *pEm);
+ENEMY_WORK *Em30_work_set(ENEMY_WORK *pEm);
 LONG func_80101454(ENEMY_WORK *pEm);
-void func_8010183C(ENEMY_WORK *pEm, LONG Step, LONG Dir);
+void Em30_morph_step(ENEMY_WORK *pEm, LONG Step, LONG Dir);
 void func_801018DC(ENEMY_WORK *pEm, LONG Cnt);
 void func_80101AE8(ENEMY_WORK *pEm);
 void func_80101B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
@@ -150,19 +150,19 @@ void func_80105704(ENEMY_WORK *pEm);
 void func_8010582C(ENEMY_WORK *pEm);
 void func_80105980(ENEMY_WORK *pEm);
 void func_80105A48(ENEMY_WORK *pEm, LONG No);
-void func_80105B40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em30_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80105BB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80105D74(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_80105F10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80106084(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em30_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void func_801061C4(ENEMY_WORK *pEm);
-void func_801063CC(ENEMY_WORK *pEm);
-void func_80106668(ENEMY_WORK *pEm);
-void func_80106C48(ENEMY_WORK *pEm);
-void func_80106D64(ENEMY_WORK *pEm);
-void func_80107074(ENEMY_WORK *pEm, LONG No, LONG Type);
+void Em30_dirt_hit(ENEMY_WORK *pEm);
+void Em30_dirt_line(ENEMY_WORK *pEm);
+void Em30_body_number(ENEMY_WORK *pEm);
+void Em30_dirt_steps(ENEMY_WORK *pEm);
+void Em30_dirt_set(ENEMY_WORK *pEm, LONG No, LONG Type);
 void func_80107160(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010718C(ULONG No, ENEMY_WORK *pEm, LONG *pPos);
+void Em30_se_set(ULONG No, ENEMY_WORK *pEm, LONG *pPos);
 void func_80107204(void);
 void func_8010722C(void);
 

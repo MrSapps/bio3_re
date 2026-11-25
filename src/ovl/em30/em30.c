@@ -114,8 +114,8 @@ void func_801000AC(ENEMY_WORK *pEm)
         pEm->Pos_y = pEm->Col.Pos_y;
         pEm->Pos_z = pEm->Col.Pos_z;
     }
-    func_8010682C(pEm);
-    func_80106130(pEm);
+    Em30_dirt_steps(pEm);
+    Em30_dirt_line(pEm);
 }
 
 /* RE2 Em30_Init: the body, its seven collision sub-works and their shadows */
@@ -200,37 +200,37 @@ void func_80100544(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     EM_MOVE(pEm) = 0;
     Joint_move(pEm, pKan, pSeq, 0x400);
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 1, pEm, 8);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t);
     pSub->Kage.pKw->Be_flg |= 0x80;
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 2, pEm, 1);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[1].Workm.t);
     pSub->Kage.pKw->Be_flg |= 0x80;
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 3, pEm, 2);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[2].Workm.t);
     pSub->Kage.pKw->Be_flg |= 0x80;
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 4, pEm, 3);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t);
     pSub->Kage.pKw->Be_flg |= 0x80;
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 5, pEm, 4);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t);
     pSub->Kage.pKw->Be_flg |= 0x80;
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 6, pEm, 5);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[5].Workm.t);
     pSub->Kage.pKw->Be_flg |= 0x80;
-    pSub = func_80104E58(pEm);
+    pSub = Em30_work_set(pEm);
     pSub->Be_flg |= 0xC00010;
     func_80100B34(pSub, 7, pEm, 6);
     Kage_work_set(&pSub->Kage.pKw, 0, 0x3E803E8, 0, (VECTOR *)pEm->pSin_parts_ptr[6].Workm.t);
@@ -386,7 +386,7 @@ void func_80100FA8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM30_W(pEm)->Unk04 += EM30_W(pEm)->Unk08;
         if (EM30_W(pEm)->Unk08 > 0 && EM30_W(pEm)->Unk04 > EM30_W(pEm)->Unk06)
             EM30_W(pEm)->Unk04 = EM30_W(pEm)->Unk06;
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
     }
 }
 
@@ -444,7 +444,7 @@ void func_801010FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x = 5;
         pEm->Spd_z = 0;
         Add_speedXZ(pEm, 0);
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
     }
     if (!EM30_W(pEm)->Unk20) {
         Snd_se_enem(Se[EM30_W(pEm)->Unk0B], pEm);
@@ -511,7 +511,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Add_dir = 100;
         }
         Add_speedXZ(pEm, 0);
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         if (pEm->Move_cnt == 60) {
             func_8003884C(Em30_vib_tbl, 4);
             G.Status_flg |= 4;
@@ -619,7 +619,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else {
             pEm->Timer0--;
         }
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         if (!EM30_W(pEm)->Unk20) {
             Snd_se_enem(Se[EM30_W(pEm)->Unk0B], pEm);
             EM30_W(pEm)->Unk20 = 25;
@@ -678,7 +678,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             G.Status_flg &= ~4;
         }
         Add_speedXZ(pEm, 0);
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         if (pEm->Move_cnt == 2) {
             pP = &pEm->pSin_parts_ptr[10];
             pP->UnkA2 |= 1;
@@ -1013,7 +1013,7 @@ void func_801029B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
         }
         Add_speedXZ(pEm, 0);
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         if (pEm->UnkE2) {
             EM30_W(pEm)->Unk04 = 10;
             EM30_W(pEm)->Unk08 = 0;
@@ -1102,7 +1102,7 @@ void func_80102E70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Add_speedXZ(pEm, 0);
     case 4:
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         break;
     case 2:
         EM_MOVE(pEm) = 0x1F000F;
@@ -1117,7 +1117,7 @@ void func_80102E70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_RTN(pEm) = 0x101;
         }
         Add_speedXZ(pEm, 0);
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
     }
 }
 
@@ -1172,7 +1172,7 @@ void func_801032DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
         }
         if (pEm->Move_cnt >= 56)
-            func_8010532C(pEm, 0x80, EM30_W(pEm)->Unk03);
+            Em30_morph_step(pEm, 0x80, EM30_W(pEm)->Unk03);
         if (Joint_move(pEm, pKan, pSeq, (pEm->Timer0 << 16) | 0x80))
             EM_RTN(pEm) = 0x101;
         pEm->Spd_x = EM30_W(pEm)->Unk04;
@@ -1190,7 +1190,7 @@ void func_801032DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else if (EM30_W(pEm)->Unk04 < EM30_W(pEm)->Unk06) {
             EM30_W(pEm)->Unk04 = EM30_W(pEm)->Unk06;
         }
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
     }
 }
 
@@ -1527,7 +1527,7 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 G.Status_flg &= ~4;
             }
         }
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         break;
     case 5:
         break;
@@ -1612,133 +1612,13 @@ void func_80104724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* chain the body parts: accumulated roll, each part hangs from the previous one */
-void func_80104920(ENEMY_WORK *pEm)
-{
-    PARTS_W *pP;
+#include "ovl/shared/em30/Em30_body_chain.inc.c"
 
-    pP = pEm->pSin_parts_ptr;
-    PW_FREE(pP)[0] = pP->Cdir_z;
-    pP = &pEm->pSin_parts_ptr[1];
-    PW_FREE(pP)[0] = PW_FREE(pP - 1)[0] + pP->Cdir_z;
-    pP = &pEm->pSin_parts_ptr[2];
-    PW_FREE(pP)[0] = PW_FREE(pP - 1)[0] + pP->Cdir_z;
-    pP = &pEm->pSin_parts_ptr[3];
-    PW_FREE(pP)[0] = PW_FREE(pP - 1)[0] + pP->Cdir_z;
-    pP = &pEm->pSin_parts_ptr[4];
-    PW_FREE(pP)[0] = PW_FREE(pP - 1)[0] + pP->Cdir_z;
-    pP = &pEm->pSin_parts_ptr[5];
-    PW_FREE(pP)[0] = PW_FREE(pP - 1)[0] + pP->Cdir_z;
-    pP = &pEm->pSin_parts_ptr[6];
-    PW_FREE(pP)[0] = PW_FREE(pP - 1)[0] + pP->Cdir_z;
-    func_80104A9C(pEm, &pEm->pSin_parts_ptr[0], &pEm->pSin_parts_ptr[1], 0x1000);
-    func_80104A9C(pEm, &pEm->pSin_parts_ptr[1], &pEm->pSin_parts_ptr[2], 0x1000);
-    func_80104A9C(pEm, &pEm->pSin_parts_ptr[2], &pEm->pSin_parts_ptr[3], 0x1000);
-    func_80104A9C(pEm, &pEm->pSin_parts_ptr[3], &pEm->pSin_parts_ptr[4], 0x1000);
-    func_80104A9C(pEm, &pEm->pSin_parts_ptr[4], &pEm->pSin_parts_ptr[5], 0x1000);
-    func_80104A9C(pEm, &pEm->pSin_parts_ptr[5], &pEm->pSin_parts_ptr[6], 0x1000);
-}
+#include "ovl/shared/em30/Em30_part_hang.inc.c"
 
-/* hang part pP1 from part pP0 and turn it towards pP0 */
-void func_80104A9C(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate)
-{
-    VECTOR Pos;
-    VECTOR Tip;
-    SVECTOR Rot;
-    LONG Dx;
-    LONG Dz;
-    LONG a;
+#include "ovl/shared/em30/Em30_part_hang_sink.inc.c"
 
-    pP1->Be_flg |= 2;
-    ApplyMatrixLV(&pP0->Workm, (VECTOR *)&pP1->Pos_x, &Pos);
-    Pos.vx = pP0->Workm.t[0] + Pos.vx * Rate / 4096;
-    Pos.vy = pP0->Workm.t[1] + Pos.vy * Rate / 4096;
-    Pos.vz = pP0->Workm.t[2] + Pos.vz * Rate / 4096;
-    Tip.vx = -800;
-    Tip.vy = 0;
-    Tip.vz = 0;
-    ApplyMatrixLV(&pP1->Workm, &Tip, &Tip);
-    Tip.vx = pP1->Workm.t[0] + Tip.vx;
-    Tip.vy = pP1->Workm.t[1] + Tip.vy;
-    Tip.vz = pP1->Workm.t[2] + Tip.vz;
-    Dx = Pos.vx - Tip.vx;
-    Dz = Pos.vz - Tip.vz;
-    if (Dx) {
-        a = catan((Dz << 12) / Dx);
-        if (Dx < 0)
-            Rot.vy = 0x800 - a;
-        else
-            Rot.vy = 0x1000 - a;
-    } else if (Dz > 0)
-        Rot.vy = 0xC00;
-    else
-        Rot.vy = 0x400;
-    Rot.vx = 0;
-    Rot.vz = PW_FREE(pP1)[0];
-    RotMatrix_gte(&Rot, &pP1->Workm);
-    pP1->Workm.t[0] = Pos.vx;
-    pP1->Workm.t[1] = Pos.vy;
-    pP1->Workm.t[2] = Pos.vz;
-}
-
-/* as func_80104A9C, sinking towards z -19000 with Move_cnt */
-void func_80104C58(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Rate)
-{
-    VECTOR Pos;
-    VECTOR Tip;
-    SVECTOR Rot;
-    LONG Dx;
-    LONG Dz;
-    LONG a;
-
-    pP1->Be_flg |= 2;
-    ApplyMatrixLV(&pP0->Workm, (VECTOR *)&pP1->Pos_x, &Pos);
-    Pos.vx = pP0->Workm.t[0] + Pos.vx * Rate / 4096;
-    Pos.vy = pP0->Workm.t[1] + Pos.vy * Rate / 4096;
-    Pos.vz = pP0->Workm.t[2] + Pos.vz * Rate / 4096;
-    Pos.vz += (-19000 - Pos.vz) * pEm->Move_cnt / 50;
-    Tip.vx = -800;
-    Tip.vy = 0;
-    Tip.vz = 0;
-    ApplyMatrixLV(&pP1->Workm, &Tip, &Tip);
-    Tip.vx = pP1->Workm.t[0] + Tip.vx;
-    Tip.vy = pP1->Workm.t[1] + Tip.vy;
-    Tip.vz = pP1->Workm.t[2] + Tip.vz;
-    Dx = Pos.vx - Tip.vx;
-    Dz = Pos.vz - Tip.vz;
-    if (Dx) {
-        a = catan((Dz << 12) / Dx);
-        if (Dx < 0)
-            Rot.vy = 0x800 - a;
-        else
-            Rot.vy = 0x1000 - a;
-    } else if (Dz > 0)
-        Rot.vy = 0xC00;
-    else
-        Rot.vy = 0x400;
-    Rot.vx = 0;
-    Rot.vz = PW_FREE(pP1)[0];
-    RotMatrix_gte(&Rot, &pP1->Workm);
-    pP1->Workm.t[0] = Pos.vx;
-    pP1->Workm.t[1] = Pos.vy;
-    pP1->Workm.t[2] = Pos.vz;
-}
-
-/* allocate a new work (copy of pEm) at the end of the work list (RE2 Enemy_work_set style) */
-ENEMY_WORK *func_80104E58(ENEMY_WORK *pEm)
-{
-    tagGLOBAL *pG = &G;
-    ULONG n = 0;
-
-    while (&pG->pEnemy[n] != pG->ppEnemy_end)
-        n++;
-    pG->Em_num++;
-    pG->pEnemy[n] = pG->pEm_mem;
-    pG->ppEnemy_end = &pG->pEnemy[n + 1];
-    pG->pEm_mem++;
-    *pG->pEnemy[n] = *pEm;
-    return pG->pEnemy[n];
-}
+#include "ovl/shared/em30/Em30_work_set.inc.c"
 
 /* morph the body (keys 0..2 of parts 1..3) in a cycle, faster with the speed.
    Returns the last sabun call's value (only one path returns): that explicit v0 use is what
@@ -1821,7 +1701,7 @@ LONG func_80104F20(ENEMY_WORK *pEm)
 }
 
 /* morph key 0 of part 8 one step towards 0 (Dir != 0) or 0x1000 */
-void func_8010532C(ENEMY_WORK *pEm, LONG Step, LONG Dir)
+void Em30_morph_step(ENEMY_WORK *pEm, LONG Step, LONG Dir)
 {
     PARTS_W *pP = &pEm->pSin_parts_ptr[8];
 
@@ -1857,7 +1737,7 @@ void func_801053CC(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em30_Damage */
-void func_8010549C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em30_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Unused;
 
@@ -1877,7 +1757,7 @@ void func_80105514(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (++EM30_W(pEm)->Unk0C >= 16 && EM30_W(pEm)->Unk0B != 1) {
             EM30_W(pEm)->Unk0C = 0;
             pEm->Unk12C = 0x20;
-            func_8010549C(pEm, pKan, pSeq);
+            Em30_Damage(pEm, pKan, pSeq);
             EM30_W(pEm)->Unk03 = 0;
         } else {
             if (pEm->Life < 0) {
@@ -1981,7 +1861,7 @@ void func_80105740(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM30_W(pEm)->Unk08 = 5;
             EM30_W(pEm)->Unk06 = 80;
         }
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
     }
 }
 
@@ -1998,7 +1878,7 @@ void func_801059A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pOya->Damage_cnt = 10;
             pOya->Unk1C4 = EM_RTN(pOya);
             EM_RTN(pOya) = EM_RTN(pEm);
-            func_80106710(pEm);
+            Em30_body_number(pEm);
             Flg_on(&G.Unk7888, 0);
             G.Unk75EA = 1;
         }
@@ -2007,13 +1887,13 @@ void func_801059A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     } else {
         if (EM30_W(pEm)->Unk0B != 1) {
             if (EM30_W(pEm)->Unk0A == 1) {
-                func_80105B4C(pEm, pKan, pSeq);
+                Em30_dm_fire(pEm, pKan, pSeq);
                 return;
             }
             EM30_W(pEm)->Unk0A = 1;
             pEm->Damage_cnt = 10;
             pEm->Life /= 3;
-            func_80106710(pEm);
+            Em30_body_number(pEm);
             if (G.Unk75EA)
                 G.Unk75EA = 0;
             else
@@ -2025,7 +1905,7 @@ void func_801059A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* dm[29]: hit by the grenade launcher's flame (and the like) */
-void func_80105B4C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em30_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pOya;
 
@@ -2036,7 +1916,7 @@ void func_80105B4C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pOya->Unk132 = pEm->Unk132;
             pOya->Unk1C4 = EM_RTN(pOya);
             EM_RTN(pOya) = EM_RTN(pEm);
-            func_80106710(pEm);
+            Em30_body_number(pEm);
         }
         pEm->Damage_cnt = 10;
         EM_RTN(pEm) = pEm->Unk1C4;
@@ -2047,7 +1927,7 @@ void func_80105B4C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Life = -1;
         Flg_on(&G.Unk7888, 0);
         if (!EM30_W(pEm)->Unk13)
-            func_80106710(pEm);
+            Em30_body_number(pEm);
         EM_RTN(pEm) = pEm->Unk1C4;
         func_80100CBC(pEm, pKan, pSeq);
         EM_RTN(pEm) = 3;
@@ -2099,7 +1979,7 @@ void func_80105C8C(ENEMY_WORK *pEm)
 }
 
 /* dirt thrown up at the hit part, with its sound */
-void func_80105E94(ENEMY_WORK *pEm)
+void Em30_dirt_hit(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pOya;
     SVECTOR Sv;
@@ -2148,7 +2028,7 @@ void func_80105E94(ENEMY_WORK *pEm)
 }
 
 /* Unk16A: a line of dirt puffs from the hit part towards the player */
-void func_80106130(ENEMY_WORK *pEm)
+void Em30_dirt_line(ENEMY_WORK *pEm)
 {
     SVECTOR Sv;
     SVECTOR Ofs;
@@ -2216,7 +2096,7 @@ void func_80106130(ENEMY_WORK *pEm)
 }
 
 /* number the body and its sub-works outwards from the hit one (Unk13 = 10, 13, 16, ...) */
-void func_80106710(ENEMY_WORK *pEm)
+void Em30_body_number(ENEMY_WORK *pEm)
 {
     LONG Up, Dn;
     UCHAR Val = 10;
@@ -2252,7 +2132,7 @@ void func_80106710(ENEMY_WORK *pEm)
 }
 
 /* while Unk13 counts down: dirt at a few steps, with a sound at 8 */
-void func_8010682C(ENEMY_WORK *pEm)
+void Em30_dirt_steps(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pOya;
     SVECTOR Sv;
@@ -2300,20 +2180,7 @@ void func_8010682C(ENEMY_WORK *pEm)
     }
 }
 
-/* dirt effect Kind around part No */
-void func_80106B3C(ENEMY_WORK *pEm, LONG No, LONG Kind)
-{
-    SVECTOR Sv;
-    ULONG Dir;
-
-    Sv.vx = (Rnd_l() & 0xFF) - 0x7F;
-    Sv.vz = (Rnd_l() & 0xFF) - 0x7F;
-    Sv.vy = -50;
-    Sv.vx += pEm->pSin_parts_ptr[No].Workm.t[0];
-    Sv.vz += pEm->pSin_parts_ptr[No].Workm.t[2];
-    Dir = (Rnd_l() & 3) << 9;
-    Esp_call((Kind << 8) | 0x1000003, ((Dir | 0x2000) << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Sv, NULL);
-}
+#include "ovl/shared/em30/Em30_dirt_set.inc.c"
 
 /* RE2 Em30_Die */
 void func_80106C28(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
@@ -2531,7 +2398,7 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Esp_call(0x1403, (USHORT)(Dir + 0x938) | 0x18000000, &pS[4].Workm, &Sv, NULL);
         }
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x80);
-        func_80104920(pEm);
+        Em30_body_chain(pEm);
         break;
     case 2:
         Em_dead_flg_on_cand(pEm);
@@ -2617,7 +2484,7 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (++pEm->UnkE2 == 8) {
                 pEm->UnkE2 = 0;
                 if ((pB->Be_flg & 1) && pB->Id == 0x30)
-                    func_80105E94(pB);
+                    Em30_dirt_hit(pB);
             }
         }
     } else if (!pEm->UnkE3) {
@@ -2708,11 +2575,11 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 2:
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x80);
         if (!EM30_W(pEm)->Unk13)
-            func_80106710(pEm);
+            Em30_body_number(pEm);
         if (pEm->Move_cnt == 37) {
             G.Status_flg |= 4;
             pEm->UnkE2 = 3;
-            func_80106B3C(pEm, 0, 0x12);
+            Em30_dirt_set(pEm, 0, 0x12);
             Pos.vx = pEm->Pos_x;
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
@@ -2735,7 +2602,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt == 56) {
             G.Status_flg |= 4;
             pEm->UnkE2 = 3;
-            func_80106B3C(pEm, 3, 0x12);
+            Em30_dirt_set(pEm, 3, 0x12);
             Pos.vx = pEm->Pos_x;
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
@@ -2747,7 +2614,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt == 74) {
             G.Status_flg |= 2;
             pEm->UnkE2 = 10;
-            func_80106B3C(pEm, 1, 0x12);
+            Em30_dirt_set(pEm, 1, 0x12);
             Pos.vx = pEm->Pos_x;
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
@@ -2761,7 +2628,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt == 97) {
             G.Status_flg |= 4;
             pEm->UnkE2 = 3;
-            func_80106B3C(pEm, 4, 0x12);
+            Em30_dirt_set(pEm, 4, 0x12);
             Pos.vx = pEm->Pos_x;
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
@@ -2829,33 +2696,22 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Timer0 = 0;
                 pB = G.pEnemy[(Rnd_l() & 7) + 2];
                 if ((pB->Be_flg & 1) && pB->Id == 0x30)
-                    func_80105E94(pB);
+                    Em30_dirt_hit(pB);
             }
         } else if (!pEm->UnkE3) {
             pEm->UnkE3 = 1;
             func_8001B894(0x1203, NULL);
-            func_80106B3C(pEm, 0, 0x1B);
-            func_80106B3C(pEm, 1, 0x1B);
-            func_80106B3C(pEm, 3, 0x1B);
-            func_80106B3C(pEm, 4, 0x1B);
+            Em30_dirt_set(pEm, 0, 0x1B);
+            Em30_dirt_set(pEm, 1, 0x1B);
+            Em30_dirt_set(pEm, 3, 0x1B);
+            Em30_dirt_set(pEm, 4, 0x1B);
         }
     }
     if (EM30_W(pEm)->Unk14)
         EM30_W(pEm)->Unk14 -= 4;
 }
 
-/* positional sound No at pPos, from the second bank when the room uses pEm's */
-void func_801089B0(ULONG No, ENEMY_WORK *pEm, LONG *pPos)
-{
-    VECTOR Pos;
-
-    Pos.vx = pPos[0];
-    Pos.vy = pPos[1];
-    Pos.vz = pPos[2];
-    if (pEm->Unk12F == D_800BA6E8[3])
-        No += 0x10;
-    Snd_se_stad(No | 0x10300, &Pos, 0, 0);
-}
+#include "ovl/shared/em30/Em30_se_set.inc.c"
 
 /* G.pPldie_Em hook: the player dies to the em30 */
 void Em30_Pldie(ENEMY_WORK *pPl)
