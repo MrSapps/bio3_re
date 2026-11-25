@@ -69,7 +69,7 @@ void Print8_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);
 void Print14_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);
 LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data);
 ULONG Moji_recip(ULONG Val);
-void Branch_disp(ULONG Arg0, UCHAR *pStr); /* RE2 has 4 args, RE3 reads only a0/a1 */
+void Branch_disp(MOJIDISP *pMoji, UCHAR *pData); /* RE2 has 4 args, RE3 reads only a0/a1 */
 void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData);
 void Name_disp(LONG x, LONG y, ULONG Attr, ULONG Item);
 UCHAR *name_ptr_set(UCHAR No);
