@@ -2604,7 +2604,6 @@ LONG func_8004479C(ULONG A, ULONG B, VECTOR *pV)
     return (SHORT)(ay - t) >= pV->vx;
 }
 
-LONG Cdir_ck_pos_l(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT) __asm__("Cdir_ck_pos"); /* returns long here (canonical UC) */
 
 INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80044804);
 
@@ -3395,7 +3394,7 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
                     }
                     pT->Unk12C = pAttr->Unk1;
                     pT->Damage_cnt = Cnt;
-                    d = Cdir_ck_pos_l(pPos->vx, pPos->vz, pT);
+                    d = Cdir_ck_pos(pPos->vx, pPos->vz, pT);
                     Ret |= 0x20000001;
                     *(ULONG *)&pT->Routine_0 = (Part << 8) | 2;
                     pT->Unk132 = pT->Unk132 | (d << 4) | ((Kind & 0x1F) << 8);

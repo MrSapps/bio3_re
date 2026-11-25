@@ -6,7 +6,6 @@
 #include "sub.h"
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");     /* em_sub.c Cdir_ck, int result */
 void Em_dead_flg_on_cand_() __asm__("Em_dead_flg_on_cand"); /* unprototyped call */
 void Rot_vector_l(LONG Dir, SVECTOR *p, SVECTOR *q) __asm__("Rot_vector"); /* main.h Rot_vector, int Dir */
 LONG Guide_check_(LONG X, LONG Z, LONG Floor) __asm__("Guide_check"); /* arg 1 long (canonical short); arg 2 long (canonical short); arg 3 long (canonical UC) */
@@ -4083,7 +4082,7 @@ void func_8010C4B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         G.System_flg |= 0x20800;
-        if (Cdir_ck_l(pEm, pPl)) {
+        if (Cdir_ck(pEm, pPl)) {
             EM_SET_MOVE(pEm, 7, 0, 0xF);
             pEm->Routine_3 = 1;
         } else {

@@ -195,19 +195,19 @@ LONG L_pos_ckXZM(MATRIX *pM, VECTOR *pP, ULONG Ll, SVECTOR *pSv)
 }
 
 /* does pT face the same way as pEm (within +-90 degrees)? */
-UCHAR Cdir_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT)
+LONG Cdir_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     return ((((LONG)pT->Cdir_y - (LONG)pEm->Cdir_y) + 0x400) & 0xFFF) < 0x800;
 }
 
 /* does pT face away from the point (Pos_x, Pos_z)? */
-UCHAR Cdir_ck_pos(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT)
+LONG Cdir_ck_pos(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT)
 {
     return (ULONG)(((USHORT)pT->Cdir_y - Direction_ck((SHORT)Pos_x, (SHORT)Pos_z, (SHORT)pT->Pos_x, (SHORT)pT->Pos_z)) + 0x400 & 0xFFF) < 0x800;
 }
 
 /* does pT face away from pEm? */
-UCHAR Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT)
+LONG Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     SHORT Dir;
 
@@ -216,7 +216,7 @@ UCHAR Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 }
 
 /* are the directions Dir0 and Dir1 within +-90 degrees of each other? */
-UCHAR Dir_ck(LONG Dir0, LONG Dir1)
+LONG Dir_ck(LONG Dir0, LONG Dir1)
 {
     return ((((SHORT)Dir1 - (SHORT)Dir0) + 0x400) & 0xFFF) < 0x800;
 }

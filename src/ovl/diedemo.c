@@ -2,7 +2,6 @@
 #include "sld.h"
 #include "status.h"
 
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* result used without the UCHAR mask */
 
 /* task entry */
 void Die_demo(void)
@@ -257,14 +256,14 @@ void Die_move_set_cut(void)
     }
     Diedemo.Theta &= 0xFFF;
     if (!(Diedemo.Em_flg & 1)) {
-        if (Cdir_ck_l(&Pl_work, Pl_work.pEnemy_ptr)) {
+        if (Cdir_ck(&Pl_work, Pl_work.pEnemy_ptr)) {
             Diedemo.Theta += pCut->P_theta;
             Diedemo.Prad = pCut->Prad;
         } else {
             Diedemo.Theta += pCut->M_theta;
             Diedemo.Prad = pCut->Mrad;
         }
-    } else if (Cdir_ck_l(G.pEnemy[1], G.Player.pEnemy_ptr)) {
+    } else if (Cdir_ck(G.pEnemy[1], G.Player.pEnemy_ptr)) {
         Diedemo.Theta += pCut->P_theta;
         Diedemo.Prad = pCut->Prad;
     } else {

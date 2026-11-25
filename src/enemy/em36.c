@@ -7,7 +7,6 @@
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("func_8004A934"); /* 3 args here (canonical 2) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* returns long here (canonical UC) */
 LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* arg 3 long (canonical short); arg 4 long (canonical short) */
 
 /* RE2 Em12a: enemy main routine */
@@ -911,7 +910,7 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
             Hit |= func_80044420(&pEm->pSin_parts_ptr[4].Workm, &Ofs, pPl);
             if (Hit) {
-                EM_RTN(pPl) = ((Cdir_ck_l(pEm, pPl) + 2) << 8) | 2;
+                EM_RTN(pPl) = ((Cdir_ck(pEm, pPl) + 2) << 8) | 2;
                 pPl->Damage_cnt |= 0x80;
                 if (pPl->Unk12C == 0x80) {
                     pPl->pEnemy_ptr = pEm;
@@ -1653,7 +1652,7 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (Hit) {
                 Cdir = pEm->Cdir_y;
                 Dir = pEm->Cdir_y = Direction_ck(pPl->Pos_x, pPl->Pos_z, pEm->Pos_x, pEm->Pos_z) - 0x400;
-                Hit = Cdir_ck_l(pEm, pPl);
+                Hit = Cdir_ck(pEm, pPl);
                 Dir -= 0x800;
                 pEm->Cdir_y = Cdir;
                 EM_RTN(pPl) = ((Hit + 4) << 8) | 2;
@@ -1829,7 +1828,7 @@ void func_80106438(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
             Hit |= func_80044420(&pP[5].Workm, &Ofs, pPl);
             if (Hit) {
-                EM_RTN(pPl) = ((Cdir_ck_l(pEm, pPl) + 2) << 8) | 2;
+                EM_RTN(pPl) = ((Cdir_ck(pEm, pPl) + 2) << 8) | 2;
                 pPl->Damage_cnt |= 0x80;
                 Snd_se_enem(4, pEm);
                 if (Pl_life_down(40, 0) == 2)
@@ -1938,7 +1937,7 @@ void func_80106994(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
             Hit |= func_80044420(&pEm->pSin_parts_ptr[4].Workm, &Ofs, pPl);
             if (Hit) {
-                EM_RTN(pPl) = ((Cdir_ck_l(pEm, pPl) + 2) << 8) | 2;
+                EM_RTN(pPl) = ((Cdir_ck(pEm, pPl) + 2) << 8) | 2;
                 pPl->Damage_cnt |= 0x80;
                 if (pPl->Unk12C == 0x80) {
                     pPl->pEnemy_ptr = pEm;
@@ -3603,7 +3602,7 @@ void func_8010B19C(ENEMY_WORK *pEm)
         EM36_W(pEm)->Flg |= 0x10;
         EM36_W(pEm)->Unk07 &= 0x7F;
     }
-    if (!(EM36_W(pEm)->Unk07 & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck_l(pEm, pPl)
+    if (!(EM36_W(pEm)->Unk07 & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck(pEm, pPl)
         && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Unk75E8 & 1) {
         Div = 0;
         if ((UCHAR)pPl->Type == 10) {

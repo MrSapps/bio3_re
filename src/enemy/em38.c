@@ -8,7 +8,6 @@
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* arg 3 long (canonical short); arg 4 long (canonical short) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
 void func_800251FC_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos) __asm__("Joint_trans"); /* 4 args here (canonical 3) */
 
 /* RE2 EM_MAIN */
@@ -727,7 +726,7 @@ void func_80101C54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Dir_old = pEm->Cdir_y;
                 pEm->Cdir_y = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z) - 0x400;
                 Dir = pEm->Cdir_y;
-                Hit = Cdir_ck_l(pEm, pPl);
+                Hit = Cdir_ck(pEm, pPl);
                 pEm->Cdir_y = Dir_old;
                 pPl->pEnemy_ptr = pEm;
                 EM_RTN(pPl) = (Hit << 8) | 5;
@@ -835,7 +834,7 @@ void func_80102070(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Dir_old = pEm->Cdir_y;
                 pEm->Cdir_y = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z) - 0x800;
                 Dir = pEm->Cdir_y;
-                Hit = Cdir_ck_l(pEm, pPl);
+                Hit = Cdir_ck(pEm, pPl);
                 pEm->Cdir_y = Dir_old;
                 pPl->pEnemy_ptr = pEm;
                 pPl->Damage_cnt |= 0x80;
@@ -1813,7 +1812,7 @@ void func_801050CC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Dir_old = pEm->Cdir_y;
                 pEm->Cdir_y = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z) - 0x400;
                 Dir = pEm->Cdir_y;
-                Hit = Cdir_ck_l(pEm, pPl);
+                Hit = Cdir_ck(pEm, pPl);
                 pEm->Cdir_y = Dir_old;
                 pPl->pEnemy_ptr = pEm;
                 EM_RTN(pPl) = ((Hit + 4) << 8) | 2;

@@ -7,7 +7,6 @@
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 void Root_ck_(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3) __asm__("Root_ck"); /* returns void here (canonical long); arg 3 long (canonical UC); arg 4 long (canonical UC) */
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");   /* Cdir_ck, result used unmasked */
 
 /* RE2 EM_MAIN */
 void Em10_main(ENEMY_WORK *pEm)

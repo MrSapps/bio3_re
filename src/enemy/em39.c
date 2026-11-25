@@ -4,7 +4,6 @@
 #include "snd.h"
 
 LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* em_sub.c, called with int args */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 
 /* RE2 EM_MAIN: follow the parent part, then grow/shrink with the ground under parts 3..5 */
@@ -263,7 +262,7 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (pEm->Move_no == 3)
                     pEm->Cdir_y = d + 0x400;
                 Dir = pEm->Cdir_y;
-                Hit = Cdir_ck_l(pEm, pPl);
+                Hit = Cdir_ck(pEm, pPl);
                 pEm->Cdir_y = Dir_old;
                 EM_RTN(pPl) = ((Hit + 4) << 8) | 2;
                 pPl->Damage_cnt |= 0x80;

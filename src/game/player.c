@@ -613,7 +613,6 @@ void pl_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Add_speedXZ(pEm, 0);
 }
 
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* returns long here (canonical UC) */
 
 ULONG Lim_dir_ck(ENEMY_WORK *pEm, ULONG Lim, SHORT Dir)
 {
@@ -641,7 +640,7 @@ ULONG Lim_dir_ck(ENEMY_WORK *pEm, ULONG Lim, SHORT Dir)
                     && Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t,
                                    (VECTOR *)pT->pSin_parts_ptr[pT->Neck_no].Workm.t, 0x2040, 1) == 0
                     && Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, Dir) == 0
-                    && Cdir_ck_l(pEm, pT) == 0 && dist < min) {
+                    && Cdir_ck(pEm, pT) == 0 && dist < min) {
                     min = dist;
                     pNear = pT;
                     ppEm++;

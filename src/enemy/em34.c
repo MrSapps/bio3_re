@@ -9,7 +9,6 @@
 extern LONG D_800D1F2C_ __asm__("D_800D1F2C"); /* type differs from the canonical extern */
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
 
 /* module .data (names after RE2 EM2A.C) */
 /* arm models: the claw arm from pUnk174 and the original arm, parts 5 and 8 */
@@ -1106,7 +1105,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Ofs.vz = 0;
                 Ofs.pad = 700;
                 if (func_80044420(&pP->Workm, &Ofs, pPl)) {
-                    EM_RTN(pPl) = (Cdir_ck_l(pEm, pPl) + 2) << 8 | 2;
+                    EM_RTN(pPl) = (Cdir_ck(pEm, pPl) + 2) << 8 | 2;
                     pPl->Damage_cnt |= 0x80;
                     Snd_se_enem(4, pEm);
                     Pl_life_down(25, 1);
@@ -1129,7 +1128,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Ofs.vz = 0;
                 Ofs.pad = 700;
                 if (func_80044420(&pP->Workm, &Ofs, pSpl)) {
-                    EM_RTN(pSpl) = (Cdir_ck_l(pEm, pSpl) + 2) << 8 | 2;
+                    EM_RTN(pSpl) = (Cdir_ck(pEm, pSpl) + 2) << 8 | 2;
                     pSpl->Damage_cnt |= 0x80;
                     if (func_8005F984(15, 0) == 2)
                         EM_SET_RTN(pSpl, 3, 0, 0, 0);
@@ -1903,7 +1902,7 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
             if (Hit) {
                 pEm->Cdir_y += 0x400;
-                Hit = Cdir_ck_l(pEm, pPl);
+                Hit = Cdir_ck(pEm, pPl);
                 pEm->Cdir_y -= 0x400;
                 pPl->Damage_cnt |= 0x80;
                 EM_RTN(pPl) = Hit << 8 | 2;
@@ -2018,7 +2017,7 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
             Hit |= func_80044420(&pP[5].Workm, &Ofs, pPl);
             if (Hit) {
-                EM_RTN(pPl) = (Cdir_ck_l(pEm, pPl) + 2) << 8 | 2;
+                EM_RTN(pPl) = (Cdir_ck(pEm, pPl) + 2) << 8 | 2;
                 pPl->Damage_cnt |= 0x80;
                 Snd_se_stad(0x1020D, (VECTOR *)&pEm->Pos_x, 0, 0);
                 if (Pl_life_down(25, 0) == 2)
@@ -3640,7 +3639,7 @@ void Em34_before(ENEMY_WORK *pEm)
         EM34_W(pEm)->Flg |= 0x40;
         EM34_W(pEm)->Unk07 &= 0x7F;
     }
-    if (!(EM34_W(pEm)->Unk07 & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck_l(pEm, pPl)
+    if (!(EM34_W(pEm)->Unk07 & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck(pEm, pPl)
         && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Unk75E8 & 1) {
         Div = 0;
         if ((UCHAR)pPl->Type == 10) {

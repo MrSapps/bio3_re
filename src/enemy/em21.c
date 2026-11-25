@@ -5,7 +5,6 @@
 #include "snd.h"
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");     /* em_sub.c Cdir_ck, int result as in RE2 EM21.H */
 void Add_speedXZ_n(ENEMY_WORK *pEm, LONG muki, LONG Dummy) __asm__("Add_speedXZ"); /* RE2 EM21 passes a 3rd arg */
 LONG func_800502B8_(SVECTOR *pSv, struct tagSCA_DATA *pT) __asm__("func_800502B8"); /* returns long here (canonical unsigned short); arg 1 SVECTOR* (canonical VECTOR*); arg 2 struct tagSCA_DATA* (canonical SCA_DATA*) */
 
@@ -858,7 +857,7 @@ void func_80102298(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        if (Cdir_ck_l(pEm, &Pl_work))
+        if (Cdir_ck(pEm, &Pl_work))
             func_80104638(&Pl_work, 2, 1);
         else
             func_80104638(&Pl_work, 2, 0);

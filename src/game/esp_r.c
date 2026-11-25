@@ -269,7 +269,6 @@ void Esp_28(ESP_WORK *pEsp)
     }
 }
 
-LONG Dir_ck_l(LONG Dir0, LONG Dir1) __asm__("Dir_ck"); /* Dir_ck with its result used as int */
 
 /* effect hitting the player or the sub player (HIT_REQ / HIT_AREA tests) */
 void Esp_29(ESP_WORK *pEsp)
@@ -319,13 +318,13 @@ void Esp_29(ESP_WORK *pEsp)
     }
     if (Hit_flg != 0) {
         if (Hit_flg < 0) {
-            d = Dir_ck_l((SHORT)Rot, G.Player.Cdir_y);
+            d = Dir_ck((SHORT)Rot, G.Player.Cdir_y);
             if (G.Player.Routine_0 == 2) {
                 G.Player.Routine_1 = Esp_at_tbl[pEsp->Unk18]->Unk1 * 2 - 0x28 + d;
             }
         }
         if (Hit_flg & 0x40000000) {
-            d = Dir_ck_l((SHORT)Rot, G.pEnemy[1]->Cdir_y);
+            d = Dir_ck((SHORT)Rot, G.pEnemy[1]->Cdir_y);
             if (G.pEnemy[1]->Routine_0 == 2) {
                 G.pEnemy[1]->Routine_1 = Esp_at_tbl[pEsp->Unk18]->Unk1 * 2 - 0x28 + d;
             }

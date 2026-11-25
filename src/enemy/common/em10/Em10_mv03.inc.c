@@ -27,7 +27,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pPl->pEnemy_ptr = pEm;
         Set_base_pos(pPl, pKan, pSeq, 0);
         func_8002646C_(pEm, 200, 20, pEm->Col.Unk39);
-        EM_RTN(pPl) = (Cdir_ck_l(pEm, pPl) << 8) | 5;
+        EM_RTN(pPl) = (Cdir_ck(pEm, pPl) << 8) | 5;
         pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
         pPl->pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
         pPl->Damage_cnt |= 0x80;
@@ -78,7 +78,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             if (Life_ck & 2) {
                 EM_SET_RTN(pEm, 1, 6, 0, 0);
-                EM_RTN(&Pl_work) = (Cdir_ck_l(pEm, pPl) << 8) | 6;
+                EM_RTN(&Pl_work) = (Cdir_ck(pEm, pPl) << 8) | 6;
             }
         }
         break;

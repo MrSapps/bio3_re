@@ -6,7 +6,6 @@
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
 void Add_speedXZ3(ENEMY_WORK *pEm, LONG muki, LONG a2) __asm__("Add_speedXZ"); /* 3 args here (canonical 2) */
 
 /* RE2 EM_MAIN */
@@ -2066,7 +2065,7 @@ LONG Atck_range_ck(ENEMY_WORK *pEm)
         if (!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x100)) {
             if (pTg->Damage_cnt & 0x80)
                 return -4;
-            if (pTg->Life < 13 && Cdir_ck_l(pEm, pTg) && pFp->Stress < 600)
+            if (pTg->Life < 13 && Cdir_ck(pEm, pTg) && pFp->Stress < 600)
                 return -2;
             return 1;
         }
@@ -2105,7 +2104,7 @@ ULONG hit_ck_main(ENEMY_WORK *pEm, LONG pl)
         pFp->Stress = 0;
         if (!pl)
             ck = Pl_life_down(12, 0);
-        if (ck == 2 && !Cdir_ck_l(pEm, pPl) && !Low && !d0 && !pFp->Target_pl && pPl->Id != 15) {
+        if (ck == 2 && !Cdir_ck(pEm, pPl) && !Low && !d0 && !pFp->Target_pl && pPl->Id != 15) {
             pFp->Hit_type = ck;
             pEm->Spd_x = 0;
             pEm->Be_flg |= 0x4000;

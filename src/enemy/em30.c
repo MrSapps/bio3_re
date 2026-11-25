@@ -6,7 +6,6 @@
 #include "snd.h"
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");          /* em_sub.c, UCHAR result used as int */
 
 LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54"); /* returns long here (canonical void) */
 
@@ -752,7 +751,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (pEm->UnkE2) {
             n = pEm->UnkE2;
-            pPl->Spd_x = Cdir_ck_l(pEm, pPl) ? n * 20 : -(n * 20);
+            pPl->Spd_x = Cdir_ck(pEm, pPl) ? n * 20 : -(n * 20);
             pPl->Spd_z = 0;
             Add_speedXZ(pPl, 0);
             pEm->UnkE2--;
@@ -1022,7 +1021,7 @@ void func_801029B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vz = 0;
             Esp_call(0, (USHORT)pPl->Cdir_y | 0x14000000, &pPl->pSin_parts_ptr[8].Workm, &Sv, NULL);
             n = pEm->UnkE2;
-            pPl->Spd_x = Cdir_ck_l(pEm, pPl) ? n * 30 : -(n * 30);
+            pPl->Spd_x = Cdir_ck(pEm, pPl) ? n * 30 : -(n * 30);
             pPl->Spd_z = 0;
             Add_speedXZ(pPl, 0);
             pEm->UnkE2--;
@@ -1425,7 +1424,7 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Esp_call(0x700, (USHORT)pPl->Cdir_y | 0x14000000, &pPl->pSin_parts_ptr[8].Workm, &Sv, NULL);
             Esp_call(0, (USHORT)pPl->Cdir_y | 0x18000000, &pPl->pSin_parts_ptr[8].Workm, &Sv, NULL);
             n = pEm->UnkE2;
-            pPl->Spd_x = Cdir_ck_l(pEm, pPl) ? n * 100 : -(n * 100);
+            pPl->Spd_x = Cdir_ck(pEm, pPl) ? n * 100 : -(n * 100);
             pPl->Spd_z = 0;
             Add_speedXZ(pPl, 0);
             pEm->UnkE2--;

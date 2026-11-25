@@ -946,7 +946,6 @@ void func_8006236C(ENEMY_WORK *pEm)
     func_800623C4(pEm, pEm->pSub1_kan_t_ptr, pEm->pSub1_seq_t_ptr);
 }
 
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* returns long here (canonical UC) */
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 
 void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
@@ -959,7 +958,7 @@ void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     SHORT z;
 
     pT = pEm->pEnemy_ptr;
-    pEm->Add_dir = Cdir_ck_l(pT, pEm);
+    pEm->Add_dir = Cdir_ck(pT, pEm);
     switch (pEm->Routine_2) {
     case 0:
         *(LONG *)&pEm->Move_no = Mv[pEm->Add_dir] + 0x30000;
