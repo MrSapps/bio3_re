@@ -1,3 +1,6 @@
+/*
+ * ENDING.BIN: game end sequencer: ending movie, staff roll, result screens, clear save, then the next game
+ */
 #include "ovl/ending.h"
 #include "status.h"
 
@@ -15,18 +18,20 @@ void Ending_main(void)
     Task_exit();
 }
 
+/* clears the low 16 bits of G.Status_flg */
 void Ending_status_clr(void)
 {
     G.Status_flg &= 0xFFFF0000;
 }
 
+/* after the last boss: play time, ending movie, staff roll, result/bonus/epilogue screens, clear save, next game */
 void Ending_game(void)
 {
     G.Game_time = G.Game_time + VSync(-1) - G.Game_time_offset;
     Ending_movie();
     Task_lexecute(1, 0xB);
     Task_sleep(1);
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     G.Unk2115 = 3;
     Task_lexecute(1, 8);
     Task_sleep(1);
@@ -50,7 +55,7 @@ void Ending_game(void)
     Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
     Ending_next_game();
     Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
-    func_800792FC();
+    Init_sub_load();
     G.System_flg |= 0x4000;
     Task_lexecute(1, 2);
     Task_sleep(1);
@@ -58,6 +63,7 @@ void Ending_game(void)
     G.System_flg &= ~0x40000;
 }
 
+/* plays ending movie 10, or 11 when scenario flag 0x58 is set, and waits for it */
 void Ending_movie(void)
 {
     if (!Flg_ck(G.Unk7868, 0x58)) {
@@ -73,19 +79,21 @@ void Ending_movie(void)
     }
 }
 
+/* Mercenaries run end (System_flg 0x80): result routine 1, then Retry_load */
 void Ending_load(void)
 {
     G.Unk2115 = 1;
     Task_lexecute(1, 8);
     Task_sleep(1);
-    func_800791F0();
+    Retry_load();
 }
 
+/* next playthrough: no saves yet, save area 0x1C, reloads the room files, next epilogue number */
 void Ending_next_game(void)
 {
     G.Save_cnt = 0xFF;
     G.Save_area = 0x1C;
     G.Next_cut_no = G.Cut_no;
-    func_800790F0((ULONG *)0x80100000);
+    Retry_file_load((ULONG *)0x80100000);
     G.Unk7806++;
 }

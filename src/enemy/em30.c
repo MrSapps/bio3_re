@@ -8,7 +8,7 @@
 /* Capcom declared these differently in this module: Cdir_ck returning int (the UCHAR result is
    tested without andi), and the sabun call returning a value (Em30_morph_body returns it) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
-LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54");
+LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("Sa_morph_blend");
 
 /* per-frame entry (RE2 EM_MAIN): the head steers and runs its routine; a segment follows its part */
 void Em30_main(ENEMY_WORK *pEm)
@@ -1706,8 +1706,8 @@ LONG Em30_morph_body(ENEMY_WORK *pEm)
             }
             break;
         }
-        func_8004AC54(pEm, &pP[0]);
-        func_8004AC54(pEm, &pP[1]);
+        Sa_morph_blend(pEm, &pP[0]);
+        Sa_morph_blend(pEm, &pP[1]);
         return func_8004AC54_l(pEm, &pP[2]);
     }
 }

@@ -4,17 +4,18 @@
 #include "main.h"
 #include "em_sub.h"
 
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Unk1;
-    USHORT Unk2;
-    LONG Unk4;
-    LONG Unk8[3];
-    UCHAR Unk14[4];
-    LONG Unk18[3];
-} FI_SAVE;
+/* G fields kept across Init_global when System_flg 0x80 (retry) is set (Keep_data_save/Keep_data_load) */
+typedef struct tagKEEP_DATA {
+    UCHAR Save_cnt;                    /* 0x00 G.Save_cnt */
+    UCHAR Save_slot;                   /* 0x01 G.Save_slot */
+    USHORT G_7806;                     /* 0x02 G.Unk7806 */
+    LONG Game_flg;                     /* 0x04 G.Unk77F8[0] (game mode / unlock flags) */
+    LONG Merc_time[3];                 /* 0x08 G.Merc_time[] */
+    UCHAR Merc_grade[4];               /* 0x14 G.Merc_grade[] */
+    LONG Merc_money[3];                /* 0x18 G.Merc_money[] */
+} KEEP_DATA;
 
-/* two-bone joint lengths (func_80079374) */
+/* two-bone joint lengths (Leg_ik) */
 typedef struct tagMY_JNT {
     SVECTOR a;
     SVECTOR b;
@@ -56,7 +57,7 @@ LIGHT_CUT_DATA *Get_light_cut(LONG *pPos);
 void Set_light(LIGHT_CUT_DATA *pLightCut, VECTOR *pV);
 void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight);
 
-/* player state kept by func_800791F0 (0x800C7048) */
+/* player state kept by Retry_load (0x800C7048) */
 typedef struct tagPL_SAVE {
     USHORT Cdir_y;                     /* 0x0 */
     SHORT Pos_x;                       /* 0x2 */
@@ -67,21 +68,21 @@ typedef struct tagPL_SAVE {
     UCHAR Poison;                      /* 0xB 0x80 | poison timer */
     UCHAR Save[0x908];                 /* 0xC copy of G.Card_head.. */
 } PL_SAVE;
-extern PL_SAVE D_800C7048;
+extern PL_SAVE Retry_data;
 
 ULONG Flg_ck(ULONG *pFlg, ULONG Id); /* bit Id of a flag array */
 void Flg_on(ULONG *pFlg, ULONG Id); /* set bit Id of a flag array */
 
-void func_800790F0(ULONG *pAdr); /* load and run the INIT_SUB code at pAdr */
-void func_800791F0(void); /* restore the saved game state (load) */
-void func_800792FC(void); /* read INIT_SUB to 0x80101000 */
+void Retry_file_load(ULONG *pAdr); /* load and run the INIT_SUB code at pAdr */
+void Retry_load(void); /* restore the saved game state (load) */
+void Init_sub_load(void); /* read INIT_SUB to 0x80101000 */
 
-extern FI_SAVE D_800E11D0;
-extern LONG D_800E11F4;
-extern MATRIX D_800E1200[];
-extern MATRIX D_800E1220;
-extern MATRIX D_800E1260;
-extern MATRIX D_800E1280;
+extern KEEP_DATA Keep_data;
+extern LONG Keep_money;
+extern MATRIX Ik_mat[];
+extern MATRIX Ik_mat1;
+extern MATRIX Ik_mat3;
+extern MATRIX Ik_mat4;
 
 void Mapping_tim(ULONG *pAdr); /* RE2 Mapping_tim */
 void SetSpadStack(void);
@@ -94,15 +95,15 @@ void Flg_off(ULONG *p, ULONG x);
 void Set_view(LONG *pVp, LONG *pVr);
 void Set_light_pos(VECTOR *pV);
 void Set_light_default(void);
-void func_80078FE8(void);
-void func_8007906C(void);
-void func_80079374(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ);
+void Keep_data_save(void);
+void Keep_data_load(void);
+void Leg_ik(MATRIX *pM0, MATRIX *pM1, LONG *pT, MY_JNT *pJ);
 void Copy_rot_matrix(MATRIX *m0, MATRIX *m1);
 void Copy_matrix(MATRIX *m0, MATRIX *m1);
-LONG func_80079690(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
-void func_80079868(ENEMY_WORK *pEm, LONG rate);
-void func_80079C70(UCHAR *p);
-void func_80079CC0(ENEMY_WORK *pEm, LONG h);
-void func_80079EB8(void);
+LONG Leg_ik_kan(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);
+void Leg_ik_set(ENEMY_WORK *pEm, LONG rate);
+void Sub_matrix_mul(UCHAR *p);
+void Leg_ik_floor(ENEMY_WORK *pEm, LONG h);
+void Sub_dummy(void);
 
 #endif /* SUB_H */

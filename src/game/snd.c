@@ -1,3 +1,9 @@
+/*
+ * SND.C: RE3's own sound driver on libspu (RE2 used libsnd; only the role of the entry points carries over).
+ * Sound effects are queued by Snd_se_stad and keyed by Snd_se_call once per frame; BGM sequences (3 slots,
+ * SEQ data) are played by a root-counter driven sequencer (Snd_seq_tick, Snd_midi_*). VAB banks live in
+ * SPU memory, registered by Snd_vab_head_set/Snd_bank_set; the room's BGM and banks come in with the room pack (cd.c).
+ */
 #include "snd.h"
 #include "cd.h"
 #include "pad.h"
@@ -5,33 +11,26 @@
 #include "sca.h"
 #include "sld.h"
 
-int func_800783BC_() __asm__("func_800783BC"); /* returns int here (canonical void); unprototyped call */
+#define SQ(x) ((x) * (x))
 
-/* ---- merged helpers (forks + parent) ---- */
-typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
-
-#define FC_SQ(x) ((x) * (x))
-
-/* local prototypes (this module) */
-LONG func_800770DC_l(LONG lo, ULONG hi) __asm__("func_800770DC"); /* returns long here (canonical signed char) */
-
-void func_80073E84(void)
+/* RE2 Snd_sys_init role: SPU common attributes, volumes, work, reverb off, and the sequencer root counter event */
+void Snd_sys_init(void)
 {
-    SpuReverbAttr r;
-    SpuCommonAttr *pA;
+    SpuReverbAttr Rv_attr;
+    SpuCommonAttr *pCattr;
     SND_WORK *pW = &Snd_work;
 
     SsUtReverbOff();
-    pA = &pW->Cattr;
+    pCattr = &pW->Cattr;
     pW->Cattr.mask = 0x2CF;
-    pA->mvol.right = 0x3FFF;
-    pA->mvol.left = 0x3FFF;
-    pA->mvolmode.right = 0;
-    pA->mvolmode.left = 0;
-    pA->cd.volume.right = 0x1FFF;
-    pA->cd.volume.left = 0x1FFF;
-    pA->cd.mix = 1;
-    SpuSetCommonAttr(pA);
+    pCattr->mvol.right = 0x3FFF;
+    pCattr->mvol.left = 0x3FFF;
+    pCattr->mvolmode.right = 0;
+    pCattr->mvolmode.left = 0;
+    pCattr->cd.volume.right = 0x1FFF;
+    pCattr->cd.volume.left = 0x1FFF;
+    pCattr->cd.mix = 1;
+    SpuSetCommonAttr(pCattr);
     SpuSetTransferMode(0);
     pW->Vol.Master = 0x7F;
     pW->Vol.Unk6 = 0x7F;
@@ -45,27 +44,29 @@ void func_80073E84(void)
     pW->Vol.Rv_mode = 0;
     pW->Vol.Rv_cur = 0;
     pW->Vol.Rv_step = 0;
-    r.mask = 1;
-    r.mode = 0;
-    SpuSetReverbModeParam(&r);
+    Rv_attr.mask = 1;
+    Rv_attr.mode = 0;
+    SpuSetReverbModeParam(&Rv_attr);
     SpuSetReverb(0);
     VSync(30);
     StopRCnt(0xF2000002);
     EnterCriticalSection();
-    D_800E0608 = OpenEvent(0xF2000002, 2, 0x1000, func_80075C30);
+    Snd_event = OpenEvent(0xF2000002, 2, 0x1000, Snd_seq_tick);
     ExitCriticalSection();
     SetRCnt(0xF2000002, 20000, 0x1000);
-    EnableEvent(D_800E0608);
+    EnableEvent(Snd_event);
     StartRCnt(0xF2000002);
-    pW->UnkB74 = 0;
+    pW->Seq_play = 0;
 }
 
+/* stops every sequence and voice and clears the work */
 void Snd_reset(void)
 {
     Snd_seq_stop_all();
     Snd_work_init();
 }
 
+/* clears the sound work (sequences, voices, request queue, master fade) */
 void Snd_work_init(void)
 {
     SND_WORK *pW = &Snd_work;
@@ -76,34 +77,35 @@ void Snd_work_init(void)
     }
     for (i = 0; i < 3; i++) {
         pW->Seq_data[i].Id = 0xFF;
-        pW->Seq[i].Unk54 = 0;
-        pW->Seq[i].Unk38 = 0;
+        pW->Seq[i].Req_flg = 0;
+        pW->Seq[i].Fade_mode = 0;
         for (j = 0; j < 16; j++) {
             pW->Seq[i].Trk[j].Mask = 0;
         }
     }
     for (i = 0; i < 24; i++) {
-        pW->Voice[i].Unk1D = 0;
+        pW->Voice[i].Use = 0;
         pW->Voice[i].Prio = 0;
-        pW->Voice[i].Unk4 = 0;
-        pW->Req[i].Unk18 = 0;
-        pW->Req[i].Unk1A = 0;
+        pW->Voice[i].Time = 0;
+        pW->Req[i].Note_add = 0;
+        pW->Req[i].Vol_add = 0;
     }
-    pW->UnkB38 = 1;
-    pW->UnkB1C = 0;
-    pW->UnkB20 = 0;
-    pW->UnkB24 = 0;
-    pW->UnkB78 = 0;
-    pW->UnkB76 = 0;
-    pW->UnkB77 = 0;
+    pW->Active = 1;
+    pW->Fade_mask = 0;
+    pW->Fade_vol = 0;
+    pW->Fade_step = 0;
+    pW->Rv_mask = 0;
+    pW->Seq_pause = 0;
+    pW->Bgm_req = 0;
     pW->pReq = pW->Req;
 }
 
-void func_800740AC(void)
+/* changes the reverb mode in two steps (clear the work area, then the parameters 30 frames later) */
+void Snd_reverb_set(void)
 {
     if (Snd_work.Vol.Rv_step == 0) {
         SpuReserveReverbWorkArea(1);
-        SpuClearReverbWorkArea(D_800A1108[Snd_work.Vol.Rv_mode - 1].mode);
+        SpuClearReverbWorkArea(Snd_rv_attr[Snd_work.Vol.Rv_mode - 1].mode);
         Snd_work.Vol.Rv_cnt = 30;
         Snd_work.Vol.Rv_step++;
     } else if (--Snd_work.Vol.Rv_cnt == 0) {
@@ -116,9 +118,8 @@ void func_800740AC(void)
     }
 }
 
-/* sound driver frame: reverb change, master fade, volume changes, request queue,
-   sequence start/fade requests, SE key on */
-void func_800741A0(void)
+/* per frame: reverb, master fade, volume changes, the request queue, sequence requests and fades, SE key on/off */
+void Snd_se_call(void)
 {
     SND_WORK *pW = &Snd_work;
     SND_VOL *pVol;
@@ -130,29 +131,29 @@ void func_800741A0(void)
 
     Flg = 0;
     pVol = &pW->Vol;
-    if (!(pW->UnkB38 & 1)) {
+    if (!(pW->Active & 1)) {
         return;
     }
     if (pW->Vol.Rv_mode && pW->Vol.Rv_mode != pW->Vol.Rv_cur) {
-        func_800740AC();
+        Snd_reverb_set();
     }
-    if (pW->UnkB1C) {
-        if (pW->UnkB24 >= 0) {
-            if (pW->UnkB24 >= pW->UnkB20) {
-                pW->UnkB20 = 0;
-                pW->UnkB24 = 0;
+    if (pW->Fade_mask) {
+        if (pW->Fade_step >= 0) {
+            if (pW->Fade_step >= pW->Fade_vol) {
+                pW->Fade_vol = 0;
+                pW->Fade_step = 0;
             } else {
-                pW->UnkB20 -= pW->UnkB24;
+                pW->Fade_vol -= pW->Fade_step;
             }
         } else {
-            if (pW->UnkB20 >= pW->UnkB24 + 0x3FFF) {
-                pW->UnkB20 = 0x3FFF;
-                pW->UnkB24 = 0;
+            if (pW->Fade_vol >= pW->Fade_step + 0x3FFF) {
+                pW->Fade_vol = 0x3FFF;
+                pW->Fade_step = 0;
             } else {
-                pW->UnkB20 -= pW->UnkB24;
+                pW->Fade_vol -= pW->Fade_step;
             }
         }
-        Flg = pW->UnkB1C;
+        Flg = pW->Fade_mask;
     }
     if (pVol->Master != pVol->Master_old) {
         pVol->Master_old = pVol->Master;
@@ -172,63 +173,64 @@ void func_800741A0(void)
         pV = pW->Voice;
         do {
             if (Flg & 1) {
-                pV->Unk8 = pV->UnkE * pVol->Master / 127;
-                pV->UnkA = pV->UnkC * pVol->Master / 127;
+                pV->Vol_r = pV->Vol_r_base * pVol->Master / 127;
+                pV->Vol_l = pV->Vol_l_base * pVol->Master / 127;
                 if (i < 8) {
-                    if (pW->UnkB1C == 0) {
-                        pV->Unk8 = pV->UnkE * pVol->Se / 127;
-                        pV->UnkA = pV->UnkC * pVol->Se / 127;
+                    if (pW->Fade_mask == 0) {
+                        pV->Vol_r = pV->Vol_r_base * pVol->Se / 127;
+                        pV->Vol_l = pV->Vol_l_base * pVol->Se / 127;
                     } else {
-                        pV->Unk8 = pV->UnkE * pW->UnkB20 / 0x3FFF;
-                        pV->UnkA = pV->UnkC * pW->UnkB20 / 0x3FFF;
+                        pV->Vol_r = pV->Vol_r_base * pW->Fade_vol / 0x3FFF;
+                        pV->Vol_l = pV->Vol_l_base * pW->Fade_vol / 0x3FFF;
                     }
                 } else {
-                    pV->Unk8 = pV->UnkE * pVol->Bgm / 127;
-                    pV->UnkA = pV->UnkC * pVol->Bgm / 127;
+                    pV->Vol_r = pV->Vol_r_base * pVol->Bgm / 127;
+                    pV->Vol_l = pV->Vol_l_base * pVol->Bgm / 127;
                 }
-                SpuSetVoiceVolume(i, pV->UnkA, pV->Unk8);
+                SpuSetVoiceVolume(i, pV->Vol_l, pV->Vol_r);
             }
             pV++;
             Flg >>= 1;
             i++;
         } while (Flg);
-        if (pW->UnkB20 == 0 || pW->UnkB20 == 0x3FFF) {
-            pW->UnkB1C = 0;
+        if (pW->Fade_vol == 0 || pW->Fade_vol == 0x3FFF) {
+            pW->Fade_mask = 0;
         }
     }
-    pW->UnkB10 = pW->UnkB14 = pW->UnkB18 = 0;
+    pW->Se_key_on = pW->Se_key_off = pW->Rv_voice = 0;
     SpuRGetAllKeysStatus(0, 23, pW->Vprio);
     for (pReq = pW->Req; pReq != pW->pReq; pReq++) {
-        D_800A1130[pReq->Bank >= 5](pReq);
+        Snd_req_tbl[pReq->Bank >= 5](pReq);
     }
     pW->pReq = pW->Req;
     pSeq = pW->Seq;
     for (i = 0; i < 3; i++) {
-        if (pSeq->Unk54 == 1) {
-            func_800772A0(pSeq->Req_no, pSeq->pReq_data, pSeq->Req_bank, pSeq->Req_loop);
-            pSeq->Unk54 = 0;
+        if (pSeq->Req_flg == 1) {
+            Snd_seq_start(pSeq->Req_no, pSeq->pReq_data, pSeq->Req_bank, pSeq->Req_loop);
+            pSeq->Req_flg = 0;
         }
-        if (pSeq->Unk38) {
-            D_800A1138[pSeq->Unk38 - 1](pSeq);
+        if (pSeq->Fade_mode) {
+            Snd_seq_fade_tbl[pSeq->Fade_mode - 1](pSeq);
         }
         pSeq++;
     }
-    SpuSetKey(0, pW->UnkB14);
+    SpuSetKey(0, pW->Se_key_off);
     pV = pW->Voice;
     i = 0;
-    Flg = pW->UnkB10;
+    Flg = pW->Se_key_on;
     do {
         if (Flg & 1) {
-            func_80074CD0(pV, i);
+            Snd_voice_key_on(pV, i);
         }
         Flg >>= 1;
         i++;
         pV++;
     } while (i < 8);
-    SpuSetKey(1, pW->UnkB10);
+    SpuSetKey(1, pW->Se_key_on);
 }
 
-void func_80074658(LONG on)
+/* turns CD audio mixing into the SPU output on or off */
+void Snd_cd_mix_set(LONG on)
 {
     SpuCommonAttr *p = &D_800E10F8;
 
@@ -246,166 +248,171 @@ void func_80074658(LONG on)
     SpuSetCommonAttr(p);
 }
 
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3)
+/* queues a sound request: code = Mode << 16 | Bank << 8 | No, at pPos (RE2 Snd_se_stad) */
+void Snd_se_stad(ULONG code, void *pPos, SHORT Vol_add, SHORT Note_add)
 {
-    if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(D_800CC858 & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
-        Snd_work.pReq->Unk1E = code >> 16;
+    if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(G.System_flg & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
+        Snd_work.pReq->Mode = code >> 16;
         Snd_work.pReq->Bank = code >> 8;
         Snd_work.pReq->No = code & 0xFF;
-        Snd_work.pReq->Pos = *pPos;
-        Snd_work.pReq->Unk1A = a2;
-        Snd_work.pReq->Unk18 = a3;
+        Snd_work.pReq->Pos = *(VECTOR *)pPos;
+        Snd_work.pReq->Vol_add = Vol_add;
+        Snd_work.pReq->Note_add = Note_add;
         Snd_work.pReq++;
     }
 }
 
-void func_80074770(SND_REQ *pReq)
+/* request handler for banks 0..4: plays the SE record of the bank */
+void Snd_se_req(SND_REQ *pReq)
 {
-    ULONG *p;
-    LONG b;
+    ULONG *pSe;
+    LONG Bank;
 
-    p = Snd_work.pAdr[pReq->Bank] + (USHORT)pReq->No;
-    if (*p != -1 && Snd_bank_search(pReq->Bank) != -1) {
-        b = Snd_bank_search(((UCHAR)*p & 0xE) >> 1);
-        if (b != -1) {
-            func_800749A0(pReq, Snd_work.Bank_id[b].Id, (SND_SE *)p, b);
+    pSe = Snd_work.pAdr[pReq->Bank] + (USHORT)pReq->No;
+    if (*pSe != -1 && Snd_bank_search(pReq->Bank) != -1) {
+        Bank = Snd_bank_search(((UCHAR)*pSe & 0xE) >> 1);
+        if (Bank != -1) {
+            Snd_se_voice_set(pReq, Snd_work.Bank_id[Bank].Id, (SND_SE *)pSe, Bank);
         }
     }
 }
 
-void func_80074820(SND_REQ *pReq)
+/* request handler for banks 5..: queues a sequence start */
+void Snd_seq_req(SND_REQ *pReq)
 {
-    LONG no;
-    LONG b;
-    LONG k;
+    LONG Seq_no;
+    LONG Bank;
+    LONG Kind;
     SND_SEQ *pSeq;
     SND_WORK *pW;
 
-    k = 5;
+    Kind = 5;
     pW = &Snd_work;
-    no = pReq->Bank - 5;
-    if (no) {
-        k = 6;
+    Seq_no = pReq->Bank - 5;
+    if (Seq_no) {
+        Kind = 6;
     }
-    b = Snd_bank_search(k);
-    if (b != -1) {
-        pSeq = &pW->Seq[no];
-        pSeq->Bank = b;
-        pSeq->No = no;
-        if (pSeq->Unk2C) {
-            Snd_seq_stop(no);
-            pSeq->Unk54 = 2;
+    Bank = Snd_bank_search(Kind);
+    if (Bank != -1) {
+        pSeq = &pW->Seq[Seq_no];
+        pSeq->Bank = Bank;
+        pSeq->No = Seq_no;
+        if (pSeq->Play_flg) {
+            Snd_seq_stop(Seq_no);
+            pSeq->Req_flg = 2;
         } else {
-            pSeq->Unk54 = 1;
+            pSeq->Req_flg = 1;
         }
-        pSeq->pVh = pW->Bank[no ? 6 : 5].pHead;
+        pSeq->pVh = pW->Bank[Seq_no ? 6 : 5].pHead;
         pSeq->Req_no = pSeq->No;
-        pSeq->pReq_data = (UCHAR *)pW->Seq_data[no].pData;
-        pSeq->Req_bank = pW->Bank_id[no ? 6 : 5].Id;
+        pSeq->pReq_data = (UCHAR *)pW->Seq_data[Seq_no].pData;
+        pSeq->Req_bank = pW->Bank_id[Seq_no ? 6 : 5].Id;
         pSeq->Req_loop = 0;
     }
 }
 
+/* sequence fade in step */
 void Snd_seq_fade_in(SND_SEQ *pSeq)
 {
-    if (pSeq->Unk2C != 0) {
-        if (pSeq->Unk3C >= 0x3FFF - pSeq->Unk40) {
-            pSeq->Unk3C = 0x3FFF;
-            pSeq->Unk38 = 0;
+    if (pSeq->Play_flg != 0) {
+        if (pSeq->Fade_vol >= 0x3FFF - pSeq->Fade_step) {
+            pSeq->Fade_vol = 0x3FFF;
+            pSeq->Fade_mode = 0;
         } else {
-            pSeq->Unk3C += pSeq->Unk40;
+            pSeq->Fade_vol += pSeq->Fade_step;
         }
     }
 }
 
+/* sequence fade out step; stops the sequence at 0 */
 void Snd_seq_fade_out(SND_SEQ *pSeq)
 {
-    if (pSeq->Unk2C != 0) {
-        if (pSeq->Unk3C <= pSeq->Unk40) {
-            pSeq->Unk3C = 0;
-            pSeq->Unk38 = 0;
-        pSeq->Unk2D = 1;
-            pSeq->Unk2D = 1;
+    if (pSeq->Play_flg != 0) {
+        if (pSeq->Fade_vol <= pSeq->Fade_step) {
+            pSeq->Fade_vol = 0;
+            pSeq->Fade_mode = 0;
+        pSeq->Stop_req = 1;
+            pSeq->Stop_req = 1;
         } else {
-            pSeq->Unk3C -= pSeq->Unk40;
+            pSeq->Fade_vol -= pSeq->Fade_step;
         }
     }
 }
 
-/* keys the voices of one sound effect: picks free voices, sets their tone and volume */
-void func_800749A0(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank)
+/* picks the voices of one SE and sets tone, priority, volume and the key-on bits */
+void Snd_se_voice_set(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank)
 {
     SND_WORK *pW = &Snd_work;
     SND_VOICE *pV;
     VagAtr *pVag;
-    ULONG v;
+    ULONG Voice;
     ULONG mask;
     ULONG bit;
     LONG vol;
-    signed char i;
+    signed char Tone;
 
-    i = 0;
+    Tone = 0;
     if (!(p->Voice & 0x80)) {
-        v = p->Voice & 0x1F;
+        Voice = p->Voice & 0x1F;
     } else {
-        v = p->Voice & 0x1F;
+        Voice = p->Voice & 0x1F;
         mask = p->Mask;
-        for (; i < 8; i++) {
+        for (; Tone < 8; Tone++) {
             if (mask & 1) {
-                if (pW->Vprio[v + i] == 0 || pW->Vprio[v + i] == 3) {
-                    v += i;
+                if (pW->Vprio[Voice + Tone] == 0 || pW->Vprio[Voice + Tone] == 3) {
+                    Voice += Tone;
                     break;
                 }
             }
             mask >>= 1;
         }
-        i = 0;
+        Tone = 0;
     }
     do {
-        if (func_80074F44(p, v, pReq) == 0) {
-            pV = &pW->Voice[v + i];
-            pV->Unk17 = p->Flg & 1;
-            pV->Unk18 = i + (p->Tone >> 4);
+        if (Snd_se_pri_ck(p, Voice, pReq) == 0) {
+            pV = &pW->Voice[Voice + Tone];
+            pV->Prog = p->Flg & 1;
+            pV->Tone = Tone + (p->Tone >> 4);
             pV->Prio = p->Tone & 7;
-            pV->Unk1B = bank;
-            pV->Unk12 = Id;
-            pVag = (VagAtr *)pW->Bank[bank].Unk4 + (pV->Unk18 + pV->Unk17 * pW->Bank[pV->Unk1B].pHead[3]);
-            pV->Unk19 = pVag->min;
-            if (pReq->Unk18 != 0) {
-                pV->Unk19 += pReq->Unk18;
-                pReq->Unk18 = 0;
+            pV->Bank = bank;
+            pV->Bank_id = Id;
+            pVag = (VagAtr *)pW->Bank[bank].pVag + (pV->Tone + pV->Prog * pW->Bank[pV->Bank].pHead[3]);
+            pV->Note = pVag->min;
+            if (pReq->Note_add != 0) {
+                pV->Note += pReq->Note_add;
+                pReq->Note_add = 0;
             }
             if (!(p->Flg & 0x20)) {
-                vol = func_80075AE4((UCHAR *)pVag, pV);
-                if (pReq->Unk1A != 0) {
-                    vol += pReq->Unk1A;
-                    pReq->Unk1A = 0;
+                vol = Snd_se_vol((UCHAR *)pVag, pV);
+                if (pReq->Vol_add != 0) {
+                    vol += pReq->Vol_add;
+                    pReq->Vol_add = 0;
                 }
-                func_80075154(pReq, vol, (USHORT *)&pV->UnkA, (USHORT *)&pV->Unk8, pW->Dist[v]);
+                Snd_se_3D(pReq, vol, (USHORT *)&pV->Vol_l, (USHORT *)&pV->Vol_r, pW->Dist[Voice]);
             } else {
-                vol = func_80075AE4((UCHAR *)pVag, pV);
-                if (pReq->Unk1A != 0) {
-                    vol += pReq->Unk1A;
-                    pReq->Unk1A = 0;
+                vol = Snd_se_vol((UCHAR *)pVag, pV);
+                if (pReq->Vol_add != 0) {
+                    vol += pReq->Vol_add;
+                    pReq->Vol_add = 0;
                 }
                 Snd_pan_vol((SpuVoiceAttr *)pV, vol, pVag->pan);
-                pV->UnkA = (pV->UnkA * pV->UnkA * 0x2080F) >> 17;
-                pV->Unk8 = (pV->Unk8 * pV->Unk8 * 0x2080F) >> 17;
+                pV->Vol_l = (pV->Vol_l * pV->Vol_l * 0x2080F) >> 17;
+                pV->Vol_r = (pV->Vol_r * pV->Vol_r * 0x2080F) >> 17;
             }
-            pV->Unk14 = 0;
-            pV->UnkC = pV->UnkA;
-            pV->UnkE = pV->Unk8;
-            bit = 1 << (v + i);
-            pW->UnkB10 |= bit;
-            pW->UnkB14 |= bit;
-            pW->Vprio[v + i] = 1;
+            pV->Bend = 0;
+            pV->Vol_l_base = pV->Vol_l;
+            pV->Vol_r_base = pV->Vol_r;
+            bit = 1 << (Voice + Tone);
+            pW->Se_key_on |= bit;
+            pW->Se_key_off |= bit;
+            pW->Vprio[Voice + Tone] = 1;
         }
-        i++;
-    } while (i < (p->Flg >> 6) + 1);
+        Tone++;
+    } while (Tone < (p->Flg >> 6) + 1);
 }
 
-/* keys voice v for SND_VOICE pV: reverb, pitch, ADSR and volume from its VagAtr */
-void func_80074CD0(SND_VOICE *pV, signed char v)
+/* fills a SpuVoiceAttr (reverb, pitch with bend, ADSR, volume) for voice v */
+void Snd_voice_key_on(SND_VOICE *pV, signed char v)
 {
     SpuVoiceAttr Attr;
     SND_WORK *pW = &Snd_work;
@@ -413,30 +420,30 @@ void func_80074CD0(SND_VOICE *pV, signed char v)
     ULONG Note;
     ULONG Pitch;
 
-    pVag = (VagAtr *)pW->Bank[pV->Unk1B].Unk4 + (pV->Unk18 + pV->Unk17 * pW->Bank[pV->Unk1B].pHead[3]);
-    pW->UnkB18 = 0;
-    if (pV->Unk1B < 5) {
-        if (pVag->mode & pW->UnkB78) {
-            pW->UnkB18 = 1 << v;
-            SpuSetReverbVoice(1, pW->UnkB18);
+    pVag = (VagAtr *)pW->Bank[pV->Bank].pVag + (pV->Tone + pV->Prog * pW->Bank[pV->Bank].pHead[3]);
+    pW->Rv_voice = 0;
+    if (pV->Bank < 5) {
+        if (pVag->mode & pW->Rv_mask) {
+            pW->Rv_voice = 1 << v;
+            SpuSetReverbVoice(1, pW->Rv_voice);
         } else {
-            pW->UnkB18 = 1 << v;
-            SpuSetReverbVoice(0, pW->UnkB18);
+            pW->Rv_voice = 1 << v;
+            SpuSetReverbVoice(0, pW->Rv_voice);
         }
     }
     Attr.voice = 1 << v;
     Attr.mask = 0x60093;
-    Attr.addr = (ULONG)Snd_bank_get_tone(pV->Unk1B, pVag->vag);
+    Attr.addr = (ULONG)Snd_bank_get_tone(pV->Bank, pVag->vag);
     Note = pVag->shift;
-    Pitch = (pV->Unk19 << 7) | Note;
+    Pitch = (pV->Note << 7) | Note;
     Note = Pitch;
-    if (pV->Unk14 > 0x2000) {
-        Note += ((pV->Unk14 - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
+    if (pV->Bend > 0x2000) {
+        Note += ((pV->Bend - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
     }
-    if (pV->Unk14 < 0x2000) {
-        Note -= ((0x2000 - pV->Unk14) << 7) * pVag->pbmin / 0x1FFF;
+    if (pV->Bend < 0x2000) {
+        Note -= ((0x2000 - pV->Bend) << 7) * pVag->pbmin / 0x1FFF;
     }
-    Attr.pitch = func_80075A80(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F);
+    Attr.pitch = Snd_pitch_calc(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F);
     Attr.adsr1 = pVag->adsr1;
     Attr.adsr2 = pVag->adsr2;
     Attr.ar = (Attr.adsr1 & 0x7F00) >> 8;
@@ -455,12 +462,13 @@ void func_80074CD0(SND_VOICE *pV, signed char v)
         Attr.r_mode = 3;
     }
     Attr.s_mode = (Attr.adsr2 >> 14) + 1;
-    Attr.volume.left = pV->UnkA;
-    Attr.volume.right = pV->Unk8;
+    Attr.volume.left = pV->Vol_l;
+    Attr.volume.right = pV->Vol_r;
     SpuSetVoiceAttr(&Attr);
 }
 
-LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq)
+/* may the SE take voice v (priority check, RE2 Snd_se_pri_ck role); 3D requests store the distance */
+LONG Snd_se_pri_ck(SND_SE *pSe, LONG v, SND_REQ *pReq)
 {
     SND_WORK *pW = &Snd_work;
     SND_VOICE *pV;
@@ -477,14 +485,14 @@ LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq)
             }
         }
     }
-    if (pReq->Unk1E) {
+    if (pReq->Mode) {
         pW->Cam_x = G.pRoom->pRcut[G.Cut_no].View_p[0];
         pW->Cam_y = G.pRoom->pRcut[G.Cut_no].View_p[1];
         pW->Cam_z = G.pRoom->pRcut[G.Cut_no].View_p[2];
         dx = (pW->Cam_x - pReq->Pos.vx) >> 1;
         dz = (pW->Cam_z - pReq->Pos.vz) >> 1;
         dy = (pW->Cam_y - pReq->Pos.vy) >> 1;
-        d = SquareRoot0(FC_SQ(SquareRoot0(dx * dx + dz * dz)) + dy * dy) * 2;
+        d = SquareRoot0(SQ(SquareRoot0(dx * dx + dz * dz)) + dy * dy) * 2;
         if (d > 0xEA5F) {
             d = 0xEA5F;
         }
@@ -493,6 +501,7 @@ LONG func_80074F44(SND_SE *pSe, LONG v, SND_REQ *pReq)
     return 0;
 }
 
+/* slot of the bank with id, or -1 */
 LONG Snd_bank_search(LONG id)
 {
     LONG i;
@@ -505,6 +514,7 @@ LONG Snd_bank_search(LONG id)
     return -1;
 }
 
+/* sets the volume of a voice */
 void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice)
 {
     SpuVoiceAttr attr;
@@ -516,17 +526,17 @@ void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice)
     SpuSetVoiceAttr(&attr);
 }
 
-/* voice volumes of a sound request: 2D pan (Unk1E 0) or 3D from the camera (Unk1E 1) */
-void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
+/* volumes of a request: 2D pan, or 3D from the camera direction and distance (RE2 Snd_se_3D) */
+void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
 {
     SND_WORK *pW = &Snd_work;
     VECTOR V;
     UCHAR Flg;                         /* never set: the original tests an uninitialised stack byte */
     RCUT *pCut;
     VECTOR *pPos;
-    LONG Far;
-    LONG a0;
-    LONG a1;
+    LONG Dist_idx;
+    LONG Dir_src;
+    LONG Dir_view;
     LONG d;
     UCHAR l;
     UCHAR r;
@@ -535,7 +545,7 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
     LONG k;
 
     vol = (vol * vol * 0x2080F) >> 17;
-    switch (pReq->Unk1E) {
+    switch (pReq->Mode) {
     case 0:
         if (pReq->Pan > 0) {
             *pR = vol * (0x80 - (USHORT)pReq->Pan) / 128;
@@ -544,7 +554,7 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
             *pR = vol;
             *pL = vol * (USHORT)(pReq->Pan + 0x80) / 128;
         }
-        if (pW->UnkB75) {
+        if (pW->Mono) {
             if (*pR > *pL) {
                 *pL = *pR;
             } else {
@@ -565,18 +575,18 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
         V.vx = __builtin_abs(pCut->View_p[0] - pReq->Pos.vx);
         V.vy = __builtin_abs(pCut->View_p[1] - pPos->vy);
         V.vz = __builtin_abs(pCut->View_p[2] - pPos->vz);
-        Far = SquareRoot0(V.vy * V.vy + FC_SQ(SquareRoot0(V.vx * V.vx + V.vz * V.vz))) / 250;
-        if (Far > 0x7F) {
-            Far = 0x7F;
+        Dist_idx = SquareRoot0(V.vy * V.vy + SQ(SquareRoot0(V.vx * V.vx + V.vz * V.vz))) / 250;
+        if (Dist_idx > 0x7F) {
+            Dist_idx = 0x7F;
         }
-        a0 = (SHORT)func_8007592C(pCut->View_p[0], pCut->View_p[2], pReq->Pos.vx, pPos->vz);
-        a1 = (SHORT)func_8007592C(pCut->View_p[0], pCut->View_p[2], pCut->View_r[0], pCut->View_r[2]);
-        a0 -= (SHORT)func_8007592C(0, 0, pCut->View_p[0], pCut->View_p[2]);
-        a1 -= (SHORT)func_8007592C(0, 0, pCut->View_p[0], pCut->View_p[2]);
-        if (a0 < a1) {
-            d = a0 + (0x1000 - a1);
+        Dir_src = (SHORT)Snd_se_dir_ck(pCut->View_p[0], pCut->View_p[2], pReq->Pos.vx, pPos->vz);
+        Dir_view = (SHORT)Snd_se_dir_ck(pCut->View_p[0], pCut->View_p[2], pCut->View_r[0], pCut->View_r[2]);
+        Dir_src -= (SHORT)Snd_se_dir_ck(0, 0, pCut->View_p[0], pCut->View_p[2]);
+        Dir_view -= (SHORT)Snd_se_dir_ck(0, 0, pCut->View_p[0], pCut->View_p[2]);
+        if (Dir_src < Dir_view) {
+            d = Dir_src + (0x1000 - Dir_view);
         } else {
-            d = a0 - a1;
+            d = Dir_src - Dir_view;
         }
         if (d == 0 || d == 0x1000 || d == 0x800) {
             *pL = 0x7F;
@@ -594,12 +604,12 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
                 d = 0x800 - d;
             }
             d /= 8;
-            a1 = D_800A1008[d];
-            a0 = 0x7F;
-            *pL = l * a1 + r * a0;
-            *pR = l * a0 + r * a1;
+            Dir_view = Snd_pan_tbl[d];
+            Dir_src = 0x7F;
+            *pL = l * Dir_view + r * Dir_src;
+            *pR = l * Dir_src + r * Dir_view;
         }
-        pAtt = &D_800A1088[Far];
+        pAtt = &Snd_dist_atten[Dist_idx];
         if (*pAtt < *pR) {
             *pR -= *pAtt;
         }
@@ -619,7 +629,7 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
         if (*pL >= 0x80) {
             *pL = 0x7F;
         }
-        if (pW->UnkB75) {
+        if (pW->Mono) {
             if (*pR > *pL) {
                 *pL = *pR;
             } else {
@@ -655,7 +665,8 @@ void func_80075154(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist
     *pL = *pL * pW->Vol.Se / 127;
 }
 
-LONG func_8007592C(LONG x0, LONG z0, LONG x1, LONG z1)
+/* RE2 Snd_se_dir_ck: direction from (x0, z0) to (x1, z1) via catan */
+LONG Snd_se_dir_ck(LONG x0, LONG z0, LONG x1, LONG z1)
 {
     LONG dx = x1 - x0;
     LONG dz = z1 - z0;
@@ -674,6 +685,7 @@ LONG func_8007592C(LONG x0, LONG z0, LONG x1, LONG z1)
     return 0xC00;
 }
 
+/* SPU address of tone idx of bank no */
 UCHAR *Snd_bank_get_tone(LONG no, SHORT idx)
 {
     ULONG *pHead;
@@ -686,23 +698,21 @@ UCHAR *Snd_bank_get_tone(LONG no, SHORT idx)
     return Snd_work.Bank_id[no].pData + *pTbl * 8;
 }
 
-/* 2^(x/12) scale: 0x1000 shifted by whole octaves times the 12-step table entry, >> 16.
-   `v *= r` is repeated in both branches (cross-jumped into one tail): a mult in the same block
-   as the /12 is what lets reload move the high-part pseudo out of HI into v1 (see NOTES.md). */
-LONG func_800759D8(LONG x)
+/* 0x1000 * 2^(x / 12) */
+LONG Snd_pitch_scale(LONG x)
 {
     LONG v = 0x1000;
     LONG *pTbl;
     LONG r;
 
     if (x >= 0) {
-        pTbl = D_800A1140;
+        pTbl = Snd_pitch_up_tbl;
         r = pTbl[x % 12];
         v <<= x / 12;
         v *= r;
     } else {
         x = -x;
-        pTbl = D_800A1170;
+        pTbl = Snd_pitch_down_tbl;
         r = pTbl[x % 12];
         v >>= x / 12;
         v *= r;
@@ -710,25 +720,27 @@ LONG func_800759D8(LONG x)
     return v >> 16;
 }
 
-/* interpolates func_800759D8 between x and x + 1, frac in 1/128 */
-LONG func_80075A80(LONG x, LONG frac)
+/* Snd_pitch_scale with 1/128 semitone steps */
+LONG Snd_pitch_calc(LONG x, LONG frac)
 {
     LONG a, b;
 
-    a = func_800759D8(x);
-    b = func_800759D8(x + 1);
+    a = Snd_pitch_scale(x);
+    b = Snd_pitch_scale(x + 1);
     a += (b - a) * frac / 128;
     return a;
 }
 
-LONG func_80075AE4(UCHAR *pVag, SND_VOICE *pV)
+/* VAB master * program * tone * SE volume of a voice */
+LONG Snd_se_vol(UCHAR *pVag, SND_VOICE *pV)
 {
-    VabHdr *pVh = (VabHdr *)Snd_work.Bank[pV->Unk1B].pHead;
-    ULONG i = pV->Unk17;
+    VabHdr *pVh = (VabHdr *)Snd_work.Bank[pV->Bank].pHead;
+    ULONG Prog = pV->Prog;
 
-    return pVh->mvol * ((ProgAtr *)(pVh + 1))[i].mvol / 127 * pVag[2] / 127 * Snd_work.Vol.Se / 127;
+    return pVh->mvol * ((ProgAtr *)(pVh + 1))[Prog].mvol / 127 * pVag[2] / 127 * Snd_work.Vol.Se / 127;
 }
 
+/* left/right volumes for a pan position */
 void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan)
 {
     pAttr->volume.right = vol;
@@ -741,9 +753,8 @@ void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan)
     }
 }
 
-/* sequencer tick (SPU root counter event): advances the sequences, keys the voices
-   they requested and applies the fades */
-LONG func_80075C30(void) /* event handler (OpenEvent); returns nothing */
+/* root counter handler: advances the three sequences, fades and stops */
+LONG Snd_seq_tick(void) /* event handler (OpenEvent); returns nothing */
 {
     SND_WORK *pW = &Snd_work;
     SND_SEQ *pSeq;
@@ -756,16 +767,16 @@ LONG func_80075C30(void) /* event handler (OpenEvent); returns nothing */
     LONG Unused[22];
     LONG Frac;
 
-    if (pW->UnkB74 == 0) {
+    if (pW->Seq_play == 0) {
         return;
     }
     i = 3;
     pSeq = pW->Seq;
     Flg = 0;
-    pW->UnkB28 = pW->UnkB2C = pW->UnkB30 = pW->UnkB34 = 0;
+    pW->Seq_key_on = pW->Seq_key_off = pW->Seq_rv_on = pW->Seq_rv_off = 0;
     do {
         i--;
-        if (pSeq->Unk2C && !pSeq->Unk2D) {
+        if (pSeq->Play_flg && !pSeq->Stop_req) {
             Flg |= 1 << (2 - i);
             pSeq->Delta -= 300000;
             pSeq->Tempo_cnt -= 4800000;
@@ -782,7 +793,7 @@ LONG func_80075C30(void) /* event handler (OpenEvent); returns nothing */
                 } else {
                     c = pSeq->Running;
                 }
-                D_800A11A0[(c >> 4) - 8](pSeq, &pSeq->Trk[pSeq->Status], c);
+                Snd_midi_tbl[(c >> 4) - 8](pSeq, &pSeq->Trk[pSeq->Status], c);
                 if (pSeq->Loop_mode == 1) {
                     pSeq->Loop_mode = 0;
                     pSeq->pLoop = pSeq->pData;
@@ -801,52 +812,52 @@ LONG func_80075C30(void) /* event handler (OpenEvent); returns nothing */
         }
         pSeq++;
     } while (i != 0);
-    Mask = pW->UnkB28 >> 8;
+    Mask = pW->Seq_key_on >> 8;
     if (Flg) {
         pV = &pW->Voice[8];
-        SpuSetKey(0, pW->UnkB2C);
+        SpuSetKey(0, pW->Seq_key_off);
         j = 8;
-        SpuSetReverbVoice(0, pW->UnkB34);
+        SpuSetReverbVoice(0, pW->Seq_rv_off);
         do {
             if (Mask & 1) {
-                func_80074CD0(pV, j);
+                Snd_voice_key_on(pV, j);
             }
             Mask >>= 1;
             j++;
             pV++;
         } while (j < 24);
-        SpuSetReverbVoice(1, pW->UnkB30);
-        SpuSetKey(1, pW->UnkB28);
+        SpuSetReverbVoice(1, pW->Seq_rv_on);
+        SpuSetKey(1, pW->Seq_key_on);
     }
     for (j = 8, pV = &pW->Voice[8]; j < 24; j++, pV++) {
-        if (pV->Unk1D) {
-            if (Flg & (0x10 << pV->Unk1C)) {
-                if (pW->Seq[pV->Unk1C].Unk38) {
-                    pV->UnkA = pV->UnkC * pW->Seq[pV->Unk1C].Unk3C / 0x3FFF;
-                    pV->Unk8 = pV->UnkE * pW->Seq[pV->Unk1C].Unk3C / 0x3FFF;
-                    Snd_set_voice_vol(pV->UnkA, pV->Unk8, 1 << j);
+        if (pV->Use) {
+            if (Flg & (0x10 << pV->Seq_no)) {
+                if (pW->Seq[pV->Seq_no].Fade_mode) {
+                    pV->Vol_l = pV->Vol_l_base * pW->Seq[pV->Seq_no].Fade_vol / 0x3FFF;
+                    pV->Vol_r = pV->Vol_r_base * pW->Seq[pV->Seq_no].Fade_vol / 0x3FFF;
+                    Snd_set_voice_vol(pV->Vol_l, pV->Vol_r, 1 << j);
                 }
             }
-            pV->Unk4++;
+            pV->Time++;
         }
     }
     Mask = 0;
     i = 2;
     pSeq = pW->Seq;
     do {
-        if (pSeq->Unk2C && pSeq->Unk2D) {
-            pSeq->Unk2C = pSeq->Unk2D = 0;
-            pW->UnkB74 &= ~(1 << pSeq->No);
-            pW->UnkB76 &= ~(1 << pSeq->No);
+        if (pSeq->Play_flg && pSeq->Stop_req) {
+            pSeq->Play_flg = pSeq->Stop_req = 0;
+            pW->Seq_play &= ~(1 << pSeq->No);
+            pW->Seq_pause &= ~(1 << pSeq->No);
             for (j = 8, pV = &pW->Voice[8]; j < 24; j++, pV++) {
-                if (pV->Unk1C == pSeq->No) {
+                if (pV->Seq_no == pSeq->No) {
                     Mask |= 1 << j;
-                    pV->Unk1D = 0;
+                    pV->Use = 0;
                 }
             }
         }
-        if (pSeq->Unk54 == 2) {
-            pSeq->Unk54 = 1;
+        if (pSeq->Req_flg == 2) {
+            pSeq->Req_flg = 1;
         }
         pSeq++;
     } while (--i != -1);
@@ -856,7 +867,8 @@ LONG func_80075C30(void) /* event handler (OpenEvent); returns nothing */
     }
 }
 
-void func_80076114(SND_SEQ *pSeq, SND_TRACK *pTr)
+/* sequencer note off (0x8n) */
+void Snd_midi_note_off(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     SND_WORK *pW;
     VabHdr *pVh;
@@ -870,40 +882,41 @@ void func_80076114(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->pData++;
     pW = &Snd_work;
     pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
-    pTr->UnkB = pW->Vol.Bgm * pVh->mvol / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
-    pTr->UnkB = pTr->UnkB * pW->Vol.Master / 127;
-    pTr->UnkB = pTr->UnkB * vel / 127;
-    pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * *(LONG *)&pVh->fsize;
+    pTr->Note_vol = pW->Vol.Bgm * pVh->mvol / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol2 / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol / 127;
+    pTr->Note_vol = pTr->Note_vol * pW->Vol.Master / 127;
+    pTr->Note_vol = pTr->Note_vol * vel / 127;
+    pVag = (VagAtr *)pW->Bank[pTr->Bank].pVag + pTr->Prog * *(LONG *)&pVh->fsize;
     pPa = (ProgAtr *)pVh + pTr->Prog + 2;
-    func_800762C8(pSeq, pTr, Snd_tone_mask(pVag, pTr, pPa->tones));
+    Snd_seq_key_off(pSeq, pTr, Snd_tone_mask(pVag, pTr, pPa->tones));
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-void func_800762C8(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask)
+/* keys off the voices of a track's tones in mask */
+void Snd_seq_key_off(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask)
 {
     UCHAR v;
     ULONG b;
 
-    pTr->UnkD = 0;
+    pTr->Tone = 0;
     while (mask != 0) {
         if (mask & 1) {
-            v = func_80077220(pSeq->No, pTr->Prog, pTr->UnkD, pTr->Note);
+            v = Snd_seq_voice_search(pSeq->No, pTr->Prog, pTr->Tone, pTr->Note);
             if (v != 0xFF) {
                 b = 1 << v;
-                Snd_work.UnkB2C |= b;
-                Snd_work.UnkB34 |= b;
+                Snd_work.Seq_key_off |= b;
+                Snd_work.Seq_rv_off |= b;
                 pTr->Mask &= ~b;
             }
         }
         mask >>= 1;
-        pTr->UnkD++;
+        pTr->Tone++;
     }
 }
 
-/* sequencer note on: keys a voice for every tone of the program that covers the note */
-void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
+/* sequencer note on (0x9n) */
+void Snd_midi_note_on(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     struct {
         ULONG voice;
@@ -927,75 +940,75 @@ void func_8007638C(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->pData++;
     pW = &Snd_work;
     pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
-    pTr->UnkB = pW->Vol.Bgm * pVh->mvol / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
-    pTr->UnkB = pTr->UnkB * pW->Vol.Master / 127;
-    pTr->UnkB = pTr->UnkB * Vel / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
-    pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3];
+    pTr->Note_vol = pW->Vol.Bgm * pVh->mvol / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol / 127;
+    pTr->Note_vol = pTr->Note_vol * pW->Vol.Master / 127;
+    pTr->Note_vol = pTr->Note_vol * Vel / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol2 / 127;
+    pVag = (VagAtr *)pW->Bank[pTr->Bank].pVag + pTr->Prog * ((ULONG *)pVh)[3];
     pPa = (ProgAtr *)pVh + pTr->Prog + 2;
     Vol = pTr->Vol2;
     mask = Snd_tone_mask(pVag, pTr, pPa->tones);
     if (Vel != 0) {
         Pan = pTr->Pan2 + (pTr->Pan - 0x40);
-        pTr->UnkD = 0;
+        pTr->Tone = 0;
         while (mask != 0) {
             if (mask & 1) {
-                pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3] + pTr->UnkD;
-                Snd_pan_vol((SpuVoiceAttr *)&Attr, pTr->UnkB * pVag->vol / 127, Pan + (pVag->pan - 0x40));
+                pVag = (VagAtr *)pW->Bank[pTr->Bank].pVag + pTr->Prog * ((ULONG *)pVh)[3] + pTr->Tone;
+                Snd_pan_vol((SpuVoiceAttr *)&Attr, pTr->Note_vol * pVag->vol / 127, Pan + (pVag->pan - 0x40));
                 Attr.volume.right = (Attr.volume.right * Attr.volume.right * 133135) >> 17;
                 Attr.volume.left = (Attr.volume.left * Attr.volume.left * 133135) >> 17;
-                if (pSeq->Unk38 != 0) {
-                    Attr.volume.right = Attr.volume.right * pSeq->Unk3C / 0x3FFF;
-                    Attr.volume.left = Attr.volume.left * pSeq->Unk3C / 0x3FFF;
+                if (pSeq->Fade_mode != 0) {
+                    Attr.volume.right = Attr.volume.right * pSeq->Fade_vol / 0x3FFF;
+                    Attr.volume.left = Attr.volume.left * pSeq->Fade_vol / 0x3FFF;
                 }
                 if (Attr.volume.right | Attr.volume.left) {
-                    v = func_800770DC_l(8, 24);
+                    v = Snd_voice_get(8, 24);
                     if (v != 0xFF) {
                         pV = &pW->Voice[v];
-                        pV->Unk1D = 1;
-                        pV->Unk17 = pTr->Prog;
-                        pV->Unk18 = pTr->UnkD;
-                        pV->Unk19 = pTr->Note;
-                        pV->Unk14 = pTr->Bend;
-                        pV->Unk1B = pTr->Bank;
-                        pV->Unk12 = pTr->UnkE;
-                        pV->Unk1C = pSeq->No;
-                        pV->Unk4 = 0;
-                        if (pW->UnkB75) {
+                        pV->Use = 1;
+                        pV->Prog = pTr->Prog;
+                        pV->Tone = pTr->Tone;
+                        pV->Note = pTr->Note;
+                        pV->Bend = pTr->Bend;
+                        pV->Bank = pTr->Bank;
+                        pV->Bank_id = pTr->Bank_org;
+                        pV->Seq_no = pSeq->No;
+                        pV->Time = 0;
+                        if (pW->Mono) {
                             if (Attr.volume.left > Attr.volume.right) {
                                 Attr.volume.right = Attr.volume.left;
                             } else {
                                 Attr.volume.left = Attr.volume.right;
                             }
                         }
-                        pV->UnkA = pV->UnkC = Attr.volume.right;
-                        pV->Unk8 = pV->UnkE = Attr.volume.left;
+                        pV->Vol_l = pV->Vol_l_base = Attr.volume.right;
+                        pV->Vol_r = pV->Vol_r_base = Attr.volume.left;
                         pV->pVag = (UCHAR *)pVag;
-                        pV->Unk10 = Vol;
-                        pV->Unk16 = Pan;
+                        pV->Ch_vol = Vol;
+                        pV->Pan = Pan;
                         if (pVag->mode) {
-                            pW->UnkB30 |= 1 << v;
+                            pW->Seq_rv_on |= 1 << v;
                         } else {
-                            pW->UnkB34 |= 1 << v;
+                            pW->Seq_rv_off |= 1 << v;
                         }
-                        pW->UnkB28 |= 1 << v;
-                        pW->UnkB2C |= 1 << v;
+                        pW->Seq_key_on |= 1 << v;
+                        pW->Seq_key_off |= 1 << v;
                         pTr->Mask |= 1 << v;
                     }
                 }
             }
             mask >>= 1;
-            pTr->UnkD++;
+            pTr->Tone++;
         }
     } else {
-        func_800762C8(pSeq, pTr, mask);
+        Snd_seq_key_off(pSeq, pTr, mask);
     }
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-/* sequencer control change */
-void func_8007688C(SND_SEQ *pSeq, SND_TRACK *pTr)
+/* sequencer control change (0xBn: 0, 6, 7, 10, 99) */
+void Snd_midi_ctrl(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     UCHAR *p = pSeq->pData;
     SND_VOICE *pV;
@@ -1023,23 +1036,23 @@ void func_8007688C(SND_SEQ *pSeq, SND_TRACK *pTr)
                 continue;
             }
             pV = &Snd_work.Voice[i];
-            if (pV->Unk1D == 0 || pV->Unk4 == 0) {
+            if (pV->Use == 0 || pV->Time == 0) {
                 continue;
             }
-            if (pV->Unk10 != 0) {
-                pV->UnkA = pV->UnkA * pTr->Vol2 / pV->Unk10;
-                pV->Unk8 = pV->Unk8 * pTr->Vol2 / pV->Unk10;
-                if (Snd_work.UnkB75) {
-                    if (pV->UnkA < pV->Unk8) {
-                        pV->UnkA = pV->Unk8;
+            if (pV->Ch_vol != 0) {
+                pV->Vol_l = pV->Vol_l * pTr->Vol2 / pV->Ch_vol;
+                pV->Vol_r = pV->Vol_r * pTr->Vol2 / pV->Ch_vol;
+                if (Snd_work.Mono) {
+                    if (pV->Vol_l < pV->Vol_r) {
+                        pV->Vol_l = pV->Vol_r;
                     } else {
-                        pV->Unk8 = pV->UnkA;
+                        pV->Vol_r = pV->Vol_l;
                     }
                 }
-                pV->UnkC = pV->UnkA;
-                pV->UnkE = pV->Unk8;
-                pV->Unk10 = pTr->Vol2;
-                SpuSetVoiceVolume(i, pV->UnkA, pV->Unk8);
+                pV->Vol_l_base = pV->Vol_l;
+                pV->Vol_r_base = pV->Vol_r;
+                pV->Ch_vol = pTr->Vol2;
+                SpuSetVoiceVolume(i, pV->Vol_l, pV->Vol_r);
             } else {
                 SpuSetVoiceVolume(i, 0, 0);
             }
@@ -1072,25 +1085,26 @@ void func_8007688C(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-void func_80076BAC(UCHAR *pSeq, UCHAR *pTr)
+/* sequencer program change (0xCn) */
+void Snd_midi_prog(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     VabHdr *pVh;
     ProgAtr *pPa;
     LONG pan;
 
-    pVh = (VabHdr *)Snd_work.Bank[pTr[0xF]].pHead;
-    pTr[6] = **(UCHAR **)(pSeq + 4);
-    pPa = (ProgAtr *)pVh + pTr[6] + 2;
-    pTr[7] = pVh->mvol * pPa->mvol / 127;
+    pVh = (VabHdr *)Snd_work.Bank[pTr->Bank].pHead;
+    pTr->Prog = *pSeq->pData;
+    pPa = (ProgAtr *)pVh + pTr->Prog + 2;
+    pTr->Vol = pVh->mvol * pPa->mvol / 127;
     pan = pVh->pan + 0xC0;
-    pPa = (ProgAtr *)pVh + pTr[6] + 2;
-    pTr[9] = pPa->mpan + pan;
-    (*(UCHAR **)(pSeq + 4))++;
-    *(LONG *)(pSeq + 0xC) = Snd_seq_get_vlq((UCHAR **)(pSeq + 4));
+    pPa = (ProgAtr *)pVh + pTr->Prog + 2;
+    pTr->Pan2 = pPa->mpan + pan;
+    pSeq->pData++;
+    pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-/* sequencer pitch bend event: re-pitches every voice keyed by the track */
-void func_80076C64(SND_SEQ *pSeq, SND_TRACK *pTr)
+/* sequencer pitch bend (0xEn): re-pitches every voice keyed by the track */
+void Snd_midi_bend(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     SND_VOICE *pV;
     VagAtr *pVag;
@@ -1108,29 +1122,29 @@ void func_80076C64(SND_SEQ *pSeq, SND_TRACK *pTr)
                 continue;
             }
             pV = &Snd_work.Voice[i];
-            if (pV->Unk1D == 0 || pV->Unk4 == 0) {
+            if (pV->Use == 0 || pV->Time == 0) {
                 continue;
             }
-            pV->Unk14 = pTr->Bend;
-            pHead = Snd_work.Bank[pV->Unk1B].pHead;
-            pVag = (VagAtr *)Snd_work.Bank[pV->Unk1B].Unk4 + (pV->Unk18 + pV->Unk17 * pHead[3]);
+            pV->Bend = pTr->Bend;
+            pHead = Snd_work.Bank[pV->Bank].pHead;
+            pVag = (VagAtr *)Snd_work.Bank[pV->Bank].pVag + (pV->Tone + pV->Prog * pHead[3]);
             Note = pVag->shift;
-            Pitch = (pV->Unk19 << 7) | Note; /* via a temp: or v0,a0 operand order */
+            Pitch = (pV->Note << 7) | Note; /* via a temp: or v0,a0 operand order */
             Note = Pitch;
-            if (pV->Unk14 > 0x2000) {
-                Note += ((pV->Unk14 - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
+            if (pV->Bend > 0x2000) {
+                Note += ((pV->Bend - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
             }
-            if (pV->Unk14 < 0x2000) {
-                Note -= ((0x2000 - pV->Unk14) << 7) * pVag->pbmin / 0x1FFF;
+            if (pV->Bend < 0x2000) {
+                Note -= ((0x2000 - pV->Bend) << 7) * pVag->pbmin / 0x1FFF;
             }
-            SpuSetVoicePitch(i, func_80075A80(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F));
+            SpuSetVoicePitch(i, Snd_pitch_calc(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F));
         }
     }
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
 /* sequencer meta event: 0x51 set tempo, 0x2F end of track */
-void func_80076E7C(SND_SEQ *pSeq)
+void Snd_midi_meta(SND_SEQ *pSeq)
 {
     SND_WORK *pW = &Snd_work;
     ULONG Tempo;
@@ -1150,21 +1164,21 @@ void func_80076E7C(SND_SEQ *pSeq)
         pSeq->pData++;
         pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
     } else if (*pSeq->pData == 0x2F && pSeq->pData[1] == 0) {
-        if (pSeq->Unk18 == 0) {
+        if (pSeq->Repeat == 0) {
             if (pSeq->Loop_mode == 2) {
                 if (pSeq->Loop_cnt == 0x7F || --pSeq->Loop_cnt != 0) {
                     pSeq->pData = pSeq->pLoop;
                 }
                 pSeq->Loop_mode = 0;
             } else {
-                pSeq->Unk2C = 0;
-                pW->UnkB74 &= ~(1 << pSeq->No);
-                pW->UnkB76 &= ~(1 << pSeq->No);
+                pSeq->Play_flg = 0;
+                pW->Seq_play &= ~(1 << pSeq->No);
+                pW->Seq_pause &= ~(1 << pSeq->No);
             }
         } else {
             pSeq->pData = pSeq->pTop;
         }
-        if (pSeq->Unk2C == 0) {
+        if (pSeq->Play_flg == 0) {
             pSeq->Delta = 1;
         } else {
             pSeq->Delta = 0;
@@ -1172,9 +1186,10 @@ void func_80076E7C(SND_SEQ *pSeq)
     }
 }
 
-void func_80077030(LONG *p)
+/* ignored events (0xAn, 0xDn) */
+void Snd_midi_skip(SND_SEQ *pSeq)
 {
-    p[3] = 1;
+    pSeq->Delta = 1;
 }
 
 /* reads a MIDI variable-length quantity (at most 4 bytes) */
@@ -1198,6 +1213,7 @@ loop:
     return v;
 }
 
+/* voices a program's tones may use */
 ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones)
 {
     ULONG i;
@@ -1212,7 +1228,8 @@ ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones)
     return mask;
 }
 
-signed char func_800770DC(LONG lo, ULONG hi)
+/* a free sequence voice in lo..hi, else a released one, else the oldest */
+LONG Snd_voice_get(LONG lo, ULONG hi)
 {
     UCHAR pad[0x40];
     char st[24];
@@ -1224,7 +1241,7 @@ signed char func_800770DC(LONG lo, ULONG hi)
     SpuRGetAllKeysStatus(lo, hi - 1, st);
     pV = &Snd_work.Voice[lo];
     for (i = lo; i < hi; i++, pV++) {
-        if (st[i] == 0 && pV->Unk1D == 0) {
+        if (st[i] == 0 && pV->Use == 0) {
             return i;
         }
     }
@@ -1235,77 +1252,81 @@ signed char func_800770DC(LONG lo, ULONG hi)
         if (st[i] == 3) {
             return i;
         }
-        if ((ULONG)pV->Unk4 >= best) {
-            best = pV->Unk4;
+        if ((ULONG)pV->Time >= best) {
+            best = pV->Time;
             bi = i;
         }
     }
     return bi;
 }
 
-LONG func_80077220(LONG a0, LONG a1, LONG a2, LONG a3)
+/* frees the voice playing Note of (Seq_no, Prog, Tone); returns it or 0xFF */
+LONG Snd_seq_voice_search(LONG Seq_no, LONG Prog, LONG Tone, LONG Note)
 {
     ULONG i;
     SND_VOICE *p;
 
     for (i = 8, p = &Snd_work.Voice[8]; i < 24; i++, p++) {
-        if (p->Unk17 == a1 && p->Unk18 == a2 && p->Unk19 == a3 && p->Unk1D != 0 && a0 == p->Unk1C) {
-            p->Unk1D = 0;
+        if (p->Prog == Prog && p->Tone == Tone && p->Note == Note && p->Use != 0 && Seq_no == p->Seq_no) {
+            p->Use = 0;
             return i;
         }
     }
     return 0xFF;
 }
 
-void func_800772A0(LONG no, UCHAR *pData, LONG a2, LONG a3)
+/* starts sequence slot no on SEQ data (tempo at +4, resolution at +8, events from +0xC) */
+void Snd_seq_start(LONG no, UCHAR *pData, LONG Bank, LONG Loop)
 {
     SND_WORK *pW = &Snd_work;
-    SND_SEQ *p = &pW->Seq[no];
-    SND_TRACK *pT;
+    SND_SEQ *pSeq = &pW->Seq[no];
+    SND_TRACK *pTr;
     SND_VOICE *pV;
     ULONG i;
-    ULONG t;
+    ULONG Tempo;
 
-    p->pData = p->pTop = pData + 0xC;
-    p->Unk18 = a3;
-    p->Bank = a2;
-    p->Unk24 = a2;
-    t = *(ULONG *)(pData + 4);
-    p->Resolution = *(USHORT *)(pData + 8);
-    p->Delta = 0;
-    p->Tempo_cnt = p->Tempo = t * 1000 / p->Resolution;
-    pT = p->Trk;
+    pSeq->pData = pSeq->pTop = pData + 0xC;
+    pSeq->Repeat = Loop;
+    pSeq->Bank = Bank;
+    pSeq->Bank_org = Bank;
+    Tempo = *(ULONG *)(pData + 4);
+    pSeq->Resolution = *(USHORT *)(pData + 8);
+    pSeq->Delta = 0;
+    pSeq->Tempo_cnt = pSeq->Tempo = Tempo * 1000 / pSeq->Resolution;
+    pTr = pSeq->Trk;
     pV = &pW->Voice[8];
     for (i = 0; i < 16; i++) {
-        pT->Vol2 = 0x7F;
-        pT->Pan = 0x40;
-        pT->Bend = 0x2000;
-        pT->Mask = 0;
-        pT->Bank = a2;
-        pT->UnkE = a2;
-        if (pV->Unk1D == 0) {
-            pV->Unk14 = 0x2000;
+        pTr->Vol2 = 0x7F;
+        pTr->Pan = 0x40;
+        pTr->Bend = 0x2000;
+        pTr->Mask = 0;
+        pTr->Bank = Bank;
+        pTr->Bank_org = Bank;
+        if (pV->Use == 0) {
+            pV->Bend = 0x2000;
         }
-        pT++;
+        pTr++;
         pV++;
     }
-    p->Unk38 = 0;
-    p->Unk40 = 0;
-    p->Unk3C = 0;
-    pW->UnkB74 |= 1 << p->No;
-    pW->UnkB76 &= ~(1 << no);
-    p->Unk2C = 1;
-    p->Unk2D = 0;
+    pSeq->Fade_mode = 0;
+    pSeq->Fade_step = 0;
+    pSeq->Fade_vol = 0;
+    pW->Seq_play |= 1 << pSeq->No;
+    pW->Seq_pause &= ~(1 << no);
+    pSeq->Play_flg = 1;
+    pSeq->Stop_req = 0;
 }
 
+/* stops sequence slot no */
 void Snd_seq_stop(SHORT no)
 {
-    if (Snd_work.Seq[no].Unk2C != 0) {
-        Snd_work.Seq[no].Unk2D = 1;
-        Snd_work.Seq[no].Unk38 = 0;
+    if (Snd_work.Seq[no].Play_flg != 0) {
+        Snd_work.Seq[no].Stop_req = 1;
+        Snd_work.Seq[no].Fade_mode = 0;
     }
 }
 
+/* stops all sequences */
 void Snd_seq_stop_all(void)
 {
     SHORT i;
@@ -1315,7 +1336,8 @@ void Snd_seq_stop_all(void)
     }
 }
 
-void func_8007745C(LONG no)
+/* keys off a sequence's voices and pauses it (RE2 Snd_bgm_pause role) */
+void Snd_seq_pause(LONG no)
 {
     ULONG mask;
     UCHAR i, j;
@@ -1323,9 +1345,9 @@ void func_8007745C(LONG no)
     SND_WORK *pW = &Snd_work;
 
     mask = 0;
-    if (Snd_work.Seq[no].Unk2C != 0) {
-        Snd_work.UnkB76 |= 1 << no;
-        Snd_work.Seq[no].Unk2C = 0;
+    if (Snd_work.Seq[no].Play_flg != 0) {
+        Snd_work.Seq_pause |= 1 << no;
+        Snd_work.Seq[no].Play_flg = 0;
         for (i = 0; i < 16; i++) {
             if (pW->Seq[no].Trk[i].Mask != 0) {
                 j = 8;
@@ -1342,13 +1364,15 @@ void func_8007745C(LONG no)
     }
 }
 
+/* resumes a paused sequence */
 void Snd_seq_play_ck(LONG no)
 {
-    if ((Snd_work.UnkB76 >> no) & 1) {
-        Snd_work.Seq[no].Unk2C = 1;
+    if ((Snd_work.Seq_pause >> no) & 1) {
+        Snd_work.Seq[no].Play_flg = 1;
     }
 }
 
+/* RE2 Snd_se_enem: SE no of the enemy's bank at its position */
 void Snd_se_enem(ULONG no, ENEMY_WORK *pEm)
 {
     VECTOR v;
@@ -1356,13 +1380,14 @@ void Snd_se_enem(ULONG no, ENEMY_WORK *pEm)
     v.vx = pEm->Pos_x;
     v.vy = pEm->Pos_y;
     v.vz = pEm->Pos_z;
-    if (pEm->Unk12F == D_800BA6E8[3]) {
+    if (pEm->Unk12F == Snd_edt[3]) {
         no += 0x10;
     }
     Snd_se_stad(no | 0x10300, &v, 0, 0);
 }
 
-void func_80077618(LONG no, UCHAR parts, ENEMY_WORK *pEm)
+/* Snd_se_enem at a part's position */
+void Snd_se_enem_parts(LONG no, UCHAR parts, ENEMY_WORK *pEm)
 {
     VECTOR v;
     PARTS_W *p = &pEm->pSin_parts_ptr[parts];
@@ -1370,12 +1395,13 @@ void func_80077618(LONG no, UCHAR parts, ENEMY_WORK *pEm)
     v.vx = p->Workm.t[0];
     v.vy = p->Workm.t[1];
     v.vz = p->Workm.t[2];
-    if (pEm->Unk12F == D_800BA6E8[3]) {
+    if (pEm->Unk12F == Snd_edt[3]) {
         no += 0x10;
     }
     Snd_se_stad(no | 0x10300, &v, 0, 0);
 }
 
+/* RE2 Snd_se_walk: footstep SE for the floor under a part */
 void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
 {
     LONG one;
@@ -1386,7 +1412,7 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     LONG se;
 
     pP = &pEm->pSin_parts_ptr[parts];
-    se = func_80077B84(pP->Workm.t[0], pP->Workm.t[2], pEm->nFloor) & 0x7F;
+    se = Snd_floor_kind(pP->Workm.t[0], pP->Workm.t[2], pEm->nFloor) & 0x7F;
     if (pEm->Water != 0) {
         se = 0x17;
         if (pEm->Water == 1) {
@@ -1475,23 +1501,24 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     }
 }
 
-UCHAR func_80077B84(LONG x, LONG z, LONG id)
+/* footstep sound kind of the floor at (x, z) */
+UCHAR Snd_floor_kind(LONG x, LONG z, LONG id)
 {
-    LONG pos[3]; UCHAR *pe; LONG n;
-    LONG f;
-    pe = (UCHAR *)G.pRoom->pUnk34; n = *(SHORT *)pe; pe += 2; pos[0] = x; pos[2] = z; pe += n * 0xC;
+    LONG pos[3]; UCHAR *pFlr; LONG n;
+    LONG Attr;
+    pFlr = (UCHAR *)G.pRoom->pUnk34; n = *(SHORT *)pFlr; pFlr += 2; pos[0] = x; pos[2] = z; pFlr += n * 0xC;
     while (n--) {
-        pe -= 0xC;
-        f = ((SHORT *)pe)[5];
-        if (!(f & 0x100) && id == (f & 0x7F) && func_800101C8(pos, (SHORT *)pe)) {
-            return pe[8];
+        pFlr -= 0xC;
+        Attr = ((SHORT *)pFlr)[5];
+        if (!(Attr & 0x100) && id == (Attr & 0x7F) && func_800101C8(pos, (SHORT *)pFlr)) {
+            return pFlr[8];
         }
     }
     return 0x1D;
 }
 
-/* room BGM request: Unk8C2/Unk8C3 = main/sub sequence ids from the room table, fades out what changes */
-void func_80077C4C(void)
+/* RE2 Snd_bgm_ck role: reads the room's BGM entry, sets CD.Bgm_main_id/Bgm_sub_id and fades out what changes */
+void Snd_bgm_ck(void)
 {
     tagGLOBAL *pG = &G;
     SND_WORK *pW = &Snd_work;
@@ -1503,133 +1530,136 @@ void func_80077C4C(void)
     if (Stage >= 5) {
         Stage -= 5;
     }
-    Bgm = pG->Unk7C84[D_800A0FDC[Stage] + pG->Unk7840];
-    pW->UnkB20 = 0x3C00;
-    pW->UnkB1C = 0xFF;
-    pW->UnkB24 = 0x400;
+    Bgm = pG->Unk7C84[Bgm_room_ofs[Stage] + pG->Unk7840];
+    pW->Fade_vol = 0x3C00;
+    pW->Fade_mask = 0xFF;
+    pW->Fade_step = 0x400;
     if ((Bgm >> 8) != 0xFF) {
-        pW->UnkB77 = Bgm >> 15;
+        pW->Bgm_req = Bgm >> 15;
     }
     if ((Bgm & 0xFF) != 0xFF) {
-        pW->UnkB77 |= (Bgm >> 5) & 6;
+        pW->Bgm_req |= (Bgm >> 5) & 6;
     }
-    pCd->Unk8C2 = (Bgm >> 8) & 0x3F;
-    if ((!(pW->UnkB77 & 1) && pW->Seq_data[0].Id == pCd->Unk8C2) || pW->Seq_data[0].Id != pCd->Unk8C2) {
-        if (pW->Seq[0].Unk2C && !pW->Seq[0].Unk2D) {
-            if (pW->Seq[0].Unk38 != 2) {
-                pW->Seq[0].Unk38 = 2;
-                pW->Seq[0].Unk3C = 0x3F00;
+    pCd->Bgm_main_id = (Bgm >> 8) & 0x3F;
+    if ((!(pW->Bgm_req & 1) && pW->Seq_data[0].Id == pCd->Bgm_main_id) || pW->Seq_data[0].Id != pCd->Bgm_main_id) {
+        if (pW->Seq[0].Play_flg && !pW->Seq[0].Stop_req) {
+            if (pW->Seq[0].Fade_mode != 2) {
+                pW->Seq[0].Fade_mode = 2;
+                pW->Seq[0].Fade_vol = 0x3F00;
             }
-            pW->Seq[0].Unk40 = 0x100;
+            pW->Seq[0].Fade_step = 0x100;
         }
-    } else if (pW->Seq[0].Unk2C) {
-        pW->UnkB77 &= 6;
+    } else if (pW->Seq[0].Play_flg) {
+        pW->Bgm_req &= 6;
     }
-    if (pCd->Unk8C2 == 0x3F) {
-        pCd->Unk8C2 = 0xFF;
+    if (pCd->Bgm_main_id == 0x3F) {
+        pCd->Bgm_main_id = 0xFF;
         pW->Seq_data[0].Id = 0xFF;
     }
-    pCd->Unk8C3 = Bgm & 0x3F;
-    if ((!(pW->UnkB77 & 2) && pW->Seq_data[1].Id == pCd->Unk8C3) || pW->Seq_data[1].Id != pCd->Unk8C3) {
-        if (pW->Seq[1].Unk2C && !pW->Seq[1].Unk2D) {
-            if (pW->Seq[1].Unk38 != 2) {
-                pW->Seq[1].Unk38 = 2;
-                pW->Seq[1].Unk3C = 0x3F00;
+    pCd->Bgm_sub_id = Bgm & 0x3F;
+    if ((!(pW->Bgm_req & 2) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
+        if (pW->Seq[1].Play_flg && !pW->Seq[1].Stop_req) {
+            if (pW->Seq[1].Fade_mode != 2) {
+                pW->Seq[1].Fade_mode = 2;
+                pW->Seq[1].Fade_vol = 0x3F00;
             }
-            pW->Seq[1].Unk40 = 0x100;
+            pW->Seq[1].Fade_step = 0x100;
         }
-    } else if (pW->Seq[1].Unk2C) {
-        pW->UnkB77 &= 5;
+    } else if (pW->Seq[1].Play_flg) {
+        pW->Bgm_req &= 5;
     }
-    if ((!(pW->UnkB77 & 4) && pW->Seq_data[1].Id == pCd->Unk8C3) || pW->Seq_data[1].Id != pCd->Unk8C3) {
-        if (pW->Seq[2].Unk2C && !pW->Seq[2].Unk2D) {
-            if (pW->Seq[2].Unk38 != 2) {
-                pW->Seq[2].Unk38 = 2;
-                pW->Seq[2].Unk3C = 0x3F00;
+    if ((!(pW->Bgm_req & 4) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
+        if (pW->Seq[2].Play_flg && !pW->Seq[2].Stop_req) {
+            if (pW->Seq[2].Fade_mode != 2) {
+                pW->Seq[2].Fade_mode = 2;
+                pW->Seq[2].Fade_vol = 0x3F00;
             }
-            pW->Seq[2].Unk40 = 0x100;
+            pW->Seq[2].Fade_step = 0x100;
         }
-    } else if (pW->Seq[2].Unk2C) {
-        pW->UnkB77 &= 3;
+    } else if (pW->Seq[2].Play_flg) {
+        pW->Bgm_req &= 3;
     }
-    if (pCd->Unk8C3 == 0x3F) {
-        pCd->Unk8C3 = 0xFF;
+    if (pCd->Bgm_sub_id == 0x3F) {
+        pCd->Bgm_sub_id = 0xFF;
         pW->Seq_data[1].Id = 0xFF;
         pW->Seq_data[2].Id = 0xFF;
     }
 }
 
-void func_80077ED4(void)
+/* waits (bounded) for the sequence and master fades */
+void Snd_bgm_fade_wait(void)
 {
-    SND_WORK *p = &Snd_work;
+    SND_WORK *pW = &Snd_work;
     UCHAR i = 0;
-    UCHAR n;
+    UCHAR Busy;
 
     do {
-        n = p->Seq[0].Unk38 + p->Seq[1].Unk38 + p->Seq[2].Unk38 + p->UnkB1C;
+        Busy = pW->Seq[0].Fade_mode + pW->Seq[1].Fade_mode + pW->Seq[2].Fade_mode + pW->Fade_mask;
         if ((signed char)i++ < 0) {
             break;
         }
         Task_sleep(1); /* undeclared on purpose (monitor.h not included): any prototype, even int Task_sleep(), changes this loop */
-    } while (n);
+    } while (Busy);
     Snd_se_stad(0xE, 0, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/snd", func_80077F60);
+/* RE2 Snd_bgm_play_ck role: requests the room BGM sequences that are not playing */
+INCLUDE_ASM("asm/nonmatchings/game/snd", Snd_bgm_play_ck);
 
-void FE_func_800783BC(ULONG no, ULONG size, ULONG *a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
-LONG func_8007809C(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
+/* loads bank no's VAB header and body (bank 0 player, 1 weapon; RE2 Snd_sys_core_set/arms_set) */
+LONG Snd_vab_load(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
 {
-    USHORT tbl[8] = { 0x104, 0x103, 0xDA, 0xD9, 0, 0, 0, 0 };
-    signed char n;
+    USHORT File_no[8] = { 0x104, 0x103, 0xDA, 0xD9, 0, 0, 0, 0 };
+    signed char Cnt;
     ULONG *p;
-    LONG r;
+    LONG Size;
 
     if (no == 1 && idx == 0) {
         return 1;
     }
-    n = (signed char)D_800A0FE4[no];
+    Cnt = (signed char)Vab_head_ofs[no];
     p = pAdr;
-    while (n > 0) {
+    while (Cnt > 0) {
         *p++ = -1;
-        n--;
+        Cnt--;
     }
-    r = Cd_read(idx * 2 + tbl[no * 2], pAdr, 0, "Vab Header");
-    func_8007836C(no, pAdr);
-    FE_func_800783BC(no, Cd_read_s(idx * 2 + tbl[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
-    if (r < 0) {
+    Size = Cd_read(idx * 2 + File_no[no * 2], pAdr, 0, "Vab Header");
+    Snd_vab_head_set(no, pAdr);
+    Snd_bank_set(no, Cd_read_s(idx * 2 + File_no[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
+    if (Size < 0) {
         return 0;
     }
-    return r;
+    return Size;
 }
 
-void func_80078204(void)
+/* RE2 Snd_sys_pset: registers the room EDT as bank 2 */
+void Snd_sys_pset(void)
 {
-    LONG *p;
+    LONG *pEdt;
     SND_WORK *pW;
 
-    p = (LONG *)G.pRoom->pEdt0;
+    pEdt = (LONG *)G.pRoom->pEdt0;
     pW = &Snd_work;
-    if (p == NULL) {
+    if (pEdt == NULL) {
         pW->Bank_id[2].Id = -1;
         return;
     }
-    *(LONG **)&D_800BA6E8 = p;
-    pW->UnkB78 = G.pRoom->Unk6 * 4;
-    while (*p != -1) {
-        p++;
+    *(LONG **)&Snd_edt = pEdt;
+    pW->Rv_mask = G.pRoom->Unk6 * 4;
+    while (*pEdt != -1) {
+        pEdt++;
     }
-    p++;
-    func_8007836C(2, (ULONG *)p);
+    pEdt++;
+    Snd_vab_head_set(2, (ULONG *)pEdt);
     if (G.pRoom->pEdt0 != NULL) {
         G.pEm_mem = (ENEMY_WORK *)(((ULONG)pW->Bank[2].pHead + pW->Bank[2].pHead[1] + 3) & ~3);
     }
-    func_800783BC_(2, p[0x30], 0);
+    Snd_bank_set(2, pEdt[0x30], 0);
 }
 
-/* registers a sequence pack (and its VAB) loaded for enemy slot no */
-void func_800782F4(ULONG no, ULONG id, ULONG *pAdr)
+/* registers a sequence pack and its VAB for BGM slot no */
+void Snd_seq_data_set(ULONG no, ULONG id, ULONG *pAdr)
 {
     SND_WORK *pW = &Snd_work;
     ULONG *p = pAdr;
@@ -1649,58 +1679,61 @@ void func_800782F4(ULONG no, ULONG id, ULONG *pAdr)
     }
     pW->Bank[bank].pHead = (ULONG *)(pVh = (VabHdr *)((UCHAR *)pAdr + *p));
     pPa = (ProgAtr *)(pVh + 1);
-    pW->Bank[bank].Unk4 = (ULONG *)(pPa + pVh->ps);
+    pW->Bank[bank].pVag = (ULONG *)(pPa + pVh->ps);
 }
 
-/* registers the VAB of bank no, D_800A0FE4[no] words into the file at pAdr */
-void func_8007836C(LONG no, ULONG *pAdr)
+/* registers bank no's VAB header */
+void Snd_vab_head_set(LONG no, ULONG *pAdr)
 {
     SND_WORK *pW = &Snd_work;
     VabHdr *pVh;
     ProgAtr *pPa;
 
     pW->pAdr[no] = pAdr;
-    pW->Bank[no].pHead = (ULONG *)(pVh = (VabHdr *)(pAdr + D_800A0FE4[no]));
+    pW->Bank[no].pHead = (ULONG *)(pVh = (VabHdr *)(pAdr + Vab_head_ofs[no]));
     pPa = (ProgAtr *)(pVh + 1);
-    pW->Bank[no].Unk4 = (ULONG *)(pPa + pVh->ps);
+    pW->Bank[no].pVag = (ULONG *)(pPa + pVh->ps);
 }
 
-void func_800783BC(ULONG no, ULONG size)
+/* stores bank no's SPU address and size after its body was sent */
+void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
 {
     SND_WORK *pW = &Snd_work;
     SND_WORK *p = (SND_WORK *)((UCHAR *)pW + no * 8);
 
     size = (size + 0x3F) & ~0x3F;
-    p->Bank_id[0].pad2 = size >> 6;
+    p->Bank_id[0].Size = size >> 6;
     p->Bank_id[0].Id = no;
     if (no < 5) {
         if (no != 3) {
-            p->Bank_id[0].pData = (UCHAR *)D_800A0FEC[no];
+            p->Bank_id[0].pData = (UCHAR *)Snd_spu_adr[no];
         } else {
             pW->Bank_id[3].pData = (UCHAR *)(0x3DE10 - size);
         }
     } else if (no == 5) {
-        pW->Bank_id[5].pData = (UCHAR *)D_800A1000;
+        pW->Bank_id[5].pData = (UCHAR *)Snd_spu_adr[5];
     } else {
         p->Bank_id[0].pData = (UCHAR *)(0x7B7C0 - size);
     }
 }
 
-void func_80078450(void)
+/* RE2 Snd_sys_enem_set role: registers the enemy bank (3) when the room has enemies */
+void Snd_sys_enem_set(void)
 {
-    if (D_800CCBBF) {
-        func_8007836C(3, (ULONG *)0x801FB600);
+    if (G.Em_num) {
+        Snd_vab_head_set(3, (ULONG *)0x801FB600);
     } else {
-        D_800E067C = -1;
+        Snd_work.Bank_id[3].Id = -1;
     }
 }
 
-void func_80078498(UCHAR a, UCHAR b, SHORT c)
+/* RE2 Snd_bgm_tbl_set: sets the BGM of a room */
+void Snd_bgm_tbl_set(UCHAR Stage, UCHAR Room, USHORT Bgm)
 {
-    SHORT i = a;
+    SHORT Stage_idx = Stage;
 
-    if (i >= 5) {
-        i -= 5;
+    if (Stage_idx >= 5) {
+        Stage_idx -= 5;
     }
-    G.Unk7C84[D_800A0FDC[i] + b] = c;
+    G.Unk7C84[Bgm_room_ofs[Stage_idx] + Room] = Bgm;
 }

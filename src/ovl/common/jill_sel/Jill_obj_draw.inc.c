@@ -1,4 +1,4 @@
-/* shared by jill_sel, select */
+/* shared by jill_sel, select, result */
 /* sprite update and draw: Mode 0/1 pulse up/down, 2 shown, 3 hidden (blink) */
 void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot)
 {

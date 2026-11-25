@@ -1,3 +1,6 @@
+/*
+ * MEM_CARD.BIN (RE2 MEM_CARD.C lineage): memory card save/load screens, with copies of the libcard BIOS stubs
+ */
 #include "monitor.h"
 #include "snd.h"
 #include "cd.h"
@@ -5,14 +8,14 @@
 #include "sce1.h"
 #include "sld.h"
 
-LONG Search_item_id_(LONG Id, LONG i) __asm__("Search_item_id"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char) */
-LONG func_8006CCF0_(LONG No, LONG N, LONG F) __asm__("func_8006CCF0"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char); arg 3 long (canonical UC) */
+LONG Search_item_id_i(LONG Id, LONG i) __asm__("Search_item_id"); /* called undeclared (implicit int): int arguments and result, no masks */
+LONG Item_decrease_i(LONG No, LONG N, LONG F) __asm__("Item_decrease"); /* called undeclared (implicit int): int arguments and result, no masks */
 #include <strings.h>
 
 #define MESS(n) (&Mess_text[Mess_offs[n]])
 
 /* Print14 called with int coordinates (no USHORT truncation in the caller) */
-void Print14_l(LONG X, LONG Y, UCHAR *pFmt, ...) __asm__("Print14"); /* arg 1 long (canonical unsigned short); arg 2 long (canonical unsigned short) */
+void Print14_l(LONG X, LONG Y, UCHAR *pFmt, ...) __asm__("Print14"); /* called undeclared: int coordinates, no USHORT masks */
 
 /* Mem_card: task entry */
 void Mem_card(void)
@@ -411,17 +414,17 @@ void Card_rno11_after_save(MWORK *pMw)
             break;
         case 2:
             G.System_flg |= 0x80;
-            Memcpy(D_800C7048.Save, G.Card_head, sizeof(D_800C7048.Save));
-            D_800C7048.Pl_id = G.Player.Id;
-            D_800C7048.Pos_x = G.Player.Pos_x;
-            D_800C7048.Pos_y = G.Player.Pos_y;
-            D_800C7048.Pos_z = G.Player.Pos_z;
-            D_800C7048.Cdir_y = G.Player.Cdir_y;
-            D_800C7048.Life = G.Player.Life;
+            Memcpy(Retry_data.Save, G.Card_head, sizeof(Retry_data.Save));
+            Retry_data.Pl_id = G.Player.Id;
+            Retry_data.Pos_x = G.Player.Pos_x;
+            Retry_data.Pos_y = G.Player.Pos_y;
+            Retry_data.Pos_z = G.Player.Pos_z;
+            Retry_data.Cdir_y = G.Player.Cdir_y;
+            Retry_data.Life = G.Player.Life;
             if (G.Player.Status_flg & 0x200) {
-                D_800C7048.Poison = G.Pl_poison_timer | 0x80;
+                Retry_data.Poison = G.Pl_poison_timer | 0x80;
             } else {
-                D_800C7048.Poison = 0;
+                Retry_data.Poison = 0;
             }
             break;
         case 3:
@@ -539,10 +542,10 @@ void Card_rno09_save(MWORK *pMw)
     UCHAR Save_cnt;
 
     pMw->Cursor = pMw->Slot;
-    Memcpy(Mc_item_bak, G.pUnk7C7C, sizeof(Mc_item_bak));
-    pMw->Item_bak = G.pUnk7C7C->Unk128;
+    Memcpy(Mc_item_bak, G.pItem_set, sizeof(Mc_item_bak));
+    pMw->Item_bak = G.pItem_set->Equip_no;
     if (!(G.System_flg & 0x4080)) {
-        func_8006CCF0_(Search_item_id_(0x81, 0), 1, 0);
+        Item_decrease_i(Search_item_id_i(0x81, 0), 1, 0);
     }
     Save_cnt = G.Save_cnt;
     if ((Save_cnt < 99 || (G.System_flg & 0x4000)) && !(G.System_flg & 0x80)) {
@@ -568,8 +571,8 @@ void Card_rno09_save(MWORK *pMw)
         if (!(G.System_flg & 0x80)) {
             G.Save_cnt = Save_cnt;
         }
-        Memcpy(G.pUnk7C7C, Mc_item_bak, sizeof(Mc_item_bak));
-        G.pUnk7C7C->Unk128 = pMw->Item_bak;
+        Memcpy(G.pItem_set, Mc_item_bak, sizeof(Mc_item_bak));
+        G.pItem_set->Equip_no = pMw->Item_bak;
         pMw->Err = 5;
         pMw->Key_lock = 0;
         pMw->Rno = 3;
@@ -1271,7 +1274,7 @@ void Save_push(void)
     }
     pG->Save_vol = Snd_work.Vol.Se;
     pG->Save_vol2 = Snd_work.Vol.Bgm;
-    pG->Save_mono = Snd_work.UnkB75;
+    pG->Save_mono = Snd_work.Mono;
     pG->Save_unk780C = Main.Unk195;
     pG->Save_unk780D = Main.Unk196;
 }
@@ -1298,10 +1301,10 @@ void Load_pop(void)
     }
     Snd_work.Vol.Se = pG->Save_vol;
     Snd_work.Vol.Bgm = pG->Save_vol2;
-    Snd_work.UnkB75 = pG->Save_mono;
+    Snd_work.Mono = pG->Save_mono;
     Main.Unk195 = pG->Save_unk780C;
     Main.Unk196 = pG->Save_unk780D;
-    G.pUnk7C7C = &G.Item_work[G.Item_work_no];
+    G.pItem_set = &G.Item_work[G.Item_work_no];
     Set_volume(CD.Vol);
 }
 
@@ -1456,8 +1459,11 @@ SHORT Mess_width(LONG Msg)
     }
 }
 
+/* libcard _card_info: BIOS A0 call 0xAB (jump stub, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_info);
 
+/* libcard _card_load: BIOS A0 call 0xAC (jump stub, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_load);
 
+/* libcard _card_clear: _new_card, then _card_write(Chan, 0x3F, NULL) (older-compiler code, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_clear);

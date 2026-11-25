@@ -37,3 +37,13 @@ Diedemo = 0x80198268; // DIEDEMO (proposed, RE2)
 Dievcut = 0x801982C0; // VCUT (proposed, RE2)
 Die_spr_tbl = 0x8019824C; // (proposed, RE2)
 pDiespr = 0x801982D8; // DIESPR * (proposed, RE2)
+// cleanup names
+Die_wait_tbl = 0x80197F8C;
+Die_wait_first = 0x80197FA0;
+Die_vib_tbl = 0x80197FA4;
+Die_cut_c2 = 0x801981B0;
+Die_wait = 0x801981CC;
+Die_em_id = 0x801981F8;
+Die_skip_ok = 0x80198204;
+Die_sub_tbl = 0x80198228;
+Die_break_cam = 0x80198230;

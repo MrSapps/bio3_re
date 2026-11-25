@@ -298,11 +298,11 @@ void Parts_sort_sabun(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.pObj = (MD_OBJ *)pObj[1];
     Prm.pOt = pG->pEm->pUnk7C;
     if (Flg & 0x400) {
-        func_8007A490(Work0, Work1, pObj[1], pP);
+        Skin_sort_alt(Work0, Work1, pObj[1], pP);
     } else {
-        func_8007A350(Work0, Work1, pObj[1], pP);
+        Skin_sort(Work0, Work1, pObj[1], pP);
     }
-    Prm.UnkC = (ULONG)&D_800E1388;
+    Prm.UnkC = (ULONG)&Skin_rgb;
     if (Flg & 0x40) {
         Prm.u.Rgb = Model_col.Unk6 << 24;
         pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);

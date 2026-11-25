@@ -1,15 +1,21 @@
+/*
+ * 80079EC0.c: PC-host STR movie streaming (Pcstr_*, PCopen/PCread) and the EMD skin vertex-blending sort
+ * routines (Skin_*)
+ */
 #include "sub.h"
 #include "pcstr.h"
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
 
+/* sets the two frame buffers (size in 1 KB units) */
 void Pcstr_set_buf(ULONG *pBuf, LONG size)
 {
     Pcstr.pBuf[0] = pBuf;
     Pcstr.pBuf[1] = pBuf + (size << 8);
 }
 
+/* opens an STR file on the PC host, detects raw interleaved sectors and reads up to the start frame; -1 on error */
 LONG Pcstr_open(char *pName)
 {
     ULONG Sub0;
@@ -35,6 +41,7 @@ LONG Pcstr_open(char *pName)
     return 0;
 }
 
+/* sets the start/end frames and the per-frame start/end callbacks of the PC stream */
 void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), void (*end_func)(void))
 {
     Pcstr.End_flg = 0;
@@ -47,11 +54,13 @@ void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), vo
     Pcstr.End_func = end_func;
 }
 
+/* closes the PC stream file */
 void Pcstr_close(void)
 {
     PCclose(Pcstr.Fd);
 }
 
+/* reads the next frame into the other buffer and calls the callbacks (end callback past the end frame) */
 LONG Pcstr_next(void)
 {
     PCSTR_WORK *p = &Pcstr;
@@ -67,6 +76,7 @@ LONG Pcstr_next(void)
     return 0;
 }
 
+/* returns the current frame buffer and its STR header */
 LONG Pcstr_get(ULONG **ppBuf, PCSTR_HEADER **ppHead)
 {
     *ppBuf = Pcstr.pBuf[Pcstr.Buf_no];
@@ -74,6 +84,7 @@ LONG Pcstr_get(ULONG **ppBuf, PCSTR_HEADER **ppHead)
     return 0;
 }
 
+/* reads the sectors of one frame (skipping raw subheaders/EDC), sets End_flg at the end */
 void Pcstr_read_frame(ULONG *pBuf)
 {
 
@@ -111,7 +122,9 @@ void Pcstr_read_frame(ULONG *pBuf)
     }
 }
 
-void func_8007A2D4(ENEMY_WORK *pEm, ULONG *pD)
+/* links the skin section of an EMD (bit mask of parts, then per part a record pair) to the parts
+ * (PARTS_W.pUnkA8) */
+void Skin_set(ENEMY_WORK *pEm, ULONG *pD)
 {
     ULONG *pA = pD + 2;
     LONG i = 0;
@@ -145,12 +158,13 @@ typedef struct tagJOINT_OFS {
     SHORT z;
 } JOINT_OFS;
 
-void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
+/* sorts the skin polygons of part pP (vertices blended between two parts' matrices, then lit) */
+void Skin_sort(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 {
     UCHAR *pHead;
     ULONG Ofs;
     UCHAR *pData;
-    SORT_ENV *pEnv = &D_800E15A0;
+    SORT_ENV *pEnv = &Skin_env;
 
     pHead = (UCHAR *)pP->pUnkA8;
     Ofs = ((ULONG *)pHead)[0];
@@ -160,42 +174,42 @@ void func_8007A350(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
     pEnv->pM = D_800C79F0;
     pEnv->pV = D_800C79F4;
     pData = (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF));
-    func_8007A600(pWork0, pWork1, pEnv, pData);
-    func_8007B2FC(D_800E1388, pP, pEnv, pData);
+    Skin_vtx0(pWork0, pWork1, pEnv, pData);
+    Skin_light0(Skin_rgb, pP, pEnv, pData);
     if ((Ofs >>= 16) != 0) {
-        func_8007A918(pWork0, pWork1, pEnv, pHead + Ofs);
-        func_8007B518(D_800E1388, pP, pEnv, pHead + Ofs);
+        Skin_vtx1(pWork0, pWork1, pEnv, pHead + Ofs);
+        Skin_light1(Skin_rgb, pP, pEnv, pHead + Ofs);
     }
     if ((Ofs = ((ULONG *)pHead)[1]) != 0) {
-        func_8007AC8C(pWork0, pWork1, pEnv, pHead + Ofs);
-        func_8007B824(D_800E1388, pP, pEnv, pHead + Ofs);
+        Skin_vtx2(pWork0, pWork1, pEnv, pHead + Ofs);
+        Skin_light2(Skin_rgb, pP, pEnv, pHead + Ofs);
     }
 }
 
-/* func_8007A350 for parts drawn with the alternate (Flg 0x400) routines */
-void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
+/* Skin_sort for parts with the alternate (Flg 0x400) routines */
+void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 {
-    SORT_ENV *pEnv = &D_800E15A0;
+    SORT_ENV *pEnv = &Skin_env;
     UCHAR *pHead;
     ULONG Ofs;
 
-    D_800E15C8 = pHead = (UCHAR *)pP->pUnkA8;
+    pSkin_head = pHead = (UCHAR *)pP->pUnkA8;
     Ofs = ((ULONG *)pHead)[0];
     pEnv->pEm = G.pEm;
     pEnv->pMdl = (SORT_MDL *)Arg2;
     pEnv->pWs = &GsWSMATRIX;
     pEnv->pM = D_800C79F0;
     pEnv->pV = D_800C79F4;
-    D_800E1598 = Ofs;
-    func_8007BFBC(pWork0, pWork1, pEnv, (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF)));
-    func_8007B2FC(D_800E1388, pP, pEnv, D_800E15C8 + (USHORT)D_800E1598);
-    if ((D_800E1598 >>= 16) != 0) {
-        func_8007C434(pWork0, pWork1, pEnv, D_800E15C8 + D_800E1598);
-        func_8007B518(D_800E1388, pP, pEnv, D_800E15C8 + D_800E1598);
+    Skin_ofs = Ofs;
+    Skin_vtx0_alt(pWork0, pWork1, pEnv, (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF)));
+    Skin_light0(Skin_rgb, pP, pEnv, pSkin_head + (USHORT)Skin_ofs);
+    if ((Skin_ofs >>= 16) != 0) {
+        Skin_vtx1_alt(pWork0, pWork1, pEnv, pSkin_head + Skin_ofs);
+        Skin_light1(Skin_rgb, pP, pEnv, pSkin_head + Skin_ofs);
     }
-    if ((D_800E1598 = ((ULONG *)D_800E15C8)[1]) != 0) {
-        func_8007C91C(pWork0, pWork1, pEnv, D_800E15C8 + D_800E1598);
-        func_8007B824(D_800E1388, pP, pEnv, D_800E15C8 + D_800E1598);
+    if ((Skin_ofs = ((ULONG *)pSkin_head)[1]) != 0) {
+        Skin_vtx2_alt(pWork0, pWork1, pEnv, pSkin_head + Skin_ofs);
+        Skin_light2(Skin_rgb, pP, pEnv, pSkin_head + Skin_ofs);
     }
 }
 
@@ -231,20 +245,26 @@ void func_8007A490(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 #define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
+/* blended vertices of the first skin list */
 /* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t2,a0,zero` / `addu t3,a1,zero` */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A600);
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx0);
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007A918);
+/* blended vertices of the second skin list */
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
 
+/* blended vertices of the third skin list */
 /* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007AC8C);
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2);
 
+/* lit colours of the first skin list */
 /* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t8,a0,zero` */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B2FC);
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light0);
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007B518);
+/* lit colours of the second skin list */
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light1);
 
-void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
+/* lit colours of the third skin list: normals rotated by both parts, blended by weight */
+void Skin_light2(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
 {
     PARTS_W *pParts;
     SVECTOR *pNor;
@@ -259,7 +279,7 @@ void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
     ULONG *p1;
     ULONG *p2;
 
-    pN = D_800E1568;
+    pN = Skin_nor;
     pParts = pEnv->pEm->pSin_parts_ptr;
     pNor = pEnv->pMdl->pNor;
     gte_SetLightMatrix(&LIGHTMATRIX);
@@ -358,18 +378,21 @@ typedef struct tagSORT_PRM {
     ULONG *pRgb;                       /* 0x0C per-vertex colours */
 } SORT_PRM;
 
+/* (no callers) skin triangle sort */
 /* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t7/t8 from a2/a3 */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BC7C);
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_sort_gt3);
 
 /* textured gouraud quad of a sort list: the vertex numbers are the top two bytes of W[2] and W[3] */
 typedef struct tagSORT_GT4 {
     LONG W[4];
 } SORT_GT4;
 
+/* (no callers) skin quad sort */
 /* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t8/t9 from a2/a3 */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BDF8);
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_sort_gt4);
 
-void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+/* Skin_vtx0 for the alternate routines */
+void Skin_vtx0_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 {
     SVECTOR W[3];
     LONG Sz[3];
@@ -468,7 +491,9 @@ void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007C434);
+/* Skin_vtx1 for the alternate routines */
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1_alt);
 
+/* Skin_vtx2 for the alternate routines */
 /* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t3,a3,zero` */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007C91C);
+INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);

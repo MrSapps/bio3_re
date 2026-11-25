@@ -3,7 +3,7 @@
 #include "snd.h"
 #include "trans.h"
 
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
+LONG Rnd_l(void) __asm__("Rnd"); /* int here (implicit declaration): Rnd() % 10 is a signed modulo */
 
 /* main task */
 void Lts_main(void)

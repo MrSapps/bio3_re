@@ -1,3 +1,7 @@
+/*
+ * MAIN.C (RE2 MAIN.C lineage): main loop, system/global init, buffer swap, background, screen fades,
+ * cinema-scope curtain, camera cut zones, pause.
+ */
 #include "main.h"
 #include "monitor.h"
 #include "pad.h"
@@ -40,6 +44,7 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
+/* RE2 main: system init, then the frame loop (pause, task scheduler, sound, CD, drawing, buffer swap) */
 int main(void)
 {
     tagMAIN *pMain;
@@ -94,14 +99,14 @@ int main(void)
             } else {
                 goto no_pause;
             }
-            func_8007745C(0);
-            func_8007745C(1);
-            func_8007745C(2);
+            Snd_seq_pause(0);
+            Snd_seq_pause(1);
+            Snd_seq_pause(2);
             G.Unk2488 = 1;
         }
     no_pause:
         if (Main.Unk194 != 0) {
-            func_8002A2B8();
+            Pause_disp();
             if ((Main.Unk194 == 1 && pG->Padd_data[0][0] != 0xFF) || (Main.Unk194 == 2 && (G.Unk20FC & 0x800))) {
                 Snd_seq_play_ck(0);
                 Snd_seq_play_ck(1);
@@ -117,7 +122,7 @@ int main(void)
             Fade_out_reset();
             continue;
         }
-        func_800741A0();
+        Snd_se_call();
         Cd_system_control();
         System_trans_all();
         Swap_Cbuff();
@@ -125,9 +130,11 @@ int main(void)
     }
 }
 
+/* RE2 Swap_Cbuff: waits for the frame, swaps the draw/display buffers and starts drawing */
 INCLUDE_ASM("asm/nonmatchings/game/main", Swap_Cbuff);
 
-void func_80029700(void)
+/* inverts the colours of the displayed frame in VRAM (Swap_Cbuff, while Live_sel is set) */
+void Scrn_negate(void)
 {
     RECT Rect;
     tagMAIN *pM;
@@ -166,6 +173,7 @@ void func_80029700(void)
     }
 }
 
+/* RE2 Init_system: libraries, pads, CD, sound, card events, the first task */
 void Init_system(void)
 {
     tagMAIN *pM;
@@ -177,7 +185,7 @@ void Init_system(void)
     SetGraphDebug(0);
     InitGeom();
     Cd_init();
-    func_80073E84();
+    Snd_sys_init();
     Init_scheduler();
     VSyncCallback(func_800101AC);
     pM->Vloop = 1;
@@ -210,6 +218,7 @@ void Init_system(void)
     D_800D454C = 0;
 }
 
+/* RE2 Init_global: clears G (keeping Keep_data across a retry) and sets up the curtain tiles */
 void Init_global(void)
 {
     tagGLOBAL *pG;
@@ -219,11 +228,11 @@ void Init_global(void)
 
     pG = &G;
     if (pG->System_flg & 0x80) {
-        func_80078FE8();
+        Keep_data_save();
     }
     Memclr(&pG->Unk2468, 0x5A90);
     if (pG->System_flg & 0x80) {
-        func_8007906C();
+        Keep_data_load();
     }
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 2; j++) {
@@ -242,7 +251,7 @@ void Init_global(void)
     *(ULONG *)pG->Padd_data[1] = 0xFFFF0000;
     pG->Room_no_old = -1;
     pG->Cut_no_old = -1;
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     Main.Unk194 = 0;
     G.System_flg &= 0x80;
     D_80098700 = 0xD2706CA4;
@@ -264,6 +273,7 @@ void Init_global(void)
     }
 }
 
+/* RE2 Init_main: double buffers, ordering tables and the main task */
 void Init_main(void)
 {
     tagMAIN *pMain;
@@ -273,7 +283,7 @@ void Init_main(void)
     pMain = &Main;
     Card_event_set();
     Cd_read(0x63, (ULONG *)0x8011A000, 1, "TEX_TIM");
-    D_800CCBBC = 0x1C;
+    Mapping_tpage_clut = 0x1C;
     Mapping_tim((ULONG *)0x8011A000);
     for (i = 0; i < 2; i++) {
         pDb = &pMain->Db[i];
@@ -300,16 +310,19 @@ void Init_main(void)
     Task_lchain(0);
 }
 
-void func_80029D00(void) {
+/* empty */
+void Main_dummy(void) {
 }
 
+/* RE2 System_trans role: fades, curtain, messages per frame */
 void System_trans_all(void)
 {
-    func_8002A49C();
+    Fade_trans();
     Curtain_trans();
     Moji_trans_main();
 }
 
+/* cinema-scope bars: fades them in or out with STAT_CINESCO and draws them */
 void Curtain_trans(void)
 {
     tagMAIN *pMain = &Main;
@@ -335,6 +348,7 @@ void Curtain_trans(void)
     }
 }
 
+/* RE2 Bg_draw: draws the room background (or the plain colour of Bg_mode) */
 void Bg_draw(void)
 {
     RECT Rect;
@@ -366,7 +380,7 @@ void Bg_draw(void)
         CD.Check_sum_flg = 2;
         CD.Fsum = pG->pBs_check_sum[*pBs_size + pG->Cut_no];
         CD.Fsize = Size;
-        CD.Fno = D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1;
+        CD.Fno = Room_file_tbl[pG->Unk783E][pG->Unk7840 + 1] - 1;
         CD.Fsector = (floc[CD.Fno].sec_high << 16) + floc[CD.Fno].sector + pG->Cut_no * 32;
         Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;
@@ -407,6 +421,7 @@ void Bg_draw(void)
     PadActData[1] = pad_save1;
 }
 
+/* soft reset: clears the screen, stops the tasks and sound, clears G and restarts task 0 */
 void Soft_reset(void)
 {
     RECT rect;
@@ -432,7 +447,8 @@ void Soft_reset(void)
     Task_lexecute(0, 0);
 }
 
-void func_8002A2B8(void)
+/* draws "Paused" over the screen */
+void Pause_disp(void)
 {
     tagGLOBAL *pG;
     tagMAIN *pMain;
@@ -445,6 +461,7 @@ void func_8002A2B8(void)
     AddPrim(pG->pOt0 + 1, &pMain->pDb->Pause_Dm);
 }
 
+/* RE2 Bg_set_mode: background mode and colour */
 void Bg_set_mode(ULONG Mode, ULONG Rgb)
 {
     Main.Bg_mode = Mode;
@@ -454,6 +471,7 @@ void Bg_set_mode(ULONG Mode, ULONG Rgb)
     }
 }
 
+/* RE2 Fade_set: starts screen fade No from Rgb0 to Rgb1 over Cnt_max frames */
 void Fade_set(ULONG No, UCHAR Pri, ULONG Flg, ULONG Abr, ULONG Rgb0, ULONG Rgb1, USHORT Cnt_max)
 {
     FADE *pF;
@@ -480,6 +498,7 @@ void Fade_set(ULONG No, UCHAR Pri, ULONG Flg, ULONG Abr, ULONG Rgb0, ULONG Rgb1,
     pF->Rect.h = 0xF0;
 }
 
+/* sets the rectangle of fade No */
 void Fade_rect_set(ULONG No, RECT *Rect)
 {
     FADE *pF = &Main.Fade[No];
@@ -490,8 +509,8 @@ void Fade_rect_set(ULONG No, RECT *Rect)
     pF->Rect.h = Rect->h;
 }
 
-/* RE2 Fade_trans: steps every active fade and adds its tile (Fade[3] goes to the second OT) */
-void func_8002A49C(void)
+/* per frame: advances and draws the four screen fades */
+void Fade_trans(void)
 {
     FADE *pF;
     TILE *pT;
@@ -540,16 +559,19 @@ void func_8002A49C(void)
     } while (pF < pEnd);
 }
 
+/* RE2 Fade_off */
 void Fade_off(ULONG No)
 {
     Main.Fade[No].Flg = 0;
 }
 
+/* RE2 Fade_status: FADE_* flags of fade No */
 ULONG Fade_status(ULONG No)
 {
     return Main.Fade[No].Flg;
 }
 
+/* fade to grey before a reset (System_flg SYS_FADE_OUT) */
 void Fade_out_reset(void)
 {
     tagGLOBAL *pG = &G;
@@ -582,6 +604,7 @@ void Fade_out_reset(void)
     }
 }
 
+/* RE2 Cut_check: camera switch zones the player is in */
 ULONG Cut_check(ULONG Flg)
 {
     tagGLOBAL *pG = &G;
@@ -604,12 +627,14 @@ apply_cut:
     return 1;
 }
 
+/* RE2 Cut_change: requests camera cut Fc */
 void Cut_change(ULONG Fc)
 {
     G.Next_cut_no = Fc;
     G.Cccut_next = Ccut_search(Fc);
 }
 
+/* RE2 Ccut_search: first camera switch zone of cut Fc */
 VCUT *Ccut_search(ULONG Fc)
 {
     VCUT *pCcut;
@@ -621,6 +646,7 @@ VCUT *Ccut_search(ULONG Fc)
     return pCcut;
 }
 
+/* RE2 Card_event_set: opens the memory card events */
 void Card_event_set(void)
 {
     EnterCriticalSection();

@@ -1,3 +1,6 @@
+/*
+ * PAD.C (RE2 PAD.C lineage): pad reading, key repeat, and the DualShock vibration request queues
+ */
 #include "main.h"
 #include "mojidisp.h"
 #include "pad.h"
@@ -7,6 +10,7 @@
 #define PADD_TRG(pG) (*(ULONG *)&(pG)->Unk20FC)
 #define PADD_REP(pG) (*(ULONG *)&(pG)->Unk2100)
 
+/* RE2 Pad_set: reads pad 0 (type, analog stick, actuators), builds held/trigger/repeat keys */
 void Pad_set(void)
 {
     tagGLOBAL *pG = &G;
@@ -184,6 +188,7 @@ accepted:
     }
 }
 
+/* RE2 Pad_rep_set: sets the repeat delay/rate pair and the list of keys (Flg bits) that repeat */
 void Pad_rep_set(ULONG Flg, SHORT Val)
 {
     PAD_WORK *pW;
@@ -208,6 +213,7 @@ void Pad_rep_set(ULONG Flg, SHORT Val)
     pW->Num = n;
 }
 
+/* queues a small-motor (on/off) vibration of Time frames after Attr frames delay */
 void Pad_vib_set0(LONG Time, USHORT Attr)
 {
     VIB_REQ *pReq = Vib_req0;
@@ -222,6 +228,7 @@ void Pad_vib_set0(LONG Time, USHORT Attr)
     }
 }
 
+/* queues a large-motor vibration at Power for Time frames after Attr frames delay */
 void Pad_vib_set1(LONG Time, ULONG Power, ULONG Attr)
 {
     VIB_REQ *pReq = Vib_req1;
@@ -236,6 +243,7 @@ void Pad_vib_set1(LONG Time, ULONG Power, ULONG Attr)
     }
 }
 
+/* queues a large-motor vibration fading from Pow_st to Pow_ed over Time frames */
 void Pad_vib_fade_set(LONG Time, LONG Pow_st, LONG Pow_ed, ULONG Attr)
 {
     VIB_REQ *pReq = Vib_req1;
@@ -278,6 +286,7 @@ void func_8003884C(USHORT *pTbl, ULONG No)
     }
 }
 
+/* clears both vibration queues and stops the motors */
 void Pad_vib_init(void)
 {
     ULONG i;
@@ -292,6 +301,7 @@ void Pad_vib_init(void)
     PadActData[0] = 0;
 }
 
+/* steps a vibration queue one frame; returns the strongest active power */
 UCHAR SetPadActData(VIB_REQ *pReq)
 {
     ULONG i;
@@ -321,6 +331,7 @@ UCHAR SetPadActData(VIB_REQ *pReq)
     return Max;
 }
 
+/* first free request of a vibration queue (32 entries) */
 VIB_REQ *Pad_vib_get_free(VIB_REQ *pReq)
 {
     ULONG i;
@@ -333,6 +344,7 @@ VIB_REQ *Pad_vib_get_free(VIB_REQ *pReq)
     return pReq;
 }
 
+/* number of active requests of a vibration queue */
 LONG Pad_vib_count(VIB_REQ *pReq)
 {
     ULONG i;

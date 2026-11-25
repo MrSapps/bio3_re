@@ -1027,8 +1027,8 @@ void pl_mv_slope_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
-        func_80079868(pEm, 0x200);
+        Leg_ik_kan(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
+        Leg_ik_set(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
     case 2:
@@ -1148,8 +1148,8 @@ void pl_mv_slope_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x10200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x10200);
-        func_80079868(pEm, 0x200);
+        Leg_ik_kan(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x10200);
+        Leg_ik_set(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
     case 2:
@@ -1260,8 +1260,8 @@ void pl_mv_slope_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
-        func_80079690(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
-        func_80079868(pEm, 0x200);
+        Leg_ik_kan(G_PLAYER, G.Player.pUnk194_kan_t_ptr, G.Player.pUnk190_seq_t_ptr, 0x200);
+        Leg_ik_set(pEm, 0x200);
         pEm->Spd_x = (SHORT)((USHORT)pEm->Spd_x * 4) / 3;
         break;
     case 2:
@@ -1652,7 +1652,7 @@ void pl_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (hit) {
             no = 3;
-            if ((ULONG)(D_800BA6E8[3] - 1) < 30) {
+            if ((ULONG)(Snd_edt[3] - 1) < 30) {
                 no = 0x13;
             }
             Snd_se_stad(no | 0x10300, POS_V(pEm), 0, 0);

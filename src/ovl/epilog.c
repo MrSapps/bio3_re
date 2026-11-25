@@ -1,8 +1,9 @@
+/*
+ * EPILOG.BIN: the epilogue gallery (unlocked epilogue pictures with a cursor, picture viewer)
+ */
 #include "ovl/epilog.h"
 #include "pad.h"
 #include "sld.h"
-
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
 
 /* task entry */
 void Epilog_main(void)
@@ -17,8 +18,8 @@ void Epilog_main(void)
     Pad_rep_set(0xF000, 0x60A);
     Main.Vloop = 1;
     Cd_read(0x11F, (ULONG *)0x801F7E00, 0, "EPILOG BGM");
-    func_800782F4(0, 0x33, (ULONG *)0x801F7E00);
-    func_800783BC_(5, Cd_read_s(0x120, 2, (ULONG *)0x80100000, 5, "EPILOG VB"), 0);
+    Snd_seq_data_set(0, 0x33, (ULONG *)0x801F7E00);
+    Snd_bank_set(5, Cd_read_s(0x120, 2, (ULONG *)0x80100000, 5, "EPILOG VB"), 0);
     Snd_se_stad(0x500, NULL, 0, 0);
     Cd_read(0x1A, (ULONG *)0x80100000, 0, "EPIS.TIM");
     DrawSync(0);
@@ -33,7 +34,7 @@ void Epilog_main(void)
         pTp++;
     }
     pSp = pWk->Page[0];
-    pPos = D_801C2BA8[0];
+    pPos = Epi_page_pos[0];
     for (j = 0; j < 8; j++) {
         for (i = 0; i < 2; i++, pSp++) {
             SetSprt(pSp);
@@ -220,29 +221,30 @@ void Epilog_exit(void)
 
     switch (pWk->Rno1) {
     case 0:
-        Snd_work.Seq[0].Unk38 = 2;
-        Snd_work.Seq[0].Unk3C = 0x3DAF;
-        Snd_work.Seq[0].Unk40 = 0x250;
+        Snd_work.Seq[0].Fade_mode = 2;
+        Snd_work.Seq[0].Fade_vol = 0x3DAF;
+        Snd_work.Seq[0].Fade_step = 0x250;
         Fade_set(0, 0, 2, 2, 0, 0xFFFFFF, 0x1E);
         pWk->Rno1++;
         break;
     case 1:
-        if ((Fade_status(0) & FADE_END) && Snd_work.Seq[0].Unk38 == 0) {
+        if ((Fade_status(0) & FADE_END) && Snd_work.Seq[0].Fade_mode == 0) {
             Flg_off(pWk->u.Flg, 0);
         }
         break;
     }
 }
 
+/* draws the background tpage, the cursor sprite (flag 1, brightness pulse) and the unlocked epilogue pages */
 INCLUDE_ASM("asm/nonmatchings/ovl/epilog", Epilog_draw);
 
 /* load epilogue picture No of OMBG.TIM */
 void Epilog_pic_read(ULONG *pAdr, UCHAR No)
 {
     CD.Fno = 0x3C;
-    CD.Fsize = D_801C2B4C[No].Size;
-    CD.Fsector = (floc[0x3C].sec_high << 16) + floc[0x3C].sector + D_801C2B4C[No].Ofs;
-    CD.Fsum = D_801C2B9C[No];
+    CD.Fsize = Epi_file[No].Size;
+    CD.Fsector = (floc[0x3C].sec_high << 16) + floc[0x3C].sector + Epi_file[No].Ofs;
+    CD.Fsum = Epi_file_sum[No];
     Cd_read(0x3C, pAdr, 2, "OMBG.TIM");
 }
 /* the original .rodata ends with three junk bytes after "OMBG.TIM" */

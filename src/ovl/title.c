@@ -6,10 +6,8 @@
 #include "sld.h"
 #include "status.h"
 
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("func_800783BC"); /* 3 args here (canonical 2) */
-
 /* main loop */
-void func_801940E8(void)
+void Title(void)
 {
     Pad_rep_set(0x5000, 0x20A);
     Title_wk.Timer = 300;
@@ -22,8 +20,8 @@ void func_801940E8(void)
 }
 
 /* Capcom logo (after a reset only), then the opening movie; START skips.
- * splat did not split it from func_801940E8 (it is only referenced from Title_main_tbl) */
-void func_80194160(TITLE_WORK *pTi)
+ * splat did not split it from Title (it is only referenced from Title_main_tbl) */
+void Capcom_logo(TITLE_WORK *pTi)
 {
     ULONG Step;
     LONG Timer;
@@ -39,7 +37,7 @@ void func_80194160(TITLE_WORK *pTi)
             switch (Step) {
             case 0:
                 Snd_work.Vol.Rv_mode = 2;
-                func_80197414();
+                Capcom_logo_load();
                 Bg_set_mode(1, 0);
                 Fade_set(0, 0, FADE_HOLD, 1, 0, 0xFFFFFF, 30);
                 Step++;
@@ -59,7 +57,7 @@ void func_80194160(TITLE_WORK *pTi)
                 }
                 break;
             case 4:
-                func_801973E4();
+                Title_bg_load();
                 Timer = 120;
                 Step++;
             case 5:
@@ -93,7 +91,7 @@ void func_80194160(TITLE_WORK *pTi)
                 Fade_off(0);
                 Task_sleep(2);
                 if (Step < 5) {
-                    func_801973E4();
+                    Title_bg_load();
                 }
                 break;
             }
@@ -101,7 +99,7 @@ void func_80194160(TITLE_WORK *pTi)
         }
     } else {
         Bg_set_mode(1, 0);
-        func_801973E4();
+        Title_bg_load();
     }
     if (!(G.System_flg & 0x80)) {
         Init_movie_work(12);
@@ -115,23 +113,23 @@ void func_80194160(TITLE_WORK *pTi)
 }
 
 /* title init: sound banks, menu sprites, title picture */
-void func_80194444(TITLE_WORK *pTi)
+void Title_init(TITLE_WORK *pTi)
 {
     Main.Vloop = 1;
     Fade_set(1, 1, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
     if (!(G.System_flg & 0x80)) {
-        func_8007809C(0, 1, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+        Snd_vab_load(0, 1, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
     } else {
-        func_8007809C(0, 11, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+        Snd_vab_load(0, 11, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
     }
     Cd_read(0x121, (ULONG *)0x801F7E00, 1, "OPTION BGM");
-    func_800782F4(0, 0x38, (ULONG *)0x801F7E00);
-    func_800783BC_(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
+    Snd_seq_data_set(0, 0x38, (ULONG *)0x801F7E00);
+    Snd_bank_set(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
     Main.Unk191 = 1;
     Bg_set_mode(1, 0);
     pTi->Timer = 900;
     TITLE_RTN_SET(pTi, 2);
-    func_801945E4(pTi);
+    Title_sprt_init(pTi);
     pTi->Kido_cnt = 0;
     pTi->Kido = Title_sin_tbl[0] / 3 - 0x80;
     if (G.System_flg & 0x80) {
@@ -141,12 +139,12 @@ void func_80194444(TITLE_WORK *pTi)
         pTi->Cur = 1;
         pTi->Cur_old = 1;
     }
-    func_80197448();
+    Title_bg_reload();
     Bg_set_mode(2, 0);
 }
 
 /* menu sprites of both draw buffers */
-void func_801945E4(TITLE_WORK *pTi)
+void Title_sprt_init(TITLE_WORK *pTi)
 {
     TITLE_BUF *pBuf;
     SPRT *pSp;
@@ -366,14 +364,15 @@ void func_801945E4(TITLE_WORK *pTi)
     } while (++i < 2);
 }
 
-void func_80194ADC(TITLE_WORK *pTi)
+/* "press start" wait */
+void Title_main_wait(TITLE_WORK *pTi)
 {
-    func_80194B08(pTi);
-    func_80194C4C(&Title_wk);
+    Title_logo_slide(pTi);
+    Title_menu_disp(&Title_wk);
 }
 
 /* "press start": the logo slides in, then the menu fades in */
-void func_80194B08(TITLE_WORK *pTi)
+void Title_logo_slide(TITLE_WORK *pTi)
 {
     switch (pTi->Sub_rtn) {
     case 0:
@@ -397,8 +396,8 @@ void func_80194B08(TITLE_WORK *pTi)
     case 3:
         if (Fade_status(1) == 0) {
             pTi->Mode = 1;
-            pTi->Unk9 = 1;
-            pTi->UnkA = 0;
+            pTi->Disp_add = 1;
+            pTi->Disp_cnt = 0;
             pTi->Sub_rtn++;
             TITLE_RTN_SET(pTi, 3);
         }
@@ -407,17 +406,17 @@ void func_80194B08(TITLE_WORK *pTi)
 }
 
 /* menu draw: extra menu layout once the game is cleared */
-void func_80194C4C(TITLE_WORK *pTi)
+void Title_menu_disp(TITLE_WORK *pTi)
 {
     if (G.System_flg & 0x80) {
-        func_801952D8(pTi);
+        Title_menu_disp_ex(pTi);
     } else {
-        func_80194C8C(pTi);
+        Title_menu_disp_nml(pTi);
     }
 }
 
 /* menu draw: new game / load / option and the game mode page, fading between them (Page) */
-void func_80194C8C(TITLE_WORK *pTi)
+void Title_menu_disp_nml(TITLE_WORK *pTi)
 {
     TITLE_BUF *pBuf;
     ULONG No0;
@@ -546,7 +545,7 @@ void func_80194C8C(TITLE_WORK *pTi)
 }
 
 /* menu draw after clearing the game: the item under the cursor pulses */
-void func_801952D8(TITLE_WORK *pTi)
+void Title_menu_disp_ex(TITLE_WORK *pTi)
 {
     TITLE_BUF *pBuf;
     SPRT *pSp0;
@@ -593,7 +592,7 @@ void func_801952D8(TITLE_WORK *pTi)
 }
 
 /* start the game with the sound bank of the player */
-void func_801954D0(TITLE_WORK *pTi)
+void Title_main_game(TITLE_WORK *pTi)
 {
     switch (G.Player.Id) {
     case 0:
@@ -604,41 +603,42 @@ void func_801954D0(TITLE_WORK *pTi)
     case 5:
     case 6:
     case 7:
-        func_8007809C(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+        Snd_vab_load(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     case 8:
-        func_8007809C(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+        Snd_vab_load(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     case 9:
-        func_8007809C(0, 9, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+        Snd_vab_load(0, 9, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     case 10:
-        func_8007809C(0, 10, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+        Snd_vab_load(0, 10, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         break;
     }
     Task_chain(Game_loop);
 }
 
 /* menu: blinking cursor, then the sub routine */
-void func_80195564(TITLE_WORK *pTi)
+void Title_main(TITLE_WORK *pTi)
 {
     pTi->Kido_cnt += 4;
     pTi->Kido = Title_sin_tbl[pTi->Kido_cnt] / 3 - 0x80;
     Title_sub_tbl[pTi->Sub_rtn](pTi);
-    func_80194C4C(&Title_wk);
+    Title_menu_disp(&Title_wk);
 }
 
-void func_801955F4(TITLE_WORK *pTi)
+/* Title_sub_tbl[0]: RE2 Title_main_select */
+void Title_main_select(TITLE_WORK *pTi)
 {
     if (G.System_flg & 0x80) {
-        func_801957F0(pTi);
+        Title_sel_menu_ex(pTi);
     } else {
-        func_80195634(pTi);
+        Title_sel_menu(pTi);
     }
 }
 
 /* title menu: new game / load / option; back to the demo when nobody presses anything */
-void func_80195634(TITLE_WORK *pTi)
+void Title_sel_menu(TITLE_WORK *pTi)
 {
     if (--pTi->Timer == 0xFFFF) {
         pTi->Sub_rtn = 10;
@@ -685,7 +685,7 @@ void func_80195634(TITLE_WORK *pTi)
 }
 
 /* title menu after clearing the game: new game / extra / load / option */
-void func_801957F0(TITLE_WORK *pTi)
+void Title_sel_menu_ex(TITLE_WORK *pTi)
 {
     if (G.Unk20FC & 0x4000) {
         pTi->Cur++;
@@ -728,7 +728,7 @@ void func_801957F0(TITLE_WORK *pTi)
 }
 
 /* new game: flash, then the game task (or the extra game) */
-void func_80195988(TITLE_WORK *pTi)
+void Title_sel_start(TITLE_WORK *pTi)
 {
     Pad_vib_set0(7, 0);
     Pad_vib_set1(9, 0xFF, 0);
@@ -736,17 +736,17 @@ void func_80195988(TITLE_WORK *pTi)
     Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 4);
     Snd_se_stad(0, NULL, 0, 0);
     while (Fade_status(0) != 0) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Fade_set(0, 1, 0, 1, 0xFFFFFF, 0, 12);
     while (Fade_status(0) != 0) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Fade_set(0, 0, 0, 2, 0, 0xFFFFFF, 180);
     while (Fade_status(0) != 0) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     G.Unk2115 = 0;
@@ -781,25 +781,25 @@ void func_80195988(TITLE_WORK *pTi)
         return;
     }
     G.Unk2115 = 1;
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     G.System_flg &= ~0x1000;
     pTi->Main_rtn = 4;
 }
 
-/* file names of the save image and extra game sound banks (also used by func_80196800) */
+/* file names of the save image and extra game sound banks (also used by Title_ex_init) */
 const char Title_str_init_sub[] = "INIT_SUB";
 const char Title_str_omake_bgm[] = "OMAKE BGM";
 const char Title_str_omake_vb[] = "OMAKE VB";
 const char Title_str_init_tbl[] = "INIT_TBL";
 
 /* game mode (after "new game" with the extra game unlocked), then start */
-void func_80195C68(TITLE_WORK *pTi)
+void Title_sel_mode(TITLE_WORK *pTi)
 {
     ULONG i;
 
     if (!(G.System_flg & 0x80)) {
         if (G.System_flg & 0x20) {
-            func_80078FE8();
+            Keep_data_save();
             goto init_tbl;
         }
         if (G.Unk20FC & 0x2000) {
@@ -849,29 +849,29 @@ void func_80195C68(TITLE_WORK *pTi)
     }
     Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 4);
     while (Fade_status(0) != 0) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Fade_set(0, 1, 0, 1, 0xFFFFFF, 0, 12);
     while (Fade_status(0) != 0) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 180);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Main.Unk18E = 0;
     G.System_flg |= 0x1000;
     if (G.System_flg & 0x80) {
-        func_80078FE8();
+        Keep_data_save();
         Cd_read(0x2F, (ULONG *)G.Card_head, 0, (char *)Title_str_init_sub);
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
-        func_800782F4(0, 0x39, (ULONG *)0x801F7E00);
-        func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
-        func_8007906C();
+        Snd_seq_data_set(0, 0x39, (ULONG *)0x801F7E00);
+        Snd_bank_set(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        Keep_data_load();
         G.Pl_poison_timer = 0;
         G.Player.Status_flg &= ~0x200;
         Task_lexecute(1, 6);
@@ -880,7 +880,7 @@ void func_80195C68(TITLE_WORK *pTi)
     init_tbl:
         Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);
         if (G.System_flg & 0x20) {
-            func_8007906C();
+            Keep_data_load();
             G.Save_cnt = 0;
         } else {
             for (i = 0; i < 3; i++) {
@@ -901,22 +901,23 @@ void func_80195C68(TITLE_WORK *pTi)
             Flg_on(G.Unk77F8, 0x1F);
         }
     }
-    func_8006D0D8();
+    Status_init();
     if (G.System_flg & 0x80) {
         G.Unk2115 = 2;
     } else {
         G.Unk2115 = 0;
     }
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     pTi->Main_rtn = 4;
 }
 
-void func_801961D4(TITLE_WORK *pTi)
+/* Title_sub_tbl[3]: empty */
+void Title_sub_nop3(TITLE_WORK *pTi)
 {
 }
 
 /* game mode select */
-void func_801961DC(TITLE_WORK *pTi)
+void Title_game_mode_sel(TITLE_WORK *pTi)
 {
     if (G.Unk20FC & 0x2000) {
         pTi->Cur++;
@@ -958,11 +959,11 @@ void func_801961DC(TITLE_WORK *pTi)
 }
 
 /* load game */
-void func_80196378(TITLE_WORK *pTi)
+void Title_main_load(TITLE_WORK *pTi)
 {
     Fade_set(0, 1, FADE_HOLD, 2, 0, 0xFFFFFF, 12);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     G.Unk2115 = 1;
@@ -974,29 +975,29 @@ void func_80196378(TITLE_WORK *pTi)
 }
 
 /* option: movie of the opening */
-void func_8019644C(TITLE_WORK *pTi)
+void Title_main_movie(TITLE_WORK *pTi)
 {
     Fade_set(0, 1, FADE_HOLD, 2, 0, 0xFFFFFF, 12);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Init_movie_work(13);
     while (G.System_flg & 0x10000) {
         Task_sleep(1);
     }
-    func_801973E4();
+    Title_bg_load();
     pTi->Main_rtn = 1;
 }
 
 /* option screen */
-void func_80196528(TITLE_WORK *pTi)
+void Title_main_option(TITLE_WORK *pTi)
 {
     ULONG Flg;
 
     Fade_set(0, 1, FADE_HOLD, 2, 0, 0xFFFFFF, 12);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Flg = G.Unk77F8[0];
@@ -1004,7 +1005,7 @@ void func_80196528(TITLE_WORK *pTi)
     Task_lexecute(1, 8);
     Task_sleep(1);
     if (Flg != G.Unk77F8[0]) {
-        func_800791F0();
+        Retry_load();
     }
     Main.Vloop = 1;
     Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
@@ -1012,28 +1013,30 @@ void func_80196528(TITLE_WORK *pTi)
     pTi->Main_rtn = 1;
 }
 
-void func_8019662C(TITLE_WORK *pTi)
+/* Title_sub_tbl[8]: empty */
+void Title_sub_nop8(TITLE_WORK *pTi)
 {
 }
 
-void func_80196634(TITLE_WORK *pTi)
+/* Title_sub_tbl[9]: leaves the extra menu (clears System_flg 0x80) and reloads TITLE_DAT */
+void Title_ex_off(TITLE_WORK *pTi)
 {
     Fade_set(0, 1, FADE_HOLD, 2, 0, 0xFFFFFF, 30);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     G.System_flg &= ~0x80;
-    func_801973E4();
+    Title_bg_load();
     pTi->Main_rtn = 1;
 }
 
 /* demo play */
-void func_801966CC(TITLE_WORK *pTi)
+void Title_main_demo(TITLE_WORK *pTi)
 {
     Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 60);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Cd_read(Title_pdemo_cd[Game.Unk4F], (ULONG *)0x80192000, 0, "Pdemo");
@@ -1045,13 +1048,13 @@ void func_801966CC(TITLE_WORK *pTi)
     Game.Unk4E = 0;
     Game.Pdemo_cnt = 0;
     G.Unk2115 = 3;
-    Task_execute(1, D_80031BDC);
+    Task_execute(1, Mess_hint_task);
     G.System_flg = (G.System_flg | 0x10000000) & ~0x1000;
     pTi->Main_rtn = 4;
 }
 
 /* extra menu: character select of "The Mercenaries" (4 pictures, 2 x 2) */
-void func_80196800(TITLE_WORK *pTi)
+void Title_ex_init(TITLE_WORK *pTi)
 {
     SPRT *pSp;
     TILE *pTl;
@@ -1063,7 +1066,7 @@ void func_80196800(TITLE_WORK *pTi)
     pG = &G;
     Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 15);
     while (!(Fade_status(0) & FADE_END)) {
-        func_80194C4C(pTi);
+        Title_menu_disp(pTi);
         Task_sleep(1);
     }
     Memcpy((void *)0x8019C000, (void *)0x80155814, 0x25814);
@@ -1095,7 +1098,7 @@ void func_80196800(TITLE_WORK *pTi)
     Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 15);
     pTi->Kido = Title_sin_tbl[0] / 2 - 0x80;
     while (Fade_status(0) != 0) {
-        func_801971D8(pTi);
+        Title_ex_disp(pTi);
         Task_sleep(1);
     }
     pTi->Kido_cnt = 0;
@@ -1130,14 +1133,14 @@ void func_80196800(TITLE_WORK *pTi)
             Snd_se_stad(4, NULL, 0, 0);
         }
         pTi->Cur_old = pTi->Cur;
-        func_801971D8(pTi);
+        Title_ex_disp(pTi);
         Task_sleep(1);
     }
     /* cancel: back to the title menu */
     Snd_se_stad(5, NULL, 0, 0);
     Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 15);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801971D8(pTi);
+        Title_ex_disp(pTi);
         Task_sleep(1);
     }
     pTi->Main_rtn = 1;
@@ -1150,17 +1153,17 @@ start:
     Snd_se_stad(0, NULL, 0, 0);
     Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 4);
     while (Fade_status(0) != 0) {
-        func_801971D8(pTi);
+        Title_ex_disp(pTi);
         Task_sleep(1);
     }
     Fade_set(0, 1, 0, 1, 0xFFFFFF, 0, 12);
     while (Fade_status(0) != 0) {
-        func_801971D8(pTi);
+        Title_ex_disp(pTi);
         Task_sleep(1);
     }
     Fade_set(0, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 180);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801971D8(pTi);
+        Title_ex_disp(pTi);
         Task_sleep(1);
     }
     Main.Unk18E = 0;
@@ -1169,8 +1172,8 @@ start:
         Cd_read(0x2F, (ULONG *)G.Card_head, 0, (char *)Title_str_init_sub);
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
-        func_800782F4(0, 0x39, (ULONG *)0x801F7E00);
-        func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        Snd_seq_data_set(0, 0x39, (ULONG *)0x801F7E00);
+        Snd_bank_set(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
         G.System_flg |= 0x80;
     } else {
         Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);
@@ -1287,18 +1290,18 @@ start:
         G.Unk2115 = 2;
         break;
     }
-    D_800C79CC = pTi->Cur;
+    Extra_pl = pTi->Cur;
     G.Unk2118 = 0;
     G.Score = 0;
     G.Unk2116 = 0;
     G.Next_cut_no = G.Cut_no;
-    func_8006D0D8();
-    Task_execute(1, D_80031BDC);
+    Status_init();
+    Task_execute(1, Mess_hint_task);
     pTi->Main_rtn = 4;
 }
 
 /* extra menu draw: the selected character lit, dark tiles over the others */
-void func_801971D8(TITLE_WORK *pTi)
+void Title_ex_disp(TITLE_WORK *pTi)
 {
     TILE *pTl;
     SPRT *pSp;
@@ -1326,18 +1329,20 @@ void func_801971D8(TITLE_WORK *pTi)
     AddPrim(G.pOt0 + 3, &pTi->Buf[G.Cbuf_id].Ex.Tpage);
 }
 
-void func_801973E4(void)
+/* RE2 Title_bg_load */
+void Title_bg_load(void)
 {
     Cd_read(0x67, (ULONG *)0x80130000, 0, "TITLE_DAT");
 }
 
-void func_80197414(void)
+/* loads the Capcom logo */
+void Capcom_logo_load(void)
 {
     Cd_read(0x11, (ULONG *)0x8019C000, 0, "Capcom.tim");
 }
 
 /* title picture: the cleared-game version is at 0x80155814 */
-void func_80197448(void)
+void Title_bg_reload(void)
 {
     SVECTOR Unused;
 

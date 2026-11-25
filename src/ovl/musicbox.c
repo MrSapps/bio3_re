@@ -93,7 +93,7 @@ void Mbox_ctr(void)
         break;
     case 2:
         if (G.Key_trg & 0x2000) {
-            D_800DBB58 = 0;
+            Moji.Mess_flg = 0;
             if (pMw->Note) {
                 pMw->Note--;
                 pMw->Routine = 1;
@@ -104,7 +104,7 @@ void Mbox_ctr(void)
             pMw->Run = 0;
             break;
         }
-        if (!(D_800DBB58 & 0x80)) {
+        if (!(Moji.Mess_flg & 0x80)) {
             if (!pMw->Timer) {
         switch (pG->Unk7848) {
         case 0:
@@ -175,7 +175,7 @@ void Mbox_ctr(void)
             }
         case 3:
             if (pMw->Note) {
-                D_800DBB58 = 0;
+                Moji.Mess_flg = 0;
                 pMw->Note--;
                 pMw->Routine = 1;
                 pMw->Mess = pMw->Note + 1;

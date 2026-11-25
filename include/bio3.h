@@ -111,11 +111,11 @@ typedef struct tagITEM_WORK {
 typedef struct tagITEM_SET {
     ITEM_WORK Item[10];                /* 0x000 inventory */
     ITEM_WORK Box[64];                 /* 0x028 item box */
-    UCHAR Unk128;                      /* 0x128 equipped slot (0xFF none) */
-    UCHAR Unk129;                      /* 0x129 equipped item id */
-    UCHAR Num;                         /* 0x12A */
+    UCHAR Equip_no;                    /* 0x128 equipped slot (0xFF none), RE2 Equip_item_no */
+    UCHAR Equip_id;                    /* 0x129 equipped item id, RE2 Equip_item_id */
+    UCHAR Num;                         /* 0x12A inventory size (8 or 10) */
     UCHAR pad12B;
-    USHORT Unk12C[10];                 /* 0x12C */
+    USHORT Tama_mix_cnt[10];           /* 0x12C ammo combines per ammo kind (St_mix_select caps some at 6) */
 } ITEM_SET;
 
 /* enemy code bank in one overlay load slot (RE2 struct tagEM_BIN_INFO, EM_SET.H) */
@@ -189,7 +189,7 @@ typedef struct tagEM_HIT_AREA {
     LONG Pos_x;                        /* 0x034 */                            \
     LONG Pos_y;                        /* 0x038 */                            \
     LONG Pos_z;                        /* 0x03C */                            \
-    SHORT Old_x;                       /* 0x040 RE2 Old_x: position of the last frame (func_80024B34) */ \
+    SHORT Old_x;                       /* 0x040 RE2 Old_x: position of the last frame (Game_save_load) */ \
     SHORT Old_y;                       /* 0x042 */                            \
     SHORT Old_z;                       /* 0x044 */                            \
     USHORT Type;                       /* 0x046 low byte = player weapon (RE2 Type & 0xfff) */ \
@@ -284,7 +284,7 @@ typedef struct tagEM_HIT_AREA {
     struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
     SHORT Add_col[3];                  /* 0x178 colour added in the lit sorts (Model_col); em10 Dead fades [0], [2] to 0 */ \
     USHORT Col_flg;                    /* 0x17E Model_col: bits 8-11 mode, low byte grey level */ \
-    ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */ \
+    ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of Leg_ik_kan (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
     ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
     ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */                            \
@@ -319,7 +319,7 @@ typedef struct tagPLAYER_WORK {
 
 typedef struct tagENEMY_WORK {
     EM_WORK_HEAD
-    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Unk7D90 (func_80024C58) */
+    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Unk7D90 (Chaser_data_save) */
 } ENEMY_WORK;
 STATIC_ASSERT(player_work_size, sizeof(PLAYER_WORK) == 0x1CC);
 STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
@@ -425,7 +425,7 @@ typedef struct tagGLOBAL {
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
     OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
     OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
-    USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (func_800557A0); OM_TARGET records (pl_wep.h) */
+    USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (Om_rev); OM_TARGET records (pl_wep.h) */
     ULONG Om_target_num;               /* 0x75D4 used entries of pUnk75AC (Obj_model_set; sce0 clears it as pUnk75AC[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
@@ -462,7 +462,7 @@ typedef struct tagGLOBAL {
     SHORT DSce_work[4];                /* 0x7826 RE2 G.SaveData.DSce_work (door type, set by Door_init) */
     UCHAR pad782E[0x783E - 0x782E];
     SHORT Unk783E;                     /* 0x783E overlay task no - 0x11 (Set_stage) */
-    SHORT Unk7840;                     /* 0x7840 Room_no? (func_80052968) */
+    SHORT Unk7840;                     /* 0x7840 Room_no? (Chaser_room_ck) */
     SHORT Cut_no;                      /* 0x7842 RE2 G.SaveData.Cut_no */
     SHORT Cut_no_old;                  /* 0x7844 RE2 G.SaveData.Cut_no_old (-1 on init) */
     SHORT Room_no_old;                 /* 0x7846 RE2 G.SaveData.Room_no_old (-1 on init) */
@@ -485,29 +485,29 @@ typedef struct tagGLOBAL {
     ULONG Unk7868[8];                  /* 0x7868 flag bits (Flg_ck, status room/cut checks) */
     ULONG Unk7888;                     /* 0x7888 cleared on room init (Sce_work_clr_set) */
     ULONG Unk788C;                     /* 0x788C */
-    ULONG Unk7890[8];                  /* 0x7890 flag bits (func_800738CC) */
-    ULONG Unk78B0[8];                  /* 0x78B0 flag bits (func_800738CC) */
-    ULONG Unk78D0[8];                  /* 0x78D0 flag bits (func_80072D38, func_80063CAC) */
-    ULONG Unk78F0[8];                  /* 0x78F0 flag bits (func_80072D38, func_80063CAC) */
-    ULONG Unk7910[1];                  /* 0x7910 item flags (status: Flg_on with D_800A0514[id][2]) */
+    ULONG Unk7890[8];                  /* 0x7890 flag bits (Map_door_mark_ck) */
+    ULONG Unk78B0[8];                  /* 0x78B0 flag bits (Map_door_mark_ck) */
+    ULONG Unk78D0[8];                  /* 0x78D0 flag bits (Map_door_disp_ck, St_file_end) */
+    ULONG Unk78F0[8];                  /* 0x78F0 flag bits (Map_door_disp_ck, St_file_end) */
+    ULONG Unk7910[1];                  /* 0x7910 item flags (status: Flg_on with Item_data_tbl[id][2]) */
     ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (Psp_trans) */
     UCHAR pad7924[0x7994 - 0x7924];
-    ULONG Unk7994[2];                  /* 0x7994 flag bits (func_800738CC) */
-    ULONG Unk799C[1];                  /* 0x799C flag bits (func_800557A0) */
+    ULONG Unk7994[2];                  /* 0x7994 flag bits (Map_door_mark_ck) */
+    ULONG Unk799C[1];                  /* 0x799C flag bits (Om_rev) */
     UCHAR pad79A0[0x79A4 - 0x79A0];
     LONG Unk79A4[14];                  /* 0x79A4 (status: -1 on init) */
     ULONG Unk79DC[4];                  /* 0x79DC */
-    ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (func_80072D38) */
-    ITEM_SET Item_work[2];             /* 0x79FC per character, pUnk7C7C points to one (mem_card Load_pop) */
-    ITEM_SET *pUnk7C7C;                /* 0x7C7C items of the current character */
+    ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (Map_door_disp_ck) */
+    ITEM_SET Item_work[2];             /* 0x79FC per character, pItem_set points to one (mem_card Load_pop) */
+    ITEM_SET *pItem_set;               /* 0x7C7C items of the current character */
     ULONG Item_work_no;                /* 0x7C80 index into Item_work (mem_card Load_pop) */
-    USHORT Unk7C84[1];                 /* 0x7C84 index from D_800A0FDC table */
+    USHORT Unk7C84[1];                 /* 0x7C84 index from Bgm_room_ofs table */
     UCHAR pad7C86[0x7D8C - 0x7C86];
     UCHAR Save_vol;                    /* 0x7D8C Snd_work.Vol.Se (mem_card Save_push) */
     UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Vol.Bgm */
-    UCHAR Save_mono;                   /* 0x7D8E Snd_work.UnkB75 */
+    UCHAR Save_mono;                   /* 0x7D8E Snd_work.Mono */
     UCHAR pad7D8F;
-    ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (func_80024C58) */
+    ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (Chaser_data_save) */
     struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (Om_drop_set) */
         UCHAR Unk0;
         UCHAR Unk1;
@@ -518,10 +518,10 @@ typedef struct tagGLOBAL {
         USHORT Pos_z;
     } Unk7DC0[8];
     LONG Unk7E20;                      /* 0x7E20 */
-    SHORT Unk7E24[8];                  /* 0x7E24 cleared by func_800528D4 */
+    SHORT Unk7E24[8];                  /* 0x7E24 cleared by Chaser_room_clr */
     UCHAR pad7E34[0x7E94 - 0x7E34];
     LONG Unk7E94;                      /* 0x7E94 total life healed? (status) */
-    LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by func_80078FE8) */
+    LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by Keep_data_save) */
     UCHAR Merc_grade[3];               /* 0x7EA4 best grade per character, 0xFF none */
     UCHAR pad7EA7;
     ULONG Merc_money[3];               /* 0x7EA8 best money per character */
@@ -593,7 +593,7 @@ typedef struct tagPARTS_W {
     SHORT Size_z;                      /* 0xA0 RE2 Size_z */
     SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
     struct tagPARTS_W *pOya_parts;     /* 0xA4 */
-    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (func_8007A2D4, func_8007A350) */
+    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (Skin_set, Skin_sort) */
     SHORT Pos_base_x;                  /* 0xAC root position of the current key frame (get_null_pos2) */
     SHORT Pos_base_y;                  /* 0xAE */
     SHORT Pos_base_z;                  /* 0xB0 */

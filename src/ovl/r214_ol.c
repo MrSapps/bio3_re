@@ -77,7 +77,7 @@ void R214_ctr(void)
         pRw->Routine++;
         break;
     case 1:
-        if (D_800DBB58 & 0x80)
+        if (Moji.Mess_flg & 0x80)
             break;
         if (Flg_ck(G.Unk7868, 0x33)) {
             Up = 15;

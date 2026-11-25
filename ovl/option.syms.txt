@@ -1,3 +1,46 @@
 // OPTION.BIN symbols (loaded at 0x801c2000)
 // names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
 Opt = 0x801C55A0;
+// cleanup names
+Config = 0x801C21B0; // type:func
+Config_init = 0x801C2AC4; // type:func
+Config_prim_init = 0x801C2C58; // type:func
+Config_exit = 0x801C30E8; // type:func
+Config_padd_opt = 0x801C2688; // type:func
+Config_opt_disp = 0x801C2850; // type:func
+Config_padd_con = 0x801C3460; // type:func
+Config_con_disp = 0x801C3780; // type:func
+Config_pad_disp = 0x801C3904; // type:func
+Config_padd_vib = 0x801C3A58; // type:func
+Config_vib_disp = 0x801C3BDC; // type:func
+Config_padd_snd = 0x801C3C90; // type:func
+Config_snd_disp = 0x801C435C; // type:func
+Config_padd_clr = 0x801C45DC; // type:func
+Config_clr_disp = 0x801C46F4; // type:func
+Config_padd_res = 0x801C4748; // type:func
+Config_res_disp = 0x801C4940; // type:func
+Config_bg_load = 0x801C3278; // type:func
+Config_pad_tim_load = 0x801C336C; // type:func
+Config_moji_disp = 0x801C4A70; // type:func
+Config_suuji = 0x801C4C94; // type:func
+Config_moji_cmp = 0x801C4DAC; // type:func
+Config_arrow_disp = 0x801C4DE0; // type:func
+Config_bg_disp = 0x801C31C8; // type:func
+Config_piece_move = 0x801C4EB8; // type:func
+Config_piece_disp = 0x801C50B4; // type:func
+Config_piece_set = 0x801C5348; // type:func
+Config_page_exit = 0x801C4E9C; // type:func
+Config_file_tbl = 0x801C53FC;
+Config_file_sum = 0x801C541C;
+Config_moji_space = 0x801C5420;
+Config_moji_tbl = 0x801C5474;
+Config_pad_icon = 0x801C54F8;
+Config_pad_icon_pos = 0x801C54FC;
+Config_piece_shape = 0x801C5500;
+Config_piece_anim = 0x801C5548;
+Config_padd = 0x801C5554;
+Config_padd_disp = 0x801C556C;
+Config_se_arrow_r = 0x801C558C;
+Config_se_arrow_l = 0x801C5590;
+Config_pad_arrow_r = 0x801C5594;
+Config_pad_arrow_l = 0x801C5598;

@@ -1,4 +1,9 @@
+/*
+ * DIEDEMO.BIN (RE2 DIEDEMO.C / DIESPR.C lineage): the player death demo (killer camera spiral, "YOU DIED"
+ * picture, blood)
+ */
 #include "ovl/diedemo.h"
+#include "mojidisp.h"
 #include "sld.h"
 #include "status.h"
 
@@ -9,10 +14,10 @@ void Die_demo(void)
     Diedemo.Rno = 0;
     Diedemo.Ctr = 0;
     while (1) {
-        if (D_80198204) {
+        if (Die_skip_ok) {
             if (G.Unk20FC & 0x100) {
                 Fade_set(0, 0, 2, 2, 0, 0xFFFFFFFF, 0x20);
-                D_80198204 = 0;
+                Die_skip_ok = 0;
                 if ((G.System_flg & 0x200) && (G.Status_flg & STAT_XA_VOICE)) {
                     Xa_error();
                 }
@@ -26,6 +31,7 @@ void Die_demo(void)
     }
 }
 
+/* RE2 Die_demo_move: runs Die_move_tbl[Diedemo.Rno] */
 void Die_demo_move(void)
 {
     Die_move_tbl[Diedemo.Rno]();
@@ -48,14 +54,14 @@ void Die_move_set(void)
         if (Id < 0x20) {
             Diedemo.Id_ctr = 1;
         } else {
-            while (D_801981F8[Diedemo.Id_ctr] != Id && Diedemo.Id_ctr != 0) {
+            while (Die_em_id[Diedemo.Id_ctr] != Id && Diedemo.Id_ctr != 0) {
                 Diedemo.Id_ctr--;
             }
         }
-        Diedemo.Wait_ctr = D_80197F8C[Diedemo.Id_ctr];
+        Diedemo.Wait_ctr = Die_wait_tbl[Diedemo.Id_ctr];
     } else {
         Diedemo.Id_ctr = 0;
-        Diedemo.Wait_ctr = D_80197F8C[0];
+        Diedemo.Wait_ctr = Die_wait_tbl[0];
     }
     G.Unk2468 |= 0x2000000;
     G.Unk2468 |= 0x1000000;
@@ -68,7 +74,7 @@ void Die_move_set(void)
     if (G.Status_flg & STAT_XA_VOICE) {
         Xa_error();
     }
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     G.Player.Damage_cnt = 0x80;
     G.Next_cut_no = G.Cut_no;
     G.pEnemy[1]->Damage_cnt = 0x80;
@@ -76,14 +82,14 @@ void Die_move_set(void)
         if (G.System_flg & 0x80) {
             Xa_play(3, 0x18);
             G.Status_flg |= STAT_XA_VOICE;
-            func_8003884C(D_80197FA4, 0);
+            func_8003884C(Die_vib_tbl, 0);
         } else {
             switch (G.Unk783E + 1) {
             case 4:
                 Snd_se_stad(0x208, NULL, 0, 0);
                 Xa_play(3, 0x19);
                 G.Status_flg |= STAT_XA_VOICE;
-                func_8003884C(D_80197FA4, 1);
+                func_8003884C(Die_vib_tbl, 1);
                 break;
             case 5:
                 if (G.Unk7840 == 9) {
@@ -92,13 +98,13 @@ void Die_move_set(void)
                 } else {
                     Xa_play(3, 0x1A);
                     G.Status_flg |= STAT_XA_VOICE;
-                    func_8003884C(D_80197FA4, 2);
+                    func_8003884C(Die_vib_tbl, 2);
                 }
                 break;
             }
         }
         Diedemo.Id_ctr = 10;
-        Diedemo.Wait_ctr = D_80197FA0[0];
+        Diedemo.Wait_ctr = Die_wait_first[0];
     } else {
         G.Status_flg &= ~0x4000000;
         G.Status_flg &= ~0x2000000;
@@ -106,7 +112,7 @@ void Die_move_set(void)
     if (Flg_ck(G.Unk7868, 0xC2)) {
         Diedemo.Unk3B = 1;
         Diedemo.Id_ctr = 9;
-        Cutinfo[9] = D_801981B0;
+        Cutinfo[9] = Die_cut_c2;
         Diedemo.Wait_ctr = 0x14;
         Diedemo.Em_flg = 1;
         G.Player.pEnemy_ptr = G.pEnemy[2];
@@ -150,26 +156,26 @@ void Die_move_slow(void)
         Diedemo.Ctr += Diedemo.Addpos;
         Diedemo.Addpos += 2;
         if (++Diedemo.Phase < 3) {
-            if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+            if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
                 G.Unk2468 |= 0xFF000000;
             }
         } else {
-            if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+            if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
                 G.Unk2468 ^= 0xFC000000;
             }
             Diedemo.Phase = 0;
-            pSnd->Seq[0].Unk38 = 2;
-            pSnd->Seq[0].Unk3C = 0x3F00;
-            pSnd->Seq[0].Unk40 = 0x100;
-            pSnd->Seq[1].Unk38 = 2;
-            pSnd->Seq[1].Unk3C = 0x3F00;
-            pSnd->Seq[1].Unk40 = 0x100;
-            pSnd->Seq[2].Unk38 = 2;
-            pSnd->Seq[2].Unk3C = 0x3F00;
-            pSnd->Seq[2].Unk40 = 0x100;
-            pSnd->UnkB1C = 0x80;
-            pSnd->UnkB20 = 0x3FFF;
-            pSnd->UnkB24 = 0x100;
+            pSnd->Seq[0].Fade_mode = 2;
+            pSnd->Seq[0].Fade_vol = 0x3F00;
+            pSnd->Seq[0].Fade_step = 0x100;
+            pSnd->Seq[1].Fade_mode = 2;
+            pSnd->Seq[1].Fade_vol = 0x3F00;
+            pSnd->Seq[1].Fade_step = 0x100;
+            pSnd->Seq[2].Fade_mode = 2;
+            pSnd->Seq[2].Fade_vol = 0x3F00;
+            pSnd->Seq[2].Fade_step = 0x100;
+            pSnd->Fade_mask = 0x80;
+            pSnd->Fade_vol = 0x3FFF;
+            pSnd->Fade_step = 0x100;
         }
         Diedemo.Free += Diedemo.Ctr;
         if (Diedemo.Free >= 0x7FFF) {
@@ -187,8 +193,8 @@ void Die_move_slow(void)
         }
     } else {
         G.Player.Be_flg &= ~0x20;
-        D_80198204 = 1;
-        Diedemo.Ctr = D_801981CC[Diedemo.Id_ctr].Wait;
+        Die_skip_ok = 1;
+        Diedemo.Ctr = Die_wait[Diedemo.Id_ctr].Wait;
         while (Diedemo.Ctr-- != 0) {
             Task_sleep(1);
         }
@@ -198,7 +204,7 @@ void Die_move_slow(void)
         G.pEnemy[1]->Be_flg |= 0x80000;
         G.pEnemy[1]->Tilt[0] = 0;
         G.pEnemy[1]->Tilt[1] = 0;
-        if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+        if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 |= 0x20000000;
         }
         Diedemo.Phase = 0;
@@ -230,7 +236,7 @@ void Die_move_slow(void)
         Task_sleep(1);
         Diedemo.Ctr = 0;
         Diedemo.Rno += (G.System_flg & 0x800) ? 1 : 2;
-        if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+        if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 &= 0x3FFFFFF;
         }
         G.Unk2468 &= ~0x1000000;
@@ -397,6 +403,7 @@ void Die_enemy_set(void)
     }
 }
 
+/* hides/shows the killer for the demo: Nemesis (0x34..0x36, and his 0x37 tentacles) or enemy 0x24 */
 void Die_enemy_set_em(void)
 {
     tagGLOBAL *pG = &G;
@@ -430,6 +437,7 @@ void Die_enemy_set_em(void)
     }
 }
 
+/* Unk7868 flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs D_80198228[Unk44] */
 void Die_enemy_set_sub(void)
 {
     tagGLOBAL *pG = &G;
@@ -463,9 +471,10 @@ void Die_enemy_set_sub(void)
         Flg_off(pG->Unk7868, 0xC2);
         Diedemo.Unk44 = 0;
     }
-    D_80198228[Diedemo.Unk44]();
+    Die_sub_tbl[Diedemo.Unk44]();
 }
 
+/* death sounds 0x20B, then 0x20C 50 frames later */
 void Die_se_set(void)
 {
     Snd_se_stad(0x20B, NULL, 0, 0);
@@ -509,6 +518,7 @@ void Die_move_main(void)
     }
 }
 
+/* Nemesis (0x36) kill: at frame 0x73 sets the spiral camera on the player's body and the lights */
 void Die_cut_em36(void)
 {
     MATRIX *pM;
@@ -547,6 +557,7 @@ void Die_cut_em36(void)
     }
 }
 
+/* the same for the partner's death (camera on pEnemy[1]) at frame 0xA0 */
 void Die_cut_em36_sub(void)
 {
     MATRIX *pM;
@@ -841,7 +852,7 @@ void Die_spr_init(void)
 /* RE2 Die_spr_move */
 void Die_spr_move(void)
 {
-    Set_view(D_80198230[0], D_80198230[1]);
+    Set_view(Die_break_cam[0], Die_break_cam[1]);
     SetGeomScreen(0xD0);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -965,6 +976,7 @@ void Die_blood_move_init(void)
     }
 }
 
+/* RE2 Die_spr_move_main: falling 16x16 grid of the death picture, GTE-projected and brightened by distance */
 INCLUDE_ASM("asm/nonmatchings/ovl/diedemo", Die_spr_move_main);
 
 /* RE2 Die_spr_move_hold: shake the lower rows, draw the grid */
@@ -1084,6 +1096,7 @@ void Die_spr_move_end(void)
     }
 }
 
+/* RE2 Die_blood_move_main: projects and fades the blood quads, adds them to the OT */
 INCLUDE_ASM("asm/nonmatchings/ovl/diedemo", Die_blood_move_main);
 
 /* RE2 Die_spr_load: RE3 has one picture for every player */

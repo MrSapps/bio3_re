@@ -40,8 +40,10 @@ typedef struct tagSCE_AOT_DOOR {
     UCHAR Mess;                        /* 0x11 0x80: message in low 4 bits, 0x40: ask first */
 } SCE_AOT_DOOR;
 
+/* RE2 Sce_at_check: runs the AOTs of the given kinds that a work stands in */
 INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_at_check);
 
+/* RE2 Sce_at: AOT checks for the player, the enemies, the object models and the sub player */
 void Sce_at(void)
 {
     ENEMY_WORK *pEw;
@@ -89,6 +91,7 @@ ULONG Nothing(void *pAot)
     return 0;
 }
 
+/* RE2 Sce_Door: locked doors (key item, messages, sounds), optional question, then the door demo */
 ULONG Sce_Door(void *pAot)
 {
     tagGLOBAL *pG;
@@ -157,7 +160,7 @@ ULONG Sce_Door(void *pAot)
             } else {
                 Mess_set(0, 0, 0xB, 0xFF000000);
             }
-            pG->Front_func = func_800510B0;
+            pG->Front_func = Door_ask_entrance;
             pG->Front_func_rtn = 0;
             return 0;
         }
@@ -168,6 +171,7 @@ ULONG Sce_Door(void *pAot)
     }
 }
 
+/* RE2 Key_lost: after a key was used, offers to discard it (Front_func) */
 void Key_lost(void)
 {
     tagGLOBAL *pG = &G;
@@ -177,14 +181,14 @@ void Key_lost(void)
     if (Rtn == 0) {
         if ((Moji.Mess_flg & 0x80) == 0) {
             if (pG->Unk7848 == 0) {
-                func_8006CD68(D_800DEC98);
+                Item_delete(D_800DEC98);
             }
             pG->Front_func = NULL;
         }
     } else {
         D_800DEC98 = Rtn - 1;
         if ((Moji.Mess_flg & 0x80) == 0) {
-            if (func_8006CCF0(D_800DEC98, 1, 1) == 0) {
+            if (Item_decrease(D_800DEC98, 1, 1) == 0) {
                 Mess_set(0, 0, 0x10, 0xff000000);
                 pG->Unk2468 |= 0xff000000;
             } else {
@@ -195,7 +199,8 @@ void Key_lost(void)
     }
 }
 
-void func_800510B0(void)
+/* Front_func after "open the door?": starts the door demo on yes */
+void Door_ask_entrance(void)
 {
     if (G.Front_func_rtn == 0 && (Moji.Mess_flg & 0x80) == 0) {
         if (G.Unk7848 == 0) {
@@ -219,18 +224,19 @@ ULONG Sce_Item(void *pAot)
         return 1;
     }
     if (((UCHAR *)pAot)[4] >= 0xF8) {
-        G.Front_func = func_800511B0;
+        G.Front_func = Item_mess_entrance;
         G.Front_func_rtn = 0;
         return 0;
     }
-    D_800E01C4[0] = 1;
+    St_type_a[0] = 1;
     Game.Unk1 = 1;
     Game.Stop_bak = G.Unk2468;
     G.Status_flg |= 0x200;
     return 0;
 }
 
-void func_800511B0(void)
+/* Front_func for items with flag >= 0xF8: shows the item message, then the status screen */
+void Item_mess_entrance(void)
 {
     tagGLOBAL *pG = &G;
     UCHAR *pDat;
@@ -247,7 +253,7 @@ void func_800511B0(void)
         if ((Moji.Mess_flg & 0x80) == 0) {
             pG->Front_func = NULL;
             pG->Front_func_rtn = 0;
-            D_800E01C4[0] = 1;
+            St_type_a[0] = 1;
             Game.Unk1 = 1;
             Game.Stop_bak = pG->Unk2468;
             pG->Unk2468 |= 0xff000000;
@@ -257,6 +263,7 @@ void func_800511B0(void)
     }
 }
 
+/* RE2 Sce_Normal: nothing */
 LONG Sce_Normal(void)
 {
     return 0;
@@ -349,9 +356,10 @@ void Save_entrance(void)
     }
 }
 
+/* RE2 Sce_Itembox: opens the item box (St_type 2) through Item_box_entrance */
 ULONG Sce_Itembox(void *pAot)
 {
-    D_800E01C4[0] = 2;
+    St_type_a[0] = 2;
     G.Back_func = Item_box_entrance;
     G.Back_func_rtn = 0;
     return 0;
@@ -401,13 +409,15 @@ void Item_box_entrance(void)
     }
 }
 
-ULONG func_80051684(void *pAot)
+/* remembers the AOT in G.pUnk21DC and sets System_flg 0x2000 */
+ULONG Sce_Aot_set(void *pAot)
 {
     G.pUnk21DC = pAot;
     G.System_flg |= 0x2000;
     return 0;
 }
 
+/* RE2 Sce_Hikidashi: drawer: asks to open it, then shows its item through the status screen */
 ULONG Sce_Hikidashi(void *pAot)
 {
     tagGLOBAL *pG;
@@ -460,6 +470,7 @@ ULONG Sce_Hikidashi(void *pAot)
     return 0;
 }
 
+/* RE2 Hikidashi_entrance: drawer question, unlock flag and the item pickup */
 void Hikidashi_entrance(void)
 {
     tagGLOBAL *pG;
@@ -506,7 +517,7 @@ void Hikidashi_entrance(void)
         Game.Unk1 = 1;
         Cut_change(pG->Room_no_old);
         pG->Cut_no = pG->Room_no_old;
-        St.Unk6 = 1;
+        St.Hiki_flg = 1;
         G.Status_flg |= 0x80;
         pG->Front_func_rtn--;
         break;
@@ -556,10 +567,10 @@ ULONG Sce_Damage(void *pAot)
 }
 
 /* RE2 Sce_Door */
-ULONG func_80051CB0(void *pAot)
+ULONG Sce_Door2(void *pAot)
 {
     if ((G.Status_flg & 0x400000) == 0 && G.Player.Damage_cnt == 0 && (G.Status_flg & 0x100) == 0 &&
-        (D_800DBB58 & 0xC0) == 0) {
+        (Moji.Mess_flg & 0xC0) == 0) {
         Game.Doordemo_flg = 1;
         G.pSce_aot_on = pAot;
         G.Unk2468 |= 0xff000000;
@@ -567,16 +578,18 @@ ULONG func_80051CB0(void *pAot)
     }
 }
 
-ULONG func_80051D28(void *pAot)
+/* asks to rest (Heal_entrance) */
+ULONG Sce_Heal(void *pAot)
 {
-    G.Back_func = func_80051D60;
+    G.Back_func = Heal_entrance;
     G.Back_func_rtn = 0;
     Game.Stop_bak = G.Unk2468;
     G.Unk2468 |= 0xff000000;
     return 0;
 }
 
-void func_80051D60(void)
+/* Back_func of Sce_Heal: on yes cures poison (message 8), else message 9 */
+void Heal_entrance(void)
 {
     tagGLOBAL *pG = &G;
 

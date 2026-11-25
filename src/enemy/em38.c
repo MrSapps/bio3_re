@@ -455,17 +455,17 @@ void Em38_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x80);
     pP = pEm->pSin_parts_ptr;
     EM38_SA(pP)->Key[0].Rate = 0x1000;
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
     pP = &pEm->pSin_parts_ptr[12];
     EM38_SA(pP)->Key[0].Rate = 0x1000;
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
     pP = &pEm->pSin_parts_ptr[2];
     EM38_SA(pP)->Key[0].Rate = 0x1000;
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
     pP = &pEm->pSin_parts_ptr[20];
     EM38_SA(pP)->Key[0].Rate = 0;
     EM38_SA(pP)->Key[1].Rate = 0;
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
 }
 
 /* Routine_0 1: move routine set by Type */
@@ -931,7 +931,7 @@ void Em38_swallow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Col.W0 = 1800;
             pEm->Col.D0 = pEm->Col.W0;
         }
-        func_8004A934(pEm, pP);
+        Sa_morph_step(pEm, pP);
         break;
     }
     Add_speedXZ(pEm, 0);
@@ -1877,7 +1877,7 @@ void Em38_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pSa = (EM38_SABUN *)pP->pSa_dat_head;
             if (pSa->Key[0].Rate) {
                 pSa->Key[0].Rate = 0;
-                func_8004A934(pEm, pP);
+                Sa_morph_step(pEm, pP);
             }
             if ((pEm->Type & 1) && pEm->Damage_no == 24)
                 pEm->Damage_no = 3;
@@ -2064,7 +2064,7 @@ void Em38_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pSa = (EM38_SABUN *)pP->pSa_dat_head;
         if (pSa->Key[0].Rate) {
             pSa->Key[0].Rate = 0;
-            func_8004A934(pEm, pP);
+            Sa_morph_step(pEm, pP);
         }
         if (pEm->Damage_flg & 0x500)
             Em38_acid_spark(pEm);
@@ -2283,16 +2283,16 @@ void Em38_sce_swell(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (pEm->Move_cnt == 163)
                 Size = 0;
             EM38_SA(pP)->Key[0].Rate = Size;
-            func_8004AC54(pEm, pP);
+            Sa_morph_blend(pEm, pP);
             pP = &pEm->pSin_parts_ptr[12];
             EM38_SA(pP)->Key[0].Rate = Size;
-            func_8004AC54(pEm, pP);
+            Sa_morph_blend(pEm, pP);
             pP = &pEm->pSin_parts_ptr[2];
             EM38_SA(pP)->Key[0].Rate = Size;
-            func_8004AC54(pEm, pP);
+            Sa_morph_blend(pEm, pP);
             pP = &pEm->pSin_parts_ptr[20];
             EM38_SA(pP)->Key[1].Rate = Size;
-            func_8004AC54(pEm, pP);
+            Sa_morph_blend(pEm, pP);
         }
         if (pEm->Move_cnt > 70 && pEm->Move_cnt < 90) {
             PARTS_W *pB = pEm->pSin_parts_ptr;
@@ -2643,7 +2643,7 @@ void Em38_sce_burst(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP = &pEm->pSin_parts_ptr[20];
         EM38_SA(pP)->Key[0].Rate = 0;
         EM38_SA(pP)->Key[1].Rate = 0x1000;
-        func_8004AC54(pEm, pP);
+        Sa_morph_blend(pEm, pP);
         for (i = 8; i != 0; i--)
             Em38_kage[i - 1]->Be_flg = 0;
         pEm->Col.W0 = 900;
@@ -2958,7 +2958,7 @@ void Em38_sce_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pSa = (EM38_SABUN *)pP->pSa_dat_head;
         if (pSa->Key[0].Rate) {
             pSa->Key[0].Rate = 0;
-            func_8004A934(pEm, pP);
+            Sa_morph_step(pEm, pP);
         }
         pEm->Damage_cnt |= 0x80;
     case 1:
@@ -3614,7 +3614,7 @@ void Em38_morph_body(ENEMY_WORK *pEm)
         }
         break;
     }
-    func_8004A934(pEm, pP);
+    Sa_morph_step(pEm, pP);
 }
 
 /* dust from the feet on footstep frames */

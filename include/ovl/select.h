@@ -7,6 +7,7 @@
  * Select_moji_*) cut down to three players and with a new sprite system.
  */
 #include "bio3.h"
+#include "ovl/jill_obj.h"
 #include "em_sub.h"
 #include "joint.h"
 #include "main.h"
@@ -19,47 +20,6 @@
 /* a SHORT [3][3] rotation matrix written as words (identity init) */
 #define MAT_WORD(m, i) (((ULONG *)(m))[i])
 
-/* one draw buffer of a sprite: SPRT with the colour/code as one word */
-typedef struct tagSEL_SPRT {
-    ULONG Tag;                         /* 0x00 */
-    ULONG Rgb;                         /* 0x04 r0 g0 b0 code */
-    SHORT X;                           /* 0x08 */
-    SHORT Y;                           /* 0x0A */
-    UCHAR U;                           /* 0x0C */
-    UCHAR V;                           /* 0x0D */
-    USHORT Clut;                       /* 0x0E */
-    SHORT W;                           /* 0x10 */
-    SHORT H;                           /* 0x12 */
-} SEL_SPRT;
-
-/* sprite object (0x50 bytes, Select_obj[30]) */
-typedef struct tagSEL_OBJ {
-    UCHAR Flg;                         /* 0x00 1 on, 2 start blinking, 4 fade in, 8 request */
-    UCHAR Timer;                       /* 0x01 blink timer */
-    UCHAR Ofs_x;                       /* 0x02 offset from the parent's right edge */
-    UCHAR Ofs_y;                       /* 0x03 offset from the parent's y */
-    UCHAR Mode;                        /* 0x04 0 fade in, 1 fade out, 2 shown, 3 hidden */
-    UCHAR pad5[3];
-    SHORT X;                           /* 0x08 */
-    SHORT Y;                           /* 0x0A */
-    SEL_SPRT Sp[2];                    /* 0x0C */
-    DR_MODE Dr[2];                     /* 0x34 */
-    struct tagSEL_OBJ *pOya;           /* 0x4C parent sprite */
-} SEL_OBJ;
-
-/* sprite definition (14 bytes) */
-typedef struct tagSEL_SPRT_DEF {
-    SHORT X;                           /* 0x0 */
-    SHORT Y;                           /* 0x2 */
-    SHORT W;                           /* 0x4 */
-    SHORT H;                           /* 0x6 */
-    UCHAR U;                           /* 0x8 */
-    UCHAR V;                           /* 0x9 */
-    UCHAR Abr;                         /* 0xA */
-    UCHAR Tp;                          /* 0xB */
-    UCHAR Ofs_x;                       /* 0xC */
-    UCHAR Ofs_y;                       /* 0xD */
-} SEL_SPRT_DEF;
 
 /* spot light (RE2 tagSELECT_LIGHT, 16 bytes) */
 typedef struct tagSELECT_LIGHT {
@@ -169,43 +129,40 @@ extern const char Select_str_sel[8];                                       /* 0x
 extern SELECT_MOJI *Select_pMoji; /* 0x801C6E10 message window work */
 
 /* overlay functions (RE2 names where the RE2 routine is recognisable) */
-void func_801C2094(void); /* Select_main */
-void func_801C20FC(void); /* Select_pl_main */
-void func_801C235C(void); /* Select_init */
-void func_801C28D0(ENEMY_WORK *pEm); /* Select_light_ctrl */
-void func_801C2A34(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_wait */
-void func_801C2A58(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_up */
-void func_801C2AB8(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_on */
-void func_801C2ADC(ENEMY_WORK *pEm, SELECT_LIGHT *pLt); /* Select_light_down */
-void func_801C2B34(ENEMY_WORK *pEm); /* Select_light_init */
-void func_801C2B94(LONG *pPos, ENEMY_WORK *pEm); /* Select_light_calc */
-void func_801C2CF4(ULONG No, VECTOR *pVec, UCHAR *pCol); /* Select_light_set */
-void func_801C2DE0(void); /* Select_view_init */
-void func_801C2E1C(void); /* Select_pl_move */
-void func_801C31C4(void); /* Select_fade_in */
-void func_801C31D4(void); /* Select_fade_out */
-void func_801C31E4(void); /* Select_cursor_move */
-void func_801C331C(void); /* Select_decide */
-void func_801C354C(void); /* Select_exit */
-void func_801C35C8(void); /* Select_pl_dir_set */
-void func_801C3660(void); /* Select_pl_rot */
-UCHAR *func_801C3830(ENEMY_WORK *pEm, ULONG TpClut, ULONG *pWork); /* Select_pl_load */
+void Select_main(void);
+void Select_pl_main(void);
+void Select_init(void);
+void Select_light_ctrl(ENEMY_WORK *pEm);
+void Select_light_wait(ENEMY_WORK *pEm, SELECT_LIGHT *pLt);
+void Select_light_up(ENEMY_WORK *pEm, SELECT_LIGHT *pLt);
+void Select_light_on(ENEMY_WORK *pEm, SELECT_LIGHT *pLt);
+void Select_light_down(ENEMY_WORK *pEm, SELECT_LIGHT *pLt);
+void Select_light_init(ENEMY_WORK *pEm);
+void Select_light_calc(LONG *pPos, ENEMY_WORK *pEm);
+void Select_light_set(ULONG No, VECTOR *pVec, UCHAR *pCol);
+void Select_view_init(void);
+void Select_pl_move(void);
+void Select_fade_in(void);
+void Select_fade_out(void);
+void Select_cursor_move(void);
+void Select_decide(void);
+void Select_exit(void);
+void Select_pl_dir_set(void);
+void Select_pl_rot(void);
+UCHAR *Select_pl_load(ENEMY_WORK *pEm, ULONG TpClut, ULONG *pWork); /* Select_pl_load */
 void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
 void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb);
 UCHAR *Jill_wep_load(ENEMY_WORK *pEm, ULONG *pWork, LONG No); /* weapon load */
-void func_801C3DB8(ULONG *pDst, SELECT_MOJI_REC *pSrc); /* Select_moji_set */
-void func_801C3E3C(void); /* Select_moji_dm_set */
-void func_801C3F00(void); /* Select_moji_init */
-ULONG func_801C3F74(LONG Wait, UCHAR *pStr, ULONG *pEnd); /* Select_moji_print */
-void func_801C41E0(void); /* Select_moji_ctrl */
-void func_801C44A4(void); /* Select_moji_clear */
-void func_801C44E8(LONG Disp); /* Select_moji_update */
-void func_801C4644(LONG Num); /* Select_moji_trans */
-void func_801C4774(void); /* Select_bg_load */
-void Jill_obj_init(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut, ULONG Rgb);
-void Jill_obj_draw(SEL_OBJ *pObj, LONG Ot);
-void Jill_obj_rgb(SEL_OBJ *pObj, ULONG Rgb);
-void func_801C4BA0(SEL_OBJ *pObj, SHORT X, SHORT Y);
-void func_801C4BAC(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut);
+void Select_moji_set(ULONG *pDst, SELECT_MOJI_REC *pSrc);
+void Select_moji_dm_set(void);
+void Select_moji_init(void);
+ULONG Select_moji_print(LONG Wait, UCHAR *pStr, ULONG *pEnd); /* Select_moji_print */
+void Select_moji_ctrl(void);
+void Select_moji_clear(void);
+void Select_moji_update(LONG Disp);
+void Select_moji_trans(LONG Num);
+void Select_bg_load(void);
+void Sel_obj_pos_set(SEL_OBJ *pObj, SHORT X, SHORT Y);
+void Sel_obj_uv_set(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut);
 
 #endif /* OVL_SELECT_H */

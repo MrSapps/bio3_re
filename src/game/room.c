@@ -1,3 +1,6 @@
+/*
+ * ROOM.C (RE2 ROOM.C lineage): stage and room loading (Set_stage, Set_room) and room animation hand-out
+ */
 #include "pl_wep.h"
 #include "monitor.h"
 #include "sce0.h"
@@ -13,7 +16,7 @@
 #define RND() ((signed char)Rnd())
 
 
-void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
+void Map_visit_set_i(LONG Stage, LONG Room) __asm__("Map_visit_set"); /* Set_room passes int stage/room (implicit declaration, no UCHAR masks) */
 
 /* load and set up the room (RE2 Set_room) */
 void Set_room(void)
@@ -64,7 +67,7 @@ void Set_room(void)
                 pG->Unk7864 = pPl->Id;
             }
             G.Status_flg |= 0x8000000;
-            func_8007809C(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+            Snd_vab_load(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         } else {
             if (pPl->Id >= 8) {
                 pPl->Life = 200;
@@ -72,7 +75,7 @@ void Set_room(void)
                 pG->Unk784E = pG->Unk7864;
             } else {
                 if (pG->Unk784E == 1) {
-                    D_800D225E = 10;
+                    Item_work0_num = 10;
                 }
                 if (pG->Unk7864 >= 2) {
                     if (pG->Unk784E < 2) {
@@ -83,16 +86,16 @@ void Set_room(void)
                 }
             }
             G.Status_flg &= ~0x8000000;
-            func_8007809C(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
+            Snd_vab_load(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         }
         pPl->Max_life = 200;
         pPl->Id = pG->Unk784E;
-        func_8006ECB0(pG->Unk784E);
+        St_chenge_pl(pG->Unk784E);
         Player_set(pPl);
         *(ULONG *)&pPl->Routine_0 = 0;
     }
-    func_80077ED4();
-    Size = Cd_read(D_8009DFD0[Stage][Room], NULL, 4, "ARD");
+    Snd_bgm_fade_wait();
+    Size = Cd_read(Room_file_tbl[Stage][Room], NULL, 4, "ARD");
     ppAdr = &pRoom->pEdt0;
     do {
         if (*ppAdr) {
@@ -109,7 +112,7 @@ void Set_room(void)
         pRoom->pOmodel[i].Tmd_adr = (ULONG *)((UCHAR *)pRoom->pOmodel[i].Tmd_adr + (ULONG)pRoom);
     }
     Esp_init_R();
-    func_80078204();
+    Snd_sys_pset();
     Cut_change(pG->Cut_no);
     Oba_init();
     func_800486C8();
@@ -121,21 +124,22 @@ void Set_room(void)
         D_800E0186[0] = 0;
     }
     Sce_scheduler_set();
-    if (G.Em_num != 0 || D_800E017F != 0xFF || G.pEnemy[1]->Be_flg != 0) {
-        Cd_read(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
+    if (G.Em_num != 0 || Rbj_id != 0xFF || G.pEnemy[1]->Be_flg != 0) {
+        Cd_read(Room_file_tbl[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
     Psp_init();
-    func_80078450();
+    Snd_sys_enem_set();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
         D_800E0186[0] = 0;
     }
     Em_init_move();
-    func_80071510_(Stage, Room);
+    Map_visit_set_i(Stage, Room);
 }
 
+/* RE2 Set_stage: loads the stage overlay (task file Stage + 0x11) and sets the free memory after it */
 void Set_stage(void)
 {
     ULONG Size = Task_lexecute(2, G.Unk783E + 0x11);
@@ -156,7 +160,7 @@ void func_800498F0(void)
     ENEMY_WORK *pEm;
 
     No = 0;
-    if (D_800E017F == 0xFF) {
+    if (Rbj_id == 0xFF) {
         return;
     }
     pEdd = G.pRoom->pEdd;

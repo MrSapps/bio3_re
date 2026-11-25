@@ -49,13 +49,13 @@ typedef struct tagOPN_WORK {
 typedef LONG (*OPN_OP)(OPN_WORK *pWk); /* script op: 0 next frame, 1 next op, 2 end */
 
 /* overlay data (asm/data/ovl/opening/data.data.s) */
-extern ULONG *D_801C2F0C[];            /* pictures in OPENING1_DAT (script op 6) */
-extern ULONG *D_801C2F14[];            /* TIMs in OPENING0_DAT */
-extern UCHAR D_801C2F3C[];             /* messages */
-extern USHORT D_801C2F68[];            /* message offsets into D_801C2F3C */
+extern ULONG *Opn_pic_tbl[];            /* pictures in OPENING1_DAT (script op 6) */
+extern ULONG *Opn_tim_tbl[];            /* TIMs in OPENING0_DAT */
+extern UCHAR Opn_mess[];             /* messages */
+extern USHORT Opn_mess_ofs[];            /* message offsets into Opn_mess */
 extern OPN_OP Opening_op_tbl[];            /* script ops */
-extern OPN_SPR D_801C2FA4[];           /* picture pieces */
-extern USHORT D_801C301C[][2];         /* piece positions */
+extern OPN_SPR Opn_spr[];           /* picture pieces */
+extern USHORT Opn_spr_pos[][2];         /* piece positions */
 extern OPN_WORK Opn_work __asm__("Opening_work");
 
 void Opening_init(void);

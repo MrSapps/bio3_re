@@ -1,9 +1,12 @@
+/*
+ * OPENING.BIN: the opening narration: picture scenes (scroll, cross-fade) driven by a small byte script with XA
+ * voice
+ */
 #include "ovl/opening.h"
 #include "mojidisp.h"
 #include "status.h"
 #include "sub.h"
 
-void *Memcpy_r(void *pDst, void *pSrc, ULONG Size) __asm__("Memcpy"); /* returns void* here (canonical void) */
 
 /* task entry: run the script until it ends or start/select is pressed */
 void Opening_main(void)
@@ -41,6 +44,7 @@ void Opening_main(void)
     Opening_exit();
 }
 
+/* suspends the game task, sets the script pointer, loads the pictures and sets up the sprites */
 void Opening_init(void)
 {
     G.Next_cut_no = G.Cut_no;
@@ -64,17 +68,18 @@ void Opening_load(void)
     i = 0;
     G.Ctp.Tpage_clut = 5;
     do {
-        Mapping_tim(D_801C2F14[i]);
+        Mapping_tim(Opn_tim_tbl[i]);
         i++;
     } while (i < 6);
     G.Ctp.Tpage_clut = (i << 8) + 0x15;
     do {
-        Mapping_tim(D_801C2F14[i]);
+        Mapping_tim(Opn_tim_tbl[i]);
         i++;
     } while (i < 9);
     Cd_read(0x3E, (ULONG *)0x80100000, 0, "OPENING1_DAT");
 }
 
+/* sets up the 10 picture sprites and tpages of both buffers */
 void Opening_sprt_init(void)
 {
     SPRT *pSp;
@@ -89,20 +94,21 @@ void Opening_sprt_init(void)
             pSp->r0 = 0x80;
             pSp->g0 = 0x80;
             pSp->b0 = 0x80;
-            pSp->x0 = D_801C301C[i][0];
-            pSp->y0 = D_801C301C[i][1];
-            pSp->w = D_801C2FA4[i].W;
-            pSp->h = D_801C2FA4[i].H;
-            pSp->u0 = D_801C2FA4[i].U;
-            pSp->v0 = D_801C2FA4[i].V;
-            pSp->clut = GetClut(0, D_801C2FA4[i].Clut + 0x1E0);
-            SetDrawTPage(pTp, 0, 0, GetTPage(1, 1, (D_801C2FA4[i].Tpage & 0xF) << 6, (D_801C2FA4[i].Tpage >> 4) << 8));
+            pSp->x0 = Opn_spr_pos[i][0];
+            pSp->y0 = Opn_spr_pos[i][1];
+            pSp->w = Opn_spr[i].W;
+            pSp->h = Opn_spr[i].H;
+            pSp->u0 = Opn_spr[i].U;
+            pSp->v0 = Opn_spr[i].V;
+            pSp->clut = GetClut(0, Opn_spr[i].Clut + 0x1E0);
+            SetDrawTPage(pTp, 0, 0, GetTPage(1, 1, (Opn_spr[i].Tpage & 0xF) << 6, (Opn_spr[i].Tpage >> 4) << 8));
             pSp++;
             pTp++;
         }
     }
 }
 
+/* white fade, stops the XA voice, closes the message and resumes the game task */
 void Opening_exit(void)
 {
     Main.Vloop = 1;
@@ -111,7 +117,7 @@ void Opening_exit(void)
     if (CD.Xa_rtn_no) {
         CD.Xa_rtn_no = 3;
     }
-    D_800DBB58 = 0;
+    Moji.Mess_flg = 0;
     Task_sleep(10);
     Task_signal(0);
     Task_exit();
@@ -138,6 +144,7 @@ void Opening_scene0_move(OPN_WORK *pWk)
     }
 }
 
+/* scene 0: draws the four scrolling picture strips */
 void Opening_scene0_draw(OPN_WORK *pWk)
 {
     SPRT *pSp;
@@ -147,7 +154,7 @@ void Opening_scene0_draw(OPN_WORK *pWk)
     pSp = pWk->Sprt[G.Cbuf_id];
     pTp = pWk->Tpage[G.Cbuf_id];
     for (i = 0; i < 4; i++) {
-        pSp->y0 = pWk->Ofs0 + D_801C301C[i][1];
+        pSp->y0 = pWk->Ofs0 + Opn_spr_pos[i][1];
         AddPrim(G.pOt0 + 5, pSp);
         AddPrim(G.pOt0 + 5, pTp);
         pSp++;
@@ -199,6 +206,7 @@ void Opening_scene1_move(OPN_WORK *pWk)
     }
 }
 
+/* scene 1: draws the two sideways-scrolling layers with their cross-fade brightness */
 void Opening_scene1_draw(OPN_WORK *pWk)
 {
     SPRT *pSp;
@@ -216,7 +224,7 @@ void Opening_scene1_draw(OPN_WORK *pWk)
         } else {
             pSp->code &= ~2;
         }
-        pSp->x0 = D_801C301C[i + 4][0] - 0x80 - pWk->Ofs0;
+        pSp->x0 = Opn_spr_pos[i + 4][0] - 0x80 - pWk->Ofs0;
         AddPrim(G.pOt0 + pWk->Ot0, pSp);
         pSp++;
         AddPrim(G.pOt0 + pWk->Ot0, pTp);
@@ -231,7 +239,7 @@ void Opening_scene1_draw(OPN_WORK *pWk)
         } else {
             pSp->code &= ~2;
         }
-        pSp->x0 = D_801C301C[i + 6][0] - 0x80 - pWk->Ofs0;
+        pSp->x0 = Opn_spr_pos[i + 6][0] - 0x80 - pWk->Ofs0;
         AddPrim(G.pOt0 + pWk->Ot1, pSp);
         pSp++;
         AddPrim(G.pOt0 + pWk->Ot1, pTp);
@@ -245,7 +253,7 @@ void Opening_scene1_draw(OPN_WORK *pWk)
     } else {
         pSp->code &= ~2;
     }
-    pSp->x0 = pWk->Ofs1 + (D_801C301C[8][0] + 0x80);
+    pSp->x0 = pWk->Ofs1 + (Opn_spr_pos[8][0] + 0x80);
     AddPrim(G.pOt0 + pWk->Ot0 - 2, pSp);
     pSp++;
     AddPrim(G.pOt0 + pWk->Ot0 - 2, pTp);
@@ -258,7 +266,7 @@ void Opening_scene1_draw(OPN_WORK *pWk)
     } else {
         pSp->code &= ~2;
     }
-    pSp->x0 = pWk->Ofs1 + (D_801C301C[9][0] + 0x80);
+    pSp->x0 = pWk->Ofs1 + (Opn_spr_pos[9][0] + 0x80);
     AddPrim(G.pOt0 + pWk->Ot1 - 2, pSp);
     AddPrim(G.pOt0 + pWk->Ot1 - 2, pTp);
 }
@@ -270,12 +278,14 @@ LONG Opening_op_next(OPN_WORK *pWk)
     return 1;
 }
 
+/* script op: end of this frame's commands (returns 0) */
 LONG Opening_op_frame(OPN_WORK *pWk)
 {
     pWk->pScript++;
     return 0;
 }
 
+/* script op: end of the script (returns 2) */
 LONG Opening_op_end(OPN_WORK *pWk)
 {
     pWk->pScript++;
@@ -308,7 +318,7 @@ LONG Opening_op_wait(OPN_WORK *pWk)
 /* wait for the XA voice */
 LONG Opening_op_xa_wait(OPN_WORK *pWk)
 {
-    if ((G.Status_flg & STAT_XA_VOICE) || (D_800DBB58 & 0x80)) {
+    if ((G.Status_flg & STAT_XA_VOICE) || (Moji.Mess_flg & 0x80)) {
         return 0;
     }
     pWk->pScript++;
@@ -318,7 +328,7 @@ LONG Opening_op_xa_wait(OPN_WORK *pWk)
 /* show picture */
 LONG Opening_op_pic(OPN_WORK *pWk)
 {
-    Memcpy_r((void *)0x8019C000, D_801C2F0C[pWk->pScript[1]], 0x25814);
+    Memcpy((void *)0x8019C000, Opn_pic_tbl[pWk->pScript[1]], 0x25814);
     Bg_set_mode(2, 0);
     pWk->pScript += 2;
     return 1;
@@ -376,7 +386,7 @@ LONG Opening_op_xa(OPN_WORK *pWk)
 /* message */
 LONG Opening_op_mess(OPN_WORK *pWk)
 {
-    Mess_set(0xB90022, 0x3000, (ULONG)&D_801C2F3C[D_801C2F68[pWk->pScript[1]]], 0);
+    Mess_set(0xB90022, 0x3000, (ULONG)&Opn_mess[Opn_mess_ofs[pWk->pScript[1]]], 0);
     pWk->pScript += 2;
     return 1;
 }

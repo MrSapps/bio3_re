@@ -3,7 +3,7 @@
 #include "mojidisp.h"
 #include "snd.h"
 
-int Print14_col_() __asm__("Print14_col"); /* returns int here (canonical void); unprototyped call */
+int Print14_col_() __asm__("Print14_col"); /* Capcom called it undeclared (implicit int): y is passed without the USHORT mask */
 
 #define RND() ((signed char)Rnd())
 

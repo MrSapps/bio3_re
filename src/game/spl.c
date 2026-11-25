@@ -1,3 +1,6 @@
+/*
+ * SPL.C (RE2 SPL.C lineage): the sub player (partner character) routine entry, init and routine table
+ */
 #include "sce0.h"
 #include "player.h"
 #include "joint.h"
@@ -14,6 +17,7 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
     return 1;
 }
 
+/* RE2 Spl: sub player per frame: damage timer, weapon sync, root check, routine, water splash, neck */
 void Spl(ENEMY_WORK *pEm)
 {
     SVECTOR Sv0;
@@ -30,11 +34,11 @@ void Spl(ENEMY_WORK *pEm)
     Id = pEm->Id;
     if (Id == 0x5B || Id == 0x5F || Id >= 0x62) {
         if (Pl_work.Id < 8) {
-            func_80059310(pEm);
+            Spl_wep_set(pEm);
         }
     }
     Spl_Root_ck_sys(pEm);
-    D_8009E6EC[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
+    Spl_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
     if (pEm->Water != 0 && pEm->Water < pEm->Ground - 0x1F4) {
         pP = pEm->pSin_parts_ptr;
         Sv0.vx = pP->Workm.t[0];
@@ -51,6 +55,7 @@ void Spl(ENEMY_WORK *pEm)
     Rot_neck(pEm, pEm->Cdir_y);
 }
 
+/* RE2 Spl_Init: sets up the sub player (collision, neck limits, part swaps) */
 void Spl_Init(ENEMY_WORK *pEm)
 {
     USHORT Neck_dir[26] = {
@@ -73,7 +78,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     Kage_work9_set(&pEm->Kage.pKw9, 0, 0x22601C2, 0, pEm->pSin_parts_ptr->Workm.t);
     pCol = &pEm->Col;
     pCol->pEm = pEm;
-    pSize = D_8009E374[pEm->Id];
+    pSize = Spl_size_tbl[pEm->Id];
     pCol->W0 = pCol->D0 = pSize[1];
     pCol->H = 3000;
     pCol->Unk28 = 0;
@@ -147,8 +152,10 @@ void Spl_Init(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/spl", func_80059310);
+/* gives the sub player the player's weapon type and its part/offset setup (D_8009E6BC..E4 tables) */
+INCLUDE_ASM("asm/nonmatchings/game/spl", Spl_wep_set);
 
+/* RE2 Spl_set: installs Spl as the routine of the sub player work slots */
 void Spl_set(void)
 {
     G.Unk3EE0[0] = Spl;
@@ -178,7 +185,7 @@ void Spl_set(void)
 }
 
 /* thrown back by the work in Add_dir's slot: turn away, play the knock-back moves */
-void func_800594D4(ENEMY_WORK *pEm)
+void Spl_Knockback(ENEMY_WORK *pEm)
 {
     ULONG *pKan = pEm->pUnk100_kan_t_ptr;
     ULONG *pSeq = pEm->pUnk104_seq_t_ptr;

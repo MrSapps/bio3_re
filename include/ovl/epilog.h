@@ -42,9 +42,9 @@ typedef struct tagEPI_WORK {
 } EPI_WORK;
 
 /* overlay data (asm/data/ovl/epilog/data.data.s) */
-extern EPI_FILE D_801C2B4C[];          /* epilogue pictures in OMBG.TIM */
-extern UCHAR D_801C2B9C[];             /* their check sums */
-extern USHORT D_801C2BA8[][2];         /* page positions on the 3x3 menu */
+extern EPI_FILE Epi_file[];          /* epilogue pictures in OMBG.TIM */
+extern UCHAR Epi_file_sum[];             /* their check sums */
+extern USHORT Epi_page_pos[][2];         /* page positions on the 3x3 menu */
 extern void (*Epilog_routine[])(void); /* routines, index Rno0 */
 extern EPI_WORK Epi_work __asm__("Epilog_work");
 

@@ -23,16 +23,16 @@ extern ULONG D_800DECAC;
 extern UCHAR *pCAot; /* 0x800DECB0 RE2 pCAot */
 extern ULONG Old_Fatari; /* 0x800DECB4 RE2 Old_Fatari */
 extern ULONG Old_Uatari; /* 0x800DECB8 RE2 Old_Uatari */
-extern UCHAR D_800E01C4[];
+extern UCHAR St_type_a[];            /* St.St_type seen as an array (stores stay after loads) */
 
 ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
 void Sce_at(void);
 ULONG Nothing(void *pAot);
 ULONG Sce_Door(void *pAot);
 void Key_lost(void);
-void func_800510B0(void);
+void Door_ask_entrance(void);
 ULONG Sce_Item(void *pAot);
-void func_800511B0(void);
+void Item_mess_entrance(void);
 LONG Sce_Normal(void);
 ULONG Sce_Message(void *pAot);
 ULONG Sce_Event(void *pAot);
@@ -42,13 +42,13 @@ ULONG Sce_Save(void *pAot);
 void Save_entrance(void);
 ULONG Sce_Itembox(void *pAot);
 void Item_box_entrance(void);
-ULONG func_80051684(void *pAot);
+ULONG Sce_Aot_set(void *pAot);
 ULONG Sce_Hikidashi(void *pAot);
 void Hikidashi_entrance(void);
 ULONG Sce_Damage(void *pAot);
-ULONG func_80051CB0(void *pAot);
-ULONG func_80051D28(void *pAot);
-void func_80051D60(void);
+ULONG Sce_Door2(void *pAot);
+ULONG Sce_Heal(void *pAot);
+void Heal_entrance(void);
 LONG Water_ck(LONG Pos_x, LONG Pos_z);
 
 #endif /* SCE_AT_H */

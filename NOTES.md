@@ -104,6 +104,9 @@ Load bases come from the exe table D_8001031C (0x80194000, 0x80184000, 0x8011A00
   em27 Em27_Init (12), em22 Em22_dir_quarter (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
   Get_light_cut (4), snd func_80077F60 (5, 2 with an empty do/while after the decls), Pc_text_set (7),
   Flr_set (2), em36 Em36_mv12 (10), Plc_gun_eff (11), Get_matrix (17). Drafts in that session's scratchpad.
+  em27 func_801000E0 (12), em22 func_80103110 (14), select func_801C3830 (19, s4/s5 priority 0.600 vs 0.615).
+  Get_light_cut (4), snd Snd_bgm_play_ck (5, 2 with an empty do/while after the decls), Pc_text_set (7),
+  Flr_set (2), em36 func_8010511C (10), Plc_gun_eff (11), Get_matrix (17). Drafts in that session's scratchpad.
   option func_801C4C94 matches but shares the "\x81\x40" string with func_801C4A70 (must go in together).
 
 ## Compiler (confirmed)
@@ -160,7 +163,7 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
   ENEMY_WORK 0x180..0x19C are 8 kan/seq pointers (pUnk180_seq_t_ptr .. pUnk19C_kan_t_ptr).
   G.pEnemy[42] is RE2's pEnemy ([0] player, [1] sub player, [2..] enemies); G.Ctp is the Ctpage/Cclut
   byte pair, also written as one halfword (Tpage_clut).
-- main.h: VCUT, ROOM_WORK, FADE, DBUF, tagMAIN, tagGAME, SAVE_POS (Game.pSave). game.h: FLASH_WORK.
+- main.h: VCUT, ROOM_WORK, FADE, DBUF, tagMAIN, tagGAME, SAVE_POS (Game.pSave). game.h: LIVE_SEL.
 - em_sub.h: KAN_HEAD, TBL12. joint.h: JOINT_P and the PARTS_W free-work layouts at +0x74
   (PARTS_NECK_FREE_WORK / PW_NECK, PARTS_RGB_FREE_WORK / PW_RGB).
   include/enemy/parts_free.h: PARTS_FLY_FREE_WORK / PW_FLY, the fly-off state joint.c func_8002783C moves
@@ -173,18 +176,18 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
   SORT_PARAM. om.h: CC_PARTS_WORK, CC_WORK (OBJ_MODEL_WORK itself is in bio3.h).
 - pl_wep.h: HIT_REQ (func_800472EC/func_80047BD0), HIT_AREA (func_800445C8, every overlay uses it),
   EM_HIT_AREA, OM_TARGET, PL_WEP_*.
-- cd.h: tagCD, CD_LINK, CD_ENTRY, FLOC, EM_DAT (D_800DECC0, filled by the room streamer).
+- cd.h: tagCD, CD_LINK, CD_ENTRY, FLOC, EM_DAT (Em_dat, filled by the room streamer).
 - sce0.h: SCE_TASK, MODEL_LINK_INFO, SCENARIO (Sce). The SCE opcode records stay private in sce1.c.
-- status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in 800636D4.c.
+- status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in status.c.
 - snd.h: SND_* incl. SND_VOL embedded at SND_WORK.Vol (0x7C0) and the listener Cam_x/y/z, Cattr.
-- sub.h: LIGHT_CUT_DATA, LIGHT_ZONE, PL_SAVE (D_800C7048). sca.h: SCA_HEAD, SCA_DATA, SCA_WORK.
+- sub.h: LIGHT_CUT_DATA, LIGHT_ZONE, PL_SAVE (Retry_data). sca.h: SCA_HEAD, SCA_DATA, SCA_WORK.
   oba.h: COL_ENT, COL_WORK. Overlay-only types live in include/enemy/<name>.h (enemies) or include/ovl/<name>.h.
 Views of G that remain on purpose (codegen needs a second declaration of the symbol, so gcc does
 not share the &G base): result.h GLOBAL_RESULT `Gr`. em33.h EM33_PL reaches G.pEnemy[] from
 pPl = &Pl_work (one base register).
 Prototypes: every function defined in src/game/<m>.c is declared once, in include/<m>.h (RE2 names:
 esp_r.h, psp.h, room.h, root_ck.h, sabun.h, sce1.h, sce2.h, sce_at.h, spl.h, spl_auto.h, spl_sce.h;
-800636D4.c -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
+status.c (was 800636D4.c) -> status.h, 80079EC0.c -> pcstr.h, 80048520.c -> 80048520.h, em_sub.c's ESP part (from
 0x8001B08C) -> esp.h, pl_wep2.h folded into pl_wep.h). SLD.S functions are in sld.h. Overlay functions and
 data are in include/enemy/<n>.h or include/ovl/<n>.h (their names come from ovl/<n>.syms.txt via the split, no naming aliases). Data externs
 are in the owning module's header. PsyQ functions come from the SDK (psyq.h also pulls libpad.h and
@@ -194,7 +197,7 @@ A .c keeps a local `T f_(..) __asm__("f")` alias only where its codegen needs a 
 the ENEMY_WORK *_kan_t_ptr / *_seq_t_ptr fields, RE2 ULONG*); functions that walk them byte-wise cast to
 UCHAR* / KAN_HEAD* inside. Joint_move/Joint_move2 return the J_seq result (ULONG). The tree compiles with
 no warnings (cc1 without -Wall); keep it that way. snd.c calls Task_sleep with no declaration on purpose: any declaration,
-even `int Task_sleep();`, changes the loop in func_80077ED4, so snd.c must not include monitor.h.
+even `int Task_sleep();`, changes the loop in Snd_bgm_fade_wait, so snd.c must not include monitor.h.
 
 ## Module map (src/game, one file per original object)
 Files are split where the original objects begin, so each file's .rodata starts where the original
@@ -231,10 +234,10 @@ Boundaries marked ~ are only pinned to a range (any function in the range gives 
 | 80051F78 | sce0.c | Sce_aot_init, Event_init/exec |
 | 80052DE8 | sce1.c | 1:1 with RE2, SCE_TASK 0x174 |
 | 80055A18 | sce2.c | SCE_TASK opcode handlers up to 80058CD0 |
-| 80058DD4 | spl.c | SPL.C: Spl, Spl_Init, Spl_set; routine table D_8009E6EC = RE2 Spl_routine_0 slots |
+| 80058DD4 | spl.c | SPL.C: Spl, Spl_Init, Spl_set; routine table Spl_routine_0 = RE2 Spl_routine_0 slots |
 | ~800597F0 | spl_auto.c | SPL_AUTO.C: Spl_Auto, Aida_*; RE3 moved Spl_Damage/Die/Dead here. Start pinned to 800594D8..8005CB2C (.rdata 80010D0C) |
 | ~800601F0 | spl_sce.c | SPL_SCE.C (reworked): Spl_Scenario, Spl_sce00-09. Start pinned to 8005F29C..80061DF4 (.rdata 80010D90) |
-| 800636D4 | 800636D4.c | RE3's own status/inventory code (barely RE2 STATUS/ST_SUB*); .rdata 80010DCC |
+| 800636D4 | status.c | RE3's own status screen (barely RE2 STATUS/ST_SUB*), one object (.rdata 80010DCC). Modules in order: file viewer St_file_* (800636D4), item box St_box_* (800643E4), inventory/command menu St_item_*/St_cmd_* and combine St_mix_* (80066530), icon VRAM Pix_* (8006A9AC), screen setup/draw St_prim_init..St_file_icon_disp (8006AE90), item/ammo helpers Item_*/Tama_* (8006CCF0), task St_init/Status/St_exit and prim helpers (8006D948), map St_map_*/Map_* (8006ED28). Was 800636D4.c |
 | ~80073E84 | snd.c | RE3 sound driver (custom libspu sequencer, Snd_work 800E0610) |
 | ~800784E0 | sub.c | SetSpadStack, Vram_clr, Rot_*, Flg_*, Set_view, Set_light* |
 | 80079EC0 | 80079EC0.c | PC-host STR streaming (Pcstr_*) and handwritten asm from 8007C434 |
@@ -283,7 +286,7 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   Makefile (and linkcheck.py) append `.section .rodata; .align 2` to every C object. The old per-file
   `__asm__(".section .rodata\n.align 2...")` pads are now redundant.
 - With the split, func_8003B080 and func_8005CB2C (switch tables) match, and the computed-goto
-  workarounds in 800636D4.c (8006A234, 8006E34C, 8006E424) are plain switches again.
+  workarounds in 800636D4.c (now status.c; 8006A234, 8006E34C, 8006E424) are plain switches again.
 - The six address files were re-cut into 32 with a top-level C splitter; where one object had been split
   across two old files (mojidisp, pl_wep, sca) the second half's conflicting prototypes became
   `__asm__` aliases with an `_<oldfile>` suffix.
@@ -303,7 +306,7 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   producing them. They work through build/syms.ld (PROVIDE of every syms/*.txt), which the main link and,
   since phase 4, the overlay links use, so main and overlay C call them by name. C keeps the address name
   where main asm still references a C-defined symbol (Sca_get_dir = func_800502B8 from sabun asm,
-  Sce_fade_set = func_80054384 from Sce_jmp_tbl data). For the next main split: tools/apply_syms.py
+  Sce_fade_set = Sce_fade_set from Sce_jmp_tbl data). For the next main split: tools/apply_syms.py
   (merges syms/*.txt into symbol_addrs.txt and renames func_/D_ uses incl. INCLUDE_ASM), then
   `rm -rf asm && make split && make`.
 - syms/em_entry.txt: the enemy module entry points used by Em_move_tbl_set. Several modules share an
@@ -380,7 +383,7 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   func_80104F20, em33 func_80101454, movie Init_movie_work, result func_801C229C/C3344/C53D4; this
   also replaced an earlier dead `Min = Time / 60;` hack). (2) mfhi in a3 where the target reuses the
   quotient's reg (v1): the later `mult` must sit in the same block as the division — repeat it in both
-  branches and let cross-jumping merge the tails (snd func_800759D8: `v *= r;` in each branch).
+  branches and let cross-jumping merge the tails (snd Snd_pitch_scale: `v *= r;` in each branch).
   Read `.greg` (`-dg`): "Spilling reg 64" followed by " Register N now in R" shows the kick.
 - Handwritten asm left as INCLUDE_ASM: BIOS jump stubs (`li t2,0xA0; jr t2; li t1,n`), libcard
   `_card_clear` (older-compiler epilogue), md_sub func_8002E318/D5D8/D4B0 (t-reg saves around jal, s-regs
@@ -390,6 +393,21 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   (B6FC, B86C, CF90, D6D8, D898, DC98, DE0C, DFE0, E160) copies its parameters into t-regs at entry
   (`addu t0,a1,zero`, D898 twice); no C or PsyQ inline_c.h macro form reproduces it (gcc 2.8 global-alloc
   always gives the parameter its incoming register unless it clashes with that hard reg).
+
+### Cleanup pass (status/system/scenario side)
+- New exe names went straight into symbol_addrs.txt (section "cleanup names"), followed by a main `make split`
+  (9 s); overlays whose C uses a renamed exe symbol were re-split (`rm -rf asm/data/ovl/<o> asm/nonmatchings/ovl/<o>`,
+  splat; em*: also `tools/mkovl.py --bss`). Overlay names go into ovl/<o>.syms.txt the same way. Rename C uses with a
+  word-boundary replace over the whole tree. Check afterwards that no C file still uses a D_/func_ alias of a renamed
+  address (title used D_80031BDC for Mess_hint_task).
+- 800636D4.c is now status.c (one object). Its sprite tables are ST_SPR_DEF/ST_FT4_DEF/ST_TILE_DEF; item tables are
+  ITEM_DATA (Item_data_tbl), ITEM_MIX, ITEM_CHECK, ITEM_TAMA; map data ST_MAP_DATA/ST_MAP_FLG (MAP_FLG_LIST keeps the
+  load order the original has). Most box/status sprite tables (D_8009F3xx..D_800A00xx) still have address names.
+- Aliases that remain are implicit declarations in Capcom's files (int return kept live in v0, or int arguments
+  without the char/short masks) and array views of scalars (a store through an array is not moved before loads of
+  struct fields); each says so in its comment. Calls through a void prototype matched for Pad_vib_*, Xa_play and
+  the rain setter, so those aliases were dropped; Set_view, Quake_add, Kage_work_color_set, Flg_off and the
+  LINE_SCR functions really need the int return.
 
 ## Code shared between overlays (src/enemy/common, src/ovl/common)
 
@@ -412,10 +430,9 @@ overlay that has it (the name comes from the family's first module, e.g. `Em10_m
   Em30_Damage call them.
 - em34/em36: Em34_foot_set, Em34_blood_set, Em34_blood_spray, Em34_sce05 shared. em36 is not a copy of em34;
   the small dispatchers that em34/em36/em37/em39 all have (Em34_Move, Em34_Sce, Em34_Move_type02) were left alone.
-- jill_sel/select/result: select shares Jill_pl_trans, Jill_light_set, Jill_obj_init/draw/rgb. result has
-  the same routines (now Jill_* names) on RESULT_SPR/RESULT_SPR_DATA, the same layout as SEL_OBJ/SEL_SPRT_DEF
-  but with other field names (0xA/0xB: Semi/Abr vs Abr/Tp); unify the types to share them.
-  Jill_wep_load (= select's copy) is still unmatched in both.
+- jill_sel/select/result: Jill_pl_trans, Jill_light_set and Jill_obj_init/draw/rgb are shared; the sprite object types
+  (SEL_OBJ, SEL_SPRT, SEL_SPRT_DEF, SEL_OBJ_* flags) live in include/ovl/jill_obj.h. SEL_SPRT_DEF 0xA/0xB are Semi/Abr
+  (SetSemiTrans / GetTPage abr). Jill_wep_load (= select's copy) is still unmatched in both.
 - em20/em25: Ck_em_id.
 - em38/em39: Em38_part_scale_pos. The small table dispatchers (Em*_Move, Move_type, Scenario, Pldamege/Pldie)
   are asm-identical across many modules but name different tables, so they stay per module.
@@ -432,7 +449,7 @@ text-identical functions into src/enemy/common/FAMILY (or src/ovl/common/FAMILY)
 - Plc_gun_eff matched: dead stores into a local VECTOR; cse deletes the repeated vx = 145 (8 stores for 9 assignments).
 - Get_light_cut (3): reassign `pData = (UCHAR *)pLight` after the loop; assign pCut twice (REG_N_SETS > 1 stops
   sched1's birthing boost). Left: the copy goes to a1, not a0 (pData inherits pLight's a1 preference).
-- snd func_80077F60 (2): the CD `lui` gets v0. With temps (`t = &Snd_work; u = &CD;`) the registers are right
+- snd Snd_bgm_play_ck (2): the CD `lui` gets v0. With temps (`t = &Snd_work; u = &CD;`) the registers are right
   but sched2 puts both luis first (3).
 - oba func_80034E78 (3): sll 8 / andi 0xff order. `((Fl << 8) & 0xFF00) | (Fl & 0xFF)` gives the order but
   swaps v0/v1: local-alloc gives the 6-ref shift chain priority over Fl (5 refs).

@@ -1,10 +1,13 @@
+/*
+ * SELECT.BIN: Mercenaries character select (three models under spot lights, name sprites, message window)
+ */
 #include "ovl/select.h"
 #include "cd.h"
 
 void func_800251FC_(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, LONG *pPos) __asm__("Joint_trans"); /* 4 args here (canonical 3) */
 
 /* RE2 Select_main */
-void func_801C2094(void)
+void Select_main(void)
 {
     SELECT_WORK *pSel = &Select_wk;
 
@@ -14,13 +17,13 @@ void func_801C2094(void)
     pSel->Pad003 = 0;
     do {
         (*Select_main_proc_tbl[pSel->Main_no])();
-        func_801C20FC();
+        Select_pl_main();
         Task_sleep(1);
     } while (1);
 }
 
 /* RE2 Select_pl_main: sprites, players, message window */
-void func_801C20FC(void)
+void Select_pl_main(void)
 {
     tagGLOBAL *pG = &G;
     SELECT_WORK *pSel;
@@ -37,14 +40,14 @@ void func_801C20FC(void)
     Jill_obj_draw(&Select_obj[21], 6);
     Jill_obj_draw(&Select_obj[22], 6);
     Jill_obj_draw(&Select_obj[23], 6);
-    func_801C2E1C();
+    Select_pl_move();
     pSel = &Select_wk;
     if (pSel->Main_no < 3) {
-        func_801C41E0();
+        Select_moji_ctrl();
         Jill_obj_draw(&Select_obj[6], 5);
         Jill_obj_draw(&Select_obj[7], 5);
         for (n = 6, i = 0; n != 0; i++, n--) {
-            func_801C4BAC(&Select_obj[8 + i], &Select_name_def[Select_name_idx[pSel->Cursor_no][i]], 0x1F10017);
+            Sel_obj_uv_set(&Select_obj[8 + i], &Select_name_def[Select_name_idx[pSel->Cursor_no][i]], 0x1F10017);
         }
         Jill_obj_draw(&Select_obj[8], 3);
         Jill_obj_draw(&Select_obj[9], 3);
@@ -61,14 +64,14 @@ void func_801C20FC(void)
         pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
         pEm->pUnk7C = pG->pOt1;
-        func_801C28D0(pEm);
+        Select_light_ctrl(pEm);
         func_800251FC_(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
         Jill_pl_trans(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, &pEm->Pos_x);
     }
 }
 
 /* RE2 Select_init */
-void func_801C235C(void)
+void Select_init(void)
 {
     tagGLOBAL *pG = &G;
     SELECT_WORK *pSel = &Select_wk;
@@ -84,10 +87,10 @@ void func_801C235C(void)
     pSel->Vloop_bak = Main.Vloop;
     Main.Vloop = 2;
     Main.Unk191 = 1;
-    func_801C4774();
-    func_8007809C(0, 0xC, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
+    Select_bg_load();
+    Snd_vab_load(0, 0xC, (ULONG *)0x801FBC00, (ULONG *)0x80180000);
     Bg_set_mode(2, 0);
-    func_801C2DE0();
+    Select_view_init();
     Set_view(pView->Eye, pView->Ref);
     SetGeomOffset(0xA0, 0x78);
     SetGeomScreen(300);
@@ -139,7 +142,7 @@ void func_801C235C(void)
         pEm->Cdir_z = Select_pl_init[i].Cdir_z;
         pEm->Mot_scale_y = Select_pl_init[i].Unk18;
         *(ULONG *)&pEm->Move_no = 0x70000;
-        pWork = func_801C3830(pEm, (5 + i * 2) | ((i * 2) << 16), (ULONG *)pWork);
+        pWork = Select_pl_load(pEm, (5 + i * 2) | ((i * 2) << 16), (ULONG *)pWork);
         pWork = Jill_wep_load(pEm, (ULONG *)pWork, i);
         pEm->Routine_0 = i;
         pEm->Routine_1 = 0;
@@ -151,7 +154,7 @@ void func_801C235C(void)
         pEm->Pos_z = (rcos(pEm->L_pl) * 2000) >> 12;
         pEm->Spd_y = 0;
         pEm->Tilt[0] = Select_dir_fpos[1][i];
-        func_801C2B34(pEm);
+        Select_light_init(pEm);
     }
     pSel->pHeap = pWork;
     pSel->Blink_cnt = 0;
@@ -163,13 +166,13 @@ void func_801C235C(void)
     Snd_se_stad(0x500, NULL, 0, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 15);
     while (Fade_status(0) != 0) {
-        func_801C20FC();
+        Select_pl_main();
         Task_sleep(1);
     }
 }
 
 /* RE2 Select_light_ctrl */
-void func_801C28D0(ENEMY_WORK *pEm)
+void Select_light_ctrl(ENEMY_WORK *pEm)
 {
     SELECT_LIGHT *pLt;
 
@@ -178,14 +181,14 @@ void func_801C28D0(ENEMY_WORK *pEm)
     pLt->X = pEm->Pos_x + 0x4B0;
     pLt->Y = pEm->Pos_y - 1000;
     pLt->Z = pEm->Pos_z;
-    func_801C2B94(pEm->pSin_parts_ptr->Workm.t, pEm);
+    Select_light_calc(pEm->pSin_parts_ptr->Workm.t, pEm);
     SetColorMatrix(&Select_light_col[pEm->Routine_0]);
     LIGHTMATRIX = Select_light_mtx[pEm->Routine_0];
     COLORMATRIX = Select_light_col[pEm->Routine_0];
 }
 
 /* RE2 Select_light_wait */
-void func_801C2A34(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
+void Select_light_wait(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 {
     if (pEm->Routine_0 == Select_wk.Cursor_no) {
         pLt->Wait = 1;
@@ -193,7 +196,7 @@ void func_801C2A34(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 }
 
 /* RE2 Select_light_up */
-void func_801C2A58(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
+void Select_light_up(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 {
     if (pEm->Routine_0 != Select_wk.Cursor_no) {
         pLt->Wait = 3;
@@ -209,7 +212,7 @@ void func_801C2A58(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 }
 
 /* RE2 Select_light_on */
-void func_801C2AB8(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
+void Select_light_on(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 {
     if (pEm->Routine_0 != Select_wk.Cursor_no) {
         pLt->Wait = 3;
@@ -217,7 +220,7 @@ void func_801C2AB8(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 }
 
 /* RE2 Select_light_down */
-void func_801C2ADC(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
+void Select_light_down(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 {
     if (pEm->Routine_0 == Select_wk.Cursor_no) {
         pLt->Wait = 1;
@@ -233,7 +236,7 @@ void func_801C2ADC(ENEMY_WORK *pEm, SELECT_LIGHT *pLt)
 }
 
 /* RE2 Select_light_init */
-void func_801C2B34(ENEMY_WORK *pEm)
+void Select_light_init(ENEMY_WORK *pEm)
 {
     SELECT_LIGHT *pLt;
 
@@ -250,7 +253,7 @@ void func_801C2B34(ENEMY_WORK *pEm)
 }
 
 /* RE2 Select_light_calc */
-void func_801C2B94(LONG *pPos, ENEMY_WORK *pEm)
+void Select_light_calc(LONG *pPos, ENEMY_WORK *pEm)
 {
     SELECT_LIGHT *pLt;
     VECTOR vec;
@@ -272,12 +275,12 @@ void func_801C2B94(LONG *pPos, ENEMY_WORK *pEm)
     } else {
         *(ULONG *)col = 0;
     }
-    func_801C2CF4(pEm->Routine_0, &vec, col);
+    Select_light_set(pEm->Routine_0, &vec, col);
     SetBackColor(0x40, 0x40, 0x40);
 }
 
 /* RE2 Select_light_set */
-void func_801C2CF4(ULONG No, VECTOR *pVec, UCHAR *pCol)
+void Select_light_set(ULONG No, VECTOR *pVec, UCHAR *pCol)
 {
     SELECT_LIGHT *pLt;
     MATRIX *pMtx;
@@ -297,7 +300,7 @@ void func_801C2CF4(ULONG No, VECTOR *pVec, UCHAR *pCol)
 }
 
 /* RE2 Select_view_init */
-void func_801C2DE0(void)
+void Select_view_init(void)
 {
     Select_view.Unk = 0;
     Select_view.Eye[0] = 0x105E;
@@ -309,7 +312,7 @@ void func_801C2DE0(void)
 }
 
 /* RE2 Select_pl_move: per-character animation scripts */
-void func_801C2E1C(void)
+void Select_pl_move(void)
 {
     tagGLOBAL *pG;
     ENEMY_WORK *pEm;
@@ -432,19 +435,19 @@ void func_801C2E1C(void)
 }
 
 /* RE2 Select_fade_in */
-void func_801C31C4(void)
+void Select_fade_in(void)
 {
     Select_wk.Main_no = 2;
 }
 
 /* RE2 Select_fade_out */
-void func_801C31D4(void)
+void Select_fade_out(void)
 {
     Select_wk.Main_no = 5;
 }
 
 /* RE2 Select_cursor_move */
-void func_801C31E4(void)
+void Select_cursor_move(void)
 {
     SELECT_WORK *pSel = &Select_wk;
 
@@ -458,22 +461,22 @@ void func_801C31E4(void)
             if (--pSel->Cursor_no < 0) {
                 pSel->Cursor_no = 2;
             }
-            func_801C35C8();
+            Select_pl_dir_set();
             Snd_se_stad(2, NULL, 0, 0);
         }
         if ((USHORT)G.Unk20F8 & 0x2000) {
             if (++pSel->Cursor_no >= 3) {
                 pSel->Cursor_no = 0;
             }
-            func_801C35C8();
+            Select_pl_dir_set();
             Snd_se_stad(2, NULL, 0, 0);
         }
     }
-    func_801C3660();
+    Select_pl_rot();
 }
 
 /* RE2 Select_decide */
-void func_801C331C(void)
+void Select_decide(void)
 {
     SELECT_WORK *pSel = &Select_wk;
     tagGLOBAL *pG = &G;
@@ -483,27 +486,27 @@ void func_801C331C(void)
     Pad_vib_set1(5, 150, 0);
     Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 2);
     while (Fade_status(0) != 0) {
-        func_801C20FC();
+        Select_pl_main();
         Task_sleep(1);
     }
     Pad_vib_set0(3, 0);
     Pad_vib_set1(8, 200, 0);
     Fade_set(0, 1, 0, 1, 0, 0xFFFFFF, 4);
     while (Fade_status(0) != 0) {
-        func_801C20FC();
+        Select_pl_main();
         Task_sleep(1);
     }
     Fade_set(0, 1, FADE_HOLD, 1, 0, 0, 40);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C20FC();
+        Select_pl_main();
         Task_sleep(1);
     }
-    Snd_work.Seq[0].Unk38 = 2;
-    Snd_work.Seq[0].Unk3C = 0x3DAF;
-    Snd_work.Seq[0].Unk40 = 0x250;
+    Snd_work.Seq[0].Fade_mode = 2;
+    Snd_work.Seq[0].Fade_vol = 0x3DAF;
+    Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, FADE_HOLD, 1, 0, 0xFFFFFF, 30);
     while (!(Fade_status(0) & FADE_END)) {
-        func_801C20FC();
+        Select_pl_main();
         Task_sleep(1);
     }
     Fade_set(1, 0, FADE_HOLD, 2, 0, 0xFFFFFF, 15);
@@ -514,7 +517,7 @@ void func_801C331C(void)
 }
 
 /* RE2 Select_exit */
-void func_801C354C(void)
+void Select_exit(void)
 {
     SELECT_WORK *pSel = &Select_wk;
     tagGLOBAL *pG = &G;
@@ -532,7 +535,7 @@ void func_801C354C(void)
 }
 
 /* RE2 Select_pl_dir_set */
-void func_801C35C8(void)
+void Select_pl_dir_set(void)
 {
     SELECT_WORK *pSel = &Select_wk;
     tagGLOBAL *pG = &G;
@@ -549,8 +552,8 @@ void func_801C35C8(void)
     pSel->Flg |= 1;
 }
 
-/* RE2 Select_pl_rot: turntable (L_pl angle -> Unk158) and Cdir_y ->Tilt[0] */
-void func_801C3660(void)
+/* RE2 Select_pl_rot: turntable (Unk154 angle -> Unk158) and Cdir_y -> Unk1BC[0] */
+void Select_pl_rot(void)
 {
     SELECT_WORK *pSel = &Select_wk;
     tagGLOBAL *pG;
@@ -597,16 +600,20 @@ void func_801C3660(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/select", func_801C3830);
+/* loads one character model (Select_pl_cd file), maps its TIM and links parts, motions and skin; returns the
+ * next free address */
+INCLUDE_ASM("asm/nonmatchings/ovl/select", Select_pl_load);
 
 #include "ovl/common/jill_sel/Jill_pl_trans.inc.c"
 
 #include "ovl/common/jill_sel/Jill_light_set.inc.c"
 
+/* loads a model's weapon (Jill_wep_cd file), uploads its TIM and calls the weapon init routine; returns the
+ * next free address */
 INCLUDE_ASM("asm/nonmatchings/ovl/select", Jill_wep_load);
 
 /* RE2 Select_moji_set */
-void func_801C3DB8(ULONG *pDst, SELECT_MOJI_REC *pSrc)
+void Select_moji_set(ULONG *pDst, SELECT_MOJI_REC *pSrc)
 {
     pDst[0] = pSrc->Word0;
     pDst[1] = pSrc->Word1;
@@ -615,7 +622,7 @@ void func_801C3DB8(ULONG *pDst, SELECT_MOJI_REC *pSrc)
 }
 
 /* RE2 Select_moji_dm_set */
-void func_801C3E3C(void)
+void Select_moji_dm_set(void)
 {
     SELECT_MOJI *pM;
     LONG i;
@@ -630,22 +637,22 @@ void func_801C3E3C(void)
 }
 
 /* RE2 Select_moji_init */
-void func_801C3F00(void)
+void Select_moji_init(void)
 {
     SELECT_MOJI *pM;
     ULONG i;
 
     pM = Select_pMoji;
-    func_801C44A4();
+    Select_moji_clear();
     for (i = 0; i < 141; i++) {
-        func_801C3DB8((ULONG *)&pM->Rec[i], &Select_moji_tbl[i]);
+        Select_moji_set((ULONG *)&pM->Rec[i], &Select_moji_tbl[i]);
     }
     pM->Blink = 0;
 }
 
 /* RE2 Select_moji_print: types pStr into the window, Wait frames per character;
  * ']' new line, '[ddd' pause, '|d' colour. Returns 1 and sets *pEnd at the end of the string. */
-ULONG func_801C3F74(LONG Wait, UCHAR *pStr, ULONG *pEnd)
+ULONG Select_moji_print(LONG Wait, UCHAR *pStr, ULONG *pEnd)
 {
     SELECT_MOJI *pM;
     UCHAR Printed;
@@ -706,53 +713,53 @@ ULONG func_801C3F74(LONG Wait, UCHAR *pStr, ULONG *pEnd)
 }
 
 /* RE2 Select_moji_ctrl: the message script of the selected player */
-void func_801C41E0(void)
+void Select_moji_ctrl(void)
 {
     SELECT_WORK *pSel = &Select_wk;
 
     switch (pSel->Moji_no) {
     case 0:
-        func_801C3F00();
+        Select_moji_init();
         Select_moji_end = 0;
         pSel->Moji_no = 1;
         break;
     case 1:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][0], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][0], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
         pSel->Moji_no = 2;
         break;
     case 2:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][1], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][1], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
         pSel->Moji_no = 3;
         break;
     case 3:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][2], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][2], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
         pSel->Moji_no = 4;
         break;
     case 4:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][3], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][3], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
         pSel->Moji_no = 5;
         break;
     case 5:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][4], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][4], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
         pSel->Moji_no = 6;
         break;
     case 6:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][5], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][5], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
@@ -763,7 +770,7 @@ void func_801C41E0(void)
         }
         break;
     case 7:
-        func_801C3F74(1, Select_str[pSel->Cursor_no][6], &Select_moji_end);
+        Select_moji_print(1, Select_str[pSel->Cursor_no][6], &Select_moji_end);
         if (Select_moji_end == 0) {
             goto update;
         }
@@ -776,12 +783,12 @@ void func_801C41E0(void)
         Select_moji_end = 0;
     }
 update:
-    func_801C44E8(1);
-    func_801C4644(141);
+    Select_moji_update(1);
+    Select_moji_trans(141);
 }
 
 /* RE2 Select_moji_clear */
-void func_801C44A4(void)
+void Select_moji_clear(void)
 {
     SELECT_MOJI *pM;
     UCHAR *pText;
@@ -801,7 +808,7 @@ void func_801C44A4(void)
 }
 
 /* RE2 Select_moji_update: glyph of each character, then the cursor */
-void func_801C44E8(LONG Disp)
+void Select_moji_update(LONG Disp)
 {
     SELECT_MOJI *pM;
     UCHAR *pText;
@@ -839,7 +846,7 @@ void func_801C44E8(LONG Disp)
 }
 
 /* RE2 Select_moji_trans: one SPRT packet per visible glyph */
-void func_801C4644(LONG Num)
+void Select_moji_trans(LONG Num)
 {
     SELECT_MOJI *pM;
     ULONG *p;
@@ -862,11 +869,11 @@ void func_801C4644(LONG Num)
         }
         pR++;
     } while (pR < pEnd);
-    func_801C3E3C();
+    Select_moji_dm_set();
 }
 
 /* RE2 Select_bg_load */
-void func_801C4774(void)
+void Select_bg_load(void)
 {
     Cd_read(0x52, (ULONG *)0x8019C000, 0, "Select BG");
     Cd_read(0x54, (ULONG *)0x80100000, 0, (char *)Select_str_sel);
@@ -882,13 +889,15 @@ const char Select_str_sel[8] = { 'S', 'e', 'l', 'e', 'c', 't', 0, 0x11 };
 #include "ovl/common/jill_sel/Jill_obj_draw.inc.c"
 #include "ovl/common/jill_sel/Jill_obj_rgb.inc.c"
 
-void func_801C4BA0(SEL_OBJ *pObj, SHORT X, SHORT Y)
+/* sets the position of a sprite object */
+void Sel_obj_pos_set(SEL_OBJ *pObj, SHORT X, SHORT Y)
 {
     pObj->X = X;
     pObj->Y = Y;
 }
 
-void func_801C4BAC(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut)
+/* replaces size and texture position of a sprite object in both buffers (TpClut unused) */
+void Sel_obj_uv_set(SEL_OBJ *pObj, SEL_SPRT_DEF *pDef, ULONG TpClut)
 {
     SEL_SPRT *pSp;
 

@@ -8,3 +8,7 @@ Epilog_draw = 0x801C2958; // type:func  (proposed)
 Epilog_pic_read = 0x801C2AB4; // type:func  (proposed)
 Epilog_routine = 0x801C2BCC; // (proposed)
 Epilog_work = 0x801C2BE0; // EPI_WORK (proposed)
+// cleanup names
+Epi_file = 0x801C2B4C;
+Epi_file_sum = 0x801C2B9C;
+Epi_page_pos = 0x801C2BA8;

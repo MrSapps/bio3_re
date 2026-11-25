@@ -203,7 +203,7 @@ LONG Oba_push_all(COL_OBJ *pTop, COL_ENT *pEnt)
                 Oba_area_ck(pEm, p->W0, Tbl, p);
             }
             if (!(p->Flg & 0x80)) {
-                func_8004AF04(pEm, p->W0, Tbl, p);
+                Sca_hit_all(pEm, p->W0, Tbl, p);
             }
             if (p->Type < 3) {
                 func_80034F08(pEm, p->W0, Tbl, p);
@@ -577,7 +577,7 @@ void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
     pPl = &Pl_work;
     if (Oba_front_ck(pPl, pEnt->pObj->pEm)) {
         if (Type == 7 && !(pObj->Hit_flg & 0x600)) {
-            if (func_8004B374(pEnt, 7, 0) == 0) {
+            if (Pl_floor_ck(pEnt, 7, 0) == 0) {
                 pEnt->pObj->Hit_flg |= 0x10;
                 pEnt->pObj->Unk3A |= 0x8000;
             } else {
@@ -585,7 +585,7 @@ void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
             }
         }
     } else if (Type == 8 && !(pObj->Hit_flg & 0x600)) {
-        if (func_8004B374(pEnt, 8, 0)) {
+        if (Pl_floor_ck(pEnt, 8, 0)) {
             pPl->Unk1C8 = 0;
         }
     }
@@ -685,7 +685,7 @@ LONG Oba_cross_ck(COL_OBJ *pObj, COL_OBJ *pT)
     tex = pT->pEm->Pos_x;
     tez = pT->pEm->Pos_z;
     Oba_push_out(pObj, pT);
-    Ret = func_8004AF04(pObj->pEm, pObj->W0, 0x4000, pObj);
+    Ret = Sca_hit_all(pObj->pEm, pObj->W0, 0x4000, pObj);
     if (Ret != 0 || !(D_800D1F2C & 0x10) || pT->pEm->Damage_cnt != 0) {
         pObj->Pos_x = x;
         pObj->Pos_z = z;

@@ -1,8 +1,13 @@
+/*
+ * SABUN.C (RE2 SABUN.C lineage): vertex morphing (sabun = difference) data of enemy parts; RE3 adds two
+ * collision helpers at its end
+ */
 #include "sabun.h"
 #include "md_sub.h"
 
 #define RND() ((signed char)Rnd())
 
+/* RE2 Sa_dat_set: links the morph section of an EMD to the parts flagged in its bit mask (PARTS_W.pUnk98) */
 void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
 {
     PARTS_W *pP;
@@ -29,7 +34,8 @@ void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004A934);
+/* morph step: blends a part's vertices between key Key_no - 1 and Key_no (em34/em36 bodies) */
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_morph_step);
 
 /* morph (sabun) data at PARTS_W.pSa_dat_head */
 typedef struct {
@@ -41,7 +47,8 @@ typedef struct {
     } Key[1];                          /* 0x08 */
 } SA_DATA;
 
-void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP)
+/* weighted morph: base shape plus every target scaled by its Rate (0x1000 = full) */
+void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP)
 {
     SA_DATA *pSa;
     SVECTOR *pVert;
@@ -97,8 +104,12 @@ void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP)
     } while (--k != 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004AD94);
+/* interpolates the parts' joint offsets between two morph keys with the GTE (gpf/gpl) */
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_joint_blend);
 
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004AF04);
+/* collision pass over the room's SCA blocks: calls each shape's hit routine (D_8009DFEC table), then
+ * Pl_floor_ck */
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Sca_hit_all);
 
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004B374);
+/* player-only check: floor heights at points around the player (Rot_vector + floor height), sets the hit flags */
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Pl_floor_ck);

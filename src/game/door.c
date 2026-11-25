@@ -225,7 +225,7 @@ void Door_snd_trans(void)
     Cd_read(File_no, Address, 3, "DOOR SOUND");
     Memcpy((void *)0x801FC100, Address, Address[5] + 0x10);
     SpuSetTransferMode(0);
-    func_8007836C(4, (ULONG *)0x801FC100);
+    Snd_vab_head_set(4, (ULONG *)0x801FC100);
     Snd_work.Bank_id[4].Id = 4;
     Snd_work.Bank_id[4].pData = (UCHAR *)0x3DE10;
     SpuSetTransferStartAddr(0x3DE10);

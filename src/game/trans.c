@@ -1,3 +1,6 @@
+/*
+ * TRANS.C (RE2 TRANS.C lineage): builds the POLY_FT4 sprites of the active effects (Esp[]) each frame
+ */
 #include "trans.h"
 #include "pl_wep.h"
 #include "sub.h"
@@ -128,10 +131,13 @@ loop:
     Trans.pPoly_ft4_keep = pP;
 }
 
+/* RE2 Esp_trans_main: billboard sprites of one effect, projected from its position with the world matrix */
 INCLUDE_ASM("asm/nonmatchings/game/trans", Esp_trans_main);
 
+/* sprites of an effect with its own rotation (matrix set by the caller), projected in 3D */
 INCLUDE_ASM("asm/nonmatchings/game/trans", Esp_trans_3d);
 
+/* RE2 Trans_work_init: sets the tag and colour of every effect POLY_FT4, then Trans_pointer_set */
 void Trans_work_init(void)
 {
     POLY_FT4 *pP2;
@@ -148,6 +154,7 @@ void Trans_work_init(void)
     Trans_pointer_set();
 }
 
+/* RE2 Trans_pointer_set: starts the effect prim cursor at the current buffer's POLY_FT4 pool */
 void Trans_pointer_set(void)
 {
     Trans.pPoly_ft4_keep = Trans.Prim_poly_ft4[G.Cbuf_id];

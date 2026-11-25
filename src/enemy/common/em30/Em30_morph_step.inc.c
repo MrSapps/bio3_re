@@ -13,5 +13,5 @@ void Em30_morph_step(ENEMY_WORK *pEm, LONG Step, LONG Dir)
         if (EM30_SABUN_P(pP)->Key[0].Rate > 0x1000)
             EM30_SABUN_P(pP)->Key[0].Rate = 0x1000;
     }
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
 }

@@ -1345,7 +1345,7 @@ found:
     if (!(Tag & 0x0C000000)) {
         return;
     }
-    if (Sce.Unk1496 >= Sce.Mizu_div_max) {
+    if (Sce.Mizu_div_ctr >= Sce.Mizu_div_max) {
         return;
     }
     pPrim->tag = Tag & 0xFFFFFF;
@@ -1356,8 +1356,8 @@ found:
     k = pPrim->tpage;
     pPrim = (POLY_GT4 *)Sce.pMizu_div;
     pPrim += pG->Cbuf_id;
-    pPrim += Sce.Unk1496 * 26;
-    Sce.Unk1496++;
+    pPrim += Sce.Mizu_div_ctr * 26;
+    Sce.Mizu_div_ctr++;
     M = GsIDMATRIX;
     RotMatrix(CDIR_SV(EM_MD(pFloor)), &Lm);
     Lm.t[0] = EM_MD(pFloor)->Workm.t[0];

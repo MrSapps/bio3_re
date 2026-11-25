@@ -2,7 +2,7 @@
 #include "sld.h"
 #include "sub.h"
 
-/* text drawn with func_801C4A70 is fullwidth Shift-JIS; identical literals are shared by cc1 */
+/* text drawn with Config_moji_disp is fullwidth Shift-JIS; identical literals are shared by cc1 */
 #define S_TYPE            "\x82\x73\x82\x78\x82\x6F\x82\x64" /* ＴＹＰＥ */
 #define S_A               "\x82\x60" /* Ａ */
 #define S_B               "\x82\x61" /* Ｂ */
@@ -28,7 +28,7 @@
     }
 
 /* option screen task: fades between pages, runs the page routine of Opt.Routine every frame */
-void func_801C21B0(void)
+void Config(void)
 {
     LONG Fade;
 
@@ -36,7 +36,7 @@ void func_801C21B0(void)
     if (G.Unk2115 == 1) {
         Snd_se_stad(0x500, 0, 0, 0);
     }
-    func_801C2AC4();
+    Config_init();
     OPT_FRAME_SET();
     goto init;
     for (;;) {
@@ -48,9 +48,9 @@ void func_801C21B0(void)
             Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0xF);
             Opt.Fade_mode = 2;
             if (G.Unk2115 == 1 && Opt.Routine_next == 6) {
-                Snd_work.Seq[0].Unk3C = 0x3B5F;
-                Snd_work.Seq[0].Unk38 = 2;
-                Snd_work.Seq[0].Unk40 = 0x4A0;
+                Snd_work.Seq[0].Fade_vol = 0x3B5F;
+                Snd_work.Seq[0].Fade_mode = 2;
+                Snd_work.Seq[0].Fade_step = 0x4A0;
             }
         case 2:
             if (!(Fade_status(0) & 4)) {
@@ -81,7 +81,7 @@ void func_801C21B0(void)
                 goto exit;
             }
         init:
-            D_801C5554[Opt.Routine]();
+            Config_padd[Opt.Routine]();
             Fade_set(0, 1, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
             Task_sleep(2);
             Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
@@ -94,9 +94,9 @@ void func_801C21B0(void)
             break;
         }
         if (Opt.Fade_mode == 0) {
-            D_801C5554[Opt.Routine]();
+            Config_padd[Opt.Routine]();
         }
-        D_801C556C[Opt.Routine]();
+        Config_padd_disp[Opt.Routine]();
         AddPrim(G.pOt0 + 3, &Opt.Moji_tpage[G.Cbuf_id]);
         if (Opt.Shade_on) {
             AddPrim(G.pOt0 + 5, &Opt.Line[G.Cbuf_id][0]);
@@ -108,13 +108,13 @@ void func_801C21B0(void)
     }
 exit:
     G.Unk2468 = 0;
-    func_801C30E8();
+    Config_exit();
     Task_signal(0);
     Task_exit();
 }
 
 /* top menu: cursor over the six rows */
-void func_801C2688(void)
+void Config_padd_opt(void)
 {
     OPT_WORK *pW;
 
@@ -152,56 +152,56 @@ void func_801C2688(void)
 }
 
 /* top menu: draw */
-void func_801C2850(void)
+void Config_opt_disp(void)
 {
     LONG Cur;
     LONG Dark;
     LONG Y;
 
     Cur = Opt.Cur;
-    func_801C4A70(0x5E, 0x28, "\x82\x66\x82\x60\x82\x6C\x82\x64\x81\x40\x82\x62\x82\x6E\x82\x6D\x82\x65\x82\x68\x82\x66", 0, 0); /* ＧＡＭＥ　ＣＯＮＦＩＧ */
+    Config_moji_disp(0x5E, 0x28, "\x82\x66\x82\x60\x82\x6C\x82\x64\x81\x40\x82\x62\x82\x6E\x82\x6D\x82\x65\x82\x68\x82\x66", 0, 0); /* ＧＡＭＥ　ＣＯＮＦＩＧ */
     Dark = Cur != 0;
-    func_801C4A70(0x2A, 0x46, "\x82\x6A\x82\x64\x82\x78\x81\x40\x82\x62\x82\x6E\x82\x6D\x82\x65\x82\x68\x82\x66", Dark, 1); /* ＫＥＹ　ＣＯＮＦＩＧ */
-    func_801C4A70(0xCC, 0x46, S_TYPE, Dark, 0);
+    Config_moji_disp(0x2A, 0x46, "\x82\x6A\x82\x64\x82\x78\x81\x40\x82\x62\x82\x6E\x82\x6D\x82\x65\x82\x68\x82\x66", Dark, 1); /* ＫＥＹ　ＣＯＮＦＩＧ */
+    Config_moji_disp(0xCC, 0x46, S_TYPE, Dark, 0);
     Y = 0x46;
     switch (Main.Unk195) {
     case 0:
-        func_801C4A70(0x103, 0x46, S_A, Dark, 0);
+        Config_moji_disp(0x103, 0x46, S_A, Dark, 0);
         break;
     case 1:
-        func_801C4A70(0x103, 0x46, S_B, Dark, 0);
+        Config_moji_disp(0x103, 0x46, S_B, Dark, 0);
         break;
     case 2:
-        func_801C4A70(0x103, 0x46, S_C, Dark, 0);
+        Config_moji_disp(0x103, 0x46, S_C, Dark, 0);
         break;
     }
     Y += 0x14;
-    func_801C4A70(0x2A, Y, S_VIBRATION, Cur != 1, 1);
+    Config_moji_disp(0x2A, Y, S_VIBRATION, Cur != 1, 1);
     if (Main.Unk196 & 0x80) {
-        func_801C4A70(0xED, Y, S_OFF, Cur != 1, 0);
+        Config_moji_disp(0xED, Y, S_OFF, Cur != 1, 0);
     } else {
-        func_801C4A70(0xF7, Y, S_ON, Cur != 1, 0);
+        Config_moji_disp(0xF7, Y, S_ON, Cur != 1, 0);
     }
     Y += 0x14;
-    func_801C4A70(0x2A, Y, S_SOUND, Cur != 2, 1);
+    Config_moji_disp(0x2A, Y, S_SOUND, Cur != 2, 1);
     if (Stereo_flg) {
-        func_801C4A70(0xA8, Y, S_MONAURAL, Cur != 2, 0);
+        Config_moji_disp(0xA8, Y, S_MONAURAL, Cur != 2, 0);
     } else {
-        func_801C4A70(0xCD, Y, S_STEREO, Cur != 2, 0);
+        Config_moji_disp(0xCD, Y, S_STEREO, Cur != 2, 0);
     }
     Y += 0x14;
-    func_801C4A70(0x2A, Y, S_MONITOR_ADJUST, Cur != 3, 1);
+    Config_moji_disp(0x2A, Y, S_MONITOR_ADJUST, Cur != 3, 1);
     Y += 0x14;
-    func_801C4A70(0x2A, Y, S_RESET, Cur != 4, 1);
-    func_801C4A70(0x2A, Y + 0x1E, S_EXIT, Cur != 5, 1);
-    func_801C31C8();
+    Config_moji_disp(0x2A, Y, S_RESET, Cur != 4, 1);
+    Config_moji_disp(0x2A, Y + 0x1E, S_EXIT, Cur != 5, 1);
+    Config_bg_disp();
 }
 
 /* screen init: load data, prims, background pieces; saves the main bg settings */
-void func_801C2AC4(void)
+void Config_init(void)
 {
-    func_801C3278();
-    func_801C2C58();
+    Config_bg_load();
+    Config_prim_init();
     Opt.Routine = 0;
     Opt.Step = 0;
     Opt.Cur = 0;
@@ -213,26 +213,26 @@ void func_801C2AC4(void)
     Opt.Bg_mode_bak = Main.Bg_mode;
     Opt.Unk191_bak = Main.Unk191;
     Opt.Vloop_bak = Main.Vloop;
-    func_801C5348(0, 2, 0x63, 0x8A, 0);
-    func_801C5348(1, 0, 0x60, 0xC0, 0);
-    func_801C5348(2, 0, 0xBA, 0xC6, 0);
-    func_801C5348(3, 1, 0xEC, 0x92, 0);
-    func_801C5348(4, 0, 0x112, 0x4B, 0);
-    func_801C5348(5, 0, 0x94, 0x61, 0);
-    func_801C5348(6, 2, 0xBB, 0x85, 0);
-    func_801C5348(7, 1, 0x3D, 0x9F, 0);
-    func_801C5348(8, 0, 0x37, 0x5F, 0);
+    Config_piece_set(0, 2, 0x63, 0x8A, 0);
+    Config_piece_set(1, 0, 0x60, 0xC0, 0);
+    Config_piece_set(2, 0, 0xBA, 0xC6, 0);
+    Config_piece_set(3, 1, 0xEC, 0x92, 0);
+    Config_piece_set(4, 0, 0x112, 0x4B, 0);
+    Config_piece_set(5, 0, 0x94, 0x61, 0);
+    Config_piece_set(6, 2, 0xBB, 0x85, 0);
+    Config_piece_set(7, 1, 0x3D, 0x9F, 0);
+    Config_piece_set(8, 0, 0x37, 0x5F, 0);
     Main.Unk191 = 1;
     Bg_set_mode(2, 0);
     Main.Vloop = 1;
     Pad_rep_set(0xF000, 0x314);
-    Snd_work.UnkB1C = 0x80;
-    Snd_work.UnkB20 = 0x3FFF;
-    Snd_work.UnkB24 = 0xB00;
+    Snd_work.Fade_mask = 0x80;
+    Snd_work.Fade_vol = 0x3FFF;
+    Snd_work.Fade_step = 0xB00;
 }
 
 /* screen init: set up the primitives of both buffers (background, text tpage, icons, pad picture, pieces, shade panel and its lines) */
-void func_801C2C58(void)
+void Config_prim_init(void)
 {
     SPRT *pBg;
     SPRT *pIcon;
@@ -314,8 +314,8 @@ void func_801C2C58(void)
         p->clut = Clut1;
         p->w = 0x48;
         p->h = 0x10;
-        p->x0 = D_801C54FC[0];
-        p->y0 = D_801C54FC[1];
+        p->x0 = Config_pad_icon_pos[0];
+        p->y0 = Config_pad_icon_pos[1];
         for (j = 0; j < 20; j++) {
             pPoly = &Opt.Piece[j].Poly[i];
             SetPolyFT4(pPoly);
@@ -348,7 +348,7 @@ void func_801C2C58(void)
 }
 
 /* screen exit: reload the game texture page and restore the main bg settings */
-void func_801C30E8(void)
+void Config_exit(void)
 {
     tagGLOBAL *pG;
 
@@ -363,13 +363,13 @@ void func_801C30E8(void)
     Main.Unk191 = Opt.Unk191_bak;
     Main.Vloop = Opt.Vloop_bak;
     Fade_set(0, 1, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
-    Snd_work.UnkB1C = 0x80;
-    Snd_work.UnkB20 = 0;
-    Snd_work.UnkB24 = -0xB00;
+    Snd_work.Fade_mask = 0x80;
+    Snd_work.Fade_vol = 0;
+    Snd_work.Fade_step = -0xB00;
 }
 
 /* draw the background and the pieces */
-void func_801C31C8(void)
+void Config_bg_disp(void)
 {
     OPT_WORK *pW;
     ULONG *pOt;
@@ -385,19 +385,19 @@ void func_801C31C8(void)
     AddPrim(pOt, &pBg[1]);
     AddPrim(pOt, &pBg[2]);
     AddPrim(pOt, &pTpage[1]);
-    func_801C4EB8();
-    func_801C50B4();
+    Config_piece_move();
+    Config_piece_disp();
 }
 
 /* load Option.dat (background) and its cluts */
-void func_801C3278(void)
+void Config_bg_load(void)
 {
     RECT Rect;
 
     CD.Fno = 0x40;
-    CD.Fsize = D_801C53FC[0].Size;
+    CD.Fsize = Config_file_tbl[0].Size;
     CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector;
-    CD.Fsum = D_801C541C[0];
+    CD.Fsum = Config_file_sum[0];
     Cd_read(0x40, (ULONG *)0x8019C000, 2, "Option.dat");
     Rect.x = 0x100;
     Rect.y = 0x1FE;
@@ -414,31 +414,31 @@ void func_801C3278(void)
 }
 
 /* load the pad picture for the pad type (dual shock or normal) */
-void func_801C336C(void)
+void Config_pad_tim_load(void)
 {
     if (G.Pad_type == 7) {
         CD.Fno = 0x40;
-        CD.Fsize = D_801C53FC[1].Size;
-        CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector + D_801C53FC[1].Ofs;
-        CD.Fsum = D_801C541C[1];
+        CD.Fsize = Config_file_tbl[1].Size;
+        CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector + Config_file_tbl[1].Ofs;
+        CD.Fsum = Config_file_sum[1];
         Cd_read(0x40, (ULONG *)0x8019C000, 2, "PaddD.tim");
     } else {
         CD.Fno = 0x40;
-        CD.Fsize = D_801C53FC[2].Size;
-        CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector + D_801C53FC[2].Ofs;
-        CD.Fsum = D_801C541C[2];
+        CD.Fsize = Config_file_tbl[2].Size;
+        CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector + Config_file_tbl[2].Ofs;
+        CD.Fsum = Config_file_sum[2];
         Cd_read(0x40, (ULONG *)0x8019C000, 2, "PaddN.tim");
     }
 }
 
 /* key config page */
-void func_801C3460(void)
+void Config_padd_con(void)
 {
     OPT_WORK *pW;
 
     pW = &Opt;
     if (pW->Step == 0) {
-        func_801C336C();
+        Config_pad_tim_load();
         pW->Timer = 0;
         pW->Sub_cur = 0;
         pW->Pad_type = G.Pad_type;
@@ -447,7 +447,7 @@ void func_801C3460(void)
         pW->Step++;
     }
     if (pW->Pad_type != G.Pad_type) {
-        func_801C336C();
+        Config_pad_tim_load();
     }
     pW->Pad_type = G.Pad_type;
     if ((G.Unk20FC & 0x1000) && pW->Sub_cur == 1) {
@@ -468,13 +468,13 @@ void func_801C3460(void)
                 if (++Opt.Pad_cfg == 3) {
                     Opt.Pad_cfg = 0;
                 }
-                D_801C5594 = 1;
+                Config_pad_arrow_r = 1;
             }
             if (G.Unk2100 & 0x8000) {
                 if (--Opt.Pad_cfg == -1) {
                     Opt.Pad_cfg = 2;
                 }
-                D_801C5598 = 1;
+                Config_pad_arrow_l = 1;
             }
             Opt.Arrow = 2;
         }
@@ -485,8 +485,8 @@ void func_801C3460(void)
         }
         if (!((USHORT)G.Unk20F8 & 0xA000)) {
             Opt.Arrow = 0;
-            D_801C5598 = 0;
-            D_801C5594 = 0;
+            Config_pad_arrow_l = 0;
+            Config_pad_arrow_r = 0;
         }
         break;
     case 1:
@@ -498,33 +498,33 @@ void func_801C3460(void)
             G.Pad_type = Opt.Pad_type;
             Main.Unk195 = Opt.Pad_cfg;
             Main.Unk196 = Opt.Flg;
-            func_801C4E9C();
+            Config_page_exit();
         }
         break;
     }
     if (Opt.Fade_mode == 0 && (G.Key_trg & 0x2000)) {
         Snd_se_stad(5, 0, 0, 0);
-        func_801C4E9C();
+        Config_page_exit();
     }
 }
 
 /* key config page: draw */
-void func_801C3780(void)
+void Config_con_disp(void)
 {
     OPT_WORK *pW;
     LONG On;
 
     pW = &Opt;
-    func_801C4A70(0xC9, 0x16, S_TYPE, pW->Sub_cur != 0, 1);
+    Config_moji_disp(0xC9, 0x16, S_TYPE, pW->Sub_cur != 0, 1);
     switch (pW->Pad_cfg) {
     case 0:
-        func_801C4A70(0x100, 0x16, S_A, pW->Sub_cur != 0, 1);
+        Config_moji_disp(0x100, 0x16, S_A, pW->Sub_cur != 0, 1);
         break;
     case 1:
-        func_801C4A70(0x100, 0x16, S_B, pW->Sub_cur != 0, 1);
+        Config_moji_disp(0x100, 0x16, S_B, pW->Sub_cur != 0, 1);
         break;
     case 2:
-        func_801C4A70(0x100, 0x16, S_C, pW->Sub_cur != 0, 1);
+        Config_moji_disp(0x100, 0x16, S_C, pW->Sub_cur != 0, 1);
         break;
     }
     if (Opt.Arrow != 0) {
@@ -533,14 +533,14 @@ void func_801C3780(void)
     } else {
         On = 0;
     }
-    func_801C4DE0(0xB9, 0x16, 0, D_801C5598 && On);
-    func_801C4DE0(0x110, 0x16, 1, D_801C5594 && On);
-    func_801C4A70(0xD8, 0x25, S_EXIT, Opt.Sub_cur != 1, 1);
-    func_801C3904();
+    Config_arrow_disp(0xB9, 0x16, 0, Config_pad_arrow_l && On);
+    Config_arrow_disp(0x110, 0x16, 1, Config_pad_arrow_r && On);
+    Config_moji_disp(0xD8, 0x25, S_EXIT, Opt.Sub_cur != 1, 1);
+    Config_pad_disp();
 }
 
 /* key config page: pad button picture and the control mode text */
-void func_801C3904(void)
+void Config_pad_disp(void)
 {
     SPRT *p;
     UCHAR *pIcon;
@@ -548,7 +548,7 @@ void func_801C3904(void)
 
     i = 0;
     p = Opt.Button[G.Cbuf_id];
-    pIcon = &D_801C54F8[Opt.Pad_cfg];
+    pIcon = &Config_pad_icon[Opt.Pad_cfg];
     for (; i < 1; i++) {
         p->u0 = (UCHAR)(pIcon[i] / 5) * 72;
         p->v0 = (UCHAR)(pIcon[i] % 5) * 16 + 0x30;
@@ -556,14 +556,14 @@ void func_801C3904(void)
         p++;
     }
     if (Opt.Flg & 0x40) {
-        func_801C4A70(0x7A, 0x5A, "\x82\x6C\x82\x60\x82\x6D\x82\x74\x82\x60\x82\x6B", 0, 0);
+        Config_moji_disp(0x7A, 0x5A, "\x82\x6C\x82\x60\x82\x6D\x82\x74\x82\x60\x82\x6B", 0, 0);
     } else {
-        func_801C4A70(0x87, 0x5A, "\x82\x60\x82\x74\x82\x73\x82\x6E", 0, 0);
+        Config_moji_disp(0x87, 0x5A, "\x82\x60\x82\x74\x82\x73\x82\x6E", 0, 0);
     }
 }
 
 /* vibration page */
-void func_801C3A58(void)
+void Config_padd_vib(void)
 {
     OPT_WORK *pW;
 
@@ -591,27 +591,27 @@ void func_801C3A58(void)
                 Pad_vib_set0(0xF, 0);
                 Pad_vib_set1(0xF, 0xFF, 0);
             }
-            func_801C4E9C();
+            Config_page_exit();
         }
         if (G.Key_trg & 0x2000) {
             Snd_se_stad(5, 0, 0, 0);
-            func_801C4E9C();
+            Config_page_exit();
         }
     }
 }
 
 /* vibration page: draw */
-void func_801C3BDC(void)
+void Config_vib_disp(void)
 {
-    func_801C4A70(0x6D, 0x36, S_VIBRATION, 0, 0);
-    func_801C4A70(0x70, 0x6A, S_ON, Opt.Flg >> 7, 1);
-    func_801C4A70(0x98, 0x6A, S_SLASH, 0, 0);
-    func_801C4A70(0xB4, 0x6A, S_OFF, (Opt.Flg >> 7) ^ 1, 1);
-    func_801C31C8();
+    Config_moji_disp(0x6D, 0x36, S_VIBRATION, 0, 0);
+    Config_moji_disp(0x70, 0x6A, S_ON, Opt.Flg >> 7, 1);
+    Config_moji_disp(0x98, 0x6A, S_SLASH, 0, 0);
+    Config_moji_disp(0xB4, 0x6A, S_OFF, (Opt.Flg >> 7) ^ 1, 1);
+    Config_bg_disp();
 }
 
 /* sound page: stereo/mono and the BGM / SE volumes (0..100, Snd_work 0..127) */
-void func_801C3C90(void)
+void Config_padd_snd(void)
 {
     OPT_WORK *pW;
 
@@ -621,7 +621,7 @@ void func_801C3C90(void)
         pW->Sub_cur_old = 0;
         pW->Timer = 0;
         pW->Step++;
-        pW->Stereo = Snd_work.UnkB75;
+        pW->Stereo = Snd_work.Mono;
         pW->Vol_bak[0] = Snd_work.Vol.Bgm;
         pW->Vol_bak[1] = Snd_work.Vol.Se;
         pW->Vol[0] = Snd_work.Vol.Bgm * 100 / 127;
@@ -645,10 +645,10 @@ void func_801C3C90(void)
     if (G.Unk2100 & 0x5000) {
         Opt.Hold = 0;
         Opt.Arrow = 0;
-        D_801C5598 = 0;
-        D_801C5594 = 0;
-        D_801C5590 = 0;
-        D_801C558C = 0;
+        Config_pad_arrow_l = 0;
+        Config_pad_arrow_r = 0;
+        Config_se_arrow_l = 0;
+        Config_se_arrow_r = 0;
     }
     if (Opt.Sub_cur_old != Opt.Sub_cur) {
         Opt.Timer = 0;
@@ -682,9 +682,9 @@ void func_801C3C90(void)
             if (Opt.Vol_old[0] != Opt.Vol[0]) {
                 Snd_se_stad(4, 0, 0, 0);
                 if (Opt.Vol_old[0] > Opt.Vol[0]) {
-                    D_801C5598 = 1;
+                    Config_pad_arrow_l = 1;
                 } else {
-                    D_801C5594 = 1;
+                    Config_pad_arrow_r = 1;
                 }
                 Opt.Arrow = 2;
             }
@@ -693,10 +693,10 @@ void func_801C3C90(void)
         if (!((USHORT)G.Unk20F8 & 0xA000)) {
             Opt.Hold = 0;
             Opt.Arrow = 0;
-            D_801C5598 = 0;
-            D_801C5594 = 0;
-            D_801C5590 = 0;
-            D_801C558C = 0;
+            Config_pad_arrow_l = 0;
+            Config_pad_arrow_r = 0;
+            Config_se_arrow_l = 0;
+            Config_se_arrow_r = 0;
         }
         break;
     case 2:
@@ -713,9 +713,9 @@ void func_801C3C90(void)
             if (Opt.Vol_old[1] != Opt.Vol[1]) {
                 Snd_se_stad(4, 0, 0, 0);
                 if (Opt.Vol_old[1] > Opt.Vol[1]) {
-                    D_801C5590 = 1;
+                    Config_se_arrow_l = 1;
                 } else {
-                    D_801C558C = 1;
+                    Config_se_arrow_r = 1;
                 }
                 Opt.Arrow = 2;
             }
@@ -724,10 +724,10 @@ void func_801C3C90(void)
         if (!((USHORT)G.Unk20F8 & 0xA000)) {
             Opt.Hold = 0;
             Opt.Arrow = 0;
-            D_801C5598 = 0;
-            D_801C5594 = 0;
-            D_801C5590 = 0;
-            D_801C558C = 0;
+            Config_pad_arrow_l = 0;
+            Config_pad_arrow_r = 0;
+            Config_se_arrow_l = 0;
+            Config_se_arrow_r = 0;
         }
         break;
     case 3:
@@ -737,7 +737,7 @@ void func_801C3C90(void)
         if (G.Key_trg & 0x1000) {
             Snd_se_stad(6, 0, 0, 0);
             Stereo_flg = Opt.Stereo;
-            func_801C4E9C();
+            Config_page_exit();
         }
         break;
     }
@@ -745,53 +745,53 @@ void func_801C3C90(void)
         Snd_se_stad(5, 0, 0, 0);
         Snd_work.Vol.Bgm = Opt.Vol_bak[0];
         Snd_work.Vol.Se = Opt.Vol_bak[1];
-        func_801C4E9C();
+        Config_page_exit();
     }
 }
 
 /* sound page: draw */
-void func_801C435C(void)
+void Config_snd_disp(void)
 {
     OPT_WORK *pW;
     LONG On;
 
-    func_801C4A70(0x82, 0x32, S_SOUND, 0, 0);
+    Config_moji_disp(0x82, 0x32, S_SOUND, 0, 0);
     pW = &Opt;
-    func_801C4A70(0x2C, 0x50, S_STEREO, pW->Stereo != 0, pW->Sub_cur == 0);
-    func_801C4A70(0xB4, 0x50, S_MONAURAL, pW->Stereo == 0, pW->Sub_cur == 0);
+    Config_moji_disp(0x2C, 0x50, S_STEREO, pW->Stereo != 0, pW->Sub_cur == 0);
+    Config_moji_disp(0xB4, 0x50, S_MONAURAL, pW->Stereo == 0, pW->Sub_cur == 0);
     if (pW->Arrow != 0) {
         pW->Arrow--;
         On = 1;
     } else {
         On = 0;
     }
-    func_801C4A70(0x2C, 0x6C, "\x82\x61\x82\x66\x82\x6C\x81\x44\x82\x75\x82\x6E\x82\x6B", Opt.Sub_cur != 1, 1);
-    func_801C4C94(0xDC, 0x6C, Opt.Vol[0]);
-    func_801C4DE0(0xCE, 0x6C, 0, D_801C5598 && On);
-    func_801C4DE0(0x106, 0x6C, 1, D_801C5594 && On);
-    func_801C4A70(0xBF, 0x6C, "\x81\x7C", 0, 0);
-    func_801C4A70(0x115, 0x6C, "\x81\x7B", 0, 0);
-    func_801C4A70(0x2C, 0x88, "\x82\x72\x82\x64\x81\x44\x82\x75\x82\x6E\x82\x6B", Opt.Sub_cur != 2, 1);
-    func_801C4C94(0xDC, 0x88, Opt.Vol[1]);
-    func_801C4DE0(0xCE, 0x88, 0, D_801C5590 && On);
-    func_801C4DE0(0x106, 0x88, 1, D_801C558C && On);
-    func_801C4A70(0xBF, 0x88, "\x81\x7C", 0, 0);
-    func_801C4A70(0x115, 0x88, "\x81\x7B", 0, 0);
-    func_801C4A70(0x2C, 0xB0, S_EXIT, Opt.Sub_cur != 3, 1);
-    func_801C31C8();
+    Config_moji_disp(0x2C, 0x6C, "\x82\x61\x82\x66\x82\x6C\x81\x44\x82\x75\x82\x6E\x82\x6B", Opt.Sub_cur != 1, 1);
+    Config_suuji(0xDC, 0x6C, Opt.Vol[0]);
+    Config_arrow_disp(0xCE, 0x6C, 0, Config_pad_arrow_l && On);
+    Config_arrow_disp(0x106, 0x6C, 1, Config_pad_arrow_r && On);
+    Config_moji_disp(0xBF, 0x6C, "\x81\x7C", 0, 0);
+    Config_moji_disp(0x115, 0x6C, "\x81\x7B", 0, 0);
+    Config_moji_disp(0x2C, 0x88, "\x82\x72\x82\x64\x81\x44\x82\x75\x82\x6E\x82\x6B", Opt.Sub_cur != 2, 1);
+    Config_suuji(0xDC, 0x88, Opt.Vol[1]);
+    Config_arrow_disp(0xCE, 0x88, 0, Config_se_arrow_l && On);
+    Config_arrow_disp(0x106, 0x88, 1, Config_se_arrow_r && On);
+    Config_moji_disp(0xBF, 0x88, "\x81\x7C", 0, 0);
+    Config_moji_disp(0x115, 0x88, "\x81\x7B", 0, 0);
+    Config_moji_disp(0x2C, 0xB0, S_EXIT, Opt.Sub_cur != 3, 1);
+    Config_bg_disp();
 }
 
 /* monitor adjust page (Color.tim test picture) */
-void func_801C45DC(void)
+void Config_padd_clr(void)
 {
     OPT_WORK *pW;
 
     pW = &Opt;
     if (pW->Step == 0) {
         CD.Fno = 0x40;
-        CD.Fsize = D_801C53FC[3].Size;
-        CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector + D_801C53FC[3].Ofs;
-        CD.Fsum = D_801C541C[3];
+        CD.Fsize = Config_file_tbl[3].Size;
+        CD.Fsector = (floc[0x40].sec_high << 16) + floc[0x40].sector + Config_file_tbl[3].Ofs;
+        CD.Fsum = Config_file_sum[3];
         Cd_read(0x40, (ULONG *)0x8019C000, 2, "Color.tim");
         pW->Timer = 0;
         pW->Step++;
@@ -803,19 +803,19 @@ void func_801C45DC(void)
         if (G.Key_trg & 0x2000) {
             Snd_se_stad(5, 0, 0, 0);
         }
-        func_801C4E9C();
+        Config_page_exit();
     }
 }
 
 /* monitor adjust page: draw */
-void func_801C46F4(void)
+void Config_clr_disp(void)
 {
-    func_801C4A70(0x4E, 0x28, S_MONITOR_ADJUST, 0, 0);
-    func_801C4A70(0xFB, 0xCA, S_EXIT, 0, 1);
+    Config_moji_disp(0x4E, 0x28, S_MONITOR_ADJUST, 0, 0);
+    Config_moji_disp(0xFB, 0xCA, S_EXIT, 0, 1);
 }
 
 /* reset page */
-void func_801C4748(void)
+void Config_padd_res(void)
 {
     OPT_WORK *pW;
 
@@ -860,7 +860,7 @@ void func_801C4748(void)
             if (pW->No == 0) {
                 pW->Reset = 1;
             }
-            func_801C4E9C();
+            Config_page_exit();
         }
         break;
     case 1:
@@ -869,37 +869,39 @@ void func_801C4748(void)
         }
         if (G.Key_trg & 0x1000) {
             Snd_se_stad(6, 0, 0, 0);
-            func_801C4E9C();
+            Config_page_exit();
         }
         break;
     }
     if (Opt.Fade_mode == 0 && (G.Key_trg & 0x2000)) {
         Snd_se_stad(5, 0, 0, 0);
-        func_801C4E9C();
+        Config_page_exit();
     }
 }
 
 /* reset page: draw */
-void func_801C4940(void)
+void Config_res_disp(void)
 {
-    func_801C4A70(0x84, 0x36, S_RESET, 0, 0);
-    func_801C4A70(0x4E, 0x64, "\x82\x71\x82\x64\x82\x72\x82\x64\x82\x73\x81\x40\x82\x73\x82\x67\x82\x64\x81\x40\x82\x66\x82\x60\x82\x6C\x82\x64\x81\x48", 0, 0);
-    func_801C4A70(0x6A, 0x82, "\x82\x78\x82\x64\x82\x72", Opt.Sub_cur != 0 || Opt.No != 0, 1);
-    func_801C4A70(0x98, 0x82, S_SLASH, 0, 0);
-    func_801C4A70(0xB3, 0x82, "\x82\x6D\x82\x6E", Opt.Sub_cur != 0 || Opt.No != 1, 1);
-    func_801C4A70(0x8B, 0xAA, S_EXIT, Opt.Sub_cur != 1, 1);
-    func_801C31C8();
+    Config_moji_disp(0x84, 0x36, S_RESET, 0, 0);
+    Config_moji_disp(0x4E, 0x64, "\x82\x71\x82\x64\x82\x72\x82\x64\x82\x73\x81\x40\x82\x73\x82\x67\x82\x64\x81\x40\x82\x66\x82\x60\x82\x6C\x82\x64\x81\x48", 0, 0);
+    Config_moji_disp(0x6A, 0x82, "\x82\x78\x82\x64\x82\x72", Opt.Sub_cur != 0 || Opt.No != 0, 1);
+    Config_moji_disp(0x98, 0x82, S_SLASH, 0, 0);
+    Config_moji_disp(0xB3, 0x82, "\x82\x6D\x82\x6E", Opt.Sub_cur != 0 || Opt.No != 1, 1);
+    Config_moji_disp(0x8B, 0xAA, S_EXIT, Opt.Sub_cur != 1, 1);
+    Config_bg_disp();
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/option", func_801C4A70);
+/* draws a fullwidth Shift-JIS string */
+INCLUDE_ASM("asm/nonmatchings/ovl/option", Config_moji_disp);
 
 __asm__(".section .rodata\n.align 2\n.section .text"); /* literals are word aligned */
 INCLUDE_RODATA("asm/nonmatchings/ovl/option", D_801C21A4);
 
-INCLUDE_ASM("asm/nonmatchings/ovl/option", func_801C4C94);
+/* draws a number (RE2 Config_suuji role) */
+INCLUDE_ASM("asm/nonmatchings/ovl/option", Config_suuji);
 
 /* compares one fullwidth (2 byte) character */
-LONG func_801C4DAC(char *pA, char *pB)
+LONG Config_moji_cmp(char *pA, char *pB)
 {
     if (pA[1] == pB[1] && pA[0] == pB[0]) {
         return 1;
@@ -908,7 +910,7 @@ LONG func_801C4DAC(char *pA, char *pB)
 }
 
 /* left (Pad 0) / right (Pad 1) arrow, lit when On */
-void func_801C4DE0(LONG X, LONG Y, ULONG Pad, ULONG On)
+void Config_arrow_disp(LONG X, LONG Y, ULONG Pad, ULONG On)
 {
     SPRT *p;
 
@@ -938,7 +940,7 @@ void func_801C4DE0(LONG X, LONG Y, ULONG Pad, ULONG On)
 }
 
 /* leave the page: back to the top menu */
-void func_801C4E9C(void)
+void Config_page_exit(void)
 {
     Opt.Routine_next = 0;
     Opt.Step = 0;
@@ -946,7 +948,7 @@ void func_801C4E9C(void)
 }
 
 /* animate the background pieces (frame scripts, random jitter) */
-void func_801C4EB8(void)
+void Config_piece_move(void)
 {
     OPT_PIECE *p;
     ULONG i;
@@ -958,7 +960,7 @@ void func_801C4EB8(void)
         }
         if (--p->Timer == -1) {
             if (*(p->pAnim += 2) == 0xFF) {
-                p->pAnim = D_801C5548[p->Type];
+                p->pAnim = Config_piece_anim[p->Type];
             }
             p->Anim_no = p->pAnim[0];
             p->Timer = p->pAnim[1] + (Rnd() & 3);
@@ -991,7 +993,7 @@ void func_801C4EB8(void)
 }
 
 /* draw the background pieces rotated about y */
-void func_801C50B4(void)
+void Config_piece_disp(void)
 {
     MATRIX m;
     SVECTOR v[4];
@@ -1022,7 +1024,7 @@ void func_801C50B4(void)
         y = p->Pos_y >> 6;
         m = GsIDMATRIX;
         RotMatrixY(p->Rot_y, &m);
-        Size = D_801C5500[p->Id][0];
+        Size = Config_piece_shape[p->Id].Size;
         Half = Size >> 1;
         v[0].vx = -Half + 1;
         v[0].vz = -Half + 1;
@@ -1045,8 +1047,8 @@ void func_801C50B4(void)
         pPoly->y2 = v[2].vz + y;
         pPoly->x3 = v[3].vx + x;
         pPoly->y3 = v[3].vz + y;
-        u = D_801C5500[p->Id][2] + p->Anim_no * Size;
-        vv = D_801C5500[p->Id][3];
+        u = Config_piece_shape[p->Id].U + p->Anim_no * Size;
+        vv = Config_piece_shape[p->Id].V;
         pPoly->u0 = u;
         pPoly->v0 = vv;
         pPoly->u1 = u + Size - 1;
@@ -1060,14 +1062,14 @@ void func_801C50B4(void)
 }
 
 /* start a background piece in the first free slot */
-void func_801C5348(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y)
+void Config_piece_set(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y)
 {
     OPT_PIECE *p;
     UCHAR *pAnim;
     ULONG i;
 
     p = Opt.Piece;
-    pAnim = D_801C5548[Type];
+    pAnim = Config_piece_anim[Type];
     for (i = 0; i < 20; p++, i++) {
         if (p->Be_flg == 0) {
             p->Be_flg = 1;

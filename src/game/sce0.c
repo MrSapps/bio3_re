@@ -5,7 +5,7 @@
 #include "pad.h"
 #include "sld.h"
 
-UCHAR Rnd_uc(void) __asm__("Rnd"); /* returns unsigned char here (canonical unsigned long) */
+UCHAR Rnd_uc(void) __asm__("Rnd"); /* RE2 declared Rnd as UCHAR; the canonical ULONG keeps unsigned arithmetic for the other callers */
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
 struct tagSCE_AOT {
@@ -22,7 +22,7 @@ struct tagSCE_AOT {
 };
 
 /* AOT for a dropped part (Pl_wep_parts_drop: a part landing on the floor) */
-void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
+void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
 {
     struct tagSCE_AOT *pAot;
     tagGLOBAL *pG = &G;
@@ -61,41 +61,44 @@ void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
     pAot->pParts = pP;
 }
 
-UCHAR Em_kind_search(ULONG Id)
+/* model data kind of enemy Id from Em_kind_tbl (0x80 if not listed) */
+ULONG Em_kind_search(ULONG Id)
 {
-    UCHAR *p;
+    EM_KIND *p;
 
-    p = D_8009E340;
+    p = Em_kind_tbl;
     do {
-        if (p[0] == Id) {
-            return p[1];
+        if (p->Id == Id) {
+            return p->Kind;
         }
-        p += 3;
-    } while (p[0] != 0xFF);
+        p++;
+    } while (p->Id != 0xFF);
     return 0x80;
 }
 
-UCHAR func_800520D8(ULONG Id)
+/* Em_kind_tbl flag byte of enemy Id, ORed into ENEMY_WORK.Unk4B (0x80 if not listed) */
+UCHAR Em_kind_flg_search(ULONG Id)
 {
-    UCHAR *p;
+    EM_KIND *p;
 
-    p = D_8009E340;
+    p = Em_kind_tbl;
     do {
-        if (p[0] == Id) {
-            return p[2];
+        if (p->Id == Id) {
+            return p->Flg;
         }
-        p += 3;
-    } while (p[0] != 0xFF);
+        p++;
+    } while (p->Id != 0xFF);
     return 0x80;
 }
 
-void *func_8005211C(ULONG Id)
+/* enemy whose model data of kind Id is already loaded (Em_dat), or NULL */
+void *Em_dat_search(ULONG Id)
 {
     EM_DAT *p;
     ULONG i;
 
-    p = D_800DECC0;
-    for (i = 0; i < D_800E0170; i++, p++) {
+    p = Em_dat;
+    for (i = 0; i < Em_dat_num; i++, p++) {
         if (p->Kind == Id) {
             return p->pEm;
         }
@@ -162,6 +165,7 @@ void Sce_model_init(void)
     }
 }
 
+/* clears the per-frame scenario work (G.Sce_work[], G.Unk2474[], G.Unk788C) */
 void Sce_work_clr(void)
 {
     G.Sce_work[0] = -1;
@@ -176,6 +180,7 @@ void Sce_work_clr(void)
     D_800E017E[0] = 0;
 }
 
+/* empty (RE2 Sce_work_clr_at) */
 void Sce_work_clr_at(void) {
 }
 
@@ -200,20 +205,20 @@ void Sce_work_clr_set(void)
     pG->Unk7888 = 0;
     Sce.Unk1497 = 0xFF;
     Sce.Mizu_div_max = 0;
-    Sce.Unk1496 = 0;
+    Sce.Mizu_div_ctr = 0;
     Cc_work.Ccol_no = 0;
     Cc_work.Ctex_old = 0xFF;
-    Sce.Unk148E = 0xFF;
-    Sce.Unk148F = 0xFF;
+    Sce.Em_id = 0xFF;
+    Sce.Em_kind_flg = 0xFF;
     Sce.Unk1494 = 0xFF;
     pG->Unk75D9 = -1;
-    Sce.Unk1498 = 0;
-    Sce.Unk1499 = 0;
+    Sce.Em_set_kind0 = 0;
+    Sce.Em_set_kind1 = 0;
     G.pUnk75AC[10] = 0;
-    Sce.Unk1488 = 0;
-    Sce.Unk149B = 0;
-    Sce.pUnk1460 = G.pEnemy[2];
-    for (i = 0, p = (LONG *)D_800DECC0; i < 5; i++) {
+    Sce.Em_dat_num = 0;
+    Sce.Skip_state = 0;
+    Sce.pEm_last = G.pEnemy[2];
+    for (i = 0, p = (LONG *)Em_dat; i < 5; i++) {
         *p++ = -1;
     }
 }
@@ -224,7 +229,7 @@ void Sce_rnd_set(void)
     LONG D0;
 
     D0 = (s8)Rnd_uc() << 8;
-    D0 += Rnd_uc() + (signed char)Rnd_tbl[Sce.Unk149E++];
+    D0 += Rnd_uc() + (s8)Rnd_tbl[Sce.Rnd_idx++];
     D_800D1F82 = D0;
 }
 
@@ -322,15 +327,16 @@ void Sce_kirakira_set(void)
     }
 }
 
-void func_80052644(void)
+/* event skip: on the skip button fades out, stops tasks 2..10, then runs Skip_evt on task 1 */
+void Sce_skip_ck(void)
 {
     ULONG i;
 
     i = 2;
-    switch (Sce.Unk149B) {
+    switch (Sce.Skip_state) {
     case 1:
         if (G.Unk20FC & 0x100) {
-            Sce.Unk149B = 2;
+            Sce.Skip_state = 2;
             Fade_set(0, 1, 0, 2, 0, 0xFFFFFF, 0x10);
             Moji.Mess_flg = 0;
             Xa_fade_set(0x10);
@@ -339,14 +345,14 @@ void func_80052644(void)
             do {
                 Sce.Sce_task[i].Status = 0;
             } while (i++ < 10);
-        } else if (Sce.Sce_task[Sce.Unk149C].Status == 0) {
-            Sce.Unk149B = 0;
+        } else if (Sce.Sce_task[Sce.Skip_task].Status == 0) {
+            Sce.Skip_state = 0;
         }
         break;
     case 2:
         if (Fade_status(0) == 0) {
             Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0);
-            Sce.Unk149B = 4;
+            Sce.Skip_state = 4;
         }
         break;
     case 4:
@@ -359,34 +365,36 @@ void func_80052644(void)
             Moji.Mess_flg = 0;
             Flg_off(&G.Status_flg, 0x1D);
             Flg_off(&G.Status_flg, 0x1E);
-            Event_exec(1, Sce.Unk149D);
-            Sce.Unk149B = 8;
+            Event_exec(1, Sce.Skip_evt);
+            Sce.Skip_state = 8;
             Esp_kill(0xFF02, 0);
         }
         break;
     }
 }
 
-void func_8005283C(void)
+/* ends the skip state once the skippable task (or the skip event on task 1) has finished */
+void Sce_skip_end(void)
 {
     SCENARIO *pScn = &Sce;
 
-    switch (pScn->Unk149B) {
+    switch (pScn->Skip_state) {
     case 1:
-        if (pScn->Sce_task[pScn->Unk149C].Status == 0) {
-            pScn->Unk149B = 0;
+        if (pScn->Sce_task[pScn->Skip_task].Status == 0) {
+            pScn->Skip_state = 0;
         }
         break;
     case 8:
         if (pScn->Sce_task[1].Status == 0) {
             Fade_off(0);
-            pScn->Unk149B = 0;
+            pScn->Skip_state = 0;
         }
         break;
     }
 }
 
-void func_800528D4(void)
+/* clears the Nemesis room list G.Unk7E24[8] */
+void Chaser_room_clr(void)
 {
     UCHAR i;
     tagGLOBAL *pG = &G;
@@ -396,7 +404,8 @@ void func_800528D4(void)
     }
 }
 
-void func_8005290C(void)
+/* Nemesis room state G.Unk7862: 3/4 -> 0, 5 -> 0 and clears the room list */
+void Chaser_state_reset(void)
 {
     switch (G.Unk7862) {
     case 3:
@@ -405,12 +414,13 @@ void func_8005290C(void)
         break;
     case 5:
         G.Unk7862 = 0;
-        func_800528D4();
+        Chaser_room_clr();
         break;
     }
 }
 
-void func_80052968(void)
+/* Nemesis room check on room entry: sets G.Unk7862 from G.Unk784C and the room list */
+void Chaser_room_ck(void)
 {
     USHORT Id;
     tagGLOBAL *pG = &G;
@@ -419,11 +429,11 @@ void func_80052968(void)
     if ((pG->Status_flg & 0x40000000) == 0) {
         return;
     }
-    func_8005290C();
+    Chaser_state_reset();
     Id = (USHORT)pG->Unk7840 + (((USHORT)pG->Unk783E + 1) << 8);
     switch (pG->Unk7862) {
     case 6:
-        func_800528D4();
+        Chaser_room_clr();
     case 0:
         if (pG->Unk784C != Id) {
             pG->Unk7862 = 3;
@@ -449,13 +459,14 @@ void func_80052968(void)
     }
 }
 
+/* room entry: copies Sce_jmp_tbl to the scratchpad, inits the tasks, runs event 0 on task 1 */
 void Sce_scheduler_set(void)
 {
     Memcpy(ScratchPad, Sce_jmp_tbl, 0x400);
     Sce_rnd_set();
     Sce_work_clr();
     Sce_work_clr_set();
-    func_80052968();
+    Chaser_room_ck();
     Sce.Type = 0;
     Sce.pCScd = G.pRoom->pScd;
     Event_exec(1, 0);
@@ -463,6 +474,7 @@ void Sce_scheduler_set(void)
     Sce_kirakira_set();
 }
 
+/* per frame: runs the event tasks (Sce_scheduler_main) with the event skip checks */
 void Sce_scheduler(void)
 {
     if ((G.Unk2468 & 0x2000000) == 0) {
@@ -471,9 +483,9 @@ void Sce_scheduler(void)
         Sce.Type = 0;
         Sce.pCScd = G.pRoom->pScd;
         Event_exec(0, 1);
-        func_80052644();
+        Sce_skip_ck();
         Sce_scheduler_main();
-        func_8005283C();
+        Sce_skip_end();
     }
 }
 

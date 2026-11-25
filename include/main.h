@@ -21,9 +21,9 @@ typedef struct tagROOM_WORK {
     UCHAR nCut;                        /* 0x01 RE2 nCut (Set_room) */
     UCHAR nOmodel;                     /* 0x02 RE2 nOmodel */
     UCHAR pad3[6 - 3];
-    UCHAR Unk6;                        /* 0x06 sound bank voice base / 4 (func_80078204) */
+    UCHAR Unk6;                        /* 0x06 sound bank voice base / 4 (Snd_sys_pset) */
     UCHAR nSprite_max;                 /* 0x07 RE2 nSprite_max (Psp_init) */
-    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room; room sound table, -1 terminated (func_80078204) */
+    ULONG *pEdt0;                      /* 0x08 RE2 pEdt0: first of the pointers relocated by Set_room; room sound table, -1 terminated (Snd_sys_pset) */
     UCHAR padC[0x20 - 0xC];
     struct tagSCA_HEAD *pSca;          /* 0x20 collision data (see sca.h) */
     RCUT *pRcut;                       /* 0x24 RE2 pRcut */
@@ -33,7 +33,7 @@ typedef struct tagROOM_WORK {
     USHORT *pUnk34;                    /* 0x34 count, then 0xC byte records (Flr_set) */
     USHORT *pBlock;                    /* 0x38 RE2 pBlock (Rnd_area: [0] = count) */
     UCHAR *pMessage;                   /* 0x3C RE2 pMessage (offset table, then the text) */
-    UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
+    UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (Cut_flg_set) */
     ULONG *pUnk44;                     /* 0x44 second bg image (Swap_Cbuff) */
     UCHAR *pScd;                       /* 0x48 scenario data (Sce.pCScd) */
     LONG *pUnk4C;                      /* 0x4C effect data (Esp_init_R -> Esp_data_set0) */
@@ -79,7 +79,7 @@ typedef struct tagMAIN {
     RECT Rect;                         /* 0x184 RE2 Main.Rect */
     UCHAR Vloop;                       /* 0x18C RE2 Main.Vloop (Door_exit) */
     UCHAR Bg_mode;                     /* 0x18D */
-    UCHAR Unk18E;                      /* 0x18E flash request (func_80024F74) */
+    UCHAR Unk18E;                      /* 0x18E flash request (Live_select_flash) */
     UCHAR Pollhost_flg;                /* 0x18F RE2 Pollhost_flg: main loop breaks into the debugger */
     UCHAR pad190;
     UCHAR Unk191;                      /* 0x191 bg image +0x14 offset (Swap_Cbuff) */
@@ -89,12 +89,12 @@ typedef struct tagMAIN {
     UCHAR Unk195;                      /* 0x195 */
     UCHAR Unk196;                      /* 0x196 */
     UCHAR pad197;
-    ULONG Unk198;                      /* 0x198 flags (0x400000 tested by func_80029700) */
+    ULONG Unk198;                      /* 0x198 flags (0x400000 tested by Scrn_negate) */
     FADE Fade[4];                      /* 0x19C */
 } tagMAIN;
 extern tagMAIN Main;                   /* 0x800D42A0 */
 
-/* save block kept by Game.pSave (func_80024B34): the save image, the player state,
+/* save block kept by Game.pSave (Game_save_load): the save image, the player state,
  * then the demo pad data (RE2 struct PDEMO) */
 typedef struct tagSAVE_POS {
     UCHAR Data[0x708];                 /* 0x000 copied to G+0x77F0 */
@@ -123,7 +123,7 @@ typedef struct tagGAME {
     VECTOR Plight_pos;                 /* 0x30 */
     UCHAR pad40[0x44 - 0x40];
     ULONG Stop_bak;                    /* 0x44 RE2 Game.Stop_bak */
-    SAVE_POS *pSave;                   /* 0x48 (func_80024B34) */
+    SAVE_POS *pSave;                   /* 0x48 (Game_save_load) */
     UCHAR Unk4C;                       /* 0x4C */
     UCHAR Unk4D;                       /* 0x4D */
     UCHAR Unk4E;                       /* 0x4E (Set_door) */
@@ -157,7 +157,7 @@ void Soft_reset(void);
 void Card_event_set(void); /* Card_event_set */
 void System_trans_all(void);
 void Curtain_trans(void);
-void func_8002A49C(void);
+void Fade_trans(void);
 void Fade_out_reset(void);
 void Bg_set_mode(ULONG Mode, ULONG Rgb);
 void Fade_set(ULONG No, UCHAR Pri, ULONG Flg, ULONG Abr, ULONG Rgb0, ULONG Rgb1, USHORT Cnt_max);
@@ -173,11 +173,11 @@ extern volatile ULONG D_800D454C; /* right after Main.Fade[]: vsync counter */
 
 int main(void);
 void Swap_Cbuff(void);
-void func_80029700(void);
+void Scrn_negate(void);
 void Init_system(void);
 void Init_main(void);
-void func_80029D00(void);
+void Main_dummy(void);
 void Bg_draw(void);
-void func_8002A2B8(void);
+void Pause_disp(void);
 
 #endif /* MAIN_H */

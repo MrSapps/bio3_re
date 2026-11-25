@@ -7,15 +7,22 @@
 #include "movie.h"
 #include "sce1.h"
 
-extern UCHAR D_800E017F_[] __asm__("D_800E017F"); /* type differs from the canonical extern */
-extern UCHAR D_800D442E_[] __asm__("D_800D442E"); /* type differs from the canonical extern */
-LONG func_80048974_() __asm__("Rain_init"); /* returns long here (canonical void); unprototyped call */
-LONG Pad_vib_set0_() __asm__("Pad_vib_set0"); /* returns long here (canonical void); unprototyped call */
-LONG Pad_vib_set1_() __asm__("Pad_vib_set1"); /* returns long here (canonical void); unprototyped call */
-LONG Pad_vib_fade_set_() __asm__("Pad_vib_fade_set"); /* returns long here (canonical void); unprototyped call */
-void func_80078498_(UCHAR A0, UCHAR A1, USHORT A2) __asm__("func_80078498"); /* arg 3 unsigned short (canonical short) */
-LONG Xa_play_() __asm__("Xa_play"); /* returns long here (canonical void); unprototyped call */
-LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* returns long here (canonical void) */
+extern UCHAR Rbj_id_a[] __asm__("Rbj_id"); /* Sce_rbj_set stores through an array: pSce->Data is reloaded after it */
+extern UCHAR D_800D442E_a[] __asm__("D_800D442E"); /* stored through an array view here (see Rbj_id_a) */
+LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* Capcom called it undeclared here (implicit int): Add_vspeed needs the int return */
+/* opcode records read by field (layouts as in the SCD data) */
+typedef struct { UCHAR Op; UCHAR pad1; USHORT Size; } SCE_ELSE_REC;          /* Else_ck: Size skips the else block */
+typedef struct { UCHAR Op; UCHAR Power; USHORT Time; USHORT Attr; } SCE_VIB_REC; /* Vib_set0/Vib_set1 */
+typedef struct { UCHAR Op; UCHAR pad1; UCHAR Pow_st; UCHAR Pow_ed; USHORT Time; USHORT Attr; } SCE_VIB_FADE_REC;
+typedef struct { UCHAR Op; UCHAR Mess; USHORT Id; USHORT Flg; } SCE_MESSAGE_REC; /* Message_on */
+typedef struct { UCHAR Op; UCHAR Ot_no; USHORT Prio; } SCE_LINE_START_REC;
+typedef struct { UCHAR Op; UCHAR Line_no; SHORT Slide_ofs; SHORT Copy_ofs; } SCE_LINE_MAIN_REC;
+typedef struct { UCHAR Op; UCHAR No; USHORT Ofs; } SCE_XA_REC;                 /* Xa_on */
+
+/* Capcom called the LINE_SCR functions undeclared in the Sce_line_* handlers (implicit int: v0 stays live) */
+LONG line_mode_set_i(ULONG Ot_no, ULONG Prio) __asm__("line_mode_set");
+LONG line_trans_i(LONG Line_no, LONG Slide_ofs, LONG Copy_ofs, LONG Draw_ofs) __asm__("line_trans");
+LONG line_scr_end_i(void) __asm__("line_scr_end");
 
 /* RE2 Nop / Break_point */
 ULONG Nop(SCE_TASK *pSce)
@@ -76,19 +83,20 @@ ULONG Evt_exec(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG Sce_unk_80052EDC(SCE_TASK *pSce)
+/* arms (Data[1] 1: skip to event Data[3] from this task) or disarms the event skip */
+ULONG Evt_skip_set(SCE_TASK *pSce)
 {
     UCHAR Flg;
 
     Flg = pSce->Data[1];
     if (Flg == 1) {
-        Sce.Unk149B = Flg;
-        Sce.Unk149D = pSce->Data[3];
-        Sce.Unk149C = pSce->Task_level;
+        Sce.Skip_state = Flg;
+        Sce.Skip_evt = pSce->Data[3];
+        Sce.Skip_task = pSce->Task_level;
         pSce->Data += 4;
     } else {
-        Sce.Unk149B = 0;
-        Sce.Unk149C = 0;
+        Sce.Skip_state = 0;
+        Sce.Skip_task = 0;
         pSce->Data += 2;
     }
     return 1;
@@ -120,7 +128,7 @@ ULONG Ifel_ck(SCE_TASK *pSce)
 ULONG Else_ck(SCE_TASK *pSce)
 {
     pSce->pS_SP--;
-    pSce->Data += ((USHORT *)pSce->Data)[1];
+    pSce->Data += ((SCE_ELSE_REC *)pSce->Data)->Size;
     pSce->Ifel_ctr[pSce->Sub_ctr]--;
     return 1;
 }
@@ -531,7 +539,7 @@ ULONG Break(SCE_TASK *pSce)
 }
 
 /* SCE opcode that only steps over itself (RE2 Rbj_reset slot?) */
-ULONG Sce_nop_800538C8(SCE_TASK *pSce)
+ULONG Break_point(SCE_TASK *pSce)
 {
     pSce->Data++;
     return 1;
@@ -1100,7 +1108,7 @@ SHORT *Load_member_addr_branch(ENEMY_WORK *pW, ULONG Member)
 }
 
 /* RE2 SCE2.C Sce_fade_set (named in syms/re2_names.txt, keeps the address name until the main split) */
-ULONG func_80054384(SCE_TASK *pSce)
+ULONG Sce_fade_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Rgb0;
@@ -1216,7 +1224,8 @@ ULONG Add_aspeed(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054628(SCE_TASK *pSce)
+/* moves the event camera eye/target by the task's Spd/Dspd and sets the view */
+ULONG Add_vspeed(SCE_TASK *pSce)
 {
     SCE_CAMERA *pCam = &D_800E0150;
     LONG x, y, z;
@@ -1318,6 +1327,7 @@ ULONG Cmp(SCE_TASK *pSce)
     }
 }
 
+/* RE2 Sce_rnd: reseeds the scenario random value (Sce_rnd_set) */
 ULONG Sce_rnd(SCE_TASK *pSce)
 {
     pSce->Data++;
@@ -1325,6 +1335,7 @@ ULONG Sce_rnd(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_chg: switches to camera cut Data[1] & 0x7F (bit 7: no background reload) and locks the camera */
 ULONG Cut_chg(SCE_TASK *pSce)
 {
     tagGLOBAL *pG = &G;
@@ -1335,13 +1346,14 @@ ULONG Cut_chg(SCE_TASK *pSce)
     Cut_chg_main(Cut & 0x7F);
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
-        D_800D442E_[0] = 0;
-        D_800E01C6[0] = 1;
+        D_800D442E_a[0] = 0;
+        St_hiki_flg_a[0] = 1;
     }
     pSce->Data += 2;
     return 1;
 }
 
+/* RE2 Cut_old: switches back to the previous camera cut */
 ULONG Cut_old(SCE_TASK *pSce)
 {
     Cut_chg_main(D_800E0175[0]);
@@ -1350,17 +1362,19 @@ ULONG Cut_old(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_chg_main: changes G.Cut_no to Cut, keeping the old one */
 void Cut_chg_main(ULONG Cut)
 {
     UCHAR Old;
 
     Old = G.Cut_no;
     G.Cut_no = Cut;
-    D_800D442E_[0] = 1;
+    D_800D442E_a[0] = 1;
     D_800E0175[0] = Old;
     Cut_change(Cut);
 }
 
+/* RE2 Cut_auto: Data[1] 1 lets the camera follow the cut zones again, else locks it */
 ULONG Cut_auto(SCE_TASK *pSce)
 {
     if (pSce->Data[1] == 1) {
@@ -1372,6 +1386,7 @@ ULONG Cut_auto(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_replace: swaps cuts Data[1] and Data[2] in the room's camera switch zones */
 ULONG Cut_replace(SCE_TASK *pSce)
 {
     ULONG Cut_a;
@@ -1401,8 +1416,10 @@ ULONG Cut_replace(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Cut_be_set: sets byte 0 of switch zone Data[2] of cut Data[1] to Data[3] (zone on/off) */
 INCLUDE_ASM("asm/nonmatchings/game/sce1", Cut_be_set);
 
+/* RE2 Pos_set: sets the work's position (and old position) to the SHORT x, y, z operands */
 ULONG Pos_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1425,6 +1442,7 @@ ULONG Pos_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Dir_set: sets the work's direction to the SHORT x, y, z operands */
 ULONG Dir_set(SCE_TASK *pSce)
 {
     SHORT *pData;
@@ -1446,7 +1464,7 @@ ULONG Dir_set(SCE_TASK *pSce)
 /* RE2 Vib_set0 */
 ULONG Vib_set0(SCE_TASK *pSce)
 {
-    Pad_vib_set0_(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set0(((SCE_VIB_REC *)pSce->Data)->Time, ((SCE_VIB_REC *)pSce->Data)->Attr);
     pSce->Data += 6;
     return 1;
 }
@@ -1454,7 +1472,7 @@ ULONG Vib_set0(SCE_TASK *pSce)
 /* RE2 Vib_set1 */
 ULONG Vib_set1(SCE_TASK *pSce)
 {
-    Pad_vib_set1_(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set1(((SCE_VIB_REC *)pSce->Data)->Time, ((SCE_VIB_REC *)pSce->Data)->Power, ((SCE_VIB_REC *)pSce->Data)->Attr);
     pSce->Data += 6;
     return 1;
 }
@@ -1462,14 +1480,16 @@ ULONG Vib_set1(SCE_TASK *pSce)
 /* RE2 Vib_fade_set */
 ULONG Vib_fade_set(SCE_TASK *pSce)
 {
-    Pad_vib_fade_set_(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
+    Pad_vib_fade_set(((SCE_VIB_FADE_REC *)pSce->Data)->Time, ((SCE_VIB_FADE_REC *)pSce->Data)->Pow_st,
+                     ((SCE_VIB_FADE_REC *)pSce->Data)->Pow_ed, ((SCE_VIB_FADE_REC *)pSce->Data)->Attr);
     pSce->Data += 8;
     return 1;
 }
 
-ULONG func_80054D48(SCE_TASK *pSce)
+/* sets Rbj_id, the room pack entry id of the RBJ, to Data[1] */
+ULONG Sce_rbj_set(SCE_TASK *pSce)
 {
-    D_800E017F_[0] = pSce->Data[1];
+    Rbj_id_a[0] = pSce->Data[1];
     pSce->Data += 2;
     return 1;
 }
@@ -1479,14 +1499,15 @@ ULONG Message_on(SCE_TASK *pSce)
 {
     ULONG Flg;
 
-    Flg = ((USHORT *)pSce->Data)[2] << 16;
-    Mess_set(0, ((USHORT *)pSce->Data)[1] | 0x2000, pSce->Data[1], Flg);
+    Flg = ((SCE_MESSAGE_REC *)pSce->Data)->Flg << 16;
+    Mess_set(0, ((SCE_MESSAGE_REC *)pSce->Data)->Id | 0x2000, ((SCE_MESSAGE_REC *)pSce->Data)->Mess, Flg);
     G.Unk2468 |= Flg;
     pSce->Data += 6;
     return 1;
 }
 
-ULONG func_80054DEC(SCE_TASK *pSce)
+/* closes the message window and the live selection (Status_flg 0x10000000) */
+ULONG Message_off(SCE_TASK *pSce)
 {
     Moji.Mess_flg = 0;
     G.Status_flg &= ~0x10000000;
@@ -1494,9 +1515,10 @@ ULONG func_80054DEC(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054E28(SCE_TASK *pSce)
+/* starts rain effect Data[1] */
+ULONG Sce_rain_set(SCE_TASK *pSce)
 {
-    func_80048974_(pSce->Data[1]);
+    Rain_init(pSce->Data[1]);
     pSce->Data += 2;
     return 1;
 }
@@ -1520,19 +1542,19 @@ ULONG Sce_shake_on(SCE_TASK *pSce)
     for (Line_no = 0; Line_no != 0xF0; Line_no++) {
         line_trans(Line_no, Amp, Dir, Ofs);
     }
-    ((LONG (*)(void))line_scr_end)();
+    line_scr_end_i();
     pSce->Data += 3;
     return 1;
 }
 
-/* RE2 Sce_line_start; the line functions are called as int-returning (no prototype in the original) */
+/* RE2 Sce_line_start */
 ULONG Sce_line_start(SCE_TASK *pSce)
 {
     Line.Rect.x = 0;
     Line.Rect.y = 0;
     Line.Rect.w = 320;
     Line.Rect.h = 240;
-    ((LONG (*)(ULONG, ULONG))line_mode_set)(pSce->Data[1], ((USHORT *)pSce->Data)[1]);
+    line_mode_set_i(((SCE_LINE_START_REC *)pSce->Data)->Ot_no, ((SCE_LINE_START_REC *)pSce->Data)->Prio);
     pSce->Data += 4;
     return 1;
 }
@@ -1545,7 +1567,8 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 /* RE2 Sce_line_main */
 ULONG Sce_line_main(SCE_TASK *pSce)
 {
-    ((LONG (*)(LONG, LONG, LONG, LONG))line_trans)(pSce->Data[1], ((SHORT *)pSce->Data)[1], ((SHORT *)pSce->Data)[2], Main.pDb->Draw.ofs[1]);
+    line_trans_i(((SCE_LINE_MAIN_REC *)pSce->Data)->Line_no, ((SCE_LINE_MAIN_REC *)pSce->Data)->Slide_ofs,
+                 ((SCE_LINE_MAIN_REC *)pSce->Data)->Copy_ofs, Main.pDb->Draw.ofs[1]);
     pSce->Data += 6;
     return 1;
 }
@@ -1553,7 +1576,7 @@ ULONG Sce_line_main(SCE_TASK *pSce)
 /* RE2 Sce_line_end */
 ULONG Sce_line_end(SCE_TASK *pSce)
 {
-    ((LONG (*)(void))line_scr_end)();
+    line_scr_end_i();
     pSce->Data++;
     return 1;
 }
@@ -1670,32 +1693,32 @@ ULONG Sce_bgm_control(SCE_TASK *pSce)
         break;
     case 1:
         if (G.System_flg & 0x400000) {
-            pW->UnkB77 = 1 << No;
+            pW->Bgm_req = 1 << No;
         } else {
             Snd_se_stad((No + 5) << 8, 0, 0, 0);
         }
         break;
     case 2:
         if (G.System_flg & 0x400000) {
-            pW->UnkB79 = 1 << No;
+            pW->Bgm_cancel = 1 << No;
         } else {
-            pW->UnkB79 = 0;
+            pW->Bgm_cancel = 0;
         }
         Snd_seq_stop(No);
         break;
     case 4:
-        func_8007745C(No);
+        Snd_seq_pause(No);
         break;
     case 3:
         Snd_seq_play_ck(No);
         break;
     case 5:
-        if (pW->Seq[No].Unk2C != 0 && pW->Seq[No].Unk2D == 0) {
-            if (pW->Seq[No].Unk38 != 2) {
-                pW->Seq[No].Unk38 = 2;
-                pW->Seq[No].Unk3C = 0x3FFF;
+        if (pW->Seq[No].Play_flg != 0 && pW->Seq[No].Stop_req == 0) {
+            if (pW->Seq[No].Fade_mode != 2) {
+                pW->Seq[No].Fade_mode = 2;
+                pW->Seq[No].Fade_vol = 0x3FFF;
             }
-            pW->Seq[No].Unk40 = 0x3FFF / Vol + 1;
+            pW->Seq[No].Fade_step = 0x3FFF / Vol + 1;
         }
         break;
     }
@@ -1703,16 +1726,17 @@ ULONG Sce_bgm_control(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Xa_on: plays XA voice Data[1] at sector offset (USHORT +2) of the room's XA table */
 ULONG Xa_on(SCE_TASK *pSce)
 {
     LONG Dummy[4];
     ULONG No;
     ULONG Ofs;
 
-    No = pSce->Data[1];
-    Ofs = ((USHORT *)pSce->Data)[1];
+    No = ((SCE_XA_REC *)pSce->Data)->No;
+    Ofs = ((SCE_XA_REC *)pSce->Data)->Ofs;
     G.Status_flg |= STAT_XA_VOICE;
-    Xa_play_(No, Ofs);
+    Xa_play(No, Ofs);
     pSce->Data += 4;
     return 1;
 }
@@ -1725,17 +1749,19 @@ ULONG Movie_on(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055568(SCE_TASK *pSce)
+/* RE2 Sce_bgmtbl_set: sets the BGM (USHORT +4) of stage Data[2] - 1, room Data[3] */
+ULONG Sce_bgmtbl_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
 
     pData = pSce->Data;
-    func_80078498_(pData[2] - 1, pData[3], ((USHORT *)pData)[2]);
+    Snd_bgm_tbl_set(pData[2] - 1, pData[3], ((USHORT *)pData)[2]);
     pSce->Data = pData + 6;
     return 1;
 }
 
-ULONG func_800555BC(SCE_TASK *pSce)
+/* true when room (Data[2], Data[3]) has BGM (USHORT +4) in G.Unk7C84 */
+ULONG Sce_bgmtbl_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG a;
@@ -1750,7 +1776,7 @@ ULONG func_800555BC(SCE_TASK *pSce)
         a -= 5;
     }
     pSce->Data = pData + 6;
-    return G.Unk7C84[D_800A0FDC[a - 1] + b] == c;
+    return G.Unk7C84[Bgm_room_ofs[a - 1] + b] == c;
 }
 
 /* RE2 Keep_Item_ck */
@@ -1814,7 +1840,8 @@ ULONG Sca_id_set(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055728(SCE_TASK *pSce)
+/* object model Data[1]: sets its flag word (G.pUnk75AC[UnkC1]) to 0xFF */
+ULONG Om_flg_clr(SCE_TASK *pSce)
 {
     UCHAR *pData;
     OBJ_MODEL_WORK *pOm;
@@ -1828,7 +1855,8 @@ ULONG func_80055728(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800557A0(SCE_TASK *pSce)
+/* object model Data[1]: toggles its flag word between 0 and 0xFF and its G.Unk799C bit */
+ULONG Om_rev(SCE_TASK *pSce)
 {
     UCHAR *pData;
     OBJ_MODEL_WORK *pOm;

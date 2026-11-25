@@ -7,17 +7,19 @@
 #include "sce2.h"
 #include "sce_at.h"
 
-int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* returns int here (canonical void); unprototyped call */
+int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* Capcom called it undeclared here (implicit int); Kage_set differs with the void prototype */
 
-extern UCHAR D_800D442C_[] __asm__("D_800D442C"); /* type differs from the canonical extern */
-s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* arg 2 UC (canonical signed char) */
-LONG Quake_add_() __asm__("Quake_add"); /* returns long here (canonical void); unprototyped call */
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
-LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* returns long here (canonical void) */
+extern UCHAR Ctrl_mode_a[] __asm__("Ctrl_mode"); /* stored through an array: pSce->Data is reloaded after it */
+s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* Item_get_ck passes the start slot unsigned (andi, not sll/sra) */
+LONG Quake_add_() __asm__("Quake_add"); /* Capcom called it undeclared here (implicit int); Sce_quake_add differs with the void prototype */
+LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* int-returning here (implicit declaration in Capcom's file); Chaser_evt_clr differs with void */
+
+/* opcode records read by field (layouts as in the SCD data) */
+typedef struct { UCHAR Op; UCHAR pad1; UCHAR Sup_val; UCHAR Sup_no; SHORT Pos[3]; SHORT Dir[3]; } SCE_SUPER_REC;
+typedef struct { UCHAR Op; UCHAR Parts; USHORT Old_x; USHORT Old_z; USHORT Old_y; UCHAR Timer1; UCHAR pad9;
+                 USHORT Rot_spd_x; USHORT Rot_spd_y; USHORT Rot_spd_z; } SCE_PARTS_DOWN_REC; /* PARTS_W fields it sets */
+typedef struct { UCHAR Op; UCHAR pad1; UCHAR Parts; UCHAR R; UCHAR G; UCHAR B; USHORT W[5]; } SCE_PARTS_BOMB_REC;
+typedef struct { UCHAR Op; s8 Aot; UCHAR Id; UCHAR Type; SHORT X; SHORT Y; SHORT Z; } SCE_AOT_RESET_REC;
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
@@ -25,7 +27,8 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
     return 1;
 }
 
-ULONG func_80055A18(SCE_TASK *pSce)
+/* true when Data[2] of item Data[1] fit an existing stack or a free slot */
+ULONG Item_get_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Id;
@@ -43,8 +46,8 @@ ULONG func_80055A18(SCE_TASK *pSce)
         if (i == -1) {
             break;
         }
-        p = &G.pUnk7C7C->Item[i];
-        if (((ITEM_TBL4 *)D_800A0514)[p->Id].Max >= p->Num + Num) {
+        p = &G.pItem_set->Item[i];
+        if (Item_data_tbl[p->Id].Max >= p->Num + Num) {
             return 1;
         }
         i++;
@@ -54,7 +57,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
 }
 
 /* RE2 Dir_ck */
-ULONG func_80055AF0(SCE_TASK *pSce)
+ULONG Sce_dir_ck(SCE_TASK *pSce)
 {
     SHORT *pData;
 
@@ -62,7 +65,8 @@ ULONG func_80055AF0(SCE_TASK *pSce)
     return Goto00_ck(pSce->pWork, pData[-3], pData[-2], pData[-1]) == 0;
 }
 
-ULONG func_80055B30(SCE_TASK *pSce)
+/* sets System_flg 0x20000 (die demo on) */
+ULONG Diedemo_on(SCE_TASK *pSce)
 {
     pSce->Data++;
     G.System_flg |= 0x20000;
@@ -83,6 +87,7 @@ ULONG Door_aot_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Door_aot_set_4p: registers the 4-point door AOT that follows as G.Sce_aot[Data[1]] */
 ULONG Door_aot_set_4p(SCE_TASK *pSce)
 {
     ULONG i;
@@ -97,6 +102,7 @@ ULONG Door_aot_set_4p(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Aot_set: registers the AOT that follows as G.Sce_aot[Data[1]] */
 ULONG Aot_set(SCE_TASK *pSce)
 {
     ULONG i;
@@ -110,6 +116,7 @@ ULONG Aot_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Aot_set_4p: registers the 4-point AOT that follows as G.Sce_aot[Data[1]] */
 ULONG Aot_set_4p(SCE_TASK *pSce)
 {
     ULONG i;
@@ -127,28 +134,28 @@ ULONG Aot_set_4p(SCE_TASK *pSce)
 /* RE2 Aot_reset */
 ULONG Aot_reset(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_AOT_RESET_REC *pData;
     UCHAR *pAot;
     ULONG N;
     LONG Y, Z;
 
-    pData = pSce->Data;
-    pAot = (UCHAR *)G.Sce_aot[(s8)pData[1]];
+    pData = (SCE_AOT_RESET_REC *)pSce->Data;
+    pAot = (UCHAR *)G.Sce_aot[pData->Aot];
     N = pAot[1];
-    pAot[0] = pData[2];
-    pAot[1] = pData[3] | (N & 0x80);
+    pAot[0] = pData->Id;
+    pAot[1] = pData->Type | (N & 0x80);
     if (N & 0x80) {
         pAot += 0x14;
     } else {
         pAot += 0xC;
     }
-    Y = ((SHORT *)pData)[3];
-    N = ((SHORT *)pData)[2];
-    Z = ((SHORT *)pData)[4];
+    Y = pData->Y;
+    N = pData->X;
+    Z = pData->Z;
     ((SHORT *)pAot)[1] = Y;
     ((SHORT *)pAot)[0] = N;
     ((SHORT *)pAot)[2] = Z;
-    pSce->Data = pData + 0xA;
+    pSce->Data = (UCHAR *)(pData + 1);
     return 1;
 }
 
@@ -174,6 +181,7 @@ ULONG Aot_on(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Get_matrix: matrix of a work (player, enemy, object model or part) by kind and number */
 INCLUDE_ASM("asm/nonmatchings/game/sce2", Get_matrix);
 
 /* RE2 Sce_espr_on */
@@ -276,6 +284,7 @@ ULONG Sce_espr3d_on2(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Sce_espr_kill: kills effect (Data[2] << 8 | Data[1]) attached to the matrix of (Data[3], Data[4]) */
 ULONG Sce_espr_kill(SCE_TASK *pSce)
 {
     MATRIX *pM;
@@ -289,6 +298,7 @@ ULONG Sce_espr_kill(SCE_TASK *pSce)
 /* int-returning view of the void Esp_kill: the caller's register allocation needs v0 clobbered */
 LONG func_8001B894_l(ULONG Id, MATRIX *pM) __asm__("Esp_kill"); /* returns long here (canonical void) */
 
+/* RE2 Sce_espr_kill2: kills the effects of group Data[1] */
 ULONG Sce_espr_kill2(SCE_TASK *pSce)
 {
     func_8001B894_l((pSce->Data[1] << 16) | 0x1000000, 0);
@@ -296,6 +306,7 @@ ULONG Sce_espr_kill2(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Sce_espr_task: stops every effect attached to the matrix of (Data[1], Data[2]); 6 = all */
 ULONG Sce_espr_task(SCE_TASK *pSce)
 {
     MATRIX *v;
@@ -317,6 +328,7 @@ ULONG Sce_espr_task(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Sce_espr_control: sends control values to effect (Data[2] << 8 | Data[1]) of a work matrix */
 ULONG Sce_espr_control(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -328,6 +340,7 @@ ULONG Sce_espr_control(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Obj_model_set: sets up a room object model (OBJ_MODEL_WORK) from the opcode record */
 INCLUDE_ASM("asm/nonmatchings/game/sce2", Obj_model_set);
 
 /* RE2 Mizu_div_set */
@@ -385,6 +398,7 @@ typedef struct {
 } SCE_EM_SET;
 extern SCE_EM_SET *D_800E0198;          /* operand of the em_set being run */
 
+/* RE2 Sce_em_set: creates enemy work Data Work_no + 2 from the Em_set record unless its flag is set */
 ULONG Sce_em_set(SCE_TASK *pSce)
 {
     tagGLOBAL *pG = &G;
@@ -416,11 +430,11 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pNext = pG->pEm_mem;
         pEm->Be_flg = 1;
         pEm->Unk12F = D_800E0198->Unk9;
-        if (Sce.Unk1498 != D_800E0198->Unk9) {
-            if (Sce.Unk1498)
-                Sce.Unk1499 = D_800E0198->Unk9;
+        if (Sce.Em_set_kind0 != D_800E0198->Unk9) {
+            if (Sce.Em_set_kind0)
+                Sce.Em_set_kind1 = D_800E0198->Unk9;
             else
-                Sce.Unk1498 = D_800E0198->Unk9;
+                Sce.Em_set_kind0 = D_800E0198->Unk9;
         }
         *(ULONG *)&pEm->Routine_0 = 0;
         pEm->Pos_x = pEm->Old_x = D_800E0198->Pos_x;
@@ -475,6 +489,7 @@ ULONG Sce_em_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_motion: plays motion Data[2] of type Data[1] on the work, attribute Data[3] */
 ULONG Plc_motion(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -501,7 +516,8 @@ ULONG Plc_motion(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80056E28(SCE_TASK *pSce)
+/* sets the work's destination mode (Data[1] | 0x80) and target (USHORT +2) in Unk150/Unk152 */
+ULONG Plc_dest2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ENEMY_WORK *pW;
@@ -587,6 +603,7 @@ ULONG Plc_dest(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_gun: puts the work in its aiming routine Data[1] */
 ULONG Plc_gun(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
@@ -601,6 +618,7 @@ ULONG Plc_gun(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_gun_eff: muzzle flash positions (computed, unused) */
 ULONG Plc_gun_eff(SCE_TASK *pSce)
 {
     VECTOR Pos; /* the effect positions are set and never used (dead code left in the original) */
@@ -618,6 +636,7 @@ ULONG Plc_gun_eff(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_neck: neck/head look mode Data[1] with four SHORT parameters */
 ULONG Plc_neck(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
@@ -685,6 +704,7 @@ ULONG Plc_neck(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_ret: returns the work to its normal routine and clears the scripted state */
 ULONG Plc_ret(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
@@ -702,6 +722,7 @@ ULONG Plc_ret(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_stop: toggles the work between stopped (0x1404) and its saved routine */
 ULONG Plc_stop(SCE_TASK *pSce)
 {
     ULONG R_no;
@@ -717,6 +738,7 @@ ULONG Plc_stop(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_flg: Unk144 |= / = / ^= (USHORT +2) for Data[1] 0/1/2 */
 ULONG Plc_flg(SCE_TASK *pSce)
 {
     ULONG Mode;
@@ -739,6 +761,7 @@ ULONG Plc_flg(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_rot: sets Add_dir (Data[1] 0) or Unk14A (1) to (USHORT +2) */
 ULONG Plc_rot(SCE_TASK *pSce)
 {
     switch (pSce->Data[1]) {
@@ -753,6 +776,7 @@ ULONG Plc_rot(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Plc_cnt: sets the work's Move_cnt to Data[1] */
 ULONG Plc_cnt(SCE_TASK *pSce)
 {
     pSce->pWork->Move_cnt = pSce->Data[1];
@@ -760,6 +784,7 @@ ULONG Plc_cnt(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Splc_ret: returns the sub player to its partner AI and restores its life */
 ULONG Splc_ret(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
@@ -777,6 +802,7 @@ ULONG Splc_ret(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Splc_sce: puts the sub player under script control (routine 0x604) */
 ULONG Splc_sce(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
@@ -791,7 +817,8 @@ ULONG Splc_sce(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800574B8(SCE_TASK *pSce)
+/* Splc_sce without changing Status_flg bit 31 */
+ULONG Splc_sce2(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
 
@@ -995,7 +1022,7 @@ ULONG Kage_set(SCE_TASK *pSce)
 /* RE2 Super_set */
 ULONG Super_set(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_SUPER_REC *pData;
     ENEMY_WORK *pEm;
     ULONG Sup_val;
     ULONG Sup_no;
@@ -1004,10 +1031,10 @@ ULONG Super_set(SCE_TASK *pSce)
     LONG x, y, z;
     tagGLOBAL *pG = &G;
 
-    pData = pSce->Data;
+    pData = (SCE_SUPER_REC *)pSce->Data;
     pEm = pSce->pWork;
-    Sup_val = pData[2];
-    Sup_no = pData[3];
+    Sup_val = pData->Sup_val;
+    Sup_no = pData->Sup_no;
     switch (Sup_val & 0xC0) {
     case 0:
         pEm->pSuper = &GsIDMATRIX;
@@ -1035,22 +1062,23 @@ ULONG Super_set(SCE_TASK *pSce)
         }
         break;
     }
-    x = ((SHORT *)pData)[2];
-    y = ((SHORT *)pData)[3];
-    z = ((SHORT *)pData)[4];
+    x = pData->Pos[0];
+    y = pData->Pos[1];
+    z = pData->Pos[2];
     pEm->Pos_x = x;
     pEm->Pos_y = y;
     pEm->Pos_z = z;
-    x = ((SHORT *)pData)[5];
-    y = ((SHORT *)pData)[6];
-    z = ((SHORT *)pData)[7];
+    x = pData->Dir[0];
+    y = pData->Dir[1];
+    z = pData->Dir[2];
     pEm->Cdir_x = x;
     pEm->Cdir_y = y;
     pEm->Cdir_z = z;
-    pSce->Data = pData + 0x10;
+    pSce->Data = (UCHAR *)(pData + 1);
     return 1;
 }
 
+/* RE2 Weapon_chg: equips weapon Data[1] (0xFF none, bit 7 keeps the model change) */
 ULONG Weapon_chg(SCE_TASK *pSce)
 {
     ENEMY_WORK *pPl;
@@ -1061,26 +1089,26 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     pPl = G_PLAYER;
     Flg = Wep & 0x80;
     if (Wep == 0xFF) {
-        G.pUnk7C7C->Unk128 = 0xFF;
-        G.pUnk7C7C->Unk129 = 0;
+        G.pItem_set->Equip_no = 0xFF;
+        G.pItem_set->Equip_id = 0;
         pSce->Data += 2;
         return 1;
     } else {
         Wep &= 0x7F;
         pPl->Type = (pPl->Type & 0xFF00) | Wep;
         if (Wep != 0) {
-            G.pUnk7C7C->Unk128 = Search_item_id_(Wep, 0);
-            G.pUnk7C7C->Unk129 = Wep;
+            G.pItem_set->Equip_no = Search_item_id_(Wep, 0);
+            G.pItem_set->Equip_id = Wep;
             Weapon_cls(pPl);
             Pl_weapon_ch(pPl);
             D_800E0171[0] = 1;
         } else {
-            G.pUnk7C7C->Unk128 = 0xFF;
-            G.pUnk7C7C->Unk129 = 0;
+            G.pItem_set->Equip_no = 0xFF;
+            G.pItem_set->Equip_id = 0;
             if (Flg) {
                 Weapon_cls(pPl);
                 Pl_weapon_ch(pPl);
-                Flg_on(D_800E01D4, 1);
+                Flg_on(St_flg14_a, 1);
                 D_800E0171[0] = 1;
             } else {
                 Weapon_parts_clr(pPl);
@@ -1092,25 +1120,26 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057CF8(SCE_TASK *pSce)
+/* re-equips the weapon kept in St.Equip_id_old */
+ULONG Weapon_chg_old(SCE_TASK *pSce)
 {
     ENEMY_WORK *pPl;
     ULONG Wep;
 
     pPl = G_PLAYER;
-    Wep = D_800E01E8;
+    Wep = St_equip_id_old;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
-        G.pUnk7C7C->Unk128 = Search_item_id_(Wep, 0);
-        G.pUnk7C7C->Unk129 = Wep;
+        G.pItem_set->Equip_no = Search_item_id_(Wep, 0);
+        G.pItem_set->Equip_id = Wep;
     } else {
-        G.pUnk7C7C->Unk128 = 0xFF;
-        G.pUnk7C7C->Unk129 = 0;
+        G.pItem_set->Equip_no = 0xFF;
+        G.pItem_set->Equip_id = 0;
     }
-    if (Sce.Unk1489 != 0) {
+    if (Sce.Weapon_chg_flg != 0) {
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
-        Sce.Unk1489 = 0;
+        Sce.Weapon_chg_flg = 0;
     } else {
         Pl_weapon_ch_init(pPl);
     }
@@ -1118,7 +1147,8 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057DD8(SCE_TASK *pSce)
+/* swaps the models of parts 4 and 15 of the work and toggles Unk4B bit 0 */
+ULONG Parts_tmd_swap(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
     PARTS_W *p0;
@@ -1136,9 +1166,10 @@ ULONG func_80057DD8(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057E28(SCE_TASK *pSce)
+/* opens the status screen (St_type 0) and stops the game */
+ULONG Status_on(SCE_TASK *pSce)
 {
-    D_800E01C4[0] = 0;
+    St_type_a[0] = 0;
     Game.Unk1 = 1;
     G.Status_flg |= 0x200;
     Game.Stop_bak = G.Unk2468;
@@ -1146,6 +1177,7 @@ ULONG func_80057E28(SCE_TASK *pSce)
     return 1;
 }
 
+/* switches floor area Data[1] of the room floor table on (Data[2] 1) or off */
 ULONG Flr_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1172,14 +1204,16 @@ ULONG Flr_set(SCE_TASK *pSce)
     return 1;
 }
 
+/* RE2 Sce_Item_lost: removes item Data[1] from the inventory */
 ULONG Sce_Item_lost(SCE_TASK *pSce)
 {
-    func_8006CD68(Search_item_id_(pSce->Data[1], 0));
+    Item_delete(Search_item_id_(pSce->Data[1], 0));
     pSce->Data += 2;
     return 1;
 }
 
-ULONG func_80057F44(SCE_TASK *pSce)
+/* starts a live selection with message Data[1] */
+ULONG Sel_evt_on(SCE_TASK *pSce)
 {
     UCHAR v;
 
@@ -1190,51 +1224,55 @@ ULONG func_80057F44(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80057F84);
+/* places Nemesis' item drops by room (G+0x7DC0 records, D_8009E4D0 room table) */
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Chaser_item_set);
 
+/* RE2 Sce_parts_bomb: makes part Parts fly off (colour R, G, B and speeds W[]) */
 ULONG Sce_parts_bomb(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_PARTS_BOMB_REC *pData;
     PARTS_W *pP;
     ULONG Rgb;
 
-    pData = pSce->Data;
-    pP = &pSce->pWork->pSin_parts_ptr[pData[2]];
+    pData = (SCE_PARTS_BOMB_REC *)pSce->Data;
+    pP = &pSce->pWork->pSin_parts_ptr[pData->Parts];
     pP->UnkA2 |= 0x20;
     pP->Be_flg |= 2;
-    Rgb = pData[3] | (pData[4] << 8) | (pData[5] << 16);
+    Rgb = pData->R | (pData->G << 8) | (pData->B << 16);
     ((SHORT *)&pP->Unk74)[4] = 0;
     pP->Poly_rgb = Rgb;
-    ((SHORT *)&pP->Unk74)[0] = ((USHORT *)pData)[3];
-    ((SHORT *)&pP->Unk74)[2] = ((USHORT *)pData)[4];
-    ((SHORT *)&pP->Unk74)[6] = ((USHORT *)pData)[5];
-    ((SHORT *)&pP->Unk74)[1] = ((USHORT *)pData)[6];
-    ((SHORT *)&pP->Unk74)[3] = ((USHORT *)pData)[7];
+    ((SHORT *)&pP->Unk74)[0] = pData->W[0];
+    ((SHORT *)&pP->Unk74)[2] = pData->W[1];
+    ((SHORT *)&pP->Unk74)[6] = pData->W[2];
+    ((SHORT *)&pP->Unk74)[1] = pData->W[3];
+    ((SHORT *)&pP->Unk74)[3] = pData->W[4];
     pSce->Data += 16;
     return 1;
 }
 
+/* RE2 Sce_parts_down: makes part Parts fall from Old_x/y/z */
 ULONG Sce_parts_down(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_PARTS_DOWN_REC *pData;
     PARTS_W *pP;
 
-    pData = pSce->Data;
-    pP = &pSce->pWork->pSin_parts_ptr[pData[1]];
+    pData = (SCE_PARTS_DOWN_REC *)pSce->Data;
+    pP = &pSce->pWork->pSin_parts_ptr[pData->Parts];
     pP->Timer3 = 0;
     pP->Be_flg |= 0xA;
-    pP->Old_x = ((USHORT *)pData)[1];
-    pP->Old_z = ((USHORT *)pData)[2];
-    pP->Old_y = ((USHORT *)pData)[3];
-    pP->Timer1 = pData[8];
-    pP->Rot_spd_x = ((USHORT *)pData)[5];
-    pP->Rot_spd_y = ((USHORT *)pData)[6];
-    pP->Rot_spd_z = ((USHORT *)pData)[7];
+    pP->Old_x = pData->Old_x;
+    pP->Old_z = pData->Old_z;
+    pP->Old_y = pData->Old_y;
+    pP->Timer1 = pData->Timer1;
+    pP->Rot_spd_x = pData->Rot_spd_x;
+    pP->Rot_spd_y = pData->Rot_spd_y;
+    pP->Rot_spd_z = pData->Rot_spd_z;
     pSce->Data += 16;
     return 1;
 }
 
-ULONG func_8005879C(SCE_TASK *pSce)
+/* sets Nemesis' life to 800 for enemy ids 0x34..0x36 */
+ULONG Chaser_life_init(SCE_TASK *pSce)
 {
     switch (pSce->Data[1]) {
     case 0x34:
@@ -1251,7 +1289,8 @@ ULONG func_8005879C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058800(SCE_TASK *pSce)
+/* switches entry Data[2] of camera-cut table Data[1] (G.pRoom->pUnk40) on (Data[3]) or off */
+ULONG Cut_flg_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     UCHAR *p;
@@ -1290,9 +1329,10 @@ ULONG func_80058800(SCE_TASK *pSce)
     return 1;
 }
 
-void func_800588F0(SCE_TASK *pSce)
+/* sets Ctrl_mode to Data[1] */
+void Sce_ctrl_mode_set(SCE_TASK *pSce)
 {
-    D_800D442C_[0] = pSce->Data[1];
+    Ctrl_mode_a[0] = pSce->Data[1];
     pSce->Data += 2;
 }
 
@@ -1352,7 +1392,8 @@ ULONG Parts_set(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800589FC(SCE_TASK *pSce)
+/* re-initialises enemy work Data[1] + 2 to its start state */
+ULONG Sce_em_reset(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
     ULONG i;
@@ -1397,7 +1438,8 @@ ULONG func_800589FC(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058B00(SCE_TASK *pSce)
+/* adds room id (USHORT +2) to the Nemesis room list G.Unk7E24 (when chasing) */
+ULONG Ahead_room_set(SCE_TASK *pSce)
 {
     UCHAR i;
     tagGLOBAL *pG = &G;
@@ -1416,7 +1458,8 @@ ULONG func_80058B00(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058B84(SCE_TASK *pSce)
+/* true while the action button is pressed and the player may open a door */
+ULONG Sce_door_ck(SCE_TASK *pSce)
 {
     tagGLOBAL *pG;
     ULONG Key;
@@ -1428,7 +1471,7 @@ ULONG func_80058B84(SCE_TASK *pSce)
         if (!(Key & 0x100) || (UCHAR)pG->Player.Type == 0) {
             if (Key & 0x80) {
                 if (!(pG->Status_flg & 0x100)) {
-                    if (!(D_800DBB58 & 0xC0) && D_800C7961 == 0) {
+                    if (!(Moji.Mess_flg & 0xC0) && D_800C7961 == 0) {
                         return 1;
                     }
                 }
@@ -1438,14 +1481,16 @@ ULONG func_80058B84(SCE_TASK *pSce)
     return 0;
 }
 
-ULONG func_80058C24(SCE_TASK *pSce)
+/* shakes the screen: Quake_add(USHORT +2, USHORT +4) */
+ULONG Sce_quake_add(SCE_TASK *pSce)
 {
     Quake_add_(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
     return 1;
 }
 
-ULONG func_80058C70(SCE_TASK *pSce)
+/* opens the map (St_type 4) with event map Data[2] */
+ULONG Sce_map_open(SCE_TASK *pSce)
 {
     ULONG x;
 
@@ -1454,12 +1499,13 @@ ULONG func_80058C70(SCE_TASK *pSce)
     x = pSce->Data[2];
     G.Status_flg |= 0x200;
     Game.Unk1 = 1;
-    St.UnkB8 = x;
+    St.Map_event = x;
     pSce->Data += 4;
     return 1;
 }
 
-ULONG func_80058CD0(SCE_TASK *pSce)
+/* clears the Nemesis event flags of the current chase state */
+ULONG Chaser_evt_clr(SCE_TASK *pSce)
 {
     UCHAR i;
 
@@ -1467,17 +1513,17 @@ ULONG func_80058CD0(SCE_TASK *pSce)
     case 3:
     case 4:
         for (i = 0; i < 10; i++) {
-            Flg_off_(D_800D258C, i + 0x50);
+            Flg_off_(Chaser_flg, i + 0x50);
         }
         break;
     case 5:
         for (i = 0; i < 0x14; i++) {
-            Flg_off_(D_800D258C, i + 0x61);
+            Flg_off_(Chaser_flg, i + 0x61);
         }
         break;
     case 6:
         for (i = 0; i < 7; i++) {
-            Flg_off_(D_800D258C, i + 0x5A);
+            Flg_off_(Chaser_flg, i + 0x5A);
         }
         break;
     }

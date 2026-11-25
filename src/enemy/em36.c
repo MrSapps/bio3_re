@@ -5,10 +5,10 @@
 #include "sca.h"
 #include "snd.h"
 
-/* Capcom's declarations in this module differ from the exe's: the sabun call func_8004A934 is
+/* Capcom's declarations in this module differ from the exe's: the sabun call Sa_morph_step is
    passed a third argument, Cdir_ck returns int (no andi after the call), and Dir_pos_ck takes int
    directions (no narrowing at the call) */
-void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("func_8004A934");
+void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("Sa_morph_step");
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 LONG Dir_pos_ck_l(LONG *pPos, LONG *pTg, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
 
@@ -3974,7 +3974,7 @@ void Em36_body_morph(ENEMY_WORK *pEm)
             }
             break;
         }
-        func_8004A934(pEm, pP);
+        Sa_morph_step(pEm, pP);
         pP++;
     } while (--i);
 }

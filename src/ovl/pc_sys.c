@@ -1,3 +1,6 @@
+/*
+ * PC_SYS.BIN: the in-game computer terminals (password / menu screens built from PC_SPR sprite records)
+ */
 #include "ovl/pc_sys.h"
 #include "pad.h"
 #include "sld.h"
@@ -287,6 +290,7 @@ ULONG Pc_key_move(void)
     return pPc->Key;
 }
 
+/* copies a PC_SPR definition, adding the clut row base and packing Ot/Code/Col/On into the Attr word */
 void Pc_spr_init(PC_SPR *pDst, PC_SPR *pSrc)
 {
     pDst->w.Xy = pSrc->w.Xy;

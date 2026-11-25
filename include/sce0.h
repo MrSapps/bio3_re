@@ -49,28 +49,28 @@ typedef struct tagSCENARIO {
     SCE_TASK Sce_task[SCE_TASK_MAX];   /* 0x0000 */
     UCHAR pad1458[0x145C - 0x1458];    /* RE2 Random_base? */
     UCHAR *pCScd;                      /* 0x145C */
-    struct tagENEMY_WORK *pUnk1460;    /* 0x1460 = G.pEnemy[2] on room init (Sce_work_clr_set) */
+    struct tagENEMY_WORK *pEm_last;    /* 0x1460 enemy whose model data was linked last (G.pEnemy[2] on room init) */
     UCHAR *pMizu_div;                  /* 0x1464 RE2 pMizu_div */
     RCUT Cut;                          /* 0x1468 copy of the current camera cut (Bg_draw) */
-    UCHAR Unk1488;                     /* 0x1488 */
-    UCHAR Unk1489;                     /* 0x1489 */
+    UCHAR Em_dat_num;                  /* 0x1488 Em_dat records in use (also the symbol Em_dat_num) */
+    UCHAR Weapon_chg_flg;               /* 0x1489 (Weapon_chg_old) */
     UCHAR pad148A[0x148C - 0x148A];
     UCHAR Type;                        /* 0x148C 0: room script tasks (2..9), else door tasks (10..13) */
     UCHAR pad148D;
-    UCHAR Unk148E;                     /* 0x148E RE2 C_id? */
-    UCHAR Unk148F;                     /* 0x148F */
-    ULONG *pUnk1490;                   /* 0x1490 first EMD section of the enemy whose script runs (cd.c func_800130A0) */
+    UCHAR Em_id;                       /* 0x148E id of pEm_last */
+    UCHAR Em_kind_flg;                 /* 0x148F pEm_last->Unk4B & 0xF */
+    ULONG *pEmd_sce;                   /* 0x1490 script section of pEm_last's EMD (Cd_data_trans) */
     UCHAR Unk1494;                     /* 0x1494 */
     UCHAR Mizu_div_max;                /* 0x1495 RE2 Mizu_div_max */
-    UCHAR Unk1496;                     /* 0x1496 RE2 Mizu_div_ctr? */
+    UCHAR Mizu_div_ctr;                /* 0x1496 RE2 Mizu_div_ctr */
     UCHAR Unk1497;                     /* 0x1497 */
-    UCHAR Unk1498;                     /* 0x1498 */
-    UCHAR Unk1499;                     /* 0x1499 */
+    UCHAR Em_set_kind0;                /* 0x1498 first two distinct Em_set kinds of the room (Sce_em_set) */
+    UCHAR Em_set_kind1;                /* 0x1499 */
     UCHAR pad149A;
-    UCHAR Unk149B;                     /* 0x149B */
-    UCHAR Unk149C;                     /* 0x149C */
-    UCHAR Unk149D;                     /* 0x149D */
-    UCHAR Unk149E;                     /* 0x149E index into Rnd_tbl (Sce_rnd_set) */
+    UCHAR Skip_state;                  /* 0x149B event skip: 0 off, 1 armed, 2 fading, 4, 8 (Sce_skip_ck) */
+    UCHAR Skip_task;                   /* 0x149C task that may be skipped */
+    UCHAR Skip_evt;                    /* 0x149D event run on skip */
+    UCHAR Rnd_idx;                     /* 0x149E index into Rnd_tbl (Sce_rnd_set) */
     UCHAR pad149F;
     SHORT Pl_pos[3];                   /* 0x14A0 player position before the tasks ran (Sce_scheduler_main) */
     SHORT Sub_pos[3];                  /* 0x14A6 sub player position before the tasks ran */
@@ -83,7 +83,13 @@ extern SCE_JMP_FUNC Sce_jmp_tbl[];      /* 0x8009E0F8, SCE opcode handlers */
 void Event_init(SCE_TASK *pSce, ULONG Evt_no); /* RE2 Event_init */
 void Event_exec(ULONG Task_level, ULONG Evt_no); /* RE2 Event_exec */
 
-extern UCHAR D_8009E340[];
+/* enemy kind table (Em_kind_tbl, Id 0xFF ends it) */
+typedef struct tagEM_KIND {
+    UCHAR Id;                          /* 0x0 enemy id */
+    UCHAR Kind;                        /* 0x1 model data kind; enemies of one kind share the loaded data (Em_dat) */
+    UCHAR Flg;                         /* 0x2 ORed into ENEMY_WORK.Unk4B */
+} EM_KIND;
+extern EM_KIND Em_kind_tbl[];
 extern UCHAR D_8009E6BC[];
 extern SHORT D_8009E6D4[];
 extern SHORT D_8009E6DC[];
@@ -92,10 +98,10 @@ extern UCHAR D_800B9E21;
 extern SHORT D_800D1F82; /* RE2 G.SaveData.Sce_random */
 extern UCHAR D_800E017E[];
 
-void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
-UCHAR Em_kind_search(ULONG Id);
-UCHAR func_800520D8(ULONG Id);
-void *func_8005211C(ULONG Id);
+void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
+ULONG Em_kind_search(ULONG Id);
+UCHAR Em_kind_flg_search(ULONG Id);
+void *Em_dat_search(ULONG Id);
 void Sce_aot_init(void);
 void Sce_model_init(void);
 void Sce_work_clr(void);
@@ -103,11 +109,11 @@ void Sce_work_clr_at(void);
 void Sce_work_clr_set(void);
 void Sce_rnd_set(void);
 void Sce_kirakira_set(void);
-void func_80052644(void);
-void func_8005283C(void);
-void func_800528D4(void);
-void func_8005290C(void);
-void func_80052968(void);
+void Sce_skip_ck(void);
+void Sce_skip_end(void);
+void Chaser_room_clr(void);
+void Chaser_state_reset(void);
+void Chaser_room_ck(void);
 void Sce_scheduler_set(void);
 void Sce_scheduler(void);
 void Sce_scheduler_main(void);

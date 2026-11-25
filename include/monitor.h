@@ -46,7 +46,7 @@ void Task_suspend(ULONG Level);
 void Task_signal(ULONG Level);
 ULONG Task_status(ULONG Level);
 
-extern LOADTASK D_8009C944[];
+extern LOADTASK Task_ovl_tbl[];
 
 ULONG Task_lexecute(ULONG Level, ULONG Task_no); /* RE2 Task_lexecute? */
 void Task_lchain(ULONG Task_no);

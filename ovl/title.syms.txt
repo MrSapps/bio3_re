@@ -1,5 +1,5 @@
 // TITLE.BIN symbols (loaded at 0x80194000)
-func_80194160 = 0x80194160; // type:func
+Capcom_logo = 0x80194160; // type:func
 // names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
 Title_str_init_sub = 0x80194098;
 Title_str_omake_bgm = 0x801940A4;
@@ -9,3 +9,32 @@ Title_pdemo_cd = 0x801974B4;
 Title_main_tbl = 0x801974C0;
 Title_sub_tbl = 0x801974D8;
 Title_wk = 0x80197508;
+// cleanup names
+Title = 0x801940E8; // type:func
+Capcom_logo_load = 0x80197414; // type:func
+Title_init = 0x80194444; // type:func
+Title_sprt_init = 0x801945E4; // type:func
+Title_main_wait = 0x80194ADC; // type:func
+Title_logo_slide = 0x80194B08; // type:func
+Title_menu_disp = 0x80194C4C; // type:func
+Title_menu_disp_nml = 0x80194C8C; // type:func
+Title_menu_disp_ex = 0x801952D8; // type:func
+Title_main_game = 0x801954D0; // type:func
+Title_main = 0x80195564; // type:func
+Title_sel_menu = 0x80195634; // type:func
+Title_sel_menu_ex = 0x801957F0; // type:func
+Title_main_select = 0x801955F4; // type:func
+Title_sel_mode = 0x80195C68; // type:func
+Title_sel_start = 0x80195988; // type:func
+Title_sub_nop3 = 0x801961D4; // type:func
+Title_game_mode_sel = 0x801961DC; // type:func
+Title_main_load = 0x80196378; // type:func
+Title_main_movie = 0x8019644C; // type:func
+Title_main_option = 0x80196528; // type:func
+Title_sub_nop8 = 0x8019662C; // type:func
+Title_ex_off = 0x80196634; // type:func
+Title_main_demo = 0x801966CC; // type:func
+Title_ex_init = 0x80196800; // type:func
+Title_ex_disp = 0x801971D8; // type:func
+Title_bg_load = 0x801973E4; // type:func
+Title_bg_reload = 0x80197448; // type:func
