@@ -1022,7 +1022,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     Dir = Ang < 0x800;
                     EM_RTN(pSpl) = (Dir + 2) << 8 | 2;
                     pSpl->Damage_cnt |= 0x80;
-                    if (func_8005F984(15, 0) == 2)
+                    if (Spl_life_sub(15, 0) == 2)
                         EM_SET_RTN(pSpl, 3, 0, 0, 0);
                     Snd_se_enem(4, pEm);
                 }
@@ -1130,7 +1130,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (func_80044420(&pP->Workm, &Ofs, pSpl)) {
                     EM_RTN(pSpl) = (Cdir_ck(pEm, pSpl) + 2) << 8 | 2;
                     pSpl->Damage_cnt |= 0x80;
-                    if (func_8005F984(15, 0) == 2)
+                    if (Spl_life_sub(15, 0) == 2)
                         EM_SET_RTN(pSpl, 3, 0, 0, 0);
                     Snd_se_enem(4, pEm);
                 }

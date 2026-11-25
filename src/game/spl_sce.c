@@ -1341,7 +1341,7 @@ LONG Spl_slope_dir(ENEMY_WORK *pEm, LONG f)
                 pEm->Move_cnt += 31;
             }
             Mv = D_8009ED88[n] * 4;
-            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+            if (pEm->Routine_0 == 1 && Spl_life_u[0]) {
                 Mv = 0xC;
             }
             EM_MOVE(pEm) = (pEm->Move_cnt << 8) + 0x70000 + Mv;
@@ -1359,7 +1359,7 @@ LONG Spl_slope_dir(ENEMY_WORK *pEm, LONG f)
                 pEm->Move_cnt += 30;
             }
             Mv = D_8009ED88[n] * 4 + 1;
-            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+            if (pEm->Routine_0 == 1 && Spl_life_u[0]) {
                 Mv = 0xD;
             }
             EM_MOVE(pEm) = (pEm->Move_cnt << 8) + 0x70000 + Mv;
@@ -1389,7 +1389,7 @@ LONG Spl_slope_dir_run(ENEMY_WORK *pEm, LONG f)
         }
         if (f) {
             Mv = D_8009ED88[n] * 4 + 2;
-            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+            if (pEm->Routine_0 == 1 && Spl_life_u[0]) {
                 Mv = 0xE;
             }
             EM_MOVE(pEm) = (pEm->Move_cnt << 8) + 0x70000 + Mv;
@@ -1400,7 +1400,7 @@ LONG Spl_slope_dir_run(ENEMY_WORK *pEm, LONG f)
     if (d - 0x5A9 <= 0x4AE) {
         if (f) {
             Mv = D_8009ED88[n] * 4 + 3;
-            if (pEm->Routine_0 == 1 && D_8009E70C[0]) {
+            if (pEm->Routine_0 == 1 && Spl_life_u[0]) {
                 Mv = 0xF;
             }
             EM_MOVE(pEm) = (pEm->Move_cnt << 8) + 0x70000 + Mv;

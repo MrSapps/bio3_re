@@ -128,7 +128,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     }
     SPL_W(pEm)->Unk1D7 = 0;
     SPL_W(pEm)->Unk1DE = 0;
-    D_8009E70C[0] = 0;
+    Spl_life_u[0] = 0;
     SPL_W(pEm)->Unk1D0 = 0;
     SPL_W(pEm)->Unk1D8 = 0;
     SPL_W(pEm)->Unk1D4 = 0;
