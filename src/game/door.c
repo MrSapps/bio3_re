@@ -51,7 +51,7 @@ loop:
         }
         Door_scheduler_main();
         Door_Trans();
-        pDoor->Unk226++;
+        pDoor->Ctr2++;
         Task_sleep(1);
         if (pSce->Sce_task[10].Status != 0) {
             goto loop;
