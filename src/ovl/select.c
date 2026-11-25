@@ -142,7 +142,7 @@ void Select_init(void)
         pEm->Cdir_z = Select_pl_init[i].Cdir_z;
         pEm->Mot_scale_y = Select_pl_init[i].Unk18;
         *(ULONG *)&pEm->Move_no = 0x70000;
-        pWork = Select_pl_load(pEm, (5 + i * 2) | ((i * 2) << 16), (ULONG *)pWork);
+        pWork = Select_pl_load(pEm, (5 + i * 2) | ((i * 2) << 16), pWork);
         pWork = Jill_wep_load(pEm, (ULONG *)pWork, i);
         pEm->Routine_0 = i;
         pEm->Routine_1 = 0;
@@ -602,7 +602,43 @@ void Select_pl_rot(void)
 
 /* loads one character model (Select_pl_cd file), maps its TIM and links parts, motions and skin; returns the
  * next free address */
-INCLUDE_ASM("asm/nonmatchings/ovl/select", Select_pl_load);
+UCHAR *Select_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
+{
+    LONG *pHdr;
+    UCHAR Cclut;
+    UCHAR Ctpage;
+    LONG Ofs;
+    UCHAR *p;
+
+    Cd_read(Select_pl_cd[pEm->Id - 8], (ULONG *)(p = pWork), 1, "PLD");
+    pHdr = (LONG *)(p + *(LONG *)p);
+    pEm->pSeq_t_ptr = (ULONG *)(p + pHdr[0]);
+    pEm->pKan_t_ptr = (ULONG *)(p + pHdr[1]);
+    pEm->Clut = TpClut >> 16;
+    pEm->Tpage = TpClut;
+    pEm->pTmd = (ULONG *)(p + pHdr[2]);
+    Cclut = G.Ctp.u.Cclut;
+    Ctpage = G.Ctp.u.Ctpage;
+    G.Ctp.u.Cclut = pEm->Clut;
+    G.Ctp.u.Ctpage = pEm->Tpage;
+    Mapping_tim((ULONG *)(p + pHdr[4]));
+    G.Ctp.u.Cclut = Cclut;
+    G.Ctp.u.Ctpage = Ctpage;
+    DrawSync(0);
+    Mapping_md(pEm->pTmd, pEm->Tpage, pEm->Clut);
+    pEm->pTmd += 2;
+    Ofs = pHdr[3];
+    p = (UCHAR *)PartsWork_link(pEm, PartsWork_set(pEm, (ULONG)(p + pHdr[4])), pEm->pKan_t_ptr);
+    if (*(ULONG *)(pWork + Ofs) == 0) {
+        pEm->Be_flg = 1;
+        pEm->Mot_scale_y = 0x1000;
+        return p;
+    }
+    Skin_set(pEm, (ULONG *)(pWork + Ofs));
+    pEm->Be_flg = 1;
+    pEm->Mot_scale_y = 0x1000;
+    return p;
+}
 
 #include "ovl/common/jill_sel/Jill_pl_trans.inc.c"
 

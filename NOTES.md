@@ -513,3 +513,38 @@ Near misses:
 - em_sub func_8001BC80 (bc80): target loads all six halves first; no C form found (30).
 - sub func_800790F0 (s90f0/sw3/x1.c, 12): ICON_DATA icon select; cse reuses the All_a register for the
   constant 1 in the second compare.
+
+## Matching round agentH (drafts in the session scratchpad agentH/best)
+Matched: om Ot_sub_init, select Select_pl_load.
+Rules learnt:
+- An early return that duplicates the function tail (`if (!x) { tail; return p; } call(); tail; return p;`) is
+  cross-jumped back into one tail after register allocation, but before that it adds refs to the pseudos the tail
+  uses, which changes global-alloc priorities. Select_pl_load needed it to swap pEm/p (s5/s4) (the permuter found it).
+- Two nested loops whose counters swap s0/s1 between the loops: swap the variable names in the first loop.
+- Copy idiom from Jill_pl_load: `Cd_read(.., (ULONG *)(p = pWork), ..)` makes cse fold pWork into p.
+- One local reused for unrelated addresses (Pl_wep_parts_drop: `&pP->Workm.t` for Sca_get_ground/Snd_se_stad and then
+  `PW_M(pP)` for RotMatrix/MulMatrix2) stops loop.c from strength-reducing each address into its own s-reg giv.
+  A variable set once inside a loop from the biv becomes a giv; a variable set more than once does not.
+- score.py candidates see the preprocessed base.c: macros (EM3E_W, CDIR_SV, PW_M, WORKM_POS_V, NULL) must be expanded
+  in the candidate. Otherwise cc1 takes them as implicit function calls and drops code without an error.
+  agentH/sc.sh expands them and then scores.
+- Don't `pkill -f` with a pattern that also appears in your own command line. It kills the tool shell.
+  agentH/pk.sh kills only the python permuter processes.
+Near misses (agentH/best/<func>.c):
+- pl_wep Pl_wep_parts_drop (2 words): this is the 256-iteration UCHAR do/while over pSin_parts_ptr[15..]. Everything
+  matches except the order of `addiu a0,CDIR` / `addiu s0,PW_M` in the rot block that uses the multi-set pPos
+  variable. Getting the register allocation right needs pPos (void *) for &Workm.t, PW_M in the Timer1 == 0 block,
+  and a separate pM2 in the Timer3 & 1 block.
+- spl Spl_wep_set (12): a1/a2 swap only. One pP holds [4] and then [15], with `pHand = pP` copied in between. The
+  priorities give pP a1 and the target gives it a2.
+- epilog Epilog_draw (12, prologue only): the target issues both luis (Epilog_work, G) first. `do { pWk = &Epi_work; }
+  while (0)` gets 1 of the 2 diffs.
+- pl_wep Mag_down (33): the same ground-bounce code as Pl_wep_parts_drop. Use `*= -1` for Old_y/Old_z (lh) and locals
+  for the Old_y/Old_z adds. The target loads Old_y, t0, Old_z and t2 before both stores.
+- em3e Em3e_fly (27, needs `#include "player.h"`): the beqz on Shot_wait has a nop in its delay slot (we fill it with
+  the decrement), and the player/enemy Pos_x registers differ.
+- option Config_moji_disp (~80) blocks Config_suuji (matches, shares the "\x81\x40" literal). The inner search loop is
+  `for (i = 0; !Config_moji_cmp(pStr, *pTbl); i++) pTbl++;`. The target does not hoist the 0x80/0x58 colour constants
+  out of the outer loop (their stores are cross-jumped) but does hoist &Opt and Config_moji_space.
+- sub Retry_file_load (= agentF's func_800790F0): in the target, Bit = Flg & 0x4000000 is computed first and not
+  combined into the branch. Every form tried gets it computed last.

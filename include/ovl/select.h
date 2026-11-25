@@ -149,7 +149,7 @@ void Select_decide(void);
 void Select_exit(void);
 void Select_pl_dir_set(void);
 void Select_pl_rot(void);
-UCHAR *Select_pl_load(ENEMY_WORK *pEm, ULONG TpClut, ULONG *pWork); /* Select_pl_load */
+UCHAR *Select_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork); /* Select_pl_load */
 void Jill_pl_trans(ENEMY_WORK *pEm, PARTS_W *pParts, ULONG Be_flg, LONG *pPos);
 void Jill_light_set(ULONG No, VECTOR *pVec, ULONG Rgb);
 UCHAR *Jill_wep_load(ENEMY_WORK *pEm, ULONG *pWork, LONG No); /* weapon load */
