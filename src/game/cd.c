@@ -1448,7 +1448,7 @@ void Xa_fade_set(ULONG frames)
 }
 
 /* seeks to the start of a file (Mode < 2: from floc[]) without reading it */
-void Cd_seek(ULONG File_no, ULONG Mode)
+void Cd_seek(ULONG File_no, ULONG Mode, const char *Mess)
 {
     tagCD *pCd = &CD;
 

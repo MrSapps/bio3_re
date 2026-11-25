@@ -128,7 +128,7 @@ void Xa_ready_cb(UCHAR intr, UCHAR *result);
 void Xa_control_play(void);
 void Xa_control_end(void);
 void Xa_fade_set(ULONG frames);
-void Cd_seek(ULONG File_no, ULONG Mode);
+void Cd_seek(ULONG File_no, ULONG Mode, const char *Mess); /* Mess: debug text, unused */
 void Cd_set_read_pos(ULONG size);
 
 extern USHORT Xa_sys_sector16[];

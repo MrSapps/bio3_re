@@ -443,7 +443,7 @@ void St_line_init(ST_WORK *pSt);
 void St_sprt_draw(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm);
 void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm);
 void St_tile_draw(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, ULONG prm);
-void St_mapping_tim(void);
+void St_mapping_tim(ULONG *pTim);
 void St_chenge_pl(ULONG no);
 void St_map_pos_init(ST_WORK *pSt);
 void St_map_init(ST_WORK *pSt);
@@ -465,8 +465,8 @@ LONG Map_part_clut(UCHAR st, UCHAR rm, UCHAR cut);
 LONG Map_part_blink_ck(UCHAR st, UCHAR rm, UCHAR cut);
 LONG Map_door_disp_ck(UCHAR st, UCHAR rm, UCHAR cut);
 LONG Map_door_mark_ck(UCHAR st, UCHAR rm, UCHAR cut);
-LONG Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm);
+UCHAR Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm);
 void Map_room_conv(UCHAR *pA, UCHAR *pB);
-void St_frame_end(void);
+void St_frame_end(ST_WORK *pSt);
 
 #endif /* STATUS_H */

@@ -45,11 +45,8 @@ typedef struct tagST_MAP_HDR {
 } ST_MAP_HDR;
 
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
-void func_8006EBEC_p(ULONG *p) __asm__("St_mapping_tim"); /* arg 1 unsigned long* (canonical void) */
-void OpenTIM_v(void) __asm__("OpenTIM"); /* differs from the canonical prototype */
 
 /* local prototypes (this module) */
-void Cd_seek_s(ULONG File_no, ULONG Mode, char *pName) __asm__("Cd_seek"); /* 3 args here (canonical 2) */
 void St_file_load(ST_WORK *pSt)
 {
     ULONG i, sum, n;
@@ -72,7 +69,7 @@ void St_file_load(ST_WORK *pSt)
     Cd_read(0x1C, pSt->pBuf, 2, D_80010DCC);
     p = pSt->pBuf;
     Mapping_tpage_clut = 0xA17;
-    func_8006EBEC_p(p);
+    St_mapping_tim(p);
     St_file_page_load(pSt, pSt->File_no, pSt->Page_no);
     pSt->Rtn1 = 0;
     pSt->Blink_timer = 0;
@@ -1085,7 +1082,7 @@ void St_map_open(ST_WORK *pSt)
     }
 }
 
-extern UCHAR D_800A00B0_b[][2] __asm__("File_order_tbl"); /* same table as File_order_tbl, byte access */
+extern UCHAR File_order_tbl_b[][2] __asm__("File_order_tbl"); /* File_order_tbl read with lbu here (low byte of each entry) */
 
 static const char D_80010DFC[] = "FILEI.TIM";
 
@@ -1147,7 +1144,7 @@ void St_file_list(ST_WORK *pSt)
             break;
         }
         if (G.Key_trg & 0x1000) {
-            no = D_800A00B0_b[pSt->File_cursor][0];
+            no = File_order_tbl_b[pSt->File_cursor][0];
             if (G.Unk79EC[3] == 0x1E && pSt->File_cursor == 0) {
                 no = 0x1E;
             }
@@ -1360,7 +1357,7 @@ void St_mix_init(ST_WORK *pSt)
     pSt->Pos[13].Y = ((signed char)pSt->Cursor2 >> 1) * 30;
 }
 
-LONG Pl_wep_eff_parts_cnt_l(void) __asm__("Pl_wep_eff_parts_cnt"); /* UCHAR result used as int */
+LONG Pl_wep_eff_parts_cnt_l(void) __asm__("Pl_wep_eff_parts_cnt"); /* Capcom called it undeclared here: the UCHAR result is used without a mask */
 
 void St_mix_select(ST_WORK *pSt)
 {
@@ -1955,7 +1952,7 @@ void St_item_shift(ST_WORK *pSt)
 }
 #undef IT
 
-signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id"); /* arg 2 UC (canonical signed char) */
+signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id"); /* this file passes the start slot unsigned (andi, not sll/sra) */
 
 void St_item_get(ST_WORK *pSt)
 {
@@ -3310,7 +3307,7 @@ void St_init(ST_WORK *pSt)
     pW->UnkB1C = 0x80;
     pW->UnkB20 = 0x3FFF;
     pW->UnkB24 = 0xB00;
-    Cd_seek_s(0x34, 0, "SEEK ITEMI.PIX");
+    Cd_seek(0x34, 0, "SEEK ITEMI.PIX");
     if (pSt->Flg14 & 0x40000000) {
         Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
         p = (UCHAR *)pG->pItem_set->Item;
@@ -3471,7 +3468,6 @@ void St_init(ST_WORK *pSt)
     Fade_set(0, 0, 0, 2, 0xFFFFFF, 0, 6);
 }
 
-void func_80073E7C_p(ST_WORK *pSt) __asm__("St_frame_end"); /* arg 1 ST_WORK* (canonical void) */
 
 void Status(void)
 {
@@ -3484,7 +3480,7 @@ void Status(void)
             St_counter_move(pSt);
         }
         St_draw(pSt);
-        func_80073E7C_p(pSt);
+        St_frame_end(pSt);
         Task_sleep(1);
     }
     St_exit(pSt);
@@ -3538,7 +3534,7 @@ void St_exit(ST_WORK *pSt)
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
-    Cd_seek_s(D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1, 0, "SEEK BSS");
+    Cd_seek(D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1, 0, "SEEK BSS");
     D_800D442C = 2;
     Task_signal(0);
 }
@@ -3825,13 +3821,13 @@ void St_tile_draw(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, ULONG prm)
     }
 }
 
-void St_mapping_tim(void)
+void St_mapping_tim(ULONG *pTim)
 {
     TIM_IMAGE tim;
     TIM_IMAGE *p;
     LONG y;
 
-    OpenTIM_v();
+    OpenTIM(pTim);
     p = ReadTIM(&tim);
     p->prect->x = (G.Ctp.u.Ctpage << 6) - (G.Ctp.u.Ctpage >= 0x10 ? 0x400 : 0);
     y = p->prect->y;
@@ -4616,7 +4612,7 @@ void Map_file_load(ST_WORK *pSt, UCHAR no)
     Mapping_tpage_clut = 0xA17;
     Mapping_tim((ULONG *)(pSt->pMap_file[5] + (ULONG)pSt->pMap_file));
     Mapping_tpage_clut = 0x1A18;
-    func_8006EBEC_p((ULONG *)(pSt->pMap_file[7] + (ULONG)pSt->pMap_file));
+    St_mapping_tim((ULONG *)(pSt->pMap_file[7] + (ULONG)pSt->pMap_file));
 }
 
 void Map_visit_set(UCHAR a, UCHAR b)
@@ -4648,7 +4644,6 @@ ULONG Map_visit_ck(UCHAR a, UCHAR b)
     return *p & (0x80000000U >> (b & 0x1F));
 }
 
-UCHAR func_80073BC8_u(ST_WORK *pSt, UCHAR st, UCHAR rm) __asm__("Map_floor_get"); /* returns UC here (canonical long) */
 
 LONG Map_room_disp_ck(UCHAR st, UCHAR rm)
 {
@@ -4697,7 +4692,7 @@ LONG Map_room_disp_ck(UCHAR st, UCHAR rm)
         }
         break;
     }
-    if (St.Floor_flg && (signed char)St.Floor_disp != func_80073BC8_u(pSt, st, rm)) {
+    if (St.Floor_flg && (signed char)St.Floor_disp != Map_floor_get(pSt, st, rm)) {
         return 0;
     }
     return 1;
@@ -5935,7 +5930,7 @@ LONG Map_door_mark_ck(UCHAR st, UCHAR rm, UCHAR cut)
     return 0;
 }
 
-LONG Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm)
+UCHAR Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm)
 {
     switch (st) {
     case 2:
@@ -5998,5 +5993,6 @@ void Map_room_conv(UCHAR *pA, UCHAR *pB)
     }
 }
 
-void St_frame_end(void) {
+void St_frame_end(ST_WORK *pSt)
+{
 }
