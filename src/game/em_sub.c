@@ -451,7 +451,87 @@ void Spd_get(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, LONG Flg)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80018EC8);
+/* Spd_get for sequences with in-between frames (seq word bit 8, rate in the low byte):
+ * Spd_x/y/z = root offset of this frame minus the last frame's (Spd_base); R_flg plays it backwards */
+void func_80018EC8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
+{
+    USHORT *pSeq;
+    ULONG f_num;
+    SHORT f_base;
+    ULONG Rec_sz;
+    UCHAR *pTop;
+    UCHAR *Bone_adr;
+    PARTS_W *pP;
+    ULONG w;
+    ULONG r;
+    USHORT rr;
+    SHORT x;
+    SHORT y;
+    SHORT z;
+
+    pTop = (UCHAR *)pSeq_t;
+    pSeq = (USHORT *)((UCHAR *)pSeq_t + pEm->Move_no * 8);
+    f_base = pSeq[2];
+    f_num = pSeq[0];
+    pSeq++;
+    if (R_flg != 0) {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + (f_num - pEm->Move_cnt - 1);
+    } else {
+        pSeq = (USHORT *)((UCHAR *)pSeq_t + *pSeq) + pEm->Move_cnt;
+    }
+    w = *pSeq;
+    if (w & 0x100) {
+        /* in-between frame: interpolate the stored root offset (as get_null_pos2) */
+        r = w & 0xFF;
+        rr = r;
+        if (R_flg != 0) {
+            if (!(pSeq[1] & 0x100)) {
+                func_8002B2BC(pKan, pSeq_t, pSeq + 1, R_flg);
+            }
+            rr = 0x100 - r;
+        } else {
+            if (!(pSeq[-1] & 0x100)) {
+                func_8002B2BC(pKan, pSeq_t, pSeq - 1, 0);
+            }
+        }
+        pP = pEm->pSin_parts_ptr;
+        x = (USHORT)pP->UnkAC + ((pP->UnkB4 * rr) >> 8);
+        y = (USHORT)pP->UnkAE + ((pP->UnkB6 * rr) >> 8);
+        z = (USHORT)pP->UnkB0 + ((pP->UnkB2 * rr) >> 8);
+    } else {
+        Rec_sz = ((KAN_HEAD *)pKan)->Rec_sz >> 16;
+        Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+        Bone_adr += (Rec_sz >> 2) * (f_base + (w & 0xFF)) * 4;
+        /* the loop is never repeated; the original has one (it changes register allocation) */
+        do {
+            x = ((SVECTOR *)Bone_adr)->vx;
+            y = ((SVECTOR *)Bone_adr)->vy;
+            z = ((SVECTOR *)Bone_adr)->vz;
+        } while (0);
+    }
+    if (pEm->Move_cnt == 0) {
+        if (R_flg != 0) {
+            pEm->Spd_base_x = x;
+            pEm->Spd_base_y = y;
+            pEm->Spd_base_z = z;
+            pSeq = (USHORT *)(pTop + pEm->Move_no * 8);
+            pSeq = (USHORT *)((UCHAR *)pSeq_t + pSeq[1]);
+            Bone_adr = (UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs;
+            Bone_adr += (Rec_sz >> 2) * (f_base + *(UCHAR *)pSeq) * 4;
+            pEm->Spd_base_x += ((SVECTOR *)Bone_adr)->vx;
+            pEm->Spd_base_y += ((SVECTOR *)Bone_adr)->vy;
+            pEm->Spd_base_z += ((SVECTOR *)Bone_adr)->vz;
+        } else {
+            *(ULONG *)&pEm->Spd_base_x = 0;
+            pEm->Spd_base_z = 0;
+        }
+    }
+    pEm->Spd_x = x - pEm->Spd_base_x;
+    pEm->Spd_y = y - pEm->Spd_base_y;
+    pEm->Spd_z = z - pEm->Spd_base_z;
+    *(ULONG *)&pEm->Spd_base_x = x | (y << 16);
+    pEm->Spd_base_z = z;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80019178);
 
