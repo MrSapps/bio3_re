@@ -1490,7 +1490,7 @@ UCHAR func_80077B84(LONG x, LONG z, LONG id)
     return 0x1D;
 }
 
-/* room BGM request: Unk8C2/Unk8C3 = main/sub sequence ids from the room table, fades out what changes */
+/* room BGM request: Bgm_main_id/Bgm_sub_id = main/sub sequence ids from the room table, fades out what changes */
 void func_80077C4C(void)
 {
     tagGLOBAL *pG = &G;
@@ -1513,8 +1513,8 @@ void func_80077C4C(void)
     if ((Bgm & 0xFF) != 0xFF) {
         pW->UnkB77 |= (Bgm >> 5) & 6;
     }
-    pCd->Unk8C2 = (Bgm >> 8) & 0x3F;
-    if ((!(pW->UnkB77 & 1) && pW->Seq_data[0].Id == pCd->Unk8C2) || pW->Seq_data[0].Id != pCd->Unk8C2) {
+    pCd->Bgm_main_id = (Bgm >> 8) & 0x3F;
+    if ((!(pW->UnkB77 & 1) && pW->Seq_data[0].Id == pCd->Bgm_main_id) || pW->Seq_data[0].Id != pCd->Bgm_main_id) {
         if (pW->Seq[0].Unk2C && !pW->Seq[0].Unk2D) {
             if (pW->Seq[0].Unk38 != 2) {
                 pW->Seq[0].Unk38 = 2;
@@ -1525,12 +1525,12 @@ void func_80077C4C(void)
     } else if (pW->Seq[0].Unk2C) {
         pW->UnkB77 &= 6;
     }
-    if (pCd->Unk8C2 == 0x3F) {
-        pCd->Unk8C2 = 0xFF;
+    if (pCd->Bgm_main_id == 0x3F) {
+        pCd->Bgm_main_id = 0xFF;
         pW->Seq_data[0].Id = 0xFF;
     }
-    pCd->Unk8C3 = Bgm & 0x3F;
-    if ((!(pW->UnkB77 & 2) && pW->Seq_data[1].Id == pCd->Unk8C3) || pW->Seq_data[1].Id != pCd->Unk8C3) {
+    pCd->Bgm_sub_id = Bgm & 0x3F;
+    if ((!(pW->UnkB77 & 2) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
         if (pW->Seq[1].Unk2C && !pW->Seq[1].Unk2D) {
             if (pW->Seq[1].Unk38 != 2) {
                 pW->Seq[1].Unk38 = 2;
@@ -1541,7 +1541,7 @@ void func_80077C4C(void)
     } else if (pW->Seq[1].Unk2C) {
         pW->UnkB77 &= 5;
     }
-    if ((!(pW->UnkB77 & 4) && pW->Seq_data[1].Id == pCd->Unk8C3) || pW->Seq_data[1].Id != pCd->Unk8C3) {
+    if ((!(pW->UnkB77 & 4) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
         if (pW->Seq[2].Unk2C && !pW->Seq[2].Unk2D) {
             if (pW->Seq[2].Unk38 != 2) {
                 pW->Seq[2].Unk38 = 2;
@@ -1552,8 +1552,8 @@ void func_80077C4C(void)
     } else if (pW->Seq[2].Unk2C) {
         pW->UnkB77 &= 3;
     }
-    if (pCd->Unk8C3 == 0x3F) {
-        pCd->Unk8C3 = 0xFF;
+    if (pCd->Bgm_sub_id == 0x3F) {
+        pCd->Bgm_sub_id = 0xFF;
         pW->Seq_data[1].Id = 0xFF;
         pW->Seq_data[2].Id = 0xFF;
     }
@@ -1675,7 +1675,7 @@ void func_800783BC(ULONG no, ULONG size)
     p->Bank_id[0].Id = no;
     if (no < 5) {
         if (no != 3) {
-            p->Bank_id[0].pData = (UCHAR *)D_800A0FEC[no];
+            p->Bank_id[0].pData = (UCHAR *)Snd_spu_adr[no];
         } else {
             pW->Bank_id[3].pData = (UCHAR *)(0x3DE10 - size);
         }

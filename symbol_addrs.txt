@@ -1120,3 +1120,21 @@ pCAot = 0x800DECB0;
 Old_Fatari = 0x800DECB4;
 Old_Uatari = 0x800DECB8;
 St = 0x800E01C0;
+
+// cleanup names (status/system/scenario)
+Cd_spu_trans = 0x80012ECC; // type:func
+Cd_data_trans = 0x800130A0; // type:func
+Cd_bgm_entry_set = 0x80013754; // type:func
+Cd_edd_search = 0x800138B0; // type:func
+Cd_link_search = 0x800139D8; // type:func
+Cd_bgm_ready_cb = 0x80013EF8; // type:func
+Cd_room_ready_cb = 0x80014300; // type:func
+Cd_bgm_next = 0x8001480C; // type:func
+Cd_em_next = 0x80014968; // type:func
+Cd_em_share = 0x80014D10; // type:func
+Cd_em_id_set = 0x800150E4; // type:func
+Em_dat = 0x800DECC0;
+Em_dat_num = 0x800E0170;
+Xa_sys_sector16 = 0x800970DC;
+Xa_sys_sector8 = 0x800970E8;
+Snd_spu_adr = 0x800A0FEC;

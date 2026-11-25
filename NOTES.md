@@ -157,7 +157,7 @@ owns the data (RE2's header split); a .c keeps a private type only when no other
   SORT_PARAM. om.h: CC_PARTS_WORK, CC_WORK (OBJ_MODEL_WORK itself is in bio3.h).
 - pl_wep.h: HIT_REQ (func_800472EC/func_80047BD0), HIT_AREA (func_800445C8, every overlay uses it),
   EM_HIT_AREA, OM_TARGET, PL_WEP_*.
-- cd.h: tagCD, CD_LINK, CD_ENTRY, FLOC, EM_DAT (D_800DECC0, filled by the room streamer).
+- cd.h: tagCD, CD_LINK, CD_ENTRY, FLOC, EM_DAT (Em_dat, filled by the room streamer).
 - sce0.h: SCE_TASK, MODEL_LINK_INFO, SCENARIO (Sce). The SCE opcode records stay private in sce1.c.
 - status.h: ST_WORK (St, 0x800E01C0), ST_POS; the other ST_* tables stay private in 800636D4.c.
 - snd.h: SND_* incl. SND_VOL embedded at SND_WORK.Vol (0x7C0) and the listener Cam_x/y/z, Cattr.

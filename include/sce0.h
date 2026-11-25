@@ -59,7 +59,7 @@ typedef struct tagSCENARIO {
     UCHAR pad148D;
     UCHAR Unk148E;                     /* 0x148E RE2 C_id? */
     UCHAR Unk148F;                     /* 0x148F */
-    ULONG *pUnk1490;                   /* 0x1490 first EMD section of the enemy whose script runs (cd.c func_800130A0) */
+    ULONG *pUnk1490;                   /* 0x1490 first EMD section of the enemy whose script runs (cd.c Cd_data_trans) */
     UCHAR Unk1494;                     /* 0x1494 */
     UCHAR Mizu_div_max;                /* 0x1495 RE2 Mizu_div_max */
     UCHAR Unk1496;                     /* 0x1496 RE2 Mizu_div_ctr? */
@@ -93,7 +93,7 @@ extern SHORT D_800D1F82; /* RE2 G.SaveData.Sce_random */
 extern UCHAR D_800E017E[];
 
 void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
-UCHAR Em_kind_search(ULONG Id);
+ULONG Em_kind_search(ULONG Id);
 UCHAR func_800520D8(ULONG Id);
 void *func_8005211C(ULONG Id);
 void Sce_aot_init(void);

@@ -62,7 +62,7 @@ void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
     pAot->pParts = pP;
 }
 
-UCHAR Em_kind_search(ULONG Id)
+ULONG Em_kind_search(ULONG Id)
 {
     UCHAR *p;
 
@@ -95,8 +95,8 @@ void *func_8005211C(ULONG Id)
     EM_DAT *p;
     ULONG i;
 
-    p = D_800DECC0;
-    for (i = 0; i < D_800E0170; i++, p++) {
+    p = Em_dat;
+    for (i = 0; i < Em_dat_num; i++, p++) {
         if (p->Kind == Id) {
             return p->pEm;
         }
@@ -214,7 +214,7 @@ void Sce_work_clr_set(void)
     Sce.Unk1488 = 0;
     Sce.Unk149B = 0;
     Sce.pUnk1460 = G.pEnemy[2];
-    for (i = 0, p = (LONG *)D_800DECC0; i < 5; i++) {
+    for (i = 0, p = (LONG *)Em_dat; i < 5; i++) {
         *p++ = -1;
     }
 }
