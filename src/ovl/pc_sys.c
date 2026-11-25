@@ -347,8 +347,8 @@ void Pc_scroll(void)
     ULONG i;
 
     for (i = 0; i < PC_ROW_NUM - 1; i++) {
-        func_8001012C(pPc->Text[i], pPc->Text[i + 1], PC_COL_NUM);
-        func_8001012C(pPc->Attr[i], pPc->Attr[i + 1], PC_COL_NUM);
+        Memcpy_byte(pPc->Text[i], pPc->Text[i + 1], PC_COL_NUM);
+        Memcpy_byte(pPc->Attr[i], pPc->Attr[i + 1], PC_COL_NUM);
     }
     for (i = 0; i < PC_COL_NUM; i++) {
         pPc->Text[PC_ROW_NUM - 1][i] = ' ';

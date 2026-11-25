@@ -44,3 +44,4 @@ Config_se_arrow_r = 0x801C558C;
 Config_se_arrow_l = 0x801C5590;
 Config_pad_arrow_r = 0x801C5594;
 Config_pad_arrow_l = 0x801C5598;
+Config_space_str = 0x801C21A4;

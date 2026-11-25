@@ -801,7 +801,7 @@ void Card_disp_file_list(MWORK *pMw)
         if (pMw->F_num[Slot] < 15) {
             pInfo = &pMw->Save_info[Slot];
             if (pInfo->Unk16 < 100) {
-                func_8001012C(Mc_slot_line2, MESS(93), 10);
+                Memcpy_byte(Mc_slot_line2, MESS(93), 10);
                 if (pInfo->Unk16 == 0) {
                     Mc_slot_line2[3] = 0xFE;
                 } else {
@@ -809,11 +809,11 @@ void Card_disp_file_list(MWORK *pMw)
                     Mc_slot_line2[5] += pInfo->Unk16 % 10;
                 }
             } else {
-                func_8001012C(Mc_slot_line2, MESS(94), 10);
+                Memcpy_byte(Mc_slot_line2, MESS(94), 10);
             }
             Mc_slot_line2[1] += pInfo->Save_cnt / 10;
             Mc_slot_line2[2] += pInfo->Save_cnt % 10;
-            func_8001012C(Mc_slot_line, MESS(pInfo->Save_area + 0x3F), 0x18);
+            Memcpy_byte(Mc_slot_line, MESS(pInfo->Save_area + 0x3F), 0x18);
             Col = (Flg_ck(&pInfo->Flg, 0x1F) != 0) << 3;
             if (pMw->Rno == 10 && Slot == pMw->Cursor) {
                 Last = 0;
@@ -1314,13 +1314,13 @@ void Card_mess_make(char *pTitle, void *pHead, UCHAR Slot)
     tagGLOBAL *pG = &G;
     UCHAR No = Slot + 1;
 
-    func_8001012C(pTitle, "\x82\x71\x82\x64\x82\x52\x81\x40\x82\x4F\x82\x4F\x81\x44\x81\x75", 16);
-    func_8001012C(pTitle + 0x10, Mc_area_name[pG->Save_area], 0x1C);
-    func_8001012C(pTitle + 0x2C, "\x81\x5E\x82\x4F\x82\x4F\x81\x7C\x82\x4F\x82\x4F\x81\x76", 15);
+    Memcpy_byte(pTitle, "\x82\x71\x82\x64\x82\x52\x81\x40\x82\x4F\x82\x4F\x81\x44\x81\x75", 16);
+    Memcpy_byte(pTitle + 0x10, Mc_area_name[pG->Save_area], 0x1C);
+    Memcpy_byte(pTitle + 0x2C, "\x81\x5E\x82\x4F\x82\x4F\x81\x7C\x82\x4F\x82\x4F\x81\x76", 15);
     if (No >= 10) {
         pTitle[9] += No / 10;
     } else {
-        func_8001012C(pTitle + 8, "\x81\x40", 2);
+        Memcpy_byte(pTitle + 8, "\x81\x40", 2);
     }
     pTitle[11] += No % 10;
     pTitle[0x2F] += pG->Save_cnt / 10;
@@ -1330,17 +1330,17 @@ void Card_mess_make(char *pTitle, void *pHead, UCHAR Slot)
             pTitle[0x35] += pG->Unk7806 / 10;
             pTitle[0x37] += pG->Unk7806 % 10;
         } else {
-            func_8001012C(pTitle + 0x34, "\x82\x77\x82\x77\x81\x76", 7);
+            Memcpy_byte(pTitle + 0x34, "\x82\x77\x82\x77\x81\x76", 7);
         }
         pTitle += 0x3A;
     } else {
-        func_8001012C(pTitle + 0x32, "\x81\x76", 3);
+        Memcpy_byte(pTitle + 0x32, "\x81\x76", 3);
         pTitle += 0x34;
     }
     if (Flg_ck(G.Unk77F8, 0x1F)) {
-        func_8001012C(pTitle, "\x81\x40\x82\x64", 5);
+        Memcpy_byte(pTitle, "\x81\x40\x82\x64", 5);
     } else {
-        func_8001012C(pTitle, "\x81\x40\x82\x67", 5);
+        Memcpy_byte(pTitle, "\x81\x40\x82\x67", 5);
     }
 }
 

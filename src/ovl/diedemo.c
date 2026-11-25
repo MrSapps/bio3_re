@@ -437,7 +437,7 @@ void Die_enemy_set_em(void)
     }
 }
 
-/* Unk7868 flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs D_80198228[Unk44] */
+/* Unk7868 flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs Die_sub_tbl[Unk44] */
 void Die_enemy_set_sub(void)
 {
     tagGLOBAL *pG = &G;

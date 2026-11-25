@@ -1,7 +1,7 @@
 #include "ovl/warning.h"
 
 /* red frame with rounded corners behind the message */
-void func_80185288(void)
+void Warn_frame_draw(void)
 {
     WARN_POLY Poly;
     LONG Row;

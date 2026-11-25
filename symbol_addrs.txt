@@ -1925,3 +1925,4 @@ Cmd_switch_spr = 0x8009FFEC;
 Cmd_switch2_spr = 0x8009FFF8;
 Main_bg_mode = 0x800D442D;
 Main_bg_chg_flg = 0x800D442E;
+Memcpy_byte = 0x8001012C; // type:func
