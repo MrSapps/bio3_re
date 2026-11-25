@@ -1,9 +1,12 @@
 #ifndef OVL_EM38_H
 #define OVL_EM38_H
 /*
- * Enemy module em38 (enemy id 0x38): the large many-part enemy that the
- * tentacles of em39 (enemy id 0x39) are attached to. Loaded at 0x80100000
- * (slot 1) or 0x8010D000 (slot 2).
+ * Enemy module em38 (enemy id 0x38): a large crawling many-part monster (most
+ * likely one of Nemesis' last mutated forms) that walks between fixed targets,
+ * claws, bites and swallows, spits acid, climbs into the walls, and carries the
+ * two tentacles of em39 (enemy id 0x39). It rises out of the ground, swells
+ * when it transforms and bursts when it dies (scenario routines).
+ * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  * The routine frame is RE2's G-type enemy (EM34.C / EM37.C): Em_routine_0 =
  * Init/Move/Damage/Die/Scenario/-/-/Dead, Move picks Em38_Move_type[Type & 3],
  * which runs a brain routine (mv_br) and a motion routine (mv) of 16, both
