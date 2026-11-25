@@ -3,15 +3,36 @@
 /* status.c (RE2 STATUS.C / ST_SUB*.C role): status screen, inventory, item box, files and map (RE3 0x800636D4..) */
 #include "bio3.h"
 
-typedef struct tagST_ICON {
+/* SPRT definition (12 bytes): texture rect and position relative to St.Pos[] (St_sprt_init/St_sprt_draw) */
+typedef struct tagST_SPR_DEF {
     UCHAR U;                           /* 0x0 */
     UCHAR pad1;
     UCHAR V;                           /* 0x2 */
     UCHAR pad3;
     USHORT W;                          /* 0x4 */
     USHORT H;                          /* 0x6 */
-    UCHAR pad8[4];
-} ST_ICON;
+    SHORT X;                           /* 0x8 */
+    SHORT Y;                           /* 0xA */
+} ST_SPR_DEF;
+
+/* POLY_FT4 definition (12 bytes, St_ft4_init/St_ft4_draw); highlighted variants follow as a second record */
+typedef struct tagST_FT4_DEF {
+    USHORT U;                          /* 0x0 */
+    USHORT V;                          /* 0x2 */
+    USHORT W;                          /* 0x4 */
+    USHORT H;                          /* 0x6 */
+    USHORT X;                          /* 0x8 */
+    USHORT Y;                          /* 0xA */
+} ST_FT4_DEF;
+
+/* TILE definition (12 bytes, St_tile_init/St_tile_draw) */
+typedef struct tagST_TILE_DEF {
+    SHORT pad0[2];
+    SHORT W;                           /* 0x4 */
+    SHORT H;                           /* 0x6 */
+    SHORT X;                           /* 0x8 */
+    SHORT Y;                           /* 0xA */
+} ST_TILE_DEF;
 
 typedef struct tagST_MAP_ARROW {
     SHORT U0;                          /* 0x0 */
@@ -183,80 +204,80 @@ extern UCHAR File_page_sum[];
 extern ULONG File_page_size[];
 extern USHORT File_page_top[];
 extern USHORT File_page_num[];
-extern UCHAR D_8009F2EC[];
-extern UCHAR D_8009F2F8[];
-extern UCHAR D_8009F304[];
-extern UCHAR D_8009F310[];
-extern UCHAR D_8009F31C[];
-extern UCHAR D_8009F328[];
-extern UCHAR D_8009F34C[];
-extern USHORT D_8009F388[];
-extern USHORT D_8009F3E8[];
-extern UCHAR D_8009F3F4[];
-extern UCHAR D_8009F418[];
-extern USHORT D_8009F424[];
-extern UCHAR D_8009F448[];
-extern SHORT D_8009F49C[];
-extern UCHAR D_8009F4A8[];
-extern UCHAR D_8009F4B4[];
-extern SHORT D_8009F4C0[];
-extern UCHAR D_8009F4CC[];
-extern UCHAR D_8009F4D8[];
+extern ST_SPR_DEF D_8009F2EC[];
+extern ST_SPR_DEF D_8009F2F8[];
+extern ST_SPR_DEF D_8009F304[];
+extern ST_SPR_DEF D_8009F310[];
+extern ST_SPR_DEF D_8009F31C[];
+extern ST_SPR_DEF D_8009F328[];
+extern ST_SPR_DEF D_8009F34C[];
+extern ST_FT4_DEF D_8009F388[];
+extern ST_FT4_DEF D_8009F3E8[];
+extern ST_SPR_DEF D_8009F3F4[];
+extern ST_SPR_DEF D_8009F418[];
+extern ST_FT4_DEF D_8009F424[];
+extern ST_SPR_DEF D_8009F448[];
+extern ST_TILE_DEF D_8009F49C[];
+extern ST_SPR_DEF D_8009F4A8[];
+extern ST_SPR_DEF D_8009F4B4[];
+extern ST_TILE_DEF D_8009F4C0[];
+extern ST_SPR_DEF D_8009F4CC[];
+extern ST_SPR_DEF D_8009F4D8[];
 extern void (*St_box_tbl[])(ST_WORK *pSt);
 extern USHORT Box_pix_pos[][2];
 extern UCHAR Box_ng_item[];
 extern UCHAR Itemi_sum[];
 extern UCHAR Itemg_sum[];
 extern ULONG Item_pix_ofs[];
-extern UCHAR D_8009F890[];
-extern UCHAR D_8009F8A8[];
-extern UCHAR D_8009F8B4[];
-extern UCHAR D_8009F8C0[];
-extern UCHAR D_8009F8CC[];
-extern UCHAR D_8009F908[];
-extern UCHAR D_8009F95C[];
-extern USHORT D_8009F9B0[];
-extern UCHAR D_8009F9D4[];
-extern ST_ICON File_icon_tbl[];
-extern UCHAR D_8009FB78[];
-extern UCHAR D_8009FB84[];
-extern SHORT D_8009FB90[];
-extern UCHAR D_8009FBA8[];
-extern UCHAR D_8009FBC0[];
-extern UCHAR D_8009FBCC[];
-extern UCHAR D_8009FBFC[];
-extern UCHAR D_8009FC2C[];
-extern UCHAR D_8009FC38[];
-extern UCHAR D_8009FC44[];
-extern UCHAR D_8009FC50[];
-extern USHORT D_8009FC5C[];
-extern USHORT D_8009FCBC[];
-extern USHORT D_8009FD1C[];
-extern USHORT D_8009FD7C[];
-extern USHORT D_8009FDDC[];
-extern USHORT D_8009FE0C[];
-extern USHORT D_8009FE3C[];
-extern USHORT D_8009FE6C[];
-extern USHORT D_8009FE9C[];
-extern USHORT D_8009FECC[];
-extern USHORT D_8009FEFC[];
-extern USHORT D_8009FF2C[];
-extern USHORT D_8009FF38[];
-extern USHORT D_8009FF44[];
-extern USHORT D_8009FF50[];
-extern SHORT D_8009FF5C[];
-extern UCHAR D_8009FF68[];
-extern UCHAR D_8009FF74[];
-extern UCHAR D_8009FF80[];
-extern UCHAR D_8009FF8C[];
-extern UCHAR D_8009FFB0[];
-extern UCHAR D_8009FFBC[];
-extern UCHAR D_8009FFC8[];
-extern UCHAR D_8009FFD4[];
-extern UCHAR D_8009FFE0[];
-extern UCHAR D_8009FFEC[];
-extern UCHAR D_8009FFF8[];
-extern UCHAR Cond_spr_tbl[];
+extern ST_SPR_DEF D_8009F890[];
+extern ST_SPR_DEF D_8009F8A8[];
+extern ST_SPR_DEF D_8009F8B4[];
+extern ST_SPR_DEF D_8009F8C0[];
+extern ST_SPR_DEF D_8009F8CC[];
+extern ST_SPR_DEF D_8009F908[];
+extern ST_SPR_DEF D_8009F95C[];
+extern ST_FT4_DEF D_8009F9B0[];
+extern ST_SPR_DEF D_8009F9D4[];
+extern ST_SPR_DEF File_icon_tbl[];
+extern ST_SPR_DEF D_8009FB78[];
+extern ST_SPR_DEF D_8009FB84[];
+extern ST_TILE_DEF D_8009FB90[];
+extern ST_SPR_DEF D_8009FBA8[];
+extern ST_SPR_DEF D_8009FBC0[];
+extern ST_SPR_DEF D_8009FBCC[];
+extern ST_SPR_DEF D_8009FBFC[];
+extern ST_SPR_DEF D_8009FC2C[];
+extern ST_SPR_DEF D_8009FC38[];
+extern ST_SPR_DEF D_8009FC44[];
+extern ST_SPR_DEF D_8009FC50[];
+extern ST_FT4_DEF D_8009FC5C[];
+extern ST_FT4_DEF D_8009FCBC[];
+extern ST_FT4_DEF D_8009FD1C[];
+extern ST_FT4_DEF D_8009FD7C[];
+extern ST_FT4_DEF D_8009FDDC[];
+extern ST_FT4_DEF D_8009FE0C[];
+extern ST_FT4_DEF D_8009FE3C[];
+extern ST_FT4_DEF D_8009FE6C[];
+extern ST_FT4_DEF D_8009FE9C[];
+extern ST_FT4_DEF D_8009FECC[];
+extern ST_FT4_DEF D_8009FEFC[];
+extern ST_FT4_DEF D_8009FF2C[];
+extern ST_FT4_DEF D_8009FF38[];
+extern ST_FT4_DEF D_8009FF44[];
+extern ST_FT4_DEF D_8009FF50[];
+extern ST_TILE_DEF D_8009FF5C[];
+extern ST_SPR_DEF D_8009FF68[];
+extern ST_SPR_DEF D_8009FF74[];
+extern ST_SPR_DEF D_8009FF80[];
+extern ST_SPR_DEF D_8009FF8C[];
+extern ST_SPR_DEF D_8009FFB0[];
+extern ST_SPR_DEF D_8009FFBC[];
+extern ST_SPR_DEF D_8009FFC8[];
+extern ST_SPR_DEF D_8009FFD4[];
+extern ST_SPR_DEF D_8009FFE0[];
+extern ST_SPR_DEF D_8009FFEC[];
+extern ST_SPR_DEF D_8009FFF8[];
+extern ST_SPR_DEF Cond_spr_tbl[]; /* condition text, one per St_condition_get value */
 extern USHORT Item_pix_pos[][2];
 extern USHORT Item_num_pos[][2];
 extern USHORT File_order_tbl[]; /* same table as File_order_tbl, byte access */
@@ -308,7 +329,7 @@ void St_file_end(ST_WORK *pSt);
 void St_file_prim_init(ST_WORK *pSt);
 void St_file_draw(ST_WORK *pSt);
 void St_file_page_load(ST_WORK *pSt, UCHAR a, UCHAR b);
-void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
+void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm);
 void St_box_init(ST_WORK *pSt);
 void St_box_main(ST_WORK *pSt);
 void St_box_exit(ST_WORK *pSt);
@@ -382,13 +403,13 @@ void St_draw(ST_WORK *pSt);
 void St_open_wait(ST_WORK *pSt);
 void St_close(ST_WORK *pSt);
 LONG St_condition_get(void);
-void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
-void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void St_tile_init(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n);
+void St_sprt_init(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm);
+void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm);
+void St_tile_init(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, UCHAR n);
 void St_line_init(ST_WORK *pSt);
-void St_sprt_draw(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
-void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void St_tile_draw(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm);
+void St_sprt_draw(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm);
+void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm);
+void St_tile_draw(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, ULONG prm);
 void St_mapping_tim(void);
 void St_chenge_pl(ULONG no);
 void St_map_pos_init(ST_WORK *pSt);

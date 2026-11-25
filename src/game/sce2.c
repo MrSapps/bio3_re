@@ -43,7 +43,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
         if (i == -1) {
             break;
         }
-        p = &G.pUnk7C7C->Item[i];
+        p = &G.pItem_set->Item[i];
         if (((ITEM_TBL4 *)Item_data_tbl)[p->Id].Max >= p->Num + Num) {
             return 1;
         }
@@ -1061,22 +1061,22 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     pPl = G_PLAYER;
     Flg = Wep & 0x80;
     if (Wep == 0xFF) {
-        G.pUnk7C7C->Unk128 = 0xFF;
-        G.pUnk7C7C->Unk129 = 0;
+        G.pItem_set->Equip_no = 0xFF;
+        G.pItem_set->Equip_id = 0;
         pSce->Data += 2;
         return 1;
     } else {
         Wep &= 0x7F;
         pPl->Type = (pPl->Type & 0xFF00) | Wep;
         if (Wep != 0) {
-            G.pUnk7C7C->Unk128 = Search_item_id_(Wep, 0);
-            G.pUnk7C7C->Unk129 = Wep;
+            G.pItem_set->Equip_no = Search_item_id_(Wep, 0);
+            G.pItem_set->Equip_id = Wep;
             Weapon_cls(pPl);
             Pl_weapon_ch(pPl);
             D_800E0171[0] = 1;
         } else {
-            G.pUnk7C7C->Unk128 = 0xFF;
-            G.pUnk7C7C->Unk129 = 0;
+            G.pItem_set->Equip_no = 0xFF;
+            G.pItem_set->Equip_id = 0;
             if (Flg) {
                 Weapon_cls(pPl);
                 Pl_weapon_ch(pPl);
@@ -1101,11 +1101,11 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     Wep = D_800E01E8;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
-        G.pUnk7C7C->Unk128 = Search_item_id_(Wep, 0);
-        G.pUnk7C7C->Unk129 = Wep;
+        G.pItem_set->Equip_no = Search_item_id_(Wep, 0);
+        G.pItem_set->Equip_id = Wep;
     } else {
-        G.pUnk7C7C->Unk128 = 0xFF;
-        G.pUnk7C7C->Unk129 = 0;
+        G.pItem_set->Equip_no = 0xFF;
+        G.pItem_set->Equip_id = 0;
     }
     if (Sce.Unk1489 != 0) {
         Weapon_cls(pPl);

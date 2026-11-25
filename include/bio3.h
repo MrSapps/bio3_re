@@ -111,11 +111,11 @@ typedef struct tagITEM_WORK {
 typedef struct tagITEM_SET {
     ITEM_WORK Item[10];                /* 0x000 inventory */
     ITEM_WORK Box[64];                 /* 0x028 item box */
-    UCHAR Unk128;                      /* 0x128 equipped slot (0xFF none) */
-    UCHAR Unk129;                      /* 0x129 equipped item id */
-    UCHAR Num;                         /* 0x12A */
+    UCHAR Equip_no;                    /* 0x128 equipped slot (0xFF none), RE2 Equip_item_no */
+    UCHAR Equip_id;                    /* 0x129 equipped item id, RE2 Equip_item_id */
+    UCHAR Num;                         /* 0x12A inventory size (8 or 10) */
     UCHAR pad12B;
-    USHORT Unk12C[10];                 /* 0x12C */
+    USHORT Tama_mix_cnt[10];           /* 0x12C ammo combines per ammo kind (St_mix_select caps some at 6) */
 } ITEM_SET;
 
 /* enemy code bank in one overlay load slot (RE2 struct tagEM_BIN_INFO, EM_SET.H) */
@@ -478,8 +478,8 @@ typedef struct tagGLOBAL {
     LONG Unk79A4[14];                  /* 0x79A4 (status: -1 on init) */
     ULONG Unk79DC[4];                  /* 0x79DC */
     ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (Map_door_disp_ck) */
-    ITEM_SET Item_work[2];             /* 0x79FC per character, pUnk7C7C points to one (mem_card Load_pop) */
-    ITEM_SET *pUnk7C7C;                /* 0x7C7C items of the current character */
+    ITEM_SET Item_work[2];             /* 0x79FC per character, pItem_set points to one (mem_card Load_pop) */
+    ITEM_SET *pItem_set;               /* 0x7C7C items of the current character */
     ULONG Item_work_no;                /* 0x7C80 index into Item_work (mem_card Load_pop) */
     USHORT Unk7C84[1];                 /* 0x7C84 index from D_800A0FDC table */
     UCHAR pad7C86[0x7D8C - 0x7C86];

@@ -150,7 +150,7 @@ void func_800245A0(void)
         }
     } else if (pG->System_flg & 0x10000000) {
         func_80024B34();
-        pG->pUnk7C7C = &G.Item_work[G.Item_work_no];
+        pG->pItem_set = &G.Item_work[G.Item_work_no];
         goto set;
     } else {
         pPl->Max_life = 200;

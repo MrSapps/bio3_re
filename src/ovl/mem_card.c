@@ -539,8 +539,8 @@ void Card_rno09_save(MWORK *pMw)
     UCHAR Save_cnt;
 
     pMw->Cursor = pMw->Slot;
-    Memcpy(Mc_item_bak, G.pUnk7C7C, sizeof(Mc_item_bak));
-    pMw->Item_bak = G.pUnk7C7C->Unk128;
+    Memcpy(Mc_item_bak, G.pItem_set, sizeof(Mc_item_bak));
+    pMw->Item_bak = G.pItem_set->Equip_no;
     if (!(G.System_flg & 0x4080)) {
         func_8006CCF0_(Search_item_id_(0x81, 0), 1, 0);
     }
@@ -568,8 +568,8 @@ void Card_rno09_save(MWORK *pMw)
         if (!(G.System_flg & 0x80)) {
             G.Save_cnt = Save_cnt;
         }
-        Memcpy(G.pUnk7C7C, Mc_item_bak, sizeof(Mc_item_bak));
-        G.pUnk7C7C->Unk128 = pMw->Item_bak;
+        Memcpy(G.pItem_set, Mc_item_bak, sizeof(Mc_item_bak));
+        G.pItem_set->Equip_no = pMw->Item_bak;
         pMw->Err = 5;
         pMw->Key_lock = 0;
         pMw->Rno = 3;
@@ -1301,7 +1301,7 @@ void Load_pop(void)
     Snd_work.UnkB75 = pG->Save_mono;
     Main.Unk195 = pG->Save_unk780C;
     Main.Unk196 = pG->Save_unk780D;
-    G.pUnk7C7C = &G.Item_work[G.Item_work_no];
+    G.pItem_set = &G.Item_work[G.Item_work_no];
     Set_volume(CD.Vol);
 }
 

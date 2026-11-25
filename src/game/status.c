@@ -336,7 +336,7 @@ void St_file_page_load(ST_WORK *pSt, UCHAR a, UCHAR b)
     Mapping_tim(p);
 }
 
-void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
+void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
@@ -349,9 +349,9 @@ void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
     }
     ox = pSt->Pos[ofs].X;
     oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, src += 12) {
-        p->x0 = *(SHORT *)(src + 8) + ox;
-        p->y0 = *(SHORT *)(src + 10) + oy;
+    for (i = 0; i < (UCHAR)n; i++, p += 2, pDef++) {
+        p->x0 = pDef->X + ox;
+        p->y0 = pDef->Y + oy;
         AddPrim(&pSt->Tpage[G.Cbuf_id][ot], p);
     }
 }
@@ -389,7 +389,7 @@ void St_box_inv_select(ST_WORK *pSt)
         Snd_se_stad(5, 0, 0, 0);
     } else if (G.Key_trg & 0x1000) {
         if ((signed char)pSt->Cursor >= 0) {
-            id = G.pUnk7C7C->Item[(signed char)pSt->Cursor].Id;
+            id = G.pItem_set->Item[(signed char)pSt->Cursor].Id;
             for (i = 0; i < 1; i++) {
                 if (id == Box_ng_item[i]) {
                     Mess_set(0, 0x1000, 0xB, 0);
@@ -414,7 +414,7 @@ void St_box_inv_select(ST_WORK *pSt)
             f = 1;
         }
         if (G.Unk2100 & 0x4000) {
-            if ((signed char)pSt->Cursor < G.pUnk7C7C->Num - 2) {
+            if ((signed char)pSt->Cursor < G.pItem_set->Num - 2) {
                 pSt->Cursor += 2;
                 f = 1;
             }
@@ -470,14 +470,14 @@ void St_box_select(ST_WORK *pSt)
     }
     if (G.Key_trg & 0x1000) {
         no = pSt->Cursor;
-        pI = &G.pUnk7C7C->Item[no];
+        pI = &G.pItem_set->Item[no];
         if (pI->Id == 0) {
             no = Search_item_id(0, 0);
         }
         do {
-            if (G.pUnk7C7C->Unk128 == no) {
-                G.pUnk7C7C->Unk129 = 0;
-                G.pUnk7C7C->Unk128 = 0xFF;
+            if (G.pItem_set->Equip_no == no) {
+                G.pItem_set->Equip_id = 0;
+                G.pItem_set->Equip_no = 0xFF;
                 Pix_move(10, 11);
             }
             pInfo = Item_data_tbl[pI->Id];
@@ -576,7 +576,7 @@ void St_box_select(ST_WORK *pSt)
         pSt->Flg |= 0x8000;
     }
     if (G.Unk20F8 & 0x5000) {
-        pI = &G.pUnk7C7C->Item[n + 10];
+        pI = &G.pItem_set->Item[n + 10];
         Pix_unpack_box(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
         DrawSync(0);
     }
@@ -623,7 +623,7 @@ void St_box_select(ST_WORK *pSt)
             n = pSt->Box_cursor + 0x3E;
         }
         for (i = 0; i < 5; i++) {
-            pI = &G.pUnk7C7C->Item[n + 10];
+            pI = &G.pItem_set->Item[n + 10];
         Pix_unpack_box(n, pI->Id, 0x801A1500, (ULONG *)0x801A1000);
             DrawSync(0);
             if (++n >= 0x40) {
@@ -640,23 +640,23 @@ void St_box_pack(ST_WORK *pSt)
 
     if (pSt->Timer == 0) {
         no = pSt->Rtn2;
-        if (pSt->Rtn2 >= G.pUnk7C7C->Num - 1) {
+        if (pSt->Rtn2 >= G.pItem_set->Num - 1) {
             pSt->Rtn1 = 0;
             pSt->Blink = 0;
             pSt->Blink_dir = 0;
             return;
         }
         n = no;
-        G.pUnk7C7C->Item[n].Id = G.pUnk7C7C->Item[n + 1].Id;
-        G.pUnk7C7C->Item[n].Num = G.pUnk7C7C->Item[n + 1].Num;
-        G.pUnk7C7C->Item[n].Flg = G.pUnk7C7C->Item[n + 1].Flg;
-        G.pUnk7C7C->Item[n + 1].Id = 0;
-        G.pUnk7C7C->Item[n + 1].Num = 0;
-        G.pUnk7C7C->Item[n + 1].Flg = 0;
+        G.pItem_set->Item[n].Id = G.pItem_set->Item[n + 1].Id;
+        G.pItem_set->Item[n].Num = G.pItem_set->Item[n + 1].Num;
+        G.pItem_set->Item[n].Flg = G.pItem_set->Item[n + 1].Flg;
+        G.pItem_set->Item[n + 1].Id = 0;
+        G.pItem_set->Item[n + 1].Num = 0;
+        G.pItem_set->Item[n + 1].Flg = 0;
         Pix_swap(no, no + 1);
-        if (G.pUnk7C7C->Unk128 == n + 1) {
-            G.pUnk7C7C->Unk128 = n;
-            G.pUnk7C7C->Unk129 = G.pUnk7C7C->Item[G.pUnk7C7C->Unk128].Id;
+        if (G.pItem_set->Equip_no == n + 1) {
+            G.pItem_set->Equip_no = n;
+            G.pItem_set->Equip_id = G.pItem_set->Item[G.pItem_set->Equip_no].Id;
         }
         if ((signed char)pSt->Cursor == n + 1) {
             pSt->Cursor--;
@@ -664,7 +664,7 @@ void St_box_pack(ST_WORK *pSt)
             pSt->Pos[12].Y = ((signed char)pSt->Cursor >> 1) * 30;
         }
         pSt->Rtn2++;
-        if (G.pUnk7C7C->Item[n + 2].Id == 0) {
+        if (G.pItem_set->Item[n + 2].Id == 0) {
             pSt->Rtn1 = 0;
             pSt->Blink = 0;
             pSt->Blink_dir = 0;
@@ -913,7 +913,7 @@ void St_item_select(ST_WORK *pSt)
     } else {
         if (G.Key_trg & 0x1000) {
             if ((signed char)pSt->Cursor >= 0) {
-                p = (UCHAR *)&G.pUnk7C7C->Item[(signed char)pSt->Cursor];
+                p = (UCHAR *)&G.pItem_set->Item[(signed char)pSt->Cursor];
                 if (p[0] != 0) {
                     pSt->Rtn1 = 1;
                     pSt->Cmd_cursor = 4;
@@ -950,7 +950,7 @@ void St_item_select(ST_WORK *pSt)
                 }
             }
             if (G.Unk2100 & 0x4000) {
-                if ((signed char)pSt->Cursor < G.pUnk7C7C->Num - 2) {
+                if ((signed char)pSt->Cursor < G.pItem_set->Num - 2) {
                     pSt->Cursor += 2;
                     se = 1;
                 }
@@ -992,7 +992,7 @@ void St_cmd_open(ST_WORK *pSt)
 
 void St_cmd_select(ST_WORK *pSt)
 {
-    ITEM_WORK *e = &G.pUnk7C7C->Item[pSt->Cursor];
+    ITEM_WORK *e = &G.pItem_set->Item[pSt->Cursor];
     LONG n = 3;
 
     if (e->Flg & 0x10) {
@@ -1373,7 +1373,7 @@ void St_mix_select(ST_WORK *pSt)
     UCHAR c;
     LONG se;
 
-    p = &pG->pUnk7C7C->Item[pSt->Cursor];
+    p = &pG->pItem_set->Item[pSt->Cursor];
     n = 0;
     if (pG->Key_trg & 0x2000) {
         pSt->Rtn1 = 3;
@@ -1383,7 +1383,7 @@ void St_mix_select(ST_WORK *pSt)
         return;
     }
     if (pG->Key_trg & 0x1000) {
-        q = &pG->pUnk7C7C->Item[(signed char)pSt->Cursor2];
+        q = &pG->pItem_set->Item[(signed char)pSt->Cursor2];
         pc = Search_item_mix(pSt, p->Id, q->Id);
         pSt->pMix_a = p;
         pSt->pMix_b = q;
@@ -1404,7 +1404,7 @@ void St_mix_select(ST_WORK *pSt)
                     break;
                 }
                 i = n;
-                if (i != 0 && i < pG->pUnk7C7C->Unk12C[c]) {
+                if (i != 0 && i < pG->pItem_set->Tama_mix_cnt[c]) {
                     Mess_set(0, 0x1400, 13, 0);
                     pSt->Rtn2 = 5;
                     pSt->Flg &= ~0x20000000;
@@ -1449,7 +1449,7 @@ void St_mix_select(ST_WORK *pSt)
         }
     }
     if (G.Unk2100 & 0x4000) {
-        if ((signed char)pSt->Cursor2 < G.pUnk7C7C->Num - 2) {
+        if ((signed char)pSt->Cursor2 < G.pItem_set->Num - 2) {
             pSt->Cursor2 += 2;
             se = 1;
         }
@@ -1573,8 +1573,8 @@ void St_mix_result(ST_WORK *pSt)
         if (pC[0] == 3 || pC[0] == 4) {
             pA->Id = pC[3];
             pA->Flg = Item_data_tbl[pC[3]][3] | (pA->Flg & 0xFF00);
-            if (pG->pUnk7C7C->Unk128 == (signed char)*pN) {
-                pG->pUnk7C7C->Unk129 = pC[3];
+            if (pG->pItem_set->Equip_no == (signed char)*pN) {
+                pG->pItem_set->Equip_id = pC[3];
             }
         }
         pA->Num += pSt->Mix_num;
@@ -1587,8 +1587,8 @@ void St_mix_result(ST_WORK *pSt)
         if (pC[0] == 3) {
             pA->Id = pC[3];
             pA->Flg = Item_data_tbl[pC[3]][3] | (pA->Flg & 0xFF00);
-            if (pG->pUnk7C7C->Unk128 == (signed char)*pN) {
-                pG->pUnk7C7C->Unk129 = pC[3];
+            if (pG->pItem_set->Equip_no == (signed char)*pN) {
+                pG->pItem_set->Equip_id = pC[3];
             }
         }
         pA->Num += pSt->Mix_num;
@@ -1629,8 +1629,8 @@ void St_mix_result(ST_WORK *pSt)
         pA->Id = pC[3];
         pI = Item_data_tbl[pC[3]];
         pA->Flg = pI[3] | (pA->Flg & 0xFF00);
-        if (pG->pUnk7C7C->Unk128 == (signed char)*pN) {
-            pG->pUnk7C7C->Unk129 = pC[3];
+        if (pG->pItem_set->Equip_no == (signed char)*pN) {
+            pG->pItem_set->Equip_id = pC[3];
         }
         pA->Num = pSt->Mix_num;
         *pM = *pN;
@@ -1646,7 +1646,7 @@ void St_mix_result(ST_WORK *pSt)
         if (pA->Id == 0xC) {
             pA->Id = 0x14;
             pA->Flg = 7;
-            pG->pUnk7C7C->Unk129 = pA->Id;
+            pG->pItem_set->Equip_id = pA->Id;
             Pl_wep_eff_parts_init(&Pl_work);
             func_80046C90();
         }
@@ -1682,8 +1682,8 @@ void St_mix_result(ST_WORK *pSt)
         pA->Id = pC[3];
         pI = Item_data_tbl[pC[3]];
         pA->Flg = pI[3] | (pA->Flg & 0xFF00);
-        if (pG->pUnk7C7C->Unk128 == (signed char)*pN) {
-            pG->pUnk7C7C->Unk129 = pC[3];
+        if (pG->pItem_set->Equip_no == (signed char)*pN) {
+            pG->pItem_set->Equip_id = pC[3];
         }
         pA->Num = pSt->Mix_num;
         *pM = *pN;
@@ -1700,7 +1700,7 @@ void St_item_check(ST_WORK *pSt)
 
     switch (pSt->Rtn2) {
     case 0:
-        p = (UCHAR *)&pG->pUnk7C7C->Item[pSt->Cursor];
+        p = (UCHAR *)&pG->pItem_set->Item[pSt->Cursor];
         Itemg_load(p[0]);
         pSt->Cmd_closed = 0;
         pSt->Timer = 0;
@@ -1710,7 +1710,7 @@ void St_item_check(ST_WORK *pSt)
         if (pSt->Timer < 12) {
             pSt->Pos[8].X += 0x12;
         } else {
-            p = (UCHAR *)&pG->pUnk7C7C->Item[pSt->Cursor];
+            p = (UCHAR *)&pG->pItem_set->Item[pSt->Cursor];
             pE = Item_data_tbl[p[0]];
             Flg_on(pG->Unk7910, pE[2]);
             Mess_set(0, 0x1100, p[0] + 0x10, 0);
@@ -1725,7 +1725,7 @@ void St_item_check(ST_WORK *pSt)
         if (!(D_800DBB58 & 0x80)) {
             pSt->Rtn2 = 3;
             pSt->Timer = 0;
-            p = (UCHAR *)&pG->pUnk7C7C->Item[pSt->Cursor];
+            p = (UCHAR *)&pG->pItem_set->Item[pSt->Cursor];
             pSt->pChk = pE = Search_item_check(pSt, p[0]);
             if (pE != (UCHAR *)-1 && pE[0] == 1) {
                 pSt->Chg_id = pE[2];
@@ -1743,7 +1743,7 @@ void St_item_check(ST_WORK *pSt)
         if (pSt->Timer < 12) {
             pSt->Pos[8].X -= 0x12;
         } else {
-            p = (UCHAR *)&pG->pUnk7C7C->Item[pSt->Cursor];
+            p = (UCHAR *)&pG->pItem_set->Item[pSt->Cursor];
             pSt->pChk = pE = Search_item_check(pSt, p[0]);
             if (pE != (UCHAR *)-1) {
                 if (pE[0] == 0) {
@@ -1768,7 +1768,7 @@ void St_item_check(ST_WORK *pSt)
 void St_item_switch(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
-    ITEM_WORK *p = &pG->pUnk7C7C->Item[pSt->Cursor];
+    ITEM_WORK *p = &pG->pItem_set->Item[pSt->Cursor];
     USHORT w = p->Flg;
     UCHAR id = p->Id;
     USHORT n;
@@ -1785,8 +1785,8 @@ void St_item_switch(ST_WORK *pSt)
     if ((w & 3) == 3) {
         p->Flg = n | 3;
     }
-    if (id == pG->pUnk7C7C->Unk129 && pSt->Cursor == pG->pUnk7C7C->Unk128) {
-        pG->pUnk7C7C->Unk129 = p->Id;
+    if (id == pG->pItem_set->Equip_id && pSt->Cursor == pG->pItem_set->Equip_no) {
+        pG->pItem_set->Equip_id = p->Id;
     }
     pSt->Rtn1 = 2;
 }
@@ -1799,7 +1799,7 @@ UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1)
     UCHAR *pI;
 
     if (a1 == 0) {
-        pI = (UCHAR *)&G.pUnk7C7C->Item[pSt->Cursor];
+        pI = (UCHAR *)&G.pItem_set->Item[pSt->Cursor];
         pSt->Sel_item = *(ITEM_WORK *)pI;
         f = pSt->Sel_item.Flg;
         if (pSt->Slide_step == 0) {
@@ -1923,21 +1923,21 @@ void St_item_shift(ST_WORK *pSt)
     if (pSt->Timer == 0) {
         pG = &G;
         i = pSt->Rtn2;
-        if (pSt->Rtn2 >= pG->pUnk7C7C->Num - 1) {
+        if (pSt->Rtn2 >= pG->pItem_set->Num - 1) {
             pSt->Rtn1 = 3;
             return;
         }
         k = i;
-        pG->pUnk7C7C->Item[k].Id = pG->pUnk7C7C->Item[j = k + 1].Id;
-        pG->pUnk7C7C->Item[k].Num = pG->pUnk7C7C->Item[j].Num;
-        pG->pUnk7C7C->Item[k].Flg = pG->pUnk7C7C->Item[j].Flg;
-        pG->pUnk7C7C->Item[j].Id = 0;
-        pG->pUnk7C7C->Item[j].Num = 0;
-        pG->pUnk7C7C->Item[j].Flg = 0;
+        pG->pItem_set->Item[k].Id = pG->pItem_set->Item[j = k + 1].Id;
+        pG->pItem_set->Item[k].Num = pG->pItem_set->Item[j].Num;
+        pG->pItem_set->Item[k].Flg = pG->pItem_set->Item[j].Flg;
+        pG->pItem_set->Item[j].Id = 0;
+        pG->pItem_set->Item[j].Num = 0;
+        pG->pItem_set->Item[j].Flg = 0;
         Pix_swap(k, i + 1);
-        if (pG->pUnk7C7C->Unk128 == j) {
-            pG->pUnk7C7C->Unk128 = k;
-            pG->pUnk7C7C->Unk129 = pG->pUnk7C7C->Item[pG->pUnk7C7C->Unk128].Id;
+        if (pG->pItem_set->Equip_no == j) {
+            pG->pItem_set->Equip_no = k;
+            pG->pItem_set->Equip_id = pG->pItem_set->Item[pG->pItem_set->Equip_no].Id;
         }
         if (pSt->Cursor == j) {
             pSt->Cursor = c = pSt->Cursor - 1;
@@ -1945,7 +1945,7 @@ void St_item_shift(ST_WORK *pSt)
             pSt->Pos[12].Y = (pSt->Cursor >> 1) * 30;
         }
         pSt->Rtn2++;
-        if (pG->pUnk7C7C->Item[k + 2].Id == 0) {
+        if (pG->pItem_set->Item[k + 2].Id == 0) {
             pSt->Rtn1 = 3;
         }
         pSt->Timer = 2;
@@ -1988,7 +1988,7 @@ void St_item_get(ST_WORK *pSt)
                 if (n == -1) {
                     break;
                 }
-                p = (UCHAR *)&G.pUnk7C7C->Item[n];
+                p = (UCHAR *)&G.pItem_set->Item[n];
                 if (Item_data_tbl[p[0]][1] >= p[1] + pD->Num) {
                     pSt->Get_slot = n;
                     pSt->Get_stack = 1;
@@ -2059,7 +2059,7 @@ void St_item_get(ST_WORK *pSt)
             pSt->Zoom_w -= 3;
             pSt->Zoom_h -= 2;
         } else {
-            p = (UCHAR *)&G.pUnk7C7C->Item[(signed char)pSt->Get_slot];
+            p = (UCHAR *)&G.pItem_set->Item[(signed char)pSt->Get_slot];
             switch (pSt->Get_stack) {
             case 0:
                 Pix_move(pSt->Get_slot, 12);
@@ -2128,7 +2128,7 @@ void St_item_change(ST_WORK *pSt)
         } else {
             pSt->Rtn2++;
             pSt->Flg |= 0x20000000;
-            p = &pG->pUnk7C7C->Item[(signed char)pSt->Chg_slot];
+            p = &pG->pItem_set->Item[(signed char)pSt->Chg_slot];
             p->Id = pSt->Chg_id;
         }
         pSt->Timer++;
@@ -2159,7 +2159,7 @@ void St_item_change(ST_WORK *pSt)
         pSt->Timer++;
             return;
         }
-        p = &pG->pUnk7C7C->Item[(signed char)pSt->Chg_slot];
+        p = &pG->pItem_set->Item[(signed char)pSt->Chg_slot];
         pI = Item_data_tbl[pSt->Chg_id];
         Pix_move(pSt->Chg_slot, 12);
         p->Id = pSt->Chg_id;
@@ -2509,13 +2509,12 @@ void St_prim_init(ST_WORK *pSt)
     St_line_init(pSt);
 }
 
-extern UCHAR D_800A0004_t[][12] __asm__("Cond_spr_tbl"); /* view of Cond_spr_tbl with another type (canonical: extern UCHAR Cond_spr_tbl[];) */
 
 void St_item_disp(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     SPRT *p;
-    USHORT *pT;
+    ST_FT4_DEF *pT;
     POLY_FT4 *pFt;
     ITEM_WORK *pI;
     UCHAR *pInfo;
@@ -2568,7 +2567,7 @@ void St_item_disp(ST_WORK *pSt)
         AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n]);
         AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i]);
     }
-    pI = &G.pUnk7C7C->Item[pSt->Cursor];
+    pI = &G.pItem_set->Item[pSt->Cursor];
     pInfo = Item_data_tbl[pI->Id];
     St_sprt_draw(pSt, (SPRT *)0x801AC000, D_8009F890, 0x30002);
     switch ((ULONG)G.Item_work_no) {
@@ -2582,7 +2581,7 @@ void St_item_disp(ST_WORK *pSt)
         St_sprt_draw(pSt, (SPRT *)0x801AC0A0, D_8009F8C0, ((n | 4) << 16) | 1);
         break;
     }
-    St_sprt_draw(pSt, (SPRT *)0x801AC0C8 + pSt->Condition * 2, D_800A0004_t[pSt->Condition], ((n * 2 + 2) << 16) | 1);
+    St_sprt_draw(pSt, (SPRT *)0x801AC0C8 + pSt->Condition * 2, &Cond_spr_tbl[pSt->Condition], ((n * 2 + 2) << 16) | 1);
     St_sprt_draw(pSt, (SPRT *)0x801AC460, D_8009FBC0, ((n | 2) << 16) | 0x101);
     St_sprt_draw(pSt, (SPRT *)0x801AC1B8, D_8009F8CC, 0x30105);
     St_sprt_draw(pSt, (SPRT *)0x801AC398, D_8009F9D4, ((n | 2) << 16) | 0x103);
@@ -2648,21 +2647,21 @@ void St_item_disp(ST_WORK *pSt)
     pT = D_8009FE6C;
     pFt = (POLY_FT4 *)0x801AEAA8;
     if ((signed char)pSt->Cmd_cursor == 0) {
-        pT += 12;
+        pT += 2;
         pFt = (POLY_FT4 *)0x801AEB48;
     }
     St_ft4_draw(pSt, pFt, pT, 0x50402);
     pT = D_8009FE9C;
     pFt = (POLY_FT4 *)0x801AEBE8;
     if ((signed char)pSt->Cmd_cursor == 1) {
-        pT += 12;
+        pT += 2;
         pFt = (POLY_FT4 *)0x801AEC88;
     }
     St_ft4_draw(pSt, pFt, pT, 0x50502);
     pT = D_8009FECC;
     pFt = (POLY_FT4 *)0x801AED28;
     if ((signed char)pSt->Cmd_cursor == 2) {
-        pT += 12;
+        pT += 2;
         pFt = (POLY_FT4 *)0x801AEDC8;
     }
     St_ft4_draw(pSt, pFt, pT, 0x50602);
@@ -2670,7 +2669,7 @@ void St_item_disp(ST_WORK *pSt)
         pT = D_8009FEFC;
         pFt = (POLY_FT4 *)0x801AEE68;
         if ((signed char)pSt->Cmd_cursor == 3) {
-            pT += 12;
+            pT += 2;
             pFt = (POLY_FT4 *)0x801AEF08;
         }
         St_ft4_draw(pSt, pFt, pT, 0x50702);
@@ -2682,7 +2681,7 @@ void St_item_disp(ST_WORK *pSt)
     i = 0;
     if (G.Item_work[0].Num) {
         do {
-            pI = &pG->pUnk7C7C->Item[i];
+            pI = &pG->pItem_set->Item[i];
             x = Item_num_pos[i][0] + pSt->Pos[1].X;
             y = Item_num_pos[i][1] + pSt->Pos[1].Y;
             xy = x | (y << 16);
@@ -2690,8 +2689,8 @@ void St_item_disp(ST_WORK *pSt)
             p = St_num_disp(p, pI->Num, xy, c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
         } while (++i < D_800D225E);
     }
-    if ((i = pG->pUnk7C7C->Unk128) != 0xFF) {
-        pI = &pG->pUnk7C7C->Item[i];
+    if ((i = pG->pItem_set->Equip_no) != 0xFF) {
+        pI = &pG->pItem_set->Item[i];
         c = pSt->Clut_parts + ((pI->Flg & 0xC) >> 2) + 2;
         x = Item_num_pos[10][0] + pSt->Pos[1].X;
         y = Item_num_pos[10][1] + pSt->Pos[1].Y;
@@ -2700,21 +2699,21 @@ void St_item_disp(ST_WORK *pSt)
     pT = D_8009FDDC;
     pFt = (POLY_FT4 *)0x801AE698;
     if (pSt->Cursor == -2) {
-        pT += 12;
+        pT += 2;
         pFt = (POLY_FT4 *)0x801AE738;
     }
     St_ft4_draw(pSt, pFt, pT, 0x40102);
     pT = D_8009FE0C;
     pFt = (POLY_FT4 *)0x801AE7D8;
     if (pSt->Cursor == -1) {
-        pT += 12;
+        pT += 2;
         pFt = (POLY_FT4 *)0x801AE878;
     }
     St_ft4_draw(pSt, pFt, pT, 0x40102);
     pT = D_8009FE3C;
     pFt = (POLY_FT4 *)0x801AE918;
     if (pSt->Cursor < -2) {
-        pT += 12;
+        pT += 2;
         pFt = (POLY_FT4 *)0x801AE9B8;
     }
     St_ft4_draw(pSt, pFt, pT, 0x40102);
@@ -2725,17 +2724,17 @@ void St_item_disp(ST_WORK *pSt)
     if (pSt->Flg & 0x2000000) {
         St_sprt_draw(pSt, (SPRT *)0x801ACA28, D_8009FF74, ((n * 2 + 1) << 16) | 0xD01);
     }
-    if (pG2->pUnk7C7C->Num == 8) {
+    if (pG2->pItem_set->Num == 8) {
         St_sprt_draw(pSt, (SPRT *)0x801AC280, D_8009F908, 0x10207);
         St_tile_draw(pSt, (TILE *)0x801AF4E8, D_8009FF5C, 0x10201);
     }
     if (pSt->Flg & 0x20000000) {
         if (pSt->Flg & 0x2000000) {
             no = (signed char)pSt->Cursor2;
-            pI = &pG2->pUnk7C7C->Item[no];
+            pI = &pG2->pItem_set->Item[no];
         } else {
             no = pSt->Cursor;
-            pI = &pG2->pUnk7C7C->Item[no];
+            pI = &pG2->pItem_set->Item[no];
         }
         name = pI->Id;
         if (no >= 0) {
@@ -2885,7 +2884,7 @@ void St_file_icon_disp(ST_WORK *pSt)
 {
     SPRT *p;
     DR_TPAGE *pTp;
-    ST_ICON *pI;
+    ST_SPR_DEF *pI;
     ULONG i;
     LONG k;
     SHORT x, y;
@@ -2942,8 +2941,8 @@ void St_file_icon_disp(ST_WORK *pSt)
 
 signed char Search_item_id(UCHAR id, signed char i)
 {
-    for (; (UCHAR)i < G.pUnk7C7C->Num; i++) {
-        if (G.pUnk7C7C->Item[(UCHAR)i].Id == id) {
+    for (; (UCHAR)i < G.pItem_set->Num; i++) {
+        if (G.pItem_set->Item[(UCHAR)i].Id == id) {
             return i;
         }
     }
@@ -2952,7 +2951,7 @@ signed char Search_item_id(UCHAR id, signed char i)
 
 signed char Item_decrease(UCHAR no, signed char n, UCHAR f)
 {
-    ITEM_WORK *p = &G.pUnk7C7C->Item[no];
+    ITEM_WORK *p = &G.pItem_set->Item[no];
 
     if ((p->Flg & 3) != 3) {
         p->Num -= n;
@@ -2970,20 +2969,20 @@ void Item_delete(UCHAR no)
     ST_WORK *pSt = &St;
     UCHAR i;
 
-    for (i = no; i < pG->pUnk7C7C->Num - 1; i++) {
-        pG->pUnk7C7C->Item[i].Id = pG->pUnk7C7C->Item[i + 1].Id;
-        pG->pUnk7C7C->Item[i].Num = pG->pUnk7C7C->Item[i + 1].Num;
-        pG->pUnk7C7C->Item[i].Flg = pG->pUnk7C7C->Item[i + 1].Flg;
+    for (i = no; i < pG->pItem_set->Num - 1; i++) {
+        pG->pItem_set->Item[i].Id = pG->pItem_set->Item[i + 1].Id;
+        pG->pItem_set->Item[i].Num = pG->pItem_set->Item[i + 1].Num;
+        pG->pItem_set->Item[i].Flg = pG->pItem_set->Item[i + 1].Flg;
     }
-    pG->pUnk7C7C->Item[i].Id = 0;
-    pG->pUnk7C7C->Item[i].Num = 0;
-    pG->pUnk7C7C->Item[i].Flg = 0;
+    pG->pItem_set->Item[i].Id = 0;
+    pG->pItem_set->Item[i].Num = 0;
+    pG->pItem_set->Item[i].Flg = 0;
     if (pSt->Equip_save) {
         if (pSt->Equip_no_save >= no && pSt->Equip_no_save != 0xFF) {
             pSt->Equip_no_save--;
         }
-    } else if (pG->pUnk7C7C->Unk128 >= no && pG->pUnk7C7C->Unk128 != 0xFF) {
-        pG->pUnk7C7C->Unk128--;
+    } else if (pG->pItem_set->Equip_no >= no && pG->pItem_set->Equip_no != 0xFF) {
+        pG->pItem_set->Equip_no--;
     }
     pSt->Flg14 |= 0x40000000;
 }
@@ -2992,10 +2991,10 @@ void Equip_item_delete(void)
 {
     UCHAR no;
 
-    if ((no = G.pUnk7C7C->Unk128) != 0xFF) {
+    if ((no = G.pItem_set->Equip_no) != 0xFF) {
         Item_delete(no);
-        G.pUnk7C7C->Unk129 = 0;
-        G.pUnk7C7C->Unk128 = 0xFF;
+        G.pItem_set->Equip_id = 0;
+        G.pItem_set->Equip_no = 0xFF;
     }
 }
 
@@ -3011,10 +3010,10 @@ signed char Tama_reload(UCHAR f)
     UCHAR num;
     UCHAR *pT;
 
-    if (pG->pUnk7C7C->Unk128 == 0xFF) {
+    if (pG->pItem_set->Equip_no == 0xFF) {
         return -1;
     }
-    pI = Search_item_tama(pSt, pG->pUnk7C7C->Unk129);
+    pI = Search_item_tama(pSt, pG->pItem_set->Equip_id);
     if (pI == (UCHAR *)-1) {
         return -1;
     }
@@ -3023,12 +3022,12 @@ signed char Tama_reload(UCHAR f)
         return -1;
     }
     if (f) {
-        p = &pG->pUnk7C7C->Item[pG->pUnk7C7C->Unk128];
+        p = &pG->pItem_set->Item[pG->pItem_set->Equip_no];
         pT = Item_data_tbl[p->Id];
         num = p->Num;
         n = pT[1] - num;
-        if ((UCHAR)n >= pG->pUnk7C7C->Item[no].Num) {
-            n = pG->pUnk7C7C->Item[no].Num;
+        if ((UCHAR)n >= pG->pItem_set->Item[no].Num) {
+            n = pG->pItem_set->Item[no].Num;
         }
         p->Num = num + n;
         Item_decrease(no, n, 0);
@@ -3043,10 +3042,10 @@ LONG Tama_decrease(UCHAR f)
     USHORT w;
     LONG t;
 
-    if (G.pUnk7C7C->Unk128 == 0xFF) {
+    if (G.pItem_set->Equip_no == 0xFF) {
         return -1;
     }
-    p = &G.pUnk7C7C->Item[G.pUnk7C7C->Unk128];
+    p = &G.pItem_set->Item[G.pItem_set->Equip_no];
     w = p->Flg;
     t = w & 3;
     if (t == 3) {
@@ -3080,7 +3079,7 @@ void Status_init(void)
     ITEM_WORK *pD;
 
     pG->Item_work_no = 0;
-    pG->pUnk7C7C = &pG->Item_work[0];
+    pG->pItem_set = &pG->Item_work[0];
     mode = Flg_ck(&pG->System_flg, 0x17) != 0;
     if (Flg_ck(&pG->System_flg, 0x18)) {
         mode = 2;
@@ -3198,10 +3197,10 @@ void Status_init(void)
             break;
         }
         pD = &G.Item_work[j].Item[0];
-        G.Item_work[j].Unk129 = pD->Id;
-        G.Item_work[j].Unk128 = 0;
+        G.Item_work[j].Equip_id = pD->Id;
+        G.Item_work[j].Equip_no = 0;
         for (k = 0; k < 4; k++) {
-            G.Item_work[j].Unk12C[k] = 0;
+            G.Item_work[j].Tama_mix_cnt[k] = 0;
         }
         if (mode == 2) {
             break;
@@ -3256,15 +3255,15 @@ void St_tex_load(void)
     FLD(&G, 0x2484, SHORT) = 0x1A;
     Mapping_tim((ULONG *)0x801B1500);
     Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
-    p = G.pUnk7C7C->Item;
+    p = G.pItem_set->Item;
     for (i = 0; i < 10; i++, p++) {
         Pix_unpack(i, p->Id, 0x801B1500, (ULONG *)0x801B1000);
         DrawSync(0);
     }
-    if (G.pUnk7C7C->Unk128 != 0xFF) {
-        Pix_move(10, G.pUnk7C7C->Unk128);
+    if (G.pItem_set->Equip_no != 0xFF) {
+        Pix_move(10, G.pItem_set->Equip_no);
     }
-    n = G.pUnk7C7C->Unk129;
+    n = G.pItem_set->Equip_id;
     pSt->Clut_frame = 4;
     pSt->Clut_icon = 5;
     pSt->Clut_face = 6;
@@ -3300,10 +3299,10 @@ void St_init(ST_WORK *pSt)
     pPl = PLAYER_EM(pG);
     if (pSt->Equip_save) {
         pSt->Equip_save = 0;
-        pG->pUnk7C7C->Unk128 = pSt->Equip_no_save;
-        pG->pUnk7C7C->Unk129 = pSt->Equip_id_save;
+        pG->pItem_set->Equip_no = pSt->Equip_no_save;
+        pG->pItem_set->Equip_id = pSt->Equip_id_save;
         pPl->Type &= 0xFF00;
-        pPl->Type |= pG->pUnk7C7C->Unk129;
+        pPl->Type |= pG->pItem_set->Equip_id;
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
@@ -3313,13 +3312,13 @@ void St_init(ST_WORK *pSt)
     Cd_seek_s(0x34, 0, "SEEK ITEMI.PIX");
     if (pSt->Flg14 & 0x40000000) {
         Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
-        p = (UCHAR *)pG->pUnk7C7C->Item;
+        p = (UCHAR *)pG->pItem_set->Item;
         for (i = 0; i < 10; i++, p += 4) {
             Pix_unpack(i, *p, 0x801B1500, (ULONG *)0x801B1000);
             DrawSync(0);
         }
-        if (G.pUnk7C7C->Unk128 != 0xFF) {
-            Pix_move(10, pG->pUnk7C7C->Unk128);
+        if (G.pItem_set->Equip_no != 0xFF) {
+            Pix_move(10, pG->pItem_set->Equip_no);
         } else {
             Pix_move(10, 11);
         }
@@ -3342,7 +3341,7 @@ void St_init(ST_WORK *pSt)
     pSt->Slide_done = 0;
     pSt->Slide_cnt = 0;
     pSt->Slide_no = 0;
-    pSt->Equip_id_old = pG->pUnk7C7C->Unk129;
+    pSt->Equip_id_old = pG->pItem_set->Equip_id;
     pSt->Pl_id = pG->Player.Id;
     pSt->Ecg_pos = 0;
     pSt->Blink = 0;
@@ -3418,7 +3417,7 @@ void St_init(ST_WORK *pSt)
         i = Cd_read(0x32, pSt->pBuf, 0, D_80010FEC);
         pSt->Box_cursor = 0x20;
         pSt->pBuf = (ULONG *)((UCHAR *)pSt->pBuf + i);
-        p = (UCHAR *)&G.pUnk7C7C->Item[40];
+        p = (UCHAR *)&G.pItem_set->Item[40];
         for (i = 30; i < 35; i++, p += 4) {
             Pix_unpack_box(i, *p, 0x801A1500, (ULONG *)0x801A1000);
             DrawSync(0);
@@ -3531,10 +3530,10 @@ void St_exit(ST_WORK *pSt)
     pSt->St_type = 0;
     pSt->Map_event = 0;
     pPl = PLAYER_EM(pG);
-    if (pSt->Equip_id_old != pG->pUnk7C7C->Unk129) {
-        pSt->Equip_id_old = pG->pUnk7C7C->Unk129;
+    if (pSt->Equip_id_old != pG->pItem_set->Equip_id) {
+        pSt->Equip_id_old = pG->pItem_set->Equip_id;
         pPl->Type &= 0xFF00;
-        pPl->Type |= pG->pUnk7C7C->Unk129;
+        pPl->Type |= pG->pItem_set->Equip_id;
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
@@ -3672,7 +3671,7 @@ LONG St_condition_get(void)
 }
 
 /* prototype in file changed: void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *pTbl, ULONG f); */
-void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
+void St_sprt_init(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
 {
     ULONG i, j;
     UCHAR y = prm >> 8;
@@ -3683,10 +3682,10 @@ void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
         for (j = 0; j < 2; j++) {
             setSprt(p);
             setRGB0(p, 0x80, 0x80, 0x80);
-            p->u0 = src[0];
-            p->v0 = src[2];
-            p->w = *(USHORT *)(src + 4);
-            p->h = *(USHORT *)(src + 6);
+            p->u0 = pDef->U;
+            p->v0 = pDef->V;
+            p->w = pDef->W;
+            p->h = pDef->H;
             if (semi == 0) {
                 p->clut = (y + 0x1E0) << 6;
             } else {
@@ -3695,11 +3694,11 @@ void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
             }
             p++;
         }
-        src += 12;
+        pDef++;
     }
 }
 
-void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
+void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm)
 {
     ULONG i, j;
     UCHAR y = prm >> 8;
@@ -3710,8 +3709,8 @@ void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
     ULONG u, v;
 
     for (i = 0; i < (UCHAR)n; i++) {
-        u = src[0];
-        v = src[1];
+        u = pDef->U;
+        v = pDef->V;
         for (j = 0; j < 2; j++) {
             setPolyFT4(p);
             setRGB0(p, 0x80, 0x80, 0x80);
@@ -3728,20 +3727,20 @@ void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
             p->clut = (y + 0x1E0) << 6;
             p++;
         }
-        src += 6;
+        pDef++;
     }
 }
 
-void St_tile_init(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n)
+void St_tile_init(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, UCHAR n)
 {
     ULONG i, j;
 
-    for (i = 0; i < n; i++, pWh += 6) {
+    for (i = 0; i < n; i++, pDef++) {
         for (j = 0; j < 2; j++) {
             setTile(p);
             setRGB0(p, 8, 8, 8);
-            p->w = pWh[2];
-            p->h = pWh[3];
+            p->w = pDef->W;
+            p->h = pDef->H;
             p++;
         }
     }
@@ -3764,7 +3763,7 @@ void St_line_init(ST_WORK *pSt)
     }
 }
 
-void St_sprt_draw(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
+void St_sprt_draw(ST_WORK *pSt, SPRT *p, ST_SPR_DEF *pDef, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
@@ -3777,14 +3776,14 @@ void St_sprt_draw(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm)
     }
     ox = pSt->Pos[ofs].X;
     oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, src += 12) {
-        p->x0 = *(SHORT *)(src + 8) + ox;
-        p->y0 = *(SHORT *)(src + 10) + oy;
+    for (i = 0; i < (UCHAR)n; i++, p += 2, pDef++) {
+        p->x0 = pDef->X + ox;
+        p->y0 = pDef->Y + oy;
         AddPrim(&pSt->Ot[G.Cbuf_id][ot], p);
     }
 }
 
-void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
+void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, ST_FT4_DEF *pDef, ULONG prm)
 {
     ULONG i;
     UCHAR ofs = prm >> 8;
@@ -3795,17 +3794,17 @@ void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm)
     if (G.Cbuf_id) {
         p++;
     }
-    for (i = 0; i < (UCHAR)n; p += 2, src += 6, i++) {
-        x = pSt->Pos[ofs].X + src[4];
-        y = pSt->Pos[ofs].Y + src[5];
-        x1 = x + src[2];
-        y1 = y + src[3];
+    for (i = 0; i < (UCHAR)n; p += 2, pDef++, i++) {
+        x = pSt->Pos[ofs].X + pDef->X;
+        y = pSt->Pos[ofs].Y + pDef->Y;
+        x1 = x + pDef->W;
+        y1 = y + pDef->H;
         setXY4(p, x, y, x1, y, x, y1, x1, y1);
         AddPrim(G.pOt0 + ot, p);
     }
 }
 
-void St_tile_draw(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm)
+void St_tile_draw(ST_WORK *pSt, TILE *p, ST_TILE_DEF *pDef, ULONG prm)
 {
     ULONG i;
     LONG ox, oy;
@@ -3818,9 +3817,9 @@ void St_tile_draw(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm)
     }
     ox = pSt->Pos[ofs].X;
     oy = pSt->Pos[ofs].Y;
-    for (i = 0; i < (UCHAR)n; i++, p += 2, src += 6) {
-        p->x0 = src[4] + ox;
-        p->y0 = src[5] + oy;
+    for (i = 0; i < (UCHAR)n; i++, p += 2, pDef++) {
+        p->x0 = pDef->X + ox;
+        p->y0 = pDef->Y + oy;
         AddPrim(G.pOt0 + ot, p);
     }
 }
@@ -3864,7 +3863,7 @@ void St_chenge_pl(ULONG no)
         St_pl_kind = 1;
         break;
     }
-    G.pUnk7C7C = &G.Item_work[G.Item_work_no];
+    G.pItem_set = &G.Item_work[G.Item_work_no];
     St.Flg14 |= 0x40000000;
 }
 
