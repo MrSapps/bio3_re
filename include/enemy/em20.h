@@ -66,7 +66,6 @@ typedef struct tagEM20_ESP_TBL {
     SVECTOR Ofs;                       /* 0x4 offset from the part; pad = code bits 0..15 */
 } EM20_ESP_TBL;
 
-/* exe functions without a shared prototype (signatures as defined in src/game) */
 
 extern USHORT Em20_life[16];
 extern USHORT Em20_life_easy[16];

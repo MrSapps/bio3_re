@@ -17,8 +17,6 @@
 
 #include "enemy/em10_free.h"
 
-/* exe functions without a shared prototype (signatures as defined in src/game) */
-/* Joint_move (joint.h) seen with the kan/seq pointers and its result (frame-end flag) */
 
 extern USHORT Em10_life[16];
 extern USHORT Em10_life_easy[16];
