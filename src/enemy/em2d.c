@@ -43,7 +43,7 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Life = 250;
     if (pEm->Type & 1) {
         pP_ptr = pEm->pSin_parts_ptr + P_hand[1][0];
-        pEm->Unk120 = 0;
+        pEm->Neck_flg = 0;
         pEm->Neck_no = P_hand[1][0];
         PW_FREE(pP_ptr)[2] = 0x60;
         PW_FREE(pP_ptr)[3] = 0x60;
@@ -59,7 +59,7 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Hand_display(pEm, 1, 0);
     } else {
         pP_ptr = pEm->pSin_parts_ptr + P_hand[0][0];
-        pEm->Unk120 = 0;
+        pEm->Neck_flg = 0;
         pEm->Neck_no = P_hand[0][0];
         PW_FREE(pP_ptr)[2] = 0x60;
         PW_FREE(pP_ptr)[3] = 0x60;
@@ -74,14 +74,14 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } while (--i);
         Hand_display(pEm, 0, 0);
     }
-    pEm->Unk134 = 0;
-    pEm->Unk136 = 0;
-    pEm->Unk138 = 0;
-    pEm->Unk139 = 0;
-    pEm->Unk13A = 0;
+    pEm->Hit_area.Top = 0;
+    pEm->Hit_area.Bottom = 0;
+    pEm->Hit_area.Rate0 = 0;
+    pEm->Hit_area.Rate1 = 0;
+    pEm->Hit_area.R = 0;
     pEm->Unk140 = 0;
     Se_call = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     G.Unk75EA = 0;
     EM_SET_MOVE(pEm, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);

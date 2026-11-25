@@ -695,7 +695,7 @@ void func_80037C38(void)
             if (pEm->Be_flg & 0x80) {
                 pEm->pUnk7C = pG->pOt_sub[pG->Cbuf_id][pEm->UnkD];
             } else {
-                pEm->pUnk7C = func_80037D50((VECTOR *)&pEm->Pos_x);
+                pEm->pUnk7C = func_80037D50(&pEm->Pos_x);
             }
         }
     }
@@ -704,13 +704,13 @@ void func_80037C38(void)
             if (pOm->Be_flg & 0x80) {
                 pOm->pUnk7C = pG->pOt_sub[pG->Cbuf_id][pOm->UnkD];
             } else {
-                pOm->pUnk7C = func_80037D50((VECTOR *)pOm->M.t);
+                pOm->pUnk7C = func_80037D50(pOm->M.t);
             }
         }
     }
 }
 
-ULONG *func_80037D50(VECTOR *pPos)
+ULONG *func_80037D50(LONG *pPos)
 {
     tagGLOBAL *pG;
     USHORT *pHead;
@@ -735,12 +735,12 @@ start:
     p = (UCHAR *)(pBlk + 2);
     for (; n != 0; n--) {
         if (p[1] == 0) {
-            if (!(p[0] & 2) && func_800101C8(&pPos->vx, (SHORT *)(p + 4))) {
+            if (!(p[0] & 2) && func_800101C8(pPos, (SHORT *)(p + 4))) {
                 goto found;
             }
             p += 12;
         } else {
-            if (!(p[0] & 2) && Hit_ck_point4(&pPos->vx, (VCUT *)p)) {
+            if (!(p[0] & 2) && Hit_ck_point4(pPos, (VCUT *)p)) {
                 goto found;
             }
             p += 20;

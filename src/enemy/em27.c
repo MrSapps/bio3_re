@@ -559,12 +559,12 @@ void func_801018D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 0, 0, 7);
         Snd_se_stad(0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
         pEm->Routine_2++;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
     case 1:
         Spd_get(pEm, pKan, pSeq, 0);
         if (Joint_move2(pEm, pKan, pSeq, 0x200)) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
-            pEm->Unk120 &= ~0x12;
+            pEm->Neck_flg &= ~0x12;
             pEm->Damage_cnt &= 0x7F;
         }
         Add_speedXZ(pEm, 0);

@@ -52,7 +52,7 @@ void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq);
 void Null_pos_set2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
 void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq);
 void Em_seq_sound(ENEMY_WORK *pEm);
-void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, LONG *pPos);
 
 extern EFF_PROC Esp_tblj[];
 extern struct tagHIT_ATTR *Esp_at_tbl[]; /* attack data per effect (pl_wep.h HIT_ATTR) */
@@ -74,7 +74,7 @@ void Spd_get_sub(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the a
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no);
 void Kage_work_init(void);
 void Kage_work9_init(void);
-void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos);
+void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, LONG *pPos);
 void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg);
 void Kage_work_sort(void);
 void Kage_work9_sort(void);
@@ -86,7 +86,7 @@ void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir);
 void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y); /* RE2 Neck_Dir_ZY */
 void Now_seq_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG R_flg);
 void Em_dead_flg_on_cand(ENEMY_WORK *pEm);
-void Hit_area_parts_set(ENEMY_WORK *pEm, ULONG a1, ULONG a2);
+void Hit_area_parts_set(ENEMY_WORK *pEm, ULONG Bottom_part, ULONG Top_part);
 ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc);
 ENEMY_WORK *Em_work_search(ULONG Id);
 

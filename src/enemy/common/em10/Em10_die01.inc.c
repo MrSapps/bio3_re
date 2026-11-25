@@ -12,7 +12,7 @@ void Em10_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 8, 0, 0xF);
         pEm->Routine_2 = 1;
         EM10_W(pEm)->Flg &= 0xFFFB;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         Mode = 0;
         if (pEm->Unk132 & 0x200)

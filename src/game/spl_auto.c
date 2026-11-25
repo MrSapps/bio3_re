@@ -1107,7 +1107,7 @@ void Aida_mv05_w1_t0(ENEMY_WORK *pEm)
         if ((pEm->Type & 0xF) == 9) {
             pEm->pEnemy_ptr = Spl_em_cdir_ck_(pEm);
         }
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         SPL_W(pEm)->Unk1D0 |= 0x4000;
         SPL_W(pEm)->Unk1DF = (Rnd() & 3) + 2;
     case 1:
@@ -1317,7 +1317,7 @@ void func_8005C824(ENEMY_WORK *pEm)
     if (Joint_move(pEm, pEm->pUnk18C_kan_t_ptr, pEm->pUnk188_seq_t_ptr, 0x10200) != 0) {
         *(ULONG *)&pEm->Routine_0 = 1;
         SPL_W(pEm)->Unk1DE = 0x1E;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
     }
     pEm->Be_flg |= 0x2000000;
     func_80079690(pEm, pEm->pUnk184_kan_t_ptr, pEm->pUnk180_seq_t_ptr, 0x10200);
@@ -1375,10 +1375,10 @@ void func_8005CA14(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Unk1A0 = 0x70002;
         *(ULONG *)&pEm->Move_no = 0x70000;
         *(ULONG *)&pEm->Unk1A0 = 0x70000;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         D_8009E70D[0] = 0;
         SPL_W(pEm)->Unk1D0 |= 0x4000;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         SPL_W(pEm)->Unk1DF = (Rnd() & 3) + 2;
     case 1:
         Goto00(pEm, pEm->pEnemy_ptr->Pos_x, pEm->pEnemy_ptr->Pos_z, 0xC4);
@@ -2161,7 +2161,7 @@ void Spl_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         *(ULONG *)&pEm->Spd_x = 0;
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         Snd_se_enem(0, pEm);
         pEm->Be_flg &= ~0x8000;
     case 1:
@@ -2170,7 +2170,7 @@ void Spl_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 2:
         *(ULONG *)&pEm->Routine_0 = 1;
         pEm->Damage_cnt = 0;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         break;
     }
 }
@@ -2183,7 +2183,7 @@ void Spl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         *(ULONG *)&pEm->Move_no = (pEm->Routine_1 & 1) + 0x30002;
         pEm->Damage_cnt |= 0x80;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         pEm->Be_flg &= ~0x8000;
         *(LONG *)&pEm->Spd_x = (pEm->Routine_1 & 1) * 400 - 200;
         Snd_se_enem(pEm->Routine_2 - 1, pEm);
@@ -2196,7 +2196,7 @@ void Spl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 2:
         *(ULONG *)&pEm->Routine_0 = 1;
         pEm->Damage_cnt = 0;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         break;
     }
 }
@@ -2215,7 +2215,7 @@ void func_8005E90C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_y = 0;
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         Snd_se_enem(1, pEm);
         pEm->Be_flg &= ~0x8000;
         if (pEm->Unk132 & 0x500) {
@@ -2243,7 +2243,7 @@ void func_8005E90C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
             *(ULONG *)&pEm->Routine_0 = 1;
             pEm->Damage_cnt = 0;
-            pEm->Unk120 &= 0xED;
+            pEm->Neck_flg &= 0xED;
         }
         pEm->Spd_x += 10;
         if (pEm->Spd_x > 0) {
@@ -2267,7 +2267,7 @@ void func_8005E90C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x10400)) {
             *(ULONG *)&pEm->Routine_0 = 1;
             pEm->Damage_cnt = 0;
-            pEm->Unk120 &= 0xED;
+            pEm->Neck_flg &= 0xED;
         }
         break;
     }
@@ -2287,7 +2287,7 @@ void func_8005EBC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_y = 0;
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         Snd_se_enem(2, pEm);
         pEm->Be_flg &= ~0x8000;
         if (pEm->Unk132 & 0x500) {
@@ -2327,7 +2327,7 @@ void func_8005EBC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x10400)) {
             *(ULONG *)&pEm->Routine_0 = 1;
             pEm->Damage_cnt = 0;
-            pEm->Unk120 &= 0xED;
+            pEm->Neck_flg &= 0xED;
         }
         break;
     }
@@ -2351,7 +2351,7 @@ void Spl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         *(ULONG *)&pEm->Spd_x = 0;
         pEm->Spd_z = 0;
-        pEm->Unk120 = 1;
+        pEm->Neck_flg = 1;
         pEm->Damage_cnt |= 0x80;
         Snd_se_enem(3, pEm);
         G.System_flg |= 0x20000;

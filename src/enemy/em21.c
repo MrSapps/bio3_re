@@ -96,7 +96,7 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Be_flg |= 0x400;
     Joint_move(pEm, pKan, pSeq, 0x200);
     pP = &pEm->pSin_parts_ptr[2];
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 8;
     PW_FREE(pP)[0] = 0;
     PW_FREE(pP)[1] = 0;
@@ -104,14 +104,14 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     PW_FREE(pP)[3] = 0x60;
     PW_FREE(pP)[4] = 0x200;
     PW_FREE(pP)[5] = 0x138;
-    pEm->Unk134 = 400;
-    pEm->Unk136 = -400;
-    pEm->Unk13A = 400;
-    pEm->Unk138 = 0x54;
-    pEm->Unk139 = 0xA8;
+    pEm->Hit_area.Top = 400;
+    pEm->Hit_area.Bottom = -400;
+    pEm->Hit_area.R = 400;
+    pEm->Hit_area.Rate0 = 0x54;
+    pEm->Hit_area.Rate1 = 0xA8;
     pEm->Col.Unk26 = 0x212;
     pEm->Col.H = 0x424;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pEm->Unk140 = 0;
     pEm->Col.pEm = pEm;
     pEm->Col.Unk24 = 0;
@@ -120,7 +120,7 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Type = 2;
     func_80104D50(pEm, 350);
     func_80033580(&pEm->Col, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, &pEm->Pos_x);
     if (pEm->Type & 0x4000) {
         pEm->Routine_0 = 4;
         pEm->Type &= ~0x4000;
@@ -1954,7 +1954,7 @@ void func_80104E60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_80104D5C();
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pT->Be_flg &= ~0x800;
         func_80104B90(0x10);
         pEm->Be_flg &= ~0x8800;

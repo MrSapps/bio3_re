@@ -30,17 +30,17 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk1CC[i] = 0;
     EM_SET_MOVE(pEm, 0, 0, 0xF);
     Joint_move(pEm, pKan, pSeq, 0x400);
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
     EM26_W(pEm)->Kasakasarot = 0x78;
     EM26_W(pEm)->No_catch_cnt = Rnd() & 0x1F;
     pCol = &pEm->Col;
     EM26_W(pEm)->pTarget_pl = &Pl_work;
-    pEm->Unk134 = 300;
-    pEm->Unk136 = -300;
-    pEm->Unk13A = 300;
-    pEm->Unk138 = 0x50;
-    pEm->Unk139 = 0xA0;
+    pEm->Hit_area.Top = 300;
+    pEm->Hit_area.Bottom = -300;
+    pEm->Hit_area.R = 300;
+    pEm->Hit_area.Rate0 = 0x50;
+    pEm->Hit_area.Rate1 = 0xA0;
     pEm->Damage_cnt = 6;
     EM26_W(pEm)->Unk0C = 0;
     pEm->Unk140 = 0;
@@ -50,7 +50,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Cdir_x = 0;
     pEm->Cdir_z = 0;
     pEm->Timer0 = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pCol->pEm = pEm;
     pCol->W0 = pEm->Col.D0 = 30;
     pCol->H = 100;
@@ -72,13 +72,13 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_MOVE(pEm, 0, 0, 0xF);
             Joint_move(pCp, pKan, pSeq, 0x400);
             pCol = &pCp->Col;
-            pCp->Unk136 = -300;
-            pCp->Unk138 = 0x50;
-            pCp->Unk139 = 0xA0;
-            pCp->Unk134 = 300;
-            pCp->Unk13A = 300;
+            pCp->Hit_area.Bottom = -300;
+            pCp->Hit_area.Rate0 = 0x50;
+            pCp->Hit_area.Rate1 = 0xA0;
+            pCp->Hit_area.Top = 300;
+            pCp->Hit_area.R = 300;
             pCp->Unk140 = 0;
-            pCp->pUnk13C = (UCHAR *)&pCp->pSin_parts_ptr->Workm;
+            pCp->Hit_area.pM = &pCp->pSin_parts_ptr->Workm;
             pCol->pEm = pCp;
             pCol->W0 = pCp->Col.D0 = 30;
             pCol->H = 100;
@@ -88,7 +88,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pCol->Flg = 0;
             pCol->Type = 2;
             func_80033580(pCol, 0);
-            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pCp->Pos_x);
+            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, &pCp->Pos_x);
         }
         break;
     case 1:
@@ -104,7 +104,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     func_80033580(&pEm->Col, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, &pEm->Pos_x);
 }
 
 /* RE2 Em26_Move */

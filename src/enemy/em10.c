@@ -54,9 +54,9 @@ void Em10_main(ENEMY_WORK *pEm)
         Em10_ude_down(pEm);
     EM10_W(pEm)->Cnt++;
     pEm->pEnemy_ptr = pPl;
-    pEm->Unk120 &= 0xFD;
+    pEm->Neck_flg &= 0xFD;
     if ((pEm->Type & 0x4000) || (*pFlg & 0x200) || !(pEm->Status_flg & 0x2000))
-        pEm->Unk120 |= 2;
+        pEm->Neck_flg |= 2;
     Rot_neck_em(pEm, pEm->Cdir_y);
     if (*pFlg & 1)
         Em10_Kahannsin_walk(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr);
@@ -96,7 +96,7 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM10_W(pEm)->Unk18 = 0;
     if (!(Rnd_l() & 7) && !(pEm->Status_flg & 0x400))
         EM10_W(pEm)->Flg |= 0x4000;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x2580190, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x2580190, 0, pEm->pSin_parts_ptr->Workm.t);
     pEm->Col.D0 = pEm->Col.W0 = 500;
     pEm->Col.H = 3000;
     pEm->Col.pEm = pEm;
@@ -106,15 +106,15 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
     func_80033580(&pEm->Col, 0);
-    pEm->Unk134 = 0x708;
-    pEm->Unk136 = -0x4B0;
-    pEm->Unk138 = 0x78;
-    pEm->Unk139 = 0xC8;
-    pEm->Unk13A = 0x190;
+    pEm->Hit_area.Top = 0x708;
+    pEm->Hit_area.Bottom = -0x4B0;
+    pEm->Hit_area.Rate0 = 0x78;
+    pEm->Hit_area.Rate1 = 0xC8;
+    pEm->Hit_area.R = 0x190;
     pEm->Unk140 = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     PW_FREE(pP)[2] = 0x60;
     PW_FREE(pP)[3] = 0x60;
@@ -145,14 +145,14 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if ((pEm->Type & 0xF) == 1) {
         EM_SET_MOVE(pEm, 0x18, 0, 0);
         EM_SET_RTN(pEm, 1, 2, 0, 0);
-        pEm->Unk134 = 0xC8;
-        pEm->Unk136 = -0x12C;
+        pEm->Hit_area.Top = 0xC8;
+        pEm->Hit_area.Bottom = -0x12C;
     }
     if ((pEm->Type & 0xF) == 3) {
         EM_SET_MOVE(pEm, 0x18, 0, 0);
-        pEm->Unk134 = 0xC8;
+        pEm->Hit_area.Top = 0xC8;
         EM_SET_RTN(pEm, 1, 0, 0, 0);
-        pEm->Unk136 = -0x12C;
+        pEm->Hit_area.Bottom = -0x12C;
         pEm->Type = (pEm->Type & 0xFFF0) | 1;
     }
     if ((pEm->Type & 0xF) == 2) {
@@ -617,7 +617,7 @@ void Em10_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_1) {
     case 0:
         EM_SET_MOVE(pEm, 0x18, 0, 7);
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Neck_no = 0;
         if (EM10_W(pEm)->Flg & 4)
             EM_SET_MOVE(pEm, 0x17, 0, 7);
@@ -749,7 +749,7 @@ void Em10_pldm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pAi->Routine_0 == 2 || pAi->Routine_0 == 3) {
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pEm->Be_flg &= ~0x8800;
         pAi->Be_flg &= ~0x8800;
         return;
@@ -764,7 +764,7 @@ void Em10_pldm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0 = 0;
         Snd_se_stad(0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
         pEm->Unk12C = 0;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
     case 1:
         if (pEm->Move_cnt < 8)
             Goto01(pEm, pAi->Cdir_y + pEm->Timer0, 0x80);
@@ -831,7 +831,7 @@ void Em10_pldm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 8:
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         pEm->Damage_cnt &= 0x7F;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pEm->Be_flg &= ~0x8800;
         pAi->Be_flg &= ~0x8800;
         pEm->Damage_cnt = 3;
@@ -867,7 +867,7 @@ void Em10_Kahannsin_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM10_W(pEm)->Unk01 = 1;
         EM10_W(pEm)->Unk08 = pEm->Cdir_y;
         EM10_W(pEm)->Unk07 = (Rnd_l() & 0x1F) + 20;
-        Kage_work_set(&EM10_W(pEm)->pKage, 0, 0x2BC01F4, 0, (VECTOR *)pEm->Super_matrix.t);
+        Kage_work_set(&EM10_W(pEm)->pKage, 0, 0x2BC01F4, 0, pEm->Super_matrix.t);
     case 1:
         Jp.Move_no = EM10_W(pEm)->Unk04;
         Jp.Move_cnt = EM10_W(pEm)->Unk05;
@@ -1259,7 +1259,7 @@ void func_801063D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         pEm->Col.W0 = pEm->Col.D0 = 100;
         pEm->Damage_cnt |= 0x80;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
     case 1:
         if (!(pEm->Type & 0x4000))
             pEm->Routine_2 = 2;
@@ -1307,7 +1307,7 @@ void func_801063D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Col.W0 = pEm->Col.D0 = 500;
         pEm->Damage_cnt &= 0x7F;
         EM10_W(pEm)->Flg &= 0xFFEF;
-        pEm->Unk120 &= 0xFE;
+        pEm->Neck_flg &= 0xFE;
         break;
     }
 }
@@ -2543,7 +2543,7 @@ void func_8010A730(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->UnkE2)
             EM10_W(pEm)->Flg |= 4;
         EM_MOVE(pEm) = pEm->UnkE2 * 0xA00 + 0xF0000 + Mot[pEm->UnkE2];
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         pEm->Routine_2 = 1;
         pEm->UnkE3 = 0;
@@ -2621,7 +2621,7 @@ void Em10_die02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x = Spd[pEm->UnkE3];
         pEm->Spd_z = 0;
         Add_speedXZ(pEm, 0);
-        pEm->Unk120 = 1;
+        pEm->Neck_flg = 1;
         pEm->Damage_cnt |= 0x80;
         pP = &pEm->pSin_parts_ptr[1];
         pP->Poly_rgb = 0x303030;
@@ -2770,7 +2770,7 @@ void func_8010B278(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Dir = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z);
         Sv.vy -= 400;
         Esp_call(8, (USHORT)Dir | 0x10000000, &pP->Workm, &Sv, 0);
-        pEm->Unk120 = 1;
+        pEm->Neck_flg = 1;
         if (G.Status_flg & 0x8000) {
             pP = &pEm->pSin_parts_ptr[1];
             pP->UnkA2 |= 4;
@@ -2855,7 +2855,7 @@ void func_8010B6D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         func_8002646C_(pEm, 400, 80, pEm->Col.Unk39);
         pEm->Life = -1;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         pEm->Timer0 = Direction_ck(pEm->Pos_x, pEm->Pos_z, G.Player.Pos_x, G.Player.Pos_z);
         n = (Rnd_l() & 3) + 1;
@@ -2949,7 +2949,7 @@ void func_8010BB08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         pP = &pEm->pSin_parts_ptr[1];
         pEm->Routine_2 = 1;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         Sv.vx = pP->Pos_x;
         Sv.vy = pP->Pos_y + 300;
@@ -3001,7 +3001,7 @@ void func_8010BD60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             return;
         }
         pEm->Life = -1;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         Em_dead_flg_on_cand(pEm);
         EM_SET_MOVE(pEm, 3, 0, 7);

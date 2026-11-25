@@ -27,19 +27,19 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     Joint_move(pEm, pKan, pSeq, 0x100);
     if (!(pEm->Type & 0xF)) {
-        Kage_work_set(&pEm->Kage.pKw, 0, 0x2260226, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x2260226, 0xBFBF10, pEm->pSin_parts_ptr->Workm.t);
     } else {
-        Kage_work_set(&pEm->Kage.pKw, 0, 0x44C044C, 0xBFBF10, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x44C044C, 0xBFBF10, pEm->pSin_parts_ptr->Workm.t);
     }
-    pEm->Unk134 = 1500;
-    pEm->Unk136 = -1000;
-    pEm->Unk138 = 0x54;
-    pEm->Unk139 = 0xA0;
-    pEm->Unk13A = 450;
+    pEm->Hit_area.Top = 1500;
+    pEm->Hit_area.Bottom = -1000;
+    pEm->Hit_area.Rate0 = 0x54;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 450;
     pEm->Unk140 = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     PW_FREE(pP)[2] = 0x40;
     PW_FREE(pP)[3] = 0x40;

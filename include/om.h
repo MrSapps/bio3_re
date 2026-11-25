@@ -88,7 +88,7 @@ void func_8003749C(OBJ_MODEL_WORK *pOm);
 void func_80037680(OBJ_MODEL_WORK *pOm);
 void func_8003783C(OBJ_MODEL_WORK *pOm);
 void func_80037A90(ENEMY_WORK *pEm, ULONG Arg1);
-ULONG *func_80037D50(VECTOR *pPos); /* ordering table for a position */
+ULONG *func_80037D50(LONG *pPos); /* ordering table for a position */
 void func_80037E80(void);
 
 #endif /* OM_H */

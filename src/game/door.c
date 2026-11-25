@@ -260,7 +260,7 @@ void func_80016600(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Unk144 & 2) {
         Foot_set_pl(pEm, 0, 1);
     }
-    if (pEm->Unk120 & 0x80) {
+    if (pEm->Neck_flg & 0x80) {
         Rot_neck(pEm, pEm->Cdir_y);
     }
 }
@@ -330,7 +330,7 @@ void func_8001688C(ENEMY_WORK *pEm)
     case 2:
         Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)func_800171DC(pEm, pKan, pSeq, 0)) {
-            Flg_on(D_800D1FC0, pEm->Unk146);
+            Flg_on(D_800D1FC0, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -384,7 +384,7 @@ void func_80016A40(ENEMY_WORK *pEm)
     case 2:
         Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)func_800171DC(pEm, pKan, pSeq, 0)) {
-            Flg_on(D_800D1FC0, pEm->Unk146);
+            Flg_on(D_800D1FC0, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -422,7 +422,7 @@ void func_80016C9C(ENEMY_WORK *pEm)
     case 1:
         Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
         if ((UCHAR)func_800171DC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
-            Flg_on(D_800D1FC0, pEm->Unk146);
+            Flg_on(D_800D1FC0, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -445,7 +445,7 @@ void func_80016DA0(ENEMY_WORK *pEm)
     case 1:
         Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         if ((UCHAR)func_800171DC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0)) {
-            Flg_on(D_800D1FC0, pEm->Unk146);
+            Flg_on(D_800D1FC0, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -466,7 +466,7 @@ void func_80016E80(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)func_80017148(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, pEm->Unk146);
+            Flg_on(D_800D1FC0, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -487,7 +487,7 @@ void func_80016F44(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)func_800172AC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, pEm->Unk146);
+            Flg_on(D_800D1FC0, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {

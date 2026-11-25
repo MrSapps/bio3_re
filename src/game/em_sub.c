@@ -9,13 +9,17 @@
 #include "sce_at.h"
 #include "sld.h"
 #include "spl_sce.h"
+#include "om.h"
 
-/* local declarations (80011CF8.c) */
-/* Add_speedXZ is called with a third (unused) argument in RE3 */
-#define ADD_SPEED_XZ3(pEm) ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)((pEm), 0, 0)
-/* PARTS_W Free[] work (RE2 pOwn_p->Free), 0x74.. in RE3 */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
+/*
+ * EM_SUB.C (RE2 EM_SUB.C): helpers shared by the player and the enemy modules: movement
+ * along the facing direction, direction/range checks, motion root positions (null pos),
+ * motion speeds (Spd_get), shadows (Kage_work*) and neck tracking (Rot_neck*).
+ * From Esp_init_C on, the object holds RE2's ESP.C (effect pool, Esp_call, Esp_kill, ...)
+ * and the first part of ESP_R.C (the Esp_tblj routines Esp_00..Esp_20).
+ */
 
+/* is pV inside the x/z box pPxzhw (x, z, w, d)? */
 ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw)
 {
     if ((ULONG)(pV->vx - pPxzhw[0]) > (ULONG)pPxzhw[2] || (ULONG)(pV->vz - pPxzhw[1]) > (ULONG)pPxzhw[3]) {
@@ -24,6 +28,7 @@ ULONG Hani_ck(VECTOR *pV, SHORT *pPxzhw)
     return 1;
 }
 
+/* move pEm by its motion speed (Spd_x/z) turned to Cdir_y + muki; slower in water */
 void Add_speedXZ(ENEMY_WORK *pEm, LONG muki)
 {
     SVECTOR Sv;
@@ -41,6 +46,7 @@ void Add_speedXZ(ENEMY_WORK *pEm, LONG muki)
     pEm->Pos_z += Sv.vz;
 }
 
+/* move pEm by Spd_x/y/z turned by Cdir_y + muki_y and Cdir_z + muki_z */
 void Add_speedXYZ(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z)
 {
     SVECTOR Sv;
@@ -56,6 +62,7 @@ void Add_speedXYZ(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z)
     pEm->Pos_z += Sv.vz;
 }
 
+/* world x/z step of the motion speed turned to Cdir_y + muki, without moving */
 void Get_speedXZ(ENEMY_WORK *pEm, LONG muki, SHORT *pX, SHORT *pZ)
 {
     SVECTOR Sv;
@@ -70,6 +77,7 @@ void Get_speedXZ(ENEMY_WORK *pEm, LONG muki, SHORT *pX, SHORT *pZ)
     *pZ = Sv.vz;
 }
 
+/* Add_speedXYZ in the space of the parent matrix pSuper */
 void Add_speedXYZsuper(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z)
 {
     SVECTOR Sv;
@@ -87,6 +95,7 @@ void Add_speedXYZsuper(ENEMY_WORK *pEm, LONG muki_y, LONG muki_z)
     pEm->Pos_z += Sv.vz;
 }
 
+/* direction (0..0xFFF) from (Hontai_x, Hontai_z) to (Target_x, Target_z) */
 LONG Direction_ck(LONG Hontai_x, LONG Hontai_z, LONG Target_x, LONG Target_z)
 {
     USHORT Dir;
@@ -109,6 +118,7 @@ LONG Direction_ck(LONG Hontai_x, LONG Hontai_z, LONG Target_x, LONG Target_z)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Goto00);
 
+/* turn needed to face (Vec_x, Vec_z): 0 when within Add_dir, else +-Add_dir */
 LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
 {
     ULONG Ang_err;
@@ -125,6 +135,7 @@ LONG Goto00_ck(ENEMY_WORK *pEm, LONG Vec_x, LONG Vec_z, LONG Add_dir)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Goto01);
 
+/* turn needed to face direction Dir: 0 when within Add_dir, else +-Add_dir */
 LONG Goto01_ck(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir)
 {
     ULONG Rot;
@@ -139,6 +150,7 @@ LONG Goto01_ck(ENEMY_WORK *pEm, LONG Dir, LONG Add_dir)
     return -(SHORT)Add_dir;
 }
 
+/* is pP outside the +-Hani_dir cone around Hed_dir seen from pV? */
 LONG Dir_pos_ck(VECTOR *pV, VECTOR *pP, SHORT Hed_dir, SHORT Hani_dir)
 {
     SHORT Dir;
@@ -147,6 +159,7 @@ LONG Dir_pos_ck(VECTOR *pV, VECTOR *pP, SHORT Hed_dir, SHORT Hani_dir)
     return ((((LONG)Dir - (LONG)Hed_dir) + (LONG)Hani_dir) & 0xFFFU) < (ULONG)((LONG)Hani_dir << 1) ^ 1;
 }
 
+/* x/z distance between pV and pP below Ll? */
 LONG L_pos_ckXZ(VECTOR *pV, VECTOR *pP, ULONG Ll)
 {
     LONG Dx;
@@ -157,6 +170,7 @@ LONG L_pos_ckXZ(VECTOR *pV, VECTOR *pP, ULONG Ll)
     return (ULONG)(SquareRoot0(Dx * Dx + Dz * Dz) * 2) < Ll;
 }
 
+/* L_pos_ckXZ from the point pSv (or the origin) transformed by pM */
 LONG L_pos_ckXZM(MATRIX *pM, VECTOR *pP, ULONG Ll, SVECTOR *pSv)
 {
     LONG Dx;
@@ -180,16 +194,19 @@ LONG L_pos_ckXZM(MATRIX *pM, VECTOR *pP, ULONG Ll, SVECTOR *pSv)
     return (ULONG)(SquareRoot0(Dx * Dx + Dz * Dz) * 2) < Ll;
 }
 
+/* does pT face the same way as pEm (within +-90 degrees)? */
 UCHAR Cdir_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     return ((((LONG)pT->Cdir_y - (LONG)pEm->Cdir_y) + 0x400) & 0xFFF) < 0x800;
 }
 
+/* does pT face away from the point (Pos_x, Pos_z)? */
 UCHAR Cdir_ck_pos(LONG Pos_x, LONG Pos_z, ENEMY_WORK *pT)
 {
     return (ULONG)(((USHORT)pT->Cdir_y - Direction_ck((SHORT)Pos_x, (SHORT)Pos_z, (SHORT)pT->Pos_x, (SHORT)pT->Pos_z)) + 0x400 & 0xFFF) < 0x800;
 }
 
+/* does pT face away from pEm? */
 UCHAR Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     SHORT Dir;
@@ -198,16 +215,19 @@ UCHAR Cdir_ck2(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     return ((((LONG)pT->Cdir_y - (LONG)Dir) + 0x400) & 0xFFF) < 0x800;
 }
 
+/* are the directions Dir0 and Dir1 within +-90 degrees of each other? */
 UCHAR Dir_ck(LONG Dir0, LONG Dir1)
 {
     return ((((SHORT)Dir1 - (SHORT)Dir0) + 0x400) & 0xFFF) < 0x800;
 }
 
+/* was a direction or action button pressed this frame (struggling out of a grab)? */
 ULONG Gacha_ch(void)
 {
     return (G.Key_trg & 0xF4F) != 0;
 }
 
+/* is pTa inside the view triangle from pEm towards pAi, Han wide at pAi? */
 ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi)
 {
     LONG Dir;
@@ -264,6 +284,7 @@ ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi)
     return 0;
 }
 
+/* base position of the current enemy (G.pEm) from its motion null position; copied to pEm */
 void Set_base_pos(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     MATRIX m;
@@ -283,6 +304,7 @@ void Set_base_pos(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
     pEm->Base_pos_z = pPm->Base_pos_z;
 }
 
+/* Pos = Base_pos + the null position of the current frame turned to Cdir_y */
 void Null_pos_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     MATRIX m;
@@ -297,6 +319,7 @@ void Null_pos_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
     pEm->Pos_z = pEm->Base_pos_z + sv.vz;
 }
 
+/* null (root) position of the current frame of G.pEm; R_flg plays the motion backwards */
 void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
 {
     ENEMY_WORK *pEm;
@@ -327,6 +350,7 @@ void get_null_pos(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
     pSv->vz = ((SVECTOR *)Bone_adr)->vz;
 }
 
+/* Null_pos_set on x/z, using the interpolated frames of get_null_pos2 */
 void Null_pos_set2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     MATRIX m;
@@ -341,6 +365,7 @@ void Null_pos_set2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
     pEm->Pos_z = pEm->Base_pos_z + sv.vz;
 }
 
+/* get_null_pos with interpolated frames (seq flag 0x100) and y = 0 */
 void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
 {
     ENEMY_WORK *pEm;
@@ -395,6 +420,7 @@ INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get2);
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get_sub);
 
+/* play the enemy sound coded in the top 4 bits of the current seq frame */
 void Em_seq_sound(ENEMY_WORK *pEm)
 {
     if (*pEm->pNow_seq & 0xF000) {
@@ -402,6 +428,7 @@ void Em_seq_sound(ENEMY_WORK *pEm)
     }
 }
 
+/* keep the foot Foot_no planted: Mode 0 moves pEm, else Spd_x = the foot's x/z slide */
 void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no)
 {
     PARTS_W *pP_ptr;
@@ -439,6 +466,7 @@ void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no)
     }
 }
 
+/* set up the 50 shadow quads (POLY_FT4 pairs, shadow texture) */
 void Kage_work_init(void)
 {
     KAGE_WORK *pK;
@@ -469,6 +497,7 @@ void Kage_work_init(void)
     } while (i != 0);
 }
 
+/* free the five 9-quad shadows */
 void Kage_work9_init(void)
 {
     KAGE_WORK9 *pK;
@@ -483,7 +512,8 @@ void Kage_work9_init(void)
     } while (i != 0);
 }
 
-void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
+/* take a free shadow for the position pPos (Off: x/z offset pair, Half: x/z half size pair) */
+void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, LONG *pPos)
 {
     KAGE_WORK *pKw;
     LONG Left_cnt;
@@ -520,7 +550,8 @@ void Kage_work_set(KAGE_WORK **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *
 #define KAGE9_UV2(w, A, B, C, D, E, F, G_, H) \
     p = &(w)->Prim[0]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); \
     p = &(w)->Prim[1]; KAGE9_UV(p, A, B, C, D, E, F, G_, H); (w)++
-void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR *pPos)
+/* take a 9-quad shadow (nine Kage_work quads) for pPos */
+void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, LONG *pPos)
 {
     KAGE_WORK9 *pK9;
     KAGE_WORK *pKw;
@@ -581,6 +612,7 @@ void Kage_work9_set(KAGE_WORK9 **ppK, ULONG Off, ULONG Half, ULONG Color, VECTOR
     KAGE9_UV2(pKw, 0x74, 0xF5, 0x7E, 0xF5, 0x74, 0xFF, 0x7E, 0xFF);
 }
 
+/* place the shadow at the position it follows, on the ground Grand, turned to Dir_y */
 void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
 {
     MATRIX Rot_m;
@@ -598,9 +630,9 @@ void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
         Off_sv.vz = pKw->Off_z;
         ApplyMatrixSV(&Rot_m, &Off_sv, &Rot_sv);
         pKw->Dir_y = Dir_y;
-        pKw->Pos_x = Rot_sv.vx + (SHORT)pKw->pPos->vx;
+        pKw->Pos_x = Rot_sv.vx + (SHORT)pKw->pPos[0];
         pKw->Pos_y = Grand;
-        pKw->Pos_z = Rot_sv.vz + (SHORT)pKw->pPos->vz;
+        pKw->Pos_z = Rot_sv.vz + (SHORT)pKw->pPos[2];
         pKw->Be_flg |= 4;
         if (Flg != 0 && !(pKw->Be_flg & 0x80)) {
             pKw->Be_flg &= 0xFB;
@@ -620,6 +652,7 @@ void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
 #define gte_stsxy(r0) __asm__ volatile("swc2 $14, 0(%0)" : : "r"(r0) : "memory")
 #define gte_stsxy3(r0, r1, r2) __asm__ volatile("swc2 $12, 0(%0); swc2 $13, 0(%1); swc2 $14, 0(%2)" : : "r"(r0), "r"(r1), "r"(r2) : "memory")
 
+/* transform and add the visible shadows to the ordering table */
 void Kage_work_sort(void)
 {
     KAGE_WORK *pKw;
@@ -701,12 +734,14 @@ void Kage_work_sort(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work9_sort);
 
+/* set the colour of a shadow's quads */
 void Kage_work_color_set(KAGE_WORK *pK, ULONG Color)
 {
     *(ULONG *)&pK->Prim[0].r0 = (*(ULONG *)&pK->Prim[0].r0 & 0xFF000000) | Color;
     *(ULONG *)&pK->Prim[1].r0 = (*(ULONG *)&pK->Prim[1].r0 & 0xFF000000) | Color;
 }
 
+/* set the colour of the nine quads of a 9-quad shadow */
 void Kage_work9_color_set(KAGE_WORK9 *pK, ULONG Color)
 {
     KAGE_WORK *pPrim;
@@ -724,6 +759,7 @@ void Kage_work9_color_set(KAGE_WORK9 *pK, ULONG Color)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Rot_neck);
 
+/* turn the neck part of pPm towards the neck of its target pEnemy_ptr, limited by the neck free work */
 void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
 {
     ULONG Own_neck_no;
@@ -743,7 +779,7 @@ void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
     SVECTOR Neck_rot;
     VECTOR Neck_tgt;
 
-    if (!(pPm->Unk120 & 1)) {
+    if (!(pPm->Neck_flg & 1)) {
         Own_neck_no = pPm->Neck_no;
         pOwn_parts = pPm->pSin_parts_ptr;
         pOwn_p = &pOwn_parts[Own_neck_no];
@@ -755,17 +791,17 @@ void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
         Neck_tgt = *(VECTOR *)pEn_p->Workm.t;
         Dir_sum = Cdir_y + Body_dir_y;
         Neck_Dir_ZY((VECTOR *)pOwn_p->Workm.t, &Neck_tgt, &Neck_rot, Dir_sum);
-        if (pPm->Unk120 & 2) {
+        if (pPm->Neck_flg & 2) {
             Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
         }
         if (pPm == pNeck_enemy) {
             Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
             Neck_rot.vz = 0;
         }
-        Spd_lim = (USHORT)PW_FREE(pOwn_p)[2];
-        Vel = PW_FREE(pOwn_p)[4];
-        if (pPm->Unk120 & 0x80) {
-            Spd_lim = (UCHAR)PW_FREE(pOwn_p)[6];
+        Spd_lim = (USHORT)PW_NECK(pOwn_p)->Add_dir_y;
+        Vel = PW_NECK(pOwn_p)->L_rot_y;
+        if (pPm->Neck_flg & 0x80) {
+            Spd_lim = PW_NECK(pOwn_p)->Sce_add_dir_y;
         }
         Ang_dif = (Neck_rot.vy - Cdir_y) - (SHORT)Body_dir_y;
         if ((LONG)((Ang_dif + Vel) & 0xFFF) > Vel * 2) {
@@ -775,22 +811,23 @@ void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
                 Neck_rot.vy = Dir_sum - Vel;
             }
         }
-        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_FREE(pOwn_p)[0] + (Cdir_y + (USHORT)pOwn_p->Cdir_y + Body_dir_y)));
-        Vel = PW_FREE(pOwn_p)[0] - Spd_lim;
+        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_NECK(pOwn_p)->N_rot_y + (Cdir_y + (USHORT)pOwn_p->Cdir_y + Body_dir_y)));
+        Vel = PW_NECK(pOwn_p)->N_rot_y - Spd_lim;
         Free_dif12 = Free_dif & 0xFFF;
-        PW_FREE(pOwn_p)[0] = Vel;
+        PW_NECK(pOwn_p)->N_rot_y = Vel;
         if (!(Free_dif & 0x800)) {
-            PW_FREE(pOwn_p)[0] = Vel + Spd_lim * 2;
+            PW_NECK(pOwn_p)->N_rot_y = Vel + Spd_lim * 2;
         }
         if ((LONG)Free_dif12 < (LONG)(Spd_lim << 16) >> 15) {
-            PW_FREE(pOwn_p)[0] = Neck_rot.vy - (Cdir_y + pOwn_p->Cdir_y + Body_dir_y);
+            PW_NECK(pOwn_p)->N_rot_y = Neck_rot.vy - (Cdir_y + pOwn_p->Cdir_y + Body_dir_y);
         }
-        pOwn_p->Cdir_y += PW_FREE(pOwn_p)[0];
+        pOwn_p->Cdir_y += PW_NECK(pOwn_p)->N_rot_y;
         RotMatrix_gte((SVECTOR *)&pOwn_p->Cdir_x, (MATRIX *)pOwn_p->M);
-        pOwn_p->Cdir_y -= PW_FREE(pOwn_p)[0];
+        pOwn_p->Cdir_y -= PW_NECK(pOwn_p)->N_rot_y;
     }
 }
 
+/* Rot_neck_em that only returns the new neck turn in *pDir */
 void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir)
 {
     ULONG Own_neck_no;
@@ -810,7 +847,7 @@ void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir)
     SVECTOR Neck_rot;
     VECTOR Neck_tgt;
 
-    if (!(pPm->Unk120 & 1)) {
+    if (!(pPm->Neck_flg & 1)) {
         Own_neck_no = pPm->Neck_no;
         pOwn_parts = pPm->pSin_parts_ptr;
         pOwn_p = &pOwn_parts[Own_neck_no];
@@ -822,17 +859,17 @@ void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir)
         Neck_tgt = *(VECTOR *)pEn_p->Workm.t;
         Dir_sum = Cdir_y + Body_dir_y;
         Neck_Dir_ZY((VECTOR *)pOwn_p->Workm.t, &Neck_tgt, &Neck_rot, Dir_sum);
-        if (pPm->Unk120 & 2) {
+        if (pPm->Neck_flg & 2) {
             Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
         }
         if (pPm == pNeck_enemy) {
             Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
             Neck_rot.vz = 0;
         }
-        Spd_lim = (USHORT)PW_FREE(pOwn_p)[2];
-        Vel = PW_FREE(pOwn_p)[4];
-        if (pPm->Unk120 & 0x80) {
-            Spd_lim = (UCHAR)PW_FREE(pOwn_p)[6];
+        Spd_lim = (USHORT)PW_NECK(pOwn_p)->Add_dir_y;
+        Vel = PW_NECK(pOwn_p)->L_rot_y;
+        if (pPm->Neck_flg & 0x80) {
+            Spd_lim = PW_NECK(pOwn_p)->Sce_add_dir_y;
         }
         Ang_dif = (Neck_rot.vy - Cdir_y) - (SHORT)Body_dir_y;
         if ((LONG)((Ang_dif + Vel) & 0xFFF) > Vel * 2) {
@@ -842,20 +879,21 @@ void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir)
                 Neck_rot.vy = Dir_sum - Vel;
             }
         }
-        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_FREE(pOwn_p)[0] + (Cdir_y + (USHORT)pOwn_p->Cdir_y + Body_dir_y)));
-        Vel = PW_FREE(pOwn_p)[0] - Spd_lim;
+        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_NECK(pOwn_p)->N_rot_y + (Cdir_y + (USHORT)pOwn_p->Cdir_y + Body_dir_y)));
+        Vel = PW_NECK(pOwn_p)->N_rot_y - Spd_lim;
         Free_dif12 = Free_dif & 0xFFF;
-        PW_FREE(pOwn_p)[0] = Vel;
+        PW_NECK(pOwn_p)->N_rot_y = Vel;
         if (!(Free_dif & 0x800)) {
-            PW_FREE(pOwn_p)[0] = Vel + Spd_lim * 2;
+            PW_NECK(pOwn_p)->N_rot_y = Vel + Spd_lim * 2;
         }
         if ((LONG)Free_dif12 < (LONG)(Spd_lim << 16) >> 15) {
-            PW_FREE(pOwn_p)[0] = Neck_rot.vy - (Cdir_y + pOwn_p->Cdir_y + Body_dir_y);
+            PW_NECK(pOwn_p)->N_rot_y = Neck_rot.vy - (Cdir_y + pOwn_p->Cdir_y + Body_dir_y);
         }
-        *pDir = PW_FREE(pOwn_p)[0];
+        *pDir = PW_NECK(pOwn_p)->N_rot_y;
     }
 }
 
+/* y and z angles from pA to pB */
 void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
 {
     LONG dx, dz, dy, dxz;
@@ -885,6 +923,7 @@ void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
     }
 }
 
+/* pNow_seq = the current seq frame, skipping interpolated (0x100) frames */
 void Now_seq_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     USHORT *pSeq;
@@ -912,29 +951,32 @@ void Now_seq_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
     pEm->pNow_seq = pSeq;
 }
 
+/* record the kill of pEm in the enemy flags of the current difficulty */
 void Em_dead_flg_on_cand(ENEMY_WORK *pEm)
 {
     if (G.System_flg & 0x80) {
-        if (Flg_ck(G.Unk7890, pEm->Unk147) == 0) {
+        if (Flg_ck(G.Unk7890, pEm->Em_set_flg) == 0) {
             func_8004834C(pEm->Id, 0);
         }
-        Flg_on(G.Unk7890, pEm->Unk147);
+        Flg_on(G.Unk7890, pEm->Em_set_flg);
     } else if (G.Unk783E >= 2) {
-        Flg_on(G.Unk78B0, pEm->Unk147);
+        Flg_on(G.Unk78B0, pEm->Em_set_flg);
     } else {
-        Flg_on(G.Unk7890, pEm->Unk147);
+        Flg_on(G.Unk7890, pEm->Em_set_flg);
     }
 }
 
-void Hit_area_parts_set(ENEMY_WORK *pEm, ULONG a1, ULONG a2)
+/* Hit_area Bottom/Top from the heights of two parts (low half: part, high half: offset) */
+void Hit_area_parts_set(ENEMY_WORK *pEm, ULONG Bottom_part, ULONG Top_part)
 {
     PARTS_W *pParts = pEm->pSin_parts_ptr;
-    USHORT y = *(USHORT *)(pEm->pUnk13C + 0x18);
+    USHORT y = (USHORT)pEm->Hit_area.pM->t[1];
 
-    pEm->Unk136 = (USHORT)pParts[a1 & 0xFFFF].Workm.t[1] - y + (a1 >> 16);
-    pEm->Unk134 = (USHORT)pParts[a2 & 0xFFFF].Workm.t[1] - y + (a2 >> 16);
+    pEm->Hit_area.Bottom = (USHORT)pParts[Bottom_part & 0xFFFF].Workm.t[1] - y + (Bottom_part >> 16);
+    pEm->Hit_area.Top = (USHORT)pParts[Top_part & 0xFFFF].Workm.t[1] - y + (Top_part >> 16);
 }
 
+/* append a copy of pSrc to the enemy list and set up its parts */
 ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc)
 {
     tagGLOBAL *pG = &G;
@@ -953,6 +995,7 @@ ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc)
     return pG->pEnemy[i];
 }
 
+/* the last enemy (pEnemy[2..]) of kind Id, or NULL */
 ENEMY_WORK *Em_work_search(ULONG Id)
 {
     ENEMY_WORK **ppEm;
@@ -969,6 +1012,7 @@ ENEMY_WORK *Em_work_search(ULONG Id)
     return pRet;
 }
 
+/* clear the effect pool and load the core effects (CORE00.ESP) */
 void Esp_init_C(void)
 {
     ULONG i;
@@ -995,6 +1039,7 @@ void Esp_init_C(void)
     Esp_data_set0((UCHAR *)0x801FC200, pEnd - 1, 0);
 }
 
+/* clear the effect pool and register the room's effects and textures */
 LONG Esp_init_R(void)
 {
     TBL12 *pT;
@@ -1020,6 +1065,7 @@ LONG Esp_init_R(void)
     }
 }
 
+/* register up to 16 effect data blocks (id list pData, offsets read backwards from pOfs) */
 ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode)
 {
     TBL12 *pT;
@@ -1050,6 +1096,7 @@ ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode)
     return (UCHAR)i;
 }
 
+/* upload the effect textures of the room to VRAM */
 void Esp_data_set1(ULONG *pTim)
 {
     UCHAR *pTop;
@@ -1070,6 +1117,7 @@ void Esp_data_set1(ULONG *pTim)
     DrawSync(0);
 }
 
+/* start an effect from the running effect pParent; the new one belongs to the same enemy */
 ESP_WORK *Esp_call_child(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd)
 {
     SVECTOR sv;
@@ -1115,6 +1163,7 @@ INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_kill);
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_ctrl);
 
+/* run every live effect: routine, movement, ground checks and sprite sequence (RE2 Esp_move) */
 void Esp_task_main(void)
 {
     ESP_WORK *pEw;
@@ -1149,6 +1198,7 @@ INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_speed_add);
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_pos_matrix);
 
+/* water, floor and wall checks of an effect, result in Flg2 */
 void Esp_hit_ck(ESP_WORK *pEw)
 {
     LONG y;
@@ -1191,6 +1241,7 @@ void Esp_hit_ck(ESP_WORK *pEw)
     }
 }
 
+/* step the sprite sequence; Time 0 ends the effect, 0xFE holds, 0xFF jumps */
 void Esp_anm_move(ESP_WORK *pEw)
 {
     SSEQUENCE *pSeq;
@@ -1247,6 +1298,7 @@ found:
     return p;
 }
 
+/* the running effect with id Id (0xFFnn: any of kind nn) */
 ESP_WORK *Esp_search(USHORT Id)
 {
     ESP_WORK *pEw;

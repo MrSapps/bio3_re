@@ -434,7 +434,7 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pEm->Id = D_800E0198->Id;
         pEm->Type = D_800E0198->Type;
         pEm->Status_flg = D_800E0198->Status_flg;
-        pEm->Unk147 = D_800E0198->Flg_no;
+        pEm->Em_set_flg = D_800E0198->Flg_no;
         pEm->Unk4B = D_800E0198->UnkA;
         pEm->nFloor = D_800E0198->nFloor;
         pEm->Unk122 = -(D_800E0198->nFloor * 1800);
@@ -575,7 +575,7 @@ ULONG Plc_dest(SCE_TASK *pSce)
     Set_no = pData[3];
     pEm->Unk144 = 0;
     pEm->Unk14A = 0;
-    pEm->Unk146 = Set_no;
+    pEm->Set_flg_no = Set_no;
     pEm->Type |= 0x100;
     pEm->Dest_x = ((SHORT *)pData)[2];
     pEm->Dest_z = ((SHORT *)pData)[3];
@@ -628,36 +628,36 @@ ULONG Plc_neck(SCE_TASK *pSce)
     pW = pSce->pWork;
     Kind = pSce->Data[1];
     pParts = pW->pSin_parts_ptr + 1;
-    pW->Unk120 = 0x80;
+    pW->Neck_flg = 0x80;
     A = ((SHORT *)pSce->Data)[1];
     B = ((SHORT *)pSce->Data)[2];
     C = ((SHORT *)pSce->Data)[3];
     D = ((SHORT *)pSce->Data)[4];
     switch (Kind) {
     case 0:
-        pW->Unk120 |= 0x12;
+        pW->Neck_flg |= 0x12;
         break;
     case 2:
-        pW->Unk120 |= 0x8;
+        pW->Neck_flg |= 0x8;
         break;
     case 3:
-        pW->Unk120 |= 0x2A;
+        pW->Neck_flg |= 0x2A;
         break;
     case 4:
-        pW->Unk120 |= 0x58;
+        pW->Neck_flg |= 0x58;
         break;
     case 1:
     case 5:
-        pW->Unk120 |= 0x4;
+        pW->Neck_flg |= 0x4;
         break;
     case 6:
-        pW->Unk120 = 0;
+        pW->Neck_flg = 0;
         break;
     case 7:
-        pW->Unk120 |= 0x1;
+        pW->Neck_flg |= 0x1;
         break;
     case 8:
-        pW->Unk120 |= 0x12;
+        pW->Neck_flg |= 0x12;
         ((SHORT *)&pParts->Unk74)[0] = 0;
         ((SHORT *)&pParts->Unk74)[1] = 0;
         break;
@@ -694,7 +694,7 @@ ULONG Plc_ret(SCE_TASK *pSce)
     if (pW->Id < 0x10) {
         pW->Type &= 0xFFF;
     }
-    pW->Unk120 = 0;
+    pW->Neck_flg = 0;
     pW->Damage_cnt = 0;
     pW->Type &= 0xAEFF;
     pSce->Data++;
@@ -767,7 +767,7 @@ ULONG Splc_ret(SCE_TASK *pSce)
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 1;
     pW->pUnk114 = G_PLAYER;
-    pW->Unk120 = 0;
+    pW->Neck_flg = 0;
     pW->Type = (pW->Type & 0xAEFF) | 0x400;
     G.Status_flg |= 0x80000000;
     pW->Life = G.Unk7852;
@@ -784,7 +784,7 @@ ULONG Splc_sce(SCE_TASK *pSce)
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 0x604;
     pW->pUnk114 = pW;
-    pW->Unk120 = 0x92;
+    pW->Neck_flg = 0x92;
     pW->Type = (pW->Type | 0x5000) & ~0x400;
     G.Status_flg &= 0x7FFFFFFF;
     pSce->Data++;
@@ -798,7 +798,7 @@ ULONG func_800574B8(SCE_TASK *pSce)
     pW = pSce->pWork;
     *(ULONG *)&pW->Routine_0 = 0x604;
     pW->pUnk114 = pW;
-    pW->Unk120 = 0x92;
+    pW->Neck_flg = 0x92;
     pW->Type |= 0x5000;
     pSce->Data++;
     return 1;

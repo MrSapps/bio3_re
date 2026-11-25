@@ -35,9 +35,9 @@ void func_80100144(ENEMY_WORK *pEm)
         EF(pEm)->Ground = pEm->Unk122;
     Em23_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
     pEm->pEnemy_ptr = pPl;
-    pEm->Unk120 &= ~2;
+    pEm->Neck_flg &= ~2;
     if (pEm->Type & 0x4000)
-        pEm->Unk120 |= 2;
+        pEm->Neck_flg |= 2;
     if (EF(pEm)->Mode != 0 && EF(pEm)->Mode != 4)
         pEm->Be_flg |= 0x8000;
     else
@@ -83,7 +83,7 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EF(pEm)->Unk2E = 0;
     EF(pEm)->Unk04 = 0;
     EF(pEm)->Unk1A = 0;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x4B004B0, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x4B004B0, 0, pEm->pSin_parts_ptr->Workm.t);
     pEm->Col.pEm = pEm;
     pEm->Col.D0 = pEm->Col.W0 = 800;
     pEm->Col.H = 1800;
@@ -94,15 +94,15 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Flg = 0;
     pEm->Be_flg |= 0x400000;
     func_80033580(&pEm->Col, 0);
-    pEm->Unk136 = -1000;
-    pEm->Unk134 = 600;
-    pEm->Unk138 = 0x50;
-    pEm->Unk139 = 0xA0;
-    pEm->Unk13A = 800;
+    pEm->Hit_area.Bottom = -1000;
+    pEm->Hit_area.Top = 600;
+    pEm->Hit_area.Rate0 = 0x50;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 800;
     pEm->Unk140 = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 14;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[14];
     PW_FREE(pP)[2] = 0x60;
     PW_FREE(pP)[3] = 0x60;
@@ -3938,7 +3938,7 @@ void func_8010BE00(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
         EM_SET_RTN(pPl, 1, 0, 0, 0);
         pPl->Be_flg = (pPl->Be_flg | 0x80000) & 0xFFFF77FF;
         pEm->Be_flg &= 0xFFFF77FF;
-        pPl->Unk120 &= 0xED;
+        pPl->Neck_flg &= 0xED;
         pPl->Damage_cnt &= 0x7F;
         Player_move(pPl);
     } else {
@@ -3965,7 +3965,7 @@ void func_8010BEA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         func_8002646C_(pEm, 300, 60, pEm->Col.Unk39);
         pEm->Routine_2++;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
     case 1:
         X = pEm->Pos_x;
         Z = pEm->Pos_z;
@@ -4023,7 +4023,7 @@ void func_8010BEA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         else
             EM_SET_MOVE(pEm, 2, 0, 7);
         pEm->Be_flg |= 0x80000;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pEm->Routine_2++;
     case 5:
         if (pEm->Move_cnt == 24) {
@@ -4053,7 +4053,7 @@ void func_8010C314(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_MOVE(pEm, 8, 0, 7);
             Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
         }
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         pEm->Routine_2++;
     case 1:
         Goto01(pEm, pPl->Cdir_y + Add, 300);
@@ -4098,7 +4098,7 @@ void func_8010C4B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Pad_vib_set1(3, 0xD2, 34);
         Pad_vib_set0(3, 35);
         Pad_vib_set1(3, 0x96, 39);
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         pEm->Routine_2++;
     case 1:
         Add = !pEm->Routine_3 << 11;

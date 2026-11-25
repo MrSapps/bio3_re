@@ -24,12 +24,14 @@ typedef struct tagJOINT_P {
 /* PARTS_W free work (RE2 PARTS_W.Free[]; RE3 has it at PARTS_W + 0x74) as the neck parts use it
  * (RE2 struct tagPARTS_NECK_FREE_WORK, MAIN.H) */
 typedef struct tagPARTS_NECK_FREE_WORK {
-    SHORT N_rot_y;                     /* 0x74 */
-    SHORT N_rot_z;                     /* 0x76 */
-    SHORT Add_dir_y;                   /* 0x78 */
-    SHORT Add_dir_z;                   /* 0x7A */
-    SHORT L_rot_y;                     /* 0x7C */
-    SHORT L_rot_z;                     /* 0x7E */
+    SHORT N_rot_y;                     /* 0x74 current neck turn (y) */
+    SHORT N_rot_z;                     /* 0x76 current neck turn (z) */
+    SHORT Add_dir_y;                   /* 0x78 turn speed (y) */
+    SHORT Add_dir_z;                   /* 0x7A turn speed (z) */
+    SHORT L_rot_y;                     /* 0x7C turn limit (y) */
+    SHORT L_rot_z;                     /* 0x7E turn limit (z) */
+    UCHAR Sce_add_dir_y;               /* 0x80 turn speed used while Neck_flg 0x80 (scenario) */
+    UCHAR Sce_add_dir_z;               /* 0x81 */
 } PARTS_NECK_FREE_WORK;
 #define PW_NECK(p) ((PARTS_NECK_FREE_WORK *)&(p)->Unk74)
 

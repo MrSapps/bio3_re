@@ -11,7 +11,7 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
 
     pP = &pEm->pSin_parts_ptr[1];
     if (EM10_W(pEm)->Flg & 0x80) {
-        pEm->Unk120 = 1;
+        pEm->Neck_flg = 1;
         pP->Be_flg |= 0x22;
         EM10_W(pEm)->Flg &= 0xFF7F;
         EM10_W(pEm)->Flg |= 0x100;

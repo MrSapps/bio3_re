@@ -68,16 +68,6 @@ typedef struct tagHIT_AREA {
     UCHAR Id;                          /* 0x0A */
 } HIT_AREA;
 
-/* hit area: a box Top..Bottom high, radius R, around pM->t (ENEMY_WORK + 0x134, OM_TARGET + 0x8) */
-typedef struct tagEM_HIT_AREA {
-    SHORT Top;                         /* 0x00 */
-    SHORT Bottom;                      /* 0x02 */
-    UCHAR Rate0;                       /* 0x04 */
-    UCHAR Rate1;                       /* 0x05 */
-    SHORT R;                           /* 0x06 */
-    MATRIX *pM;                        /* 0x08 */
-} EM_HIT_AREA;
-
 /* aim target of an object model, 0x18 bytes from G.pEm_mem, listed in G.pUnk75AC (Obj_model_set) */
 typedef struct tagOM_TARGET {
     USHORT Flg;                        /* 0x00 0xFF: off */

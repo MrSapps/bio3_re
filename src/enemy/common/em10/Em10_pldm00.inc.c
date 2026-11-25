@@ -17,7 +17,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pAi->Routine_0 == 2 || pAi->Routine_0 == 3) {
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pEm->Be_flg &= ~0x8800;
         pAi->Be_flg &= ~0x8800;
         pEm->Be_flg |= 0x80000;
@@ -36,7 +36,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_stad(((Rnd_l() & 1) << 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
         pEm->UnkDA = 0;
         pEm->Unk12C = 0;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
     case 1:
         Goto01(pEm, pAi->Cdir_y + pEm->Timer0, 0xD0);
         Old_x = pEm->Pos_x;
@@ -109,7 +109,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         pEm->Be_flg |= 0x80000;
         pEm->Damage_cnt &= 0x7F;
-        pEm->Unk120 &= 0xED;
+        pEm->Neck_flg &= 0xED;
         pEm->Be_flg &= ~0x8800;
         pAi->Be_flg &= ~0x8800;
         pEm->Damage_cnt = 3;

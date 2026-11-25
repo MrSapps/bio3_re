@@ -25,7 +25,7 @@ void Pl_neck(ENEMY_WORK *pEm, ULONG LL, SHORT Dir)
     pNear = 0;
     Min_dist = 0x7FFFFFFF;
     pSec = 0;
-    if (pEm->Unk120 & 1) {
+    if (pEm->Neck_flg & 1) {
         return;
     }
     if (Pl_neck_timer-- == 0) {
@@ -287,7 +287,7 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Unk1A0 = *(ULONG *)&pEm->Move_no = 0x70000;
         pEm->UnkE3 = 0;
         pEm->UnkE2 = 0;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         if (Key & 0x400) {
             pPos = func_80047DD0(pEm, 0);
             if (pPos != 0) {
@@ -476,7 +476,7 @@ void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 1:
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x10200)) {
             *(ULONG *)&pEm->Routine_0 = 1;
-            pEm->Unk120 &= 0xED;
+            pEm->Neck_flg &= 0xED;
             G.Status_flg &= ~0x40;
             G.Status_flg &= ~0x100;
         }
@@ -640,7 +640,7 @@ void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Unk1A0 = 0x70002;
         pEm->Spd_x = 0;
         pEm->Spd_z = 0;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         Pl_aim_dir = 0;
     case 1:
         pPos = pEm->pUnk15C;
@@ -672,7 +672,7 @@ void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Move_no = 0x7000D;
         pEm->Routine_3 = 1;
         pEm->Spd_x = 1;
-        pEm->Unk120 |= 0x12;
+        pEm->Neck_flg |= 0x12;
         Pl_aim_dir = 0;
         if (!(D_8009CF78[(UCHAR)pEm->Type] & 0x80)) {
             *(ULONG *)&pEm->Move_no = 0x70011;
@@ -763,7 +763,7 @@ void func_8003FEFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 1:
         if (Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200)) {
             *(ULONG *)&pEm->Routine_0 = 1;
-            pEm->Unk120 &= 0xED;
+            pEm->Neck_flg &= 0xED;
             G.Status_flg &= ~0x100;
             G.Status_flg &= ~0x40;
         }
@@ -2507,7 +2507,7 @@ LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm)
     ULONG Ret;
     VECTOR V;
 
-    pH = (EM_HIT_AREA *)&pEm->Unk134;
+    pH = &pEm->Hit_area;
     pHm = pH->pM;
     H = pH->Top - pH->Bottom;
     Y = pHm->t[1] + pH->Top;
@@ -3016,7 +3016,7 @@ void func_80046EC4(void)
             pWp++;
             continue;
         }
-        pOt = func_80037D50((VECTOR *)pWp->Unk4);
+        pOt = func_80037D50((LONG *)pWp->Unk4);
         Sv.vx = ((VECTOR *)pWp->Unk4)->vx;
         Sv.vy = ((VECTOR *)pWp->Unk4)->vy;
         Sv.vz = ((VECTOR *)pWp->Unk4)->vz;
@@ -3352,16 +3352,16 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
     do {
         pT = *ppT;
         if ((pT->Be_flg & 1) && pT->Damage_cnt == 0 && !(pT->Type & 0xC000) && pT != pEm) {
-            pH = (EM_HIT_AREA *)&pT->Unk134;
+            pH = &pT->Hit_area;
             pM = pH->pM;
             V.vx = pM->t[0] - pPos->vx;
             V.vy = pM->t[1] - pPos->vy;
             V.vz = pM->t[2] - pPos->vz;
             ApplyRotMatrixLV(&V, &V);
-            if (Bottom <= pT->Unk134 + V.vy && Top >= pH->Bottom + V.vy) {
+            if (Bottom <= pT->Hit_area.Top + V.vy && Top >= pH->Bottom + V.vy) {
                 Hit = 0;
-                w = pAttr->W + pT->Unk13A;
-                d = pAttr->D + pT->Unk13A;
+                w = pAttr->W + pT->Hit_area.R;
+                d = pAttr->D + pT->Hit_area.R;
                 if ((ULONG)(V.vx + w) < (ULONG)(w * 2)) {
                     Hit = (ULONG)(d * 2) > (ULONG)(V.vz + d);
                 }
@@ -3373,10 +3373,10 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
                     Dmg = pAttr->Damage;
                     Cnt = pAttr->Damage_cnt;
                     pT->Unk132 |= 1;
-                    Y = pT->Unk134;
+                    Y = pT->Hit_area.Top;
                     H = pH->Bottom - Y;
-                    Lo = Y + V.vy + ((H * pT->Unk138) >> 8);
-                    Hi = Y + V.vy + ((H * pT->Unk139) >> 8);
+                    Lo = Y + V.vy + ((H * pT->Hit_area.Rate0) >> 8);
+                    Hi = Y + V.vy + ((H * pT->Hit_area.Rate1) >> 8);
                     if (Lo > 0) {
                         pT->Unk132 = (pT->Unk132 & 0xFFFC) | 2;
                         Part = 1;
@@ -3385,7 +3385,7 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
                         Part = 2;
                         pT->Unk132 |= 3;
                     }
-                    if (pT->Unk134 + V.vy <= 0) {
+                    if (pT->Hit_area.Top + V.vy <= 0) {
                         Part = 0;
                         pT->Unk132 = (pT->Unk132 & 0xFFFC) | 1;
                     }

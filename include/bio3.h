@@ -23,7 +23,7 @@ typedef struct tagKAGE_WORK {
     SHORT Pos_z;                       /* 0x0C */
     UCHAR Be_flg;                      /* 0x0E */
     SHORT Dir_y;                       /* 0x10 */
-    VECTOR *pPos;                      /* 0x14 */
+    LONG *pPos;                        /* 0x14 position followed (x, y, z longs) */
     POLY_FT4 Prim[2];                  /* 0x18 */
 } KAGE_WORK;
 
@@ -38,7 +38,7 @@ typedef struct tagKAGE_WORK9 {
     SHORT Pos_z;                       /* 0x0C */
     UCHAR Be_flg;                      /* 0x0E */
     SHORT Dir_y;                       /* 0x10 */
-    VECTOR *pPos;                      /* 0x14 */
+    LONG *pPos;                        /* 0x14 position followed (x, y, z longs) */
     KAGE_WORK *pKw_top;                /* 0x18 */
 } KAGE_WORK9;
 
@@ -156,6 +156,16 @@ typedef struct tagCOL_OBJ {
     struct tagSCA_DATA *pSca_hit_data; /* 0x3C RE2 pSca_hit_data (wall hit by Sca_ck_em) */
 } COL_OBJ;
 
+/* hit area: a box Top..Bottom high, radius R, around pM->t (ENEMY_WORK + 0x134, OM_TARGET + 0x8) */
+typedef struct tagEM_HIT_AREA {
+    SHORT Top;                         /* 0x00 y offset from pM->t[1] */
+    SHORT Bottom;                      /* 0x02 y offset from pM->t[1] */
+    UCHAR Rate0;                       /* 0x04 */
+    UCHAR Rate1;                       /* 0x05 */
+    SHORT R;                           /* 0x06 */
+    MATRIX *pM;                        /* 0x08 matrix of the part the box follows */
+} EM_HIT_AREA;
+
 /* enemy work (RE2 struct tagENEMY_WORK; RE3 layout differs: no pTmd2/pPacket2, no dummy00).
  * The player is the first 0x1CC bytes of one (PLAYER_WORK, G.Player): EM_WORK_HEAD lists those
  * members once for both structs; code passes the player as (ENEMY_WORK *) like RE2 does. */
@@ -233,7 +243,7 @@ typedef struct tagCOL_OBJ {
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */                            \
     ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */ \
     ULONG *pUnk11C;                    /* 0x11C (func_8001760C: first EMD section) */ \
-    UCHAR Unk120;                      /* 0x120 */                            \
+    UCHAR Neck_flg;                    /* 0x120 RE2 Neck_flg: 1 no neck turn, 2 keep y, 0x80 scenario speed */ \
     UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */ \
     SHORT Unk122;                      /* 0x122 */                            \
     SHORT Spd_base_x;                  /* 0x124 RE2 Spd_base_x (Spd_get) */   \
@@ -246,16 +256,11 @@ typedef struct tagCOL_OBJ {
     UCHAR Unk12F;                      /* 0x12F compared with the room sound table (Snd_se_enem) */ \
     SHORT Unk130;                      /* 0x130 direction */                  \
     USHORT Unk132;                     /* 0x132 bits 8-12 cleared by Pl_life_down */ \
-    SHORT Unk134;                      /* 0x134 */                            \
-    SHORT Unk136;                      /* 0x136 */                            \
-    UCHAR Unk138;                      /* 0x138 */                            \
-    UCHAR Unk139;                      /* 0x139 */                            \
-    SHORT Unk13A;                      /* 0x13A */                            \
-    UCHAR *pUnk13C;                    /* 0x13C */                            \
+    EM_HIT_AREA Hit_area;              /* 0x134 aim/hit box (pl_wep) */        \
     LONG Unk140;                       /* 0x140 */                            \
     USHORT Unk144;                     /* 0x144 0x100: no seq sound */        \
-    UCHAR Unk146;                      /* 0x146 RE2 Set_flg_no */             \
-    UCHAR Unk147;                      /* 0x147 flag no (Em_dead_flg_on_cand) */ \
+    UCHAR Set_flg_no;                  /* 0x146 RE2 Set_flg_no */             \
+    UCHAR Em_set_flg;                  /* 0x147 RE2 Em_set_flg: kill flag number (Em_dead_flg_on_cand) */ \
     SHORT Add_dir;                     /* 0x148 turn speed passed to Goto00 */ \
     SHORT Unk14A;                      /* 0x14A */                            \
     SHORT Unk14C;                      /* 0x14C */                            \
@@ -318,6 +323,20 @@ typedef struct tagENEMY_WORK {
 } ENEMY_WORK;
 STATIC_ASSERT(player_work_size, sizeof(PLAYER_WORK) == 0x1CC);
 STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
+
+/*
+ * Vector views of field runs (gcc 2.8 has no anonymous unions, so these stay views).
+ * Work types with Cdir_x/y/z + dummy01 (ENEMY_WORK, PARTS_W): CDIR_SV is that run as an SVECTOR.
+ * ENEMY_WORK: Spd_x/y/z + UnkC6/C7 as an SVECTOR, Pos_x/y/z as a VECTOR, and Workm_m + Pos as
+ * the work matrix (RE2 Workm). PARTS_W: M[3][3] + Pos_x/y/z is the local matrix, Workm.t the
+ * world position as a VECTOR (the pad word after it is Cdir_x/y, never used by the callees).
+ */
+#define CDIR_SV(p)   ((SVECTOR *)&(p)->Cdir_x)
+#define EM_SPD_SV(p) ((SVECTOR *)&(p)->Spd_x)
+#define EM_POS_V(p)  ((VECTOR *)&(p)->Pos_x)
+#define EM_WORKM(p)  ((MATRIX *)(p)->Workm_m)
+#define PW_M(p)      ((MATRIX *)(p)->M)
+#define PW_POS_V(p)  ((VECTOR *)(p)->Workm.t)
 
 /* G: global work area (RE2 struct tagGLOBAL, 0x800CC1E8 in RE2) */
 struct tagROOM_WORK;

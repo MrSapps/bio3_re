@@ -246,7 +246,7 @@ void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.pOt = pG->pEm->pUnk7C;
     Abr = (Flg & 0x100) >> 7;
     if (Flg & 0x2000) {
-        Prm.pOt = func_80037D50((VECTOR *)pP->Workm.t);
+        Prm.pOt = func_80037D50(pP->Workm.t);
     }
     if (Flg & 0x400) {
         func_8002D184(Work0, Work1, (MD_OBJ *)pObj[1], &pP->Workm);

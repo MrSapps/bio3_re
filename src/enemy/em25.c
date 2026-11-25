@@ -52,21 +52,21 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Unk1CC[i] = 0;
     EM_SET_MOVE(pEm, 1, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, (VECTOR *)&pEm->Pos_x);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, &pEm->Pos_x);
     pCol = &pEm->Col;
     pFp = EF(pEm);
     pFp->Foot_cnt = 8;
     pFp->Water_rno = 0;
     pEm->Water = 0;
-    pEm->Unk136 = -1500;
-    pEm->Unk134 = 800;
-    pEm->Unk138 = 0x50;
-    pEm->Unk139 = 0xA0;
-    pEm->Unk13A = 800;
+    pEm->Hit_area.Bottom = -1500;
+    pEm->Hit_area.Top = 800;
+    pEm->Hit_area.Rate0 = 0x50;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 800;
     pEm->Unk140 = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pCol->pEm = pEm;
     pCol->W0 = pEm->Col.D0 = 1000;
     pCol->H = 1800;
@@ -1821,7 +1821,7 @@ void Die_break_set(ENEMY_WORK *pEm)
     ULONG i;
     PARTS_W *pP_ptr;
 
-    pEm->Unk120 |= 1;
+    pEm->Neck_flg |= 1;
     pP_ptr = &pEm->pSin_parts_ptr[19];
     pP_ptr->UnkA2 |= 0x20;
     pP_ptr->Be_flg |= 2;

@@ -99,7 +99,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (pPl->Id >= 8) {
                 if (pEm->Move_cnt == 0x16) {
                     pW = &pEm->pSin_parts_ptr[1];
-                    pEm->Unk120 |= 1;
+                    pEm->Neck_flg |= 1;
                     pW->UnkA2 |= 4;
                     PW_FREEL(pW)[0] = 0x40;
                     PW_FREEL(pW)[1] = 0x202030;
@@ -114,7 +114,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             } else {
                 if (pEm->Move_cnt == 0x1C) {
                     pW = &pEm->pSin_parts_ptr[1];
-                    pEm->Unk120 |= 1;
+                    pEm->Neck_flg |= 1;
                     pW->UnkA2 |= 4;
                     PW_FREEL(pW)[0] = 0x40;
                     PW_FREEL(pW)[1] = 0x202030;

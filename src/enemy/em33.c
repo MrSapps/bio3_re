@@ -120,7 +120,7 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM33_W(pEm)->Unk14 = 0x210;
     EM33_W(pEm)->Unk16 = 0;
     EM33_W(pEm)->Unk28 = 0;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr->Workm.t);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr->Workm.t);
     pEm->Be_flg |= 0x8000;
     pEm->Col.pEm = pEm;
     if (pEm->Id == 0x33)
@@ -142,19 +142,19 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
     func_80033580(&pEm->Col, 0);
-    pEm->Unk134 = 1800;
-    pEm->Unk136 = -1400;
-    pEm->Unk138 = 0x78;
-    pEm->Unk139 = 0xB4;
-    pEm->Unk13A = 1000;
+    pEm->Hit_area.Top = 1800;
+    pEm->Hit_area.Bottom = -1400;
+    pEm->Hit_area.Rate0 = 0x78;
+    pEm->Hit_area.Rate1 = 0xB4;
+    pEm->Hit_area.R = 1000;
     pEm->Neck_no = 8;
     pEm->Unk140 = 0;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     EM33_W(pEm)->Col_id = pEm->Col.Id |= 0x80;
     {
         PARTS_W *pS = pEm->pSin_parts_ptr;
 
-        pEm->pUnk13C = (UCHAR *)&pS->Workm;
+        pEm->Hit_area.pM = &pS->Workm;
         pP = &pS[8];
     }
     PW_FREE(pP)[2] = 0x40;
@@ -179,37 +179,37 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 1, pEm, 8);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr[8].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 2, pEm, 1);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[1].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr[1].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 3, pEm, 2);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, (VECTOR *)pEm->pSin_parts_ptr[2].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr[2].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 4, pEm, 3);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, pEm->pSin_parts_ptr[3].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 5, pEm, 4);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, pEm->pSin_parts_ptr[4].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 6, pEm, 5);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, (VECTOR *)pEm->pSin_parts_ptr[5].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, pEm->pSin_parts_ptr[5].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     func_801009DC(pB, 7, pEm, 6);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x3E803E8, 0, (VECTOR *)pEm->pSin_parts_ptr[6].Workm.t);
+    Kage_work_set(&pB->Kage.pKw, 0, 0x3E803E8, 0, pEm->pSin_parts_ptr[6].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     i = 0;
     do {
@@ -249,12 +249,12 @@ void func_801009DC(ENEMY_WORK *pEm, LONG No, ENEMY_WORK *pOya, LONG Parts)
     pCol->Type = 2;
     func_80033580(pCol, EM33_W(pOya)->Col_id);
     pCol->pM = &pOya->pSin_parts_ptr[Parts].Workm;
-    pEm->pUnk13C = (UCHAR *)&pOya->pSin_parts_ptr[Parts].Workm;
-    pEm->Unk134 = 1800;
-    pEm->Unk136 = Parts == 8 ? -1800 : -1400;
-    pEm->Unk138 = 0x78;
-    pEm->Unk139 = 0xB4;
-    pEm->Unk13A = Parts == 8 ? 1400 : 1000;
+    pEm->Hit_area.pM = &pOya->pSin_parts_ptr[Parts].Workm;
+    pEm->Hit_area.Top = 1800;
+    pEm->Hit_area.Bottom = Parts == 8 ? -1800 : -1400;
+    pEm->Hit_area.Rate0 = 0x78;
+    pEm->Hit_area.Rate1 = 0xB4;
+    pEm->Hit_area.R = Parts == 8 ? 1400 : 1000;
     pEm->Unk140 = 0;
     EM33_W(pEm)->Old_life = pEm->Max_life = pEm->Life = 30000;
     EM33_B(pEm)->Parts = Parts;
@@ -571,7 +571,7 @@ void func_80101B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             if (EM33_W(pEm)->Unk11 == 0) {
-                pEm->Unk120 &= ~1;
+                pEm->Neck_flg &= ~1;
                 PW_FREE(pP)[0] = 0;
                 PW_FREE(pP)[1] = 0;
                 EM_SET_RTN(pEm, 1, 9, 0, 0);
@@ -596,7 +596,7 @@ void func_80101B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Timer0 = 0;
         pEm->Routine_2++;
         pEm->Be_flg |= 0x2000;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
         EM33_W(pEm)->Side ^= 1;
     case 3:
         if (++pEm->Timer0 > 150) {
@@ -1078,7 +1078,7 @@ void func_801042DC(ENEMY_WORK *pEm)
         Snd_se_enem(3, pEm);
         EM33_W(pEm)->Unk24 = 60;
         pEm->Routine_2 = 5;
-        pEm->Unk120 |= 1;
+        pEm->Neck_flg |= 1;
     }
 }
 
@@ -1272,7 +1272,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             EM33_W(pEm)->Unk0B = 1;
             EM_SET_MOVE(pEm, 0xA, 0, 0x1F);
-            pEm->Unk120 = 0;
+            pEm->Neck_flg = 0;
             EM33_W(pEm)->Unk04 = -10;
             EM33_W(pEm)->Unk06 = -70;
             EM33_W(pEm)->Unk08 = -10;
@@ -1321,7 +1321,7 @@ void func_801051AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 0xD, 0, 0xF);
         pEm->UnkDA = pEm->Timer0 = (Rnd() + 15) & 7;
         pEm->UnkE2 = 1;
-        pEm->Unk120 |= 2;
+        pEm->Neck_flg |= 2;
         pEm->Routine_2++;
     case 1:
         if (pEm->UnkE2) {
@@ -1331,7 +1331,7 @@ void func_801051AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Joint_move(pEm, pKan, pSeq, 0x10080);
             } else {
                 pEm->UnkE2 = 0;
-                pEm->Unk120 &= ~2;
+                pEm->Neck_flg &= ~2;
                 pEm->Move_cnt = 0x76 - pEm->UnkDA * 2;
             }
         } else if (Joint_move(pEm, pKan, pSeq, 0x80) || Joint_move(pEm, pKan, pSeq, 0x80)) {

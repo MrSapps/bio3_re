@@ -16,7 +16,7 @@ void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM_SET_RTN(pEm, 1, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
     pEm->Neck_no = 3;
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pP = &pEm->pSin_parts_ptr[3];
     PW_FREE(pP)[2] = 0x40;
     PW_FREE(pP)[3] = 0x40;

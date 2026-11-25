@@ -25,13 +25,13 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM_SET_MOVE(pEm, 0, 0, 7);
     EM_SET_RTN(pEm, 4, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
-    pEm->Unk134 = 1800;
-    pEm->Unk136 = -2700;
-    pEm->Unk138 = 0x78;
-    pEm->Unk139 = 0xBC;
-    pEm->Unk13A = 2700;
+    pEm->Hit_area.Top = 1800;
+    pEm->Hit_area.Bottom = -2700;
+    pEm->Hit_area.Rate0 = 0x78;
+    pEm->Hit_area.Rate1 = 0xBC;
+    pEm->Hit_area.R = 2700;
     pEm->Unk140 = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[4].Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr[4].Workm;
     pCol = &pEm->Col;
     pCol->H = 4500;
     pCol->pEm = pEm;
@@ -57,7 +57,7 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pP = pEm->pSin_parts_ptr;
     pP->Cdir_x = 0;
     pP = &pEm->pSin_parts_ptr[1];
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     pEm->Neck_no = 4;
     PW_FREE(pP)[2] = 0x40;
     PW_FREE(pP)[3] = 0x40;

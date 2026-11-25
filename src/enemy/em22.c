@@ -46,17 +46,17 @@ void func_8010023C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     EM_SET_MOVE(pEm, 0, 0, 0xF);
     EM_SET_RTN(pEm, 1, 0, 0, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, (VECTOR *)pEm->pSin_parts_ptr[1].Workm.t);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, pEm->pSin_parts_ptr[1].Workm.t);
     pCol = &pEm->Col;
-    pEm->Unk134 = 1600;
-    pEm->Unk136 = -1000;
-    pEm->Unk138 = 0x78;
-    pEm->Unk139 = 0xBC;
-    pEm->Unk13A = 600;
+    pEm->Hit_area.Top = 1600;
+    pEm->Hit_area.Bottom = -1000;
+    pEm->Hit_area.Rate0 = 0x78;
+    pEm->Hit_area.Rate1 = 0xBC;
+    pEm->Hit_area.R = 600;
     pEm->Unk140 = 0;
     pEm->Unk16B = 0;
     pEm->Unk16A = 0;
-    pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[2].Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr[2].Workm;
     pCol->W0 = pCol->D0 = 800;
     pCol->H = 2000;
     pCol->Unk24 = 500;
@@ -66,7 +66,7 @@ void func_8010023C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Type = 2;
     func_80033580(pCol, 0);
     pP = &pEm->pSin_parts_ptr[pEm->Neck_no = 3];
-    pEm->Unk120 = 0;
+    pEm->Neck_flg = 0;
     PW_FREE(pP)[3] = PW_FREE(pP)[2] = 0x40;
     PW_FREE(pP)[4] = 0x200;
     PW_FREE(pP)[5] = 0x138;
