@@ -491,3 +491,40 @@ Near misses:
 - em_sub func_8001BC80 (bc80): target loads all six halves first; no C form found (30).
 - sub func_800790F0 (s90f0/sw3/x1.c, 12): ICON_DATA icon select; cse reuses the All_a register for the
   constant 1 in the second compare.
+
+## Matching round agentG (drafts in the session scratchpad agentG/<dir>)
+Matched: sca Sca_hit_obj_circle (was func_8004D404), Sca_get_ground_obj (func_8004DB10), em_sub Esp_pos_matrix.
+Rules learnt:
+- A pseudo set before a call and used after it may be scheduled across the call by sched1 (it already crosses
+  one), but its REG_LIVE_LENGTH is taken from the source order. A constant address assigned before the call
+  (`pW = &D_800DEB58;` at the top) is what puts it in an s-reg even when the lui shows up after the jal
+  (Sca_hit_obj_circle). Likewise `Ret = 0` moves before a call freely.
+- `Ret |= f(); return Ret;` vs `return Ret | f();`: the extra refs raise Ret's global-alloc priority (s2 vs s6).
+- Local-alloc runs before global-alloc: a value local to one basic block (calls do not end blocks) takes the
+  lowest free s-reg before any global pseudo. Reusing one variable in a later block makes it global and drops it
+  behind the block-local ones (func_8004F098: separate Dx2/Dz2/Half2 for the second test).
+- Two copies of the same value in one function that keep separate registers: a pointer variable used for the
+  stores (`pC = &Tmp_Sca; pC->Z1 = ...`) gives `addiu a2,hi,lo` + `sh 6(a2)` and lets the call reuse a2; the
+  offset-0 store still comes out as `sh %lo(sym)(hi)`.
+- Esp_pos_matrix: the six-word `*(int *)&M.m[..] = ...` init through `pM = &M` gives `sw 0x10(sp)` + `sw n(s5)`;
+  statements between a no-nop-free GTE command and its store asm are real source statements; the tail values that
+  land in the same s-regs as earlier values are the same variables (Ox = Workm.t[0] ... Ox = Ofs.vx).
+- dwgen sweeps (agentF/dwgen.py) are worth running on every draft that is down to register swaps: Esp_pos_matrix
+  went 24 -> 0 with a second do/while(0) found by a full sweep. Score with tools/permute/score.py over `xargs -n 300`
+  (a single argv of 3000 paths silently produced nothing). The decomp-permuter mostly produced semantically wrong
+  sources (uninitialised variables) on these sca functions.
+- Splat marks functions with mtc2/ctc2/lwc2 as "Handwritten function"; that is only the GTE macros, not hand-written asm.
+Near misses (score.py words / dscore):
+- sca func_8004B874 (b874/z/z6.c, f1.c; ~5 words): segment push-out against the Pt0-Pt1 wall. Left: the
+  (SHORT)P3/(SHORT)P2 extension order/regs and one load-delay nop around `if (Opz[0] > 0)`.
+- sca func_8004C6EC (c6ec/o/o54.c, ~34): koban_z; the pC pointer per case fixed the call arg; left: pW/D_800DEB58 base
+  register (target a2) and Cz0/pObj register numbering. func_8004C57C (koban_x) is the same code on X.
+- sca func_8004C960 (c960/e.c, dscore ~95): box push (RE3 Sca_hit_box); structure matches, target has higher register
+  pressure (R in s1, Z in s0, pT copied to t6).
+- sca func_8004CE2C (ce2c/b.c, dscore ~71): four-wall diamond/rotated box calling func_8004B874 per side; rotated
+  corners are computed as offsets first then +X0/+Z0 with a surviving copy (`move v1,a3`), not reproduced.
+- sca func_8004F098 (f098/v/f1.c, sweep sw_f098/dw169.c, 43): circle line test; s-reg order Dz/Z0/Dx/P0 not reached.
+- md_sub Mapping_md (map/*.c, 7): giv base; gcc's combine_givs takes the last recorded giv (n_prim4) as base,
+  target uses &n_prim3; reading the counts through a `USHORT *pN = &n_prim3` does not change it.
+- em_sub Goto01 (g01/sw3, 2304 type combos, best 21): the raw-copy + in-place sign-extension pattern still not found.
+- em_sub Esp_kill (b894/f.c, dscore 74), Esp_speed_add (bc80, 30): no progress.
