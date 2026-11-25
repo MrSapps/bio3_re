@@ -26,3 +26,4 @@ ovl/*.undefined_syms_auto.txt
 
 # stray compiler scratch dirs
 /tmp*/
+/.claude/worktrees/
