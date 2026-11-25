@@ -6,8 +6,6 @@
 #include "sld.h"
 #include "status.h"
 
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
-
 /* main loop */
 void func_801940E8(void)
 {
@@ -126,7 +124,7 @@ void func_80194444(TITLE_WORK *pTi)
     }
     Cd_read(0x121, (ULONG *)0x801F7E00, 1, "OPTION BGM");
     Snd_seq_data_set(0, 0x38, (ULONG *)0x801F7E00);
-    func_800783BC_(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
+    Snd_bank_set(5, Cd_read_s(0x122, 0, (ULONG *)0x801C1814, 5, "OPTIOIN VB"), 0);
     Main.Unk191 = 1;
     Bg_set_mode(1, 0);
     pTi->Timer = 900;
@@ -870,7 +868,7 @@ void func_80195C68(TITLE_WORK *pTi)
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
         Snd_seq_data_set(0, 0x39, (ULONG *)0x801F7E00);
-        func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        Snd_bank_set(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
         func_8007906C();
         G.Pl_poison_timer = 0;
         G.Player.Status_flg &= ~0x200;
@@ -1170,7 +1168,7 @@ start:
         G.Next_cut_no = G.Cut_no;
         Cd_read(0x123, (ULONG *)0x801F7E00, 0, (char *)Title_str_omake_bgm);
         Snd_seq_data_set(0, 0x39, (ULONG *)0x801F7E00);
-        func_800783BC_(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
+        Snd_bank_set(5, Cd_read_s(0x124, 2, (ULONG *)0x801C1814, 5, (char *)Title_str_omake_vb), 0);
         G.System_flg |= 0x80;
     } else {
         Cd_read(0x30, (ULONG *)G.Card_head, 0, (char *)Title_str_init_tbl);

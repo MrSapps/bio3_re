@@ -527,8 +527,6 @@ retry2:
     }
 }
 
-void func_800783BC_(ULONG no, ULONG size, ULONG a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
-
 /* sends one ring sector of a VAB body entry of the room pack to SPU memory, registers the bank when done */
 void Cd_spu_trans(tagCD *pCd)
 {
@@ -562,7 +560,7 @@ void Cd_spu_trans(tagCD *pCd)
         pCd->First_flg = 0;
         SpuWritePartly((UCHAR *)pCd->Buff_adr + (pCd->Write_ctr << 11), adr);
         while (SpuIsTransferCompleted(0) == 0);
-        func_800783BC_(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
+        Snd_bank_set(pCd->pEntry[no].Type, pCd->pEntry[no].Size, 0);
         if (pCd->pEntry[no].Type >= 5) {
             Snd_seq_data_set(pCd->pEntry[no].Type - 5, pCd->pEntry[no].Id,
                           pCd->pEntry[no].Type < 6 ? (ULONG *)0x801F7E00 : (ULONG *)0x801F2600);

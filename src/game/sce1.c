@@ -13,7 +13,6 @@ LONG func_80048974_() __asm__("func_80048974"); /* returns long here (canonical 
 LONG Pad_vib_set0_() __asm__("Pad_vib_set0"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_set1_() __asm__("Pad_vib_set1"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_fade_set_() __asm__("Pad_vib_fade_set"); /* returns long here (canonical void); unprototyped call */
-void func_80078498_(UCHAR A0, UCHAR A1, USHORT A2) __asm__("Snd_bgm_tbl_set"); /* arg 3 unsigned short (canonical short) */
 LONG Xa_play_() __asm__("Xa_play"); /* returns long here (canonical void); unprototyped call */
 LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* returns long here (canonical void) */
 
@@ -1730,7 +1729,7 @@ ULONG func_80055568(SCE_TASK *pSce)
     UCHAR *pData;
 
     pData = pSce->Data;
-    func_80078498_(pData[2] - 1, pData[3], ((USHORT *)pData)[2]);
+    Snd_bgm_tbl_set(pData[2] - 1, pData[3], ((USHORT *)pData)[2]);
     pSce->Data = pData + 6;
     return 1;
 }

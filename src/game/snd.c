@@ -5,7 +5,6 @@
 #include "sca.h"
 #include "sld.h"
 
-int func_800783BC_() __asm__("Snd_bank_set"); /* returns int here (canonical void); unprototyped call */
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
@@ -13,7 +12,6 @@ typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
 #define FC_SQ(x) ((x) * (x))
 
 /* local prototypes (this module) */
-LONG func_800770DC_l(LONG lo, ULONG hi) __asm__("Snd_voice_get"); /* returns long here (canonical signed char) */
 
 void Snd_sys_init(void)
 {
@@ -950,7 +948,7 @@ void Snd_midi_note_on(SND_SEQ *pSeq, SND_TRACK *pTr)
                     Attr.volume.left = Attr.volume.left * pSeq->Unk3C / 0x3FFF;
                 }
                 if (Attr.volume.right | Attr.volume.left) {
-                    v = func_800770DC_l(8, 24);
+                    v = Snd_voice_get(8, 24);
                     if (v != 0xFF) {
                         pV = &pW->Voice[v];
                         pV->Unk1D = 1;
@@ -1212,7 +1210,7 @@ ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones)
     return mask;
 }
 
-signed char Snd_voice_get(LONG lo, ULONG hi)
+LONG Snd_voice_get(LONG lo, ULONG hi)
 {
     UCHAR pad[0x40];
     char st[24];
@@ -1577,7 +1575,6 @@ void Snd_bgm_fade_wait(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/snd", Snd_bgm_play_ck);
 
-void FE_func_800783BC(ULONG no, ULONG size, ULONG *a2) __asm__("Snd_bank_set"); /* 3 args here (canonical 2) */
 
 LONG Snd_vab_load(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
 {
@@ -1597,7 +1594,7 @@ LONG Snd_vab_load(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
     }
     r = Cd_read(idx * 2 + tbl[no * 2], pAdr, 0, "Vab Header");
     Snd_vab_head_set(no, pAdr);
-    FE_func_800783BC(no, Cd_read_s(idx * 2 + tbl[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
+    Snd_bank_set(no, Cd_read_s(idx * 2 + tbl[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
     if (r < 0) {
         return 0;
     }
@@ -1625,7 +1622,7 @@ void Snd_sys_pset(void)
     if (G.pRoom->pEdt0 != NULL) {
         G.pEm_mem = (ENEMY_WORK *)(((ULONG)pW->Bank[2].pHead + pW->Bank[2].pHead[1] + 3) & ~3);
     }
-    func_800783BC_(2, p[0x30], 0);
+    Snd_bank_set(2, p[0x30], 0);
 }
 
 /* registers a sequence pack (and its VAB) loaded for enemy slot no */
@@ -1665,7 +1662,7 @@ void Snd_vab_head_set(LONG no, ULONG *pAdr)
     pW->Bank[no].Unk4 = (ULONG *)(pPa + pVh->ps);
 }
 
-void Snd_bank_set(ULONG no, ULONG size)
+void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
 {
     SND_WORK *pW = &Snd_work;
     SND_WORK *p = (SND_WORK *)((UCHAR *)pW + no * 8);
@@ -1695,7 +1692,7 @@ void Snd_sys_enem_set(void)
     }
 }
 
-void Snd_bgm_tbl_set(UCHAR a, UCHAR b, SHORT c)
+void Snd_bgm_tbl_set(UCHAR a, UCHAR b, USHORT c)
 {
     SHORT i = a;
 

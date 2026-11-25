@@ -228,7 +228,7 @@ void Snd_midi_meta(SND_SEQ *pSeq);
 void Snd_midi_skip(LONG *p);
 LONG Snd_seq_get_vlq(UCHAR **pp);
 ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones);
-signed char Snd_voice_get(LONG lo, ULONG hi);
+LONG Snd_voice_get(LONG lo, ULONG hi);
 LONG Snd_seq_voice_search(LONG a0, LONG a1, LONG a2, LONG a3);
 void Snd_seq_start(LONG no, UCHAR *pData, LONG a2, LONG a3); /* MIDI event handlers, status 0x80..0xF0 */
 void Snd_seq_pause(LONG no);
@@ -244,8 +244,8 @@ LONG Snd_vab_load(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf);
 void Snd_sys_pset(void);
 void Snd_seq_data_set(ULONG no, ULONG id, ULONG *pAdr);
 void Snd_vab_head_set(LONG no, ULONG *pAdr);
-void Snd_bank_set(ULONG no, ULONG size);
+void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf); /* pBuf (where the body was read) is unused */
 void Snd_sys_enem_set(void);
-void Snd_bgm_tbl_set(UCHAR a, UCHAR b, SHORT c);
+void Snd_bgm_tbl_set(UCHAR a, UCHAR b, USHORT c);
 
 #endif /* SND_H */
