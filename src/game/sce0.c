@@ -23,7 +23,7 @@ struct tagSCE_AOT {
 };
 
 /* AOT for a dropped part (func_800452E8: a part landing on the floor) */
-void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
+void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
 {
     struct tagSCE_AOT *pAot;
     tagGLOBAL *pG = &G;
@@ -66,7 +66,7 @@ ULONG Em_kind_search(ULONG Id)
 {
     UCHAR *p;
 
-    p = D_8009E340;
+    p = Em_kind_tbl;
     do {
         if (p[0] == Id) {
             return p[1];
@@ -76,11 +76,11 @@ ULONG Em_kind_search(ULONG Id)
     return 0x80;
 }
 
-UCHAR func_800520D8(ULONG Id)
+UCHAR Em_kind_flg_search(ULONG Id)
 {
     UCHAR *p;
 
-    p = D_8009E340;
+    p = Em_kind_tbl;
     do {
         if (p[0] == Id) {
             return p[2];
@@ -90,7 +90,7 @@ UCHAR func_800520D8(ULONG Id)
     return 0x80;
 }
 
-void *func_8005211C(ULONG Id)
+void *Em_dat_search(ULONG Id)
 {
     EM_DAT *p;
     ULONG i;
@@ -323,7 +323,7 @@ void Sce_kirakira_set(void)
     }
 }
 
-void func_80052644(void)
+void Sce_skip_ck(void)
 {
     ULONG i;
 
@@ -368,7 +368,7 @@ void func_80052644(void)
     }
 }
 
-void func_8005283C(void)
+void Sce_skip_end(void)
 {
     SCENARIO *pScn = &Sce;
 
@@ -387,7 +387,7 @@ void func_8005283C(void)
     }
 }
 
-void func_800528D4(void)
+void Chaser_room_clr(void)
 {
     UCHAR i;
     tagGLOBAL *pG = &G;
@@ -397,7 +397,7 @@ void func_800528D4(void)
     }
 }
 
-void func_8005290C(void)
+void Chaser_state_reset(void)
 {
     switch (G.Unk7862) {
     case 3:
@@ -406,12 +406,12 @@ void func_8005290C(void)
         break;
     case 5:
         G.Unk7862 = 0;
-        func_800528D4();
+        Chaser_room_clr();
         break;
     }
 }
 
-void func_80052968(void)
+void Chaser_room_ck(void)
 {
     USHORT Id;
     tagGLOBAL *pG = &G;
@@ -420,11 +420,11 @@ void func_80052968(void)
     if ((pG->Status_flg & 0x40000000) == 0) {
         return;
     }
-    func_8005290C();
+    Chaser_state_reset();
     Id = (USHORT)pG->Unk7840 + (((USHORT)pG->Unk783E + 1) << 8);
     switch (pG->Unk7862) {
     case 6:
-        func_800528D4();
+        Chaser_room_clr();
     case 0:
         if (pG->Unk784C != Id) {
             pG->Unk7862 = 3;
@@ -456,7 +456,7 @@ void Sce_scheduler_set(void)
     Sce_rnd_set();
     Sce_work_clr();
     Sce_work_clr_set();
-    func_80052968();
+    Chaser_room_ck();
     Sce.Type = 0;
     Sce.pCScd = G.pRoom->pScd;
     Event_exec(1, 0);
@@ -472,9 +472,9 @@ void Sce_scheduler(void)
         Sce.Type = 0;
         Sce.pCScd = G.pRoom->pScd;
         Event_exec(0, 1);
-        func_80052644();
+        Sce_skip_ck();
         Sce_scheduler_main();
-        func_8005283C();
+        Sce_skip_end();
     }
 }
 

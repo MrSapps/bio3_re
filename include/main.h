@@ -33,7 +33,7 @@ typedef struct tagROOM_WORK {
     USHORT *pUnk34;                    /* 0x34 count, then 0xC byte records (Flr_set) */
     USHORT *pBlock;                    /* 0x38 RE2 pBlock (Rnd_area: [0] = count) */
     UCHAR *pMessage;                   /* 0x3C RE2 pMessage (offset table, then the text) */
-    UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (func_80058800) */
+    UCHAR *pUnk40;                     /* 0x40 count at +2, offsets at +4 (Cut_flg_set) */
     ULONG *pUnk44;                     /* 0x44 second bg image (Swap_Cbuff) */
     UCHAR *pScd;                       /* 0x48 scenario data (Sce.pCScd) */
     LONG *pUnk4C;                      /* 0x4C effect data (Esp_init_R -> Esp_data_set0) */

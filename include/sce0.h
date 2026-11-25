@@ -83,7 +83,7 @@ extern SCE_JMP_FUNC Sce_jmp_tbl[];      /* 0x8009E0F8, SCE opcode handlers */
 void Event_init(SCE_TASK *pSce, ULONG Evt_no); /* RE2 Event_init */
 void Event_exec(ULONG Task_level, ULONG Evt_no); /* RE2 Event_exec */
 
-extern UCHAR D_8009E340[];
+extern UCHAR Em_kind_tbl[];
 extern UCHAR D_8009E6BC[];
 extern SHORT D_8009E6D4[];
 extern SHORT D_8009E6DC[];
@@ -92,10 +92,10 @@ extern UCHAR D_800B9E21;
 extern SHORT D_800D1F82; /* RE2 G.SaveData.Sce_random */
 extern UCHAR D_800E017E[];
 
-void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
+void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
 ULONG Em_kind_search(ULONG Id);
-UCHAR func_800520D8(ULONG Id);
-void *func_8005211C(ULONG Id);
+UCHAR Em_kind_flg_search(ULONG Id);
+void *Em_dat_search(ULONG Id);
 void Sce_aot_init(void);
 void Sce_model_init(void);
 void Sce_work_clr(void);
@@ -103,11 +103,11 @@ void Sce_work_clr_at(void);
 void Sce_work_clr_set(void);
 void Sce_rnd_set(void);
 void Sce_kirakira_set(void);
-void func_80052644(void);
-void func_8005283C(void);
-void func_800528D4(void);
-void func_8005290C(void);
-void func_80052968(void);
+void Sce_skip_ck(void);
+void Sce_skip_end(void);
+void Chaser_room_clr(void);
+void Chaser_state_reset(void);
+void Chaser_room_ck(void);
 void Sce_scheduler_set(void);
 void Sce_scheduler(void);
 void Sce_scheduler_main(void);

@@ -405,7 +405,7 @@ typedef struct tagGLOBAL {
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
     OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
     OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
-    USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (func_800557A0); OM_TARGET records (pl_wep.h) */
+    USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (Om_rev); OM_TARGET records (pl_wep.h) */
     ULONG Om_target_num;               /* 0x75D4 used entries of pUnk75AC (Obj_model_set; sce0 clears it as pUnk75AC[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
@@ -442,7 +442,7 @@ typedef struct tagGLOBAL {
     SHORT DSce_work[4];                /* 0x7826 RE2 G.SaveData.DSce_work (door type, set by Door_init) */
     UCHAR pad782E[0x783E - 0x782E];
     SHORT Unk783E;                     /* 0x783E overlay task no - 0x11 (Set_stage) */
-    SHORT Unk7840;                     /* 0x7840 Room_no? (func_80052968) */
+    SHORT Unk7840;                     /* 0x7840 Room_no? (Chaser_room_ck) */
     SHORT Cut_no;                      /* 0x7842 RE2 G.SaveData.Cut_no */
     SHORT Cut_no_old;                  /* 0x7844 RE2 G.SaveData.Cut_no_old (-1 on init) */
     SHORT Room_no_old;                 /* 0x7846 RE2 G.SaveData.Room_no_old (-1 on init) */
@@ -473,7 +473,7 @@ typedef struct tagGLOBAL {
     ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (Psp_trans) */
     UCHAR pad7924[0x7994 - 0x7924];
     ULONG Unk7994[2];                  /* 0x7994 flag bits (Map_door_mark_ck) */
-    ULONG Unk799C[1];                  /* 0x799C flag bits (func_800557A0) */
+    ULONG Unk799C[1];                  /* 0x799C flag bits (Om_rev) */
     UCHAR pad79A0[0x79A4 - 0x79A0];
     LONG Unk79A4[14];                  /* 0x79A4 (status: -1 on init) */
     ULONG Unk79DC[4];                  /* 0x79DC */
@@ -498,7 +498,7 @@ typedef struct tagGLOBAL {
         USHORT Pos_z;
     } Unk7DC0[8];
     LONG Unk7E20;                      /* 0x7E20 */
-    SHORT Unk7E24[8];                  /* 0x7E24 cleared by func_800528D4 */
+    SHORT Unk7E24[8];                  /* 0x7E24 cleared by Chaser_room_clr */
     UCHAR pad7E34[0x7E94 - 0x7E34];
     LONG Unk7E94;                      /* 0x7E94 total life healed? (status) */
     LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by func_80078FE8) */

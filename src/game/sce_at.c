@@ -157,7 +157,7 @@ ULONG Sce_Door(void *pAot)
             } else {
                 Mess_set(0, 0, 0xB, 0xFF000000);
             }
-            pG->Front_func = func_800510B0;
+            pG->Front_func = Door_ask_entrance;
             pG->Front_func_rtn = 0;
             return 0;
         }
@@ -195,7 +195,7 @@ void Key_lost(void)
     }
 }
 
-void func_800510B0(void)
+void Door_ask_entrance(void)
 {
     if (G.Front_func_rtn == 0 && (Moji.Mess_flg & 0x80) == 0) {
         if (G.Unk7848 == 0) {
@@ -219,7 +219,7 @@ ULONG Sce_Item(void *pAot)
         return 1;
     }
     if (((UCHAR *)pAot)[4] >= 0xF8) {
-        G.Front_func = func_800511B0;
+        G.Front_func = Item_mess_entrance;
         G.Front_func_rtn = 0;
         return 0;
     }
@@ -230,7 +230,7 @@ ULONG Sce_Item(void *pAot)
     return 0;
 }
 
-void func_800511B0(void)
+void Item_mess_entrance(void)
 {
     tagGLOBAL *pG = &G;
     UCHAR *pDat;
@@ -401,7 +401,7 @@ void Item_box_entrance(void)
     }
 }
 
-ULONG func_80051684(void *pAot)
+ULONG Sce_Aot_set(void *pAot)
 {
     G.pUnk21DC = pAot;
     G.System_flg |= 0x2000;
@@ -556,7 +556,7 @@ ULONG Sce_Damage(void *pAot)
 }
 
 /* RE2 Sce_Door */
-ULONG func_80051CB0(void *pAot)
+ULONG Sce_Door2(void *pAot)
 {
     if ((G.Status_flg & 0x400000) == 0 && G.Player.Damage_cnt == 0 && (G.Status_flg & 0x100) == 0 &&
         (Moji.Mess_flg & 0xC0) == 0) {
@@ -567,16 +567,16 @@ ULONG func_80051CB0(void *pAot)
     }
 }
 
-ULONG func_80051D28(void *pAot)
+ULONG Sce_Heal(void *pAot)
 {
-    G.Back_func = func_80051D60;
+    G.Back_func = Heal_entrance;
     G.Back_func_rtn = 0;
     Game.Stop_bak = G.Unk2468;
     G.Unk2468 |= 0xff000000;
     return 0;
 }
 
-void func_80051D60(void)
+void Heal_entrance(void)
 {
     tagGLOBAL *pG = &G;
 

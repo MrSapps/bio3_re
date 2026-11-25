@@ -14,7 +14,7 @@ typedef struct tagFLASH_WORK {
 extern FLASH_WORK D_800C703C;
 
 extern ULONG D_80098700;
-extern UCHAR D_800D442C;
+extern UCHAR Ctrl_mode;
 extern UCHAR D_800E0186[]; /* an array: stores to it stay after loads of struct fields */
 
 void Game_loop(void);

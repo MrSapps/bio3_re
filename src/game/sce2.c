@@ -9,7 +9,7 @@
 
 int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* returns int here (canonical void); unprototyped call */
 
-extern UCHAR D_800D442C_[] __asm__("D_800D442C"); /* type differs from the canonical extern */
+extern UCHAR D_800D442C_[] __asm__("Ctrl_mode"); /* type differs from the canonical extern */
 s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* arg 2 UC (canonical signed char) */
 LONG Quake_add_() __asm__("Quake_add"); /* returns long here (canonical void); unprototyped call */
 LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* returns long here (canonical void) */
@@ -20,7 +20,7 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
     return 1;
 }
 
-ULONG func_80055A18(SCE_TASK *pSce)
+ULONG Item_get_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Id;
@@ -49,7 +49,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
 }
 
 /* RE2 Dir_ck */
-ULONG func_80055AF0(SCE_TASK *pSce)
+ULONG Sce_dir_ck(SCE_TASK *pSce)
 {
     SHORT *pData;
 
@@ -57,7 +57,7 @@ ULONG func_80055AF0(SCE_TASK *pSce)
     return Goto00_ck(pSce->pWork, pData[-3], pData[-2], pData[-1]) == 0;
 }
 
-ULONG func_80055B30(SCE_TASK *pSce)
+ULONG Diedemo_on(SCE_TASK *pSce)
 {
     pSce->Data++;
     G.System_flg |= 0x20000;
@@ -496,7 +496,7 @@ ULONG Plc_motion(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80056E28(SCE_TASK *pSce)
+ULONG Plc_dest2(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ENEMY_WORK *pW;
@@ -786,7 +786,7 @@ ULONG Splc_sce(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800574B8(SCE_TASK *pSce)
+ULONG Splc_sce2(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
 
@@ -1087,7 +1087,7 @@ ULONG Weapon_chg(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057CF8(SCE_TASK *pSce)
+ULONG Weapon_chg_old(SCE_TASK *pSce)
 {
     ENEMY_WORK *pPl;
     ULONG Wep;
@@ -1113,7 +1113,7 @@ ULONG func_80057CF8(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057DD8(SCE_TASK *pSce)
+ULONG Parts_tmd_swap(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
     PARTS_W *p0;
@@ -1131,7 +1131,7 @@ ULONG func_80057DD8(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057E28(SCE_TASK *pSce)
+ULONG Status_on(SCE_TASK *pSce)
 {
     D_800E01C4[0] = 0;
     Game.Unk1 = 1;
@@ -1174,7 +1174,7 @@ ULONG Sce_Item_lost(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80057F44(SCE_TASK *pSce)
+ULONG Sel_evt_on(SCE_TASK *pSce)
 {
     UCHAR v;
 
@@ -1185,7 +1185,7 @@ ULONG func_80057F44(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", func_80057F84);
+INCLUDE_ASM("asm/nonmatchings/game/sce2", Chaser_item_set);
 
 ULONG Sce_parts_bomb(SCE_TASK *pSce)
 {
@@ -1229,7 +1229,7 @@ ULONG Sce_parts_down(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_8005879C(SCE_TASK *pSce)
+ULONG Chaser_life_init(SCE_TASK *pSce)
 {
     switch (pSce->Data[1]) {
     case 0x34:
@@ -1246,7 +1246,7 @@ ULONG func_8005879C(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058800(SCE_TASK *pSce)
+ULONG Cut_flg_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     UCHAR *p;
@@ -1285,7 +1285,7 @@ ULONG func_80058800(SCE_TASK *pSce)
     return 1;
 }
 
-void func_800588F0(SCE_TASK *pSce)
+void Sce_ctrl_mode_set(SCE_TASK *pSce)
 {
     D_800D442C_[0] = pSce->Data[1];
     pSce->Data += 2;
@@ -1347,7 +1347,7 @@ ULONG Parts_set(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800589FC(SCE_TASK *pSce)
+ULONG Sce_em_reset(SCE_TASK *pSce)
 {
     ENEMY_WORK *pW;
     ULONG i;
@@ -1392,7 +1392,7 @@ ULONG func_800589FC(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058B00(SCE_TASK *pSce)
+ULONG Ahead_room_set(SCE_TASK *pSce)
 {
     UCHAR i;
     tagGLOBAL *pG = &G;
@@ -1411,7 +1411,7 @@ ULONG func_80058B00(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058B84(SCE_TASK *pSce)
+ULONG Sce_door_ck(SCE_TASK *pSce)
 {
     tagGLOBAL *pG;
     ULONG Key;
@@ -1433,14 +1433,14 @@ ULONG func_80058B84(SCE_TASK *pSce)
     return 0;
 }
 
-ULONG func_80058C24(SCE_TASK *pSce)
+ULONG Sce_quake_add(SCE_TASK *pSce)
 {
     Quake_add_(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
     return 1;
 }
 
-ULONG func_80058C70(SCE_TASK *pSce)
+ULONG Sce_map_open(SCE_TASK *pSce)
 {
     ULONG x;
 
@@ -1454,7 +1454,7 @@ ULONG func_80058C70(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80058CD0(SCE_TASK *pSce)
+ULONG Chaser_evt_clr(SCE_TASK *pSce)
 {
     UCHAR i;
 

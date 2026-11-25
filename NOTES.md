@@ -287,7 +287,7 @@ Matching rules learnt: functions must stay in address order in the .c (a misplac
   producing them. They work through build/syms.ld (PROVIDE of every syms/*.txt), which the main link and,
   since phase 4, the overlay links use, so main and overlay C call them by name. C keeps the address name
   where main asm still references a C-defined symbol (Sca_get_dir = func_800502B8 from sabun asm,
-  Sce_fade_set = func_80054384 from Sce_jmp_tbl data). For the next main split: tools/apply_syms.py
+  Sce_fade_set = Sce_fade_set from Sce_jmp_tbl data). For the next main split: tools/apply_syms.py
   (merges syms/*.txt into symbol_addrs.txt and renames func_/D_ uses incl. INCLUDE_ASM), then
   `rm -rf asm && make split && make`.
 - syms/em_entry.txt: the enemy module entry points used by Em_move_tbl_set. Several modules share an

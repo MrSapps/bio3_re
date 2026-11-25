@@ -188,7 +188,7 @@ set:
         Task_sleep(1);
     }
     pG->Game_time_offset = VSync(-1);
-    D_800D442C = 2;
+    Ctrl_mode = 2;
     Game.Unk1 = 0;
     G.System_flg |= 0x8000000;
     if (G.System_flg & 0x10000000) {
@@ -320,7 +320,7 @@ void func_80024CE8(void)
     ULONG i;
 
     G.System_flg |= 0x400;
-    D_800D442C = 3;
+    Ctrl_mode = 3;
     G.Status_flg &= ~4;
     G.Status_flg &= ~2;
     G.Status_flg &= ~1;
@@ -345,7 +345,7 @@ void func_80024CE8(void)
         Task_sleep(1);
     }
     D_800C703C.Unk1 = 1;
-    D_800D442C = 2;
+    Ctrl_mode = 2;
     G.System_flg &= ~0x400;
     if (!func_80024F74() && !func_80024F74()) {
         D_800C703C.Cnt++;
@@ -362,7 +362,7 @@ void func_80024CE8(void)
         Task_sleep(1);
     } while (i-- != 0);
     D_800C703C.Flg = 0;
-    D_800D442C = 2;
+    Ctrl_mode = 2;
     D_800C703C.Unk1 = 0;
     G.System_flg &= ~0x400;
     Task_exit();

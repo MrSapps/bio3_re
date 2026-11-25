@@ -669,14 +669,14 @@ void Cd_data_trans(tagCD *pCd)
         Sce.Unk148F = pEm->Unk4B;
         Sce.pUnk1460 = pEm;
         Kind = Em_kind_search(pEm->Id);
-        pData = func_8005211C(Kind);
+        pData = Em_dat_search(Kind);
         if (pData == NULL) {
             pDat->pEm = pEm;
             pDat->Id = pEm->Id;
             pDat->Kind = Kind;
             Sce.Unk1488++;
         } else {
-            pEm->Unk4B |= func_800520D8(pEm->Id);
+            pEm->Unk4B |= Em_kind_flg_search(pEm->Id);
         }
         Work = func_8001760C(pCd->pEntry[No].Id, pEm, Work, pData);
         Sce.pUnk1490 = pEm->pUnk11C;

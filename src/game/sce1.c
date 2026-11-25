@@ -75,7 +75,7 @@ ULONG Evt_exec(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG Sce_unk_80052EDC(SCE_TASK *pSce)
+ULONG Evt_skip_set(SCE_TASK *pSce)
 {
     UCHAR Flg;
 
@@ -530,7 +530,7 @@ ULONG Break(SCE_TASK *pSce)
 }
 
 /* SCE opcode that only steps over itself (RE2 Rbj_reset slot?) */
-ULONG Sce_nop_800538C8(SCE_TASK *pSce)
+ULONG Break_point(SCE_TASK *pSce)
 {
     pSce->Data++;
     return 1;
@@ -1099,7 +1099,7 @@ SHORT *Load_member_addr_branch(ENEMY_WORK *pW, ULONG Member)
 }
 
 /* RE2 SCE2.C Sce_fade_set (named in syms/re2_names.txt, keeps the address name until the main split) */
-ULONG func_80054384(SCE_TASK *pSce)
+ULONG Sce_fade_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG Rgb0;
@@ -1215,7 +1215,7 @@ ULONG Add_aspeed(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054628(SCE_TASK *pSce)
+ULONG Add_vspeed(SCE_TASK *pSce)
 {
     SCE_CAMERA *pCam = &D_800E0150;
     LONG x, y, z;
@@ -1466,7 +1466,7 @@ ULONG Vib_fade_set(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054D48(SCE_TASK *pSce)
+ULONG Sce_rbj_set(SCE_TASK *pSce)
 {
     D_800E017F_[0] = pSce->Data[1];
     pSce->Data += 2;
@@ -1485,7 +1485,7 @@ ULONG Message_on(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054DEC(SCE_TASK *pSce)
+ULONG Message_off(SCE_TASK *pSce)
 {
     Moji.Mess_flg = 0;
     G.Status_flg &= ~0x10000000;
@@ -1493,7 +1493,7 @@ ULONG func_80054DEC(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80054E28(SCE_TASK *pSce)
+ULONG Sce_rain_set(SCE_TASK *pSce)
 {
     func_80048974_(pSce->Data[1]);
     pSce->Data += 2;
@@ -1724,7 +1724,7 @@ ULONG Movie_on(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055568(SCE_TASK *pSce)
+ULONG Sce_bgmtbl_set(SCE_TASK *pSce)
 {
     UCHAR *pData;
 
@@ -1734,7 +1734,7 @@ ULONG func_80055568(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800555BC(SCE_TASK *pSce)
+ULONG Sce_bgmtbl_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
     ULONG a;
@@ -1813,7 +1813,7 @@ ULONG Sca_id_set(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_80055728(SCE_TASK *pSce)
+ULONG Om_flg_clr(SCE_TASK *pSce)
 {
     UCHAR *pData;
     OBJ_MODEL_WORK *pOm;
@@ -1827,7 +1827,7 @@ ULONG func_80055728(SCE_TASK *pSce)
     return 1;
 }
 
-ULONG func_800557A0(SCE_TASK *pSce)
+ULONG Om_rev(SCE_TASK *pSce)
 {
     UCHAR *pData;
     OBJ_MODEL_WORK *pOm;

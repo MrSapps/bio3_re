@@ -3379,7 +3379,7 @@ void St_init(ST_WORK *pSt)
     Task_suspend(0);
     Bg_set_mode(1, 0x80808);
     Pad_rep_set(0xF00C, 0x60A);
-    D_800D442C = 1;
+    Ctrl_mode = 1;
     pPl = PLAYER_EM(pG);
     if (pSt->Equip_save) {
         pSt->Equip_save = 0;
@@ -3623,7 +3623,7 @@ void St_exit(ST_WORK *pSt)
         Pl_weapon_ch(pPl);
     }
     Cd_seek(D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1, 0, "SEEK BSS");
-    D_800D442C = 2;
+    Ctrl_mode = 2;
     Task_signal(0);
 }
 
