@@ -1151,7 +1151,7 @@ LONG func_80050524(COL_OBJ *pObj, SCA_DATA *pT)
     LONG Min;
     LONG Max;
 
-    if (func_800502B8((VECTOR *)&pObj->Pos_x, pT) & 1) {
+    if (func_800502B8(POS_V(pObj), pT) & 1) {
         Min = pT->X0;
         Max = pT->X1;
         Pos = pObj->Pos_x;

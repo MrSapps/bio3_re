@@ -654,7 +654,7 @@ void Die_move_dark(void)
         }
         pLc->L[0] = L;
     }
-    Set_light(pLc, (VECTOR *)&G.pEnemy[0]->Pos_x);
+    Set_light(pLc, POS_V(G.pEnemy[0]));
 }
 
 /* routine 7: end of the demo */
@@ -816,13 +816,13 @@ void Die_light_set(void)
     switch (Diedemo.pCutinfo->R_obj) {
     case 0:
         if (!(Diedemo.Em_flg & 1)) {
-            Set_light(pLc, (VECTOR *)&G.Player.Pos_x);
+            Set_light(pLc, POS_V(&G.Player));
         } else {
-            Set_light(pLc, (VECTOR *)&G.pEnemy[1]->Pos_x);
+            Set_light(pLc, POS_V(G.pEnemy[1]));
         }
         break;
     case 1:
-        Set_light(pLc, (VECTOR *)&G.Player.pEnemy_ptr->Pos_x);
+        Set_light(pLc, POS_V(G.Player.pEnemy_ptr));
         break;
     }
 }

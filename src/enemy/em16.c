@@ -15,12 +15,12 @@ void Em10_main(ENEMY_WORK *pEm)
     SVECTOR Sv;                        /* unused (frame size) */
     tagGLOBAL *pG = &G;
 
-    pTv = (VECTOR *)&pG->Player.Pos_x;
+    pTv = POS_V(&pG->Player);
     if ((LONG)pG->Status_flg < 0) {
         if ((pEm->Unk158 & 0xC0000000) == 0x40000000)
-            pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
+            pTv = POS_V(pG->pEnemy[1]);
         if (pEm->Type & 0x200)
-            pTv = (VECTOR *)&pG->pEnemy[1]->Pos_x;
+            pTv = POS_V(pG->pEnemy[1]);
     }
     pFlg = &EM10_W(pEm)->Flg;
     Root_ck_(pEm, pTv, EM10_W(pEm)->Root_no, EM10_W(pEm)->Flg & 0x400);
@@ -870,7 +870,7 @@ void Em10_pldm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0 = 0;
             pEm->Cdir_y += 0x800;
         }
-        Snd_se_stad(0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10000, POS_V(pEm), 0, 0);
         pEm->Unk12C = 0;
         pEm->Neck_flg |= 0x12;
     case 1:
@@ -1554,16 +1554,16 @@ void Em10_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Sv.vy = -(pEm->Timer0 * pEm->UnkE2 * 8) * pEm->UnkDA;
         Sv.vz = -(pEm->Timer0 * pEm->UnkE3 * 8) * pEm->UnkDA;
         RotMatrix(&Sv, &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        MulMatrix(PW_M(pP), &M);
         pS = pEm->pSin_parts_ptr;
         pT = &pS[6];
         TransposeMatrix(&M, &M1);
-        MulMatrix2(&M1, (MATRIX *)pT->M);
+        MulMatrix2(&M1, PW_M(pT));
         Sv.vx = 0;
         Sv.vy = 0;
         Sv.vz = -(pEm->Timer0 << 6) * pEm->UnkDA;
         RotMatrix(&Sv, &M);
-        MulMatrix((MATRIX *)pT->M, &M);
+        MulMatrix(PW_M(pT), &M);
         TransposeMatrix(&M, &M1);
         MulMatrix2(&M1, (MATRIX *)pS[7].M);
         MulMatrix2(&M1, (MATRIX *)pEm->pSin_parts_ptr[9].M);
@@ -1581,10 +1581,10 @@ void Em10_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Sv.vy = -(pEm->Timer0 * pEm->UnkE2) * pEm->UnkDA;
         Sv.vz = -(pEm->Timer0 * pEm->UnkE3) * pEm->UnkDA;
         RotMatrix(&Sv, &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        MulMatrix(PW_M(pP), &M);
         pP = &pEm->pSin_parts_ptr[6];
         TransposeMatrix(&M, &M1);
-        MulMatrix2(&M1, (MATRIX *)pP->M);
+        MulMatrix2(&M1, PW_M(pP));
         if (pEm->Timer0-- == 0) {
             if (pEm->Move_no < 8) {
                 if (pEm->Move_no < 3)
@@ -1681,12 +1681,12 @@ void func_80107D58(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (!EM10_W(pEm)->Unk0A) {
                     Esp_call((pEm->UnkE3 & 0xF) << 24,
                                   (USHORT)(pEm->Cdir_y + (Rnd_l() << 4) - (Rnd_l() << 4)) | 0x1F400000, &pP->Workm,
-                                  (SVECTOR *)&pEm->Spd_x, 0);
+                                  EM_SPD_SV(pEm), 0);
                 } else {
                     pEm->Spd_y -= 500;
                     Esp_call((pEm->UnkE3 & 0xF) << 24,
                                   (USHORT)(pEm->Cdir_y + (Rnd_l() << 4) - (Rnd_l() << 4)) | 0x13E80000, &pP->Workm,
-                                  (SVECTOR *)&pEm->Spd_x, 0);
+                                  EM_SPD_SV(pEm), 0);
                 }
             }
             pEm->UnkDA--;
@@ -1951,16 +1951,16 @@ void Em10_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Routine_2 == 2) {
             pP = pEm->pSin_parts_ptr;
             RotMatrix(SUPER_VECTOR(pEm), &M);
-            MulMatrix((MATRIX *)pP->M, &M);
+            MulMatrix(PW_M(pP), &M);
             pS = &pEm->pSin_parts_ptr[6];
             TransposeMatrix(&M, &M1);
-            MulMatrix2(&M1, (MATRIX *)pS->M);
+            MulMatrix2(&M1, PW_M(pS));
         }
         if (pEm->Move_cnt) {
             if (!(pEm->Move_cnt & 3)) {
                 pP = pEm->pSin_parts_ptr;
                 Esp_call(0, (((Rnd_l() << 3) + 0x1770) << 16) | (USHORT)(Rnd_l() << 4), &pP->Workm,
-                              (SVECTOR *)&pEm->Spd_x, 0);
+                              EM_SPD_SV(pEm), 0);
             }
         }
         break;
@@ -2014,10 +2014,10 @@ void Em10_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0--;
         }
         RotMatrix(SUPER_VECTOR(pEm), &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        MulMatrix(PW_M(pP), &M);
         pS = &pEm->pSin_parts_ptr[6];
         TransposeMatrix(&M, &M1);
-        MulMatrix2(&M1, (MATRIX *)pS->M);
+        MulMatrix2(&M1, PW_M(pS));
     }
     if (pEm->Move_cnt == 20 && pEm->Routine_2 == 1) {
         pEm->pSin_parts_ptr[6].pSuper = &pEm->Super_matrix;
@@ -2055,8 +2055,8 @@ void Em10_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if (pEm->Move_cnt >= 20 && pEm->Routine_2 == 1) {
         pP = pEm->pSin_parts_ptr;
-        RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-        MulMatrix0((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &pEm->Super_matrix);
+        RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
+        MulMatrix0((MATRIX *)pEm->Workm_m, PW_M(pP), &pEm->Super_matrix);
         pEm->Super_matrix.t[1] = pP->Pos_y + EM10_W(pEm)->Unk1A;
         if (pEm->UnkE2) {
             pEm->Pos_y += pEm->UnkDA;
@@ -2259,10 +2259,10 @@ void func_801098FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = -(pEm->Timer0 * pEm->UnkE2 * 8) * pEm->UnkDA;
             Sv.vz = -(pEm->Timer0 * pEm->UnkE3 * 8) * pEm->UnkDA;
             RotMatrix(&Sv, &M);
-            MulMatrix((MATRIX *)pP->M, &M);
+            MulMatrix(PW_M(pP), &M);
             pP = &pEm->pSin_parts_ptr[6];
             TransposeMatrix(&M, &M1);
-            MulMatrix2(&M1, (MATRIX *)pP->M);
+            MulMatrix2(&M1, PW_M(pP));
             if (pEm->Timer0++ >= 3) {
                 pEm->Routine_2 = 2;
                 pEm->Timer0 = 16;
@@ -2282,10 +2282,10 @@ void func_801098FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = -(pEm->Timer0 * pEm->UnkE2) * pEm->UnkDA;
             Sv.vz = -(pEm->Timer0 * pEm->UnkE3) * pEm->UnkDA;
             RotMatrix(&Sv, &M);
-            MulMatrix((MATRIX *)pP->M, &M);
+            MulMatrix(PW_M(pP), &M);
             pP = &pEm->pSin_parts_ptr[6];
             TransposeMatrix(&M, &M1);
-            MulMatrix2(&M1, (MATRIX *)pP->M);
+            MulMatrix2(&M1, PW_M(pP));
             if (pEm->Timer0-- == 0)
                 pEm->Routine_2 = 3;
             break;
@@ -2584,10 +2584,10 @@ void Em10_die02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pP = pEm->pSin_parts_ptr;
                 Esp_call((pEm->UnkE2 & 0xF) << 24,
                               (USHORT)(pEm->Cdir_y + (Rnd_l() << 4) - (Rnd_l() << 4)) | 0x1F400000, &pP->Workm,
-                              (SVECTOR *)&pEm->Spd_x, 0);
+                              EM_SPD_SV(pEm), 0);
                 Esp_call((pEm->UnkE2 & 0xF) << 24,
                               (USHORT)(pEm->Cdir_y + (Rnd_l() << 4) - (Rnd_l() << 4)) | 0x1F400000, &pP->Workm,
-                              (SVECTOR *)&pEm->Spd_x, 0);
+                              EM_SPD_SV(pEm), 0);
             }
             pEm->UnkDA--;
         }
@@ -3050,7 +3050,7 @@ void func_8010BE98(ENEMY_WORK *pEm, ULONG *pKan, LONG No)
     PARTS_W *pP;
 
     pP = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
     if (pEm->Be_flg & 0xC0000) {
         Rot.vy = 0;
         Rot.vx = pEm->Tilt[0];
@@ -3058,11 +3058,11 @@ void func_8010BE98(ENEMY_WORK *pEm, ULONG *pKan, LONG No)
         RotMatrix_gte(&Rot, &M);
         MulMatrix2(&M, (MATRIX *)pEm->Workm_m);
     }
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &M);
     CompM(&M, (MATRIX *)pP[6].M, &M);
     pP = &pP[No * 2 + 8];
     CompM(&M, (MATRIX *)pP[-1].M, &M);
-    CompM(&M, (MATRIX *)pP->M, &M);
+    CompM(&M, PW_M(pP), &M);
     ApplyMatrixSV(&M, &Ofs, &Sv0);
     ApplyMatrixSV(&pP->Workm, &Ofs, &Sv1);
     pEm->Pos_x -= (M.t[0] + Sv0.vx) - (pP->Workm.t[0] + Sv1.vx);

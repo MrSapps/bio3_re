@@ -2470,8 +2470,8 @@ void Spl_enemy_ck(ENEMY_WORK *pEm)
                 dz = (pCur->Pos_z - pEm->Pos_z) >> 1;
                 dist = SquareRoot0(dx * dx + dz * dz) << 1;
                 pCur->Unk158 = dist;
-                if (Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t,
-                                (VECTOR *)pCur->pSin_parts_ptr[pCur->Neck_no].Workm.t, 0x2040, 1) == 0
+                if (Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]),
+                                WORKM_POS_V(&pCur->pSin_parts_ptr[pCur->Neck_no]), 0x2040, 1) == 0
                     && pCur->Life >= 0) {
                     if (dist < d0) {
                         d2 = d1;

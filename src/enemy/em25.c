@@ -306,7 +306,7 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Box[1] = 0;
         Box[2] = 2200;
         Box[3] = 1200;
-        Hit.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+        Hit.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
         Hit.pBox = Box;
         Hit.Dir = pEm->Cdir_y;
         Hit.Id = 0x81;
@@ -327,7 +327,7 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Box[1] = 0;
         Box[2] = 2200;
         Box[3] = 1200;
-        Hit.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+        Hit.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
         Hit.pBox = Box;
         Hit.Dir = pEm->Cdir_y;
         Hit.Id = 0x81;
@@ -378,7 +378,7 @@ void func_80101028(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Box[1] = 0;
             Box[2] = 1800;
             Box[3] = 1200;
-            Hit.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+            Hit.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
             Hit.pBox = Box;
             Hit.Dir = pEm->Cdir_y;
             Hit.Id = 0x81;
@@ -454,7 +454,7 @@ void func_80101254(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Tsv.vx = (Rnd_l() & 0x3F) + 400;
         Tsv.vy = 0;
         Tsv.vz = 0;
-        ApplyMatrixSV(&Tm, &Tsv, (SVECTOR *)&pEm->Spd_x);
+        ApplyMatrixSV(&Tm, &Tsv, EM_SPD_SV(pEm));
     case 1:
         pEm->Cdir_y += Em25_goto00(pEm, 0x60);
         Add_speedXZ(pEm, EF(pEm)->Flip + pEm->Timer0);
@@ -2073,15 +2073,15 @@ void Em25_foot_set(ENEMY_WORK *pEm, UCHAR Flg)
     SHORT dx, dz;
 
     pP_ptr = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP_ptr->M, &Tm);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP_ptr), &Tm);
     pP_ptr += (Flg << 3) + 4;
     no = Flg << 2;
     if ((EF(pEm)->Foot_flg >> no) & 1) {
         pEm->Spd_x = 0;
     } else {
         CompM(&Tm, (MATRIX *)pP_ptr[-1].M, &Tm);
-        CompM(&Tm, (MATRIX *)pP_ptr->M, &Tm);
+        CompM(&Tm, PW_M(pP_ptr), &Tm);
         dx = Tm.t[0] - pP_ptr->Workm.t[0];
         dz = Tm.t[2] - pP_ptr->Workm.t[2];
         pEm->Spd_x = SquareRoot0(dx * dx + dz * dz);
@@ -2115,7 +2115,7 @@ ULONG Ck_lock_wall(ENEMY_WORK *pEm)
     pSc = pEm->Col.pSca_hit_data;
     pFp = EF(pEm);
     if (pSc) {
-        pos = func_800502B8((VECTOR *)&pEm->Pos_x, pSc);
+        pos = func_800502B8(POS_V(pEm), pSc);
         pFp->pWall = pSc;
         pFp->Sc_dir = pos << 10;
         dir = (pEm->Cdir_y + 0x200) & 0xC00;
@@ -2151,7 +2151,7 @@ void Em25_add_speed(ENEMY_WORK *pEm, LONG rx, LONG ry, LONG rz)
     Sv.vy = pEm->Cdir_y + ry;
     Sv.vz = pEm->Cdir_z + rz;
     RotMatrix(&Sv, &M);
-    ApplyMatrixSV(&M, (SVECTOR *)&pEm->Spd_x, &Sv);
+    ApplyMatrixSV(&M, EM_SPD_SV(pEm), &Sv);
     pEm->Pos_x += Sv.vx;
     pEm->Pos_y += Sv.vy;
     pEm->Pos_z += Sv.vz;
@@ -2607,7 +2607,7 @@ LONG func_80106744(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2)
     ULONG Mask;
 
     pSc = (SCA_DATA *)G.pRoom->pSca;
-    pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+    pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
     Sv.vx = pEm->Cdir_x;
     Sv.vz = pEm->Cdir_z;
     Sv.vy = pEm->Cdir_y;

@@ -224,7 +224,7 @@ void func_80100878(ENEMY_WORK *pEm)
 /* Em3e_sce: Routine_0 4 */
 void func_80100890(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+    Root_ck(pEm, POS_V(&G.Player), 0, 0);
     Em3e_sce_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
@@ -412,10 +412,10 @@ void func_80100E0C(ENEMY_WORK *pEm)
 
     pP = &pEm->pSin_parts_ptr[EM3E_W(pEm)->Rotor0];
     pP->Cdir_y += pEm->Unk14E;
-    RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+    RotMatrix(CDIR_SV(pP), PW_M(pP));
     pP = &pEm->pSin_parts_ptr[EM3E_W(pEm)->Rotor1];
     pP->Cdir_y += pEm->Unk14E;
-    RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+    RotMatrix(CDIR_SV(pP), PW_M(pP));
 }
 
 /* fire when inside the firing zone (Mode 0: never, 2: both guns in the middle) */
@@ -452,7 +452,7 @@ void func_80100F94(ENEMY_WORK *pEm)
     Ofs.vz = 0x80C;
     pP = &pEm->pSin_parts_ptr[1];
     Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
-    Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+    Snd_se_stad(0x1020F, POS_V(pEm), 0, 0);
 }
 
 /* Em3e_shot_l */
@@ -466,7 +466,7 @@ void func_80101008(ENEMY_WORK *pEm)
     Ofs.vz = -0x80C;
     pP = &pEm->pSin_parts_ptr[1];
     Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
-    Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+    Snd_se_stad(0x1020F, POS_V(pEm), 0, 0);
 }
 
 /* Em3e_explode */
@@ -591,7 +591,7 @@ void func_80101210(ENEMY_WORK *pEm)
     Rot.vx = pP->Cdir_x + EM3E_W(pEm)->Tilt;
     Rot.vy = 0;
     Rot.vz = 0;
-    RotMatrix(&Rot, (MATRIX *)pP->M);
+    RotMatrix(&Rot, PW_M(pP));
 }
 
 void func_80101570(ENEMY_WORK *pEm, LONG Rtn0, LONG Rtn1)

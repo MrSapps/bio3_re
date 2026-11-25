@@ -178,7 +178,7 @@ void func_801006CC(ENEMY_WORK *pEm)
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     Turn = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x280);
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);
-    Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x400, 0x264);
+    Dir_pos_ck_l(POS_V(pEm), POS_V(pPl), pEm->Cdir_y + 0x400, 0x264);
     if (Dist < 7000 && !Turn && !EM39_W(pEm)->Wait && !pEm->Spd_z)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
 }
@@ -284,21 +284,21 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (!EM39_W(pEm)->pParent->Pos_y) {
         if (pEm->UnkE2 == 1) {
             if (pEm->Move_cnt >= 12 && pEm->Move_cnt < 18) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box1;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
                 func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 17 && pEm->Move_cnt < 21) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box2;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
                 func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 20 && pEm->Move_cnt < 24) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box0;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
@@ -306,21 +306,21 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
         } else {
             if (pEm->Move_cnt >= 12 && pEm->Move_cnt < 18) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box0;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
                 func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 17 && pEm->Move_cnt < 21) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box2;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
                 func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 20 && pEm->Move_cnt < 24) {
-                Area.pPos = (VECTOR *)&pEm->Pos_x;
+                Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box1;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;

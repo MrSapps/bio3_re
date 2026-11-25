@@ -62,35 +62,35 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if ((pEm->Type & 0xF) >= 3) {
         pEm->Cdir_y -= 0x200;
-        RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+        RotMatrix_gte(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[5];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[6];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP->Be_flg |= 2;
         pEm->Cdir_y += 0x200;
     }
     if ((pEm->Type & 0xF) >= 6) {
         pEm->Cdir_y += 0x200;
-        RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+        RotMatrix_gte(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[8];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[12];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP = &pEm->pSin_parts_ptr[13];
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pP->Be_flg |= 2;
         pEm->Cdir_y -= 0x200;
     }
     if ((pEm->Type & 0xF) >= 8) {
         pEm->Cdir_y -= 0x200;
-        RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+        RotMatrix_gte(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
         pP = pEm->pSin_parts_ptr;
-        CompM(pP->pSuper, (MATRIX *)pP->M, &pP->Workm);
+        CompM(pP->pSuper, PW_M(pP), &pP->Workm);
         pEm->pSin_parts_ptr[8].Be_flg |= 2;
         pEm->Cdir_y += 0x200;
     }

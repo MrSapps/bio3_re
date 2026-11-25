@@ -7,7 +7,7 @@ void Em10_water(ENEMY_WORK *pEm)
     PARTS_W *pP;
 
     pP = pEm->pSin_parts_ptr;
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &pP->Workm);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &pP->Workm);
     Sv.vx = pP->Workm.t[0];
     Sv.vy = pEm->Water;
     Sv.vz = pP->Workm.t[2];

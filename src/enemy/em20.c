@@ -263,14 +263,14 @@ void Em20_Move_yori(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE2++;
         if (G.Unk75E8 & 4)
             pEm->UnkE2 += 20;
-        if (!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x80) && (LONG)pEm->Unk154 > 600) {
+        if (!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x80) && (LONG)pEm->Unk154 > 600) {
             pEm->Routine_1 = 3;
             EM_RTN23(pEm) = 0;
         }
     } else {
         if (pEm->UnkE2)
             pEm->UnkE2--;
-        if (!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x80) && (G.Unk75E8 & 4))
+        if (!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x80) && (G.Unk75E8 & 4))
             pEm->UnkE2 += 20;
     }
     if (pEm->UnkE2 > 64 || ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)) || (G.Unk75EA & 0x20)) {
@@ -335,7 +335,7 @@ void Em20_Mv_run10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Rate_speed_up(pEm, 40, 240);
     if (!pFp->Fix_cnt) {
         pTg = Get_target_pl(pEm);
-        Root_ck(pEm, (VECTOR *)&pTg->Pos_x, 0, 0);
+        Root_ck(pEm, POS_V(pTg), 0, 0);
         if (pEm->Status_flg & 0x2000)
             d_tmp = Goto00_ck(pEm, pTg->Pos_x, pTg->Pos_z, pFp->Dash_turn);
         else
@@ -388,7 +388,7 @@ void Em20_Mv_run20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_3 = 1;
         pEm->Timer0 = 0;
     }
-    Root_ck(pEm, (VECTOR *)&Get_target_pl(pEm)->Pos_x, 0, 0);
+    Root_ck(pEm, POS_V(Get_target_pl(pEm)), 0, 0);
     dir = Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x60);
     Add_speedXZ(pEm, -pEm->Timer0);
     Set_run_motion(pEm, dir);
@@ -488,10 +488,10 @@ void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Hit0.Id = 0x81;
         Hit1.Id = 0x82;
     }
-    Hit0.pPos = (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t;
+    Hit0.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[3]);
     Hit0.pBox = Box0;
     Hit0.Dir = pEm->Cdir_y;
-    Hit1.pPos = (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t;
+    Hit1.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[3]);
     Hit1.pBox = Box1;
     Hit1.Dir = pEm->Cdir_y;
     if (!pEm->Routine_3) {
@@ -933,10 +933,10 @@ void Em20_Move_died(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg &= 0xFD;
         EM_MOVE(pEm) = ((Rnd_l() & 0x3F) << 8) + 0xF0001;
     case 1:
-        Root_ck(pEm, (VECTOR *)&pTg->Pos_x, 0, 0);
+        Root_ck(pEm, POS_V(pTg), 0, 0);
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x10);
         Add_speedXZ(pEm, 0);
-        if ((!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x100) && (LONG)pEm->Unk154 < 2500) || pEm->Col.Unk3 != 0xFF) {
+        if ((!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x100) && (LONG)pEm->Unk154 < 2500) || pEm->Col.Unk3 != 0xFF) {
             pEm->Routine_2 = 2;
             EM_SET_MOVE(pEm, 0, 0, 0xF);
         }
@@ -1985,7 +1985,7 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_1 = 1;
         EM_SET_MOVE(pEm, 0, 0, 0x1F);
         pEm->Neck_flg |= 1;
-        Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10001, POS_V(pEm), 0, 0);
         break;
     case 1:
         pEm->Cdir_y += 0x800;
@@ -1995,7 +1995,7 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x80))
             pEm->Routine_1 = 2;
         if (pEm->Move_cnt == 0x62) {
-            Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10003, POS_V(pEm), 0, 0);
             for (i = 0; i < 4; i++) {
                 pP = &G.Player.pSin_parts_ptr[pl_chi_parts[i]];
                 PW_FREEL(pP)[0] = 0x20;
@@ -2062,7 +2062,7 @@ LONG Atck_range_ck(ENEMY_WORK *pEm)
         return -2;
     dist = (pFp->Target_pl) ? (pEm->Unk158 & 0x3FFFFFFF) : pEm->Unk154;
     if (dist < 4000 && (pTg->nFloor == pEm->nFloor || (pEm->Status_flg & 0x2000))) {
-        if (!Dir_pos_ck((VECTOR *)&pEm->Pos_x, (VECTOR *)&pTg->Pos_x, pEm->Cdir_y, 0x100)) {
+        if (!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x100)) {
             if (pTg->Damage_cnt & 0x80)
                 return -4;
             if (pTg->Life < 13 && Cdir_ck(pEm, pTg) && pFp->Stress < 600)
@@ -2098,7 +2098,7 @@ ULONG hit_ck_main(ENEMY_WORK *pEm, LONG pl)
             return pFp->Hit_type;
     }
     if (!pFp->Hit_type && !(pPl->Damage_cnt & 0x80)
-        && L_pos_ckXZ((VECTOR *)&pPl->Pos_x, (VECTOR *)pPt->Workm.t, range)
+        && L_pos_ckXZ(POS_V(pPl), WORKM_POS_V(pPt), range)
         && pEm->Unk122 - 1800 < pEm->Pos_y
         && (pPl->nFloor == pEm->nFloor || (pEm->Status_flg & 0x2000))) {
         pFp->Stress = 0;

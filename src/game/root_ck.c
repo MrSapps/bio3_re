@@ -46,8 +46,8 @@ LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
             *pStatus |= 0x2000;
         } else {
             *pStatus &= ~0x2000;
-            if (Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t,
-                            (VECTOR *)pG->Player.pSin_parts_ptr[pG->Player.Neck_no].Workm.t, 0x40, 1) == 0) {
+            if (Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]),
+                            WORKM_POS_V(&pG->Player.pSin_parts_ptr[pG->Player.Neck_no]), 0x40, 1) == 0) {
                 *pStatus |= 0x2000;
             }
         }

@@ -157,11 +157,11 @@ void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Flg = 1;
     }
     if (Flg) {
-        Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, EF(pEm)->Idly_flg, 1);
+        Root_ck(pEm, POS_V(&G.Player), EF(pEm)->Idly_flg, 1);
         if (EF(pEm)->Idly_cnt-- == 0)
             EF(pEm)->Idly_flg = 0;
     } else {
-        Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+        Root_ck(pEm, POS_V(&G.Player), 0, 0);
     }
     if (pEm->Type & 0x80) {
         Em21_outdoor_br[pEm->Routine_1](pEm);
@@ -171,7 +171,7 @@ void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em21_indoor_mv[pEm->Routine_1](pEm, pKan, pSeq);
     }
     if (EF(pEm)->Atck) {
-        Em21_hit_area.pPos = (VECTOR *)&pEm->Pos_x;
+        Em21_hit_area.pPos = POS_V(pEm);
         Em21_hit_area.pBox = Em21_peck_box0;
         Em21_hit_area.Dir = pEm->Cdir_y;
         Em21_hit_area.Id = 1;
@@ -1102,7 +1102,7 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_Damage */
 void func_80102C48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+    Root_ck(pEm, POS_V(&G.Player), 0, 0);
     Em21_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
 }
 
@@ -1346,7 +1346,7 @@ void func_801035BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_Scenario */
 void func_801035C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
+    Root_ck(pEm, POS_V(&G.Player), 0, 0);
     Em21_sce_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
@@ -1713,8 +1713,8 @@ void func_801045BC(ENEMY_WORK *pEm)
     MATRIX M;
 
     pP = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &M);
     CompM(&M, (MATRIX *)pP[9].M, &M);
     pEm->Pos_x -= M.t[0] - pP[9].Workm.t[0];
 }

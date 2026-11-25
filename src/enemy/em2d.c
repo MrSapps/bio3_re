@@ -195,7 +195,7 @@ void func_80100780(ENEMY_WORK *pEm)
     SHORT Ck;
 
     pPt = pEm->pSin_parts_ptr + P_hand[pEm->Type & 1][2];
-    Ck = L_pos_ckXZ((VECTOR *)&G.Player.Pos_x, (VECTOR *)pPt->Workm.t, 1000);
+    Ck = L_pos_ckXZ(POS_V(&G.Player), WORKM_POS_V(pPt), 1000);
     if (Ck)
         EM_SET_RTN(pEm, 1, 3, 0, 0);
 }
@@ -253,7 +253,7 @@ void func_80100A10(ENEMY_WORK *pEm)
     SHORT Ck;
 
     pPt = pEm->pSin_parts_ptr + P_hand[pEm->Type & 1][2];
-    Ck = L_pos_ckXZ((VECTOR *)&G.Player.Pos_x, (VECTOR *)pPt->Workm.t, 900);
+    Ck = L_pos_ckXZ(POS_V(&G.Player), WORKM_POS_V(pPt), 900);
     if (Ck && pEm->Move_cnt >= 5 && !G.Unk75EA) {
         if (!G.Player.Damage_cnt) {
             EM_SET_RTN(pEm, 1, 4, 0, 0);
@@ -539,7 +539,7 @@ void func_8010138C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 0, 0, 0xF);
         pEm->Routine_2 = 1;
-        Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, POS_V(pEm), 0, 0);
         pEm->Unk12C = 0;
     case 1:
         Joint_move(pEm, pKan, pSeq, 0x100);
@@ -567,5 +567,5 @@ void Em2d_spd_rot(ENEMY_WORK *pEm, LONG Add_y, LONG Add_z)
     Rot.vy = pEm->Cdir_y + Add_y;
     Rot.vz = pEm->Cdir_z + Add_z;
     RotMatrix_gte(&Rot, &M);
-    ApplyMatrixSV(&M, (SVECTOR *)&pEm->Spd_x, (SVECTOR *)&pEm->Spd_x);
+    ApplyMatrixSV(&M, EM_SPD_SV(pEm), EM_SPD_SV(pEm));
 }

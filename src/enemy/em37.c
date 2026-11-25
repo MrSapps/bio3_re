@@ -557,8 +557,8 @@ void func_80100FE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move(pEm, pKan, pSeq, 0x40);
         Joint_move(pEm, pKan, pSeq, 0x40);
         pP = pEm->pSin_parts_ptr;
-        RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        RotMatrix(CDIR_SV(pEm), &M);
+        MulMatrix(PW_M(pP), &M);
         pP = pEm->pSin_parts_ptr;
         if (pP->Size_y == 0)
             pEm->Spd_x = 0;
@@ -610,8 +610,8 @@ void func_80100FE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move(pEm, pKan, pSeq, 0x40);
         Joint_move(pEm, pKan, pSeq, 0x40);
         pP = pEm->pSin_parts_ptr;
-        RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
-        MulMatrix((MATRIX *)pP->M, &M);
+        RotMatrix(CDIR_SV(pEm), &M);
+        MulMatrix(PW_M(pP), &M);
         break;
     }
 }

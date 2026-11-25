@@ -646,7 +646,7 @@ void Om_trans(void)
             continue;
         RotMatrix(&pOm->Cdir, &pOm->M);
         CompM(pOm->pSuper, &pOm->M, &pOm->Workm);
-        Set_light_pos((VECTOR *)pOm->Workm.t);
+        Set_light_pos(WORKM_POS_V(pOm));
         SetColorMatrix(&COLORMATRIX);
         if (pOm->Unk4A == 2)
             pOm->Workm.t[1] -= 900;

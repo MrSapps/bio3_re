@@ -33,7 +33,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE2 = 0;
         if (pEm->Routine_1 & 1)
             pEm->Timer0 = 0;
-        Snd_se_stad(((Rnd_l() & 1) << 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(((Rnd_l() & 1) << 1) | 0x10000, POS_V(pEm), 0, 0);
         pEm->UnkDA = 0;
         pEm->Unk12C = 0;
         pEm->Neck_flg |= 0x12;

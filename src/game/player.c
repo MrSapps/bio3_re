@@ -655,8 +655,8 @@ ULONG Lim_dir_ck(ENEMY_WORK *pEm, ULONG Lim, SHORT Dir)
                 dz = pEm->Pos_z - pT->Pos_z;
                 dist = SquareRoot0(dx * dx + dz * dz);
                 if (pT->Life >= 0
-                    && Sca_ck_line(PW_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]),
-                                   PW_POS_V(&pT->pSin_parts_ptr[pT->Neck_no]), 0x2040, 1) == 0
+                    && Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]),
+                                   WORKM_POS_V(&pT->pSin_parts_ptr[pT->Neck_no]), 0x2040, 1) == 0
                     && Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, Dir) == 0
                     && Cdir_ck(pEm, pT) == 0 && dist < min) {
                     min = dist;
@@ -863,7 +863,7 @@ void pl_mv0a_pad(ENEMY_WORK *pEm, ULONG Flg)
         pEm->Move_no = 6;
         pEm->Move_cnt = 0;
         pEm->Hokan_flg = 7;
-        Snd_se_stad(0x10200, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(0x10200, POS_V(pEm), 0, 0);
         Pad_vib_init();
     }
 }
@@ -912,7 +912,7 @@ void pl_mv0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 7, 0, 7);
     case 5:
         if (pEm->Move_cnt == 1) {
-            Snd_se_stad(0x1022C, EM_POS_V(pEm), 0, 0);
+            Snd_se_stad(0x1022C, POS_V(pEm), 0, 0);
             Pad_vib_set0(2, 0);
             Pad_vib_set1(3, 0x96, 0);
             Pad_vib_fade_set(0x14, 0x96, 0, 3);
@@ -1603,7 +1603,7 @@ void pl_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 18, 0, 3);
         pEm->Routine_2 = 1;
-        Snd_se_stad(0x1000B, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(0x1000B, POS_V(pEm), 0, 0);
         G.Status_flg |= 0x100;
         G.Unk75E8 |= 0x1C;
         G.Unk785E++;
@@ -1642,7 +1642,7 @@ void pl_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         hit = 0;
         if (*pEm->pNow_seq & 0x200) {
-            Req.pPos = PW_POS_V(pEm->pSin_parts_ptr);
+            Req.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
             Req.W = 1000;
             Req.H = 0;
             Req.D = 0;
@@ -1655,7 +1655,7 @@ void pl_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if ((ULONG)(D_800BA6E8[3] - 1) < 30) {
                 no = 0x13;
             }
-            Snd_se_stad(no | 0x10300, EM_POS_V(pEm), 0, 0);
+            Snd_se_stad(no | 0x10300, POS_V(pEm), 0, 0);
         }
     default:
         Add_speedXZ(pEm, 0);
@@ -1676,7 +1676,7 @@ void pl_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 4, 0, 3);
         pEm->Routine_2 = 1;
-        Snd_se_stad(0x10000, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(0x10000, POS_V(pEm), 0, 0);
         pEm->Damage_cnt = 0x80;
         Pad_vib_set0(5, 0);
         Pad_vib_set1(8, 0x96, 0);
@@ -1706,7 +1706,7 @@ void pl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         pEm->Routine_2 = 1;
         EM_MOVE(pEm) = (pEm->Routine_1 & 1) + 0x30002;
-        Snd_se_stad(((pEm->Routine_1 & 1) + 1) | 0x10000, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(((pEm->Routine_1 & 1) + 1) | 0x10000, POS_V(pEm), 0, 0);
         pEm->Damage_cnt = 0x80;
         Pad_vib_set0(5, 0);
         Pad_vib_set1(8, 200, 0);
@@ -1750,7 +1750,7 @@ void pl_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
         pEm->Neck_flg |= 0x12;
-        Snd_se_stad(0x10001, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(0x10001, POS_V(pEm), 0, 0);
         pEm->Be_flg &= ~0x8000;
         if (pEm->Unk132 & 0x500) {
             PARTS_W *pParts;
@@ -1819,7 +1819,7 @@ void pl_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
         pEm->Neck_flg |= 0x12;
-        Snd_se_stad(0x10002, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(0x10002, POS_V(pEm), 0, 0);
         pEm->Be_flg &= ~0x8000;
         if (pEm->Unk132 & 0x500) {
             PARTS_W *pParts;
@@ -1881,7 +1881,7 @@ void pl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         *(LONG *)&pEm->Spd_x = 0;
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
-        Snd_se_stad(0x10003, EM_POS_V(pEm), 0, 0);
+        Snd_se_stad(0x10003, POS_V(pEm), 0, 0);
         pEm->Neck_flg = 1;
         Pad_vib_set0(3, 0);
         Pad_vib_set1(8, 200, 0);

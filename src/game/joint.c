@@ -195,7 +195,7 @@ void ko_joint_trans2(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
             gte_MulMatrix0(&LIGHTMATRIX, pM, &M);
             gte_SetLightMatrix(&M);
             SetColorMatrix(&COLORMATRIX);
-            Set_light_pos((VECTOR *)&pEm->Pos_x);
+            Set_light_pos(POS_V(pEm));
         }
     }
     if (!(Flg & 0x10)) {
@@ -806,14 +806,14 @@ void Parts_down(PARTS_W *pP_ptr, MATRIX *wm)
         pP_ptr->Timer2 = 0xF;
     }
     if (pP_ptr->Timer3 > 1) {
-        Pos = *PW_POS_V(pP_ptr);
+        Pos = *WORKM_POS_V(pP_ptr);
         Floor_y = Sca_get_ground(pP_ptr->Workm.t, 100, 0x2000, 1);
         wm->t[0] += pP_ptr->Old_x;
         pP_ptr->Old_y += (signed char)pP_ptr->Timer1;
         wm->t[1] += pP_ptr->Old_y;
         wm->t[2] += pP_ptr->Old_z;
         if (Sca_get_ground(pP_ptr->Workm.t, 100, 0x2000, 1) < Floor_y) {
-            *PW_POS_V(pP_ptr) = Pos;
+            *WORKM_POS_V(pP_ptr) = Pos;
             pP_ptr->Old_x >>= 2;
             pP_ptr->Old_z >>= 2;
             pP_ptr->Old_x *= -1;
@@ -929,7 +929,7 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
         V.vy = pP->Old_y;
         V.vz = pP->Old_z;
         w = (Late_flg & 0xFFFF) * Hokan;
-        LoadAverage12((VECTOR *)&pP->Pos_x, &V, 0x1000 - w, w, (VECTOR *)&pP->Pos_x);
+        LoadAverage12(POS_V(pP), &V, 0x1000 - w, w, POS_V(pP));
     }
     pRot += 2;
     pP->Old_x = pP->Pos_x;

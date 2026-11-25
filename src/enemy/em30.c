@@ -42,13 +42,13 @@ void func_801000AC(ENEMY_WORK *pEm)
                     Tg.vz = -0x1F40;
                 pTg = &Tg;
             } else {
-                pTg = (VECTOR *)&pPl->Pos_x;
+                pTg = POS_V(pPl);
             }
             if ((EM_RTN(pEm) & 0xFFFF00) == 0x20300 && pEm->Spd_x < 0 &&
                 (EM30_W(pEm)->Unk19 == 1 || EM30_W(pEm)->Unk19 == 9))
                 pEm->Spd_x = -pEm->Spd_x;
         } else {
-            pTg = (VECTOR *)&pPl->Pos_x;
+            pTg = POS_V(pPl);
         }
         pEm->Type &= ~0x4000;
         Root_ck(pEm, pTg, 0, 0);
@@ -959,7 +959,7 @@ void func_801029B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.vz = 1400;
                 Sv.pad = 1400;
             }
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
             Area.pBox = (SHORT *)&Sv;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x85;
@@ -1382,7 +1382,7 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.vz = 1700;
                 Sv.vy = 0;
                 Sv.pad = 1500;
-                Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+                Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
                 Area.pBox = (SHORT *)&Sv;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x85;
@@ -1392,7 +1392,7 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.vz = 1200;
                 Sv.vy = 0;
                 Sv.pad = 1400;
-                Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+                Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
                 Area.pBox = (SHORT *)&Sv;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x85;

@@ -333,7 +333,7 @@ void func_80033FBC(COL_OBJ *pTop)
             M = GsIDMATRIX;
             MulMatrix2(p->pM, &M);
         } else {
-            RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, &M);
+            RotMatrix_gte(CDIR_SV(pEm), &M);
         }
         ApplyMatrix(&M, (SVECTOR *)&p->Unk24, &V);
         if (p->pM != NULL) {

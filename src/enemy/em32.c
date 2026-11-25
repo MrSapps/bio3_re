@@ -150,7 +150,7 @@ void func_80100490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pPl = &Pl_work;
 
     if (Guide_check_(pEm->Pos_x, pEm->Pos_z, pEm->nFloor) != 0xFF) {
-        Root_ck(pEm, (VECTOR *)&pPl->Pos_x, 0, 0);
+        Root_ck(pEm, POS_V(pPl), 0, 0);
     } else {
         pEm->Dest_x = pPl->Pos_x;
         pEm->Dest_z = pPl->Pos_z;
@@ -691,7 +691,7 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Box[0].vy = 400;
     Box[0].vz = 800;
     Box[0].pad = 400;
-    Ha0.pPos = (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t;
+    Ha0.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[3]);
     Ha0.pBox = &Box[0].vx;
     Ha0.Dir = pEm->Cdir_y;
     Ha0.Id = 0x81;
@@ -699,7 +699,7 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Box[1].vy = -400;
     Box[1].vz = 800;
     Box[1].pad = 400;
-    Ha1.pPos = (VECTOR *)pEm->pSin_parts_ptr[3].Workm.t;
+    Ha1.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[3]);
     Ha1.pBox = &Box[1].vx;
     Ha1.Dir = pEm->Cdir_y;
     Ha1.Id = 0x82;
@@ -954,11 +954,11 @@ void func_80102A00(ENEMY_WORK *pEm, LONG Spd_flg, LONG Parts)
     LONG Dx, Dz;
 
     pP = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &M);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &M);
     for (i = 1; Parts != 0; Parts--, i++) {
         pP = &pEm->pSin_parts_ptr[i];
-        CompM(&M, (MATRIX *)pP->M, &M);
+        CompM(&M, PW_M(pP), &M);
     }
     if (!Spd_flg) {
         pEm->Pos_x -= M.t[0] - pP->Workm.t[0];
@@ -1423,7 +1423,7 @@ void func_80103D60(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
     switch (pPl->Routine_2) {
     case 0:
         EM_SET_MOVE(pPl, 6, 0, 7);
-        Snd_se_stad(0x10000, (VECTOR *)&pPl->Pos_x, 0, 0);
+        Snd_se_stad(0x10000, POS_V(pPl), 0, 0);
         pPl->Routine_2++;
         pPl->Neck_flg |= 0x12;
     case 1:

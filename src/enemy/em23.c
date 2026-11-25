@@ -23,7 +23,7 @@ void func_80100144(ENEMY_WORK *pEm)
 
     if (pEm->Damage_cnt & 0x7F)
         pEm->Damage_cnt--;
-    pPos = (VECTOR *)&pPl->Pos_x;
+    pPos = POS_V(pPl);
     if (EF(pEm)->Flg & 8) {
         if (!EF(pEm)->Timer && Guide_check_(pEm->Pos_x, pEm->Pos_z, pEm->nFloor) != 0xFF)
             Root_ck_(pEm, pPos, Rnd_area(), 1);
@@ -679,7 +679,7 @@ LONG func_80102180(ENEMY_WORK *pEm, SCA_DATA *pS)
 {
     ULONG Side;
 
-    Side = func_800502B8((VECTOR *)&pEm->Pos_x, pS);
+    Side = func_800502B8(POS_V(pEm), pS);
     EF(pEm)->Side = Side;
     if (Side & 1) {
         if (pS->X0 + 800 < pEm->Pos_x && pEm->Pos_x < pS->X1 - 800 && (pS->Type & 0x500))
@@ -1120,7 +1120,7 @@ void func_801035A8(ENEMY_WORK *pEm)
     Sv.vx = 0;
     Sv.vy = 758;
     Sv.vz = 0;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, &M);
+    RotMatrix(CDIR_SV(pEm), &M);
     ApplyMatrixSV(&M, &Sv, &Sv);
     pEm->Pos_x = pEm->pSin_parts_ptr->Workm.t[0] + Sv.vx;
     pEm->Pos_z = pEm->pSin_parts_ptr->Workm.t[2] + Sv.vz;
@@ -1193,7 +1193,7 @@ void func_8010387C(ENEMY_WORK *pEm, LONG Add)
     Sv.vx = 0;
     Sv.vy = EF(pEm)->Unk04 + Add;
     RotMatrix(&Sv, &M);
-    ApplyMatrixSV(&M, (SVECTOR *)&pEm->Spd_x, &Sv);
+    ApplyMatrixSV(&M, EM_SPD_SV(pEm), &Sv);
     pEm->Pos_y -= Sv.vx;
     if (EF(pEm)->Side & 1)
         pEm->Pos_x += Sv.vz;
@@ -1744,7 +1744,7 @@ void func_80105C14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 1200;
             Sv.pad = 1200;
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+            Area.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
             Area.pBox = (SHORT *)&Sv;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x80;
@@ -1904,7 +1904,7 @@ void func_801060D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Sv.vy = 200;
     Sv.vz = 1200;
     Sv.pad = 1200;
-    Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[14].Workm.t;
+    Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[14]);
     Area.pBox = (SHORT *)&Sv;
     Area.Dir = pEm->Cdir_y;
     Area.Id = 0x81;
@@ -2154,7 +2154,7 @@ void func_801075A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 1200;
             Sv.pad = 1200;
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+            Area.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
             Area.pBox = (SHORT *)&Sv;
             Area.Dir = pEm->Cdir_y;
             Area.Id = (Rnd_l() & 1) - 0x7F;
@@ -2647,7 +2647,7 @@ void func_80108BC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Sv.vz = 1800;
         Sv.vy = 0;
         Sv.pad = 1200;
-        Area.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+        Area.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
         Area.pBox = (SHORT *)&Sv;
         Area.Dir = pEm->Cdir_y;
         Area.Id = (Rnd_l() & 1) - 0x7F;
@@ -2794,7 +2794,7 @@ void func_80109234(ENEMY_WORK *pEm)
     PARTS_W *pP;
 
     pP = pEm->pSin_parts_ptr;
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &pP->Workm);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &pP->Workm);
     Pos.vx = pP->Workm.t[0];
     Pos.vy = pEm->Water;
     Pos.vz = pP->Workm.t[2];
@@ -3957,10 +3957,10 @@ void func_8010BEA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         if (pEm->Routine_3) {
             EM_SET_MOVE(pEm, 4, 0, 3);
-            Snd_se_stad(0x10002, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10002, POS_V(pEm), 0, 0);
         } else {
             EM_SET_MOVE(pEm, 0, 0, 3);
-            Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10001, POS_V(pEm), 0, 0);
         }
         func_8002646C_(pEm, 300, 60, pEm->Col.Unk39);
         pEm->Routine_2++;
@@ -4047,10 +4047,10 @@ void func_8010C314(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_8002646C_(pEm, 300, 60, pEm->Col.Unk39);
         if (pEm->Routine_3) {
             EM_SET_MOVE(pEm, 9, 0, 7);
-            Snd_se_stad(0x10002, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10002, POS_V(pEm), 0, 0);
         } else {
             EM_SET_MOVE(pEm, 8, 0, 7);
-            Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10001, POS_V(pEm), 0, 0);
         }
         pEm->Neck_flg |= 0x12;
         pEm->Routine_2++;
@@ -4107,7 +4107,7 @@ void func_8010C4B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x100))
             pEm->Routine_2++;
         if (pEm->Move_cnt == 55)
-            Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10003, POS_V(pEm), 0, 0);
         break;
     case 2:
         EM_SET_RTN(pEm, 7, 0, 0, 0);

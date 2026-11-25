@@ -251,9 +251,9 @@ void Parts_hokan(ULONG n, PARTS_W *pP, ULONG Late, LONG Rate)
         pSv->vx = pP->Rot_x + ((ULONG)(pP->Rot_spd_x * Late) >> 8);
         pSv->vy = pP->Rot_y + ((ULONG)(pP->Rot_spd_y * Late) >> 8);
         pSv->vz = pP->Rot_z + ((ULONG)(pP->Rot_spd_z * Late) >> 8);
-        hokan_svec((SVECTOR *)&pP->Cdir_x, pSv, (SVECTOR *)&pP->Cdir_x, Hokan);
+        hokan_svec(CDIR_SV(pP), pSv, CDIR_SV(pP), Hokan);
         if (!(pP->Be_flg & 0x10)) {
-            RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+            RotMatrix_gte(CDIR_SV(pP), PW_M(pP));
         }
         pP++;
     } while (--n != 0);
@@ -1358,7 +1358,7 @@ found:
     pPrim += Sce.Unk1496 * 26;
     Sce.Unk1496++;
     M = GsIDMATRIX;
-    RotMatrix((SVECTOR *)&EM_MD(pFloor)->Cdir_x, &Lm);
+    RotMatrix(CDIR_SV(EM_MD(pFloor)), &Lm);
     Lm.t[0] = EM_MD(pFloor)->Workm.t[0];
     Lm.t[1] = EM_MD(pFloor)->Workm.t[1];
     Lm.t[2] = EM_MD(pFloor)->Workm.t[2];

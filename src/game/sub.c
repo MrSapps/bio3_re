@@ -532,11 +532,11 @@ LONG func_80079690(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Fl
     w2 = pF->W[2];
     *(ULONG *)&pP->Cdir_x = ((w2 >> 12) & 0xFFF) | (((w2 >> 24) | ((pF->H[6] & 0xF) << 8)) << 16);
     pP->Cdir_z = (pF->W[3] & 0xFFF0) >> 4;
-    RotMatrixZYX_gte((SVECTOR *)&pP->Cdir_x, &pM[2]);
+    RotMatrixZYX_gte(CDIR_SV(pP), &pM[2]);
     pP = &pEm->pSin_parts_ptr[14];
     *(ULONG *)&pP->Cdir_x = (pF->W[3] >> 28) | (pF->B[0x10] << 4) | (((pF->W[4] >> 8) & 0xFFF) << 16);
     pP->Cdir_z = pF->W[4] >> 20;
-    RotMatrixZYX_gte((SVECTOR *)&pP->Cdir_x, &pM[5]);
+    RotMatrixZYX_gte(CDIR_SV(pP), &pM[5]);
     pEm->Sub_move_cnt++;
     if (pEm->Sub_move_cnt >= n) {
         pEm->Sub_move_cnt = 0;
@@ -568,8 +568,8 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     pP0 = pEm->pSin_parts_ptr;
     cnt = pEm->Sub_hokan_flg;
     pM = D_800E1200;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, pW);
-    CompM(pW, (MATRIX *)pP0->M, &m4);
+    RotMatrix(CDIR_SV(pEm), pW);
+    CompM(pW, PW_M(pP0), &m4);
     CompM(&m4, (MATRIX *)pP0[8].M, &pP0[8].Workm);
     pP0 = &pEm->pSin_parts_ptr[8];
     Copy_rot_matrix(&pP0->Workm, &m0);
@@ -578,8 +578,8 @@ void func_80079868(ENEMY_WORK *pEm, LONG rate)
     m0.t[2] = (pP0->Workm.t[2] - pEm->Pos_z) << 3;
     j = *(MY_JNT *)pEm->pUnk1B4;
     pP = pEm->pSin_parts_ptr;
-    RotMatrix_gte((SVECTOR *)&pP[9].Cdir_x, pM);
-    RotMatrix_gte((SVECTOR *)&pP[12].Cdir_x, &D_800E1260);
+    RotMatrix_gte(CDIR_SV(&pP[9]), pM);
+    RotMatrix_gte(CDIR_SV(&pP[12]), &D_800E1260);
     Copy_rot_matrix(pW, &m3);
     Copy_rot_matrix(pM, &m4);
     Copy_rot_matrix(&D_800E1260, &m5);

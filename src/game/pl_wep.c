@@ -37,7 +37,7 @@ void Pl_neck(ENEMY_WORK *pEm, ULONG LL, SHORT Dir)
                 pCand = *ppEm;
                 if ((pCand->Be_flg & 1) && !(pCand->Type & 0xC000)) {
                     Cand_dist = pCand->Unk154;
-                    if (Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t, (VECTOR *)pCand->pSin_parts_ptr[pCand->Neck_no].Workm.t, 0x40, 1) == 0
+                    if (Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]), WORKM_POS_V(&pCand->pSin_parts_ptr[pCand->Neck_no]), 0x40, 1) == 0
                         && Goto00_ck(pEm, pCand->Pos_x, pCand->Pos_z, Dir) == 0) {
                         if (!(pCand->Type & 0x2000)) {
                             if (Cand_dist < Lim) {
@@ -76,7 +76,7 @@ void Pl_water(ENEMY_WORK *pEm)
     PARTS_W *pParts;
 
     pParts = pEm->pSin_parts_ptr;
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pParts->M, &pParts->Workm);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pParts), &pParts->Workm);
     sv.vx = pParts->Workm.t[0];
     sv.vy = pEm->Water;
     sv.vz = pParts->Workm.t[2];
@@ -165,7 +165,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         return;
     }
     pP = pEm->pSin_parts_ptr;
-    RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
+    RotMatrix(CDIR_SV(pEm), (MATRIX *)pEm->Workm_m);
     Spd.vx = 0;
     Spd.vz = 300;
     Spd.vy = 0;
@@ -187,7 +187,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             Esp_call(0x161C, ((Rnd_l() * 4 + 0x60C) << 16) | (USHORT)pEm->Cdir_y, &Mtx, 0, 0);
             if ((signed char)pEm->UnkE2 == 0) {
                 pEm->UnkE2 = 1;
-                Snd_se_stad(0x10109, (VECTOR *)pP[0].Workm.t, 0, 0);
+                Snd_se_stad(0x10109, WORKM_POS_V(&pP[0]), 0, 0);
             }
         }
     }
@@ -209,7 +209,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         M.t[2] = Mtx.t[2];
         pHit = func_80044804(&M, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         if (func_80047860(&M, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type)) {
-            Snd_se_stad(0x10108, (VECTOR *)pP2[4].Workm.t, 0, 0);
+            Snd_se_stad(0x10108, WORKM_POS_V(&pP2[4]), 0, 0);
         }
         Mtx.t[0] += Spd.vx;
         Mtx.t[2] += Spd.vz;
@@ -221,14 +221,14 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             pEm->Be_flg |= 0x2000000;
             func_80079690(G_PLAYER, G.Player.pUnk184_kan_t_ptr, G.Player.pUnk180_seq_t_ptr, 0x400);
             func_80079868(pEm, 0x400);
-            Snd_se_stad(0x10108, (VECTOR *)pP2[4].Workm.t, 0, 0);
+            Snd_se_stad(0x10108, WORKM_POS_V(&pP2[4]), 0, 0);
             Pad_vib_set0(6, 0);
             Pad_vib_set1(3, 200, 0);
             return;
         }
     }
     if (pHit != 0) {
-        Snd_se_stad(0x10106, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10106, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
         pEm->UnkE3 = 3;
         pEm->UnkDA = (pHit->Be_flg >> 22) & 3;
         if (pEm->UnkDA == 3) {
@@ -411,7 +411,7 @@ void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             if (func_8006CF0C_c(0) == 0) {
                 *(USHORT *)&pEm->Routine_2 = 4;
             } else {
-                Snd_se_stad(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+                Snd_se_stad(0x10101, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
             }
         }
     }
@@ -607,7 +607,7 @@ void func_8003F79C(ENEMY_WORK *pEm)
             Tgt.vz = pT->pSin_parts_ptr[pT->Neck_no].Workm.t[2];
             Cnt--;
             if (pT->Life >= 0 && Goto00_ck(pEm, pT->Pos_x, pT->Pos_z, 0x400) == 0
-                && Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t, &Tgt, 0x40, 1) == 0
+                && Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]), &Tgt, 0x40, 1) == 0
                 && !(pT->Type & 0xC000)) {
                 Prev = Sel;
                 Sel = Idx;
@@ -708,7 +708,7 @@ void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
                 if (func_8006CF0C_c(0) == 0) {
                     *(USHORT *)&pEm->Routine_2 = 10;
                 } else {
-                    Snd_se_stad(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+                    Snd_se_stad(0x10101, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
                 }
             }
         }
@@ -833,7 +833,7 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             if (func_8006CF0C_c(0) == 0) {
                 *(USHORT *)&pEm->Routine_2 = 4;
             } else {
-                Snd_se_stad(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+                Snd_se_stad(0x10101, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
             }
         }
     }
@@ -926,7 +926,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
                 if (func_8006CF0C(0) == 0) {
                     *(USHORT *)&pEm->Routine_2 = 4;
                 } else {
-                    Snd_se_stad(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+                    Snd_se_stad(0x10101, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
                 }
             }
         }
@@ -959,7 +959,7 @@ void pl_mv05_w2_t4(ENEMY_WORK *pEm)
     func_80079868_800402F4(pEm, 0x200);
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
     }
     if ((*pEm->pNow_seq & 0x400) && (pEm->Status_flg & 0x400)) {
         Mag_set(pEm);
@@ -986,7 +986,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Move_no = 0x70001;
         *(ULONG *)&pEm->Sub_move_no = 0x70001;
         pEm->Routine_3 = 1;
-        Snd_se_stad(0x10112, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10112, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
         Pad_vib_fade_set(15, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
     case 1:
         Pl_wep_flag_set(pEm);
@@ -1022,7 +1022,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         func_80079868_800402F4(pEm, 0x200);
         if (!(Key & 0x500)) {
             *(USHORT *)&pEm->Routine_2 = 3;
-            Snd_se_stad(0x10113, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+            Snd_se_stad(0x10113, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
             return;
         }
         if (!(Key & 0x40)) {
@@ -1038,7 +1038,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Sub_move_no = 0x70004;
         pEm->Routine_3 = 4;
         pEm->Spd_x = 0;
-        Snd_se_stad(0x10113, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10113, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
     case 4:
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200)) {
             *(USHORT *)&pEm->Routine_2 = 1;
@@ -1087,7 +1087,7 @@ void Pl_wep_recoil_6(ENEMY_WORK *pEm)
                 return;
             }
             pWep->Timer2++;
-            RotMatrix_gte((SVECTOR *)&pParts[22].Cdir_x, (MATRIX *)pParts[22].M);
+            RotMatrix_gte(CDIR_SV(&pParts[22]), (MATRIX *)pParts[22].M);
         }
     }
 }
@@ -1108,7 +1108,7 @@ void Pl_wep_recoil_10(ENEMY_WORK *pEm)
                 return;
             }
             pWep->Timer2++;
-            RotMatrix_gte((SVECTOR *)&pParts[22].Cdir_x, (MATRIX *)pParts[22].M);
+            RotMatrix_gte(CDIR_SV(&pParts[22]), (MATRIX *)pParts[22].M);
         }
     }
 }
@@ -1136,7 +1136,7 @@ void Pl_wep_spin_0b(ENEMY_WORK *pEm)
             }
         }
         pWep->Cdir_y += pWep->Timer3;
-        RotMatrix((SVECTOR *)&pWep->Cdir_x, (MATRIX *)pWep->M);
+        RotMatrix(CDIR_SV(pWep), PW_M(pWep));
         pWep->Timer2 = 0;
     }
 }
@@ -1149,7 +1149,7 @@ void pl_w01_t2_move(ENEMY_WORK *pEm)
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
         pP = pEm->pSin_parts_ptr;
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
     }
 }
 
@@ -1165,7 +1165,7 @@ void pl_w02_t2_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
@@ -1199,7 +1199,7 @@ void func_800410F8(ENEMY_WORK *pEm)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
@@ -1266,7 +1266,7 @@ void func_800410F8(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0x9D;
         Sv.vy = 0x1EA;
         Sv.vz = 0;
@@ -1295,7 +1295,7 @@ void func_80041594(ENEMY_WORK *pEm)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
@@ -1361,7 +1361,7 @@ void func_800418CC(ENEMY_WORK *pEm)
     ESP_WORK *pEsp;
 
     if (pEm->Move_cnt == 0) {
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         func_8006D030_(1);
         Pl_weapon_vib(pEm);
@@ -1385,7 +1385,7 @@ void func_800418CC(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0xDC;
         Sv.vy = 0x8A;
         Sv.vz = 0;
@@ -1407,7 +1407,7 @@ void func_80041A80(ENEMY_WORK *pEm)
     ESP_WORK *pEsp;
 
     if (pEm->Move_cnt == 0) {
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         func_8006D030_(1);
@@ -1431,7 +1431,7 @@ void func_80041A80(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0xDC;
         Sv.vy = 0x8A;
         Sv.vz = 0;
@@ -1453,7 +1453,7 @@ void func_80041C34(ENEMY_WORK *pEm)
     ESP_WORK *pEsp;
 
     if (pEm->Move_cnt == 0) {
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         func_8006D030_(1);
         Pl_weapon_vib(pEm);
@@ -1477,7 +1477,7 @@ void func_80041C34(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0xDC;
         Sv.vy = 0x8A;
         Sv.vz = 0;
@@ -1499,7 +1499,7 @@ void func_80041DE8(ENEMY_WORK *pEm)
     ESP_WORK *pEsp;
 
     if (pEm->Move_cnt == 0) {
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         func_8006D030_(1);
         Pl_weapon_vib(pEm);
@@ -1523,7 +1523,7 @@ void func_80041DE8(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0xDC;
         Sv.vy = 0x8A;
         Sv.vz = 0;
@@ -1545,7 +1545,7 @@ void func_80041F9C(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         pP = &pEm->pSin_parts_ptr[4];
-        Snd_se_stad(0x10100, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         switch ((SHORT)(func_8006D030_(1) % 4)) {
@@ -1615,7 +1615,7 @@ void func_800421F8(ENEMY_WORK *pEm)
         pM = &pP[4].Workm;
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = -0x6C;
         Sv.vy = 0x528;
         Sv.vz = 0;
@@ -1662,7 +1662,7 @@ void func_80042474(ENEMY_WORK *pEm)
         pP = pEm->pSin_parts_ptr;
         func_800455B4_();
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
@@ -1721,7 +1721,7 @@ void func_80042660(ENEMY_WORK *pEm)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
@@ -1803,7 +1803,7 @@ void func_800427D8(ENEMY_WORK *pEm)
         }
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        Snd_se_stad(0x10100, (VECTOR *)pP->Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(pP), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         func_8006D030_(1);
@@ -1826,7 +1826,7 @@ void func_80042AE4(ENEMY_WORK *pEm)
         pM = &pP[4].Workm;
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         func_8006D030_(1);
         Sv.vx = 0xBE;
@@ -1900,7 +1900,7 @@ void func_80042E34(ENEMY_WORK *pEm)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x50;
@@ -1966,7 +1966,7 @@ void func_80042E34(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0x50;
         Sv.vy = 0x104;
         Sv.vz = 0xD;
@@ -2000,7 +2000,7 @@ void func_80043328(ENEMY_WORK *pEm)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
@@ -2045,7 +2045,7 @@ void func_800434F8(ENEMY_WORK *pEm)
         func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
@@ -2120,7 +2120,7 @@ void func_800434F8(ENEMY_WORK *pEm)
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
-        Snd_se_stad(((n >> 12) - 1) | 0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(((n >> 12) - 1) | 0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = 0x9D;
         Sv.vy = 0x1EA;
         Sv.vz = 0;
@@ -2149,7 +2149,7 @@ void func_800439F8(ENEMY_WORK *pEm)
         pP = pEm->pSin_parts_ptr;
         func_800455B4_();
         func_8006D030_(1);
-        Snd_se_stad(0x10100, (VECTOR *)pP[4].Workm.t, 0, 0);
+        Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
@@ -2466,7 +2466,7 @@ ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL)
             Tgt_pt.vx = pTgt->pSin_parts_ptr[pTgt->Neck_no].Workm.t[0];
             Tgt_pt.vy = pTgt->pSin_parts_ptr[pTgt->Neck_no].Workm.t[1];
             Tgt_pt.vz = pTgt->pSin_parts_ptr[pTgt->Neck_no].Workm.t[2];
-            if (Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t, &Tgt_pt, 0x40, 1) == 0) {
+            if (Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]), &Tgt_pt, 0x40, 1) == 0) {
                 if (!(pTgt->Type & 0x2000)) {
                     if (Dist < Min_dist) {
                         Min_dist = Dist;
@@ -2650,8 +2650,8 @@ void Mag_set(ENEMY_WORK *pEm)
             pP->Cdir_y = 0;
             pP->Cdir_z = 0;
             pP->Timer3 = Flg;
-            RotMatrix((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
-            CompM(&pP_ptr[4].Workm, (MATRIX *)pP->M, &pP->Workm);
+            RotMatrix(CDIR_SV(pP), PW_M(pP));
+            CompM(&pP_ptr[4].Workm, PW_M(pP), &pP->Workm);
             pP->Old_x = pEm->Unk122;
             Ts.vx = 0;
             Ts.vy = Pl_mag[Type].Dir + pEm->Cdir_y;
@@ -2751,7 +2751,7 @@ LONG func_800455B4(ENEMY_WORK *pEm)
             pM = &pP[4].Workm;
             pW->pSuper = pM;
             pW->pOya_parts = &pP[4];
-            CompM(pW->pSuper, (MATRIX *)pW->M, &pW->Workm);
+            CompM(pW->pSuper, PW_M(pW), &pW->Workm);
             pW->Unk7C = pEm->Unk122;
             return 1;
         }
@@ -2805,7 +2805,7 @@ ENEMY_WORK *func_800457A4(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim)
             Dist = SquareRoot0(Wk * Wk + dz * dz) * 2;
             d = Direction_ck(pPos->vx, pPos->vz, pT->Pos_x, pT->Pos_z);
             if (pT->Life >= 0 && Dir_limit((SHORT)d, Dir, Lim, (SHORT *)&Wk) == 0
-                && Sca_ck_line((VECTOR *)&pT->Pos_x, pPos, 0x40, 1) == 0 && Dist < Min) {
+                && Sca_ck_line(POS_V(pT), pPos, 0x40, 1) == 0 && Dist < Min) {
                 Min = Dist;
                 pNear = pT;
                 ppT++;
@@ -3285,7 +3285,7 @@ VECTOR *func_80047DD0(ENEMY_WORK *pEm, ULONG LL)
             if (pT->pOm->Type == 0) {
                 pM->t[1] -= 0x708;
             }
-            if (Sca_ck_line((VECTOR *)pEm->pSin_parts_ptr[pEm->Neck_no].Workm.t, (VECTOR *)pM->t, 0x40, 1) == 0 && Dist < Min) {
+            if (Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]), (VECTOR *)pM->t, 0x40, 1) == 0 && Dist < Min) {
                 Min = Dist;
                 pNear = pT;
             }

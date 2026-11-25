@@ -146,7 +146,7 @@ void func_80100680(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     SCA_HEAD *pSca;
 
     if (Guide_check_(pEm->Pos_x, pEm->Pos_z, pEm->nFloor) != 0xFF) {
-        Root_ck(pEm, (VECTOR *)&pPl->Pos_x, 0, 0);
+        Root_ck(pEm, POS_V(pPl), 0, 0);
     } else {
         pEm->Dest_x = pPl->Pos_x;
         pEm->Dest_z = pPl->Pos_z;
@@ -608,7 +608,7 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Box0[1] = 0;
             Box0[2] = 600;
             Box0[3] = 1400;
-            Area0.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+            Area0.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
             Area0.pBox = Box0;
             Area0.Dir = pEm->Cdir_y;
             if (!pEm->Water) {
@@ -624,7 +624,7 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Box1[1] = 0;
             Box1[2] = 700;
             Box1[3] = 1400;
-            Area1.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+            Area1.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
             Area1.pBox = Box1;
             Area1.Dir = pEm->Cdir_y;
             Area1.Id = 0x80;
@@ -791,7 +791,7 @@ void func_80102044(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 200;
             Sv.vz = 1200;
             Sv.pad = 1200;
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             if (!pEm->Water) {
@@ -1001,7 +1001,7 @@ LONG func_80103260(ENEMY_WORK *pEm)
             if (G.Sca_list[i]->X0 + 3500 < pEm->Pos_x && pEm->Pos_x < G.Sca_list[i]->X1 - 3500) {
                 V.vx = pEm->Pos_x - 2700;
                 V.vz = G.Sca_list[i]->Z1 + 300;
-                Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                 if (__builtin_abs(pEm->Pos_z - V.vz) < 1200 && !Ret)
                     func_8010316C(pEm, 0, &V);
                 else
@@ -1018,7 +1018,7 @@ LONG func_80103260(ENEMY_WORK *pEm)
             if (G.Sca_list[i]->Z0 + 3500 < pEm->Pos_z && pEm->Pos_z < G.Sca_list[i]->Z1 - 3500) {
                 V.vx = G.Sca_list[i]->X1 + 300;
                 V.vz = pEm->Pos_z - 2700;
-                Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                 if (__builtin_abs(pEm->Pos_x - V.vx) < 1200 && !Ret)
                     func_8010316C(pEm, 1, &V);
                 else
@@ -1035,7 +1035,7 @@ LONG func_80103260(ENEMY_WORK *pEm)
             if (G.Sca_list[i]->X0 + 3500 < pEm->Pos_x && pEm->Pos_x < G.Sca_list[i]->X1 - 3500) {
                 V.vx = pEm->Pos_x - 2700;
                 V.vz = G.Sca_list[i]->Z0 - 300;
-                Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                 if (__builtin_abs(pEm->Pos_z - V.vz) < 1200 && !Ret)
                     func_8010316C(pEm, 0, &V);
                 else
@@ -1052,7 +1052,7 @@ LONG func_80103260(ENEMY_WORK *pEm)
             if (G.Sca_list[i]->Z0 + 3500 < pEm->Pos_z && pEm->Pos_z < G.Sca_list[i]->Z1 - 3500) {
                 V.vx = G.Sca_list[i]->X0 - 300;
                 V.vz = pEm->Pos_z - 2700;
-                Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                 if (__builtin_abs(pEm->Pos_x - V.vx) < 1200 && !Ret)
                     func_8010316C(pEm, 1, &V);
                 else
@@ -1278,7 +1278,7 @@ void func_80103E40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 1400;
             Sv.pad = 1400;
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr->Workm.t;
+            Area.pPos = WORKM_POS_V(pEm->pSin_parts_ptr);
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x82;
@@ -1342,7 +1342,7 @@ void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (G.Sca_list[i]->X0 + 3500 < pEm->Pos_x && pEm->Pos_x < G.Sca_list[i]->X1 + 1900) {
                     V.vx = pEm->Pos_x - 2700;
                     V.vz = G.Sca_list[i]->Z0 - 300;
-                    Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                    Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                     if ((ULONG)(__builtin_abs(pEm->Pos_z - V.vz) - 4001) < 999 && !Ret) {
                         func_8010316C(pEm, 0, &V);
                         EM22_W(pEm)->Unk0C = V.vz - 800;
@@ -1361,7 +1361,7 @@ void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (G.Sca_list[i]->Z0 + 3500 < pEm->Pos_z && pEm->Pos_z < G.Sca_list[i]->Z1 + 1900) {
                     V.vx = G.Sca_list[i]->X0 - 300;
                     V.vz = pEm->Pos_z - 2700;
-                    Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                    Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                     if ((ULONG)(__builtin_abs(pEm->Pos_x - V.vx) - 4001) < 999 && !Ret) {
                         func_8010316C(pEm, 1, &V);
                         EM22_W(pEm)->Unk0A = V.vx - 800;
@@ -1380,7 +1380,7 @@ void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (G.Sca_list[i]->X0 + 3500 < pEm->Pos_x && pEm->Pos_x < G.Sca_list[i]->X1 + 1900) {
                     V.vx = pEm->Pos_x - 2700;
                     V.vz = G.Sca_list[i]->Z1 + 300;
-                    Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                    Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                     if ((ULONG)(__builtin_abs(pEm->Pos_z - V.vz) - 4001) < 999 && !Ret) {
                         func_8010316C(pEm, 0, &V);
                         EM22_W(pEm)->Unk0C = V.vz + 800;
@@ -1399,7 +1399,7 @@ void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (G.Sca_list[i]->Z0 + 3500 < pEm->Pos_z && pEm->Pos_z < G.Sca_list[i]->Z1 - 3500) {
                     V.vx = G.Sca_list[i]->X1 + 300;
                     V.vz = pEm->Pos_z - 2700;
-                    Ret = Sca_ck_line((VECTOR *)&pEm->Pos_x, &V, -1, 3);
+                    Ret = Sca_ck_line(POS_V(pEm), &V, -1, 3);
                     if ((ULONG)(__builtin_abs(pEm->Pos_x - V.vx) - 4001) < 999 && !Ret) {
                         func_8010316C(pEm, 1, &V);
                         EM22_W(pEm)->Unk0A = V.vx + 800;
@@ -1531,7 +1531,7 @@ void func_80104A10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vz = 1000;
             Sv.vy = 0;
             Sv.pad = 1400;
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             if (!pEm->Water) {
@@ -1651,8 +1651,8 @@ LONG func_80104FF0(ENEMY_WORK *pEm)
     V0.vx += pEm->Pos_x;
     V0.vy += pEm->Unk122;
     V0.vz += pEm->Pos_z;
-    Sca_ck_line((VECTOR *)&pEm->Pos_x, &V1, 0x200, 2);
-    return Sca_ck_line((VECTOR *)&pEm->Pos_x, &V0, 0x200, 2) ^ 3;
+    Sca_ck_line(POS_V(pEm), &V1, 0x200, 2);
+    return Sca_ck_line(POS_V(pEm), &V0, 0x200, 2) ^ 3;
 }
 
 /* think routine 15 */
@@ -1760,7 +1760,7 @@ void func_801055B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Be_flg &= ~0x30;
         pEm->Routine_2++;
         Snd_se_enem(2, pEm);
-        Snd_se_stad(0x10204, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10204, POS_V(pEm), 0, 0);
         pEm->UnkDA = 0;
         pEm->Pos_y = 1800;
     case 2:
@@ -2853,10 +2853,10 @@ void func_80108680(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
     case 0:
         if (pPl->Routine_3) {
             EM_SET_MOVE(pPl, 3, 0, 7);
-            Snd_se_stad(0x10002, (VECTOR *)&pPl->Pos_x, 0, 0);
+            Snd_se_stad(0x10002, POS_V(pPl), 0, 0);
         } else {
             EM_SET_MOVE(pPl, 2, 0, 7);
-            Snd_se_stad(0x10001, (VECTOR *)&pPl->Pos_x, 0, 0);
+            Snd_se_stad(0x10001, POS_V(pPl), 0, 0);
         }
         pPl->Timer0 = 200;
         pPl->UnkDA = 0;
@@ -2946,7 +2946,7 @@ void func_80108AAC(ENEMY_WORK *pEm)
     PARTS_W *pP;
 
     pP = pEm->pSin_parts_ptr;
-    CompM((MATRIX *)pEm->Workm_m, (MATRIX *)pP->M, &pP->Workm);
+    CompM((MATRIX *)pEm->Workm_m, PW_M(pP), &pP->Workm);
     Pos.vx = pP->Workm.t[0];
     Pos.vy = pEm->Water;
     Pos.vz = pP->Workm.t[2];

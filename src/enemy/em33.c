@@ -1188,7 +1188,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 1200;
             Sv.pad = 1200;
-            Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
+            Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x85;

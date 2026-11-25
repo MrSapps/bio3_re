@@ -326,17 +326,18 @@ STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
 
 /*
  * Vector views of field runs (gcc 2.8 has no anonymous unions, so these stay views).
- * Work types with Cdir_x/y/z + dummy01 (ENEMY_WORK, PARTS_W): CDIR_SV is that run as an SVECTOR.
- * ENEMY_WORK: Spd_x/y/z + UnkC6/C7 as an SVECTOR, Pos_x/y/z as a VECTOR, and Workm_m + Pos as
+ * Work types with Cdir_x/y/z + dummy01 (ENEMY_WORK, PARTS_W): CDIR_SV is that run as an SVECTOR;
+ * with Pos_x/y/z (ENEMY_WORK world position, PARTS_W offset from the parent): POS_V as a VECTOR.
+ * ENEMY_WORK: Spd_x/y/z + UnkC6/C7 as an SVECTOR, and Workm_m + Pos as
  * the work matrix (RE2 Workm). PARTS_W: M[3][3] + Pos_x/y/z is the local matrix, Workm.t the
  * world position as a VECTOR (the pad word after it is Cdir_x/y, never used by the callees).
  */
 #define CDIR_SV(p)   ((SVECTOR *)&(p)->Cdir_x)
 #define EM_SPD_SV(p) ((SVECTOR *)&(p)->Spd_x)
-#define EM_POS_V(p)  ((VECTOR *)&(p)->Pos_x)
+#define POS_V(p)  ((VECTOR *)&(p)->Pos_x)
 #define EM_WORKM(p)  ((MATRIX *)(p)->Workm_m)
 #define PW_M(p)      ((MATRIX *)(p)->M)
-#define PW_POS_V(p)  ((VECTOR *)(p)->Workm.t)
+#define WORKM_POS_V(p) ((VECTOR *)(p)->Workm.t) /* world position (Workm.t) of a work or part */
 
 /* G: global work area (RE2 struct tagGLOBAL, 0x800CC1E8 in RE2) */
 struct tagROOM_WORK;

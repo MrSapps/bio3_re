@@ -788,9 +788,9 @@ void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
         Body_dir_y = pOwn_parts->Cdir_y;
         pEn_parts = pNeck_enemy->pSin_parts_ptr;
         pEn_p = &pEn_parts[Enemy_neck_no];
-        Neck_tgt = *PW_POS_V(pEn_p);
+        Neck_tgt = *WORKM_POS_V(pEn_p);
         Dir_sum = Cdir_y + Body_dir_y;
-        Neck_Dir_ZY(PW_POS_V(pOwn_p), &Neck_tgt, &Neck_rot, Dir_sum);
+        Neck_Dir_ZY(WORKM_POS_V(pOwn_p), &Neck_tgt, &Neck_rot, Dir_sum);
         if (pPm->Neck_flg & 2) {
             Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
         }
@@ -856,9 +856,9 @@ void Rot_neck_em_n(ENEMY_WORK *pPm, SHORT Cdir_y, SHORT *pDir)
         Body_dir_y = pOwn_parts->Cdir_y;
         pEn_parts = pNeck_enemy->pSin_parts_ptr;
         pEn_p = &pEn_parts[Enemy_neck_no];
-        Neck_tgt = *PW_POS_V(pEn_p);
+        Neck_tgt = *WORKM_POS_V(pEn_p);
         Dir_sum = Cdir_y + Body_dir_y;
-        Neck_Dir_ZY(PW_POS_V(pOwn_p), &Neck_tgt, &Neck_rot, Dir_sum);
+        Neck_Dir_ZY(WORKM_POS_V(pOwn_p), &Neck_tgt, &Neck_rot, Dir_sum);
         if (pPm->Neck_flg & 2) {
             Neck_rot.vy = Cdir_y + pOwn_p->Cdir_y + Body_dir_y;
         }
