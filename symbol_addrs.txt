@@ -1391,3 +1391,4 @@ Sce_Heal = 0x80051D28; // type:func
 Heal_entrance = 0x80051D60; // type:func
 Em_kind_tbl = 0x8009E340;
 Ctrl_mode = 0x800D442C;
+Rbj_id = 0x800E017F;

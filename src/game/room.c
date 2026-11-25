@@ -121,7 +121,7 @@ void Set_room(void)
         D_800E0186[0] = 0;
     }
     Sce_scheduler_set();
-    if (G.Em_num != 0 || D_800E017F != 0xFF || G.pEnemy[1]->Be_flg != 0) {
+    if (G.Em_num != 0 || Rbj_id != 0xFF || G.pEnemy[1]->Be_flg != 0) {
         Cd_read(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
@@ -156,7 +156,7 @@ void func_800498F0(void)
     ENEMY_WORK *pEm;
 
     No = 0;
-    if (D_800E017F == 0xFF) {
+    if (Rbj_id == 0xFF) {
         return;
     }
     pEdd = G.pRoom->pEdd;

@@ -7,12 +7,12 @@
 #include "sce2.h"
 #include "sce_at.h"
 
-int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* returns int here (canonical void); unprototyped call */
+int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* Capcom called it undeclared here (implicit int); Kage_set differs with the void prototype */
 
-extern UCHAR D_800D442C_[] __asm__("Ctrl_mode"); /* type differs from the canonical extern */
-s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* arg 2 UC (canonical signed char) */
-LONG Quake_add_() __asm__("Quake_add"); /* returns long here (canonical void); unprototyped call */
-LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* returns long here (canonical void) */
+extern UCHAR Ctrl_mode_a[] __asm__("Ctrl_mode"); /* stored through an array: pSce->Data is reloaded after it */
+s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* Item_get_ck passes the start slot unsigned (andi, not sll/sra) */
+LONG Quake_add_() __asm__("Quake_add"); /* Capcom called it undeclared here (implicit int); Sce_quake_add differs with the void prototype */
+LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* int-returning here (implicit declaration in Capcom's file); Chaser_evt_clr differs with void */
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
@@ -1287,7 +1287,7 @@ ULONG Cut_flg_set(SCE_TASK *pSce)
 
 void Sce_ctrl_mode_set(SCE_TASK *pSce)
 {
-    D_800D442C_[0] = pSce->Data[1];
+    Ctrl_mode_a[0] = pSce->Data[1];
     pSce->Data += 2;
 }
 

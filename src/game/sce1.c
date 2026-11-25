@@ -7,14 +7,9 @@
 #include "movie.h"
 #include "sce1.h"
 
-extern UCHAR D_800E017F_[] __asm__("D_800E017F"); /* type differs from the canonical extern */
-extern UCHAR D_800D442E_[] __asm__("D_800D442E"); /* type differs from the canonical extern */
-LONG func_80048974_() __asm__("func_80048974"); /* returns long here (canonical void); unprototyped call */
-LONG Pad_vib_set0_() __asm__("Pad_vib_set0"); /* returns long here (canonical void); unprototyped call */
-LONG Pad_vib_set1_() __asm__("Pad_vib_set1"); /* returns long here (canonical void); unprototyped call */
-LONG Pad_vib_fade_set_() __asm__("Pad_vib_fade_set"); /* returns long here (canonical void); unprototyped call */
-LONG Xa_play_() __asm__("Xa_play"); /* returns long here (canonical void); unprototyped call */
-LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* returns long here (canonical void) */
+extern UCHAR Rbj_id_a[] __asm__("Rbj_id"); /* Sce_rbj_set stores through an array: pSce->Data is reloaded after it */
+extern UCHAR D_800D442E_a[] __asm__("D_800D442E"); /* stored through an array view here (see Rbj_id_a) */
+LONG Set_view_(LONG *pPos, LONG *pTgt) __asm__("Set_view"); /* Capcom called it undeclared here (implicit int): Add_vspeed needs the int return */
 
 /* RE2 Nop / Break_point */
 ULONG Nop(SCE_TASK *pSce)
@@ -1334,7 +1329,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
     Cut_chg_main(Cut & 0x7F);
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
-        D_800D442E_[0] = 0;
+        D_800D442E_a[0] = 0;
         D_800E01C6[0] = 1;
     }
     pSce->Data += 2;
@@ -1355,7 +1350,7 @@ void Cut_chg_main(ULONG Cut)
 
     Old = G.Cut_no;
     G.Cut_no = Cut;
-    D_800D442E_[0] = 1;
+    D_800D442E_a[0] = 1;
     D_800E0175[0] = Old;
     Cut_change(Cut);
 }
@@ -1445,7 +1440,7 @@ ULONG Dir_set(SCE_TASK *pSce)
 /* RE2 Vib_set0 */
 ULONG Vib_set0(SCE_TASK *pSce)
 {
-    Pad_vib_set0_(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set0(((USHORT *)pSce->Data)[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
     return 1;
 }
@@ -1453,7 +1448,7 @@ ULONG Vib_set0(SCE_TASK *pSce)
 /* RE2 Vib_set1 */
 ULONG Vib_set1(SCE_TASK *pSce)
 {
-    Pad_vib_set1_(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
+    Pad_vib_set1(((USHORT *)pSce->Data)[1], pSce->Data[1], ((USHORT *)pSce->Data)[2]);
     pSce->Data += 6;
     return 1;
 }
@@ -1461,14 +1456,14 @@ ULONG Vib_set1(SCE_TASK *pSce)
 /* RE2 Vib_fade_set */
 ULONG Vib_fade_set(SCE_TASK *pSce)
 {
-    Pad_vib_fade_set_(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
+    Pad_vib_fade_set(((USHORT *)pSce->Data)[2], pSce->Data[2], pSce->Data[3], ((USHORT *)pSce->Data)[3]);
     pSce->Data += 8;
     return 1;
 }
 
 ULONG Sce_rbj_set(SCE_TASK *pSce)
 {
-    D_800E017F_[0] = pSce->Data[1];
+    Rbj_id_a[0] = pSce->Data[1];
     pSce->Data += 2;
     return 1;
 }
@@ -1495,7 +1490,7 @@ ULONG Message_off(SCE_TASK *pSce)
 
 ULONG Sce_rain_set(SCE_TASK *pSce)
 {
-    func_80048974_(pSce->Data[1]);
+    func_80048974(pSce->Data[1]);
     pSce->Data += 2;
     return 1;
 }
@@ -1711,7 +1706,7 @@ ULONG Xa_on(SCE_TASK *pSce)
     No = pSce->Data[1];
     Ofs = ((USHORT *)pSce->Data)[1];
     G.Status_flg |= STAT_XA_VOICE;
-    Xa_play_(No, Ofs);
+    Xa_play(No, Ofs);
     pSce->Data += 4;
     return 1;
 }

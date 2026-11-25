@@ -753,7 +753,7 @@ void Cd_edd_search(void)
     pEnt = CD_DIR;
     pG = &G;
     pCd = &CD;
-    Key = D_800E017F | 0x80;
+    Key = Rbj_id | 0x80;
     pCd->Load_flg |= 1;
     do {
         if (pEnt->Id == Key) {
