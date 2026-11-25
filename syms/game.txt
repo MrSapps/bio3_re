@@ -390,3 +390,22 @@ PadStartCom = 0x800912C4;
 InitCARD = 0x80094374;
 StartCARD = 0x800943C8;
 DecDCToutSync = 0x8008FAD4;
+Spd_get2 = 0x80018EC8; // type:func em_sub: Spd_get on interpolated frames (func_8002B2BC), like get_null_pos2
+Spd_get_sub = 0x80019178; // type:func em_sub: Spd_get for the second motion slot (ENEMY_WORK 0x1A0/0x1A1)
+Now_seq_set = 0x8001AD78; // type:func em_sub: pNow_seq = current seq frame, skipping interpolated (0x100) frames
+Hit_area_parts_set = 0x8001AECC; // type:func em_sub: Hit_area Top/Bottom from two parts' heights (part | ofs << 16)
+Em_work_search = 0x8001B048; // type:func em_sub: last enemy in pEnemy[2..] with the given Id
+Esp_call_child = 0x8001B35C; // type:func esp: Esp_call from a running effect; the child inherits pEm and is positioned at once
+Esp_speed_add = 0x8001BC80; // type:func esp: Mov += Spd, Spd += Acc (the Be_flg 2 part of RE2 Esp_pos)
+Esp_hit_ck = 0x8001BFCC; // type:func esp: water, floor and wall checks, sets Flg2 hit bits
+Esp_anm_move = 0x8001C168; // type:func esp: sprite sequence step (the Be_flg 1 part of RE2 Esp_pos)
+Esp_work_get = 0x8001C254; // type:func esp: free Esp[] slot (else one with Be_flg 8), cleared
+Esp_search = 0x8001C2DC; // type:func esp: running effect by id (0xFFnn: by kind byte only)
+Esp_at_tbl = 0x80097FCC; // HIT_ATTR *[] attack data of the effects that hurt (index by effect)
+pEsp_top = 0x80098084; // ESP_WORK * = Esp (start of the pool, Esp_task_main)
+pEsp_end = 0x80098088; // ESP_WORK * = &Esp[96]
+pEsp_top2 = 0x8009808C; // ESP_WORK * = Esp (second copy, Esp_04)
+pEsp_end2 = 0x80098090; // ESP_WORK * = &Esp[96]
+Rnd_tbl = 0x80098728; // UCHAR[256] random bytes, indexed by Rnd()
+Rsin_tbl = 0x80098828; // signed char[256] sine, +-127
+Esp_data = 0x800BA728; // ESP_DATA[32] effect data per id: [0..15] core (CORE00.ESP), [16..31] room; RE2 Espid/pEspdt/pEspmv

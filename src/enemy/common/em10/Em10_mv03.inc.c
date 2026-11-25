@@ -140,11 +140,11 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt |= 0x80;
         break;
     case 7:
-        func_80018EC8(pEm, pKan, pSeq, 0);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_2 = 8;
     case 8:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
         pEm->Spd_x -= 10;
         Add_speedXZ(pEm, 0);

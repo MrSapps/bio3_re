@@ -158,7 +158,7 @@ void func_80100680(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em22_think_tbl[pEm->Routine_1](pEm);
     Em22_move_tbl[pEm->Routine_1](pEm, pKan, pSeq);
     EM22_W(pEm)->Old_spd_x = pEm->Spd_x;
-    func_8001AECC(pEm, 0xFCE00001, 0x1F40010);
+    Hit_area_parts_set(pEm, 0xFCE00001, 0x1F40010);
     if (EM22_W(pEm)->Unk1B)
         EM22_W(pEm)->Unk1B--;
     if (EM22_W(pEm)->Unk26)
@@ -246,9 +246,9 @@ void func_80100A54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 0, 0, 0xF);
         EM22_W(pEm)->Unk02 = 0;
         pEm->Routine_2 = 1;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x100);
     }
     Add_speedXZ(pEm, 0);
@@ -395,9 +395,9 @@ void func_801011BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         pEm->Timer0 = (Rnd_l() & 0x1F) + 300;
         pEm->Routine_2 = 2;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
     case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x100);
         if (--pEm->Timer0 == 0) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
@@ -519,9 +519,9 @@ void func_80101858(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 5, 0, 0xF);
         pEm->Routine_2 = 1;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x100);
     }
     Add_speedXZ(pEm, 0);
@@ -586,14 +586,14 @@ void func_80101AAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 3, 0, 3);
         pEm->Routine_2 = 1;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->UnkE2 = 0;
         EM22_W(pEm)->Unk17 = 0;
         func_8002646C_(pEm, 400, 40, pEm->Col.Unk39);
     case 1:
         if (EM22_W(pEm)->Unk17 == 4)
             Snd_se_enem(9, pEm);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x400)) {
             pEm->pSin_parts_ptr[11].Poly_rgb = 0x808080;
             pEm->pSin_parts_ptr[12].Poly_rgb = 0x808080;
@@ -717,7 +717,7 @@ void func_80102044(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 4, 0, 7);
         pEm->Routine_2 = 1;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         EM22_W(pEm)->Unk08 = 1;
         pEm->UnkDA = 0;
         pEm->UnkE2 = 0;
@@ -742,7 +742,7 @@ void func_80102044(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (EM22_W(pEm)->Unk17 == 18)
             Snd_se_enem(10, pEm);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (pEm->Unk152 < (LONG)pEm->Unk154) {
             if (EM22_W(pEm)->Unk1E < 280)
                 EM22_W(pEm)->Unk1E += 40;
@@ -890,7 +890,7 @@ void func_8010283C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         pEm->Routine_2 = 1;
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         End = Joint_move(pEm, pKan, pSeq, 0x100);
         Spd = EM22_W(pEm)->Unk19;
         if (Spd < 33) {
@@ -1111,11 +1111,11 @@ void func_801036B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_MOVE(pEm, 0x14, 0, 5);
         pEm->UnkE2 = 0;
         pEm->Routine_2++;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
     case 3:
         Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x40);
         if (pEm->Move_cnt == 14) {
-            func_80018EC8(pEm, pKan, pSeq, 0);
+            Spd_get2(pEm, pKan, pSeq, 0);
             pEm->Be_flg &= 0xFFFF7FFF;
         }
         if (pEm->Move_cnt >= 6 && pEm->Move_cnt < 14) {
@@ -1124,7 +1124,7 @@ void func_801036B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_z = EM22_W(pEm)->Unk2E
                 + (EM22_W(pEm)->Unk0C - EM22_W(pEm)->Unk2E) * Em22_jump_tbl[pEm->Move_cnt - 6] / 31;
         } else {
-            func_80018EC8(pEm, pKan, pSeq, 0);
+            Spd_get2(pEm, pKan, pSeq, 0);
             if (pEm->Move_cnt == 0) {
                 pEm->Spd_z = 0;
                 pEm->Spd_x = 0;
@@ -1177,7 +1177,7 @@ void func_80103B3C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM22_W(pEm)->Unk26 = (Rnd_l() & 0x1F) + 120;
         pEm->Routine_2++;
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200))
             pEm->Routine_2++;
         Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 8);
@@ -1219,7 +1219,7 @@ void func_80103CBC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2++;
     case 1:
         EM22_W(pEm)->Old_spd_x = 0;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200) || --EM22_W(pEm)->Unk03 == 0) {
             if (!Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x200) && (LONG)pEm->Unk154 > 1200
                 && (LONG)pEm->Unk154 < 4600 && (EM22_W(pEm)->Unk28 || pPl->Routine_1 == 5))
@@ -1265,7 +1265,7 @@ void func_80103E40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM22_W(pEm)->Unk08 = 0;
             Snd_se_enem(4, pEm);
         }
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             pEm->UnkDA = (Rnd_l() & 0x1F) + 30;
             EM22_W(pEm)->Unk02 = 0;
@@ -1427,7 +1427,7 @@ void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM22_W(pEm)->Unk1C = pEm->Pos_y;
         break;
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Cdir_y = EM22_W(pEm)->Unk00;
         if (pEm->Move_cnt == 11 && (Rnd_l() & 3))
             EM_SET_RTN(pEm, 1, 9, 0, 0);
@@ -1479,7 +1479,7 @@ void func_8010486C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vz = Rnd_l() & 0x1F;
             Esp_call(0x500, (USHORT)pEm->Cdir_y | 0x10000000, &pPl->pSin_parts_ptr[1].Workm, &Sv, 0);
         }
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x200);
         Add_speedXZ(pEm, 0);
     }
@@ -1765,7 +1765,7 @@ void func_801055B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_y = 1800;
     case 2:
         func_80106118(pEm);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Pos_y = pEm->Move_cnt < 18 ? pEm->Pos_y - 100 : pEm->Pos_y;
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             EM22_W(pEm)->Unk02 = 1;
@@ -1805,7 +1805,7 @@ void func_80105730(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkDA = 0;
         EM22_W(pEm)->Unk08 = 1;
     case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Pos_y = pEm->Move_cnt < 20 ? pEm->Pos_y + pEm->Unk14A : pEm->Pos_y;
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
@@ -1853,9 +1853,9 @@ void func_8010598C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkDA = 0;
         EM22_W(pEm)->Unk08 = 1;
         pEm->Unk122 = pEm->Add_dir;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
     case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (pEm->Move_cnt < 22) {
             pEm->Cdir_y += pEm->Unk14C;
             pEm->Pos_y += pEm->Unk14A;
@@ -1918,7 +1918,7 @@ void func_80105C64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 2:
         if (pEm->UnkDA == 1 && pEm->Move_cnt == 15)
             pEm->Unk122 = 0;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Jump[pEm->UnkDA])
             pEm->Pos_y += pEm->Unk14A;
         else
@@ -2233,7 +2233,7 @@ void func_80106D08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_3++;
         Snd_se_enem(6, pEm);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Spd_x += EM22_W(pEm)->Old_spd_x;
         Spd = EM22_W(pEm)->Old_spd_x;
         if (Spd) {
@@ -2289,7 +2289,7 @@ void func_80106F8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Snd_se_enem(6, pEm);
         EM22_W(pEm)->Unk1E = 0;
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             if (!(Rnd_l() & 3))
                 pEm->Routine_3++;
@@ -2339,10 +2339,10 @@ void func_80106F8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_MOVE(pEm, 0xD, 0, 7);
         else
             EM_SET_MOVE(pEm, 0xC, 0, 7);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_3++;
     case 5:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (EM22_W(pEm)->Unk22) {
             if (pEm->Move_cnt == 27) {
                 Snd_se_enem(8, pEm);
@@ -2455,7 +2455,7 @@ void func_80107448(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE3 = 0;
         pEm->Routine_2++;
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Timer0 = 1;
         pEm->Routine_1 = Rnd_l() & 3;
         if (!(Rnd_l() & 3))

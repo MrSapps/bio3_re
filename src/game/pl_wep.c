@@ -2694,10 +2694,10 @@ LONG Pl_wep_eff_parts_init(ENEMY_WORK *pEm)
         pP->Unk74 = 0xFF;
         pP->Be_flg = 0;
         pP->Unk90 = 0;
-        func_8001B894(0x103, &pP->Workm);
-        func_8001B894(0xC03, &pP->Workm);
-        func_8001B894(0x105, &pP->Workm);
-        func_8001B894(0x805, &pP->Workm);
+        Esp_kill(0x103, &pP->Workm);
+        Esp_kill(0xC03, &pP->Workm);
+        Esp_kill(0x105, &pP->Workm);
+        Esp_kill(0x805, &pP->Workm);
         pP++;
     } while (--i != 0);
     return 0;

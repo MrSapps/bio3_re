@@ -22,7 +22,7 @@
 #define OPT_FRAME_SET()                                                   \
     {                                                                     \
         Opt.Timer += 4;                                                   \
-        Opt.Kido = D_80098828[Opt.Timer] / 3 - 0x80;                      \
+        Opt.Kido = Rsin_tbl[Opt.Timer] / 3 - 0x80;                      \
         Opt.pMoji = (SPRT *)Opt.Moji_prim[G.Cbuf_id];                     \
         Opt.pIcon = Opt.Icon[G.Cbuf_id];                                  \
     }

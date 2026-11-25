@@ -5,7 +5,7 @@
 #include "em_sub.h"
 #include "esp.h"
 
-/* effect burst table entry (func_8002198C) */
+/* effect burst table entry (Esp_34) */
 typedef struct tagESP_TBL16 {
     SHORT Size;                        /* 0x0 */
     SHORT Id;                          /* 0x2 0: skip, 0xFF: end */
@@ -23,39 +23,39 @@ extern SHORT D_8009807C[];
 extern ESP_TBL16 D_80098094[];
 extern ESP_TBL16 D_800982C4[];
 extern ESP_TBL16 D_80098494[];
-extern ULONG D_800986C4[]; /* scale curve (func_80021D58) */
+extern ULONG D_800986C4[]; /* scale curve (Esp_35) */
 extern ENEMY_WORK *D_800DEB80;
 
-void func_80020298(ESP_WORK *pEsp);
-void func_800204B8(ESP_WORK *pEsp);
-void func_80020700(ESP_WORK *pEsp);
-void func_80020820(ESP_WORK *pEsp);
-void func_800209D8(ESP_WORK *pEsp);
-void func_80020B6C(ESP_WORK *pEsp);
-void func_80020C0C(ESP_WORK *pEsp);
-void func_80020DBC(ESP_WORK *pEsp);
-void func_80020EB8(ESP_WORK *pEsp);
-void func_80021548(ESP_WORK *pEsp);
-void func_8002174C(ESP_WORK *pEsp);
-void func_80021784(void);
-void func_8002178C(void);
-void func_80021794(void);
-void func_8002179C(void);
-void func_800217A4(void);
-void func_800217AC(void);
-void func_800217B4(ESP_WORK *pEsp);
-void func_800218BC(ESP_WORK *pEsp);
-void func_8002198C(ESP_WORK *pEsp);
-void func_80021D58(ESP_WORK *pEsp);
-void func_80021EA4(void);
-void func_80021EAC(ESP_WORK *pEsp);
-void func_800221F0(ESP_WORK *pEsp);
-void func_80022398(void);
-void func_800223A0(void);
-void func_800223A8(ESP_WORK *pEsp);
-void func_80022500(ESP_WORK *pEsp);
-void func_80022660(void);
-void func_80022668(ESP_WORK *pEsp);
-void func_8002289C(ESP_WORK *pEsp);
+void Esp_21(ESP_WORK *pEsp);
+void Esp_22(ESP_WORK *pEsp);
+void Esp_23(ESP_WORK *pEsp);
+void Esp_24(ESP_WORK *pEsp);
+void Esp_25(ESP_WORK *pEsp);
+void Esp_26(ESP_WORK *pEsp);
+void Esp_27(ESP_WORK *pEsp);
+void Esp_28(ESP_WORK *pEsp);
+void Esp_29(ESP_WORK *pEsp);
+void Esp_2a(ESP_WORK *pEsp);
+void Esp_2b(ESP_WORK *pEsp);
+void Esp_2c(void);
+void Esp_2d(void);
+void Esp_2e(void);
+void Esp_2f(void);
+void Esp_30(void);
+void Esp_31(void);
+void Esp_32(ESP_WORK *pEsp);
+void Esp_33(ESP_WORK *pEsp);
+void Esp_34(ESP_WORK *pEsp);
+void Esp_35(ESP_WORK *pEsp);
+void Esp_36(void);
+void Esp_37(ESP_WORK *pEsp);
+void Esp_38(ESP_WORK *pEsp);
+void Esp_39(void);
+void Esp_3a(void);
+void Esp_3b(ESP_WORK *pEsp);
+void Esp_3c(ESP_WORK *pEsp);
+void Esp_3d(void);
+void Esp_3e(ESP_WORK *pEsp);
+void Esp_3f(ESP_WORK *pEsp);
 
 #endif /* ESP_R_H */

@@ -216,7 +216,7 @@ void Die_move_slow(void)
             pG->Ob_model[i].Be_flg = 0;
         }
         Bg_set_mode(1, 0);
-        func_8001B894(0x2000000, NULL);
+        Esp_kill(0x2000000, NULL);
         pGw = &G;
         pGw->Player.Be_flg |= 0x2000;
         n = pGw->pRoom->nOmodel;

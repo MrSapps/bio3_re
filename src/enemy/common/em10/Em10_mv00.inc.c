@@ -10,7 +10,7 @@ void Em10_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Move_cnt = (Rnd_l() & 0xF) << 1;
         Spd_get(pEm, pKan, pSeq, 0);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             if (!pEm->Move_no) {
                 if (!(Rnd_l() & 0xF)) {

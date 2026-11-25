@@ -1161,9 +1161,9 @@ void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Unk144 & 0x40) {
             pEm->Hokan_flg = 0;
         }
-        func_80018EC8(pEm, pKan, pSeq, *(UCHAR *)&pEm->Unk144 >> 7);
+        Spd_get2(pEm, pKan, pSeq, *(UCHAR *)&pEm->Unk144 >> 7);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, *(UCHAR *)&pEm->Unk144 >> 7);
+        Spd_get2(pEm, pKan, pSeq, *(UCHAR *)&pEm->Unk144 >> 7);
         if (pEm->Unk144 & 0x10) {
             pEm->Spd_x >>= 1;
             pEm->Spd_y >>= 1;

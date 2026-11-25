@@ -7,7 +7,7 @@ void Em34_sce05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         EM_MOVE(pEm) = pEm->Add_dir;
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x400);
         Add_speedXZ(pEm, 0);
         break;

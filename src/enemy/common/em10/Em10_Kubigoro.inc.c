@@ -39,7 +39,7 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
         if (pP->Unk85-- == 0) {
             EM10_W(pEm)->Flg &= 0xFEFF;
             pP->Be_flg = 0;
-            func_8001B894(0x305, &pP->Workm);
+            Esp_kill(0x305, &pP->Workm);
             return;
         }
     }
@@ -54,7 +54,7 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
         if (pP->Unk85-- == 0) {
             EM10_W(pEm)->Flg &= 0xFEFF;
             pP->Be_flg = 0;
-            func_8001B894(0x305, &pP->Workm);
+            Esp_kill(0x305, &pP->Workm);
         }
     }
 }

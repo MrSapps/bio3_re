@@ -41,7 +41,7 @@ typedef struct tagEM3E_FREE {
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
-extern signed char Rsin_tbl[256] __asm__("D_80098828"); /* 0x80098828 sine, 256 steps, +-127 */
+extern signed char Rsin_tbl[256] __asm__("Rsin_tbl"); /* 0x80098828 sine, 256 steps, +-127 */
 
 extern void (*Em3e_routine_0[8])();
 extern void (*Em3e_move_tbl[2])();

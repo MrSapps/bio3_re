@@ -391,9 +391,9 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80018EC8);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get2);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_80019178);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get_sub);
 
 void Em_seq_sound(ENEMY_WORK *pEm)
 {
@@ -885,7 +885,7 @@ void Neck_Dir_ZY(VECTOR *pA, VECTOR *pB, SVECTOR *pRot, SHORT Front_dir_y)
     }
 }
 
-void func_8001AD78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
+void Now_seq_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 {
     USHORT *pSeq;
     ULONG f_num;
@@ -926,7 +926,7 @@ void Em_dead_flg_on_cand(ENEMY_WORK *pEm)
     }
 }
 
-void func_8001AECC(ENEMY_WORK *pEm, ULONG a1, ULONG a2)
+void Hit_area_parts_set(ENEMY_WORK *pEm, ULONG a1, ULONG a2)
 {
     PARTS_W *pParts = pEm->pSin_parts_ptr;
     USHORT y = *(USHORT *)(pEm->pUnk13C + 0x18);
@@ -953,7 +953,7 @@ ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc)
     return pG->pEnemy[i];
 }
 
-ENEMY_WORK *func_8001B048(ULONG Id)
+ENEMY_WORK *Em_work_search(ULONG Id)
 {
     ENEMY_WORK **ppEm;
     ENEMY_WORK *pRet = NULL;
@@ -979,13 +979,13 @@ void Esp_init_C(void)
         i--;
         Esp[i].Be_flg = 0;
     }
-    pT = &D_800BA728[32];
+    pT = &Esp_data[32];
     do {
         pT--;
         pT->Id = 0xFF;
         pT->pData = NULL;
         pT->pData2 = NULL;
-    } while (pT > D_800BA728);
+    } while (pT > Esp_data);
     i = Cd_read(0x14, (ULONG *)0x801FC200, 0, "CORE00.ESP");
     pEnd = (ULONG *)0x801FC200;
     pEnd += i >> 2;
@@ -1032,7 +1032,7 @@ ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode)
     if ((UCHAR)Mode != 0) {
         pT = D_800BA7E8;
     } else {
-        pT = D_800BA728;
+        pT = Esp_data;
     }
     do {
         c = pData[i];
@@ -1070,7 +1070,7 @@ void Esp_data_set1(ULONG *pTim)
     DrawSync(0);
 }
 
-ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd)
+ESP_WORK *Esp_call_child(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd)
 {
     SVECTOR sv;
     ESP_WORK *pEw;
@@ -1097,29 +1097,29 @@ ESP_WORK *func_8001B35C(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG 
     if (pEw != ESP_NONE) {
         pEw->pEm = pParent->pEm;
         pEw->Unk32 = 0;
-        func_8001BCFC(pEw);
+        Esp_pos_matrix(pEw);
         pEw->Old.vx = pEw->Pos.vx;
         pEw->Old.vy = pEw->Pos.vy;
         pEw->Old.vz = pEw->Pos.vz;
         pEw->Pos.pad = pParent->pEm->Pos_y;
         if (pEw->Attr & 0x10) {
-            func_8001BFCC(pEw);
+            Esp_hit_ck(pEw);
         }
     }
     return pEw;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001B484);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_call);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001B894);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_kill);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BA48);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_ctrl);
 
 void Esp_task_main(void)
 {
     ESP_WORK *pEw;
 
-    for (pEw = D_80098088 - 1; pEw >= D_80098084; pEw--) {
+    for (pEw = pEsp_end - 1; pEw >= pEsp_top; pEw--) {
         if (!(G.Unk2468 & 0x10000000) || pEw->Id.B[0] == 0x15 || pEw->Id.B[0] == 0x1B) {
             if (pEw->Be_flg & 0x8000) {
                 if (pEw->pLink != NULL && pEw->pLink->Be_flg == 0) {
@@ -1128,16 +1128,16 @@ void Esp_task_main(void)
                     pEw->Be_flg = 0;
                 } else {
                     if (pEw->Routine_0 != 0) {
-                        D_80097BD4[pEw->Routine_0](pEw);
+                        Esp_tblj[pEw->Routine_0](pEw);
                     }
                     pEw->Flg2 &= 0xFF00;
                     if (pEw->Be_flg & 2) {
-                        func_8001BC80(pEw);
-                        func_8001BCFC(pEw);
-                        func_8001BFCC(pEw);
+                        Esp_speed_add(pEw);
+                        Esp_pos_matrix(pEw);
+                        Esp_hit_ck(pEw);
                     }
                     if (pEw->Be_flg & 1) {
-                        func_8001C168(pEw);
+                        Esp_anm_move(pEw);
                     }
                 }
             }
@@ -1145,11 +1145,11 @@ void Esp_task_main(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BC80);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_speed_add);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001BCFC);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_pos_matrix);
 
-void func_8001BFCC(ESP_WORK *pEw)
+void Esp_hit_ck(ESP_WORK *pEw)
 {
     LONG y;
     LONG y0;
@@ -1191,7 +1191,7 @@ void func_8001BFCC(ESP_WORK *pEw)
     }
 }
 
-void func_8001C168(ESP_WORK *pEw)
+void Esp_anm_move(ESP_WORK *pEw)
 {
     SSEQUENCE *pSeq;
 
@@ -1223,7 +1223,7 @@ end:
     pEw->Timer--;
 }
 
-UCHAR *func_8001C254(void)
+UCHAR *Esp_work_get(void)
 {
     UCHAR *p;
 
@@ -1247,7 +1247,7 @@ found:
     return p;
 }
 
-ESP_WORK *func_8001C2DC(USHORT Id)
+ESP_WORK *Esp_search(USHORT Id)
 {
     ESP_WORK *pEw;
 
@@ -1269,10 +1269,10 @@ ESP_WORK *func_8001C2DC(USHORT Id)
     }
 }
 
-void func_8001C384(void) {
+void Esp_00(void) {
 }
 
-void func_8001C38C(ESP_WORK *pEw)
+void Esp_01(ESP_WORK *pEw)
 {
     if (pEw->Flg2 & 0x30) {
         if (pEw->Snd_no != 0) {
@@ -1288,13 +1288,13 @@ void func_8001C38C(ESP_WORK *pEw)
     }
 }
 
-void func_8001C46C(ESP_WORK *pEw)
+void Esp_02(ESP_WORK *pEw)
 {
     func_8001CDA4(pEw, pEw->Unk18);
     pEw->Routine_0 = 0;
 }
 
-void func_8001C49C(ESP_WORK *pEw)
+void Esp_03(ESP_WORK *pEw)
 {
     switch (pEw->Routine_2) {
     case 0:
@@ -1318,7 +1318,7 @@ void func_8001C49C(ESP_WORK *pEw)
     }
 }
 
-void func_8001C5BC(ESP_WORK *pEw)
+void Esp_04(ESP_WORK *pEw)
 {
     VECTOR Unused;
     SVECTOR Rot;
@@ -1344,10 +1344,10 @@ void func_8001C5BC(ESP_WORK *pEw)
         }
     }
     if (pEw->UnkB4 == 0) {
-        if (pEw->Unk1E == 0 || D_80098728[Rnd()] % pEw->Unk1E == 0) {
+        if (pEw->Unk1E == 0 || Rnd_tbl[Rnd()] % pEw->Unk1E == 0) {
             if (pEw->Routine_1 == 3) {
-                p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
-                                  ((pEw->Unk2E + D_80098728[Rnd()] * 4 - d) << 16) |
+                p = Esp_call_child(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+                                  ((pEw->Unk2E + Rnd_tbl[Rnd()] * 4 - d) << 16) |
                                       (USHORT)(pEw->Unk2C + ((signed char)Rnd() << pEw->Unk22)),
                                   pEw->pMat, pEw->Unk38, 0);
             } else {
@@ -1355,9 +1355,9 @@ void func_8001C5BC(ESP_WORK *pEw)
                 Rot.vy = pEw->Rot[1];
                 Rot.vz = pEw->Rot[2];
                 r = Rnd();
-                p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
-                                  ((pEw->Unk2E + D_80098728[r] * 4 - d) << 16) |
-                                      (USHORT)(pEw->Unk2C + ((D_80098728[Rnd()] - 0x80) >> pEw->Unk1B)),
+                p = Esp_call_child(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+                                  ((pEw->Unk2E + Rnd_tbl[r] * 4 - d) << 16) |
+                                      (USHORT)(pEw->Unk2C + ((Rnd_tbl[Rnd()] - 0x80) >> pEw->Unk1B)),
                                   pEw->pMat, pEw->Unk38, &Rot);
             }
             if (pEw->Routine_1 == 5) {
@@ -1373,8 +1373,8 @@ void func_8001C5BC(ESP_WORK *pEw)
                 }
             }
             if (pEw->Routine_1 == 4 && p != ESP_NONE) {
-                p->Spd_x += D_80098728[Rnd()] % pEw->Unk22;
-                p->Spd_y += D_80098728[Rnd()] % pEw->Unk22;
+                p->Spd_x += Rnd_tbl[Rnd()] % pEw->Unk22;
+                p->Spd_y += Rnd_tbl[Rnd()] % pEw->Unk22;
             }
             if (p != ESP_NONE) {
                 p->pEm = pEw->pEm;
@@ -1390,7 +1390,7 @@ void func_8001C5BC(ESP_WORK *pEw)
     }
 }
 
-void func_8001C98C(ESP_WORK *pEw)
+void Esp_05(ESP_WORK *pEw)
 {
     VECTOR Pos;
 
@@ -1426,12 +1426,12 @@ void func_8001C98C(ESP_WORK *pEw)
         Pos.vx = pEw->Pos.vx;
         Pos.vy = pEw->Pos.vy;
         Pos.vz = pEw->Pos.vz;
-        func_8001B35C(pEw, 0x1503, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
+        Esp_call_child(pEw, 0x1503, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
         pEw->Be_flg = 0;
     }
 }
 
-void func_8001CB04(ESP_WORK *pEw)
+void Esp_06(ESP_WORK *pEw)
 {
     HIT_REQ Req;
 
@@ -1442,7 +1442,7 @@ void func_8001CB04(ESP_WORK *pEw)
             Req.H = pEw->Unk1E;
             Req.D = pEw->Unk20;
             Req.R = pEw->Unk2C;
-            if (func_800472EC(&Req, D_80097FCC[pEw->Unk18]) < 0) {
+            if (func_800472EC(&Req, Esp_at_tbl[pEw->Unk18]) < 0) {
                 pEw->UnkB8 = 30;
                 if (pEw->Unk1A != 0xFF) {
                     Flg_on(D_800D1FC0, pEw->Unk1A);
@@ -1458,7 +1458,7 @@ void func_8001CB04(ESP_WORK *pEw)
         Req.H = pEw->Unk1E;
         Req.D = pEw->Unk20;
         Req.R = pEw->Unk2C;
-        if (func_800472EC(&Req, D_80097FCC[pEw->Snd_no]) & 0x20000000) {
+        if (func_800472EC(&Req, Esp_at_tbl[pEw->Snd_no]) & 0x20000000) {
             if (pEw->Unk1B != 0xFF) {
                 Flg_on(D_800D1FC0, pEw->Unk1B);
             }
@@ -1466,7 +1466,7 @@ void func_8001CB04(ESP_WORK *pEw)
     }
 }
 
-void func_8001CC60(ESP_WORK *pEw)
+void Esp_07(ESP_WORK *pEw)
 {
     ULONG a1;
     ULONG a3;
@@ -1486,7 +1486,7 @@ void func_8001CC60(ESP_WORK *pEw)
             } else {
                 a3 = pEw->Unk2E;
             }
-            func_8001B35C(pEw, ((a1 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+            Esp_call_child(pEw, ((a1 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
                           (a3 << 16) | (USHORT)(pEw->Unk2C + pEw->Unk1E), &GsIDMATRIX, &pEw->Pos.vx, 0);
         }
         switch (pEw->Routine_1) {
@@ -1502,28 +1502,28 @@ void func_8001CC60(ESP_WORK *pEw)
     }
 }
 
-void func_8001CD64(void) {
+void Esp_08(void) {
 }
 
-void func_8001CD6C(void) {
+void Esp_09(void) {
 }
 
-void func_8001CD74(void) {
+void Esp_0a(void) {
 }
 
-void func_8001CD7C(void) {
+void Esp_0b(void) {
 }
 
-void func_8001CD84(void) {
+void Esp_0c(void) {
 }
 
-void func_8001CD8C(void) {
+void Esp_0d(void) {
 }
 
-void func_8001CD94(void) {
+void Esp_0e(void) {
 }
 
-void func_8001CD9C(void) {
+void Esp_0f(void) {
 }
 
 void func_8001CDA4(ESP_WORK *pEw, ULONG n)
@@ -1532,7 +1532,7 @@ void func_8001CDA4(ESP_WORK *pEw, ULONG n)
 
     n &= 0xFF;
     if (n != 0) {
-        pEw->Seq_no = pEw->Unk0F + D_80098728[Rnd()] % n;
+        pEw->Seq_no = pEw->Unk0F + Rnd_tbl[Rnd()] % n;
         pSeq = pEw->pSeq;
         pSeq += pEw->Seq_no;
         pEw->Timer = pSeq->Time;
@@ -1556,7 +1556,7 @@ void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2)
 {
     switch (pEw->Routine_1) {
     case 2:
-        func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | ((a2 & 0xFF) << 8) | (a1 & 0xFF),
+        Esp_call_child(pEw, ((pEw->UnkB3 & 0xF) << 24) | ((a2 & 0xFF) << 8) | (a1 & 0xFF),
                       (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &pEw->Pos.vx, 0);
     case 0:
         pEw->Be_flg = 0;
@@ -1579,9 +1579,9 @@ void func_8001CFF4(ESP_WORK *pEw, ULONG n)
         if (pEw->UnkB4 == 0) {
             pEw->UnkB4 = pEw->Unk1A;
             r = Rnd();
-            p = func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
-                                 ((pEw->Unk2E + D_80098728[r] * 4) << 16) |
-                                     (USHORT)(pEw->Unk2C + ((D_80098728[Rnd()] - 0x80) >> pEw->Unk1B)),
+            p = Esp_call_child(pEw, ((pEw->UnkB3 & 0xF) << 24) | (pEw->Snd_no << 8) | pEw->Unk18,
+                                 ((pEw->Unk2E + Rnd_tbl[r] * 4) << 16) |
+                                     (USHORT)(pEw->Unk2C + ((Rnd_tbl[Rnd()] - 0x80) >> pEw->Unk1B)),
                                  pEw->pMat, pEw->Unk38, 0);
         } else {
             pEw->UnkB4--;
@@ -1589,16 +1589,16 @@ void func_8001CFF4(ESP_WORK *pEw, ULONG n)
         if (p != ESP_NONE) {
             p->UnkB6 = 1;
         }
-        for (p = D_80098090 - 1; p >= D_8009808C; p--) {
+        for (p = pEsp_end2 - 1; p >= pEsp_top2; p--) {
             if (p->UnkB6 != 0 && p->Id.W == *(USHORT *)&pEw->Unk18) {
-                D_80097BD4[p->Routine_0](p);
-                func_8001BC80(p);
-                func_8001BCFC(p);
-                func_8001C168(p);
+                Esp_tblj[p->Routine_0](p);
+                Esp_speed_add(p);
+                Esp_pos_matrix(p);
+                Esp_anm_move(p);
             }
         }
     }
-    for (p = D_80098090 - 1; p >= D_8009808C; p--) {
+    for (p = pEsp_end2 - 1; p >= pEsp_top2; p--) {
         if (p->Id.W == *(USHORT *)&pEw->Unk18) {
             p->UnkB6 = 0;
         }
@@ -1606,7 +1606,7 @@ void func_8001CFF4(ESP_WORK *pEw, ULONG n)
     pEw->UnkB4 = 0;
 }
 
-void func_8001D210(ESP_WORK *pEw)
+void Esp_10(ESP_WORK *pEw)
 {
     VECTOR Pos;
     UCHAR Hit;
@@ -1615,8 +1615,8 @@ void func_8001D210(ESP_WORK *pEw)
     switch (pEw->Routine_1) {
     case 0:
         func_8001CDA4(pEw, 3);
-        pEw->Spd_x += D_80098728[Rnd()] & 0xF;
-        pEw->Spd_y += D_80098728[Rnd()] & 0xF;
+        pEw->Spd_x += Rnd_tbl[Rnd()] & 0xF;
+        pEw->Spd_y += Rnd_tbl[Rnd()] & 0xF;
         pEw->Routine_1++;
         break;
     case 1:
@@ -1624,7 +1624,7 @@ void func_8001D210(ESP_WORK *pEw)
             Pos.vx = pEw->Pos.vx;
             Pos.vy = pEw->Pos.vy;
             Pos.vz = pEw->Pos.vz;
-            func_8001B35C(pEw, 0xF1C, pEw->Unk2C | 0x8000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0xF1C, pEw->Unk2C | 0x8000000, &GsIDMATRIX, &Pos.vx, 0);
             pEw->Be_flg = 0;
             break;
         }
@@ -1636,7 +1636,7 @@ void func_8001D210(ESP_WORK *pEw)
             }
             pEw->Spd_x = pEw->Spd_x * 60 / 100;
             pEw->Spd_y = -(pEw->Spd_y * 40) / 100;
-            pEw->Spd_z = (D_80098728[Rnd()] & 3) * 3;
+            pEw->Spd_z = (Rnd_tbl[Rnd()] & 3) * 3;
             pEw->UnkB4++;
             Hit = 1;
         }
@@ -1646,7 +1646,7 @@ void func_8001D210(ESP_WORK *pEw)
                 break;
             }
             pEw->Spd_x *= -1;
-            pEw->Spd_z = (D_80098728[Rnd()] & 3) * 3;
+            pEw->Spd_z = (Rnd_tbl[Rnd()] & 3) * 3;
             pEw->UnkB6++;
             Hit = 1;
         }
@@ -1665,11 +1665,11 @@ void func_8001D210(ESP_WORK *pEw)
     }
 }
 
-void func_8001D480(UCHAR *p)
+void Esp_11(UCHAR *p)
 {
     if (p[1] == 0) {
-        *(SHORT *)(p + 8) += (signed char)D_80098728[Rnd()] * p[0x18];
-        *(SHORT *)(p + 0xA) += (signed char)D_80098728[Rnd()] * p[0x19];
+        *(SHORT *)(p + 8) += (signed char)Rnd_tbl[Rnd()] * p[0x18];
+        *(SHORT *)(p + 0xA) += (signed char)Rnd_tbl[Rnd()] * p[0x19];
         p[1]++;
     }
     if (*(USHORT *)(p + 0x26) & 0x30) {
@@ -1677,7 +1677,7 @@ void func_8001D480(UCHAR *p)
     }
 }
 
-void func_8001D534(ESP_WORK *pEw)
+void Esp_12(ESP_WORK *pEw)
 {
     VECTOR Pos;
     HIT_REQ Req;
@@ -1700,7 +1700,7 @@ void func_8001D534(ESP_WORK *pEw)
         Req.H = 0;
         Req.D = 0;
         Req.R = pEw->Unk2C;
-        Hit |= func_800472EC(&Req, D_80097FCC[30]);
+        Hit |= func_800472EC(&Req, Esp_at_tbl[30]);
         if (Hit) {
             pEw->Be_flg = 0;
         }
@@ -1709,12 +1709,12 @@ void func_8001D534(ESP_WORK *pEw)
         Pos.vx = pEw->Pos.vx;
         Pos.vy = pEw->Pos.vy;
         Pos.vz = pEw->Pos.vz;
-        func_8001B35C(pEw, 0x1503, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
+        Esp_call_child(pEw, 0x1503, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
         pEw->Be_flg = 0;
         return;
     }
     if (!(pEw->UnkBA & 1)) {
-        func_8001B35C(pEw, 0x3003603,
+        Esp_call_child(pEw, 0x3003603,
                       (((pEw->Unk2E >> 1) - (pEw->Unk2E >> 2) + ((signed char)Rnd() << 3)) << 16) | pEw->Unk2C,
                       &GsIDMATRIX, &pEw->Pos.vx, 0);
     }
@@ -1723,22 +1723,22 @@ void func_8001D534(ESP_WORK *pEw)
             Pos.vx = pEw->Pos.vx;
             Pos.vy = pEw->Pos.vy + 400;
             Pos.vz = pEw->Pos.vz;
-            func_8001B35C(pEw, 0x205, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x205, (pEw->Unk2E << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
         }
         pEw->Be_flg = 0;
     }
     pEw->UnkBA++;
 }
 
-void func_8001D7C0(void) {
+void Esp_13(void) {
 }
 
-void func_8001D7C8(void) {
+void Esp_14(void) {
 }
 
 LONG func_80044804_(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type) __asm__("func_80044804"); /* result or-ed into a hit mask: long here (canonical ENEMY_WORK *) */
 
-void func_8001D7D0(ESP_WORK *pEw)
+void Esp_15(ESP_WORK *pEw)
 {
     ESP_WORK *pNew;
     LONG Ret;
@@ -1757,10 +1757,10 @@ void func_8001D7D0(ESP_WORK *pEw)
     if (++pEw->UnkB4 >= 15) {
         Ret |= 1;
     }
-    Pos.vx = (signed char)D_80098728[Rnd()] >> 1;
+    Pos.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
     Pos.vy = 0;
-    Pos.vz = (signed char)D_80098728[Rnd()] >> 1;
-    func_8001B35C(pEw, 0xC03, 0x10000000, &pEw->Workm2, &Pos.vx, 0);
+    Pos.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
+    Esp_call_child(pEw, 0xC03, 0x10000000, &pEw->Workm2, &Pos.vx, 0);
     if (pEw->Flg2 & 8) {
         Pos.vx = pEw->Pos.vx;
         Pos.vy = pEw->Pos.vy;
@@ -1770,50 +1770,50 @@ void func_8001D7D0(ESP_WORK *pEw)
         Req.H = 0;
         Req.D = 0;
         Req.R = pEw->UnkBA;
-        func_800472EC(&Req, D_80097FCC[15]);
-        func_80047BD0(&Req, D_80097FCC[15]);
+        func_800472EC(&Req, Esp_at_tbl[15]);
+        func_80047BD0(&Req, Esp_at_tbl[15]);
         Ret |= 1;
         if (Water_ck(pEw->Pos.vx, pEw->Pos.vz) != 1) {
-            func_8001B35C(pEw, 0x71C, (USHORT)pEw->UnkBA | 0x0C000000, &GsIDMATRIX, &Pos.vx, 0);
-            func_8001B35C(pEw, 0x91C, (USHORT)pEw->UnkBA | 0x15000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x71C, (USHORT)pEw->UnkBA | 0x0C000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x91C, (USHORT)pEw->UnkBA | 0x15000000, &GsIDMATRIX, &Pos.vx, 0);
             Rot.vx = 0x400;
             Rot.vy = 0;
             Rot.vz = 0;
-            func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, &Rot);
+            Esp_call_child(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, &Rot);
             Rot.vx = 0x400;
             Rot.vy = 0;
             Rot.vz = 0x400;
-            func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, &Rot);
+            Esp_call_child(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, &Rot);
             Avg.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
             Avg.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
             Avg.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
             switch (pEw->Routine_1) {
             case 0:
-                func_8001B35C(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                Esp_call_child(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
                 break;
             case 1:
-                func_8001B35C(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                Esp_call_child(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
                 break;
             case 2:
-                func_8001B35C(pEw, 0x2000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                Esp_call_child(pEw, 0x2000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
                 break;
             case 3:
-                func_8001B35C(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+                Esp_call_child(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
                 break;
             }
             Snd_se_stad(0x1022A, &pEw->Pos, 0, 0);
             pEw->Be_flg = 0;
             return;
         }
-        func_8001B35C(pEw, 0x91C, (USHORT)pEw->UnkBA | 0x15000000, &GsIDMATRIX, &Pos.vx, 0);
+        Esp_call_child(pEw, 0x91C, (USHORT)pEw->UnkBA | 0x15000000, &GsIDMATRIX, &Pos.vx, 0);
         Rot.vx = 0x400;
         Rot.vy = 0;
         Rot.vz = 0;
-        func_8001B35C(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, &Rot);
+        Esp_call_child(pEw, 0x20E, (USHORT)pEw->UnkBA | 0x20000000, &GsIDMATRIX, &Pos.vx, &Rot);
         Rot.vx = 0x400;
         Rot.vy = 0;
         Rot.vz = 0x400;
-        func_8001B35C(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, &Rot);
+        Esp_call_child(pEw, 0x30E, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Pos.vx, &Rot);
     }
     Avg.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
     Avg.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
@@ -1822,47 +1822,47 @@ void func_8001D7D0(ESP_WORK *pEw)
         switch (pEw->Routine_1) {
         case 0:
             Snd_se_stad(0x1010E, &pEw->Pos, 0, 0);
-            func_8001B35C(pEw, 0x203, (USHORT)pEw->UnkBA | 0x09000000, &GsIDMATRIX, &Avg.vx, 0);
+            Esp_call_child(pEw, 0x203, (USHORT)pEw->UnkBA | 0x09000000, &GsIDMATRIX, &Avg.vx, 0);
             Req.pPos = &pEw->Pos;
             Req.W = 0;
             Req.H = 0;
             Req.D = 0;
             Req.R = pEw->UnkBA;
-            func_800472EC(&Req, D_80097FCC[15]);
-            func_80047BD0(&Req, D_80097FCC[15]);
+            func_800472EC(&Req, Esp_at_tbl[15]);
+            func_80047BD0(&Req, Esp_at_tbl[15]);
             break;
         case 1:
             Snd_se_stad(0x1010F, &pEw->Pos, 0, 0);
-            func_8001B35C(pEw, 0x3000903, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Avg.vx, 0);
-            func_8001B35C(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+            Esp_call_child(pEw, 0x3000903, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Avg.vx, 0);
+            Esp_call_child(pEw, 0x3000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
             Pos.vx = pEw->Pos.vx;
             Pos.vy = pEw->Pos.vy;
             Pos.vz = pEw->Pos.vz;
-            func_8001B35C(pEw, 0x1000803, (USHORT)pEw->UnkBA | 0x30000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x1000803, (USHORT)pEw->UnkBA | 0x30000000, &GsIDMATRIX, &Pos.vx, 0);
             if (pEw->Flg2 & 0x20) {
-                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA - 0xFA) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
-                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA + 0xFA) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+                Esp_call_child(pEw, 0x3000D03, (USHORT)(pEw->UnkBA - 0xFA) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+                Esp_call_child(pEw, 0x3000D03, (USHORT)(pEw->UnkBA + 0xFA) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
             } else {
-                func_8001B35C(pEw, 0x3000D03, (USHORT)pEw->UnkBA | 0x32000000, &GsIDMATRIX, &pEw->Old.vx, 0);
-                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA - 0x15E) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
-                func_8001B35C(pEw, 0x3000D03, (USHORT)(pEw->UnkBA + 0x15E) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+                Esp_call_child(pEw, 0x3000D03, (USHORT)pEw->UnkBA | 0x32000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+                Esp_call_child(pEw, 0x3000D03, (USHORT)(pEw->UnkBA - 0x15E) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+                Esp_call_child(pEw, 0x3000D03, (USHORT)(pEw->UnkBA + 0x15E) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
             }
             Req.pPos = &pEw->Pos;
             Req.W = 0;
             Req.H = 0;
             Req.D = 0;
             Req.R = pEw->UnkBA;
-            func_800472EC(&Req, D_80097FCC[16]);
-            func_80047BD0(&Req, D_80097FCC[16]);
+            func_800472EC(&Req, Esp_at_tbl[16]);
+            func_80047BD0(&Req, Esp_at_tbl[16]);
             break;
         case 2:
             Snd_se_stad(0x10110, &pEw->Pos, 0, 0);
-            func_8001B35C(pEw, 0x2000903, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Avg.vx, 0);
-            func_8001B35C(pEw, 0x2000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+            Esp_call_child(pEw, 0x2000903, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &Avg.vx, 0);
+            Esp_call_child(pEw, 0x2000A03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
             Pos.vx = pEw->Pos.vx;
             Pos.vy = pEw->Pos.vy - 100;
             Pos.vz = pEw->Pos.vz;
-            pNew = func_8001B35C(pEw, 0x3000E00, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
+            pNew = Esp_call_child(pEw, 0x3000E00, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
             if (pNew != ESP_NONE) {
                 if (pEw->Flg2 & 0x30) {
                     pNew->UnkB6 = 1;
@@ -1873,13 +1873,13 @@ void func_8001D7D0(ESP_WORK *pEw)
             Pos.vx = pEw->Pos.vx;
             Pos.vy = pEw->Pos.vy + 300;
             Pos.vz = pEw->Pos.vz;
-            func_8001B35C(pEw, 0x3001000, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x3001000, (USHORT)pEw->UnkBA | 0x24000000, &GsIDMATRIX, &Pos.vx, 0);
             break;
         case 3:
             Snd_se_stad(0x10111, &pEw->Pos, 0, 0);
-            func_8001B35C(pEw, 0x2203, (USHORT)pEw->UnkBA | 0x34000000, &GsIDMATRIX, &Avg.vx, 0);
-            func_8001B35C(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
-            pNew = func_8001B35C(pEw, 0x2003, (USHORT)pEw->UnkBA | 0x10000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+            Esp_call_child(pEw, 0x2203, (USHORT)pEw->UnkBA | 0x34000000, &GsIDMATRIX, &Avg.vx, 0);
+            Esp_call_child(pEw, 0xA03, (USHORT)pEw->UnkBA | 0x38000000, &GsIDMATRIX, &Avg.vx, 0);
+            pNew = Esp_call_child(pEw, 0x2003, (USHORT)pEw->UnkBA | 0x10000000, &GsIDMATRIX, &pEw->Old.vx, 0);
             if (pNew != ESP_NONE) {
                 if (pEw->Flg2 & 0x20) {
                     pNew->UnkB6 = 1;
@@ -1887,14 +1887,14 @@ void func_8001D7D0(ESP_WORK *pEw)
                     pNew->UnkB6 = 0;
                 }
             }
-            func_8001B35C(pEw, 0xB03, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+            Esp_call_child(pEw, 0xB03, (USHORT)pEw->UnkBA | 0x28000000, &GsIDMATRIX, &pEw->Old.vx, 0);
             break;
         }
         pEw->Be_flg = 0;
     }
 }
 
-void func_8001E0F4(ESP_WORK *pEw)
+void Esp_16(ESP_WORK *pEw)
 {
     VECTOR Spd;
     SVECTOR Rot;
@@ -1913,11 +1913,11 @@ void func_8001E0F4(ESP_WORK *pEw)
             Rot.vx = 0;
             Rot.vy = 0;
             Rot.vz = 0x400;
-            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
+            Esp_call_child(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
             Rot.vx = 0;
             Rot.vy = 0x400;
             Rot.vz = 0x400;
-            func_8001B35C(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
+            Esp_call_child(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
         }
         pEw->Routine_2++;
     case 1:
@@ -1936,7 +1936,7 @@ void func_8001E0F4(ESP_WORK *pEw)
         if (pEw->UnkB8 != 0) {
             if (pEw->UnkB8 == 10) {
                 pEw->Be_flg = 0x8000;
-                func_8001B894(0xD02, &pEw->Workm2);
+                Esp_kill(0xD02, &pEw->Workm2);
             }
             if (--pEw->UnkB8 == 1) {
                 pEw->Be_flg = 0;
@@ -1946,8 +1946,8 @@ void func_8001E0F4(ESP_WORK *pEw)
         if (pEw->Unk32 >= 30000) {
             p = Esp_call(((pEw->UnkB3 & 0xF) << 24) | (((UCHAR *)&pEw->Id.W)[1] << 8) | ((UCHAR *)&pEw->Id.W)[0],
                               (pEw->Unk2E << 16) | pEw->Unk2C, &pEw->Workm2, NULL, 0);
-            func_8001BC80(p);
-            func_8001BCFC(p);
+            Esp_speed_add(p);
+            Esp_pos_matrix(p);
             pEw->UnkB8 = 10;
         }
         if (pEw->Flg2 & 0x30) {
@@ -1958,23 +1958,23 @@ void func_8001E0F4(ESP_WORK *pEw)
         Pos.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
         Hit |= func_80044804_(&pEw->Workm2, D_8009DBB4[0], 10);
         Hit |= func_80047860(&pEw->Workm2, D_8009DBB4[0], 10);
-        Spd.vx = (signed char)D_80098728[Rnd()] >> 1;
+        Spd.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
         Spd.vy = 500;
-        Spd.vz = (signed char)D_80098728[Rnd()] >> 1;
-        func_8001B35C(pEw, 0xC03, 0x18000000, &pEw->Workm2, &Spd.vx, 0);
+        Spd.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
+        Esp_call_child(pEw, 0xC03, 0x18000000, &pEw->Workm2, &Spd.vx, 0);
         if (Hit) {
-            func_8001B894(0xD02, &pEw->Workm2);
+            Esp_kill(0xD02, &pEw->Workm2);
             Snd_se_stad(0x1010A, &pEw->Pos, 0, 0);
-            func_8001B35C(pEw, 0x203, (USHORT)pEw->UnkBA | 0xD000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x203, (USHORT)pEw->UnkBA | 0xD000000, &GsIDMATRIX, &Pos.vx, 0);
             pEw->Be_flg = 0;
         }
         break;
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", func_8001E444);
+INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_17);
 
-void func_8001F208(ESP_WORK *pEw)
+void Esp_18(ESP_WORK *pEw)
 {
     VECTOR Pos;
     SVECTOR Rot;
@@ -1989,44 +1989,44 @@ void func_8001F208(ESP_WORK *pEw)
         Rot.vx = 0;
         Rot.vy = 0;
         Rot.vz = 0;
-        func_8001B35C(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, &Rot);
+        Esp_call_child(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, &Rot);
         Rot.vx = 0;
         Rot.vy = 0x400;
         Rot.vz = 0;
-        func_8001B35C(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, &Rot);
+        Esp_call_child(pEw, 0x805, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, &Rot);
         pEw->Routine_1++;
         break;
     default:
-        Pos.vx = (signed char)D_80098728[Rnd()] >> 1;
+        Pos.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
         Pos.vy = -150;
-        Pos.vz = (signed char)D_80098728[Rnd()] >> 1;
-        func_8001B35C(pEw, 0xC03, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, 0);
+        Pos.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
+        Esp_call_child(pEw, 0xC03, ((pEw->Unk2E >> 1) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, 0);
         break;
     }
 }
 
-void func_8001F378(ESP_WORK *pEw)
+void Esp_19(ESP_WORK *pEw)
 {
     VECTOR Pos;
     VECTOR Dummy;
 
     switch (pEw->Routine_1) {
     case 0:
-        func_8001B35C(pEw, 0x3000903, (pEw->Unk2E << 18) | pEw->Unk2C, &GsIDMATRIX, &pEw->Pos.vx, 0);
-        func_8001B35C(pEw, 0x3000A03, ((pEw->Unk2E * 5) << 16) | pEw->Unk2C, &GsIDMATRIX, &pEw->Pos.vx, 0);
+        Esp_call_child(pEw, 0x3000903, (pEw->Unk2E << 18) | pEw->Unk2C, &GsIDMATRIX, &pEw->Pos.vx, 0);
+        Esp_call_child(pEw, 0x3000A03, ((pEw->Unk2E * 5) << 16) | pEw->Unk2C, &GsIDMATRIX, &pEw->Pos.vx, 0);
         break;
     case 2:
         Pos.vx = pEw->Pos.vx;
         Pos.vy = pEw->Pos.vy;
         Pos.vz = pEw->Pos.vz;
-        func_8001B35C(pEw, 0x1000803, ((((ULONG)pEw->Unk2E * 17) >> 2) << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
+        Esp_call_child(pEw, 0x1000803, ((((ULONG)pEw->Unk2E * 17) >> 2) << 16) | pEw->Unk2C, &GsIDMATRIX, &Pos.vx, 0);
         pEw->Be_flg = 0;
         return;
     }
     pEw->Routine_1++;
 }
 
-void func_8001F4A8(UCHAR *p)
+void Esp_1a(UCHAR *p)
 {
     if (p[1] == 1) {
         *(SHORT *)(p + 8) += (signed char)p[2] << 4;
@@ -2034,7 +2034,7 @@ void func_8001F4A8(UCHAR *p)
     }
 }
 
-void func_8001F4F4(ESP_WORK *pEw)
+void Esp_1b(ESP_WORK *pEw)
 {
     HIT_REQ Req;
     UCHAR Hit;
@@ -2065,8 +2065,8 @@ void func_8001F4F4(ESP_WORK *pEw)
             Req.H = 0;
             Req.D = 0;
             Req.R = pEw->Unk2C;
-            Hit |= func_800472EC(&Req, D_80097FCC[19]);
-            Hit |= func_80047BD0(&Req, D_80097FCC[19]);
+            Hit |= func_800472EC(&Req, Esp_at_tbl[19]);
+            Hit |= func_80047BD0(&Req, Esp_at_tbl[19]);
             if (Hit) {
                 pEw->Be_flg = 0;
             }
@@ -2074,7 +2074,7 @@ void func_8001F4F4(ESP_WORK *pEw)
     }
 }
 
-void func_8001F674(ESP_WORK *pEw)
+void Esp_1c(ESP_WORK *pEw)
 {
     SHORT Ofs[3] = { -200, 0, 200 };
     SHORT Spd[3] = { -2, 0, -2 };
@@ -2083,9 +2083,9 @@ void func_8001F674(ESP_WORK *pEw)
 
     if (++pEw->UnkB4 & 1) {
         for (i = 0; i < 3; i++) {
-            p = func_8001B35C(pEw, 0x2103,
+            p = Esp_call_child(pEw, 0x2103,
                               ((0x2800 - pEw->UnkB4 * 1000) << 16) |
-                                  (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] + Ofs[i]),
+                                  (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] + Ofs[i]),
                               &GsIDMATRIX, &pEw->Old.vx, 0);
             if (p != ESP_NONE) {
                 p->Spd_x -= pEw->UnkB4 * 10;
@@ -2104,7 +2104,7 @@ void func_8001F674(ESP_WORK *pEw)
     }
 }
 
-void func_8001F824(ESP_WORK *pEw)
+void Esp_1d(ESP_WORK *pEw)
 {
     VECTOR Unused;
     VECTOR Pos;
@@ -2128,7 +2128,7 @@ void func_8001F824(ESP_WORK *pEw)
         Pos.vx = pEw->Old.vx;
         Pos.vy = pEw->Old.vy;
         Pos.vz = pEw->Old.vz;
-        p = func_8001B35C(pEw, 0x505, ((pEw->Unk2E - ((signed char)Rnd() << 4)) << 16) | pEw->Unk2C,
+        p = Esp_call_child(pEw, 0x505, ((pEw->Unk2E - ((signed char)Rnd() << 4)) << 16) | pEw->Unk2C,
                           &GsIDMATRIX, &Pos.vx, 0);
         if (p != ESP_NONE) {
             p->UnkBA = 1;
@@ -2142,10 +2142,10 @@ void func_8001F824(ESP_WORK *pEw)
             Pos.vx = pEw->Old.vx;
             Pos.vy = pEw->Old.vy;
             Pos.vz = pEw->Old.vz;
-            p = func_8001B35C(pEw, 0x405, ((pEw->Unk2E - ((signed char)Rnd() << 4)) << 16) | pEw->Unk2C,
+            p = Esp_call_child(pEw, 0x405, ((pEw->Unk2E - ((signed char)Rnd() << 4)) << 16) | pEw->Unk2C,
                               &GsIDMATRIX, &Pos.vx, 0);
             if (p != ESP_NONE) {
-                p->Spd_x = (D_80098728[Rnd()] & 0x1F) + 0x50;
+                p->Spd_x = (Rnd_tbl[Rnd()] & 0x1F) + 0x50;
                 if (pEw->UnkB4 == 7) {
                     p->UnkBA = 1;
                 }
@@ -2155,7 +2155,7 @@ void func_8001F824(ESP_WORK *pEw)
     }
 }
 
-void func_8001FA90(ESP_WORK *pEw)
+void Esp_1e(ESP_WORK *pEw)
 {
     VECTOR Pos;
     HIT_REQ Req;
@@ -2165,11 +2165,11 @@ void func_8001FA90(ESP_WORK *pEw)
     switch (pEw->Routine_1) {
     case 0:
         if (pEw->Unk18 == 0) {
-            pEw->UnkB4 = (D_80098728[Rnd()] & 0xF) | 0x10;
-            pEw->UnkB6 = (((D_80098728[Rnd()] & 0xF) + 0x10) * pEw->Unk2E) >> 11;
+            pEw->UnkB4 = (Rnd_tbl[Rnd()] & 0xF) | 0x10;
+            pEw->UnkB6 = (((Rnd_tbl[Rnd()] & 0xF) + 0x10) * pEw->Unk2E) >> 11;
         } else {
-            pEw->UnkB4 = (D_80098728[Rnd()] & 0xF) + 0x18;
-            pEw->UnkB6 = (((D_80098728[Rnd()] & 0xF) + 0x18) * pEw->Unk2E) >> 11;
+            pEw->UnkB4 = (Rnd_tbl[Rnd()] & 0xF) + 0x18;
+            pEw->UnkB6 = (((Rnd_tbl[Rnd()] & 0xF) + 0x18) * pEw->Unk2E) >> 11;
             if (!(pEw->UnkBA & 0x80)) {
                 pEw->Be_flg &= 0xFFFD;
             }
@@ -2190,8 +2190,8 @@ void func_8001FA90(ESP_WORK *pEw)
                     Req.H = 0;
                     Req.D = 0;
                     Req.R = pEw->Unk2C;
-                    Hit |= func_800472EC(&Req, D_80097FCC[17]);
-                    Hit |= func_80047BD0(&Req, D_80097FCC[17]);
+                    Hit |= func_800472EC(&Req, Esp_at_tbl[17]);
+                    Hit |= func_80047BD0(&Req, Esp_at_tbl[17]);
                     if (Hit) {
                         pEw->UnkBA = 0;
                         pEw->Unk0A += pEw->UnkB4 << 5;
@@ -2227,11 +2227,11 @@ void func_8001FA90(ESP_WORK *pEw)
     Pos.vx = pEw->Pos.vx;
     Pos.vy = pEw->Pos.vy;
     Pos.vz = pEw->Pos.vz;
-    func_8001B35C(pEw, 0x1503, ((pEw->Unk2E >> 2) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, 0);
+    Esp_call_child(pEw, 0x1503, ((pEw->Unk2E >> 2) << 16) | pEw->Unk2C, pEw->pMat, &Pos.vx, 0);
     pEw->Be_flg = 0;
 }
 
-void func_8001FDD0(ESP_WORK *pEw)
+void Esp_1f(ESP_WORK *pEw)
 {
     HIT_REQ Req;
     VECTOR Pos;
@@ -2239,11 +2239,11 @@ void func_8001FDD0(ESP_WORK *pEw)
     ULONG i;
 
     for (i = 0; i < 2; i++) {
-        pNew = func_8001B35C(pEw, 0x3000F00, (pEw->Unk2E << 16) | (USHORT)(pEw->Unk2C + (signed char)Rnd() * 4),
+        pNew = Esp_call_child(pEw, 0x3000F00, (pEw->Unk2E << 16) | (USHORT)(pEw->Unk2C + (signed char)Rnd() * 4),
                              pEw->pMat, pEw->Unk38, 0);
         if (pNew != ESP_NONE) {
-            pNew->Spd_x = (D_80098728[Rnd()] & 0x3F) + 0x82;
-            pNew->Spd_y = (D_80098728[Rnd()] & 0x7F) - 100;
+            pNew->Spd_x = (Rnd_tbl[Rnd()] & 0x3F) + 0x82;
+            pNew->Spd_y = (Rnd_tbl[Rnd()] & 0x7F) - 100;
         }
     }
     Req.pPos = &pEw->Pos;
@@ -2251,45 +2251,45 @@ void func_8001FDD0(ESP_WORK *pEw)
     Req.H = 0;
     Req.D = 0;
     Req.R = pEw->Unk2C;
-    func_800472EC(&Req, D_80097FCC[18]);
-    func_80047BD0(&Req, D_80097FCC[18]);
+    func_800472EC(&Req, Esp_at_tbl[18]);
+    func_80047BD0(&Req, Esp_at_tbl[18]);
     if (++pEw->UnkB4 >= 3) {
         if (pEw->UnkB6 != 0) {
             Pos.vx = pEw->Pos.vx;
             Pos.vy = pEw->Pos.vy;
             Pos.vz = pEw->Pos.vz;
-            func_8001B35C(pEw, 0x2000E03, pEw->Unk2C | 0x20000000, &GsIDMATRIX, &Pos.vx, 0);
+            Esp_call_child(pEw, 0x2000E03, pEw->Unk2C | 0x20000000, &GsIDMATRIX, &Pos.vx, 0);
         }
         pEw->Be_flg = 0;
     }
 }
 
-void func_8001FF6C(ESP_WORK *pEw)
+void Esp_20(ESP_WORK *pEw)
 {
     VECTOR Pos;
 
     switch (pEw->Routine_1) {
     case 0:
-        func_8001B35C(pEw, 0x108, pEw->Unk2C | 0x10000000, pEw->pMat, pEw->Unk38, 0);
+        Esp_call_child(pEw, 0x108, pEw->Unk2C | 0x10000000, pEw->pMat, pEw->Unk38, 0);
         pEw->Routine_1++;
         break;
     case 1:
-        func_8001B35C(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] * 7 + 0x800) | 0x9000000,
+        Esp_call_child(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] * 7 + 0x800) | 0x9000000,
                       pEw->pMat, pEw->Unk38, 0);
-        func_8001B35C(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] * 7 + 0x800) | 0xB000000,
+        Esp_call_child(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] * 7 + 0x800) | 0xB000000,
                       pEw->pMat, pEw->Unk38, 0);
-        func_8001B35C(pEw, 0x109, (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] * 4 + 0x800) | 0xA000000,
+        Esp_call_child(pEw, 0x109, (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] * 4 + 0x800) | 0xA000000,
                       pEw->pMat, pEw->Unk38, 0);
-        func_8001B35C(pEw, 0x209, (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] * 2 + 0x800) | 0x7000000,
+        Esp_call_child(pEw, 0x209, (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] * 2 + 0x800) | 0x7000000,
                       pEw->pMat, pEw->Unk38, 0);
-        func_8001B35C(pEw, 0x309, (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] * 6 + 0x800) | 0x8000000,
+        Esp_call_child(pEw, 0x309, (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] * 6 + 0x800) | 0x8000000,
                       pEw->pMat, pEw->Unk38, 0);
-        func_8001B35C(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)D_80098728[Rnd()] * 7) | 0xB000000,
+        Esp_call_child(pEw, 9, (USHORT)(pEw->Unk2C + (signed char)Rnd_tbl[Rnd()] * 7) | 0xB000000,
                       pEw->pMat, pEw->Unk38, 0);
         Pos.vx = pEw->Unk38[0];
         Pos.vy = pEw->Unk38[1] + 200;
         Pos.vz = pEw->Unk38[2];
-        func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | 0x300, 0x10000000, pEw->pMat, &Pos.vx, 0);
+        Esp_call_child(pEw, ((pEw->UnkB3 & 0xF) << 24) | 0x300, 0x10000000, pEw->pMat, &Pos.vx, 0);
         pEw->Routine_1++;
         break;
     case 2:
@@ -2301,7 +2301,7 @@ void func_8001FF6C(ESP_WORK *pEw)
         Pos.vx = pEw->Unk38[0];
         Pos.vy = pEw->Unk38[1] + 200;
         Pos.vz = pEw->Unk38[2];
-        func_8001B35C(pEw, ((pEw->UnkB3 & 0xF) << 24) | 0x200, 0x10000000, pEw->pMat, &Pos.vx, 0);
+        Esp_call_child(pEw, ((pEw->UnkB3 & 0xF) << 24) | 0x200, 0x10000000, pEw->pMat, &Pos.vx, 0);
         pEw->Be_flg = 0;
         break;
     }

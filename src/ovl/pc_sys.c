@@ -767,7 +767,7 @@ void Pc_security(void)
                 Eff_sprt_trans();
                 Task_sleep(1);
             }
-            func_8001B894(0x1010000, NULL);
+            Esp_kill(0x1010000, NULL);
             Esp_call(0x1010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x204, NULL, 0, 0);
             for (i = 0; i < 40; i++) {
@@ -779,7 +779,7 @@ void Pc_security(void)
                 Eff_sprt_trans();
                 Task_sleep(1);
             }
-            func_8001B894(0x1010000, NULL);
+            Esp_kill(0x1010000, NULL);
             Esp_call(0x2010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x225, NULL, 0, 0);
             for (i = 0; i < 60; i++) {

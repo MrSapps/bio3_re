@@ -70,7 +70,7 @@ typedef struct tagSCENARIO {
     UCHAR Unk149B;                     /* 0x149B */
     UCHAR Unk149C;                     /* 0x149C */
     UCHAR Unk149D;                     /* 0x149D */
-    UCHAR Unk149E;                     /* 0x149E index into D_80098728 (Sce_rnd_set) */
+    UCHAR Unk149E;                     /* 0x149E index into Rnd_tbl (Sce_rnd_set) */
     UCHAR pad149F;
     SHORT Pl_pos[3];                   /* 0x14A0 player position before the tasks ran (Sce_scheduler_main) */
     SHORT Sub_pos[3];                  /* 0x14A6 sub player position before the tasks ran */

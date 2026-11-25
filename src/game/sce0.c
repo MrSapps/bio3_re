@@ -5,7 +5,7 @@
 #include "pad.h"
 #include "sld.h"
 
-extern s8 D_80098728_[] __asm__("D_80098728"); /* type differs from the canonical extern */
+extern s8 D_80098728_[] __asm__("Rnd_tbl"); /* type differs from the canonical extern */
 UCHAR Rnd_uc(void) __asm__("Rnd"); /* returns unsigned char here (canonical unsigned long) */
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
@@ -362,7 +362,7 @@ void func_80052644(void)
             Flg_off(&G.Status_flg, 0x1E);
             Event_exec(1, Sce.Unk149D);
             Sce.Unk149B = 8;
-            func_8001B894(0xFF02, 0);
+            Esp_kill(0xFF02, 0);
         }
         break;
     }

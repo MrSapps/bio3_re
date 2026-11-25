@@ -144,7 +144,7 @@ void Psp_trans(void)
     }
 }
 
-extern s8 D_80098728_[] __asm__("D_80098728"); /* type differs from the canonical extern */
+extern s8 D_80098728_[] __asm__("Rnd_tbl"); /* type differs from the canonical extern */
 
 void func_80048974(SHORT Arg)
 {

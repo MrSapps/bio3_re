@@ -802,7 +802,7 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
             Esp_call(0x1900, 0x7D00000 | (USHORT)(Rnd() << 4), &pP_ptr->Workm, NULL, 0);
             if (pP_ptr->Unk96 == 1) {
                 pP_ptr->Be_flg &= ~1;
-                func_8001B894(0xFF05, &pP_ptr->Workm);
+                Esp_kill(0xFF05, &pP_ptr->Workm);
             }
         }
     }
@@ -826,7 +826,7 @@ void func_8002783C(PARTS_W *pP_ptr)
 
     if ((PW_FREE(pP_ptr)[4] & 0x7FFF) >= 0x1D) {
         pP_ptr->Be_flg = 0;
-        func_8001B894(0xFF05, &pP_ptr->Workm);
+        Esp_kill(0xFF05, &pP_ptr->Workm);
     } else {
         PW_FREE(pP_ptr)[4]++;
     }

@@ -86,7 +86,7 @@ void Lts_main(void)
     Main.Unk18E = 1;
     G.Cut_no = pLw->Cut_old;
     Cut_change(pLw->Cut_old);
-    func_8001B894(0x215, NULL);
+    Esp_kill(0x215, NULL);
     G.Status_flg |= 0x400000;
     G.Status_flg &= ~0x80;
     Task_signal(0);

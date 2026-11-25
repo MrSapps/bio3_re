@@ -2489,7 +2489,7 @@ void func_80106C8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
     } else if (!pEm->UnkE3) {
         pEm->UnkE3 = 1;
-        func_8001B894(0x1403, NULL);
+        Esp_kill(0x1403, NULL);
         Dir = pEm->Cdir_y + (((UCHAR)(pEm->Move_cnt % 7) - 3) << 8);
         Sv.vx = 500;
         pP = pEm->pSin_parts_ptr;
@@ -2700,7 +2700,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
         } else if (!pEm->UnkE3) {
             pEm->UnkE3 = 1;
-            func_8001B894(0x1203, NULL);
+            Esp_kill(0x1203, NULL);
             Em30_dirt_set(pEm, 0, 0x1B);
             Em30_dirt_set(pEm, 1, 0x1B);
             Em30_dirt_set(pEm, 3, 0x1B);

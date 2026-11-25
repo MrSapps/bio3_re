@@ -236,8 +236,8 @@ void func_80063CAC(ST_WORK *pSt)
             } else {
                 Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
-            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
-            func_8001B894(0x905, 0);
+            Esp_kill(0x705, &G.Ob_model[n & 0xFF].M);
+            Esp_kill(0x905, 0);
             if (!(n & 0x80)) {
                 G.Ob_model[n & 0xFF].Be_flg = 0;
             }
@@ -2090,8 +2090,8 @@ void func_80069C3C(ST_WORK *pSt)
             } else {
                 Flg_on(G.Unk78F0, pD->Flg);
             }
-            func_8001B894(0x705, &G.Ob_model[m].M);
-            func_8001B894(0x905, 0);
+            Esp_kill(0x705, &G.Ob_model[m].M);
+            Esp_kill(0x905, 0);
             if (!(m & 0x80)) {
                 G.Ob_model[m].Be_flg = 0;
             }
@@ -4302,8 +4302,8 @@ void func_80070024(ST_WORK *pSt)
             } else {
                 Flg_on(pG->Unk78F0, *(USHORT *)(pD + 4));
             }
-            func_8001B894(0x705, &G.Ob_model[n & 0xFF].M);
-            func_8001B894(0x905, 0);
+            Esp_kill(0x705, &G.Ob_model[n & 0xFF].M);
+            Esp_kill(0x905, 0);
             if (!(n & 0x80)) {
                 G.Ob_model[n & 0xFF].Be_flg = 0;
             }

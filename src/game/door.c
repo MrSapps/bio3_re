@@ -323,12 +323,12 @@ void func_8001688C(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)func_80017148(pEm, pKan, pSeq)) {
-            func_80018EC8(pEm, pKan, pSeq, 0);
+            Spd_get2(pEm, pKan, pSeq, 0);
             pEm->Routine_2 = 2;
         }
         break;
     case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)func_800171DC(pEm, pKan, pSeq, 0)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
@@ -377,12 +377,12 @@ void func_80016A40(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)func_80017148(pEm, pKan, pSeq)) {
-            func_80018EC8(pEm, pKan, pSeq, 0);
+            Spd_get2(pEm, pKan, pSeq, 0);
             pEm->Routine_2 = 2;
         }
         break;
     case 2:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)func_800171DC(pEm, pKan, pSeq, 0)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
@@ -420,7 +420,7 @@ void func_80016C9C(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A78[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
-        func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
+        Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
         if ((UCHAR)func_800171DC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
@@ -443,7 +443,7 @@ void func_80016DA0(ENEMY_WORK *pEm)
         *(ULONG *)&pEm->Move_no = 0x70000 + (D_80097A78[pEm->Id - 0x10] & 0x3F);
         pEm->Routine_2 = 1;
     case 1:
-        func_80018EC8(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
+        Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         if ((UCHAR)func_800171DC(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0)) {
             Flg_on(D_800D1FC0, pEm->Unk146);
             pEm->Routine_1 = 6;
@@ -580,9 +580,9 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Unk144 & 0x40) {
             pEm->Hokan_flg = 0;
         }
-        func_80018EC8(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
+        Spd_get2(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
+        Spd_get2(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
         if (pEm->Unk144 & 0x10) {
             pEm->Spd_x = pEm->Spd_x >> 1;
             pEm->Spd_y = pEm->Spd_y >> 1;

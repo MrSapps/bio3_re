@@ -1696,7 +1696,7 @@ void Set_head_bomb(ENEMY_WORK *pEm)
 
     pEm->Unk120 |= 1;
     if (pEm->Type & 0x80)
-        func_8001B894(5, &pEm->pSin_parts_ptr[7].Workm);
+        Esp_kill(5, &pEm->pSin_parts_ptr[7].Workm);
     for (i = 0; i < 7; i++) {
         pP = &pEm->pSin_parts_ptr[bang_parts_no[i]];
         pP->UnkA2 |= 0x20;

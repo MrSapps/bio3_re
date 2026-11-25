@@ -281,13 +281,13 @@ ULONG Sce_espr_kill(SCE_TASK *pSce)
     MATRIX *pM;
 
     pM = Get_matrix((s8)pSce->Data[3], (s8)pSce->Data[4]);
-    func_8001B894((pSce->Data[2] << 8) | pSce->Data[1], pM);
+    Esp_kill((pSce->Data[2] << 8) | pSce->Data[1], pM);
     pSce->Data += 5;
     return 1;
 }
 
-/* int-returning view of the void func_8001B894: the caller's register allocation needs v0 clobbered */
-LONG func_8001B894_l(ULONG Id, MATRIX *pM) __asm__("func_8001B894"); /* returns long here (canonical void) */
+/* int-returning view of the void Esp_kill: the caller's register allocation needs v0 clobbered */
+LONG func_8001B894_l(ULONG Id, MATRIX *pM) __asm__("Esp_kill"); /* returns long here (canonical void) */
 
 ULONG Sce_espr_kill2(SCE_TASK *pSce)
 {
@@ -311,7 +311,7 @@ ULONG Sce_espr_task(SCE_TASK *pSce)
             }
         }
     } else {
-        func_8001B894(0x2000000, 0);
+        Esp_kill(0x2000000, 0);
     }
     pSce->Data += 3;
     return 1;
@@ -322,7 +322,7 @@ ULONG Sce_espr_control(SCE_TASK *pSce)
     UCHAR *pData;
 
     pData = pSce->Data;
-    func_8001BA48((pData[2] << 8) | pData[1], Get_matrix((s8)pData[3], (s8)pData[4]),
+    Esp_ctrl((pData[2] << 8) | pData[1], Get_matrix((s8)pData[3], (s8)pData[4]),
                   pData[5] | (pData[6] << 16), pData[7] | (pData[8] << 16));
     pSce->Data = pData + 10;
     return 1;

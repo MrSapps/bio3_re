@@ -46,7 +46,7 @@ void Em10_main(ENEMY_WORK *pEm)
         if ((*pEm->pNow_seq & 0xF000) == 0x7000)
             Em10_water(pEm);
     }
-    func_8001AECC(pEm, 0xFDA80001, 0x4B00006);
+    Hit_area_parts_set(pEm, 0xFDA80001, 0x4B00006);
     EM10_W(pEm)->Cnt++;
     if (*pFlg & 0x180)
         Em10_Kubigoro(pEm);
@@ -1474,7 +1474,7 @@ void Em10_mv11(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pP->UnkA2 |= 1;
             }
         }
-        func_80018EC8(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
+        Spd_get2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
         if (Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x80)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
             if (pEm->Unk14A & 2)
@@ -2092,9 +2092,9 @@ void func_80109210(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         EM_SET_MOVE(pEm, 1, 0, 0xF);
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Move_cnt = Rnd_l() & 7;
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         Id = 0;
         pEm->Routine_2 = 1;
         pEm->Damage_cnt |= 0x80;
@@ -2190,7 +2190,7 @@ void func_80109210(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em_dead_flg_on_cand(pEm);
         func_8002646C_(pEm, 400, 80, pEm->Col.Unk39);
     case 1:
-        func_80018EC8(pEm, pKan, pSeq, 0);
+        Spd_get2(pEm, pKan, pSeq, 0);
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x100);
         Add_speedXZ(pEm, 0);
         break;

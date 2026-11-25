@@ -9,7 +9,7 @@
 #include "om.h"
 #include "esp.h"
 
-/* attack data, D_80097FCC[] entries */
+/* attack data, Esp_at_tbl[] entries */
 typedef struct tagHIT_ATTR {
     UCHAR Unk0;                        /* 0x00 */
     UCHAR Unk1;                        /* 0x01 */
