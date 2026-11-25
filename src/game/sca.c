@@ -391,7 +391,117 @@ ULONG Sca_get_area(LONG X, LONG Z)
     return Area | (((1 << ((ULONG)(X - Sx) >> 31)) << (((Z - Sz) & 0x80000000) >> 30)) << 4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground);
+/* ground height under pPos: the lowest top (Sca_high_tbl[Flg & 8][shape]) of the room shapes in pPos's grid block
+ * (Sca_get_block) whose Id matches Att, then the collision objects (Sca_get_ground_obj); Sca_work.Gnd keeps the
+ * Id/Type of the shape found (stairs, shape 10, win over a higher floor box only when Gnd says so) */
+LONG Sca_get_ground(LONG *pPos, ULONG R, ULONG Att, ULONG Flg)
+{
+    SCA_DATA *pT;
+    SCA_DATA *pData;
+    UCHAR *pList;
+    SCA_WORK *pW;
+    VECTOR Pos;
+    VECTOR *pV;
+    LONG Y;
+    LONG Ceil;
+    ULONG Level;
+    ULONG Shape;
+    LONG Dx;
+    LONG Dz;
+    LONG W;
+    LONG High;
+    LONG Num;
+    UCHAR *pTbl;
+
+    pList = Sca_block_list;
+    pT = (SCA_DATA *)G.pRoom->pSca;
+    Num = ((SCA_HEAD *)pT)->Num;
+    Y = ((SCA_HEAD *)pT)->Ceiling;
+    pTbl = (UCHAR *)(pT + Num);
+    pData = pT + 1;
+    pV = &Pos;
+    do { pW = &Sca_work; } while (0);
+    Ceil = Y;
+    if (Num == 0) {
+        return 0;
+    }
+    pW->Gnd.s.Id = 0x1000;
+    pW->Gnd.s.Type = 0;
+    Level = (Flg & 8) >> 3;
+    if ((ULONG)(pPos[0] + 0x8000) > 0xFFFF) {
+        return Y;
+    }
+    if ((ULONG)(pPos[2] + 0x8000) > 0xFFFF) {
+        return Y;
+    }
+    if (Sca_get_block((VECTOR *)pPos, (LONG)pT, pTbl, pList) && *pList != 0xFF) {
+        do {
+            pT = &pData[*pList++];
+            if (pT->Id & Att) {
+                if (pT->Floor_lo * -1800 < pPos[1]) {
+                    continue;
+                }
+                if (pT->High >= Y && !(Flg & 1)) {
+                    continue;
+                }
+                if (pT->Type & 0x1000) {
+                    Dx = pPos[0] - pT->X0;
+                    Dz = pPos[2] - pT->Z0;
+                    pV->vx = ((Dx - Dz) * 181) >> 8;
+                    pV->vz = ((Dx + Dz) * 181) >> 8;
+                    pV->vx += pT->X0;
+                    pV->vz += pT->Z0;
+                } else {
+                    pV->vx = pPos[0];
+                    pV->vz = pPos[2];
+                }
+                if (Flg & 0x20) {
+                    pV->vx += R;
+                    pV->vz += R;
+                    W = R * 2;
+                } else {
+                    W = 0;
+                }
+                if ((ULONG)(pV->vx - pT->X0) > (ULONG)(pT->X1 - pT->X0 + W)) {
+                    continue;
+                }
+                if ((ULONG)(pV->vz - pT->Z0) > (ULONG)(pT->Z1 - pT->Z0 + W)) {
+                    continue;
+                }
+                if (Flg & 0x20) {
+                    pV->vx -= R;
+                    pV->vz -= R;
+                }
+                Shape = pT->Id & 0xF;
+                if ((Flg & 0x40) && Shape != 10) {
+                    continue;
+                }
+                High = Sca_high_tbl[Level][Shape](pT, pV, Flg, Ceil);
+                if (High < Y) {
+                    if ((pW->Gnd.s.Id & 0xF) == 10 && Shape == 1 && !(pT->Type & 0xF00)) {
+                        continue;
+                    }
+                } else {
+                    if (Shape != 10) {
+                        continue;
+                    }
+                    if ((Flg & 3) == 2) {
+                        continue;
+                    }
+                    if ((pW->Gnd.All & 0x0F00000F) != 1) {
+                        continue;
+                    }
+                }
+                do {
+                    pW->Gnd.s.Id = pT->Id;
+                    Y = High;
+                    pW->Gnd.s.Type = pT->Type;
+                } while (0);
+            }
+        } while (*pList != 0xFF);
+    }
+    return Sca_get_ground_obj((VECTOR *)pPos, R, Att, Flg, Y);
+}
 
 /* Sca_get_ground's pass over the collision object list: the highest top (lowest y) below Ground of the
    objects under pPos; a character found there goes to pEm_hit/pEm_hit2 */

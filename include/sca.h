@@ -77,7 +77,7 @@ LONG Sca_hit_obj_circle(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG 
 ULONG Sca_ck_pass_line(COL_OBJ *pObj, LONG R, ULONG P0);
 LONG Sca_hit_dummy(void);
 ULONG Sca_get_area(LONG X, LONG Z); /* area bits of a point */
-LONG Sca_get_ground(LONG *pPos, ULONG a1, ULONG a2, ULONG a3); /* ground height */
+LONG Sca_get_ground(LONG *pPos, ULONG R, ULONG Att, ULONG Flg); /* ground height */
 LONG Sca_get_ground_obj(VECTOR *pPos, LONG R, ULONG Att, ULONG Flg, LONG Ground);
 ULONG Sca_get_block(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut);
 ULONG Sca_ck_circle2(VECTOR *pPos, LONG R, SCA_DATA *pT);
