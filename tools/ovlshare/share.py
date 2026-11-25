@@ -38,7 +38,8 @@ for n,(c0,h0,e0) in F[A].items():
 for n,u in share.items(): print(n,u)
 print(len(share),'functions')
 if apply:
-    os.makedirs(f'{'src/enemy/common' if fam.startswith('em') else 'src/ovl/common'}/{fam}',exist_ok=True)
+    CDIR = 'src/enemy/common' if fam.startswith('em') else 'src/ovl/common'; IDIR = CDIR[4:]
+    os.makedirs(f'{CDIR}/{fam}',exist_ok=True)
     for o in ovs:
         s=src[o]; reps=[]
         for n,u in share.items():
@@ -46,7 +47,7 @@ if apply:
             c,h,e=F[o][n]
             if o==A:
                 body=s[c:e].rstrip()+'\n'
-                open(f'{'src/enemy/common' if fam.startswith('em') else 'src/ovl/common'}/{fam}/{n}.inc.c','w').write(f'/* shared by {", ".join(u)} */\n'+body)
-            reps.append((c,e,f'#include "{'enemy/common' if fam.startswith('em') else 'ovl/common'}/{fam}/{n}.inc.c"'))
+                open(f'{CDIR}/{fam}/{n}.inc.c','w').write(f'/* shared by {", ".join(u)} */\n'+body)
+            reps.append((c,e,f'#include "{IDIR}/{fam}/{n}.inc.c"'))
         for c,e,r in sorted(reps,reverse=True): s=s[:c]+r+s[e:]
         open((f'src/enemy/{o}.c' if o.startswith('em') else f'src/ovl/{o}.c'),'w').write(s)

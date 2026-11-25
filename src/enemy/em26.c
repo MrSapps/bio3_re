@@ -4,10 +4,10 @@
 #include "snd.h"
 #include "sld.h"
 
-LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__("func_8004D720"); /* 5 args here (canonical 4) */
+LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__("func_8004D720"); /* Capcom passes a fifth argument (unprototyped call) */
 
-/* RE2 EM_MAIN */
-void func_8010001C(ENEMY_WORK *pEm)
+/* RE2 EM_MAIN: per-frame entry of the young spider: routine dispatch, collision */
+void Em26_main(ENEMY_WORK *pEm)
 {
     if (!(G.Unk2468 & 0x20000000)) {
         if (pEm->Damage_cnt & 0x7F)
@@ -17,7 +17,7 @@ void func_8010001C(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em26_Init; Type 0 spawns a swarm of 16 copies */
-void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG i;
     ENEMY_WORK *pCp;
@@ -42,7 +42,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk138 = 0x50;
     pEm->Unk139 = 0xA0;
     pEm->Damage_cnt = 6;
-    EM26_W(pEm)->Unk0C = 0;
+    EM26_W(pEm)->Catch_wait = 0;
     pEm->Unk140 = 0;
     pEm->Spd_x = 0;
     pEm->Spd_y = 0;
@@ -107,20 +107,20 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
 }
 
-/* RE2 Em26_Move */
-void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Move: move routines by Routine_1 (Em26_move_tbl) */
+void Em26_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em26_move_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em26_Mv_dummy */
-void func_801003EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Mv_dummy: standing still */
+void Em26_Mv_dummy(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Joint_move(pEm, pKan, pSeq, 0x400);
 }
 
-/* RE2 Em26_Mv_walk */
-void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Mv_walk: on the floor: wait / run (Em26_mv_walk_tbl), catch the player when close */
+void Em26_Mv_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
     LONG Dir0;
@@ -131,11 +131,11 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dir0 = Goto00_ck(pEm, pTg->Pos_x, pTg->Pos_z, 0x100);
     if (EM26_W(pEm)->No_catch_cnt)
         EM26_W(pEm)->No_catch_cnt--;
-    if (EM26_W(pEm)->Unk0C)
-        EM26_W(pEm)->Unk0C--;
+    if (EM26_W(pEm)->Catch_wait)
+        EM26_W(pEm)->Catch_wait--;
     Dist = (pTg == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
     if (Dist < 2000 && !Dir0)
-        if (!EM26_W(pEm)->Unk0C && !EM26_W(pEm)->No_catch_cnt && !(pTg->Damage_cnt & 0x7F)) {
+        if (!EM26_W(pEm)->Catch_wait && !EM26_W(pEm)->No_catch_cnt && !(pTg->Damage_cnt & 0x7F)) {
             pEm->Routine_1 = 3;
             EM_RTN23(pEm) = 0;
         }
@@ -157,7 +157,7 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em26_Mv_walk00: wait */
-void func_80100614(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em26_Mv_walk00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_3) {
     case 0:
@@ -175,14 +175,14 @@ void func_80100614(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (--pEm->Timer0 == -1)
             EM_RTN23(pEm) = 1;
     }
-    if (!func_80101100(pEm)) {
+    if (!Get_sc_hit(pEm)) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
     }
 }
 
 /* RE2 Em26_Mv_walk10: run at the target */
-void func_80100724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em26_Mv_walk10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
 
@@ -205,14 +205,14 @@ void func_80100724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_x = pEm->Old_x;
         pEm->Pos_y = pEm->Old_y;
         pEm->Pos_z = pEm->Old_z;
-    } else if (!func_80101100(pEm)) {
+    } else if (!Get_sc_hit(pEm)) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
     }
 }
 
-/* RE2 Em26_Mv_fall */
-void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Mv_fall: falling to the floor below */
+void Em26_Mv_fall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Hit;
     SHORT Ground;
@@ -232,14 +232,14 @@ void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     else
         pEm->Spd_y = 800;
     pEm->Damage_cnt = 0xFF;
-    Hit = func_80101100(pEm);
+    Hit = Get_sc_hit(pEm);
     if (Hit) {
         pEm->Damage_cnt = 0;
         EM26_W(pEm)->Jump_flg = 0;
         if (Hit < 0) {
             pEm->Pos_y = Hit + 10;
             pEm->Routine_1 = 4;
-            func_8010100C(pEm, 0, 0x82);
+            Set_blood(pEm, 0, 0x82);
             pEm->Be_flg |= 0x20;
         } else {
             pEm->Routine_1 = 1;
@@ -250,8 +250,8 @@ void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em26_Mv_jump */
-void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Mv_jump: jumping at the player */
+void Em26_Mv_jump(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Hit;
     EM26_FREE *pFp;
@@ -266,15 +266,15 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     Add_speedXYZ(pEm, 0, 0);
     pEm->Spd_y += 40;
-    if (!func_80100EF4(pEm, 0))
+    if (!Em26_atck_ck(pEm, 0))
         if ((LONG)G.Status_flg < 0)
-            func_80100EF4(pEm, 1);
-    Hit = func_80101100(pEm);
+            Em26_atck_ck(pEm, 1);
+    Hit = Get_sc_hit(pEm);
     if (Hit) {
         pFp->Jump_flg = 0;
-        EM26_W(pEm)->Unk0C = (Rnd() & 0x3F) + 0x5A;
+        EM26_W(pEm)->Catch_wait = (Rnd() & 0x3F) + 0x5A;
         if (Hit < 0) {
-            func_8010100C(pEm, 0, 0x82);
+            Set_blood(pEm, 0, 0x82);
             pEm->Life = -1;
             pEm->Pos_y = Hit + 10;
             EM_SET_RTN(pEm, 3, 0, 0, 0);
@@ -289,8 +289,8 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em26_Mv_swim */
-void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Mv_swim: swimming on the water */
+void Em26_Mv_swim(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pTg;
     LONG Dir0;
@@ -308,7 +308,7 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM26_W(pEm)->Kasakasarot *= -1;
     Joint_move(pEm, pKan, pSeq, 0x400);
     if (!(++pEm->UnkE2 & 0xF)) {
-        func_8010100C(pEm, 0, 0x82);
+        Set_blood(pEm, 0, 0x82);
         pEm->UnkE2 += Rnd() & 7;
     }
     Dist = (EM26_W(pEm)->pTarget_pl == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
@@ -318,7 +318,7 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_RTN23(pEm) = 0;
         }
     pEm->Pos_y = pEm->Water + 10;
-    if (func_80101100(pEm) >= 0) {
+    if (Get_sc_hit(pEm) >= 0) {
         pEm->Routine_1 = 1;
         EM_RTN23(pEm) = 0;
     } else if (!--pEm->Timer0) {
@@ -327,11 +327,12 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100C94(void) {
+/* RE2 Em26_Damage: empty */
+void Em26_Damage(void) {
 }
 
-/* RE2 Em26_dm00 */
-void func_80100C9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_dm00: no reaction (sets Routine_2 only) */
+void Em26_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -343,23 +344,25 @@ void func_80100C9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80100CC8(void) {
+/* RE2 Em26_dm01: empty */
+void Em26_dm01(void) {
 }
 
-void func_80100CD0(void) {
+/* RE2 Em26_dm02: empty */
+void Em26_dm02(void) {
 }
 
-/* RE2 Em26_Die */
-void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Die: death on the floor (Em26_Die00) or sinking in the water (Em26_Die10) */
+void Em26_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (Water_ck(pEm->Pos_x, pEm->Pos_z) >= pEm->Unk122 || EM26_W(pEm)->Jump_flg)
-        func_80100D5C(pEm, pKan, pSeq);
+        Em26_Die00(pEm, pKan, pSeq);
     else
-        func_80100E38(pEm, pKan, pSeq);
+        Em26_Die10(pEm, pKan, pSeq);
 }
 
-/* RE2 Em26_Die00 */
-void func_80100D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em26_Die00: squashed, blood by the damage kind */
+void Em26_Die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     KAGE_WORK *pKage;
 
@@ -375,7 +378,7 @@ void func_80100D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Be_flg |= 0x20;
         }
         Snd_se_enem(7, pEm);
-        func_8010100C(pEm, 0, Em26_dieblood_type_tbl[pEm->Routine_1 - 1]);
+        Set_blood(pEm, 0, Em26_dieblood_type_tbl[pEm->Routine_1 - 1]);
         pEm->Col.Id = 0;
         pEm->pSin_parts_ptr->Be_flg = 0;
     } else {
@@ -384,7 +387,7 @@ void func_80100D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em26_Die10: sink */
-void func_80100E38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em26_Die10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Be_flg |= 0x4000;
     pEm->Pos_y += 30;
@@ -395,17 +398,20 @@ void func_80100E38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         KILL_ENEMY_WORK(pEm);
 }
 
-void func_80100EDC(void) {
+/* RE2 Em26_Scenario: empty */
+void Em26_Scenario(void) {
 }
 
-void func_80100EE4(void) {
+/* RE2 Em26_Dead: empty */
+void Em26_Dead(void) {
 }
 
-void func_80100EEC(void) {
+/* RE2 PLDAMAGE_EM: empty */
+void Pldamege_Em26(void) {
 }
 
 /* RE2 Em26_atck_ck: bite the player (Pl 0) or the partner (Pl 1) */
-ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl)
+ULONG Em26_atck_ck(ENEMY_WORK *pEm, ULONG Pl)
 {
     ULONG Dist;
     ENEMY_WORK *pPl;
@@ -422,11 +428,11 @@ ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl)
     if (Dist < pPl->Col.W0 + 40 && (ULONG)(pPl->Pos_y - pEm->Pos_y) < 3000 && !pFp->Atck_flg) {
         if (!pPl->Damage_cnt) {
             if (!Pl) {
-                func_801010E8(pPl, Cdir_ck(pEm, pPl));
+                Em26_Pl_to_dmg(pPl, Cdir_ck(pEm, pPl));
                 Pl_life_down(1, 1);
                 Pad_vib_set0(3, 0);
             }
-            func_8010100C(pEm, 0, 1);
+            Set_blood(pEm, 0, 1);
             pFp->Atck_flg = 1;
             pEm->Spd_x = 0x5A;
             pEm->Cdir_y += 0x800;
@@ -436,8 +442,8 @@ ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl)
     return 0;
 }
 
-/* RE2 Set_blood */
-void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type)
+/* RE2 Set_blood: blood effect of kind type at part parts of pTg (Em26_blood_id_tbl) */
+void Set_blood(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type)
 {
     PARTS_W *pP;
     SVECTOR Sv;
@@ -457,7 +463,7 @@ void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type)
 }
 
 /* RE2 Em26_Pl_to_dmg (without the Damage_cnt flag) */
-void func_801010E8(ENEMY_WORK *pPl, UCHAR Dir)
+void Em26_Pl_to_dmg(ENEMY_WORK *pPl, UCHAR Dir)
 {
     pPl->Routine_0 = 2;
     pPl->Routine_1 = Dir;
@@ -465,8 +471,8 @@ void func_801010E8(ENEMY_WORK *pPl, UCHAR Dir)
     pPl->Routine_3 = 0;
 }
 
-/* RE2 Get_sc_hit */
-LONG func_80101100(ENEMY_WORK *pEm)
+/* RE2 Get_sc_hit: wall collision of the young spider */
+LONG Get_sc_hit(ENEMY_WORK *pEm)
 {
     LONG Wat;
 

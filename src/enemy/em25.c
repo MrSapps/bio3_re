@@ -4,10 +4,10 @@
 #include "snd.h"
 #include "sub.h"
 
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
+LONG Rnd_l(void) __asm__("Rnd"); /* Capcom called Rnd unprototyped: int result, no masking */
 
-/* RE2 EM_MAIN */
-void func_801000C8(ENEMY_WORK *pEm)
+/* RE2 EM_MAIN: per-frame entry of the spider: routine dispatch, shadow, hit area, sounds */
+void Em25_main(ENEMY_WORK *pEm)
 {
     EM25_FREE *pFp = EF(pEm);
 
@@ -23,7 +23,7 @@ void func_801000C8(ENEMY_WORK *pEm)
         pEm->Be_flg &= ~0x400;
     if ((ULONG)(pFp->Place - 2) < 2) {
         pEm->Be_flg |= 0x8000;
-        func_80102C7C(pEm);
+        Em25_wall_hit_ofs(pEm);
     } else {
         pEm->Col.Unk24 = 0;
         pEm->Col.Unk28 = 0;
@@ -31,7 +31,7 @@ void func_801000C8(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em25_Init */
+/* RE2 Em25_Init: life, collision, neck, place (floor / ceiling / wall) and start routine of the Type */
 void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
@@ -118,20 +118,20 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     if (pEm->Type & 0x100)
-        EF(pEm)->Unk2F = 0;
+        EF(pEm)->Drop_ok = 0;
     else
-        EF(pEm)->Unk2F = 1;
+        EF(pEm)->Drop_ok = 1;
     if (pEm->Type & 0x80)
-        EF(pEm)->Unk2E = 0;
+        EF(pEm)->Jump_ok = 0;
     else
-        EF(pEm)->Unk2E = 1;
+        EF(pEm)->Jump_ok = 1;
     for (i = 0; i < 20; i++) {
         pP = &pEm->pSin_parts_ptr[i];
         pP->Be_flg |= 0x20;
     }
 }
 
-/* RE2 Em25_Move */
+/* RE2 Em25_Move: move routines by place (Em25_move_tbl: floor, ceiling, wall, wall set) */
 void Em25_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp = EF(pEm);
@@ -152,13 +152,13 @@ void Em25_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Move_floor */
-void func_80100658(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Move_floor: floor routines by Routine_1 (Em25_floor_tbl) */
+void Em25_Move_floor(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_floor_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_mv_taiki */
+/* RE2 Em25_mv_taiki: the waiting motion (taiki: standby) */
 void Em25_mv_taiki(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
@@ -177,8 +177,8 @@ void Em25_mv_taiki(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_mv000 */
-void func_80100758(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv000: waiting on the floor, turning to the player; picks the next action */
+void Em25_mv000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Dir0;
     USHORT LL;
@@ -197,7 +197,7 @@ void func_80100758(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (EF(pEm)->at_cnt == 0) {
         if (LL < 7500 && !Dir0 && LL > 3000)
             EM_SET_RTN(pEm, 1, 7, 0, 0);
-        if (LL < 6000 && !Dir0 && LL > 1000 && EF(pEm)->Unk2E) {
+        if (LL < 6000 && !Dir0 && LL > 1000 && EF(pEm)->Jump_ok) {
             if ((0x340 >> (Rnd_l() & 0xF)) & 1)
                 EM_SET_RTN(pEm, 1, 8, 0, 0);
             else
@@ -206,12 +206,12 @@ void func_80100758(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_mv01 */
+/* RE2 Em25_mv01: walking (motion and turn speed from Em25_mv01_tbl) */
 void Em25_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Em25_mv01_tbl[pEm->Routine_1 - 1][0] + 0x70000;
+        EM_SET_MOVE(pEm, Em25_mv01_tbl[pEm->Routine_1 - 1][0], 0, 7);
         pEm->Routine_2 = 1;
         pEm->Spd_z = 0;
         pEm->Timer0 = Rnd_l() & 0x3D;
@@ -229,8 +229,8 @@ void Em25_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Add_speedXZ(pEm, EF(pEm)->Flip);
 }
 
-/* RE2 Em25_mv04 */
-void func_80100A10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv04: turning on the spot in a random direction for a while */
+void Em25_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -252,15 +252,15 @@ void func_80100A10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_mv05 */
-void func_80100B18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv05: turning to the player (two speeds by Routine_1) */
+void Em25_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Add_dir;
     ULONG Em25_mv03_tbl[2][2] = { { 2, 0x80 }, { 3, 0x20 } };
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Em25_mv03_tbl[pEm->Routine_1 - 5][0] + 0x70000;
+        EM_SET_MOVE(pEm, Em25_mv03_tbl[pEm->Routine_1 - 5][0], 0, 7);
         pEm->Routine_2 = 1;
         pEm->UnkDA = (Rnd_l() & 0x1F) + 0x3C;
     case 1:
@@ -277,7 +277,7 @@ void func_80100B18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_mv07 (RE3 adds a hit box in front while it charges) */
-void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     HIT_AREA Hit;
     SHORT Box[4];
@@ -358,7 +358,7 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_mv08 (spit) */
-void func_80101028(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Off_sv;
     HIT_AREA Hit;
@@ -433,8 +433,8 @@ LONG Em25_mv08sp(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     return 0;
 }
 
-/* RE2 Em25_mv09 */
-void func_80101254(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv09: jumping aside from the player */
+void Em25_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     MATRIX Tm;
     SVECTOR Tsv;
@@ -466,16 +466,16 @@ void func_80101254(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Move_ceiling */
-void func_801013EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Move_ceiling: ceiling routines by Routine_1 (Em25_ceiling_tbl) */
+void Em25_Move_ceiling(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_ceiling_tbl[pEm->Routine_1](pEm, pKan, pSeq);
     if (pEm->Routine_1 != 10 && pEm->Col.D0 < 1000)
         pEm->Col.D0 = pEm->Col.W0 += 100;
 }
 
-/* RE2 Em25_mv001 */
-void func_80101468(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv001: waiting on the ceiling, turning to the player; picks the next action */
+void Em25_mv001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Dir0;
     USHORT LL;
@@ -492,13 +492,13 @@ void func_80101468(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if (EF(pEm)->at_cnt == 0) {
         if (LL > 3000 && LL < 7500) {
-            if (!Dir0 && ((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Unk2E)
+            if (!Dir0 && ((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Jump_ok)
                 EM_SET_RTN(pEm, 1, 7, 0, 0);
             else
                 EM_SET_RTN(pEm, 1, 1, 0, 0);
         }
         if (LL < 3000 && !Dir0) {
-            if (((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Unk2E)
+            if (((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Jump_ok)
                 EM_SET_RTN(pEm, 1, 8, 0, 0);
             else
                 EM_SET_RTN(pEm, 1, 7, 0, 0);
@@ -506,8 +506,8 @@ void func_80101468(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_mv011 */
-void func_801015B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv011: walking on the ceiling; at a wall, climb it or turn to the other spider (pPair) */
+void Em25_mv011(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pOther;
     LONG dist;
@@ -546,13 +546,13 @@ void func_801015B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM_RTN23(pEm) = 0;
             }
         }
-        if (EF(pEm)->Unk2F && (LONG)pEm->Unk154 < 3500 && !(Rnd_l() & 3))
+        if (EF(pEm)->Drop_ok && (LONG)pEm->Unk154 < 3500 && !(Rnd_l() & 3))
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
 }
 
-/* RE2 Em25_mv071 */
-void func_80101764(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_mv071: on the ceiling: step forward, then turn to the player for a while */
+void Em25_mv071(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Add_dir;
 
@@ -589,7 +589,7 @@ void func_80101764(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y += Em25_goto00(pEm, 0x10);
         Add_speedXZ(pEm, EF(pEm)->Flip);
         Joint_move(pEm, pKan, pSeq, 0x200);
-        if (!--pEm->UnkE2 && EF(pEm)->Unk2E) {
+        if (!--pEm->UnkE2 && EF(pEm)->Jump_ok) {
             Snd_se_enem(3, pEm);
             Set_poison(pEm, 2, pEm->Cdir_y + EF(pEm)->Flip);
             pEm->UnkE2 = 12;
@@ -613,7 +613,7 @@ void func_80101764(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_mv0a: turn to the wall and climb from the ceiling onto it */
-void func_80101A40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_mv0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -665,7 +665,7 @@ void func_80101A40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_mv0b (retail RE2 ceiling routine 11): turn toward the other em25 */
-void func_80101C58(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pOther;
 
@@ -688,13 +688,13 @@ void func_80101C58(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE3 ceiling routine 12: drop from the ceiling (Em25_mv0c_tbl) */
-void func_80101D54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_mv0c_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
 /* RE3: start falling from the ceiling */
-void func_80101D90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_fall_start(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -710,13 +710,13 @@ void func_80101D90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Damage_cnt |= 0x80;
 }
 
-/* RE2 Em25_Move_walldown */
-void func_80101DDC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Move_walldown: wall routines by Routine_1 (move_wall_tbl) */
+void Em25_Move_walldown(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_wall_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_wall_init */
+/* RE2 Em25_wall_init: start of a wall routine: waiting motion */
 void Em25_wall_init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (EF(pEm)->Wall_pos & 1) {
@@ -734,7 +734,7 @@ void Em25_wall_init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x400);
 }
 
-/* RE2 Em25_Mv_wall000 */
+/* RE2 Em25_Mv_wall000: waiting on the wall; picks the next action */
 void Em25_Mv_wall000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG dist, water;
@@ -764,8 +764,8 @@ void Em25_Mv_wall000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Timer0 = (Rnd_l() & 0xF) + 30;
 }
 
-/* RE2 Em25_Mv_wall10 */
-void func_80101FD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall10: walking on the wall for Timer0 frames, then the next routine (Em_next) */
+void Em25_Mv_wall10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
@@ -787,8 +787,8 @@ void func_80101FD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Mv_wall200 */
-void func_801020B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall200: waiting on the wall after a turn */
+void Em25_Mv_wall200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
@@ -797,7 +797,7 @@ void func_801020B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x400);
     if (!--pEm->Timer0) {
         if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000)
-            && ((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Unk2E)
+            && ((0x340 >> (Rnd_l() & 0xF)) & 1) && EF(pEm)->Jump_ok)
             pEm->Routine_1 = 7;
         else
             pEm->Routine_1 = 3;
@@ -805,14 +805,14 @@ void func_801020B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Mv_wall30 */
-void func_8010219C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall30: turning on the wall towards the player */
+void Em25_Mv_wall30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
         pEm->UnkDA = Ck_wall_to_pl(pEm, 0x20);
-        if (!pEm->UnkDA && EF(pEm)->Unk2E) {
+        if (!pEm->UnkDA && EF(pEm)->Jump_ok) {
             pEm->Routine_1 = 7;
             EM_RTN23(pEm) = 0;
             break;
@@ -845,8 +845,8 @@ void func_8010219C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_foot_se(pEm);
 }
 
-/* RE2 Em25_Mv_wall40 */
-void func_80102338(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall40: turning on the wall by a random angle (ceil_turn_tbl) */
+void Em25_Mv_wall40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     USHORT dd;
 
@@ -903,7 +903,7 @@ void func_80102338(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_Mv_wall50: climb from the wall onto the ceiling */
-void func_80102578(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_Mv_wall50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pOther;
     LONG dist;
@@ -965,8 +965,8 @@ void func_80102578(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_foot_se(pEm);
 }
 
-/* RE2 Em25_Mv_wall60 */
-void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall60: running along the wall until its edge, attacking when in reach */
+void Em25_Mv_wall60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1004,8 +1004,8 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Set_foot_se(pEm);
 }
 
-/* RE2 Em25_Mv_wall70 */
-void func_8010295C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall70: turn to the player on the wall and spit poison */
+void Em25_Mv_wall70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT type;
     SHORT Dir;
@@ -1043,7 +1043,7 @@ void func_8010295C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em_seq_sound(pEm);
 }
 
-/* RE2 Get_wallshot */
+/* RE2 Get_wallshot: direction of a spit from the wall */
 SHORT Get_wallshot(ENEMY_WORK *pEm)
 {
     SHORT dir;
@@ -1054,27 +1054,27 @@ SHORT Get_wallshot(ENEMY_WORK *pEm)
     return ((EF(pEm)->Wall_pos << 10) + (dir - (dir >> 2))) & 0xFFF;
 }
 
-/* RE2 Em25_Move_wallset */
-void func_80102B3C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Move_wallset: routines of a spider placed on a wall (move_wallset_tbl) */
+void Em25_Move_wallset(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     move_wallset_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Mv_wall001 */
-void func_80102B78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall001: start on the wall, then the wall routines */
+void Em25_Mv_wall001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_wall_init(pEm, pKan, pSeq);
     pEm->Routine_1 = 2;
     EM_RTN23(pEm) = 0;
 }
 
-/* RE2 Em25_Mv_wall201 */
-void func_80102BA8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Mv_wall201: waiting on the wall until the player comes near, then spit or climb down */
+void Em25_Mv_wall201(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Joint_move(pEm, pKan, pSeq, 0x400);
     if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 7200)
         || Ck_near_wall(pEm, EF(pEm)->pWall, EF(pEm)->Wall_pos)) {
-        if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000) && EF(pEm)->Unk2E)
+        if (((EF(pEm)->Target_pl ? (pEm->Unk158 & 0x3FFFFFFF) : (LONG)pEm->Unk154) < 3000) && EF(pEm)->Jump_ok)
             pEm->Routine_1 = 7;
         else
             pEm->Routine_1 = 3;
@@ -1083,7 +1083,7 @@ void func_80102BA8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE3: hit area offset for the wall position */
-void func_80102C7C(ENEMY_WORK *pEm)
+void Em25_wall_hit_ofs(ENEMY_WORK *pEm)
 {
     SVECTOR Sv;
     SHORT dir;
@@ -1098,8 +1098,8 @@ void func_80102C7C(ENEMY_WORK *pEm)
     pEm->Col.Unk28 = Sv.vz;
 }
 
-/* RE2 Em25_Damage */
-void func_80102CE8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Damage: damage routine by damage kind (Em25_dm) */
+void Em25_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
         EF(pEm)->Dmg_type = pEm->Unk12C;
@@ -1108,13 +1108,13 @@ void func_80102CE8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_nml */
+/* RE2 Em25_dm_nml: normal hit, by place (dmg_nml_tbl) */
 void Em25_dm_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     dmg_nml_tbl[EF(pEm)->Place](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_nml00 */
+/* RE2 Em25_dm_nml00: normal hit on the floor: flinch */
 void Em25_dm_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG next;
@@ -1137,8 +1137,8 @@ void Em25_dm_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_nml10 */
-void func_80102ED4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_nml10: normal hit on the ceiling: back to the saved routine */
+void Em25_dm_nml10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1153,8 +1153,8 @@ void func_80102ED4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_nml20 */
-void func_80102F88(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_nml20: normal hit on the wall: back to the saved routine */
+void Em25_dm_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1170,13 +1170,13 @@ void func_80102F88(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_ftl */
+/* RE2 Em25_dm_ftl: heavy hit, by place (dmg_ftl_tbl) */
 void Em25_dm_ftl(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     dmg_ftl_tbl[EF(pEm)->Place](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_ftl00 */
+/* RE2 Em25_dm_ftl00: heavy hit on the floor: knocked back */
 void Em25_dm_ftl00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
@@ -1192,8 +1192,8 @@ void Em25_dm_ftl00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_ftl10 */
-void func_80103134(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_ftl10: heavy hit on the ceiling: back to the saved routine */
+void Em25_dm_ftl10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1228,8 +1228,8 @@ void Em25_dm_ftl110(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Set_child(pEm, 0x2004, (Rnd_l() & 1) + 1);
 }
 
-/* RE2 Em25_dm_ftl111 */
-void func_801032A4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_ftl111: knocked off the ceiling, falling */
+void Em25_dm_ftl111(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Add_speedXYZ(pEm, 0, pEm->Timer0);
     pEm->Spd_y += 40;
@@ -1255,8 +1255,8 @@ void func_801032A4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Joint_move(pEm, pKan, pSeq, 0x400);
 }
 
-/* RE2 Em25_dm_ftl112 */
-void func_801033CC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_ftl112: landing after the fall, then the floor routines */
+void Em25_dm_ftl112(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1269,7 +1269,7 @@ void func_801033CC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_ftl12 */
+/* RE2 Em25_dm_ftl12: heavy hit that releases a few young spiders */
 void Em25_dm_ftl12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
@@ -1277,8 +1277,8 @@ void Em25_dm_ftl12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_dm_ftl00(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_ftl20 */
-void func_80103490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_ftl20: heavy hit on the wall: back to the saved routine */
+void Em25_dm_ftl20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1298,7 +1298,7 @@ void func_80103490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_dm_ftl210: fall off the wall */
-void func_801035A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_dm_ftl210(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_dm_ftl110(pEm, pKan, pSeq);
     Joint_move(pEm, pKan, pSeq, 0x400);
@@ -1317,8 +1317,8 @@ void func_801035A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Damage_cnt |= 0x80;
 }
 
-/* RE2 Em25_dm_ftl211 */
-void func_80103658(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_ftl211: falling off the wall, landing */
+void Em25_dm_ftl211(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em25_add_speed(pEm, pEm->Timer0, pEm->UnkDA, 0);
     pEm->Spd_x += 40;
@@ -1337,8 +1337,8 @@ void func_80103658(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_combo */
-void func_8010374C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_combo: hit again while reacting: blood, then a normal hit */
+void Em25_dm_combo(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG no;
 
@@ -1351,8 +1351,8 @@ void func_8010374C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_dm_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_gnml */
-void func_801037FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_gnml: shotgun / grenade hit: blood, then a heavy hit */
+void Em25_dm_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG i, d0;
@@ -1367,8 +1367,8 @@ void func_801037FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_dm_fire */
-void func_801038C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_fire: hit by fire: burn marks, then a normal hit */
+void Em25_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG i, d0;
@@ -1390,8 +1390,8 @@ void func_801038C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_dm_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_H2SO4 */
-void func_801039E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_H2SO4: hit by acid: acid on a body part, then a normal hit */
+void Em25_dm_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     EM25_FREE *pFp;
@@ -1420,7 +1420,7 @@ void func_801039E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE3 damage (Em25_dm[8]): legs frozen, model fades (Unk178) */
-void func_80103B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_dm_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG base;
@@ -1461,8 +1461,8 @@ void func_80103B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_dm_ftl(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_dm_spark */
-void func_80103D30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_dm_spark: electric hit: sparks, then a heavy hit */
+void Em25_dm_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EF(pEm)->Spark_cnt = 20;
     Set_blood(pEm, 0, 10);
@@ -1471,7 +1471,7 @@ void func_80103D30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em25_dm_fire2 (pFp is only set when the burn starts, as in the original) */
-void func_80103D94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_dm_fire2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     EM25_FREE *pFp;
@@ -1494,8 +1494,8 @@ void func_80103D94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Move(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die */
-void func_80103EB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die: death routine by damage kind (em25_die_tbl), floating in water */
+void Em25_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2)
         EF(pEm)->Dmg_type = pEm->Unk12C;
@@ -1506,7 +1506,7 @@ void func_80103EB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em_dead_flg_on_cand(pEm);
 }
 
-/* RE2 Em25_Die_nml */
+/* RE2 Em25_Die_nml: normal death, by place (die_nml_tbl), then the young spiders */
 void Em25_Die_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!EF(pEm)->Die_weak)
@@ -1515,8 +1515,8 @@ void Em25_Die_nml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em25_Die_nml30(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_nml00 */
-void func_80103FC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml00: normal death on the floor */
+void Em25_Die_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1552,14 +1552,14 @@ void func_80103FC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Die_nml10 */
+/* RE2 Em25_Die_nml10: normal death on the ceiling (die_nml10_tbl by Routine_2) */
 void Em25_Die_nml10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     die_nml10_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_nml100 */
-void func_80104144(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml100: start of the fall from the ceiling */
+void Em25_Die_nml100(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Routine_2 = 1;
     pEm->Spd_x = 0;
@@ -1575,8 +1575,8 @@ void func_80104144(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Set_blood(pEm, 0, 0);
 }
 
-/* RE2 Em25_Die_nml101 */
-void func_801041B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml101: falling from the ceiling, landing */
+void Em25_Die_nml101(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1626,8 +1626,8 @@ void Em25_Die_nml1010(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em25_Die_nml102 */
-void func_80104340(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml102: death motion after the fall, then the corpse */
+void Em25_Die_nml102(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Joint_move(pEm, pKan, pSeq, 0x400);
     if (*pEm->pNow_seq & 0x100) {
@@ -1640,14 +1640,14 @@ void func_80104340(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Die_nml20 */
-void func_801043AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml20: normal death on the wall (die_nml20_tbl by Routine_2) */
+void Em25_Die_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     die_nml20_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_nml200 */
-void func_801043E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml200: start of the fall from the wall */
+void Em25_Die_nml200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Routine_2 = 1;
     pEm->Timer0 = 0x800;
@@ -1671,8 +1671,8 @@ void func_801043E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Set_blood(pEm, 0, 0);
 }
 
-/* RE2 Em25_Die_nml201 */
-void func_801044AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_nml201: falling from the wall, landing */
+void Em25_Die_nml201(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM25_FREE *pFp;
 
@@ -1705,7 +1705,7 @@ void func_801044AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Die_nml30 */
+/* RE2 Em25_Die_nml30: the last death motion releases the young spiders */
 void Em25_Die_nml30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM_SET_MOVE(pEm, 0xD, 0, 7);
@@ -1718,7 +1718,7 @@ void Em25_Die_nml30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_y = pEm->Water + 800;
 }
 
-/* RE2 Em25_Die_ftl */
+/* RE2 Em25_Die_ftl: death by a heavy hit, by place (die_ftl_tbl), then the young spiders */
 void Em25_Die_ftl(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!EF(pEm)->Die_weak)
@@ -1727,8 +1727,8 @@ void Em25_Die_ftl(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em25_Die_ftl30(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_ftl00 */
-void func_801046D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_ftl00: death by a heavy hit on the floor, body bursts */
+void Em25_Die_ftl00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Routine_2 = 1;
@@ -1758,8 +1758,8 @@ void func_801046D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_Die_ftl10 */
-void func_80104804(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_ftl10: death by a heavy hit on the ceiling, body bursts */
+void Em25_Die_ftl10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         Set_blood(pEm, 19, 1);
@@ -1769,14 +1769,14 @@ void func_80104804(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Die_nml10(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_ftl20 */
-void func_80104888(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_ftl20: death by a heavy hit on the wall (die_ftl20_tbl by Routine_2) */
+void Em25_Die_ftl20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     die_ftl20_tbl[pEm->Routine_2](pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_ftl200 */
-void func_801048C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_ftl200: start of the fall from the wall */
+void Em25_Die_ftl200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Routine_2 = 1;
     pEm->Timer0 = 0x800;
@@ -1801,7 +1801,7 @@ void func_801048C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Set_child(pEm, 0x2004, (Rnd_l() & 3) + 6);
 }
 
-/* RE2 Em25_Die_ftl30 */
+/* RE2 Em25_Die_ftl30: the last death motion releases the young spiders */
 void Em25_Die_ftl30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM_SET_MOVE(pEm, 0xD, 0, 7);
@@ -1825,20 +1825,20 @@ void Die_break_set(ENEMY_WORK *pEm)
     pP_ptr = &pEm->pSin_parts_ptr[19];
     pP_ptr->UnkA2 |= 0x20;
     pP_ptr->Be_flg |= 2;
-    PW_FREE(pP_ptr)[0] = pEm->Cdir_y + 0x800;
-    PW_FREE(pP_ptr)[4] = 0;
-    PW_FREE(pP_ptr)[2] = 0;
-    PW_FREE(pP_ptr)[1] = -240;
-    PW_FREE(pP_ptr)[3] = 15;
-    PW_FREE(pP_ptr)[6] = 0;
+    PW_BOMB(pP_ptr)->V0_x = pEm->Cdir_y + 0x800;
+    PW_BOMB(pP_ptr)->Cnt0 = 0;
+    PW_BOMB(pP_ptr)->V0_z = 0;
+    PW_BOMB(pP_ptr)->V0_y = -240;
+    PW_BOMB(pP_ptr)->G = 15;
+    PW_BOMB(pP_ptr)->Gxz = 0;
     pP_ptr->Poly_rgb = 0x2F2F2F;
     Set_blood(pEm, 19, 1);
     for (i = 0; i < 4; i++)
         Set_blood(pEm, 19, 2);
 }
 
-/* RE2 Em25_Die_gnml */
-void func_80104AE4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_gnml: shotgun / grenade death: blood, then a heavy-hit death */
+void Em25_Die_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG i, d0, d1;
@@ -1858,8 +1858,8 @@ void func_80104AE4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Die_ftl(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_fire */
-void func_80104C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_fire: burnt to death: flames, then a normal death */
+void Em25_Die_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG i, d0, d1;
@@ -1884,8 +1884,8 @@ void func_80104C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Die_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_H2SO4 */
-void func_80104D74(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_H2SO4: killed by acid, then a normal death */
+void Em25_Die_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2 && !EF(pEm)->Die_weak) {
         Chg_modelcol(pEm, 0x101F3F);
@@ -1897,8 +1897,8 @@ void func_80104D74(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Die_nml(pEm, pKan, pSeq);
 }
 
-/* RE3 death (em25_die_tbl[8]), counterpart of func_80103B30 */
-void func_80104E18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE3 death (em25_die_tbl[8]), counterpart of Em25_dm_freeze */
+void Em25_Die_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP_ptr;
     ULONG base;
@@ -1936,8 +1936,8 @@ void func_80104E18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Die_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Die_spark */
-void func_80105010(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Die_spark: electrocuted, then a normal death */
+void Em25_Die_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!EF(pEm)->Die_weak) {
         Chg_modelcol(pEm, 0x3F3F3F);
@@ -1949,13 +1949,13 @@ void func_80105010(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_Die_nml(pEm, pKan, pSeq);
 }
 
-/* RE2 Em25_Scenario */
-void func_801050A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em25_Scenario: empty */
+void Em25_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
 }
 
 /* RE2 Em25_Dead (RE3 sinks the body into the water) */
-void func_801050A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em25_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_1) {
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
@@ -1990,7 +1990,7 @@ void func_801050A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em25_kage_move */
+/* RE2 Em25_kage_move: shadow position and size by place */
 void Em25_kage_move(ENEMY_WORK *pEm)
 {
     KAGE_WORK *pKage;
@@ -2024,7 +2024,7 @@ void Em25_kage_move(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em25_float_move */
+/* RE2 Em25_float_move: the dead body floating up in water */
 void Em25_float_move(ENEMY_WORK *pEm)
 {
     EM25_FREE *pFp;
@@ -2042,10 +2042,10 @@ void Em25_float_move(ENEMY_WORK *pEm)
     case 1:
         pFp->Water_rno = 2;
         pEm->Spd_y = 140;
-        pFp->Unk2C = 0;
+        pFp->Float_y = 0;
     case 2:
-        pFp->Unk2C += pEm->Spd_y;
-        pEm->Pos_y = pEm->Water + 800 + pFp->Unk2C;
+        pFp->Float_y += pEm->Spd_y;
+        pEm->Pos_y = pEm->Water + 800 + pFp->Float_y;
         pEm->Spd_y -= 15;
         if (pEm->Spd_y <= 0) {
             if (pEm->Spd_y < -70)
@@ -2064,7 +2064,7 @@ void Em25_float_move(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em25_foot_set */
+/* RE2 Em25_foot_set: speed from the foot movement (Flg: which foot) */
 void Em25_foot_set(ENEMY_WORK *pEm, UCHAR Flg)
 {
     PARTS_W *pP_ptr;
@@ -2088,7 +2088,7 @@ void Em25_foot_set(ENEMY_WORK *pEm, UCHAR Flg)
     }
 }
 
-/* RE2 Em25_goto00 */
+/* RE2 Em25_goto00: turn step towards the target, at most rr */
 SHORT Em25_goto00(ENEMY_WORK *pEm, SHORT rr)
 {
     ENEMY_WORK *pTg;
@@ -2104,7 +2104,7 @@ SHORT Em25_goto00(ENEMY_WORK *pEm, SHORT rr)
     }
 }
 
-/* RE2 Ck_lock_wall (RE3: only the shape hit by Sca_ck_em) */
+/* RE2 Ck_lock_wall: facing a climbable wall shape: remember it, return its side + 1 (0: none) */
 ULONG Ck_lock_wall(ENEMY_WORK *pEm)
 {
     SCA_DATA *pSc;
@@ -2125,7 +2125,7 @@ ULONG Ck_lock_wall(ENEMY_WORK *pEm)
     return 0;
 }
 
-/* RE2 Em25_wall_rot */
+/* RE2 Em25_wall_rot: body rotation on the wall by rot */
 void Em25_wall_rot(ENEMY_WORK *pEm, SHORT rot)
 {
     EM25_FREE *pFp;
@@ -2141,7 +2141,7 @@ void Em25_wall_rot(ENEMY_WORK *pEm, SHORT rot)
     pFp->Sc_dir += rot;
 }
 
-/* RE2 Em25_add_speed */
+/* RE2 Em25_add_speed: move by the speed vector turned by (rx, ry, rz) */
 void Em25_add_speed(ENEMY_WORK *pEm, LONG rx, LONG ry, LONG rz)
 {
     SVECTOR Sv;
@@ -2157,7 +2157,7 @@ void Em25_add_speed(ENEMY_WORK *pEm, LONG rx, LONG ry, LONG rz)
     pEm->Pos_z += Sv.vz;
 }
 
-/* RE2 Ck_wall_edge */
+/* RE2 Ck_wall_edge: reached the edge of the wall in direction Scdir */
 LONG Ck_wall_edge(ENEMY_WORK *pEm, SHORT Scdir)
 {
     SCA_DATA *pSc;
@@ -2186,7 +2186,7 @@ LONG Ck_wall_edge(ENEMY_WORK *pEm, SHORT Scdir)
     }
 }
 
-/* RE2 Ck_near_wall */
+/* RE2 Ck_near_wall: distance check against the wall shape pSc in direction dir */
 LONG Ck_near_wall(ENEMY_WORK *pEm, SCA_DATA *pSc, SHORT dir)
 {
     LONG edge;
@@ -2204,7 +2204,7 @@ LONG Ck_near_wall(ENEMY_WORK *pEm, SCA_DATA *pSc, SHORT dir)
     return 0;
 }
 
-/* RE2 Ck_wall_other (RE3 scans G.Sca_list only when Sca_ck_em hit nothing) */
+/* RE2 Ck_wall_other: is there another wall shape on this floor than the one held */
 LONG Ck_wall_other(ENEMY_WORK *pEm, SHORT r)
 {
     SCA_DATA **ppScd;
@@ -2223,7 +2223,7 @@ LONG Ck_wall_other(ENEMY_WORK *pEm, SHORT r)
     return 0;
 }
 
-/* RE2 Ck_wall_to_pl */
+/* RE2 Ck_wall_to_pl: turn step on the wall towards the player, at most rot */
 SHORT Ck_wall_to_pl(ENEMY_WORK *pEm, SHORT rot)
 {
     SHORT xx, yy, zz;
@@ -2244,7 +2244,7 @@ SHORT Ck_wall_to_pl(ENEMY_WORK *pEm, SHORT rot)
     return d;
 }
 
-/* RE2 Set_blood */
+/* RE2 Set_blood: effect of kind type at part parts (blood_id_tbl) */
 void Set_blood(ENEMY_WORK *pEm, UCHAR parts, UCHAR type)
 {
     PARTS_W *pP_ptr;
@@ -2295,7 +2295,7 @@ void Set_blood(ENEMY_WORK *pEm, UCHAR parts, UCHAR type)
     }
 }
 
-/* RE2 Set_poison */
+/* RE2 Set_poison: spit poison of kind Type in direction Dir */
 void Set_poison(ENEMY_WORK *pEm, ULONG Type, SHORT Dir)
 {
     PARTS_W *pP_ptr;
@@ -2349,7 +2349,7 @@ ULONG atck_ck_main(ENEMY_WORK *pEm, ULONG pl, LONG R)
     return 0;
 }
 
-/* RE2 Em25_atck_ck */
+/* RE2 Em25_atck_ck: bite hit check against the player (and the sub player) */
 ULONG Em25_atck_ck(ENEMY_WORK *pEm, LONG R, LONG H)
 {
     if (__builtin_abs(pEm->Pos_y - G.Player.Pos_y) < H) {
@@ -2390,12 +2390,12 @@ LONG Foot_break_set(ENEMY_WORK *pEm)
             pP_ptr = &pEm->pSin_parts_ptr[i];
             pP_ptr->UnkA2 |= 0x20;
             pP_ptr->Be_flg |= 2;
-            PW_FREE(pP_ptr)[0] = pEm->Cdir_y + 0x800;
-            PW_FREE(pP_ptr)[4] = 0;
-            PW_FREE(pP_ptr)[2] = 600;
-            PW_FREE(pP_ptr)[1] = -120;
-            PW_FREE(pP_ptr)[3] = 10;
-            PW_FREE(pP_ptr)[6] = -100;
+            PW_BOMB(pP_ptr)->V0_x = pEm->Cdir_y + 0x800;
+            PW_BOMB(pP_ptr)->Cnt0 = 0;
+            PW_BOMB(pP_ptr)->V0_z = 600;
+            PW_BOMB(pP_ptr)->V0_y = -120;
+            PW_BOMB(pP_ptr)->G = 10;
+            PW_BOMB(pP_ptr)->Gxz = -100;
             pP_ptr->Poly_rgb = 0x2F2F2F;
         }
         Set_blood(pEm, base, 1);
@@ -2426,7 +2426,7 @@ void Em25_Set_child(ENEMY_WORK *pEm, USHORT type, UCHAR cnt)
             pWk->Cdir_y = Rnd_l() << 4;
         else
             pWk->Cdir_y = (EF(pEm)->Wall_pos << 10) - (0x200 - (Rnd_l() << 2));
-        EM_RTN(pWk) = (child_rtn_tbl[(UCHAR)pWk->Type] << 8) | 1;
+        EM_SET_RTN(pWk, 1, child_rtn_tbl[(UCHAR)pWk->Type], 0, 0);
         switch ((UCHAR)pWk->Type) {
         case 2:
         case 3:
@@ -2455,7 +2455,7 @@ ENEMY_WORK **Get_child_work(ENEMY_WORK **ppEm)
     return NULL;
 }
 
-/* RE2 Em25_Pl_to_dmg */
+/* RE2 Em25_Pl_to_dmg: put the player (pl 0) or sub player (1) into the damage routine from side dir */
 void Em25_Pl_to_dmg(ULONG pl, UCHAR dir)
 {
     ENEMY_WORK *pPl;
@@ -2467,7 +2467,7 @@ void Em25_Pl_to_dmg(ULONG pl, UCHAR dir)
     pPl->Routine_3 = 0;
 }
 
-/* RE2 Em25_Pl_to_die */
+/* RE2 Em25_Pl_to_die: put the player (pl 0) or sub player (1) into the death routine */
 void Em25_Pl_to_die(ULONG pl)
 {
     ENEMY_WORK *pPl;
@@ -2479,7 +2479,7 @@ void Em25_Pl_to_die(ULONG pl)
     pPl->Routine_3 = 0;
 }
 
-/* RE2 Get_target_pl */
+/* RE2 Get_target_pl: the player or the sub player, whichever is targeted */
 ENEMY_WORK *Get_target_pl(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pTg;
@@ -2493,7 +2493,7 @@ ENEMY_WORK *Get_target_pl(ENEMY_WORK *pEm)
     return pTg;
 }
 
-/* RE2 Set_foot_se */
+/* RE2 Set_foot_se: footstep sound by the floor (foot_se_tbl) */
 void Set_foot_se(ENEMY_WORK *pEm)
 {
     if (*pEm->pNow_seq & 0x200) {
@@ -2505,7 +2505,7 @@ void Set_foot_se(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Chg_modelcol */
+/* RE2 Chg_modelcol: set the model colour of every part */
 void Chg_modelcol(ENEMY_WORK *pEm, ULONG Rgb)
 {
     PARTS_W *pP_ptr;
@@ -2517,7 +2517,7 @@ void Chg_modelcol(ENEMY_WORK *pEm, ULONG Rgb)
     }
 }
 
-/* RE2 Ck_land */
+/* RE2 Ck_land: reached the water (-1) or the floor (1); Fe/Fg/Fw: foot, ground and water offsets */
 LONG Ck_land(ENEMY_WORK *pEm, LONG Fe, LONG Fg, LONG Fw)
 {
     if (pEm->Water < pEm->Unk122) {
@@ -2534,8 +2534,8 @@ LONG Ck_land(ENEMY_WORK *pEm, LONG Fe, LONG Fg, LONG Fw)
     return 0;
 }
 
-/* RE2 Em25_spark_move */
-void func_80106578(ENEMY_WORK *pEm)
+/* RE2 Em25_spark_move: sparks on random parts while electrocuted */
+void Em25_spark_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP_ptr;
     ULONG i, d0;
@@ -2553,7 +2553,7 @@ void func_80106578(ENEMY_WORK *pEm)
 }
 
 /* RE2 Set_gunrange: RE3 removed the Be_flg updates and left the empty tests */
-void func_80106640(ENEMY_WORK *pEm)
+void Set_gunrange(ENEMY_WORK *pEm)
 {
     LONG dh;
 
@@ -2592,7 +2592,7 @@ LONG Sca_get_pos(LONG no, SCA_DATA *pSc)
 
 /* RE3 (unused): ray test from the head part along Cdir against the room's box shapes;
    with Dist2 a second ray is cast 90 degrees aside. Leaves the last shape tested in pSca_hit_data. */
-LONG func_80106744(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2)
+LONG Em25_box_ray_ck(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2)
 {
     VECTOR P0;
     VECTOR P1;

@@ -51,14 +51,12 @@ typedef struct tagEM25_FREE {
     UCHAR Water_rno;                   /* 0x26 (0x1F2) */
     UCHAR Unk27;                       /* 0x27 (0x1F3) RE2 retail-only byte */
     ENEMY_WORK *pPair;                 /* 0x28 (0x1F4) another em25 found by Ck_em_id */
-    SHORT Unk2C;                       /* 0x2C (0x1F8) */
-    signed char Unk2E;                 /* 0x2E (0x1FA) 0 when Type & 0x80: no jump attack */
-    signed char Unk2F;                 /* 0x2F (0x1FB) 0 when Type & 0x100: no ceiling drop */
+    SHORT Float_y;                     /* 0x2C (0x1F8) Em25_float_move: height the dead body has risen */
+    signed char Jump_ok;               /* 0x2E (0x1FA) 0 when Type & 0x80: no jump attack */
+    signed char Drop_ok;               /* 0x2F (0x1FB) 0 when Type & 0x100: no ceiling drop */
 } EM25_FREE;
 
 #define EF(p) ((EM25_FREE *)(p)->Unk1CC)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
 /* RE2 SCA_DATA.Floor: RE3 splits the word into Floor_lo/Floor_hi/High, em25 still reads it whole */
 #define SCA_FLOOR(p) (*(ULONG *)&(p)->Floor_lo)
@@ -105,7 +103,7 @@ void Die_break_set(ENEMY_WORK *pEm);
 LONG Ck_land(ENEMY_WORK *pEm, LONG Fe, LONG Fg, LONG Fw);
 void Chg_modelcol(ENEMY_WORK *pEm, ULONG Rgb);
 SHORT Get_wallshot(ENEMY_WORK *pEm);
-void func_80102C7C(ENEMY_WORK *pEm);
+void Em25_wall_hit_ofs(ENEMY_WORK *pEm);
 void Em25_kage_move(ENEMY_WORK *pEm);
 void Em25_float_move(ENEMY_WORK *pEm);
 void Em25_foot_set(ENEMY_WORK *pEm, UCHAR Flg);
@@ -162,70 +160,70 @@ extern UCHAR child_rtn_tbl[8];
 extern UCHAR foot_se_tbl[4];
 extern UCHAR biripos_tbl[8];
 
-void func_801000C8(ENEMY_WORK *pEm);
-void func_80100658(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100758(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100A10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100B18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101028(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101254(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801013EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101468(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801015B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101764(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101A40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101C58(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101D54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101D90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101DDC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101FD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801020B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010219C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102338(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102578(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010295C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102B3C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102B78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102BA8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102CE8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102ED4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102F88(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103134(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801032A4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801033CC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801035A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103658(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010374C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801037FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801038C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801039E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103D30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103D94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103EB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103FC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104144(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801041B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104340(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801043AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801043E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801044AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801046D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104804(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104888(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801048C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104AE4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104D74(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104E18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80105010(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801050A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801050A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80106578(ENEMY_WORK *pEm);
-void func_80106640(ENEMY_WORK *pEm);
-LONG func_80106744(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2);
+void Em25_main(ENEMY_WORK *pEm);
+void Em25_Move_floor(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv09(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Move_ceiling(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv011(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv071(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_fall_start(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Move_walldown(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall40(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Move_wallset(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Mv_wall201(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_nml10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_ftl10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_ftl111(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_ftl112(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_ftl20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_ftl210(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_ftl211(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_combo(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_dm_fire2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml100(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml101(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml102(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_nml201(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_ftl00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_ftl10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_ftl20(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_ftl200(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_gnml(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_H2SO4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_freeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Die_spark(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em25_spark_move(ENEMY_WORK *pEm);
+void Set_gunrange(ENEMY_WORK *pEm);
+LONG Em25_box_ray_ck(ENEMY_WORK *pEm, SHORT Dist, LONG Dist2);
 
 #endif /* OVL_EM25_H */

@@ -15,7 +15,7 @@
  */
 #include "bio3.h"
 #include "enemy/em_common.h"
-#include "enemy/parts_free.h"
+#include "joint.h" /* PW_BOMB */
 #include "em_sub.h"
 #include "oba.h"
 #include "main.h"

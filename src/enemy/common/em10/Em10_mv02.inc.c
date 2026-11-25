@@ -9,14 +9,14 @@ void Em10_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = EM10_W(pEm)->Unk27 + 0x1F0000;
+        EM_SET_MOVE(pEm, EM10_W(pEm)->Walk_no2, 0, 0x1F);
         pEm->Timer0 = (Rnd_l() & 0x7F) + 300;
-        if (!EM10_W(pEm)->Unk21) {
+        if (!EM10_W(pEm)->Dam_s) {
             if (!(Rnd_l() & 1))
                 Snd_se_enem(13, pEm);
             else
                 Snd_se_enem(14, pEm);
-            EM10_W(pEm)->Unk21 = 150;
+            EM10_W(pEm)->Dam_s = 150;
         }
         pEm->Move_cnt = Rnd_l() & 0x1F;
         Spd_get(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);

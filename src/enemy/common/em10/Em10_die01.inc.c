@@ -11,7 +11,7 @@ void Em10_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 8, 0, 0xF);
         pEm->Routine_2 = 1;
-        EM10_W(pEm)->Flg &= 0xFFFB;
+        EM10_W(pEm)->Etc_flg &= 0xFFFB;
         pEm->Unk120 |= 1;
         pEm->Damage_cnt |= 0x80;
         Mode = 0;

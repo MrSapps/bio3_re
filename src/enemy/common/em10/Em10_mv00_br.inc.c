@@ -1,5 +1,5 @@
 /* shared by em10, em16 */
-/* RE2 Em10_mv00_br */
+/* RE2 Em10_mv00_br: idle: start walking (mv01) once the player is in view, lunge (mv0e) when close */
 void Em10_mv00_br(ENEMY_WORK *pEm)
 {
     SHORT Dir0;
@@ -15,6 +15,6 @@ void Em10_mv00_br(ENEMY_WORK *pEm)
         return;
     if (LL < 5000 && !Dir0 && (pEm->Status_flg & 0x2000))
         EM_SET_RTN(pEm, 1, 1, 0, 0);
-    if (Dir1 && LL < 2000 && !pPl->Damage_cnt && !EM10_W(pEm)->Unk26)
+    if (Dir1 && LL < 2000 && !pPl->Damage_cnt && !EM10_W(pEm)->Catch_timer)
         EM_SET_RTN(pEm, 1, 0xC, 0, 0);
 }

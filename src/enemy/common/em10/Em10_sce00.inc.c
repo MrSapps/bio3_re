@@ -1,5 +1,5 @@
 /* shared by em10, em16 */
-/* RE2 Em10_sce00 */
+/* RE2 Em10_sce00: standing still under scenario control */
 void Em10_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {

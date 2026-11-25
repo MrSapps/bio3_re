@@ -12,9 +12,11 @@
 
 /* Routine_0 = r0, Routine_1 = r1, Routine_2 = r2, Routine_3 = r3 */
 #define EM_SET_RTN(p, r0, r1, r2, r3) (EM_RTN(p) = (r0) | (r1) << 8 | (r2) << 16 | (r3) << 24)
-/* Move_no = no, Move_cnt = cnt, Hokan_flg = hokan (joint interpolation rate) */
-#define EM_SET_MOVE(p, no, cnt, hokan) (EM_MOVE(p) = (no) | (cnt) << 8 | (hokan) << 16)
-/* the same with a motion number computed at run time: Capcom added it to the constant (addu, not or) */
+/* Move_no = no, Move_cnt = cnt, Hokan_flg = hokan (joint interpolation rate). Written as a sum:
+ * Capcom's non-constant stores add the parts (Mot[i] + 0x70000, (Rnd() & 7) << 8 + 0x30007), which
+ * gives addu where `|` would give or; constants fold the same either way. */
+#define EM_SET_MOVE(p, no, cnt, hokan) (EM_MOVE(p) = (no) + ((cnt) << 8) + ((hokan) << 16))
+/* the same with the motion number first: (no) + (cnt << 8 | hokan << 16), as some routines compute it */
 #define EM_SET_MOVE_V(p, no, cnt, hokan) (EM_MOVE(p) = (no) + ((cnt) << 8 | (hokan) << 16))
 
 #endif /* ENEMY_EM_COMMON_H */

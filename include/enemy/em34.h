@@ -19,7 +19,7 @@
 #include "mojidisp.h"
 #include "pl_wep.h"
 #include "joint.h"
-#include "enemy/parts_free.h"
+#include "joint.h" /* PW_BOMB */
 
 /* em34's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM34_FREE {
@@ -50,7 +50,7 @@ typedef struct tagEM34_FREE {
 } EM34_FREE;
 
 /* PARTS_W free work of the arm (part 17) the explosion blows off (Em34_after3): it drops, bounces
-   twice and slides to a stop; then it flies apart (PW_FLY) */
+   twice and slides to a stop; then it flies apart (PW_BOMB) */
 typedef struct tagEM34_ARM_FREE {
     UCHAR State;                       /* 0x74 0 none, 1 start, 2 falling, 3 sliding, 4 burst */
     UCHAR pad75;                       /* 0x75 */

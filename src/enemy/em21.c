@@ -4,13 +4,15 @@
 #include "sca.h"
 #include "snd.h"
 
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");     /* em_sub.c Cdir_ck, int result as in RE2 EM21.H */
-void Add_speedXZ_n(ENEMY_WORK *pEm, LONG muki, LONG Dummy) __asm__("Add_speedXZ"); /* RE2 EM21 passes a 3rd arg */
-LONG func_800502B8_(SVECTOR *pSv, struct tagSCA_DATA *pT) __asm__("func_800502B8"); /* returns long here (canonical unsigned short); arg 1 SVECTOR* (canonical VECTOR*); arg 2 struct tagSCA_DATA* (canonical SCA_DATA*) */
+/* Capcom's EM21.C called these without a prototype in scope: int results, and Add_speedXZ with a
+ * third argument. */
+LONG Rnd_l(void) __asm__("Rnd");
+LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
+void Add_speedXZ_n(ENEMY_WORK *pEm, LONG muki, LONG Dummy) __asm__("Add_speedXZ");
+LONG Sca_get_dir_l(SVECTOR *pPos, struct tagSCA_DATA *pT) __asm__("func_800502B8"); /* RE2 Sca_get_dir */
 
-/* RE2 EM_MAIN (Em121/Em221) */
-void func_8010014C(ENEMY_WORK *pEm)
+/* RE2 EM_MAIN (Em121/Em221): per-frame entry of the crow: routine dispatch, collision, shadow, sounds */
+void Em21_main(ENEMY_WORK *pEm)
 {
     VECTOR Vec0, Vec1;
 
@@ -33,10 +35,10 @@ void func_8010014C(ENEMY_WORK *pEm)
         pEm->Col.Unk26 = 180;
     else
         pEm->Col.Unk26 = 530;
-    func_80104D5C();
+    Em21_attacker_off();
     Em21_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    func_801002F8(pEm);
-    func_80104AC4(pEm);
+    Em21_kage_set(pEm);
+    Em21_lock_off_ck(pEm);
     EF(pEm)->Old_x = pEm->Pos_x;
     EF(pEm)->Old_y = pEm->Pos_y;
     EF(pEm)->Old_z = pEm->Pos_z;
@@ -46,8 +48,8 @@ void func_8010014C(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em21_kage_set */
-void func_801002F8(ENEMY_WORK *pEm)
+/* RE2 Em21_kage_set: shadow size and colour by the height above the floor */
+void Em21_kage_set(ENEMY_WORK *pEm)
 {
     KAGE_WORK *pK = pEm->Kage.pKw;
     POLY_FT4 *pPrim = &pK->Prim[G.Cbuf_id];
@@ -69,8 +71,8 @@ void func_801002F8(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em21_Init */
-void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_Init: life, collision, flags and the start routine of the Type */
+void Em21_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
@@ -98,12 +100,12 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pP = &pEm->pSin_parts_ptr[2];
     pEm->Unk120 = 0;
     pEm->Neck_no = 8;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[2] = 0x60;
-    PW_FREE(pP)[3] = 0x60;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[5] = 0x138;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->Add_dir_y = 0x60;
+    PW_NECK(pP)->Add_dir_z = 0x60;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->L_rot_z = 0x138;
     pEm->Unk134 = 400;
     pEm->Unk136 = -400;
     pEm->Unk13A = 400;
@@ -118,7 +120,7 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Unk28 = 0;
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
-    func_80104D50(pEm, 350);
+    Em21_atd_set(pEm, 350);
     func_80033580(&pEm->Col, 0);
     Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, (VECTOR *)&pEm->Pos_x);
     if (pEm->Type & 0x4000) {
@@ -132,11 +134,11 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt = 0x80;
         pEm->Be_flg |= 0x2000;
     }
-    G.pPldamage_Em[0x21 - 0x10] = (void (*)())func_80104E60;
+    G.pPldamage_Em[0x21 - 0x10] = (void (*)())Pldamege_Em21;
 }
 
-/* RE2 Em21_Move */
-void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_Move: br then mv routine by Routine_1 (indoor or outdoor tables) */
+void Em21_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Flg;
 
@@ -183,8 +185,8 @@ void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_br_wait_i */
-void func_80100834(ENEMY_WORK *pEm)
+/* RE2 Em21_br_wait_i: perched: take off when the player comes near or the alarm is up */
+void Em21_br_wait_i(ENEMY_WORK *pEm)
 {
     LONG D0;
 
@@ -202,11 +204,11 @@ void func_80100834(ENEMY_WORK *pEm)
             D0 = 1;
     }
     if (D0)
-        func_80104648(pEm, 1);
+        Em21_r1_set(pEm, 1);
 }
 
-/* RE2 Em21_mv_wait_i */
-void func_8010091C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_wait_i: perched / walking on the ground, pecking about */
+void Em21_mv_wait_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -214,7 +216,7 @@ void func_8010091C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 7;
         break;
     case 1:
-        EM_MOVE(pEm) = 0x70000 + ((Rnd_l() % 5) << 8);
+        EM_SET_MOVE(pEm, 0, Rnd_l() % 5, 7);
         EF(pEm)->Cnt = 5;
         pEm->Routine_2 = 10;
         break;
@@ -231,7 +233,7 @@ void func_8010091C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 11;
         break;
     case 5:
-        EM_MOVE(pEm) = 0x70002 + ((Rnd_l() % 7) << 8);
+        EM_SET_MOVE(pEm, 2, Rnd_l() % 7, 7);
         pEm->Routine_2 = 8;
         break;
     case 6:
@@ -281,10 +283,10 @@ void func_8010091C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 13:
         Joint_move(pEm, pKan, pSeq, 0x10200);
-        func_801045BC(pEm);
+        Em21_foot_set(pEm);
         if (pEm->Move_cnt == EF(pEm)->Cnt) {
             pEm->Routine_2 = 14;
-            EM_MOVE(pEm) = 0x7000A + ((0x27 - EF(pEm)->Cnt) << 8);
+            EM_SET_MOVE(pEm, 0xA, 0x27 - EF(pEm)->Cnt, 7);
         }
         break;
     case 14:
@@ -293,18 +295,18 @@ void func_8010091C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_x = EF(pEm)->Tmp_0;
             pEm->Pos_z = EF(pEm)->Tmp_1;
         } else {
-            func_801045BC(pEm);
+            Em21_foot_set(pEm);
         }
     }
 }
 
-/* RE2 Em21_br_go_wait_i */
-void func_80100D1C(ENEMY_WORK *pEm)
+/* RE2 Em21_br_go_wait_i: empty */
+void Em21_br_go_wait_i(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_mv_go_wait_i */
-void func_80100D24(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_go_wait_i: a short random wait, then take off (or glide off, Type 0x40) */
+void Em21_mv_go_wait_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -312,20 +314,20 @@ void func_80100D24(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (EF(pEm)->Cnt-- == 0) {
             if (pEm->Type & 0x40)
-                func_80104648(pEm, 3);
+                Em21_r1_set(pEm, 3);
             else
-                func_80104648(pEm, 2);
+                Em21_r1_set(pEm, 2);
         }
     }
 }
 
-/* RE2 Em21_br_take_off_i */
-void func_80100DB8(ENEMY_WORK *pEm)
+/* RE2 Em21_br_take_off_i: empty */
+void Em21_br_take_off_i(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_mv_take_off_i */
-void func_80100DC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_take_off_i: taking off */
+void Em21_mv_take_off_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
     LONG D0;
@@ -336,8 +338,8 @@ void func_80100DC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Rnd_l() & 1)
             Snd_se_enem(1, pEm);
         if (!(Rnd_l() & 7))
-            func_80104C94(pEm, 1);
-        EM_MOVE(pEm) = 0x70007 + (D0 << 8);
+            Em_21_feather_call(pEm, 1);
+        EM_SET_MOVE(pEm, 7, D0, 7);
         EF(pEm)->Sca_cnt = 0;
         pEm->Spd_x = (Rnd_l() & 0x1F) + 100;
         pEm->Spd_y = -10;
@@ -368,7 +370,7 @@ void func_80100DC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         goto move;
     case 4:
         if (!(Rnd_l() & 7))
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         pEm->Spd_y = -80;
         EF(pEm)->Cnt = 0xFF;
         pEm->Routine_2 = 5;
@@ -385,17 +387,17 @@ void func_80100DC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Spd_x < 300)
             pEm->Spd_x++;
         if (Joint_move(pEm, pKan, pSeq, 0x200))
-            func_80104648(pEm, 4);
+            Em21_r1_set(pEm, 4);
     }
 }
 
-/* RE2 Em21_br_glide_i */
-void func_80101044(ENEMY_WORK *pEm)
+/* RE2 Em21_br_glide_i: empty */
+void Em21_br_glide_i(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_mv_glide_i */
-void func_8010104C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_glide_i: gliding */
+void Em21_mv_glide_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG D0;
 
@@ -405,7 +407,7 @@ void func_8010104C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Rnd_l() & 1)
             Snd_se_enem(1, pEm);
         D0 = Rnd_l() & 7;
-        EM_MOVE(pEm) = 0x70006 + (D0 << 8);
+        EM_SET_MOVE(pEm, 6, D0, 7);
         EF(pEm)->Sca_cnt = 0;
         pEm->Spd_x = (Rnd_l() & 7) + 60;
         pEm->Spd_y = 0;
@@ -435,54 +437,54 @@ void func_8010104C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Routine_2 = EF(pEm)->Tmp;
         break;
     case 3:
-        func_80104648(pEm, 4);
+        Em21_r1_set(pEm, 4);
     }
 }
 
-/* RE2 Em21_br_flight_i */
-void func_80101238(ENEMY_WORK *pEm)
+/* RE2 Em21_br_flight_i: flying: climb or descend towards the player's height, attack checks */
+void Em21_br_flight_i(ENEMY_WORK *pEm)
 {
     if (pEm->Type & 0x80) {
         if ((LONG)pEm->Unk154 > 10800) {
             if (Rnd_l() & 0xF)
-                func_80104648(pEm, 8);
+                Em21_r1_set(pEm, 8);
             else
-                func_80104648(pEm, 7);
+                Em21_r1_set(pEm, 7);
         }
     } else if ((LONG)pEm->Unk154 > 7200) {
         if (Rnd_l() & 3)
-            func_80104648(pEm, 8);
+            Em21_r1_set(pEm, 8);
         else
-            func_80104648(pEm, 7);
+            Em21_r1_set(pEm, 7);
     }
     if (G.Player.Pos_y < pEm->Pos_y) {
         pEm->Timer0 = Rnd_l() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
-        func_80104648(pEm, 5);
+        Em21_r1_set(pEm, 5);
     } else if (pEm->Pos_y - pEm->Unk122 > -1800) {
         pEm->Timer0 = Rnd_l() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
-        func_80104648(pEm, 5);
+        Em21_r1_set(pEm, 5);
     } else if (!(Rnd_l() & 0xF)) {
         pEm->Timer0 = Rnd_l() & 0x3F;
         if (pEm->Unk122 - 3600 < pEm->Pos_y) {
             EF(pEm)->Tmp_0 = -40;
-            func_80104648(pEm, 5);
+            Em21_r1_set(pEm, 5);
         } else {
-            func_80104648(pEm, 6);
+            Em21_r1_set(pEm, 6);
         }
     }
-    func_80104654(pEm);
+    Em21_sca_avoid_ck(pEm);
     if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
-        func_80104A90(pEm);
+        Em21_pl_dead_ck(pEm);
     } else {
-        func_80104A08(pEm);
-        func_801047A8(pEm);
+        Em21_run_away_ck(pEm);
+        Em21_attack_ck(pEm);
     }
 }
 
-/* RE2 Em21_mv_flight_i */
-void func_80101400(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_flight_i: flapping flight towards the target */
+void Em21_mv_flight_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
 
@@ -494,7 +496,7 @@ void func_80101400(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else {
             EM_SET_MOVE(pEm, 4, 0, 7);
             if (!(Rnd_l() & 7))
-                func_80104C94(pEm, 1);
+                Em_21_feather_call(pEm, 1);
             EF(pEm)->Tmp = 3;
         }
         EF(pEm)->Cnt = Rnd_l() & 0x1F;
@@ -511,28 +513,28 @@ void func_80101400(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_br_up_i */
-void func_80101538(ENEMY_WORK *pEm)
+/* RE2 Em21_br_up_i: climbing until high enough, then fly on; obstacle and attack checks */
+void Em21_br_up_i(ENEMY_WORK *pEm)
 {
     if (pEm->Type & 0x80) {
         if (pEm->Pos_y < pEm->Unk122 - 6000)
-            func_80104648(pEm, 4);
+            Em21_r1_set(pEm, 4);
     } else if (pEm->Pos_y < pEm->Unk122 - 4800) {
-        func_80104648(pEm, 4);
+        Em21_r1_set(pEm, 4);
     }
     if (pEm->Timer0-- == 0)
-        func_80104648(pEm, 4);
-    func_80104654(pEm);
+        Em21_r1_set(pEm, 4);
+    Em21_sca_avoid_ck(pEm);
     if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
-        func_80104A90(pEm);
+        Em21_pl_dead_ck(pEm);
     } else {
-        func_80104A08(pEm);
-        func_801047A8(pEm);
+        Em21_run_away_ck(pEm);
+        Em21_attack_ck(pEm);
     }
 }
 
-/* RE2 Em21_mv_up_i */
-void func_80101620(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_up_i: climbing flight */
+void Em21_mv_up_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -551,24 +553,24 @@ void func_80101620(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_br_down_i */
-void func_80101708(ENEMY_WORK *pEm)
+/* RE2 Em21_br_down_i: descending until low enough, then fly on; obstacle and attack checks */
+void Em21_br_down_i(ENEMY_WORK *pEm)
 {
     if (pEm->Unk122 - 1800 < pEm->Pos_y)
-        func_80104648(pEm, 4);
+        Em21_r1_set(pEm, 4);
     if (pEm->Timer0-- == 0)
-        func_80104648(pEm, 4);
-    func_80104654(pEm);
+        Em21_r1_set(pEm, 4);
+    Em21_sca_avoid_ck(pEm);
     if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
-        func_80104A90(pEm);
+        Em21_pl_dead_ck(pEm);
     } else {
-        func_80104A08(pEm);
-        func_801047A8(pEm);
+        Em21_run_away_ck(pEm);
+        Em21_attack_ck(pEm);
     }
 }
 
-/* RE2 Em21_mv_down_i */
-void func_801017BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_down_i: descending flight */
+void Em21_mv_down_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -587,13 +589,13 @@ void func_801017BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_br_landing_i */
-void func_801018A4(ENEMY_WORK *pEm)
+/* RE2 Em21_br_landing_i: empty */
+void Em21_br_landing_i(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_mv_landing_i */
-void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_landing_i: landing on the floor */
+void Em21_mv_landing_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG D0;
     SVECTOR Svec;
@@ -670,31 +672,31 @@ void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EF(pEm)->Flg &= ~0x100;
             if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
-                func_80104648(pEm, 0);
+                Em21_r1_set(pEm, 0);
             } else {
                 pEm->Timer0 = Rnd_l() << 1;
-                func_80104648(pEm, 2);
+                Em21_r1_set(pEm, 2);
             }
         }
     }
 }
 
-/* RE2 Em21_br_quick_turn_i */
-void func_80101BE0(ENEMY_WORK *pEm)
+/* RE2 Em21_br_quick_turn_i: turning: obstacle check */
+void Em21_br_quick_turn_i(ENEMY_WORK *pEm)
 {
-    func_80104A08(pEm);
-    func_80104654(pEm);
+    Em21_run_away_ck(pEm);
+    Em21_sca_avoid_ck(pEm);
 }
 
-/* RE2 Em21_mv_quick_turn_i */
-void func_80101C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_quick_turn_i: quick turn in the air */
+void Em21_mv_quick_turn_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
 
     switch (pEm->Routine_2) {
     case 0:
         if (!(Rnd_l() & 7))
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         EM_SET_MOVE(pEm, 4, 0, 7);
         EF(pEm)->Cnt = Rnd_l() & 0x3F;
         EF(pEm)->Cnt2 = 0;
@@ -711,17 +713,17 @@ void func_80101C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXYZ(pEm, 0, 0);
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (!Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x80) || EF(pEm)->Cnt-- == 0)
-            func_80104648(pEm, 4);
+            Em21_r1_set(pEm, 4);
     }
 }
 
-/* RE2 Em21_br_jump_i */
-void func_80101D94(ENEMY_WORK *pEm)
+/* RE2 Em21_br_jump_i: empty */
+void Em21_br_jump_i(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_mv_jump_i */
-void func_80101D9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_jump_i: hopping on the ground */
+void Em21_mv_jump_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -731,18 +733,18 @@ void func_80101D9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x80);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             pEm->Timer0 = Rnd_l() & 0xF;
-            func_80104648(pEm, 0);
+            Em21_r1_set(pEm, 0);
         }
     }
 }
 
-/* RE2 Em21_br_fall_i */
-void func_80101E54(ENEMY_WORK *pEm)
+/* RE2 Em21_br_fall_i: empty */
+void Em21_br_fall_i(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_mv_fall_i */
-void func_80101E5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_fall_i: falling to the floor */
+void Em21_mv_fall_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;
     LONG D0;
@@ -783,21 +785,21 @@ void func_80101E5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 4:
         if (Joint_move(pEm, pKan, pSeq, 0x200))
-            func_80104638(pEm, 1, 9);
+            Em21_r0_set(pEm, 1, 9);
     }
 }
 
-/* RE2 Em21_br_crash_f_i */
-void func_80102010(ENEMY_WORK *pEm)
+/* RE2 Em21_br_crash_f_i: diving at the player: break off when he turns away */
+void Em21_br_crash_f_i(ENEMY_WORK *pEm)
 {
     if (Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x80) || !(EF(pEm)->Flg & 2))
-        func_80104648(pEm, 4);
-    func_80104654(pEm);
-    func_80104A08(pEm);
+        Em21_r1_set(pEm, 4);
+    Em21_sca_avoid_ck(pEm);
+    Em21_run_away_ck(pEm);
 }
 
-/* RE2 Em21_mv_crash_f_i */
-void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_crash_f_i: diving at the player's height */
+void Em21_mv_crash_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG D0;
 
@@ -832,11 +834,11 @@ void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if ((LONG)pEm->Unk154 < 900) {
             D0 = D0 - pEm->Pos_y;
             if (D0 > -360 && D0 < 360 && pEm->Spd_x > 230) {
-                func_80104648(pEm, 12);
+                Em21_r1_set(pEm, 12);
             } else {
                 EF(pEm)->Idly_cnt = Rnd_l() & 0x7F;
                 EF(pEm)->Idly_flg = Rnd_area();
-                func_80104648(pEm, 8);
+                Em21_r1_set(pEm, 8);
             }
         } else {
             Add_speedXYZ(pEm, 0, 0);
@@ -844,14 +846,14 @@ void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_br_crash_i */
-void func_80102278(ENEMY_WORK *pEm)
+/* RE2 Em21_br_crash_i: run-away check only */
+void Em21_br_crash_i(ENEMY_WORK *pEm)
 {
-    func_80104A08(pEm);
+    Em21_run_away_ck(pEm);
 }
 
-/* RE2 Em21_mv_crash_i */
-void func_80102298(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_crash_i: lying stunned on the floor after a crash, then hopping up */
+void Em21_mv_crash_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;
     LONG D0;
@@ -859,9 +861,9 @@ void func_80102298(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         if (Cdir_ck_l(pEm, &Pl_work))
-            func_80104638(&Pl_work, 2, 1);
+            Em21_r0_set(&Pl_work, 2, 1);
         else
-            func_80104638(&Pl_work, 2, 0);
+            Em21_r0_set(&Pl_work, 2, 0);
         Pad_vib_set0(4, 0);
         Pad_vib_set1(10, 150, 0);
         Snd_se_enem(4, pEm);
@@ -898,28 +900,28 @@ void func_80102298(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 4:
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             if (!Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x400)) {
-                func_80104648(pEm, 9);
+                Em21_r1_set(pEm, 9);
             } else {
                 pEm->Timer0 = Rnd_l() & 0xF;
-                func_80104648(pEm, 0);
+                Em21_r1_set(pEm, 0);
             }
         }
     }
 }
 
-/* RE2 Em21_br_peck_f_i */
-void func_801024D8(ENEMY_WORK *pEm)
+/* RE2 Em21_br_peck_f_i: hovering at the player: break off when he turns away */
+void Em21_br_peck_f_i(ENEMY_WORK *pEm)
 {
     if (Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100) || !(EF(pEm)->Flg & 2)) {
-        func_80104D50(pEm, 350);
-        func_80104648(pEm, 4);
+        Em21_atd_set(pEm, 350);
+        Em21_r1_set(pEm, 4);
     }
-    func_80104654(pEm);
-    func_80104A08(pEm);
+    Em21_sca_avoid_ck(pEm);
+    Em21_run_away_ck(pEm);
 }
 
-/* RE2 Em21_mv_peck_f_i */
-void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_peck_f_i: hovering and pecking at the player's head */
+void Em21_mv_peck_f_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG D1;
 
@@ -944,9 +946,9 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Spd_x += 4;
             if ((LONG)pEm->Unk154 < 2300) {
                 if (EF(pEm)->Atck == 0) {
-                    if (EF(pEm)->Unk0B == 0)
+                    if (EF(pEm)->Atck_se == 0)
                         Snd_se_enem(6, pEm);
-                    EF(pEm)->Unk0B = 1;
+                    EF(pEm)->Atck_se = 1;
                     EF(pEm)->Atck = 1;
                 }
             }
@@ -969,24 +971,24 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Pos_y += 60;
         }
         if ((LONG)pEm->Unk154 < 900)
-            func_80104D50(pEm, 100);
+            Em21_atd_set(pEm, 100);
         if ((LONG)pEm->Unk154 < 650) {
             if (D1 > -100 && D1 < 100)
-                func_80104648(pEm, 14);
+                Em21_r1_set(pEm, 14);
         } else {
             Add_speedXYZ(pEm, 0, 0);
         }
     }
 }
 
-/* RE2 Em21_br_peck_i */
-void func_801027A4(ENEMY_WORK *pEm)
+/* RE2 Em21_br_peck_i: run-away check only */
+void Em21_br_peck_i(ENEMY_WORK *pEm)
 {
-    func_80104A08(pEm);
+    Em21_run_away_ck(pEm);
 }
 
-/* RE2 Em21_mv_peck_i */
-void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_mv_peck_i: pecking at the player on the ground (or the dead player) */
+void Em21_mv_peck_i(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG D0;
     SVECTOR Svec;
@@ -1006,10 +1008,10 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_z = 0;
         if (EF(pEm)->Flg & 4) {
             EF(pEm)->Atck = 0;
-            EF(pEm)->Unk0B = 0;
-            func_80104B90(8);
-            func_80104B90(0x40);
-            func_80104638(G_PLAYER, 5, 0);
+            EF(pEm)->Atck_se = 0;
+            Em21_set_flg_all(8);
+            Em21_set_flg_all(0x40);
+            Em21_r0_set(G_PLAYER, 5, 0);
             G.Player.pEnemy_ptr = pEm;
             G.Player.pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
             G.Player.pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
@@ -1021,7 +1023,7 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Cnt = 100;
         EF(pEm)->Cnt2 = 0;
         pEm->Spd_x = 300;
-        func_80104D50(pEm, 350);
+        Em21_atd_set(pEm, 350);
         pEm->Routine_2 = 1;
         pEm->Be_flg |= 0x800;
     case 1:
@@ -1033,18 +1035,18 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Svec.vz = pEm->Pos_z;
             Esp_call(0x100, (USHORT)pEm->Cdir_y | 0x10000000, &GsIDMATRIX, &Svec, NULL);
             if (!(Rnd_l() & 3))
-                func_80104C94(pEm, 1);
+                Em_21_feather_call(pEm, 1);
             Snd_se_enem(2, pEm);
             D0 = Pl_life_down(5, EF(pEm)->Tmp);
             if (D0 == 1)
                 goto end;
             if (D0 == 2) {
-                func_80104B90(0x80);
+                Em21_set_flg_all(0x80);
                 goto end;
             }
         } else {
             if (!(Rnd_l() & 7))
-                func_80104C94(pEm, 1);
+                Em_21_feather_call(pEm, 1);
         }
         EF(pEm)->Cnt3 = 4;
         pEm->Routine_2 = 2;
@@ -1091,24 +1093,24 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Idly_flg = Rnd_area();
         EF(pEm)->Na_cnt = 10;
         pEm->Be_flg &= ~0x800;
-        func_80104648(pEm, 4);
+        Em21_r1_set(pEm, 4);
         if (EF(pEm)->Flg & 4) {
-            func_80104B90(0x10);
+            Em21_set_flg_all(0x10);
             G.Player.Routine_2 = 3;
             G.Player.Be_flg &= ~0x8800;
         }
     }
 }
 
-/* RE2 Em21_Damage */
-void func_80102C48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_Damage: hit (Em21_dm by damage kind); also used as the Die routine */
+void Em21_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     Em21_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em21_dm00 */
-void func_80102CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dm00: hit: knocked away from the player, falls and dies */
+void Em21_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;
     LONG D0;
@@ -1129,8 +1131,8 @@ void func_80102CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EF(pEm)->Tmp_2 = 200;
         else
             EF(pEm)->Tmp_2 = -200;
-        func_80104C00(pEm);
-        func_80104C94(pEm, (Rnd_l() & 1) | 2);
+        Em_21_blood_call(pEm);
+        Em_21_feather_call(pEm, (Rnd_l() & 1) | 2);
         EF(pEm)->Cnt = 3;
         EF(pEm)->Cnt2 = 3;
         pEm->Routine_2 = 1;
@@ -1139,9 +1141,9 @@ void func_80102CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Routine_2 = 2;
     case 2:
         if (EF(pEm)->Cnt-- == 0)
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         if (EF(pEm)->Cnt2-- == 0)
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         EF(pEm)->Tmp_0 += 20;
         pEm->Pos_y += EF(pEm)->Tmp_0;
         Add_speedXZ(G.pEm, EF(pEm)->Tmp_1);
@@ -1180,22 +1182,22 @@ void func_80102CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 4:
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             if (Goto00_ck(pEm, pEm->Dest_x, pEm->Dest_z, 0x400)) {
-                func_80104638(pEm, 1, 9);
+                Em21_r0_set(pEm, 1, 9);
             } else {
                 pEm->Timer0 = Rnd_l() & 0xF;
-                func_80104638(pEm, 1, 0);
+                Em21_r0_set(pEm, 1, 0);
             }
         }
         break;
     case 5:
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (EF(pEm)->Cnt-- == 0)
-            func_80104638(pEm, 7, 0);
+            Em21_r0_set(pEm, 7, 0);
     }
 }
 
-/* RE2 Em21_dm01 */
-void func_8010304C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dm01: blown apart: the parts fly off or drop */
+void Em21_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
     LONG D0;
@@ -1205,60 +1207,60 @@ void func_8010304C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Spd_y = 0;
     D0 = Direction_ck(G.Player.Pos_x, G.Player.Pos_z, pEm->Pos_x, pEm->Pos_z);
     Rnd0 = Rnd_l();
-    func_80103258(pEm->pSin_parts_ptr, D0);
+    Em21_parts_bobm_set(pEm->pSin_parts_ptr, D0);
     if (Rnd0 & 1) {
-        func_80103258(pEm->pSin_parts_ptr + 1, D0);
-        func_80103258(pEm->pSin_parts_ptr + 2, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 1, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 2, D0);
     } else {
-        func_801032A4(pEm->pSin_parts_ptr + 1, D0);
-        func_801032A4(pEm->pSin_parts_ptr + 2, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 1, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 2, D0);
     }
     if (Rnd0 & 2) {
-        func_80103258(pEm->pSin_parts_ptr + 3, D0);
-        func_80103258(pEm->pSin_parts_ptr + 4, D0);
-        func_80103258(pEm->pSin_parts_ptr + 5, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 3, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 4, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 5, D0);
     } else {
-        func_801032A4(pEm->pSin_parts_ptr + 3, D0);
-        func_801032A4(pEm->pSin_parts_ptr + 4, D0);
-        func_801032A4(pEm->pSin_parts_ptr + 5, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 3, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 4, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 5, D0);
     }
     if (Rnd0 & 4) {
-        func_80103258(pEm->pSin_parts_ptr + 6, D0);
-        func_80103258(pEm->pSin_parts_ptr + 7, D0);
-        func_80103258(pEm->pSin_parts_ptr + 8, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 6, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 7, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 8, D0);
     } else {
-        func_801032A4(pEm->pSin_parts_ptr + 6, D0);
-        func_801032A4(pEm->pSin_parts_ptr + 7, D0);
-        func_801032A4(pEm->pSin_parts_ptr + 8, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 6, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 7, D0);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 8, D0);
     }
     if (Rnd0 & 8)
-        func_80103258(pEm->pSin_parts_ptr + 9, D0);
+        Em21_parts_bobm_set(pEm->pSin_parts_ptr + 9, D0);
     else
-        func_801032A4(pEm->pSin_parts_ptr + 9, D0);
-    func_80104C00(pEm);
-    func_80104C00(pEm);
-    func_80104C00(pEm);
-    func_80104C94(pEm, (Rnd_l() & 3) | 8);
+        Em21_parts_fall_set(pEm->pSin_parts_ptr + 9, D0);
+    Em_21_blood_call(pEm);
+    Em_21_blood_call(pEm);
+    Em_21_blood_call(pEm);
+    Em_21_feather_call(pEm, (Rnd_l() & 3) | 8);
     Em_dead_flg_on_cand(pEm);
-    func_80104638(pEm, 7, 1);
+    Em21_r0_set(pEm, 7, 1);
 }
 
-/* RE2 Em21_parts_bobm_set */
-void func_80103258(PARTS_W *pP, LONG B_y)
+/* RE2 Em21_parts_bobm_set: a part flies off (PARTS_W bomb work), direction B_y */
+void Em21_parts_bobm_set(PARTS_W *pP, LONG B_y)
 {
     pP->UnkA2 |= 0x20;
     pP->Be_flg |= 2;
-    PW_FREE(pP)[0] = B_y;
-    PW_FREE(pP)[4] = 0;
-    PW_FREE(pP)[2] = 800;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[3] = 10;
-    PW_FREE(pP)[6] = -100;
+    PW_BOMB(pP)->V0_x = B_y;
+    PW_BOMB(pP)->Cnt0 = 0;
+    PW_BOMB(pP)->V0_z = 800;
+    PW_BOMB(pP)->V0_y = 0;
+    PW_BOMB(pP)->G = 10;
+    PW_BOMB(pP)->Gxz = -100;
     pP->Poly_rgb = 0x101040;
 }
 
-/* RE2 Em21_parts_fall_set */
-void func_801032A4(PARTS_W *pP, LONG D_y)
+/* RE2 Em21_parts_fall_set: a part drops to the floor, direction D_y */
+void Em21_parts_fall_set(PARTS_W *pP, LONG D_y)
 {
     pP->Be_flg |= 0xA;
     pP->Old_x = D_y + (Rnd_l() << 2);
@@ -1271,8 +1273,8 @@ void func_801032A4(PARTS_W *pP, LONG D_y)
     pP->Unk8E = 0;
 }
 
-/* RE2 Em21_dm03 (RE3 dm02: knocked away along the player's facing) */
-void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dm03 (RE3 slot dm02): knocked away along the player's facing */
+void Em21_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
     LONG D0;
@@ -1282,10 +1284,10 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Flg &= ~0x100;
         Em_dead_flg_on_cand(pEm);
         Snd_se_enem(3, pEm);
-        func_80104D50(pEm, 10);
+        Em21_atd_set(pEm, 10);
         pEm->Life = -1;
-        func_80104C00(pEm);
-        func_80104C94(pEm, (Rnd_l() & 3) + 5);
+        Em_21_blood_call(pEm);
+        Em_21_feather_call(pEm, (Rnd_l() & 3) + 5);
         pEm->Cdir_y = G.Player.Cdir_y;
         pEm->Spd_x = 600;
         EM_SET_MOVE(pEm, 9, 0, 7);
@@ -1311,7 +1313,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_z = EF(pEm)->Old_z;
             pEm->Unk122 = func_8004D720(&pEm->Pos_x, 350, 0x200, 1);
             Snd_se_enem(3, pEm);
-            func_80104C00(pEm);
+            Em_21_blood_call(pEm);
             pEm->Spd_y = 0;
             pEm->Spd_x = 20;
             pEm->Cdir_y += 0x800;
@@ -1322,7 +1324,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ_n(pEm, 0, 0);
         pEm->Spd_x >>= 1;
         if (EF(pEm)->Cnt-- == 0)
-            func_80104638(pEm, 7, 2);
+            Em21_r0_set(pEm, 7, 2);
         break;
     case 4:
         pEm->Pos_y += pEm->Spd_y;
@@ -1330,31 +1332,31 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ_n(pEm, 0, 0);
         D0 = pEm->Unk122 - 250;
         if (D0 < pEm->Pos_y) {
-            func_80104D50(pEm, 350);
+            Em21_atd_set(pEm, 350);
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
             pEm->Spd_y = 0;
-            func_80104638(pEm, 7, 2);
+            Em21_r0_set(pEm, 7, 2);
         }
     }
 }
 
-/* RE2 Em21_Die */
-void func_801035BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_Die: empty (the Die routine is Em21_Damage) */
+void Em21_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
 }
 
-/* RE2 Em21_Scenario */
-void func_801035C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_Scenario: scenario routines (Em21_sce_mv by Routine_1) */
+void Em21_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Root_ck(pEm, (VECTOR *)&G.Player.Pos_x, 0, 0);
     Em21_sce_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em21_sce_wait */
-void func_8010363C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_sce_wait: perched, as Em21_mv_wait_i */
+void Em21_sce_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    func_8010091C(pEm, pKan, pSeq);
+    Em21_mv_wait_i(pEm, pKan, pSeq);
     switch (pEm->Routine_3) {
     case 0:
         EF(pEm)->Flg |= 0x20;
@@ -1362,7 +1364,7 @@ void func_8010363C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (pEm->Add_dir == 1) {
             pEm->Add_dir = 0;
-            func_80104638(pEm, 1, 1);
+            Em21_r0_set(pEm, 1, 1);
         }
         break;
     case 2:
@@ -1371,13 +1373,13 @@ void func_8010363C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 3:
         if (pEm->Add_dir == 1 || (G.Unk75E8 & 1)) {
             pEm->Add_dir = 0;
-            func_80104638(pEm, 1, 1);
+            Em21_r0_set(pEm, 1, 1);
         }
     }
 }
 
-/* RE2 Em21_sce_crash (reworked) */
-void func_80103724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_sce_crash (reworked): flies into a window or wall and falls */
+void Em21_sce_crash(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1402,13 +1404,13 @@ void func_80103724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x -= 10;
         if (EF(pEm)->Cnt-- == 0) {
             pEm->Be_flg &= ~0x2000;
-            func_80104638(pEm, 1, 4);
+            Em21_r0_set(pEm, 1, 4);
         }
     }
 }
 
 /* scenario: flies away along a fixed path */
-void func_8010386C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em21_sce_fly_away(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1435,7 +1437,7 @@ void func_8010386C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(Rnd_l() & 0x7F))
             Snd_se_enem(1, pEm);
         if (!(Rnd_l() & 0x3F))
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         if (EF(pEm)->Cnt-- == 0) {
             if (Rnd_l() & 1)
                 Snd_se_enem(1, pEm);
@@ -1447,7 +1449,7 @@ void func_8010386C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(Rnd_l() & 0x7F))
             Snd_se_enem(1, pEm);
         if (!(Rnd_l() & 0x3F))
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         Goto00(pEm, 11600, -10000, 0x20);
         Joint_move(pEm, pKan, pSeq, 0x200);
         Add_speedXYZ(pEm, 0, 0);
@@ -1470,12 +1472,12 @@ void func_8010386C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXYZ(pEm, 0, 0);
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (pEm->Pos_y > -6000)
-            func_80104638(pEm, 1, 4);
+            Em21_r0_set(pEm, 1, 4);
     }
 }
 
 /* scenario: circles around its start position */
-void func_80103B80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em21_sce_circle(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
 
@@ -1535,7 +1537,7 @@ void func_80103B80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* scenario: hops about on the ground */
-void func_80103E98(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em21_sce_hop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Svec;                      /* unused (frame size) */
 
@@ -1562,7 +1564,7 @@ void func_80103E98(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* scenario: flies up out of the room */
-void func_80104014(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em21_sce_fly_up(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1586,7 +1588,7 @@ void func_80104014(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(Rnd_l() & 0x7F))
             Snd_se_enem(1, pEm);
         if (!(Rnd_l() & 0x3F))
-            func_80104C94(pEm, 1);
+            Em_21_feather_call(pEm, 1);
         if (pEm->Pos_y < -32000) {
             pEm->Routine_2 = 3;
             pEm->Spd_y = 0;
@@ -1596,14 +1598,14 @@ void func_80104014(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_Dead */
-void func_80104194(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_Dead: the corpse (Em21_dead_mv by Routine_1) */
+void Em21_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em21_dead_mv[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em21_dead_normal */
-void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dead_normal: falling to the floor dead, then the corpse */
+void Em21_dead_normal(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG D0;
 
@@ -1664,8 +1666,8 @@ void func_801041D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_dead_bomb */
-void func_80104458(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dead_bomb: blown apart: no corpse, shadow off */
+void Em21_dead_bomb(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         pEm->Be_flg |= 0x4000;
@@ -1675,8 +1677,8 @@ void func_80104458(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_dead_instant */
-void func_80104490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dead_instant: dead on the floor at once, the shadow spreads */
+void Em21_dead_instant(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1707,8 +1709,8 @@ void func_80104490(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_foot_set */
-void func_801045BC(ENEMY_WORK *pEm)
+/* RE2 Em21_foot_set: keep the feet (part 9) on the spot by moving the body */
+void Em21_foot_set(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX M;
@@ -1720,23 +1722,23 @@ void func_801045BC(ENEMY_WORK *pEm)
     pEm->Pos_x -= M.t[0] - pP[9].Workm.t[0];
 }
 
-/* RE2 Em21_r0_set */
-void func_80104638(ENEMY_WORK *pEm, ULONG Rno0, ULONG Rno1)
+/* RE2 Em21_r0_set: set Routine_0 / Routine_1, clear Routine_2 / Routine_3 */
+void Em21_r0_set(ENEMY_WORK *pEm, ULONG Rno0, ULONG Rno1)
 {
     pEm->Routine_0 = Rno0;
     pEm->Routine_1 = Rno1;
-    *(USHORT *)&pEm->Routine_2 = 0;
+    EM_RTN23(pEm) = 0;
 }
 
-/* RE2 Em21_r1_set */
-void func_80104648(ENEMY_WORK *pEm, ULONG Rno1)
+/* RE2 Em21_r1_set: set Routine_1, clear Routine_2 / Routine_3 */
+void Em21_r1_set(ENEMY_WORK *pEm, ULONG Rno1)
 {
     pEm->Routine_1 = Rno1;
-    *(USHORT *)&pEm->Routine_2 = 0;
+    EM_RTN23(pEm) = 0;
 }
 
-/* RE2 Em21_sca_avoid_ck */
-void func_80104654(ENEMY_WORK *pEm)
+/* RE2 Em21_sca_avoid_ck: turn away from walls and objects in the flight path */
+void Em21_sca_avoid_ck(ENEMY_WORK *pEm)
 {
     ULONG D0;
     SVECTOR Svec;
@@ -1749,22 +1751,22 @@ void func_80104654(ENEMY_WORK *pEm)
                 Svec.vx = pEm->Pos_x;
                 Svec.vy = pEm->Pos_y;
                 Svec.vz = pEm->Pos_z;
-                D0 = func_800502B8_(&Svec, pEm->Col.pSca_hit_data);
+                D0 = Sca_get_dir_l(&Svec, pEm->Col.pSca_hit_data);
                 if (D0 == 2) {
                     if (Cdir_y < 0x80 || Cdir_y > 0xF80)
-                        func_80104648(pEm, 10);
+                        Em21_r1_set(pEm, 10);
                 } else {
                     D0 <<= 10;
                     if (((D0 + 0x780) & 0xFFF) < Cdir_y && Cdir_y < ((D0 + 0x880) & 0xFFF))
-                        func_80104648(pEm, 10);
+                        Em21_r1_set(pEm, 10);
                 }
             }
         }
         if (EF(pEm)->Sca_cnt > 10) {
             if (!(Rnd_l() & 0x7F))
-                func_80104648(pEm, 7);
+                Em21_r1_set(pEm, 7);
             else
-                func_80104648(pEm, 8);
+                Em21_r1_set(pEm, 8);
         }
         if (pEm->Spd_x > 100)
             pEm->Spd_x -= 4;
@@ -1774,15 +1776,15 @@ void func_80104654(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em21_attack_ck */
-void func_801047A8(ENEMY_WORK *pEm)
+/* RE2 Em21_attack_ck: start an attack on the player (peck in flight or on the ground) */
+void Em21_attack_ck(ENEMY_WORK *pEm)
 {
     LONG Dy;
 
     if (G.Player.Life < 0 || G.Player.Damage_cnt)
         return;
     if ((pEm->Unk1CC[4] & 0xA0000) == 0xA0000 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100)) {
-        func_80104648(pEm, 13);
+        Em21_r1_set(pEm, 13);
         EF(pEm)->Flg &= ~0x40;
         EF(pEm)->Flg &= ~0x08;
         EF(pEm)->Na_cnt = 0;
@@ -1798,18 +1800,18 @@ void func_801047A8(ENEMY_WORK *pEm)
         G.Unk75EA |= 1;
         EF(pEm)->Flg |= 4;
         if (!(Rnd_l() & 0xF))
-            func_80104648(pEm, 11);
+            Em21_r1_set(pEm, 11);
         else
-            func_80104648(pEm, 13);
+            Em21_r1_set(pEm, 13);
         return;
     }
     if ((LONG)pEm->Unk154 < 900 && Dy < 900 && Dy > -1800) {
         if (!EF(pEm)->Obj_cnt && pEm->Spd_x > 230 && !(G.Unk75EA & 1)) {
             if (!Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100))
-                func_80104648(pEm, 12);
+                Em21_r1_set(pEm, 12);
         }
         if (EF(pEm)->Obj_cnt > 10) {
-            func_80104648(pEm, 8);
+            Em21_r1_set(pEm, 8);
             EF(pEm)->Idly_cnt = Rnd_l() & 0x7F;
             EF(pEm)->Idly_flg = Rnd_area();
         }
@@ -1821,29 +1823,29 @@ void func_801047A8(ENEMY_WORK *pEm)
     }
 }
 
-/* RE2 Em21_run_away_ck */
-void func_80104A08(ENEMY_WORK *pEm)
+/* RE2 Em21_run_away_ck: fly off after an attack (Flg 0x10) */
+void Em21_run_away_ck(ENEMY_WORK *pEm)
 {
     if (EF(pEm)->Flg & 0x10) {
-        func_80104D50(pEm, 350);
+        Em21_atd_set(pEm, 350);
         pEm->Be_flg &= ~0x800;
         EF(pEm)->Idly_cnt = (Rnd_l() & 0x7F) + 30;
         EF(pEm)->Idly_flg = Rnd_area();
         EF(pEm)->Na_cnt = 60;
-        func_80104648(pEm, 4);
+        Em21_r1_set(pEm, 4);
         EF(pEm)->Flg &= ~0x58;
     }
 }
 
-/* RE2 Em21_pl_dead_ck */
-void func_80104A90(ENEMY_WORK *pEm)
+/* RE2 Em21_pl_dead_ck: player close: land next to him (Routine_1 7) */
+void Em21_pl_dead_ck(ENEMY_WORK *pEm)
 {
     if ((LONG)pEm->Unk154 < 1800)
-        func_80104648(pEm, 7);
+        Em21_r1_set(pEm, 7);
 }
 
-/* RE2 Em21_lock_off_ck */
-void func_80104AC4(ENEMY_WORK *pEm)
+/* RE2 Em21_lock_off_ck: give up the attack when the player is far away or gone */
+void Em21_lock_off_ck(ENEMY_WORK *pEm)
 {
     ULONG D0;
 
@@ -1851,27 +1853,27 @@ void func_80104AC4(ENEMY_WORK *pEm)
         D0 = pEm->Routine_1;
         if (D0 < 11 || D0 > 14) {
             EF(pEm)->Atck = 0;
-            EF(pEm)->Unk0B = 0;
+            EF(pEm)->Atck_se = 0;
             G.Unk75EA &= ~1;
             EF(pEm)->Flg &= ~4;
         }
         if ((LONG)pEm->Unk154 > 14400) {
             EF(pEm)->Atck = 0;
-            EF(pEm)->Unk0B = 0;
+            EF(pEm)->Atck_se = 0;
             G.Unk75EA &= ~1;
             EF(pEm)->Flg &= ~4;
         }
     }
     if (EF(pEm)->Flg & 0x80) {
         EF(pEm)->Atck = 0;
-        EF(pEm)->Unk0B = 0;
+        EF(pEm)->Atck_se = 0;
         EF(pEm)->Pl_dead_cnt = 120;
         EF(pEm)->Flg &= ~0x80;
     }
 }
 
-/* RE2 Em21_set_flg_all */
-void func_80104B90(ULONG Mask)
+/* RE2 Em21_set_flg_all: set Mask in the Flg of every crow that is not attacking */
+void Em21_set_flg_all(ULONG Mask)
 {
     ENEMY_WORK *pEm;
     ENEMY_WORK **ppEm;
@@ -1886,8 +1888,8 @@ void func_80104B90(ULONG Mask)
     }
 }
 
-/* RE2 Em_21_blood_call */
-void func_80104C00(ENEMY_WORK *pEm)
+/* RE2 Em_21_blood_call: a blood effect near the body */
+void Em_21_blood_call(ENEMY_WORK *pEm)
 {
     SVECTOR Svec;
 
@@ -1897,8 +1899,8 @@ void func_80104C00(ENEMY_WORK *pEm)
     Esp_call(0x100, (USHORT)(Rnd_l() << 4) | 0x28000000, &GsIDMATRIX, &Svec, NULL);
 }
 
-/* RE2 Em_21_feather_call */
-void func_80104C94(ENEMY_WORK *pEm, LONG Num)
+/* RE2 Em_21_feather_call: Num feather effects around the body */
+void Em_21_feather_call(ENEMY_WORK *pEm, LONG Num)
 {
     SVECTOR Svec;
 
@@ -1910,15 +1912,15 @@ void func_80104C94(ENEMY_WORK *pEm, LONG Num)
     }
 }
 
-/* RE2 Em21_atd_set */
-void func_80104D50(ENEMY_WORK *pEm, LONG Size)
+/* RE2 Em21_atd_set: collision box width and depth */
+void Em21_atd_set(ENEMY_WORK *pEm, LONG Size)
 {
     pEm->Col.W0 = Size;
     pEm->Col.D0 = Size;
 }
 
 /* RE3: player hit while crows were pecking it, scatter the attackers */
-void func_80104D5C(void)
+void Em21_attacker_off(void)
 {
     ENEMY_WORK *pEm;
     ENEMY_WORK **ppEm;
@@ -1935,7 +1937,7 @@ void func_80104D5C(void)
                 EF(pEm)->Idly_flg = Rnd_area();
                 EF(pEm)->Na_cnt = 10;
                 pEm->Be_flg &= ~0x800;
-                func_80104648(pEm, 4);
+                Em21_r1_set(pEm, 4);
             } else {
                 EF(pEm)->Flg |= 0x10;
                 EF(pEm)->Idly_cnt = 0;
@@ -1946,17 +1948,17 @@ void func_80104D5C(void)
 }
 
 /* RE2 PLDAMEGE_EM (Pldamege_Em121/221), runs on the player work */
-void func_80104E60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Pldamege_Em21(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pT = pEm->pEnemy_ptr;
 
     if (pT->Routine_0 == 2 || pT->Routine_0 == 3 || pT->Routine_0 == 7) {
-        func_80104D5C();
+        Em21_attacker_off();
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
         pEm->Unk120 &= 0xED;
         pT->Be_flg &= ~0x800;
-        func_80104B90(0x10);
+        Em21_set_flg_all(0x10);
         pEm->Be_flg &= ~0x8800;
         pT->Be_flg &= ~0x8800;
         return;
@@ -1964,8 +1966,8 @@ void func_80104E60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Pldamage_Em21_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-/* RE2 Em21_pldm00 */
-void func_80104F48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_pldm00: the player's reaction to the pecking (pEm is the player) */
+void Em21_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2008,7 +2010,7 @@ void func_80104F48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EM_SET_MOVE(pEm, 1, 0, 7);
-            func_80104638(pEm, 1, 0);
+            Em21_r0_set(pEm, 1, 0);
         }
         Add_speedXZ_n(pEm, 0, 0);
         break;
@@ -2017,12 +2019,12 @@ void func_80104F48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* RE2 Em21_dummy_br */
-void func_80105100(ENEMY_WORK *pEm)
+/* RE2 Em21_dummy_br: empty */
+void Em21_dummy_br(ENEMY_WORK *pEm)
 {
 }
 
-/* RE2 Em21_dummy */
-void func_80105108(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* RE2 Em21_dummy: empty */
+void Em21_dummy(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
 }

@@ -2725,12 +2725,12 @@ void Em34_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP->pSuper = &GsIDMATRIX;
             pP->UnkA2 |= 0x20;
             pParts[17].Be_flg |= 2;
-            PW_FLY(pP)->Dir_y = 0;
-            PW_FLY(pP)->Cnt = 0;
-            PW_FLY(pP)->Spd_xz = 0;
-            PW_FLY(pP)->Spd_y = -10;
-            PW_FLY(pP)->Gravity = 0;
-            PW_FLY(pP)->Spd_xz_add = 0;
+            PW_BOMB(pP)->V0_x = 0;
+            PW_BOMB(pP)->Cnt0 = 0;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->V0_y = -10;
+            PW_BOMB(pP)->G = 0;
+            PW_BOMB(pP)->Gxz = 0;
             pP->Poly_rgb = 0x202020;
             Snd_se_stad(0x1000D, (VECTOR *)&pEm->Pos_x, 0, 0);
         } else {
@@ -3505,13 +3505,13 @@ void Em34_after1(ENEMY_WORK *pEm)
             pM2 = &pP->Workm;
             Esp_call(0x1000203, 0x10000000, pM2, NULL, NULL);
             EM34_W(pEm)->Flg |= 0x200;
-            PW_FLY(pP)->Spd_y = -10;
+            PW_BOMB(pP)->V0_y = -10;
             pP->Poly_rgb = 0x202020;
-            PW_FLY(pP)->Dir_y = 0;
-            PW_FLY(pP)->Cnt = 0;
-            PW_FLY(pP)->Spd_xz = 0;
-            PW_FLY(pP)->Gravity = 0;
-            PW_FLY(pP)->Spd_xz_add = 0;
+            PW_BOMB(pP)->V0_x = 0;
+            PW_BOMB(pP)->Cnt0 = 0;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->G = 0;
+            PW_BOMB(pP)->Gxz = 0;
             pP->UnkA2 |= 0x20;
             pP->Be_flg |= 2;
             func_8001B894(0x1203, pM2);
