@@ -10,6 +10,9 @@
 #include "sld.h"
 #include "spl_sce.h"
 #include "om.h"
+#include "esp_r.h"
+#include "pad.h"
+#include "main.h"
 
 /*
  * EM_SUB.C (RE2 EM_SUB.C): helpers shared by the player and the enemy modules: movement
@@ -2389,7 +2392,345 @@ void Esp_16(ESP_WORK *pEw)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_17);
+extern SHORT D_80098064[]; /* Esp_17 hit boxes (Hit_area_em_ck) */
+extern SHORT D_8009806C[];
+
+/* Esp_tblj 0x17: launcher round (kind in Unk18): smoke trail, hits enemies/objects/the players, explodes on a hit or at the room bounds */
+void Esp_17(ESP_WORK *pEw)
+{
+    VECTOR Spd;
+    SVECTOR Rot;
+    VECTOR Avg;
+    HIT_REQ Req;
+    HIT_AREA Area;
+    LONG Hit;
+    LONG Pl_hit;
+    HIT_ATTR *pAt;
+    HIT_ATTR *pAt2;
+    ESP_WORK *p;
+    LONG d;
+    ULONG Se;
+    UCHAR i;
+
+    Hit = 0;
+    Pl_hit = Hit;
+    switch (pEw->Routine_2) {
+    case 0:
+        if (pEw->Dir_y != 0) {
+            pEw->UnkBA = pEw->Dir_y;
+            pEw->Dir_y = 0;
+        }
+        switch (pEw->Unk18) {
+        case 0:
+        case 1:
+            Rot.vx = 0;
+            Rot.vy = 0;
+            Rot.vz = 0x400;
+            Esp_call_child(pEw, 0x3000D02, 0x20000000, &pEw->Workm2, NULL, &Rot);
+            Rot.vx = 0;
+            Rot.vy = 0x400;
+            Rot.vz = 0x400;
+            Esp_call_child(pEw, 0x3000D02, 0x20000000, &pEw->Workm2, NULL, &Rot);
+            break;
+        case 2:
+            Rot.vx = 0;
+            Rot.vy = 0;
+            Rot.vz = 0x400;
+            Esp_call_child(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
+            Rot.vx = 0;
+            Rot.vy = 0x400;
+            Rot.vz = 0x400;
+            Esp_call_child(pEw, 0x3000D02, 0x18000000, &pEw->Workm2, NULL, &Rot);
+            Spd.vx = 0;
+            Spd.vy = -500;
+            Spd.vz = 0;
+            Rot.vx = 0;
+            Rot.vy = 0;
+            Rot.vz = 0;
+            Esp_call_child(pEw, 0x805, 0x8000000, &pEw->Workm2, &Spd.vx, &Rot);
+            Rot.vx = 0;
+            Rot.vy = 0x400;
+            Rot.vz = 0;
+            Esp_call_child(pEw, 0x805, 0x8000000, &pEw->Workm2, &Spd.vx, &Rot);
+            break;
+        }
+        pEw->Routine_2++;
+    case 1:
+        if (pEw->Pos.vx >= 0x7918) {
+            Hit |= 1;
+        }
+        if (pEw->Pos.vx < -0x7917) {
+            Hit |= 1;
+        }
+        if (pEw->Pos.vz >= 0x7918) {
+            Hit |= 1;
+        }
+        if (pEw->Pos.vz < -0x7917) {
+            Hit |= 1;
+        }
+        if (pEw->UnkB8 != 0) {
+            if (pEw->UnkB8 == 10) {
+                pEw->Be_flg = 0x8000;
+                Esp_kill(0xD02, &pEw->Workm2);
+                Esp_kill(0x805, &pEw->Workm2);
+            }
+            if (--pEw->UnkB8 == 1) {
+                pEw->Be_flg = 0;
+            }
+            break;
+        }
+        if (pEw->Mov_y >= 30000) {
+            p = Esp_call(((pEw->UnkB3 & 0xF) << 24) | (pEw->Id.B[1] << 8) | pEw->Id.B[0],
+                         (pEw->Size << 16) | pEw->Dir_y, &pEw->Workm2, NULL, 0);
+            Esp_speed_add(p);
+            Esp_pos_matrix(p);
+            pEw->UnkB8 = 10;
+        }
+        Req.pPos = &pEw->Pos;
+        Req.W = 0;
+        Req.H = 0;
+        Req.D = 0;
+        Req.R = pEw->UnkBA;
+        switch (pEw->Unk18) {
+        case 0:
+            pAt = Esp_at_tbl[7];
+            pAt2 = Esp_at_tbl[9];
+            break;
+        case 1:
+            pAt = Esp_at_tbl[8];
+            pAt2 = Esp_at_tbl[10];
+            break;
+        case 2:
+            pAt = Esp_at_tbl[24];
+            pAt2 = Esp_at_tbl[25];
+            break;
+        case 3:
+            pAt = Esp_at_tbl[32];
+            pAt2 = Esp_at_tbl[33];
+            break;
+        }
+        switch (pEw->Unk18) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            Pl_hit = Hit | Pos_em_at_ck(&Req, pAt);
+            Hit = Pl_hit | Pos_om_at_ck(&Req, pAt);
+            Hit |= Pos_em1_at_ck(pEw->pEm, &Req, pAt2);
+            break;
+        }
+        if (Hit) {
+            if (Hit < 0) {
+                d = Dir_ck(pEw->UnkBA, G.Player.Cdir_y);
+                if (d) {
+                    G.Player.Cdir_y = pEw->UnkBA;
+                } else {
+                    G.Player.Cdir_y = pEw->UnkBA + 0x800;
+                }
+                if (G.Player.Routine_0 == 2) {
+                    G.Player.Routine_1 = pAt->Unk1 * 2 - 40 + d;
+                }
+            }
+            if (Hit & 0x40000000) {
+                d = Dir_ck(pEw->UnkBA, G.pEnemy[1]->Cdir_y);
+                if (d) {
+                    G.pEnemy[1]->Cdir_y = pEw->UnkBA;
+                } else {
+                    G.pEnemy[1]->Cdir_y = pEw->UnkBA + 0x800;
+                }
+                if (G.pEnemy[1]->Routine_0 == 2) {
+                    G.pEnemy[1]->Routine_1 = pAt2->Unk1 * 2 - 40 + d;
+                }
+            }
+        }
+        if (pEw->Flg2 & 0x30) {
+            Hit |= 1;
+            pEw->UnkB6 = 1;
+        }
+        switch (pEw->Unk18) {
+        case 0:
+        case 1:
+        case 2:
+            Area.pPos = &pEw->Pos;
+            Area.pBox = D_80098064;
+            Area.Dir = pEw->UnkBA;
+            Area.Id = 0x42;
+            Hit_area_em_ck(&pEw->Pos.vx, &pEw->pEm->Pos_x, &Area, G_PLAYER);
+            Area.pPos = &pEw->Pos;
+            Area.pBox = D_8009806C;
+            Area.Dir = pEw->UnkBA;
+            Area.Id = 0x41;
+            Hit_area_em_ck(&pEw->Pos.vx, &pEw->pEm->Pos_x, &Area, G_PLAYER);
+            if ((LONG)G.Status_flg < 0) {
+                Area.pPos = &pEw->Pos;
+                Area.pBox = D_80098064;
+                Area.Dir = pEw->UnkBA;
+                Area.Id = 0x42;
+                Hit_area_em_ck(&pEw->Pos.vx, &pEw->pEm->Pos_x, &Area, G.pEnemy[1]);
+                Area.pPos = &pEw->Pos;
+                Area.pBox = D_8009806C;
+                Area.Dir = pEw->UnkBA;
+                Area.Id = 0x41;
+                Hit_area_em_ck(&pEw->Pos.vx, &pEw->pEm->Pos_x, &Area, G.pEnemy[1]);
+            }
+            break;
+        }
+        Avg.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
+        Avg.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
+        Avg.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
+        switch (pEw->Unk18) {
+        case 0:
+            Spd.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
+            Spd.vy = 500;
+            Spd.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
+            Esp_call_child(pEw, 0xC03, 0x18000000, &pEw->Workm2, &Spd.vx, 0);
+            if (Hit) {
+                Se = 8;
+                if (pEw->pEm->Unk12F == Snd_edt[3]) {
+                    Se = 0x18;
+                }
+                Esp_kill(0xD02, &pEw->Workm2);
+                Snd_se_stad(Se | 0x10300, &pEw->Pos, 0, 0);
+                Esp_call_child(pEw, 0x203, (USHORT)pEw->UnkBA | 0xD000000, &GsIDMATRIX, &Avg.vx, 0);
+                do {
+                    do {
+                        do {
+                            if (Pl_hit < 0) {
+                                Pad_vib_data_set(Esp_vib_data, 0);
+                            }
+                        } while (0);
+                    } while (0);
+                } while (0);
+                pEw->Be_flg = 0x8000;
+                pEw->Routine_2++;
+            }
+            break;
+        case 1:
+            Spd.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
+            Spd.vy = 500;
+            Spd.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
+            Esp_call_child(pEw, 0xC03, 0x1C000000, &pEw->Workm2, &Spd.vx, 0);
+            if (Hit) {
+                Se = 8;
+                if (pEw->pEm->Unk12F == Snd_edt[3]) {
+                    Se = 0x18;
+                }
+                Esp_kill(0xD02, &pEw->Workm2);
+                Snd_se_stad(Se | 0x10300, &pEw->Pos, 0, 0);
+                Esp_call_child(pEw, 0x203, (USHORT)pEw->UnkBA | 0xD000000, &GsIDMATRIX, &Avg.vx, 0);
+                if (Pl_hit < 0) {
+                    Pad_vib_data_set(Esp_vib_data, 1);
+                }
+                pEw->Be_flg = 0x8000;
+                pEw->Routine_2++;
+                Fade_set(0, 0, 0, 1, 0xFFFFFF, 0, 8);
+                if (pEw->UnkB6) {
+                    G.Status_flg |= 2;
+                }
+            }
+            break;
+        case 2:
+            Spd.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
+            Spd.vy = 500;
+            Spd.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
+            Esp_call_child(pEw, 0xC03, 0x13000000, &pEw->Workm2, &Spd.vx, 0);
+            if (Hit) {
+                Se = 0xE;
+                if (pEw->pEm->Unk12F == Snd_edt[3]) {
+                    Se = 0x1E;
+                }
+                Esp_kill(0xD02, &pEw->Workm2);
+                Esp_kill(0x805, &pEw->Workm2);
+                Snd_se_stad(Se | 0x10200, &pEw->Pos, 0, 0);
+                Esp_call_child(pEw, 0x203, (USHORT)pEw->UnkBA | 0xD000000, &GsIDMATRIX, &Avg.vx, 0);
+                do {
+                    do {
+                        do {
+                            if (Pl_hit < 0) {
+                                Pad_vib_data_set(Esp_vib_data, 0);
+                            }
+                        } while (0);
+                    } while (0);
+                } while (0);
+                pEw->Be_flg = 0x8000;
+                pEw->Routine_2++;
+            }
+            break;
+        case 3:
+        case 4:
+            Spd.vx = (signed char)Rnd_tbl[Rnd()];
+            Spd.vy = 500;
+            Spd.vz = (signed char)Rnd_tbl[Rnd()];
+            Esp_call_child(pEw, 0x3D, ((signed char)Rnd() + 0x1200) << 17, &pEw->Workm2, &Spd.vx, 0);
+            if (Hit) {
+                Esp_call_child(pEw, 0x10C, (USHORT)pEw->UnkBA | 0x10000000, &GsIDMATRIX, &Avg.vx, 0);
+                pEw->Be_flg = 0;
+            }
+            break;
+        }
+        break;
+    case 2:
+        if (pEw->UnkB4 == 2) {
+            Req.pPos = &pEw->Pos;
+            Req.W = 0;
+            Req.H = 0;
+            Req.D = 0;
+            Req.R = pEw->UnkBA;
+            switch (pEw->Unk18) {
+            case 1:
+                if (Pos_em_at_ck(&Req, Esp_at_tbl[12]) < 0) {
+                    Pad_vib_data_set(Esp_vib_data, 1);
+                }
+                break;
+            case 0:
+            case 2:
+                if (Pos_em_at_ck(&Req, Esp_at_tbl[11]) < 0) {
+                    Pad_vib_data_set(Esp_vib_data, 0);
+                }
+                pEw->Be_flg = 0;
+                break;
+            }
+        }
+        if (pEw->Unk18 == 1) {
+            if (pEw->UnkB4 == 1) {
+                Esp_call_child(pEw, 0x3000903, (USHORT)(pEw->UnkBA - 0x800) | 0x30000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+                Esp_call_child(pEw, 0x3000A03, (USHORT)(pEw->UnkBA - 0x800) | 0x40000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+            }
+            if (pEw->UnkB4 == 2) {
+                Esp_call_child(pEw, 0x3000B03, (USHORT)(pEw->UnkBA - 0x800) | 0x40000000, &GsIDMATRIX, &pEw->Old.vx, 0);
+            }
+            if (pEw->UnkB4 >= 2 && pEw->UnkB4 < 6) {
+                SHORT Dir_tbl[3] = { -0x720, -0x800, 0x720 };
+                SHORT Spd_tbl[3] = { -20, 20, -20 };
+
+                for (i = 0; i < 3; i++) {
+                    p = Esp_call_child(pEw, 0x3001F03, ((0x3000 - pEw->UnkB4 * 2000) << 16) | (USHORT)(pEw->UnkBA + (signed char)Rnd_tbl[Rnd()] + Dir_tbl[i]),
+                                       &GsIDMATRIX, &pEw->Old.vx, 0);
+                    if (p != ESP_NONE) {
+                        p->Spd_y = Spd_tbl[i];
+                    }
+                }
+            }
+            if (pEw->UnkB6) {
+                switch (pEw->UnkB4) {
+                case 7:
+                    break;
+                case 8:
+                    G.Status_flg = (G.Status_flg & ~2) | 4;
+                    break;
+                case 15:
+                    G.Status_flg &= ~4;
+                    break;
+                }
+            }
+            if (pEw->UnkB4 >= 16) {
+                pEw->Be_flg = 0;
+            }
+        }
+        pEw->UnkB4++;
+        break;
+    }
+}
 
 /* Esp_tblj 0x18: two flames at Base, then smoke every frame */
 void Esp_18(ESP_WORK *pEw)
