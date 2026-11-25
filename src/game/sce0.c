@@ -200,19 +200,19 @@ void Sce_work_clr_set(void)
     pG->Unk7888 = 0;
     Sce.Unk1497 = 0xFF;
     Sce.Mizu_div_max = 0;
-    Sce.Unk1496 = 0;
+    Sce.Mizu_div_ctr = 0;
     Cc_work.Ccol_no = 0;
     Cc_work.Ctex_old = 0xFF;
-    Sce.Unk148E = 0xFF;
-    Sce.Unk148F = 0xFF;
+    Sce.Em_id = 0xFF;
+    Sce.Em_kind_flg = 0xFF;
     Sce.Unk1494 = 0xFF;
     pG->Unk75D9 = -1;
-    Sce.Unk1498 = 0;
-    Sce.Unk1499 = 0;
+    Sce.Em_set_kind0 = 0;
+    Sce.Em_set_kind1 = 0;
     G.pUnk75AC[10] = 0;
-    Sce.Unk1488 = 0;
-    Sce.Unk149B = 0;
-    Sce.pUnk1460 = G.pEnemy[2];
+    Sce.Em_dat_num = 0;
+    Sce.Skip_state = 0;
+    Sce.pEm_last = G.pEnemy[2];
     for (i = 0, p = (LONG *)Em_dat; i < 5; i++) {
         *p++ = -1;
     }
@@ -224,7 +224,7 @@ void Sce_rnd_set(void)
     LONG D0;
 
     D0 = (s8)Rnd_uc() << 8;
-    D0 += Rnd_uc() + (s8)D_80098728[Sce.Unk149E++];
+    D0 += Rnd_uc() + (s8)D_80098728[Sce.Rnd_idx++];
     D_800D1F82 = D0;
 }
 
@@ -327,10 +327,10 @@ void Sce_skip_ck(void)
     ULONG i;
 
     i = 2;
-    switch (Sce.Unk149B) {
+    switch (Sce.Skip_state) {
     case 1:
         if (G.Unk20FC & 0x100) {
-            Sce.Unk149B = 2;
+            Sce.Skip_state = 2;
             Fade_set(0, 1, 0, 2, 0, 0xFFFFFF, 0x10);
             Moji.Mess_flg = 0;
             Xa_fade_set(0x10);
@@ -339,14 +339,14 @@ void Sce_skip_ck(void)
             do {
                 Sce.Sce_task[i].Status = 0;
             } while (i++ < 10);
-        } else if (Sce.Sce_task[Sce.Unk149C].Status == 0) {
-            Sce.Unk149B = 0;
+        } else if (Sce.Sce_task[Sce.Skip_task].Status == 0) {
+            Sce.Skip_state = 0;
         }
         break;
     case 2:
         if (Fade_status(0) == 0) {
             Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0);
-            Sce.Unk149B = 4;
+            Sce.Skip_state = 4;
         }
         break;
     case 4:
@@ -359,8 +359,8 @@ void Sce_skip_ck(void)
             Moji.Mess_flg = 0;
             Flg_off(&G.Status_flg, 0x1D);
             Flg_off(&G.Status_flg, 0x1E);
-            Event_exec(1, Sce.Unk149D);
-            Sce.Unk149B = 8;
+            Event_exec(1, Sce.Skip_evt);
+            Sce.Skip_state = 8;
             func_8001B894(0xFF02, 0);
         }
         break;
@@ -371,16 +371,16 @@ void Sce_skip_end(void)
 {
     SCENARIO *pScn = &Sce;
 
-    switch (pScn->Unk149B) {
+    switch (pScn->Skip_state) {
     case 1:
-        if (pScn->Sce_task[pScn->Unk149C].Status == 0) {
-            pScn->Unk149B = 0;
+        if (pScn->Sce_task[pScn->Skip_task].Status == 0) {
+            pScn->Skip_state = 0;
         }
         break;
     case 8:
         if (pScn->Sce_task[1].Status == 0) {
             Fade_off(0);
-            pScn->Unk149B = 0;
+            pScn->Skip_state = 0;
         }
         break;
     }

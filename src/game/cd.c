@@ -401,11 +401,11 @@ retry2:
     if (pCd->Type == 4) {
         i = 0;
         pFlg = (LONG *)Em_dat;
-        Sce.Unk148E = 0xFF;
-        Sce.Unk148F = 0xFF;
+        Sce.Em_id = 0xFF;
+        Sce.Em_kind_flg = 0xFF;
         Sce.Unk1494 = 0xFF;
-        Sce.Unk1488 = 0;
-        Sce.pUnk1460 = G.pEnemy[2];
+        Sce.Em_dat_num = 0;
+        Sce.pEm_last = G.pEnemy[2];
         for (; i < 5; i++) {
             *pFlg++ = -1;
         }
@@ -664,22 +664,22 @@ void Cd_data_trans(tagCD *pCd)
             }
         }
         Work = pCd->Work_adr;
-        Sce.Unk148E = pEm->Id;
+        Sce.Em_id = pEm->Id;
         pEm->Unk4B &= 0xF;
-        Sce.Unk148F = pEm->Unk4B;
-        Sce.pUnk1460 = pEm;
+        Sce.Em_kind_flg = pEm->Unk4B;
+        Sce.pEm_last = pEm;
         Kind = Em_kind_search(pEm->Id);
         pData = Em_dat_search(Kind);
         if (pData == NULL) {
             pDat->pEm = pEm;
             pDat->Id = pEm->Id;
             pDat->Kind = Kind;
-            Sce.Unk1488++;
+            Sce.Em_dat_num++;
         } else {
             pEm->Unk4B |= Em_kind_flg_search(pEm->Id);
         }
         Work = func_8001760C(pCd->pEntry[No].Id, pEm, Work, pData);
-        Sce.pUnk1490 = pEm->pUnk11C;
+        Sce.pEmd_sce = pEm->pUnk11C;
         Sce.Type = 0;
         Sce.pCScd = pG->pRoom->pScd;
         Work = PartsWork_set(pEm, Work);
@@ -697,8 +697,8 @@ void Cd_data_trans(tagCD *pCd)
             pG->Em_routine[pCd->pEntry[No].Id - 0x10] = pG->Em_ov_mtbl[pCd->Em_no][pCd->pEntry[No].Id - 0x10];
             return;
         }
-        if (*Sce.pUnk1490 != 0) {
-            func_8007A2D4(pEm, Sce.pUnk1490);
+        if (*Sce.pEmd_sce != 0) {
+            func_8007A2D4(pEm, Sce.pEmd_sce);
         }
     }
 }
@@ -1322,11 +1322,11 @@ copy:
             pEm->pUnk11C = pSrc->pUnk11C;
             pEm->Tpage = pSrc->Tpage;
             pEm->Clut = pSrc->Clut;
-            pEm->pUnk1B4 = Sce.pUnk1460->pUnk1B4;
-            pEm->pUnk180_seq_t_ptr = Sce.pUnk1460->pUnk180_seq_t_ptr;
-            pEm->pUnk184_kan_t_ptr = Sce.pUnk1460->pUnk184_kan_t_ptr;
-            pEm->pUnk188_seq_t_ptr = Sce.pUnk1460->pUnk188_seq_t_ptr;
-            pEm->pUnk18C_kan_t_ptr = Sce.pUnk1460->pUnk18C_kan_t_ptr;
+            pEm->pUnk1B4 = Sce.pEm_last->pUnk1B4;
+            pEm->pUnk180_seq_t_ptr = Sce.pEm_last->pUnk180_seq_t_ptr;
+            pEm->pUnk184_kan_t_ptr = Sce.pEm_last->pUnk184_kan_t_ptr;
+            pEm->pUnk188_seq_t_ptr = Sce.pEm_last->pUnk188_seq_t_ptr;
+            pEm->pUnk18C_kan_t_ptr = Sce.pEm_last->pUnk18C_kan_t_ptr;
             Work = PartsWork_set(pEm, Work);
             Work = func_800261AC(pEm, Work, pEm->pUnk10C);
             Sa_dat_set(pEm, pEm->pUnk118);

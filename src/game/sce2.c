@@ -411,11 +411,11 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pNext = pG->pEm_mem;
         pEm->Be_flg = 1;
         pEm->Unk12F = D_800E0198->Unk9;
-        if (Sce.Unk1498 != D_800E0198->Unk9) {
-            if (Sce.Unk1498)
-                Sce.Unk1499 = D_800E0198->Unk9;
+        if (Sce.Em_set_kind0 != D_800E0198->Unk9) {
+            if (Sce.Em_set_kind0)
+                Sce.Em_set_kind1 = D_800E0198->Unk9;
             else
-                Sce.Unk1498 = D_800E0198->Unk9;
+                Sce.Em_set_kind0 = D_800E0198->Unk9;
         }
         *(ULONG *)&pEm->Routine_0 = 0;
         pEm->Pos_x = pEm->Old_x = D_800E0198->Pos_x;
@@ -1102,10 +1102,10 @@ ULONG Weapon_chg_old(SCE_TASK *pSce)
         G.pItem_set->Equip_no = 0xFF;
         G.pItem_set->Equip_id = 0;
     }
-    if (Sce.Unk1489 != 0) {
+    if (Sce.Weapon_chg_flg != 0) {
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
-        Sce.Unk1489 = 0;
+        Sce.Weapon_chg_flg = 0;
     } else {
         Pl_weapon_ch_init(pPl);
     }

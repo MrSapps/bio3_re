@@ -76,13 +76,13 @@ ULONG Evt_skip_set(SCE_TASK *pSce)
 
     Flg = pSce->Data[1];
     if (Flg == 1) {
-        Sce.Unk149B = Flg;
-        Sce.Unk149D = pSce->Data[3];
-        Sce.Unk149C = pSce->Task_level;
+        Sce.Skip_state = Flg;
+        Sce.Skip_evt = pSce->Data[3];
+        Sce.Skip_task = pSce->Task_level;
         pSce->Data += 4;
     } else {
-        Sce.Unk149B = 0;
-        Sce.Unk149C = 0;
+        Sce.Skip_state = 0;
+        Sce.Skip_task = 0;
         pSce->Data += 2;
     }
     return 1;
