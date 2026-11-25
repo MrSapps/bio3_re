@@ -1382,7 +1382,173 @@ void St_file_list(ST_WORK *pSt)
 }
 
 /* Rtn1 6: equip or use the item */
-INCLUDE_ASM("asm/nonmatchings/game/status", St_item_use);
+void St_item_use(ST_WORK *pSt)
+{
+    tagGLOBAL *pG = &G;
+    ITEM_WORK *p = &pG->pItem_set->Item[pSt->Cursor];
+    ITEM_DATA *pData;
+    ENEMY_WORK *pPl;
+
+    pData = &Item_data_tbl[p->Id];
+    switch (pData->Type) {
+    case 1:
+        do {
+            if (pG->pItem_set->Equip_no != pSt->Cursor) {
+                pG->pItem_set->Equip_id = p->Id;
+                pG->pItem_set->Equip_no = pSt->Cursor;
+                Pix_move(10, pG->pItem_set->Equip_no);
+            } else {
+                pG->pItem_set->Equip_id = 0;
+                pG->pItem_set->Equip_no = 0xFF;
+                Pix_move(10, 11);
+            }
+            pSt->Rtn1 = 3;
+        } while (0);
+        break;
+    case 2:
+        switch (pSt->Rtn2) {
+        case 0:
+            Mess_set(0, 0x1000, 5, 0);
+            pSt->Rtn2++;
+            break;
+        case 1:
+            if (!(Moji.Mess_flg & 0x80)) {
+                pSt->Rtn1 = 3;
+                Snd_se_stad(5, 0, 0, 0);
+            }
+            break;
+        }
+        break;
+    case 3:
+        switch (pSt->Rtn2) {
+        case 0:
+            pSt->Poison_cure = 0;
+            switch (p->Id) {
+            case 0x20:
+            case 0x26:
+            case 0x27:
+                pSt->Life_add = pG->Player.Max_life;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x21:
+                pSt->Life_add = pG->Player.Max_life >> 2;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x22:
+                pSt->Life_add = 0;
+                pSt->Poison_cure = 1;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x23:
+                Mess_set(0, 0x1000, 7, 0);
+                pSt->Rtn2 = 1;
+                break;
+            case 0x24:
+                pSt->Life_add = pG->Player.Max_life >> 1;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x25:
+                pSt->Life_add = pG->Player.Max_life >> 2;
+                pSt->Poison_cure = 1;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x28:
+                pSt->Life_add = pG->Player.Max_life >> 1;
+                pSt->Poison_cure = 1;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x29:
+                pSt->Life_add = pG->Player.Max_life;
+                pSt->Poison_cure = 1;
+                pSt->Rtn2 = 2;
+                break;
+            case 0x2A:
+                if (p->Num != 0) {
+                    pSt->Life_add = pG->Player.Max_life;
+                    pSt->Rtn2 = 2;
+                } else {
+                    Mess_set(0, 0x1000, 14, 0);
+                    pSt->Rtn2 = 1;
+                }
+                break;
+            }
+            break;
+        case 1:
+            if (!(Moji.Mess_flg & 0x80)) {
+                pSt->Rtn1 = 3;
+                Snd_se_stad(5, 0, 0, 0);
+            }
+            break;
+        case 2:
+            pSt->Ecg_pos = -0x20;
+            pSt->Rtn2 = 3;
+            pSt->Flg |= 0x800000;
+            break;
+        case 3:
+            if (pSt->Ecg_pos > 0x50) {
+                if (pSt->Poison_cure) {
+                    G.Player.Status_flg &= ~0x200;
+                }
+                pSt->Ecg_pos = -0x20;
+                pSt->Flg &= ~0x800000;
+                pG->Player.Life += pSt->Life_add;
+                pG->Cure_total += pSt->Life_add;
+                if (pG->Player.Life > pG->Player.Max_life) {
+                    pG->Player.Life = pG->Player.Max_life;
+                }
+                if (p->Id != 0x2A) {
+                    pSt->Rtn1 = 10;
+                    pSt->Timer = 2;
+                    pSt->Rtn2 = pSt->Cursor;
+                    p->Id = 0;
+                    p->Num = 0;
+                    p->Flg = 0;
+                    Pix_move(pSt->Cursor, 11);
+                } else {
+                    p->Num--;
+                    pSt->Rtn1 = 3;
+                }
+            }
+            break;
+        }
+        break;
+    case 4:
+    case 5:
+    case 6:
+        if (Flg_ck(pG->Use_flg, p->Id)) {
+            pG->Sce_work[2] = p->Id;
+            if (p->Flg & 0x20) {
+                pSt->Equip_save = 1;
+                pSt->Equip_no_save = G.pItem_set->Equip_no;
+                pSt->Equip_id_save = G.pItem_set->Equip_id;
+                G.pItem_set->Equip_no = 0xFF;
+                G.pItem_set->Equip_id = 0;
+                pPl = G_PLAYER;
+                pPl->Type &= 0xFF00;
+                Weapon_cls(pPl);
+                Pl_weapon_ch(pPl);
+            }
+            pSt->Rtn0++;
+        } else {
+            switch (pSt->Rtn2) {
+            case 0:
+                Mess_set(0, 0x1000, 7, 0);
+                pSt->Rtn2++;
+                break;
+            case 1:
+                if (!(Moji.Mess_flg & 0x80)) {
+                    pSt->Rtn1 = 3;
+                    Snd_se_stad(5, 0, 0, 0);
+                }
+                break;
+            }
+        }
+        break;
+    default:
+        pSt->Rtn1 = 3;
+        break;
+    }
+}
 
 /* Rtn1 7: combine, runs St_mix_tbl[Rtn2] */
 void St_mix_main(ST_WORK *pSt)
@@ -1520,7 +1686,332 @@ void St_mix_select(ST_WORK *pSt)
 }
 
 /* decides the combine result kind and count (Mix_type, Mix_num) */
-INCLUDE_ASM("asm/nonmatchings/game/status", St_mix_exec);
+/* ammo combine bonus: Rate tenths extra once Tama_mix_cnt passes Cnt (D_800A0BF4) */
+typedef struct tagMIX_RATE {
+    UCHAR Cnt;                         /* 0x0 */
+    UCHAR Rate;                        /* 0x1 */
+    UCHAR pad2[2];
+} MIX_RATE;
+extern MIX_RATE Mix_rate_tbl[][5];
+
+/* starts the icon slide and the combine sound */
+#define MIX_SLIDE(pSt, pCur_a, pCur_b)                                                   \
+    pSt->Mix_dx = ((*pCur_a & 1) - (*pCur_b & 1)) * 8;                                   \
+    pSt->Mix_dy = ((signed char)*pCur_a / 2 - (signed char)*pCur_b / 2) * 6;             \
+    Snd_se_stad(6, 0, 0, 0);                                                             \
+    pSt->Flg &= ~0x20000000
+
+void St_mix_exec(ST_WORK *pSt)
+{
+    tagGLOBAL *pG = &G;
+    ITEM_MIX *pMix = pSt->pMix;
+    ITEM_WORK *pA = pSt->pMix_a;
+    ITEM_WORK *pB = pSt->pMix_b;
+    ITEM_DATA *pData;
+    ITEM_DATA *pData_b;
+    UCHAR *pCur_a;
+    UCHAR *pCur_b;
+    UCHAR Kind;
+    UCHAR i;
+    UCHAR Rate;
+    UCHAR Rev;
+    UCHAR n;
+
+    switch (pMix->Type) {
+    case 2:
+        Kind = pSt->Mix_tama_type;
+        pSt->Mix_num = pMix->New_num;
+        for (i = 0; i < 4; i++) {
+            if (Mix_rate_tbl[Kind][i].Cnt >= pG->pItem_set->Tama_mix_cnt[Kind]) {
+                break;
+            }
+        }
+        Rate = Mix_rate_tbl[Kind][i].Rate;
+        switch (pMix->New_id) {
+        case 0x1E:
+        case 0x1F:
+            switch (Rate) {
+            case 0:
+            case 1:
+            case 3:
+                Rate = 1;
+                break;
+            case 5:
+                Rate = 3;
+                break;
+            case 7:
+                Rate = 5;
+                break;
+            }
+            break;
+        }
+        pSt->Mix_num = pMix->New_num + pMix->New_num * Rate / 10;
+        if (pMix->New_num * Rate % 10 >= 5) {
+            pSt->Mix_num++;
+        }
+        if (Flg_ck(&G.System_flg, 0x17)) {
+            pSt->Mix_num *= 2;
+        }
+        pG->pItem_set->Tama_mix_cnt[Kind]++;
+        if (pA->Id == pMix->Id_a) {
+            if (pA->Num == 1) {
+                pSt->Mix_type = 3;
+            } else {
+                pSt->Mix_type = 4;
+            }
+            Rev = 1;
+        } else if (pB->Num == 1) {
+            pSt->Mix_type = 3;
+            Rev = 1;
+        } else {
+            pSt->Mix_type = 4;
+            Rev = 0;
+        }
+        break;
+    case 5:
+        Kind = 3;
+        pSt->Mix_num = pMix->New_num;
+        for (i = 0; i < 4; i++) {
+            if (Mix_rate_tbl[Kind][i].Cnt >= pG->pItem_set->Tama_mix_cnt[Kind]) {
+                break;
+            }
+        }
+        pSt->Mix_num = pMix->New_num * Mix_rate_tbl[Kind][i].Rate / 10 + pMix->New_num;
+        if (Flg_ck(&G.System_flg, 0x17)) {
+            pSt->Mix_num *= 2;
+        }
+        pG->pItem_set->Tama_mix_cnt[Kind]++;
+        if (pA->Id == pMix->Id_a) {
+            if (pA->Num < 7) {
+                pSt->Mix_num = pSt->Mix_num * pA->Num / 6;
+                pSt->Mix_type = 3;
+            } else {
+                pSt->Mix_type = 4;
+            }
+            Rev = 1;
+        } else if (pB->Num < 7) {
+            pSt->Mix_num = pSt->Mix_num * pB->Num / 6;
+            pSt->Mix_type = 3;
+            Rev = 1;
+        } else {
+            pSt->Mix_type = 4;
+            Rev = 0;
+        }
+        break;
+    default:
+        if (pA->Id == pMix->Id_a) {
+            Rev = pA->Id == pMix->Id_b;
+        } else {
+            Rev = 1;
+        }
+        break;
+    }
+    if (Rev) {
+        pCur_b = (UCHAR *)&pSt->Cursor;
+        pCur_a = &pSt->Cursor2;
+        pB = &pG->pItem_set->Item[pSt->Cursor];
+        pA = &pG->pItem_set->Item[(signed char)pSt->Cursor2];
+    } else {
+        pCur_a = (UCHAR *)&pSt->Cursor;
+        pCur_b = &pSt->Cursor2;
+        pA = &pG->pItem_set->Item[pSt->Cursor];
+        pB = &pG->pItem_set->Item[(signed char)pSt->Cursor2];
+    }
+    pData = &Item_data_tbl[pA->Id];
+    pData_b = &Item_data_tbl[pB->Id];
+    pSt->pMix_a = pA;
+    pSt->pMix_b = pB;
+    pSt->pMix = pMix;
+    pSt->pMix_cur_a = pCur_a;
+    pSt->pMix_cur_b = pCur_b;
+    pSt->pData_a = pData;
+    pSt->pData_b = pData_b;
+    switch (pMix->Type) {
+    case 0:
+        if ((pA->Flg & 3) == 3) {
+            pA->Num = 0;
+        }
+        if (pData->Max <= pA->Num) {
+            if (pData->Type == 1) {
+                Mess_set(0, 0x1000, 2, 0);
+            } else {
+                Mess_set(0, 0x1000, 3, 0);
+            }
+            pSt->Rtn2 = 2;
+            pSt->Flg &= ~0x20000000;
+            Snd_se_stad(7, 0, 0, 0);
+            return;
+        }
+        n = pData->Max - pA->Num;
+        if (n >= pB->Num) {
+            pSt->Mix_num = pB->Num;
+            pB->Id = 0;
+            pB->Num = 0;
+            pB->Flg = 0;
+            Pix_move(*pCur_b, 11);
+            pSt->Mix_type = 1;
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+        } else {
+            pSt->Mix_num = n;
+            if ((pB->Flg & 3) != 3) {
+                pB->Num -= n;
+            }
+            pSt->Mix_type = 2;
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+        }
+        break;
+    case 1:
+        pB->Id = 0;
+        pB->Num = 0;
+        pB->Flg = 0;
+        Pix_move(*pCur_b, 11);
+        Pix_read(pMix->New_id);
+        pSt->Mix_type = 0;
+        pSt->Rtn2 = 3;
+        pSt->Timer = 0;
+        MIX_SLIDE(pSt, pCur_a, pCur_b);
+        break;
+    case 2:
+        switch (pSt->Mix_type) {
+        case 3:
+            pB->Id = 0;
+            pB->Num = 0;
+            pB->Flg = 0;
+            Pix_move(*pCur_b, 11);
+            Pix_read(pMix->New_id);
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+            break;
+        case 4:
+            Pix_read(pMix->New_id);
+            if ((pB->Flg & 3) != 3) {
+                pB->Num--;
+            }
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+            break;
+        }
+        break;
+    case 3:
+        if ((pA->Flg & 3) == 3) {
+            if (pA->Num != 0) {
+                switch (pA->Id) {
+                case 2:
+                    Pix_read(0x15);
+                    break;
+                case 3:
+                    Pix_read(0x15);
+                    break;
+                case 4:
+                    Pix_read(0x17);
+                    break;
+                case 0x11:
+                    Pix_read(0x1E);
+                    break;
+                case 0x12:
+                    Pix_read(0x1E);
+                    break;
+                case 0x13:
+                    Pix_read(0x1F);
+                    break;
+                }
+                pSt->Mix_num = pB->Num;
+                pSt->Mix_type = 7;
+                pSt->Rtn2 = 3;
+                pSt->Timer = 0;
+                MIX_SLIDE(pSt, pCur_a, pCur_b);
+                break;
+            }
+        } else if (pA->Num != 0) {
+            Mess_set(0, 0x1000, 8, 0);
+            pSt->Rtn2 = 2;
+            pSt->Flg &= ~0x20000000;
+            Snd_se_stad(7, 0, 0, 0);
+            return;
+        }
+        n = pData->Max - pA->Num;
+        if (n >= pB->Num) {
+            pSt->Mix_num = pB->Num;
+            pB->Id = 0;
+            pB->Num = 0;
+            pB->Flg = 0;
+            Pix_move(*pCur_b, 11);
+            pSt->Mix_type = 1;
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+        } else {
+            pSt->Mix_num = n;
+            if ((pB->Flg & 3) != 3) {
+                pB->Num -= n;
+            }
+            pSt->Mix_type = 2;
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+        }
+        break;
+    case 4:
+        if (pA->Num != 0) {
+            Pix_read(pMix->New_num);
+            pSt->Mix_num = pB->Num;
+            pSt->Mix_type = 5;
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+        } else {
+            pSt->Mix_num = pB->Num;
+            pB->Id = 0;
+            pB->Num = 0;
+            pB->Flg = 0;
+            Pix_move(*pCur_b, 11);
+            pSt->Mix_type = 1;
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+        }
+        break;
+    case 5:
+        switch (pSt->Mix_type) {
+        case 3:
+            pB->Id = 0;
+            pB->Num = 0;
+            pB->Flg = 0;
+            Pix_move(*pCur_b, 11);
+            Pix_read(pMix->New_id);
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+            break;
+        case 4:
+            Pix_read(pMix->New_id);
+            if ((pB->Flg & 3) != 3) {
+                pB->Num -= 6;
+            }
+            pSt->Rtn2 = 3;
+            pSt->Timer = 0;
+            MIX_SLIDE(pSt, pCur_a, pCur_b);
+            break;
+        }
+        break;
+    case 6:
+        pB->Id = 0;
+        pB->Num = 0;
+        pB->Flg = 0;
+        Pix_move(*pCur_b, 11);
+        pSt->Mix_type = 6;
+        pSt->Rtn2 = 3;
+        pSt->Timer = 0;
+        MIX_SLIDE(pSt, pCur_a, pCur_b);
+        break;
+    }
+}
 
 /* combine Rtn2 2: waits for the "can't combine" message */
 void St_mix_mess_wait(ST_WORK *pSt)

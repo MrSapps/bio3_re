@@ -834,3 +834,4 @@ Md_rtp_floor = 0x8002D184; // type:func
 Md_rtp = 0x8002D5D8; // type:func
 // md_sub: average the colours of the prims p..pEnd with Rgb
 Rgb_blend = 0x8002D41C; // type:func
+Mix_rate_tbl = 0x800A0BF4; // St_mix_exec ammo mixing rates: [kind][5] {Cnt, Rate}
