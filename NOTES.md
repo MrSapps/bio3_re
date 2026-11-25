@@ -398,6 +398,8 @@ overlay that has it (the name comes from the family's first module, e.g. `Em10_m
   but with other field names (0xA/0xB: Semi/Abr vs Abr/Tp); unify the types to share them.
   Jill_wep_load (= select's copy) is still unmatched in both.
 - em20/em25: Ck_em_id.
+- em38/em39: Em38_part_scale_pos. The small table dispatchers (Em*_Move, Move_type, Scenario, Pldamege/Pldie)
+  are asm-identical across many modules but name different tables, so they stay per module.
 
 tools/ovlshare: `asmgrp.py` lists asm-identical functions across overlays (writes build/ovlshare_groups.json);
 `align.py A B` aligns two overlays' functions in order; `rename.py A B [--apply]` gives B's func_ copies

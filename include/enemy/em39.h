@@ -69,6 +69,6 @@ void Em39_dummy0(void);
 void Em39_dummy1(void);
 LONG Em39_splash(ENEMY_WORK *pEm);
 SHORT Em39_part_dir(ENEMY_WORK *pEm, PARTS_W *pP);
-void Em39_part_scale_pos(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size);
+void Em38_part_scale_pos(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size);
 
 #endif /* OVL_EM39_H */

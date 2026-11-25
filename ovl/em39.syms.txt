@@ -43,4 +43,4 @@ Em39_dummy0 = 0x8010112C; // type:func
 Em39_dummy1 = 0x80101134; // type:func
 Em39_splash = 0x8010113C; // type:func
 Em39_part_dir = 0x801012A4; // type:func
-Em39_part_scale_pos = 0x8010133C; // type:func
+Em38_part_scale_pos = 0x8010133C; // type:func

@@ -144,7 +144,7 @@ void Em39_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP->Size_x = 0x1000;
         pP->Size_y = 0;
         pP->Size_z = 0x1000;
-        Em39_part_scale_pos(pEm, pP, 0);
+        Em38_part_scale_pos(pEm, pP, 0);
         pP++;
     }
 }
@@ -378,17 +378,17 @@ void Em39_grow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->UnkDA = 1;
         }
         pP[0].Size_y = Size;
-        Em39_part_scale_pos(pEm, &pP[0], Size);
+        Em38_part_scale_pos(pEm, &pP[0], Size);
         pP[1].Size_y = Size;
-        Em39_part_scale_pos(pEm, &pP[1], Size);
+        Em38_part_scale_pos(pEm, &pP[1], Size);
         pP[2].Size_y = Size;
-        Em39_part_scale_pos(pEm, &pP[2], Size);
+        Em38_part_scale_pos(pEm, &pP[2], Size);
         pP[3].Size_y = Size;
-        Em39_part_scale_pos(pEm, &pP[3], Size);
+        Em38_part_scale_pos(pEm, &pP[3], Size);
         pP[4].Size_y = Size;
-        Em39_part_scale_pos(pEm, &pP[4], Size);
+        Em38_part_scale_pos(pEm, &pP[4], Size);
         pP[5].Size_y = Size;
-        Em39_part_scale_pos(pEm, &pP[5], Size);
+        Em38_part_scale_pos(pEm, &pP[5], Size);
         if (pEm->UnkDA) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             EM39_W(pEm)->Wait = (Rnd() & 0x7F) + 30;
@@ -568,14 +568,4 @@ SHORT Em39_part_dir(ENEMY_WORK *pEm, PARTS_W *pP)
     return Dir;
 }
 
-/* part position from the kan data, scaled by Size (0x1000 = 1) */
-void Em39_part_scale_pos(ENEMY_WORK *pEm, PARTS_W *pP, LONG Size)
-{
-    SHORT *pPos;
-
-    pPos = (SHORT *)(pEm->pKan_t_ptr + 2);
-    pPos += pP->Unk84 * 3;
-    pP->Pos_x = pPos[0] * Size >> 12;
-    pP->Pos_y = pPos[1] * Size >> 12;
-    pP->Pos_z = pPos[2] * Size >> 12;
-}
+#include "enemy/common/em38/Em38_part_scale_pos.inc.c"
