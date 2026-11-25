@@ -2259,7 +2259,7 @@ void Pl_weapon_ch(ENEMY_WORK *pEm)
     pTop = pW;
     LoadImage(pTim->crect, pTim->caddr);
     DrawSync(0);
-    func_8002AB34((ULONG *)(pData + pOfs[7]), pEm->Tpage, pEm->Clut);
+    Mapping_md((ULONG *)(pData + pOfs[7]), pEm->Tpage, pEm->Clut);
     G.Player.pUnk180_seq_t_ptr = (ULONG *)(pData + pOfs[2]);
     G.Player.pUnk184_kan_t_ptr = (ULONG *)(pData + pOfs[3]);
     G.Player.pUnk1B4 = (ULONG *)(pData + pOfs[4]);

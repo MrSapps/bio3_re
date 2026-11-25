@@ -633,3 +633,7 @@ Oba_cross_ck = 0x800353CC; // type:func oba: does the move of pObj cross pT?
 Oba_push_out = 0x8003553C; // type:func oba: push pObj (and its work) out of pT along x or z
 Oba_work = 0x800DCED0; // COL_WORK: the collision list and its COL_ENT records
 pOba_list = 0x800DCDD0; // COL_OBJ *[] objects of this frame, NULL terminated
+Mapping_md = 0x8002AB34; // type:func md_sub: relocate a model file (Md_adr_cnv) and point it at its texture page / CLUT (RE2 Mapping_tmd role)
+Md_rtp_floor = 0x8002D184; // type:func md_sub: project the vertices flattened onto the floor into screen xy / z tables
+Md_rtp = 0x8002D5D8; // type:func md_sub: project the vertices of a model object into screen xy / z tables
+Rgb_blend = 0x8002D41C; // type:func md_sub: average the colours of the prims p..pEnd with Rgb

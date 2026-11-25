@@ -723,7 +723,7 @@ ULONG Emd_load(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
     pEm->pUnk174 = (void *)(Mem_top + pChg[13]);
     pG = &G;
     if (*(ULONG *)pEm->pUnk174 != 0) {
-        func_8002AB34((ULONG *)pEm->pUnk174, pEm->Tpage, pEm->Clut);
+        Mapping_md((ULONG *)pEm->pUnk174, pEm->Tpage, pEm->Clut);
         pEm->pUnk174 = (void *)((ULONG *)pEm->pUnk174 + 2);
     }
     Tmd_size = Size - pChg[14];
@@ -783,7 +783,7 @@ ULONG Emd_load(ULONG Id, ENEMY_WORK *pEm, ULONG Mem_top, ENEMY_WORK *pData)
         pEm->pUnk188_seq_t_ptr -= Work;
         pEm->pUnk18C_kan_t_ptr -= Work;
     }
-    func_8002AB34(pEm->pTmd, pEm->Tpage, pEm->Clut);
+    Mapping_md(pEm->pTmd, pEm->Tpage, pEm->Clut);
     pEm->pTmd += 2;
     return (ULONG)(pEm->pTmd + ((Tmd_size >> 2) - 2));
 }

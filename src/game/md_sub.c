@@ -55,7 +55,7 @@
 #define gte_llv0() __asm__ volatile("nop; nop; .word 0x4A4A6412") /* mvmva 1,1,0,3,1: light matrix * v0, lm */
 
 /* 7 diffs (draft in scratchpad): giv base must be &n_prim3, gcc picks the last pObj field read (pPrim4) */
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002AB34);
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", Mapping_md);
 
 void Md_adr_cnv(MD_HEAD *pMd)
 {
@@ -995,7 +995,7 @@ next:
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002CF90);
 
 /* project the vertices flattened onto the floor (y clamped to <= 0) into screen xy / z tables */
-void func_8002D184(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM)
+void Md_rtp_floor(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM)
 {
     LONG Z[3];
     SVECTOR Sv[3];
@@ -1074,7 +1074,8 @@ loop:
     }
 }
 
-void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb)
+/* average the colours of the prims p..pEnd with Rgb */
+void Rgb_blend(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb)
 {
     ULONG c0;
     ULONG c1;
@@ -1094,7 +1095,7 @@ void func_8002D41C(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rg
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D4B0);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D5D8);
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", Md_rtp);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D6D8);
 
@@ -1181,7 +1182,7 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
     Prm.pObj = pMd->pObj;
     Prm.pOt = pEm->pUnk7C;
     Prm.u.Rgb = pMd->Poly_rgb;
-    func_8002D5D8(Sxy, Sz, pMd->pObj);
+    Md_rtp(Sxy, Sz, pMd->pObj);
     Prm.u.c.Code = (Abr << 1) | 0x3C;
     func_8002AF9C(&Prm, (POLY_GT4 *)pEm->pUnk188_seq_t_ptr + G.Cbuf_id, Sxy, Sz);
     Dir = (Dir & 0xFFF) >> 10;

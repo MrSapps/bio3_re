@@ -228,7 +228,7 @@ UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
     G.Ctp.u.Cclut = Cclut;
     G.Ctp.u.Ctpage = Ctpage;
     DrawSync(0);
-    func_8002AB34(pEm->pTmd, pEm->Tpage, pEm->Clut);
+    Mapping_md(pEm->pTmd, pEm->Tpage, pEm->Clut);
     pEm->pTmd += 2;
     Ofs = pHdr[3];
     p = (UCHAR *)PartsWork_link(pEm, PartsWork_set(pEm, (ULONG)(p + pHdr[4])), pEm->pKan_t_ptr);

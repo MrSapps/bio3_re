@@ -1493,3 +1493,7 @@ Oba_cross_ck = 0x800353CC; // type:func
 Oba_push_out = 0x8003553C; // type:func
 Oba_work = 0x800DCED0;
 pOba_list = 0x800DCDD0;
+Mapping_md = 0x8002AB34; // type:func
+Md_rtp_floor = 0x8002D184; // type:func
+Md_rtp = 0x8002D5D8; // type:func
+Rgb_blend = 0x8002D41C; // type:func

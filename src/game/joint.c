@@ -260,9 +260,9 @@ void Parts_sort(ULONG *pObj, ULONG Flg, PARTS_W *pP)
         Prm.pOt = Ot_get_pos(pP->Workm.t);
     }
     if (Flg & 0x400) {
-        func_8002D184(Work0, Work1, (MD_OBJ *)pObj[1], &pP->Workm);
+        Md_rtp_floor(Work0, Work1, (MD_OBJ *)pObj[1], &pP->Workm);
     } else {
-        func_8002D5D8(Work0, Work1, (MD_OBJ *)pObj[1]);
+        Md_rtp(Work0, Work1, (MD_OBJ *)pObj[1]);
     }
     if (Flg & 0x40) {
         Prm.u.Rgb = Model_col.Unk6 << 24;
@@ -281,7 +281,7 @@ void Parts_sort(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.u.c.Code = Abr | 0x3C;
     pG->pUnk208C = func_8002D898(&Prm, pG->pUnk208C, Work0, Work1);
     if (Flg & 4) {
-        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
+        Rgb_blend((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
     }
 }
 
@@ -318,7 +318,7 @@ void Parts_sort_sabun(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     pG->pUnk208C = func_8002DFE0(&Prm, Top, Work0, Work1);
     pG->pUnk208C = func_8002E160(&Prm, pG->pUnk208C, Work0, Work1);
     if (Flg & 4) {
-        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
+        Rgb_blend((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
     }
 }
 
@@ -333,7 +333,7 @@ void Parts_sort_ex(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.pObj = D0 = (MD_OBJ *)pObj[1];
     Prm.u.Rgb = pObj[25];
     Prm.pOt = G.pEm->pUnk7C;
-    func_8002D5D8(Work0, Work1, D0);
+    Md_rtp(Work0, Work1, D0);
     Prm.u.c.Code = 0x34;
     Prm.UnkC = pP->UnkB8;
     G.pUnk208C = func_8002DC98(&Prm, G.pUnk208C, Work0, Work1);
@@ -353,7 +353,7 @@ void Parts_sort_simple(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.pOt = G.pEm->pUnk7C;
     Prm.u.Rgb = pObj[25];
     Abr = (Flg & 0x100) >> 7;
-    func_8002D5D8(Work0, Work1, (MD_OBJ *)pObj[1]);
+    Md_rtp(Work0, Work1, (MD_OBJ *)pObj[1]);
     if (Flg & 8) {
         Prm.u.c.Code = Abr | 0x34;
         G.pUnk208C = func_8002D6D8(&Prm, G.pUnk208C, Work0, Work1);

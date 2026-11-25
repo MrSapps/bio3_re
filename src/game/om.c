@@ -21,7 +21,7 @@ void Om_init(ENEMY_WORK *pEm, ULONG *pData)
     }
     if (G.pOld_tmd != pData) {
         G.pOld_tmd = pData;
-        func_8002AB34(pData, pEm->Tpage, pEm->Clut);
+        Mapping_md(pData, pEm->Tpage, pEm->Clut);
     }
     *(ULONG *)&pEm->Routine_0 = 0;
     pEm->pTmd = pData + 2;
