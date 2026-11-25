@@ -86,8 +86,9 @@ void func_8007AC8C(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 void func_8007B2FC(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
 void func_8007B518(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
 void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData);
-LONG func_8007BC7C(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
-LONG func_8007BDF8(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* handwritten asm */
+struct tagSORT_PRM; /* sort list work (80079EC0.c) */
+POLY_GT3 *func_8007BC7C(struct tagSORT_PRM *pPrm, POLY_GT3 *pPrim, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *func_8007BDF8(struct tagSORT_PRM *pPrm, POLY_GT4 *pPrim, ULONG *pSxy, SHORT *pSz);
 void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 void func_8007C434(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);
 void func_8007C91C(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData);

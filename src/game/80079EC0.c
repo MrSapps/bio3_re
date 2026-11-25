@@ -331,16 +331,10 @@ void func_8007B824(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
 #define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
 #define gte_stsxy3_gt3(r0) __asm__ volatile("swc2 $12, 8(%0); swc2 $13, 20(%0); swc2 $14, 32(%0)" : : "r"(r0) : "memory")
 
-/* textured gouraud triangle of a sort list: uv words with the vertex numbers in the top bytes */
-typedef union tagSORT_GT3 {
-    ULONG W[3];
-    struct {
-        UCHAR pad0[7];
-        signed char V0;                /* 0x07 */
-        UCHAR pad8[2];
-        UCHAR V1;                      /* 0x0A */
-        signed char V2;                /* 0x0B */
-    } I;
+/* textured gouraud triangle of a sort list: the uv words of POLY_GT3, vertex numbers in the top byte of
+ * W[1] and the top two bytes of W[2] */
+typedef struct tagSORT_GT3 {
+    LONG W[3];
 } SORT_GT3;
 
 typedef struct tagSORT_HDR {
@@ -358,16 +352,131 @@ typedef struct tagSORT_PRM {
     ULONG *pRgb;                       /* 0x0C per-vertex colours */
 } SORT_PRM;
 
-/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t7/t8 from a2/a3 */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BC7C);
+/* sort list triangles into GT3 packets: back faces culled (nclip), colours from pPrm->pRgb, uv from the list,
+ * packets 0x68 bytes apart; returns the next free packet */
+POLY_GT3 *func_8007BC7C(SORT_PRM *pPrm, POLY_GT3 *pPrim, ULONG *pSxy, USHORT *pSz)
+{
+    SORT_GT3 *pGt3;
+    ULONG *pOt;
+    ULONG *pRgb;
+    LONG Z;
+    ULONG n;
+    LONG v0;
+    LONG v1;
+    LONG v2;
+    USHORT *pZ0;
+    USHORT *pZ1;
+    USHORT *pZ2;
+    ULONG *pO;
+
+    n = pPrm->pHdr->N_gt3;
+    if (n == 0) {
+        return pPrim;
+    }
+    pGt3 = pPrm->pHdr->pGt3;
+    pOt = pPrm->pOt;
+    pRgb = pPrm->pRgb;
+loop:
+    v0 = pGt3->W[1] >> 24;
+    v1 = (pGt3->W[2] & 0xFF0000) >> 16;
+    v2 = pGt3->W[2] >> 24;
+    gte_ldsxy3(pSxy[v0], pSxy[v1], pSxy[v2]);
+    pGt3++;
+    n--;
+    gte_nclip_b();
+    pZ0 = &pSz[v0];
+    pZ1 = &pSz[v1];
+    pZ2 = &pSz[v2];
+    gte_stopz(&Z);
+    if (Z > 0) {
+        gte_ldsz3(*pZ0, *pZ1, *pZ2);
+        gte_avsz3();
+        *(ULONG *)&pPrim->r0 = pRgb[v0] | 0x34000000;
+        *(ULONG *)&pPrim->r1 = pRgb[v1];
+        *(ULONG *)&pPrim->r2 = pRgb[v2];
+        *(ULONG *)&pPrim->u0 = pGt3[-1].W[0];
+        *(ULONG *)&pPrim->u1 = pGt3[-1].W[1] & 0xFFFFFF;
+        *(ULONG *)&pPrim->u2 = pGt3[-1].W[2];
+        gte_stotz(&Z);
+        gte_stsxy3_gt3(pPrim);
+        /* Z is reused for the old OT entry */
+        pO = &pOt[Z >> 3];
+        Z = *pO;
+        *pO = (ULONG)pPrim & 0xFFFFFF;
+        pPrim->tag = Z | 0x09000000;
+        pPrim = (POLY_GT3 *)((UCHAR *)pPrim + 0x68);
+    }
+    if (n != 0) {
+        goto loop;
+    }
+    return pPrim;
+}
 
 /* textured gouraud quad of a sort list: the vertex numbers are the top two bytes of W[2] and W[3] */
 typedef struct tagSORT_GT4 {
     LONG W[4];
 } SORT_GT4;
 
-/* hand-edited compiler output (stays asm): parameters copied into t-regs at entry, `addu t0,a1,zero`, t8/t9 from a2/a3 */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", func_8007BDF8);
+/* the same for quads (GT4 packets); the OT depth is the sum of the four z values */
+POLY_GT4 *func_8007BDF8(SORT_PRM *pPrm, POLY_GT4 *pPrim, ULONG *pSxy, SHORT *pSz)
+{
+    SORT_GT4 *pGt4;
+    ULONG *pOt;
+    ULONG *pRgb;
+    LONG Z;
+    ULONG n;
+    LONG v0;
+    LONG v1;
+    LONG v2;
+    LONG v3;
+    SHORT *pZ0;
+    SHORT *pZ1;
+    SHORT *pZ2;
+    ULONG *pO;
+
+    n = pPrm->pHdr->N_gt4;
+    if (n == 0) {
+        return pPrim;
+    }
+    pGt4 = pPrm->pHdr->pGt4;
+    pOt = pPrm->pOt;
+    pRgb = pPrm->pRgb;
+loop:
+    v0 = (pGt4->W[2] & 0xFF0000) >> 16;
+    v1 = pGt4->W[2] >> 24;
+    v2 = (pGt4->W[3] & 0xFF0000) >> 16;
+    v3 = pGt4->W[3] >> 24;
+    gte_ldsxy3(pSxy[v0], pSxy[v1], pSxy[v2]);
+    pGt4++;
+    n--;
+    gte_nclip_b();
+    pZ0 = &pSz[v0];
+    pZ1 = &pSz[v1];
+    pZ2 = &pSz[v2];
+    gte_stopz(&Z);
+    if (Z > 0) {
+        Z = *pZ0 + *pZ1 + *pZ2 + pSz[v3];
+        *(ULONG *)&pPrim->x3 = pSxy[v3];
+        *(ULONG *)&pPrim->r0 = pRgb[v0] | 0x3C000000;
+        *(ULONG *)&pPrim->r1 = pRgb[v1];
+        *(ULONG *)&pPrim->r2 = pRgb[v2];
+        *(ULONG *)&pPrim->r3 = pRgb[v3];
+        *(ULONG *)&pPrim->u0 = pGt4[-1].W[0];
+        *(ULONG *)&pPrim->u1 = pGt4[-1].W[1];
+        *(ULONG *)&pPrim->u2 = pGt4[-1].W[2];
+        *(ULONG *)&pPrim->u3 = pGt4[-1].W[3];
+        gte_stsxy3_gt3(pPrim); /* x0..x2 are at the same offsets in POLY_GT4 */
+        pO = &pOt[Z >> 7];
+        Z = *pO;
+        *pO = (ULONG)pPrim & 0xFFFFFF;
+        pPrim->tag = Z | 0x0C000000;
+        pPrim = (POLY_GT4 *)((UCHAR *)pPrim + 0x68);
+    }
+    if (n != 0) {
+        goto loop;
+    }
+    return pPrim;
+}
 
 void func_8007BFBC(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 {
