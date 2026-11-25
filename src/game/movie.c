@@ -22,8 +22,8 @@ LONG Init_movie_work(ULONG Id)
     else
         pWork->pFree_work = (UCHAR *)0x80194000;
     if (pTbl->Attribute & 8) {
-        pSnd->UnkB1C = 0x80;
-        pSnd->UnkB24 = pSnd->UnkB20 = 0x3FFF;
+        pSnd->Fade_mask = 0x80;
+        pSnd->Fade_step = pSnd->Fade_vol = 0x3FFF;
         pWork->Save_flg = G.Unk2468;
         G.Unk2468 |= 0xFF000000;
     }
@@ -241,12 +241,12 @@ void Movie_exit(void)
             Bg_set_mode(2, 0);
             Main.Unk18E = 1;
             Bg_draw();
-            pSnd->UnkB1C = 0x80;
-            pSnd->UnkB20 = 0;
-            pSnd->UnkB24 = -0xB00;
+            pSnd->Fade_mask = 0x80;
+            pSnd->Fade_vol = 0;
+            pSnd->Fade_step = -0xB00;
             break;
         case 1:
-            if (pSnd->UnkB1C != 0)
+            if (pSnd->Fade_mask != 0)
                 return;
             Main.Unk18E = 0;
             break;

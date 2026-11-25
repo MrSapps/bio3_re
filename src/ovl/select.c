@@ -498,9 +498,9 @@ void func_801C331C(void)
         func_801C20FC();
         Task_sleep(1);
     }
-    Snd_work.Seq[0].Unk38 = 2;
-    Snd_work.Seq[0].Unk3C = 0x3DAF;
-    Snd_work.Seq[0].Unk40 = 0x250;
+    Snd_work.Seq[0].Fade_mode = 2;
+    Snd_work.Seq[0].Fade_vol = 0x3DAF;
+    Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, FADE_HOLD, 1, 0, 0xFFFFFF, 30);
     while (!(Fade_status(0) & FADE_END)) {
         func_801C20FC();

@@ -1669,16 +1669,16 @@ ULONG Sce_bgm_control(SCE_TASK *pSce)
         break;
     case 1:
         if (G.System_flg & 0x400000) {
-            pW->UnkB77 = 1 << No;
+            pW->Bgm_req = 1 << No;
         } else {
             Snd_se_stad((No + 5) << 8, 0, 0, 0);
         }
         break;
     case 2:
         if (G.System_flg & 0x400000) {
-            pW->UnkB79 = 1 << No;
+            pW->Bgm_cancel = 1 << No;
         } else {
-            pW->UnkB79 = 0;
+            pW->Bgm_cancel = 0;
         }
         Snd_seq_stop(No);
         break;
@@ -1689,12 +1689,12 @@ ULONG Sce_bgm_control(SCE_TASK *pSce)
         Snd_seq_play_ck(No);
         break;
     case 5:
-        if (pW->Seq[No].Unk2C != 0 && pW->Seq[No].Unk2D == 0) {
-            if (pW->Seq[No].Unk38 != 2) {
-                pW->Seq[No].Unk38 = 2;
-                pW->Seq[No].Unk3C = 0x3FFF;
+        if (pW->Seq[No].Play_flg != 0 && pW->Seq[No].Stop_req == 0) {
+            if (pW->Seq[No].Fade_mode != 2) {
+                pW->Seq[No].Fade_mode = 2;
+                pW->Seq[No].Fade_vol = 0x3FFF;
             }
-            pW->Seq[No].Unk40 = 0x3FFF / Vol + 1;
+            pW->Seq[No].Fade_step = 0x3FFF / Vol + 1;
         }
         break;
     }

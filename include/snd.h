@@ -14,10 +14,10 @@ typedef struct tagSND_TRACK {
     UCHAR Pan;                         /* 0x08 controller 10 */
     UCHAR Pan2;                        /* 0x09 */
     UCHAR Vol2;                        /* 0x0A controller 7 */
-    UCHAR UnkB;                        /* 0x0B */
+    UCHAR Note_vol;                    /* 0x0B velocity of the last note on */
     UCHAR Note;                        /* 0x0C */
-    UCHAR UnkD;                        /* 0x0D */
-    UCHAR UnkE;                        /* 0x0E */
+    UCHAR Tone;                        /* 0x0D tone being keyed (loop index) */
+    UCHAR Bank_org;                    /* 0x0E bank given at the sequence start */
     UCHAR Bank;                        /* 0x0F */
 } SND_TRACK;
 
@@ -29,29 +29,29 @@ typedef struct tagSND_SEQ {
     LONG Delta;                        /* 0x00C ticks to the next event */
     LONG Tempo;                        /* 0x010 */
     LONG Tempo_cnt;                    /* 0x014 */
-    LONG Unk18;                        /* 0x018 non-zero: restart at pTop on end of track */
+    LONG Repeat;                       /* 0x018 non-zero: restart at pTop on end of track */
     LONG Running;                      /* 0x01C running status byte */
     LONG Bank;                         /* 0x020 */
-    SHORT Unk24;                       /* 0x024 bank (Snd_seq_start) */
+    SHORT Bank_org;                    /* 0x024 bank given at the start (Snd_seq_start) */
     SHORT No;                          /* 0x026 sequence slot */
     UCHAR pad28[0x2B - 0x28];
     UCHAR Status;                      /* 0x02B running status >> 4 (0xF: meta event) */
-    UCHAR Unk2C;                       /* 0x02C playing */
-    UCHAR Unk2D;                       /* 0x02D stop request */
+    UCHAR Play_flg;                    /* 0x02C playing */
+    UCHAR Stop_req;                    /* 0x02D stop request */
     UCHAR Nrpn;                        /* 0x02E NRPN (controller 99) */
     UCHAR Loop_mode;                   /* 0x02F 2: loop back to pLoop */
     UCHAR Loop_cnt;                    /* 0x030 0x7F: forever */
     UCHAR pad31[0x34 - 0x31];
     UCHAR *pLoop;                      /* 0x034 */
-    UCHAR Unk38;                       /* 0x038 fade mode: 1 in, 2 out (fn table 0x800A1138) */
+    UCHAR Fade_mode;                   /* 0x038 1 fade in, 2 fade out (Snd_seq_fade_tbl) */
     UCHAR pad39[0x3C - 0x39];
-    ULONG Unk3C;                       /* 0x03C fade volume, 0..0x3FFF */
-    ULONG Unk40;                       /* 0x040 fade step */
+    ULONG Fade_vol;                    /* 0x03C 0..0x3FFF */
+    ULONG Fade_step;                   /* 0x040 */
     UCHAR *pReq_data;                  /* 0x044 start request (Snd_seq_req): sequence data */
     LONG Req_no;                       /* 0x048 slot */
     LONG Req_bank;                     /* 0x04C bank id */
     LONG Req_loop;                     /* 0x050 */
-    UCHAR Unk54;                       /* 0x054 1: start request, 2: start after the stop */
+    UCHAR Req_flg;                     /* 0x054 1: start request, 2: start after the stop */
     UCHAR pad55;
     USHORT Resolution;                 /* 0x056 ticks per quarter note */
     UCHAR pad58[0x5C - 0x58];
@@ -61,22 +61,22 @@ typedef struct tagSND_SEQ {
 /* voice slot (0x20 bytes, 24 of them in SND_WORK) */
 typedef struct tagSND_VOICE {
     UCHAR *pVag;                       /* 0x00 VagAtr */
-    LONG Unk4;                         /* 0x04 */
-    SHORT Unk8;                        /* 0x08 */
-    SHORT UnkA;                        /* 0x0A */
-    SHORT UnkC;                        /* 0x0C */
-    SHORT UnkE;                        /* 0x0E */
-    SHORT Unk10;                       /* 0x10 track volume the voice volumes were scaled with */
-    SHORT Unk12;                       /* 0x12 */
-    USHORT Unk14;                      /* 0x14 */
-    UCHAR Unk16;                       /* 0x16 */
-    UCHAR Unk17;                       /* 0x17 */
-    UCHAR Unk18;                       /* 0x18 */
-    UCHAR Unk19;                       /* 0x19 */
+    LONG Time;                         /* 0x04 age in ticks (the oldest voice is stolen) */
+    SHORT Vol_r;                       /* 0x08 volumes set on the SPU (Vol_*_base scaled) */
+    SHORT Vol_l;                       /* 0x0A */
+    SHORT Vol_l_base;                  /* 0x0C unscaled volumes */
+    SHORT Vol_r_base;                  /* 0x0E */
+    SHORT Ch_vol;                      /* 0x10 track volume the voice volumes were scaled with */
+    SHORT Bank_id;                     /* 0x12 */
+    USHORT Bend;                       /* 0x14 */
+    UCHAR Pan;                         /* 0x16 */
+    UCHAR Prog;                        /* 0x17 */
+    UCHAR Tone;                        /* 0x18 */
+    UCHAR Note;                        /* 0x19 */
     UCHAR Prio;                        /* 0x1A priority (Snd_se_pri_ck) */
-    UCHAR Unk1B;                       /* 0x1B */
-    UCHAR Unk1C;                       /* 0x1C */
-    UCHAR Unk1D;                       /* 0x1D in use */
+    UCHAR Bank;                        /* 0x1B */
+    UCHAR Seq_no;                      /* 0x1C sequence that keyed it */
+    UCHAR Use;                         /* 0x1D in use */
     UCHAR pad1E[0x20 - 0x1E];
 } SND_VOICE;
 
@@ -85,10 +85,10 @@ typedef struct tagSND_REQ {
     LONG Pan;                          /* 0x00 2D: < 0 left, > 0 right (Snd_se_3D) */
     LONG Atten;                        /* 0x04 2D: attenuation, 0..0x80 */
     VECTOR Pos;                        /* 0x08 */
-    SHORT Unk18;                       /* 0x18 */
-    SHORT Unk1A;                       /* 0x1A */
+    SHORT Note_add;                    /* 0x18 */
+    SHORT Vol_add;                     /* 0x1A */
     SHORT No;                          /* 0x1C */
-    UCHAR Unk1E;                       /* 0x1E */
+    UCHAR Mode;                        /* 0x1E 0 2D pan, 1 3D from the camera */
     UCHAR Bank;                        /* 0x1F */
 } SND_REQ;
 
@@ -120,12 +120,12 @@ typedef struct tagSND_SE {
 /* sound driver work */
 typedef struct tagSND_BANK {
     ULONG *pHead;                      /* +0 */
-    ULONG *Unk4;                       /* +4 */
+    ULONG *pVag;                       /* +4 VagAtr table */
 } SND_BANK;
 
 typedef struct tagSND_BANK_ID {
     SHORT Id;                          /* +0 */
-    SHORT pad2;
+    SHORT Size;                        /* +2 in 64-byte units */
     UCHAR *pData;                      /* +4 8 byte records */
 } SND_BANK_ID;
 
@@ -151,25 +151,25 @@ typedef struct tagSND_WORK {
     LONG Cam_z;                        /* 0xAE0 */
     UCHAR padAE4[0xAE8 - 0xAE4];
     SpuCommonAttr Cattr;               /* 0xAE8 */
-    ULONG UnkB10;                      /* 0xB10 voice mask (set on key on, Snd_se_voice_set) */
-    ULONG UnkB14;                      /* 0xB14 voice mask (set on key on, Snd_se_voice_set) */
-    ULONG UnkB18;                      /* 0xB18 voice bit of the last reverb on/off (Snd_voice_key_on) */
-    LONG UnkB1C;                       /* 0xB1C volume fade frames (0x80 on option screen enter/exit) */
-    ULONG UnkB20;                      /* 0xB20 volume fade level (0..0x3FFF) */
-    LONG UnkB24;                       /* 0xB24 volume fade step */
-    ULONG UnkB28;                      /* 0xB28 voice mask (key on) */
-    ULONG UnkB2C;                      /* 0xB2C voice mask */
-    ULONG UnkB30;                      /* 0xB30 voice mask */
-    ULONG UnkB34;                      /* 0xB34 voice mask */
-    LONG UnkB38;                       /* 0xB38 */
+    ULONG Se_key_on;                   /* 0xB10 SE voices to key on this frame */
+    ULONG Se_key_off;                  /* 0xB14 SE voices to key off */
+    ULONG Rv_voice;                    /* 0xB18 voice bit of the last reverb on/off (Snd_voice_key_on) */
+    LONG Fade_mask;                    /* 0xB1C voices under the master fade (0x80 on status/option enter and exit) */
+    ULONG Fade_vol;                    /* 0xB20 master fade level (0..0x3FFF) */
+    LONG Fade_step;                    /* 0xB24 master fade step */
+    ULONG Seq_key_on;                  /* 0xB28 sequence voices to key on */
+    ULONG Seq_key_off;                 /* 0xB2C sequence voices to key off */
+    ULONG Seq_rv_on;                   /* 0xB30 sequence voices with reverb */
+    ULONG Seq_rv_off;                  /* 0xB34 */
+    LONG Active;                       /* 0xB38 bit 0: Snd_se_call runs */
     LONG Dist[8];                      /* 0xB3C listener distance per voice group (Snd_se_pri_ck) */
     UCHAR Vprio[24];                   /* 0xB5C voice state: 0/3 may be taken, 1 on key on (Snd_se_voice_set) */
-    UCHAR UnkB74;                      /* 0xB74 per-seq bits: playing */
-    UCHAR UnkB75;                      /* 0xB75 mono */
-    UCHAR UnkB76;                      /* 0xB76 per-seq bit mask */
-    UCHAR UnkB77;                      /* 0xB77 per-seq bits: play the stop jingle (Snd_bgm_play_ck) */
-    UCHAR UnkB78;                      /* 0xB78 */
-    UCHAR UnkB79;                      /* 0xB79 per-seq bits: cancel UnkB77 */
+    UCHAR Seq_play;                    /* 0xB74 per-seq bits: playing */
+    UCHAR Mono;                        /* 0xB75 mono output */
+    UCHAR Seq_pause;                   /* 0xB76 per-seq bits: paused (Snd_seq_pause) */
+    UCHAR Bgm_req;                     /* 0xB77 per-seq bits: start the room BGM (Snd_bgm_play_ck) */
+    UCHAR Rv_mask;                     /* 0xB78 room reverb (ROOM Unk6 * 4) */
+    UCHAR Bgm_cancel;                  /* 0xB79 per-seq bits: cancel Bgm_req */
 } SND_WORK;
 extern SND_WORK Snd_work;              /* 0x800E0610 */
 

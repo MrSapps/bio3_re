@@ -485,7 +485,7 @@ typedef struct tagGLOBAL {
     UCHAR pad7C86[0x7D8C - 0x7C86];
     UCHAR Save_vol;                    /* 0x7D8C Snd_work.Vol.Se (mem_card Save_push) */
     UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Vol.Bgm */
-    UCHAR Save_mono;                   /* 0x7D8E Snd_work.UnkB75 */
+    UCHAR Save_mono;                   /* 0x7D8E Snd_work.Mono */
     UCHAR pad7D8F;
     ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (func_80024C58) */
     struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (func_80037A90) */

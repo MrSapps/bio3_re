@@ -55,7 +55,7 @@ void Snd_sys_init(void)
     SetRCnt(0xF2000002, 20000, 0x1000);
     EnableEvent(Snd_event);
     StartRCnt(0xF2000002);
-    pW->UnkB74 = 0;
+    pW->Seq_play = 0;
 }
 
 void Snd_reset(void)
@@ -74,26 +74,26 @@ void Snd_work_init(void)
     }
     for (i = 0; i < 3; i++) {
         pW->Seq_data[i].Id = 0xFF;
-        pW->Seq[i].Unk54 = 0;
-        pW->Seq[i].Unk38 = 0;
+        pW->Seq[i].Req_flg = 0;
+        pW->Seq[i].Fade_mode = 0;
         for (j = 0; j < 16; j++) {
             pW->Seq[i].Trk[j].Mask = 0;
         }
     }
     for (i = 0; i < 24; i++) {
-        pW->Voice[i].Unk1D = 0;
+        pW->Voice[i].Use = 0;
         pW->Voice[i].Prio = 0;
-        pW->Voice[i].Unk4 = 0;
-        pW->Req[i].Unk18 = 0;
-        pW->Req[i].Unk1A = 0;
+        pW->Voice[i].Time = 0;
+        pW->Req[i].Note_add = 0;
+        pW->Req[i].Vol_add = 0;
     }
-    pW->UnkB38 = 1;
-    pW->UnkB1C = 0;
-    pW->UnkB20 = 0;
-    pW->UnkB24 = 0;
-    pW->UnkB78 = 0;
-    pW->UnkB76 = 0;
-    pW->UnkB77 = 0;
+    pW->Active = 1;
+    pW->Fade_mask = 0;
+    pW->Fade_vol = 0;
+    pW->Fade_step = 0;
+    pW->Rv_mask = 0;
+    pW->Seq_pause = 0;
+    pW->Bgm_req = 0;
     pW->pReq = pW->Req;
 }
 
@@ -128,29 +128,29 @@ void Snd_se_call(void)
 
     Flg = 0;
     pVol = &pW->Vol;
-    if (!(pW->UnkB38 & 1)) {
+    if (!(pW->Active & 1)) {
         return;
     }
     if (pW->Vol.Rv_mode && pW->Vol.Rv_mode != pW->Vol.Rv_cur) {
         Snd_reverb_set();
     }
-    if (pW->UnkB1C) {
-        if (pW->UnkB24 >= 0) {
-            if (pW->UnkB24 >= pW->UnkB20) {
-                pW->UnkB20 = 0;
-                pW->UnkB24 = 0;
+    if (pW->Fade_mask) {
+        if (pW->Fade_step >= 0) {
+            if (pW->Fade_step >= pW->Fade_vol) {
+                pW->Fade_vol = 0;
+                pW->Fade_step = 0;
             } else {
-                pW->UnkB20 -= pW->UnkB24;
+                pW->Fade_vol -= pW->Fade_step;
             }
         } else {
-            if (pW->UnkB20 >= pW->UnkB24 + 0x3FFF) {
-                pW->UnkB20 = 0x3FFF;
-                pW->UnkB24 = 0;
+            if (pW->Fade_vol >= pW->Fade_step + 0x3FFF) {
+                pW->Fade_vol = 0x3FFF;
+                pW->Fade_step = 0;
             } else {
-                pW->UnkB20 -= pW->UnkB24;
+                pW->Fade_vol -= pW->Fade_step;
             }
         }
-        Flg = pW->UnkB1C;
+        Flg = pW->Fade_mask;
     }
     if (pVol->Master != pVol->Master_old) {
         pVol->Master_old = pVol->Master;
@@ -170,31 +170,31 @@ void Snd_se_call(void)
         pV = pW->Voice;
         do {
             if (Flg & 1) {
-                pV->Unk8 = pV->UnkE * pVol->Master / 127;
-                pV->UnkA = pV->UnkC * pVol->Master / 127;
+                pV->Vol_r = pV->Vol_r_base * pVol->Master / 127;
+                pV->Vol_l = pV->Vol_l_base * pVol->Master / 127;
                 if (i < 8) {
-                    if (pW->UnkB1C == 0) {
-                        pV->Unk8 = pV->UnkE * pVol->Se / 127;
-                        pV->UnkA = pV->UnkC * pVol->Se / 127;
+                    if (pW->Fade_mask == 0) {
+                        pV->Vol_r = pV->Vol_r_base * pVol->Se / 127;
+                        pV->Vol_l = pV->Vol_l_base * pVol->Se / 127;
                     } else {
-                        pV->Unk8 = pV->UnkE * pW->UnkB20 / 0x3FFF;
-                        pV->UnkA = pV->UnkC * pW->UnkB20 / 0x3FFF;
+                        pV->Vol_r = pV->Vol_r_base * pW->Fade_vol / 0x3FFF;
+                        pV->Vol_l = pV->Vol_l_base * pW->Fade_vol / 0x3FFF;
                     }
                 } else {
-                    pV->Unk8 = pV->UnkE * pVol->Bgm / 127;
-                    pV->UnkA = pV->UnkC * pVol->Bgm / 127;
+                    pV->Vol_r = pV->Vol_r_base * pVol->Bgm / 127;
+                    pV->Vol_l = pV->Vol_l_base * pVol->Bgm / 127;
                 }
-                SpuSetVoiceVolume(i, pV->UnkA, pV->Unk8);
+                SpuSetVoiceVolume(i, pV->Vol_l, pV->Vol_r);
             }
             pV++;
             Flg >>= 1;
             i++;
         } while (Flg);
-        if (pW->UnkB20 == 0 || pW->UnkB20 == 0x3FFF) {
-            pW->UnkB1C = 0;
+        if (pW->Fade_vol == 0 || pW->Fade_vol == 0x3FFF) {
+            pW->Fade_mask = 0;
         }
     }
-    pW->UnkB10 = pW->UnkB14 = pW->UnkB18 = 0;
+    pW->Se_key_on = pW->Se_key_off = pW->Rv_voice = 0;
     SpuRGetAllKeysStatus(0, 23, pW->Vprio);
     for (pReq = pW->Req; pReq != pW->pReq; pReq++) {
         Snd_req_tbl[pReq->Bank >= 5](pReq);
@@ -202,19 +202,19 @@ void Snd_se_call(void)
     pW->pReq = pW->Req;
     pSeq = pW->Seq;
     for (i = 0; i < 3; i++) {
-        if (pSeq->Unk54 == 1) {
+        if (pSeq->Req_flg == 1) {
             Snd_seq_start(pSeq->Req_no, pSeq->pReq_data, pSeq->Req_bank, pSeq->Req_loop);
-            pSeq->Unk54 = 0;
+            pSeq->Req_flg = 0;
         }
-        if (pSeq->Unk38) {
-            Snd_seq_fade_tbl[pSeq->Unk38 - 1](pSeq);
+        if (pSeq->Fade_mode) {
+            Snd_seq_fade_tbl[pSeq->Fade_mode - 1](pSeq);
         }
         pSeq++;
     }
-    SpuSetKey(0, pW->UnkB14);
+    SpuSetKey(0, pW->Se_key_off);
     pV = pW->Voice;
     i = 0;
-    Flg = pW->UnkB10;
+    Flg = pW->Se_key_on;
     do {
         if (Flg & 1) {
             Snd_voice_key_on(pV, i);
@@ -223,7 +223,7 @@ void Snd_se_call(void)
         i++;
         pV++;
     } while (i < 8);
-    SpuSetKey(1, pW->UnkB10);
+    SpuSetKey(1, pW->Se_key_on);
 }
 
 void Snd_cd_mix_set(LONG on)
@@ -247,12 +247,12 @@ void Snd_cd_mix_set(LONG on)
 void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3)
 {
     if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(D_800CC858 & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
-        Snd_work.pReq->Unk1E = code >> 16;
+        Snd_work.pReq->Mode = code >> 16;
         Snd_work.pReq->Bank = code >> 8;
         Snd_work.pReq->No = code & 0xFF;
         Snd_work.pReq->Pos = *pPos;
-        Snd_work.pReq->Unk1A = a2;
-        Snd_work.pReq->Unk18 = a3;
+        Snd_work.pReq->Vol_add = a2;
+        Snd_work.pReq->Note_add = a3;
         Snd_work.pReq++;
     }
 }
@@ -290,11 +290,11 @@ void Snd_seq_req(SND_REQ *pReq)
         pSeq = &pW->Seq[no];
         pSeq->Bank = b;
         pSeq->No = no;
-        if (pSeq->Unk2C) {
+        if (pSeq->Play_flg) {
             Snd_seq_stop(no);
-            pSeq->Unk54 = 2;
+            pSeq->Req_flg = 2;
         } else {
-            pSeq->Unk54 = 1;
+            pSeq->Req_flg = 1;
         }
         pSeq->pVh = pW->Bank[no ? 6 : 5].pHead;
         pSeq->Req_no = pSeq->No;
@@ -306,26 +306,26 @@ void Snd_seq_req(SND_REQ *pReq)
 
 void Snd_seq_fade_in(SND_SEQ *pSeq)
 {
-    if (pSeq->Unk2C != 0) {
-        if (pSeq->Unk3C >= 0x3FFF - pSeq->Unk40) {
-            pSeq->Unk3C = 0x3FFF;
-            pSeq->Unk38 = 0;
+    if (pSeq->Play_flg != 0) {
+        if (pSeq->Fade_vol >= 0x3FFF - pSeq->Fade_step) {
+            pSeq->Fade_vol = 0x3FFF;
+            pSeq->Fade_mode = 0;
         } else {
-            pSeq->Unk3C += pSeq->Unk40;
+            pSeq->Fade_vol += pSeq->Fade_step;
         }
     }
 }
 
 void Snd_seq_fade_out(SND_SEQ *pSeq)
 {
-    if (pSeq->Unk2C != 0) {
-        if (pSeq->Unk3C <= pSeq->Unk40) {
-            pSeq->Unk3C = 0;
-            pSeq->Unk38 = 0;
-        pSeq->Unk2D = 1;
-            pSeq->Unk2D = 1;
+    if (pSeq->Play_flg != 0) {
+        if (pSeq->Fade_vol <= pSeq->Fade_step) {
+            pSeq->Fade_vol = 0;
+            pSeq->Fade_mode = 0;
+        pSeq->Stop_req = 1;
+            pSeq->Stop_req = 1;
         } else {
-            pSeq->Unk3C -= pSeq->Unk40;
+            pSeq->Fade_vol -= pSeq->Fade_step;
         }
     }
 }
@@ -362,40 +362,40 @@ void Snd_se_voice_set(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank)
     do {
         if (Snd_se_pri_ck(p, v, pReq) == 0) {
             pV = &pW->Voice[v + i];
-            pV->Unk17 = p->Flg & 1;
-            pV->Unk18 = i + (p->Tone >> 4);
+            pV->Prog = p->Flg & 1;
+            pV->Tone = i + (p->Tone >> 4);
             pV->Prio = p->Tone & 7;
-            pV->Unk1B = bank;
-            pV->Unk12 = Id;
-            pVag = (VagAtr *)pW->Bank[bank].Unk4 + (pV->Unk18 + pV->Unk17 * pW->Bank[pV->Unk1B].pHead[3]);
-            pV->Unk19 = pVag->min;
-            if (pReq->Unk18 != 0) {
-                pV->Unk19 += pReq->Unk18;
-                pReq->Unk18 = 0;
+            pV->Bank = bank;
+            pV->Bank_id = Id;
+            pVag = (VagAtr *)pW->Bank[bank].pVag + (pV->Tone + pV->Prog * pW->Bank[pV->Bank].pHead[3]);
+            pV->Note = pVag->min;
+            if (pReq->Note_add != 0) {
+                pV->Note += pReq->Note_add;
+                pReq->Note_add = 0;
             }
             if (!(p->Flg & 0x20)) {
                 vol = Snd_se_vol((UCHAR *)pVag, pV);
-                if (pReq->Unk1A != 0) {
-                    vol += pReq->Unk1A;
-                    pReq->Unk1A = 0;
+                if (pReq->Vol_add != 0) {
+                    vol += pReq->Vol_add;
+                    pReq->Vol_add = 0;
                 }
-                Snd_se_3D(pReq, vol, (USHORT *)&pV->UnkA, (USHORT *)&pV->Unk8, pW->Dist[v]);
+                Snd_se_3D(pReq, vol, (USHORT *)&pV->Vol_l, (USHORT *)&pV->Vol_r, pW->Dist[v]);
             } else {
                 vol = Snd_se_vol((UCHAR *)pVag, pV);
-                if (pReq->Unk1A != 0) {
-                    vol += pReq->Unk1A;
-                    pReq->Unk1A = 0;
+                if (pReq->Vol_add != 0) {
+                    vol += pReq->Vol_add;
+                    pReq->Vol_add = 0;
                 }
                 Snd_pan_vol((SpuVoiceAttr *)pV, vol, pVag->pan);
-                pV->UnkA = (pV->UnkA * pV->UnkA * 0x2080F) >> 17;
-                pV->Unk8 = (pV->Unk8 * pV->Unk8 * 0x2080F) >> 17;
+                pV->Vol_l = (pV->Vol_l * pV->Vol_l * 0x2080F) >> 17;
+                pV->Vol_r = (pV->Vol_r * pV->Vol_r * 0x2080F) >> 17;
             }
-            pV->Unk14 = 0;
-            pV->UnkC = pV->UnkA;
-            pV->UnkE = pV->Unk8;
+            pV->Bend = 0;
+            pV->Vol_l_base = pV->Vol_l;
+            pV->Vol_r_base = pV->Vol_r;
             bit = 1 << (v + i);
-            pW->UnkB10 |= bit;
-            pW->UnkB14 |= bit;
+            pW->Se_key_on |= bit;
+            pW->Se_key_off |= bit;
             pW->Vprio[v + i] = 1;
         }
         i++;
@@ -411,28 +411,28 @@ void Snd_voice_key_on(SND_VOICE *pV, signed char v)
     ULONG Note;
     ULONG Pitch;
 
-    pVag = (VagAtr *)pW->Bank[pV->Unk1B].Unk4 + (pV->Unk18 + pV->Unk17 * pW->Bank[pV->Unk1B].pHead[3]);
-    pW->UnkB18 = 0;
-    if (pV->Unk1B < 5) {
-        if (pVag->mode & pW->UnkB78) {
-            pW->UnkB18 = 1 << v;
-            SpuSetReverbVoice(1, pW->UnkB18);
+    pVag = (VagAtr *)pW->Bank[pV->Bank].pVag + (pV->Tone + pV->Prog * pW->Bank[pV->Bank].pHead[3]);
+    pW->Rv_voice = 0;
+    if (pV->Bank < 5) {
+        if (pVag->mode & pW->Rv_mask) {
+            pW->Rv_voice = 1 << v;
+            SpuSetReverbVoice(1, pW->Rv_voice);
         } else {
-            pW->UnkB18 = 1 << v;
-            SpuSetReverbVoice(0, pW->UnkB18);
+            pW->Rv_voice = 1 << v;
+            SpuSetReverbVoice(0, pW->Rv_voice);
         }
     }
     Attr.voice = 1 << v;
     Attr.mask = 0x60093;
-    Attr.addr = (ULONG)Snd_bank_get_tone(pV->Unk1B, pVag->vag);
+    Attr.addr = (ULONG)Snd_bank_get_tone(pV->Bank, pVag->vag);
     Note = pVag->shift;
-    Pitch = (pV->Unk19 << 7) | Note;
+    Pitch = (pV->Note << 7) | Note;
     Note = Pitch;
-    if (pV->Unk14 > 0x2000) {
-        Note += ((pV->Unk14 - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
+    if (pV->Bend > 0x2000) {
+        Note += ((pV->Bend - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
     }
-    if (pV->Unk14 < 0x2000) {
-        Note -= ((0x2000 - pV->Unk14) << 7) * pVag->pbmin / 0x1FFF;
+    if (pV->Bend < 0x2000) {
+        Note -= ((0x2000 - pV->Bend) << 7) * pVag->pbmin / 0x1FFF;
     }
     Attr.pitch = Snd_pitch_calc(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F);
     Attr.adsr1 = pVag->adsr1;
@@ -453,8 +453,8 @@ void Snd_voice_key_on(SND_VOICE *pV, signed char v)
         Attr.r_mode = 3;
     }
     Attr.s_mode = (Attr.adsr2 >> 14) + 1;
-    Attr.volume.left = pV->UnkA;
-    Attr.volume.right = pV->Unk8;
+    Attr.volume.left = pV->Vol_l;
+    Attr.volume.right = pV->Vol_r;
     SpuSetVoiceAttr(&Attr);
 }
 
@@ -475,7 +475,7 @@ LONG Snd_se_pri_ck(SND_SE *pSe, LONG v, SND_REQ *pReq)
             }
         }
     }
-    if (pReq->Unk1E) {
+    if (pReq->Mode) {
         pW->Cam_x = G.pRoom->pRcut[G.Cut_no].View_p[0];
         pW->Cam_y = G.pRoom->pRcut[G.Cut_no].View_p[1];
         pW->Cam_z = G.pRoom->pRcut[G.Cut_no].View_p[2];
@@ -514,7 +514,7 @@ void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice)
     SpuSetVoiceAttr(&attr);
 }
 
-/* voice volumes of a sound request: 2D pan (Unk1E 0) or 3D from the camera (Unk1E 1) */
+/* voice volumes of a sound request: 2D pan (Mode 0) or 3D from the camera (Mode 1) */
 void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
 {
     SND_WORK *pW = &Snd_work;
@@ -533,7 +533,7 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
     LONG k;
 
     vol = (vol * vol * 0x2080F) >> 17;
-    switch (pReq->Unk1E) {
+    switch (pReq->Mode) {
     case 0:
         if (pReq->Pan > 0) {
             *pR = vol * (0x80 - (USHORT)pReq->Pan) / 128;
@@ -542,7 +542,7 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
             *pR = vol;
             *pL = vol * (USHORT)(pReq->Pan + 0x80) / 128;
         }
-        if (pW->UnkB75) {
+        if (pW->Mono) {
             if (*pR > *pL) {
                 *pL = *pR;
             } else {
@@ -617,7 +617,7 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
         if (*pL >= 0x80) {
             *pL = 0x7F;
         }
-        if (pW->UnkB75) {
+        if (pW->Mono) {
             if (*pR > *pL) {
                 *pL = *pR;
             } else {
@@ -721,8 +721,8 @@ LONG Snd_pitch_calc(LONG x, LONG frac)
 
 LONG Snd_se_vol(UCHAR *pVag, SND_VOICE *pV)
 {
-    VabHdr *pVh = (VabHdr *)Snd_work.Bank[pV->Unk1B].pHead;
-    ULONG i = pV->Unk17;
+    VabHdr *pVh = (VabHdr *)Snd_work.Bank[pV->Bank].pHead;
+    ULONG i = pV->Prog;
 
     return pVh->mvol * ((ProgAtr *)(pVh + 1))[i].mvol / 127 * pVag[2] / 127 * Snd_work.Vol.Se / 127;
 }
@@ -754,16 +754,16 @@ LONG Snd_seq_tick(void) /* event handler (OpenEvent); returns nothing */
     LONG Unused[22];
     LONG Frac;
 
-    if (pW->UnkB74 == 0) {
+    if (pW->Seq_play == 0) {
         return;
     }
     i = 3;
     pSeq = pW->Seq;
     Flg = 0;
-    pW->UnkB28 = pW->UnkB2C = pW->UnkB30 = pW->UnkB34 = 0;
+    pW->Seq_key_on = pW->Seq_key_off = pW->Seq_rv_on = pW->Seq_rv_off = 0;
     do {
         i--;
-        if (pSeq->Unk2C && !pSeq->Unk2D) {
+        if (pSeq->Play_flg && !pSeq->Stop_req) {
             Flg |= 1 << (2 - i);
             pSeq->Delta -= 300000;
             pSeq->Tempo_cnt -= 4800000;
@@ -799,12 +799,12 @@ LONG Snd_seq_tick(void) /* event handler (OpenEvent); returns nothing */
         }
         pSeq++;
     } while (i != 0);
-    Mask = pW->UnkB28 >> 8;
+    Mask = pW->Seq_key_on >> 8;
     if (Flg) {
         pV = &pW->Voice[8];
-        SpuSetKey(0, pW->UnkB2C);
+        SpuSetKey(0, pW->Seq_key_off);
         j = 8;
-        SpuSetReverbVoice(0, pW->UnkB34);
+        SpuSetReverbVoice(0, pW->Seq_rv_off);
         do {
             if (Mask & 1) {
                 Snd_voice_key_on(pV, j);
@@ -813,38 +813,38 @@ LONG Snd_seq_tick(void) /* event handler (OpenEvent); returns nothing */
             j++;
             pV++;
         } while (j < 24);
-        SpuSetReverbVoice(1, pW->UnkB30);
-        SpuSetKey(1, pW->UnkB28);
+        SpuSetReverbVoice(1, pW->Seq_rv_on);
+        SpuSetKey(1, pW->Seq_key_on);
     }
     for (j = 8, pV = &pW->Voice[8]; j < 24; j++, pV++) {
-        if (pV->Unk1D) {
-            if (Flg & (0x10 << pV->Unk1C)) {
-                if (pW->Seq[pV->Unk1C].Unk38) {
-                    pV->UnkA = pV->UnkC * pW->Seq[pV->Unk1C].Unk3C / 0x3FFF;
-                    pV->Unk8 = pV->UnkE * pW->Seq[pV->Unk1C].Unk3C / 0x3FFF;
-                    Snd_set_voice_vol(pV->UnkA, pV->Unk8, 1 << j);
+        if (pV->Use) {
+            if (Flg & (0x10 << pV->Seq_no)) {
+                if (pW->Seq[pV->Seq_no].Fade_mode) {
+                    pV->Vol_l = pV->Vol_l_base * pW->Seq[pV->Seq_no].Fade_vol / 0x3FFF;
+                    pV->Vol_r = pV->Vol_r_base * pW->Seq[pV->Seq_no].Fade_vol / 0x3FFF;
+                    Snd_set_voice_vol(pV->Vol_l, pV->Vol_r, 1 << j);
                 }
             }
-            pV->Unk4++;
+            pV->Time++;
         }
     }
     Mask = 0;
     i = 2;
     pSeq = pW->Seq;
     do {
-        if (pSeq->Unk2C && pSeq->Unk2D) {
-            pSeq->Unk2C = pSeq->Unk2D = 0;
-            pW->UnkB74 &= ~(1 << pSeq->No);
-            pW->UnkB76 &= ~(1 << pSeq->No);
+        if (pSeq->Play_flg && pSeq->Stop_req) {
+            pSeq->Play_flg = pSeq->Stop_req = 0;
+            pW->Seq_play &= ~(1 << pSeq->No);
+            pW->Seq_pause &= ~(1 << pSeq->No);
             for (j = 8, pV = &pW->Voice[8]; j < 24; j++, pV++) {
-                if (pV->Unk1C == pSeq->No) {
+                if (pV->Seq_no == pSeq->No) {
                     Mask |= 1 << j;
-                    pV->Unk1D = 0;
+                    pV->Use = 0;
                 }
             }
         }
-        if (pSeq->Unk54 == 2) {
-            pSeq->Unk54 = 1;
+        if (pSeq->Req_flg == 2) {
+            pSeq->Req_flg = 1;
         }
         pSeq++;
     } while (--i != -1);
@@ -868,12 +868,12 @@ void Snd_midi_note_off(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->pData++;
     pW = &Snd_work;
     pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
-    pTr->UnkB = pW->Vol.Bgm * pVh->mvol / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
-    pTr->UnkB = pTr->UnkB * pW->Vol.Master / 127;
-    pTr->UnkB = pTr->UnkB * vel / 127;
-    pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * *(LONG *)&pVh->fsize;
+    pTr->Note_vol = pW->Vol.Bgm * pVh->mvol / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol2 / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol / 127;
+    pTr->Note_vol = pTr->Note_vol * pW->Vol.Master / 127;
+    pTr->Note_vol = pTr->Note_vol * vel / 127;
+    pVag = (VagAtr *)pW->Bank[pTr->Bank].pVag + pTr->Prog * *(LONG *)&pVh->fsize;
     pPa = (ProgAtr *)pVh + pTr->Prog + 2;
     Snd_seq_key_off(pSeq, pTr, Snd_tone_mask(pVag, pTr, pPa->tones));
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
@@ -884,19 +884,19 @@ void Snd_seq_key_off(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask)
     UCHAR v;
     ULONG b;
 
-    pTr->UnkD = 0;
+    pTr->Tone = 0;
     while (mask != 0) {
         if (mask & 1) {
-            v = Snd_seq_voice_search(pSeq->No, pTr->Prog, pTr->UnkD, pTr->Note);
+            v = Snd_seq_voice_search(pSeq->No, pTr->Prog, pTr->Tone, pTr->Note);
             if (v != 0xFF) {
                 b = 1 << v;
-                Snd_work.UnkB2C |= b;
-                Snd_work.UnkB34 |= b;
+                Snd_work.Seq_key_off |= b;
+                Snd_work.Seq_rv_off |= b;
                 pTr->Mask &= ~b;
             }
         }
         mask >>= 1;
-        pTr->UnkD++;
+        pTr->Tone++;
     }
 }
 
@@ -925,66 +925,66 @@ void Snd_midi_note_on(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->pData++;
     pW = &Snd_work;
     pVh = (VabHdr *)pW->Bank[pTr->Bank].pHead;
-    pTr->UnkB = pW->Vol.Bgm * pVh->mvol / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol / 127;
-    pTr->UnkB = pTr->UnkB * pW->Vol.Master / 127;
-    pTr->UnkB = pTr->UnkB * Vel / 127;
-    pTr->UnkB = pTr->UnkB * pTr->Vol2 / 127;
-    pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3];
+    pTr->Note_vol = pW->Vol.Bgm * pVh->mvol / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol / 127;
+    pTr->Note_vol = pTr->Note_vol * pW->Vol.Master / 127;
+    pTr->Note_vol = pTr->Note_vol * Vel / 127;
+    pTr->Note_vol = pTr->Note_vol * pTr->Vol2 / 127;
+    pVag = (VagAtr *)pW->Bank[pTr->Bank].pVag + pTr->Prog * ((ULONG *)pVh)[3];
     pPa = (ProgAtr *)pVh + pTr->Prog + 2;
     Vol = pTr->Vol2;
     mask = Snd_tone_mask(pVag, pTr, pPa->tones);
     if (Vel != 0) {
         Pan = pTr->Pan2 + (pTr->Pan - 0x40);
-        pTr->UnkD = 0;
+        pTr->Tone = 0;
         while (mask != 0) {
             if (mask & 1) {
-                pVag = (VagAtr *)pW->Bank[pTr->Bank].Unk4 + pTr->Prog * ((ULONG *)pVh)[3] + pTr->UnkD;
-                Snd_pan_vol((SpuVoiceAttr *)&Attr, pTr->UnkB * pVag->vol / 127, Pan + (pVag->pan - 0x40));
+                pVag = (VagAtr *)pW->Bank[pTr->Bank].pVag + pTr->Prog * ((ULONG *)pVh)[3] + pTr->Tone;
+                Snd_pan_vol((SpuVoiceAttr *)&Attr, pTr->Note_vol * pVag->vol / 127, Pan + (pVag->pan - 0x40));
                 Attr.volume.right = (Attr.volume.right * Attr.volume.right * 133135) >> 17;
                 Attr.volume.left = (Attr.volume.left * Attr.volume.left * 133135) >> 17;
-                if (pSeq->Unk38 != 0) {
-                    Attr.volume.right = Attr.volume.right * pSeq->Unk3C / 0x3FFF;
-                    Attr.volume.left = Attr.volume.left * pSeq->Unk3C / 0x3FFF;
+                if (pSeq->Fade_mode != 0) {
+                    Attr.volume.right = Attr.volume.right * pSeq->Fade_vol / 0x3FFF;
+                    Attr.volume.left = Attr.volume.left * pSeq->Fade_vol / 0x3FFF;
                 }
                 if (Attr.volume.right | Attr.volume.left) {
                     v = Snd_voice_get(8, 24);
                     if (v != 0xFF) {
                         pV = &pW->Voice[v];
-                        pV->Unk1D = 1;
-                        pV->Unk17 = pTr->Prog;
-                        pV->Unk18 = pTr->UnkD;
-                        pV->Unk19 = pTr->Note;
-                        pV->Unk14 = pTr->Bend;
-                        pV->Unk1B = pTr->Bank;
-                        pV->Unk12 = pTr->UnkE;
-                        pV->Unk1C = pSeq->No;
-                        pV->Unk4 = 0;
-                        if (pW->UnkB75) {
+                        pV->Use = 1;
+                        pV->Prog = pTr->Prog;
+                        pV->Tone = pTr->Tone;
+                        pV->Note = pTr->Note;
+                        pV->Bend = pTr->Bend;
+                        pV->Bank = pTr->Bank;
+                        pV->Bank_id = pTr->Bank_org;
+                        pV->Seq_no = pSeq->No;
+                        pV->Time = 0;
+                        if (pW->Mono) {
                             if (Attr.volume.left > Attr.volume.right) {
                                 Attr.volume.right = Attr.volume.left;
                             } else {
                                 Attr.volume.left = Attr.volume.right;
                             }
                         }
-                        pV->UnkA = pV->UnkC = Attr.volume.right;
-                        pV->Unk8 = pV->UnkE = Attr.volume.left;
+                        pV->Vol_l = pV->Vol_l_base = Attr.volume.right;
+                        pV->Vol_r = pV->Vol_r_base = Attr.volume.left;
                         pV->pVag = (UCHAR *)pVag;
-                        pV->Unk10 = Vol;
-                        pV->Unk16 = Pan;
+                        pV->Ch_vol = Vol;
+                        pV->Pan = Pan;
                         if (pVag->mode) {
-                            pW->UnkB30 |= 1 << v;
+                            pW->Seq_rv_on |= 1 << v;
                         } else {
-                            pW->UnkB34 |= 1 << v;
+                            pW->Seq_rv_off |= 1 << v;
                         }
-                        pW->UnkB28 |= 1 << v;
-                        pW->UnkB2C |= 1 << v;
+                        pW->Seq_key_on |= 1 << v;
+                        pW->Seq_key_off |= 1 << v;
                         pTr->Mask |= 1 << v;
                     }
                 }
             }
             mask >>= 1;
-            pTr->UnkD++;
+            pTr->Tone++;
         }
     } else {
         Snd_seq_key_off(pSeq, pTr, mask);
@@ -1021,23 +1021,23 @@ void Snd_midi_ctrl(SND_SEQ *pSeq, SND_TRACK *pTr)
                 continue;
             }
             pV = &Snd_work.Voice[i];
-            if (pV->Unk1D == 0 || pV->Unk4 == 0) {
+            if (pV->Use == 0 || pV->Time == 0) {
                 continue;
             }
-            if (pV->Unk10 != 0) {
-                pV->UnkA = pV->UnkA * pTr->Vol2 / pV->Unk10;
-                pV->Unk8 = pV->Unk8 * pTr->Vol2 / pV->Unk10;
-                if (Snd_work.UnkB75) {
-                    if (pV->UnkA < pV->Unk8) {
-                        pV->UnkA = pV->Unk8;
+            if (pV->Ch_vol != 0) {
+                pV->Vol_l = pV->Vol_l * pTr->Vol2 / pV->Ch_vol;
+                pV->Vol_r = pV->Vol_r * pTr->Vol2 / pV->Ch_vol;
+                if (Snd_work.Mono) {
+                    if (pV->Vol_l < pV->Vol_r) {
+                        pV->Vol_l = pV->Vol_r;
                     } else {
-                        pV->Unk8 = pV->UnkA;
+                        pV->Vol_r = pV->Vol_l;
                     }
                 }
-                pV->UnkC = pV->UnkA;
-                pV->UnkE = pV->Unk8;
-                pV->Unk10 = pTr->Vol2;
-                SpuSetVoiceVolume(i, pV->UnkA, pV->Unk8);
+                pV->Vol_l_base = pV->Vol_l;
+                pV->Vol_r_base = pV->Vol_r;
+                pV->Ch_vol = pTr->Vol2;
+                SpuSetVoiceVolume(i, pV->Vol_l, pV->Vol_r);
             } else {
                 SpuSetVoiceVolume(i, 0, 0);
             }
@@ -1106,20 +1106,20 @@ void Snd_midi_bend(SND_SEQ *pSeq, SND_TRACK *pTr)
                 continue;
             }
             pV = &Snd_work.Voice[i];
-            if (pV->Unk1D == 0 || pV->Unk4 == 0) {
+            if (pV->Use == 0 || pV->Time == 0) {
                 continue;
             }
-            pV->Unk14 = pTr->Bend;
-            pHead = Snd_work.Bank[pV->Unk1B].pHead;
-            pVag = (VagAtr *)Snd_work.Bank[pV->Unk1B].Unk4 + (pV->Unk18 + pV->Unk17 * pHead[3]);
+            pV->Bend = pTr->Bend;
+            pHead = Snd_work.Bank[pV->Bank].pHead;
+            pVag = (VagAtr *)Snd_work.Bank[pV->Bank].pVag + (pV->Tone + pV->Prog * pHead[3]);
             Note = pVag->shift;
-            Pitch = (pV->Unk19 << 7) | Note; /* via a temp: or v0,a0 operand order */
+            Pitch = (pV->Note << 7) | Note; /* via a temp: or v0,a0 operand order */
             Note = Pitch;
-            if (pV->Unk14 > 0x2000) {
-                Note += ((pV->Unk14 - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
+            if (pV->Bend > 0x2000) {
+                Note += ((pV->Bend - 0x2000) << 7) * pVag->pbmax / 0x1FFF;
             }
-            if (pV->Unk14 < 0x2000) {
-                Note -= ((0x2000 - pV->Unk14) << 7) * pVag->pbmin / 0x1FFF;
+            if (pV->Bend < 0x2000) {
+                Note -= ((0x2000 - pV->Bend) << 7) * pVag->pbmin / 0x1FFF;
             }
             SpuSetVoicePitch(i, Snd_pitch_calc(((Note & 0x3F80) >> 7) - pVag->center, Note & 0x7F));
         }
@@ -1148,21 +1148,21 @@ void Snd_midi_meta(SND_SEQ *pSeq)
         pSeq->pData++;
         pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
     } else if (*pSeq->pData == 0x2F && pSeq->pData[1] == 0) {
-        if (pSeq->Unk18 == 0) {
+        if (pSeq->Repeat == 0) {
             if (pSeq->Loop_mode == 2) {
                 if (pSeq->Loop_cnt == 0x7F || --pSeq->Loop_cnt != 0) {
                     pSeq->pData = pSeq->pLoop;
                 }
                 pSeq->Loop_mode = 0;
             } else {
-                pSeq->Unk2C = 0;
-                pW->UnkB74 &= ~(1 << pSeq->No);
-                pW->UnkB76 &= ~(1 << pSeq->No);
+                pSeq->Play_flg = 0;
+                pW->Seq_play &= ~(1 << pSeq->No);
+                pW->Seq_pause &= ~(1 << pSeq->No);
             }
         } else {
             pSeq->pData = pSeq->pTop;
         }
-        if (pSeq->Unk2C == 0) {
+        if (pSeq->Play_flg == 0) {
             pSeq->Delta = 1;
         } else {
             pSeq->Delta = 0;
@@ -1222,7 +1222,7 @@ LONG Snd_voice_get(LONG lo, ULONG hi)
     SpuRGetAllKeysStatus(lo, hi - 1, st);
     pV = &Snd_work.Voice[lo];
     for (i = lo; i < hi; i++, pV++) {
-        if (st[i] == 0 && pV->Unk1D == 0) {
+        if (st[i] == 0 && pV->Use == 0) {
             return i;
         }
     }
@@ -1233,8 +1233,8 @@ LONG Snd_voice_get(LONG lo, ULONG hi)
         if (st[i] == 3) {
             return i;
         }
-        if ((ULONG)pV->Unk4 >= best) {
-            best = pV->Unk4;
+        if ((ULONG)pV->Time >= best) {
+            best = pV->Time;
             bi = i;
         }
     }
@@ -1247,8 +1247,8 @@ LONG Snd_seq_voice_search(LONG a0, LONG a1, LONG a2, LONG a3)
     SND_VOICE *p;
 
     for (i = 8, p = &Snd_work.Voice[8]; i < 24; i++, p++) {
-        if (p->Unk17 == a1 && p->Unk18 == a2 && p->Unk19 == a3 && p->Unk1D != 0 && a0 == p->Unk1C) {
-            p->Unk1D = 0;
+        if (p->Prog == a1 && p->Tone == a2 && p->Note == a3 && p->Use != 0 && a0 == p->Seq_no) {
+            p->Use = 0;
             return i;
         }
     }
@@ -1265,9 +1265,9 @@ void Snd_seq_start(LONG no, UCHAR *pData, LONG a2, LONG a3)
     ULONG t;
 
     p->pData = p->pTop = pData + 0xC;
-    p->Unk18 = a3;
+    p->Repeat = a3;
     p->Bank = a2;
-    p->Unk24 = a2;
+    p->Bank_org = a2;
     t = *(ULONG *)(pData + 4);
     p->Resolution = *(USHORT *)(pData + 8);
     p->Delta = 0;
@@ -1280,27 +1280,27 @@ void Snd_seq_start(LONG no, UCHAR *pData, LONG a2, LONG a3)
         pT->Bend = 0x2000;
         pT->Mask = 0;
         pT->Bank = a2;
-        pT->UnkE = a2;
-        if (pV->Unk1D == 0) {
-            pV->Unk14 = 0x2000;
+        pT->Bank_org = a2;
+        if (pV->Use == 0) {
+            pV->Bend = 0x2000;
         }
         pT++;
         pV++;
     }
-    p->Unk38 = 0;
-    p->Unk40 = 0;
-    p->Unk3C = 0;
-    pW->UnkB74 |= 1 << p->No;
-    pW->UnkB76 &= ~(1 << no);
-    p->Unk2C = 1;
-    p->Unk2D = 0;
+    p->Fade_mode = 0;
+    p->Fade_step = 0;
+    p->Fade_vol = 0;
+    pW->Seq_play |= 1 << p->No;
+    pW->Seq_pause &= ~(1 << no);
+    p->Play_flg = 1;
+    p->Stop_req = 0;
 }
 
 void Snd_seq_stop(SHORT no)
 {
-    if (Snd_work.Seq[no].Unk2C != 0) {
-        Snd_work.Seq[no].Unk2D = 1;
-        Snd_work.Seq[no].Unk38 = 0;
+    if (Snd_work.Seq[no].Play_flg != 0) {
+        Snd_work.Seq[no].Stop_req = 1;
+        Snd_work.Seq[no].Fade_mode = 0;
     }
 }
 
@@ -1321,9 +1321,9 @@ void Snd_seq_pause(LONG no)
     SND_WORK *pW = &Snd_work;
 
     mask = 0;
-    if (Snd_work.Seq[no].Unk2C != 0) {
-        Snd_work.UnkB76 |= 1 << no;
-        Snd_work.Seq[no].Unk2C = 0;
+    if (Snd_work.Seq[no].Play_flg != 0) {
+        Snd_work.Seq_pause |= 1 << no;
+        Snd_work.Seq[no].Play_flg = 0;
         for (i = 0; i < 16; i++) {
             if (pW->Seq[no].Trk[i].Mask != 0) {
                 j = 8;
@@ -1342,8 +1342,8 @@ void Snd_seq_pause(LONG no)
 
 void Snd_seq_play_ck(LONG no)
 {
-    if ((Snd_work.UnkB76 >> no) & 1) {
-        Snd_work.Seq[no].Unk2C = 1;
+    if ((Snd_work.Seq_pause >> no) & 1) {
+        Snd_work.Seq[no].Play_flg = 1;
     }
 }
 
@@ -1502,53 +1502,53 @@ void Snd_bgm_ck(void)
         Stage -= 5;
     }
     Bgm = pG->Unk7C84[Bgm_room_ofs[Stage] + pG->Unk7840];
-    pW->UnkB20 = 0x3C00;
-    pW->UnkB1C = 0xFF;
-    pW->UnkB24 = 0x400;
+    pW->Fade_vol = 0x3C00;
+    pW->Fade_mask = 0xFF;
+    pW->Fade_step = 0x400;
     if ((Bgm >> 8) != 0xFF) {
-        pW->UnkB77 = Bgm >> 15;
+        pW->Bgm_req = Bgm >> 15;
     }
     if ((Bgm & 0xFF) != 0xFF) {
-        pW->UnkB77 |= (Bgm >> 5) & 6;
+        pW->Bgm_req |= (Bgm >> 5) & 6;
     }
     pCd->Bgm_main_id = (Bgm >> 8) & 0x3F;
-    if ((!(pW->UnkB77 & 1) && pW->Seq_data[0].Id == pCd->Bgm_main_id) || pW->Seq_data[0].Id != pCd->Bgm_main_id) {
-        if (pW->Seq[0].Unk2C && !pW->Seq[0].Unk2D) {
-            if (pW->Seq[0].Unk38 != 2) {
-                pW->Seq[0].Unk38 = 2;
-                pW->Seq[0].Unk3C = 0x3F00;
+    if ((!(pW->Bgm_req & 1) && pW->Seq_data[0].Id == pCd->Bgm_main_id) || pW->Seq_data[0].Id != pCd->Bgm_main_id) {
+        if (pW->Seq[0].Play_flg && !pW->Seq[0].Stop_req) {
+            if (pW->Seq[0].Fade_mode != 2) {
+                pW->Seq[0].Fade_mode = 2;
+                pW->Seq[0].Fade_vol = 0x3F00;
             }
-            pW->Seq[0].Unk40 = 0x100;
+            pW->Seq[0].Fade_step = 0x100;
         }
-    } else if (pW->Seq[0].Unk2C) {
-        pW->UnkB77 &= 6;
+    } else if (pW->Seq[0].Play_flg) {
+        pW->Bgm_req &= 6;
     }
     if (pCd->Bgm_main_id == 0x3F) {
         pCd->Bgm_main_id = 0xFF;
         pW->Seq_data[0].Id = 0xFF;
     }
     pCd->Bgm_sub_id = Bgm & 0x3F;
-    if ((!(pW->UnkB77 & 2) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
-        if (pW->Seq[1].Unk2C && !pW->Seq[1].Unk2D) {
-            if (pW->Seq[1].Unk38 != 2) {
-                pW->Seq[1].Unk38 = 2;
-                pW->Seq[1].Unk3C = 0x3F00;
+    if ((!(pW->Bgm_req & 2) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
+        if (pW->Seq[1].Play_flg && !pW->Seq[1].Stop_req) {
+            if (pW->Seq[1].Fade_mode != 2) {
+                pW->Seq[1].Fade_mode = 2;
+                pW->Seq[1].Fade_vol = 0x3F00;
             }
-            pW->Seq[1].Unk40 = 0x100;
+            pW->Seq[1].Fade_step = 0x100;
         }
-    } else if (pW->Seq[1].Unk2C) {
-        pW->UnkB77 &= 5;
+    } else if (pW->Seq[1].Play_flg) {
+        pW->Bgm_req &= 5;
     }
-    if ((!(pW->UnkB77 & 4) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
-        if (pW->Seq[2].Unk2C && !pW->Seq[2].Unk2D) {
-            if (pW->Seq[2].Unk38 != 2) {
-                pW->Seq[2].Unk38 = 2;
-                pW->Seq[2].Unk3C = 0x3F00;
+    if ((!(pW->Bgm_req & 4) && pW->Seq_data[1].Id == pCd->Bgm_sub_id) || pW->Seq_data[1].Id != pCd->Bgm_sub_id) {
+        if (pW->Seq[2].Play_flg && !pW->Seq[2].Stop_req) {
+            if (pW->Seq[2].Fade_mode != 2) {
+                pW->Seq[2].Fade_mode = 2;
+                pW->Seq[2].Fade_vol = 0x3F00;
             }
-            pW->Seq[2].Unk40 = 0x100;
+            pW->Seq[2].Fade_step = 0x100;
         }
-    } else if (pW->Seq[2].Unk2C) {
-        pW->UnkB77 &= 3;
+    } else if (pW->Seq[2].Play_flg) {
+        pW->Bgm_req &= 3;
     }
     if (pCd->Bgm_sub_id == 0x3F) {
         pCd->Bgm_sub_id = 0xFF;
@@ -1564,7 +1564,7 @@ void Snd_bgm_fade_wait(void)
     UCHAR n;
 
     do {
-        n = p->Seq[0].Unk38 + p->Seq[1].Unk38 + p->Seq[2].Unk38 + p->UnkB1C;
+        n = p->Seq[0].Fade_mode + p->Seq[1].Fade_mode + p->Seq[2].Fade_mode + p->Fade_mask;
         if ((signed char)i++ < 0) {
             break;
         }
@@ -1613,7 +1613,7 @@ void Snd_sys_pset(void)
         return;
     }
     *(LONG **)&Snd_edt = p;
-    pW->UnkB78 = G.pRoom->Unk6 * 4;
+    pW->Rv_mask = G.pRoom->Unk6 * 4;
     while (*p != -1) {
         p++;
     }
@@ -1646,7 +1646,7 @@ void Snd_seq_data_set(ULONG no, ULONG id, ULONG *pAdr)
     }
     pW->Bank[bank].pHead = (ULONG *)(pVh = (VabHdr *)((UCHAR *)pAdr + *p));
     pPa = (ProgAtr *)(pVh + 1);
-    pW->Bank[bank].Unk4 = (ULONG *)(pPa + pVh->ps);
+    pW->Bank[bank].pVag = (ULONG *)(pPa + pVh->ps);
 }
 
 /* registers the VAB of bank no, Vab_head_ofs[no] words into the file at pAdr */
@@ -1659,7 +1659,7 @@ void Snd_vab_head_set(LONG no, ULONG *pAdr)
     pW->pAdr[no] = pAdr;
     pW->Bank[no].pHead = (ULONG *)(pVh = (VabHdr *)(pAdr + Vab_head_ofs[no]));
     pPa = (ProgAtr *)(pVh + 1);
-    pW->Bank[no].Unk4 = (ULONG *)(pPa + pVh->ps);
+    pW->Bank[no].pVag = (ULONG *)(pPa + pVh->ps);
 }
 
 void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
@@ -1668,7 +1668,7 @@ void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
     SND_WORK *p = (SND_WORK *)((UCHAR *)pW + no * 8);
 
     size = (size + 0x3F) & ~0x3F;
-    p->Bank_id[0].pad2 = size >> 6;
+    p->Bank_id[0].Size = size >> 6;
     p->Bank_id[0].Id = no;
     if (no < 5) {
         if (no != 3) {

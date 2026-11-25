@@ -3390,9 +3390,9 @@ void St_init(ST_WORK *pSt)
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
-    pW->UnkB1C = 0x80;
-    pW->UnkB20 = 0x3FFF;
-    pW->UnkB24 = 0xB00;
+    pW->Fade_mask = 0x80;
+    pW->Fade_vol = 0x3FFF;
+    pW->Fade_step = 0xB00;
     Cd_seek(0x34, 0, "SEEK ITEMI.PIX");
     if (pSt->Flg14 & 0x40000000) {
         Cd_read(0x32, (ULONG *)0x801B1500, 0, D_80010FEC);
@@ -3691,7 +3691,7 @@ void St_open_wait(ST_WORK *pSt)
     if (Fade_status(0) != 0) {
         return;
     }
-    if (pW->UnkB1C != 0) {
+    if (pW->Fade_mask != 0) {
         return;
     }
     switch (pSt->St_type) {
@@ -3723,13 +3723,13 @@ void St_close(ST_WORK *pSt)
     switch (pSt->Rtn1) {
     case 0:
         Fade_set(0, 0, 2, 2, 0, 0xFFFFFF, 6);
-        pW->UnkB1C = 0x80;
-        pW->UnkB20 = 0;
-        pW->UnkB24 = -0xB00;
+        pW->Fade_mask = 0x80;
+        pW->Fade_vol = 0;
+        pW->Fade_step = -0xB00;
         pSt->Rtn1++;
         break;
     case 1:
-        if ((Fade_status(0) & 4) && pW->UnkB1C == 0) {
+        if ((Fade_status(0) & 4) && pW->Fade_mask == 0) {
             pSt->Task_on = 0;
         }
         break;

@@ -1271,7 +1271,7 @@ void Save_push(void)
     }
     pG->Save_vol = Snd_work.Vol.Se;
     pG->Save_vol2 = Snd_work.Vol.Bgm;
-    pG->Save_mono = Snd_work.UnkB75;
+    pG->Save_mono = Snd_work.Mono;
     pG->Save_unk780C = Main.Unk195;
     pG->Save_unk780D = Main.Unk196;
 }
@@ -1298,7 +1298,7 @@ void Load_pop(void)
     }
     Snd_work.Vol.Se = pG->Save_vol;
     Snd_work.Vol.Bgm = pG->Save_vol2;
-    Snd_work.UnkB75 = pG->Save_mono;
+    Snd_work.Mono = pG->Save_mono;
     Main.Unk195 = pG->Save_unk780C;
     Main.Unk196 = pG->Save_unk780D;
     G.pItem_set = &G.Item_work[G.Item_work_no];

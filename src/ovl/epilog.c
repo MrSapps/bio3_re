@@ -218,14 +218,14 @@ void Epilog_exit(void)
 
     switch (pWk->Rno1) {
     case 0:
-        Snd_work.Seq[0].Unk38 = 2;
-        Snd_work.Seq[0].Unk3C = 0x3DAF;
-        Snd_work.Seq[0].Unk40 = 0x250;
+        Snd_work.Seq[0].Fade_mode = 2;
+        Snd_work.Seq[0].Fade_vol = 0x3DAF;
+        Snd_work.Seq[0].Fade_step = 0x250;
         Fade_set(0, 0, 2, 2, 0, 0xFFFFFF, 0x1E);
         pWk->Rno1++;
         break;
     case 1:
-        if ((Fade_status(0) & FADE_END) && Snd_work.Seq[0].Unk38 == 0) {
+        if ((Fade_status(0) & FADE_END) && Snd_work.Seq[0].Fade_mode == 0) {
             Flg_off(pWk->u.Flg, 0);
         }
         break;

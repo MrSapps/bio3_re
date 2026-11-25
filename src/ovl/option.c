@@ -48,9 +48,9 @@ void func_801C21B0(void)
             Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0xF);
             Opt.Fade_mode = 2;
             if (G.Unk2115 == 1 && Opt.Routine_next == 6) {
-                Snd_work.Seq[0].Unk3C = 0x3B5F;
-                Snd_work.Seq[0].Unk38 = 2;
-                Snd_work.Seq[0].Unk40 = 0x4A0;
+                Snd_work.Seq[0].Fade_vol = 0x3B5F;
+                Snd_work.Seq[0].Fade_mode = 2;
+                Snd_work.Seq[0].Fade_step = 0x4A0;
             }
         case 2:
             if (!(Fade_status(0) & 4)) {
@@ -226,9 +226,9 @@ void func_801C2AC4(void)
     Bg_set_mode(2, 0);
     Main.Vloop = 1;
     Pad_rep_set(0xF000, 0x314);
-    Snd_work.UnkB1C = 0x80;
-    Snd_work.UnkB20 = 0x3FFF;
-    Snd_work.UnkB24 = 0xB00;
+    Snd_work.Fade_mask = 0x80;
+    Snd_work.Fade_vol = 0x3FFF;
+    Snd_work.Fade_step = 0xB00;
 }
 
 /* screen init: set up the primitives of both buffers (background, text tpage, icons, pad picture, pieces, shade panel and its lines) */
@@ -363,9 +363,9 @@ void func_801C30E8(void)
     Main.Unk191 = Opt.Unk191_bak;
     Main.Vloop = Opt.Vloop_bak;
     Fade_set(0, 1, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
-    Snd_work.UnkB1C = 0x80;
-    Snd_work.UnkB20 = 0;
-    Snd_work.UnkB24 = -0xB00;
+    Snd_work.Fade_mask = 0x80;
+    Snd_work.Fade_vol = 0;
+    Snd_work.Fade_step = -0xB00;
 }
 
 /* draw the background and the pieces */
@@ -621,7 +621,7 @@ void func_801C3C90(void)
         pW->Sub_cur_old = 0;
         pW->Timer = 0;
         pW->Step++;
-        pW->Stereo = Snd_work.UnkB75;
+        pW->Stereo = Snd_work.Mono;
         pW->Vol_bak[0] = Snd_work.Vol.Bgm;
         pW->Vol_bak[1] = Snd_work.Vol.Se;
         pW->Vol[0] = Snd_work.Vol.Bgm * 100 / 127;

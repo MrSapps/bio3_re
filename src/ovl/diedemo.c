@@ -160,18 +160,18 @@ void Die_move_slow(void)
                 G.Unk2468 ^= 0xFC000000;
             }
             Diedemo.Phase = 0;
-            pSnd->Seq[0].Unk38 = 2;
-            pSnd->Seq[0].Unk3C = 0x3F00;
-            pSnd->Seq[0].Unk40 = 0x100;
-            pSnd->Seq[1].Unk38 = 2;
-            pSnd->Seq[1].Unk3C = 0x3F00;
-            pSnd->Seq[1].Unk40 = 0x100;
-            pSnd->Seq[2].Unk38 = 2;
-            pSnd->Seq[2].Unk3C = 0x3F00;
-            pSnd->Seq[2].Unk40 = 0x100;
-            pSnd->UnkB1C = 0x80;
-            pSnd->UnkB20 = 0x3FFF;
-            pSnd->UnkB24 = 0x100;
+            pSnd->Seq[0].Fade_mode = 2;
+            pSnd->Seq[0].Fade_vol = 0x3F00;
+            pSnd->Seq[0].Fade_step = 0x100;
+            pSnd->Seq[1].Fade_mode = 2;
+            pSnd->Seq[1].Fade_vol = 0x3F00;
+            pSnd->Seq[1].Fade_step = 0x100;
+            pSnd->Seq[2].Fade_mode = 2;
+            pSnd->Seq[2].Fade_vol = 0x3F00;
+            pSnd->Seq[2].Fade_step = 0x100;
+            pSnd->Fade_mask = 0x80;
+            pSnd->Fade_vol = 0x3FFF;
+            pSnd->Fade_step = 0x100;
         }
         Diedemo.Free += Diedemo.Ctr;
         if (Diedemo.Free >= 0x7FFF) {

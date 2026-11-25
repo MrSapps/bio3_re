@@ -557,9 +557,9 @@ void func_801C3C50(RESULT_WORK *pWk)
 /* Mercenaries shop: exit */
 void func_801C4070(RESULT_WORK *pWk)
 {
-    Snd_work.Seq[0].Unk38 = 2;
-    Snd_work.Seq[0].Unk3C = 0x3DAF;
-    Snd_work.Seq[0].Unk40 = 0x250;
+    Snd_work.Seq[0].Fade_mode = 2;
+    Snd_work.Seq[0].Fade_vol = 0x3DAF;
+    Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
         func_801C3344(pWk);
@@ -903,9 +903,9 @@ void func_801C4F0C(RESULT_WORK *pWk)
 /* routine 2: exit */
 void func_801C526C(RESULT_WORK *pWk)
 {
-    Snd_work.Seq[0].Unk38 = 2;
-    Snd_work.Seq[0].Unk3C = 0x3DAF;
-    Snd_work.Seq[0].Unk40 = 0x250;
+    Snd_work.Seq[0].Fade_mode = 2;
+    Snd_work.Seq[0].Fade_vol = 0x3DAF;
+    Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
         func_801C473C(pWk);
@@ -1198,9 +1198,9 @@ void func_801C5CD8(RESULT_WORK *pWk)
 /* routine 5: exit */
 void func_801C605C(RESULT_WORK *pWk)
 {
-    Snd_work.Seq[0].Unk38 = 2;
-    Snd_work.Seq[0].Unk3C = 0x3DAF;
-    Snd_work.Seq[0].Unk40 = 0x250;
+    Snd_work.Seq[0].Fade_mode = 2;
+    Snd_work.Seq[0].Fade_vol = 0x3DAF;
+    Snd_work.Seq[0].Fade_step = 0x250;
     Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0x1E);
     while (!(Fade_status(0) & FADE_END)) {
         func_801C591C(pWk);
