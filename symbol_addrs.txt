@@ -2104,3 +2104,7 @@ Spl_auto_dummy = 0x8005D290; // type:func
 Sca_high_tbl = 0x8009E020;
 Sca_hit_obj_circle = 0x8004D404; // type:func
 Sca_get_ground_obj = 0x8004DB10; // type:func
+Chaser_item_id_tbl = 0x8009E4C0;
+Chaser_item_num_tbl = 0x8009E4C8;
+Chaser_zone_30E_0 = 0x8009E504;
+Chaser_zone_30E_1 = 0x8009E518;

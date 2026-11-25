@@ -843,3 +843,7 @@ Md_rtp_floor = 0x8002D184; // type:func
 Md_rtp = 0x8002D5D8; // type:func
 // md_sub: average the colours of the prims p..pEnd with Rgb
 Rgb_blend = 0x8002D41C; // type:func
+Chaser_item_id_tbl = 0x8009E4C0;
+Chaser_item_num_tbl = 0x8009E4C8;
+Chaser_zone_30E_0 = 0x8009E504;
+Chaser_zone_30E_1 = 0x8009E518;

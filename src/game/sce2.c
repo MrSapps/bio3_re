@@ -182,7 +182,48 @@ ULONG Aot_on(SCE_TASK *pSce)
 }
 
 /* RE2 Get_matrix: matrix of a work (player, enemy, object model or part) by kind and number */
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Get_matrix);
+MATRIX *Get_matrix(s8 Work_kind, s8 Work_no)
+{
+    LONG Kind;
+    ENEMY_WORK *pEm;
+    PARTS_W *pP;
+
+    Kind = (s8)Work_kind;
+    if (!(Kind & 0x80)) {
+        switch (Kind) {
+        case 0:
+            return &GsIDMATRIX;
+        case 1:
+            return EM_WORKM(G.pEnemy[0]);
+        case 2:
+            return EM_WORKM(G.pEnemy[1]);
+        case 3:
+            return EM_WORKM(G.pEnemy[2 + Work_no]);
+        case 4:
+            return &G.Ob_model[Work_no].M;
+        case 6:
+            return NULL;
+        }
+    } else {
+        switch ((Work_kind & 0x60) >> 5) {
+        case 0:
+            pEm = G.pEnemy[0];
+            break;
+        case 1:
+            pEm = G.pEnemy[1];
+            break;
+        case 2:
+            pEm = G.pEnemy[2 + Work_no];
+            break;
+        case 3:
+            pP = &G.Ob_model[Work_no].pParts[Work_kind & 0x1F];
+            return &pP->Workm;
+        }
+        pP = &pEm->pSin_parts_ptr[Work_kind & 0x1F];
+        return &pP->Workm;
+    }
+    /* kind 5 and >= 7 fall off the end (no return value), like RE2 */
+}
 
 /* RE2 Sce_espr_on */
 ULONG Sce_espr_on(SCE_TASK *pSce)
@@ -1403,8 +1444,206 @@ ULONG Sel_evt_on(SCE_TASK *pSce)
     return 1;
 }
 
-/* places Nemesis' item drops by room (G+0x7DC0 records, Chaser_item_room_tbl room table) */
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Chaser_item_set);
+/* item AOT that Chaser_item_set builds in the free work (SCE_AOT head, then the item data) */
+typedef struct {
+    UCHAR Id;                          /* 0x00 */
+    UCHAR Type;                        /* 0x01 */
+    signed char nFloor;                /* 0x02 */
+    UCHAR Super;                       /* 0x03 */
+    SHORT X;                           /* 0x04 */
+    SHORT Z;                           /* 0x06 */
+    USHORT W;                          /* 0x08 */
+    USHORT D;                          /* 0x0A */
+    USHORT iItem;                      /* 0x0C */
+    USHORT nItem;                      /* 0x0E */
+    USHORT Item_flg;                   /* 0x10 */
+    USHORT Om_no;                      /* 0x12 */
+    UCHAR pad14[0x18 - 0x14];
+} CHASER_ITEM_AOT;
+
+/* places Nemesis' item drops by room (G+0x7DC0 records, Chaser_item_room_tbl room table): the drop of
+ * this room (or of its paired room) as an item model + item AOT in Sce_aot[31], else a new drop when
+ * Nemesis (Id 0x34..0x36) is in the room */
+ULONG Chaser_item_set(SCE_TASK *pSce)
+{
+    SVECTOR Spd;
+    tagGLOBAL *pG;
+    ULONG Found;
+    USHORT Room;
+    USHORT Room2;
+    USHORT Room_a;
+    ULONG i;
+    ULONG j;
+    ULONG Om_no;
+    ULONG Em_no;
+    OBJ_MODEL_WORK *pOm;
+    CHASER_ITEM_AOT *pAot;
+    ENEMY_WORK **ppEm;
+
+    pG = &G;
+    Found = 0;
+    if (pG->System_flg & 0x100) {
+        pSce->Data += 3;
+        return 1;
+    }
+    Room = G.Room_no | ((G.Stage_no + 1) << 8);
+    for (i = 0; i < 8; i++) {
+        if (G.Chaser_drop[i].Be_flg) {
+            for (j = 0; j < 13; j++) {
+                Room_a = Chaser_item_room_tbl[j][0];
+                if (Room == Room_a) {
+                    Room2 = Chaser_item_room_tbl[j][1];
+                    Found = 1;
+                    goto found;
+                }
+                if (Room == Chaser_item_room_tbl[j][1]) {
+                    Room2 = Room_a;
+                    Found = 1;
+                    goto found;
+                }
+            }
+        }
+    }
+found:
+    for (i = 0; i < G.Chaser_drop_num; i++) {
+        if (G.Chaser_drop[i].Be_flg && Room == G.Chaser_drop[i].Room_id) {
+            goto drop;
+        }
+    }
+    if ((UCHAR)Found) {
+        for (i = 0; i < G.Chaser_drop_num; i++) {
+            if (G.Chaser_drop[i].Be_flg && Room2 == G.Chaser_drop[i].Room_id) {
+                goto drop;
+            }
+        }
+    }
+    for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
+        if ((ULONG)((*ppEm)->Id - 0x34) < 3) {
+            goto chaser;
+        }
+    }
+    goto end;
+chaser:
+    Om_no = pSce->Data[2];
+    Em_no = pSce->Data[1];
+    G.Status_flg |= 0x2000;
+    pOm = &pG->Ob_model[Om_no];
+    pOm->Unk4A = 8;
+    pOm->UnkC2 = 0xFF;
+    pOm->nFloor = 0;
+    pOm->Type = 0;
+    pOm->Be_flg = 0x6011;
+    if (G.pObj_work_end < pOm + 1) {
+        G.pObj_work_end = pOm + 1;
+    }
+    pOm->Attribute = 0x10;
+    pOm->M.t[0] = 600;
+    pOm->M.t[1] = -1800;
+    pOm->M.t[2] = -500;
+    pOm->Parts.Be_flg = 1;
+    pOm->Cdir.vx = 0;
+    pOm->Cdir.vy = 0;
+    pOm->Cdir.vz = 0;
+    pOm->Col.Unk24 = 0;
+    pOm->Col.Unk26 = 0;
+    pOm->Col.Unk28 = 0;
+    pOm->Col.W0 = 0;
+    pOm->Col.H = 0;
+    pOm->Col.D0 = 0;
+    pOm->pSuper = EM_WORKM(pG->pEnemy[Em_no + 2]);
+    Om_init((ENEMY_WORK *)pOm, G.pRoom->pOmodel[Om_no].Tmd_adr);
+    RotMatrix(&pOm->Cdir, &pOm->M);
+    CompM(pOm->pSuper, &pOm->M, &pOm->Workm);
+    pAot = (CHASER_ITEM_AOT *)G.pEm_mem;
+    G.pEm_mem = (ENEMY_WORK *)(pAot + 1);
+    pG->Sce_aot[31] = (struct tagSCE_AOT *)pAot;
+    pG->nSce_aot++;
+    pAot->Id = 0;
+    pAot->Type = 0x31;
+    pAot->nFloor = 0;
+    pAot->Super = 0;
+    pAot->X = -500;
+    pAot->Z = -500;
+    pAot->W = 1000;
+    pAot->D = 1000;
+    if (G.Clear_cnt == 0 && G.Chaser_drop_num == 6) {
+        pAot->iItem = 0xF;
+        pAot->nItem = 100;
+    } else {
+        pAot->iItem = Chaser_item_id_tbl[G.Chaser_drop_num];
+        pAot->nItem = Chaser_item_num_tbl[G.Chaser_drop_num];
+    }
+    pAot->Om_no = Om_no | 0x100;
+    pAot->Item_flg = D_800D2558 + 0xF0;
+    goto end;
+drop:
+    Om_no = pSce->Data[2];
+    pOm = &pG->Ob_model[Om_no];
+    pOm->Unk4A = 8;
+    pOm->nFloor = (SHORT)G.Chaser_drop[i].Pos_y / -1800;
+    pOm->UnkC2 = 0xFF;
+    pOm->Type = 0;
+    pOm->Be_flg = 0x6001;
+    if (G.pObj_work_end < pOm + 1) {
+        G.pObj_work_end = pOm + 1;
+    }
+    pOm->Attribute = 0x10;
+    pOm->M.t[0] = (SHORT)G.Chaser_drop[i].Pos_x;
+    pOm->M.t[1] = (SHORT)G.Chaser_drop[i].Pos_y;
+    pOm->M.t[2] = (SHORT)G.Chaser_drop[i].Pos_z;
+    pOm->Cdir.vx = 0;
+    pOm->Cdir.vy = 0;
+    pOm->Cdir.vz = 0;
+    if (Room == 0x30E) {
+        if (Hit_ck_point4(&pOm->M.t[0], &Chaser_zone_30E_0)) {
+            pOm->M.t[0] = 0x144B;
+            pOm->M.t[1] = 0;
+            pOm->M.t[2] = -0x1FA8;
+        } else if (Hit_ck_point4(&pOm->M.t[0], &Chaser_zone_30E_1)) {
+            pOm->M.t[0] = -0x103B;
+            pOm->M.t[1] = 0;
+            pOm->M.t[2] = -0x3B64;
+        }
+    }
+    pOm->Parts.Be_flg = 1;
+    pOm->Col.Unk24 = 0;
+    pOm->Col.Unk26 = 0;
+    pOm->Col.Unk28 = 0;
+    pOm->Col.W0 = 0;
+    pOm->Col.H = 0;
+    pOm->Col.D0 = 0;
+    pOm->pSuper = &GsIDMATRIX;
+    Om_init((ENEMY_WORK *)pOm, G.pRoom->pOmodel[Om_no].Tmd_adr);
+    RotMatrix(&pOm->Cdir, &pOm->M);
+    CompM(pOm->pSuper, &pOm->M, &pOm->Workm);
+    pAot = (CHASER_ITEM_AOT *)G.pEm_mem;
+    G.pEm_mem = (ENEMY_WORK *)(pAot + 1);
+    pG->Sce_aot[31] = (struct tagSCE_AOT *)pAot;
+    pG->nSce_aot++;
+    pAot->Id = 2;
+    pAot->Type = 0x31;
+    pAot->nFloor = pOm->M.t[1] / -1800;
+    pAot->Super = 0;
+    pAot->X = pOm->M.t[0] - 500;
+    pAot->Z = pOm->M.t[2] - 500;
+    pAot->W = 1000;
+    pAot->D = 1000;
+    pAot->iItem = G.Chaser_drop[i].Item_id;
+    if (G.Clear_cnt == 0 && i == 6) {
+        pAot->nItem = 100;
+    } else {
+        pAot->nItem = Chaser_item_num_tbl[i];
+    }
+    pAot->Item_flg = i + 0xF0;
+    pAot->Om_no = Om_no | 0x100;
+    Spd.vx = 0;
+    Spd.vy = -400;
+    Spd.vz = 0;
+    Esp_call(0x705, 0x28000000, &pOm->M, &Spd, NULL);
+end:
+    pSce->Data += 3;
+    return 1;
+}
 
 /* RE2 Sce_parts_bomb: makes part Parts fly off (colour R, G, B and speeds W[]) */
 ULONG Sce_parts_bomb(SCE_TASK *pSce)
