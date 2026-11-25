@@ -31,8 +31,8 @@ typedef struct tagESP_WORK {
     UCHAR Unk03;                       /* 0x03 */
     USHORT Attr;                       /* 0x04 */
     UCHAR pad06[0x8 - 0x6];
-    SHORT Unk08;                       /* 0x08 sprite scale x (Esp_trans_main) */
-    SHORT Unk0A;                       /* 0x0A sprite scale y */
+    USHORT Unk08;                      /* 0x08 sprite scale x (Esp_trans_main, 0x1000 = 1) */
+    USHORT Unk0A;                      /* 0x0A sprite scale y */
     signed char Acc_x;                 /* 0x0C */
     signed char Acc_y;                 /* 0x0D */
     signed char Acc_z;                 /* 0x0E */

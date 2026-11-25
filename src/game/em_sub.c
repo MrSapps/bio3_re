@@ -2578,7 +2578,7 @@ void Esp_1e(ESP_WORK *pEw)
         } else if (pEw->Size <= 0x2000) {
             pEw->Be_flg |= 2;
         }
-        if ((USHORT)pEw->Unk0A <= 0x500 || pEw->Size <= 0x300) {
+        if (pEw->Unk0A <= 0x500 || pEw->Size <= 0x300) {
             pEw->Be_flg = 0;
         }
         break;
