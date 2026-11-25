@@ -506,7 +506,7 @@ void Hikidashi_entrance(void)
         Game.Unk1 = 1;
         Cut_change(pG->Room_no_old);
         pG->Cut_no = pG->Room_no_old;
-        St.Unk6 = 1;
+        St.Hiki_flg = 1;
         G.Status_flg |= 0x80;
         pG->Front_func_rtn--;
         break;

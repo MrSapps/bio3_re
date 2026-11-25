@@ -22,7 +22,7 @@ typedef struct tagST_MAP_ARROW {
     SHORT Y;                           /* 0xA */
 } ST_MAP_ARROW;
 
-/* MAP.MAP (St.UnkCC) */
+/* MAP.MAP (St.pMap_file) */
 typedef struct tagST_MAP_PART {
     UCHAR U0;                          /* 0x0 */
     UCHAR V0;                          /* 0x1 */
@@ -51,128 +51,128 @@ typedef struct tagST_POS {
 /* status work (RE2 struct tagSTATUS role, RE3 layout; St at 0x800E01C0) */
 typedef struct tagST_WORK {
     UCHAR pad0[4];
-    UCHAR St_type;                     /* 0x04 RE2 St_type: screen (0/1 status, 2 item box, 3 file, 4/5 map) */
+    UCHAR St_type;                     /* 0x04 RE2 St_type: screen (0/1 status, 2 item box, 3 file, 4/5 map; 3/5 = picked up in a room) */
     UCHAR pad5;
-    UCHAR Unk6;                        /* 0x06 set when the drawer item is shown (sce_at Hikidashi_entrance) */
+    UCHAR Hiki_flg;                    /* 0x06 opened from a drawer (sce_at Hikidashi_entrance) */
     UCHAR pad7;
-    ULONG *pBuf;                       /* 0x08 load buffer (D_800E01C8) */
+    ULONG *pBuf;                       /* 0x08 load buffer */
     UCHAR padC[0x10 - 0xC];
-    UCHAR Rtn0;                        /* 0x10 */
-    UCHAR Rtn1;                        /* 0x11 */
-    UCHAR Rtn2;                        /* 0x12 */
-    UCHAR Unk13;                       /* 0x13 frame counter of the current step */
-    ULONG Flg14;                       /* 0x14 */
-    ULONG Flg;                         /* 0x18 */
-    signed char Unk1C;                 /* 0x1C inventory cursor */
-    UCHAR Unk1D;                       /* 0x1D */
-    UCHAR Unk1E;                       /* 0x1E */
-    signed char Unk1F;                 /* 0x1F item box cursor (0..63) */
-    signed char Unk20;                 /* 0x20 */
+    UCHAR Rtn0;                        /* 0x10 St_main_tbl step */
+    UCHAR Rtn1;                        /* 0x11 sub step (St_box_tbl, St_status_tbl, St_map_tbl) */
+    UCHAR Rtn2;                        /* 0x12 sub-sub step (St_mix_tbl, file list) */
+    UCHAR Timer;                       /* 0x13 frame counter of the current step */
+    ULONG Flg14;                       /* 0x14 0x40000000: inventory changed, reload the icons */
+    ULONG Flg;                         /* 0x18 ST_FLG_* draw and state bits */
+    signed char Cursor;                /* 0x1C inventory slot; -1 MAP, -2 FILE, < -2 EXIT */
+    UCHAR Cursor2;                     /* 0x1D second item of a combine */
+    UCHAR Cmd_cursor;                  /* 0x1E command window entry (equip/use, check, combine) */
+    signed char Box_cursor;            /* 0x1F item box slot (0..63, a ring) */
+    signed char File_cursor;           /* 0x20 file list slot (0..29) */
     UCHAR pad21;
-    SHORT Unk22;                       /* 0x22 */
-    SHORT Unk24;                       /* 0x24 */
+    SHORT Blink;                       /* 0x22 colour pulse 0..0x3F (St_counter_move) */
+    SHORT Blink_dir;                   /* 0x24 1: Blink going down */
     UCHAR pad26;
-    UCHAR Unk27;                       /* 0x27 task running */
-    UCHAR Unk28;                       /* 0x28 */
-    UCHAR Unk29;                       /* 0x29 */
-    USHORT Unk2A;                      /* 0x2A */
+    UCHAR Task_on;                     /* 0x27 the status task loops while set */
+    UCHAR Equip_id_old;                /* 0x28 equipped item on entry; St_exit changes the weapon if it differs */
+    UCHAR Pl_id;                       /* 0x29 */
+    USHORT Item_flg;                   /* 0x2A Flg of the item the command window is open for */
     UCHAR pad2C[0x2E - 0x2C];
-    UCHAR Unk2E;                       /* 0x2E */
-    UCHAR Unk2F;                       /* 0x2F */
-    UCHAR Unk30;                       /* 0x30 */
+    UCHAR Equip_save;                  /* 0x2E Equip_no_save/Equip_id_save hold the equip to restore */
+    UCHAR Equip_no_save;               /* 0x2F */
+    UCHAR Equip_id_save;               /* 0x30 */
     UCHAR pad31;
-    SHORT Unk32;                       /* 0x32 */
-    UCHAR Unk34;                       /* 0x34 condition (St_condition_get) */
-    UCHAR Unk35;                       /* 0x35 life to restore */
-    UCHAR Unk36;                       /* 0x36 cures poison */
+    SHORT Ecg_pos;                     /* 0x32 ECG line scroll */
+    UCHAR Condition;                   /* 0x34 St_condition_get: 0 fine .. 3 danger, 4 poison */
+    UCHAR Life_add;                    /* 0x35 life restored by the item being used */
+    UCHAR Poison_cure;                 /* 0x36 the item being used cures poison */
     UCHAR pad37[0x3A - 0x37];
-    UCHAR Unk3A;                       /* 0x3A */
-    UCHAR Unk3B;                       /* 0x3B */
-    UCHAR Unk3C;                       /* 0x3C */
-    UCHAR Unk3D;                       /* 0x3D */
-    UCHAR Unk3E;                       /* 0x3E */
+    UCHAR Slide_step;                  /* 0x3A command window slide (St_cmd_slide) */
+    UCHAR Slide_done;                  /* 0x3B */
+    UCHAR Slide_cnt;                   /* 0x3C */
+    UCHAR Slide_no;                    /* 0x3D */
+    UCHAR Cmd_closed;                  /* 0x3E */
     UCHAR pad3F[0x42 - 0x3F];
-    ITEM_WORK Unk42;                     /* 0x42 copy of the selected item entry */
+    ITEM_WORK Sel_item;                /* 0x42 copy of the selected item */
     UCHAR pad46[0x48 - 0x46];
-    ITEM_WORK *Unk48;                    /* 0x48 combine: item A */
-    ITEM_WORK *Unk4C;                    /* 0x4C combine: item B */
-    UCHAR *Unk50;                      /* 0x50 Item_data_tbl entry of Unk48 */
-    UCHAR *Unk54;                      /* 0x54 Item_data_tbl entry of Unk4C */
-    UCHAR *Unk58;                      /* 0x58 combine table record (8 bytes, Item_mix_tbl) */
-    UCHAR *Unk5C;                      /* 0x5C combine: slot no of item A */
-    UCHAR *Unk60;                      /* 0x60 combine: slot no of item B */
-    UCHAR Unk64;                       /* 0x64 combine result kind */
-    UCHAR Unk65;                       /* 0x65 combine result count */
-    SHORT Unk66;                       /* 0x66 */
-    SHORT Unk68;                       /* 0x68 */
-    UCHAR Unk6A;                       /* 0x6A weapon of a combine (Mix_tama_tbl) */
+    ITEM_WORK *pMix_a;                 /* 0x48 combine: item A */
+    ITEM_WORK *pMix_b;                 /* 0x4C combine: item B */
+    UCHAR *pData_a;                    /* 0x50 Item_data_tbl entry of item A */
+    UCHAR *pData_b;                    /* 0x54 Item_data_tbl entry of item B */
+    UCHAR *pMix;                       /* 0x58 Item_mix_tbl record of the combine */
+    UCHAR *pMix_cur_a;                 /* 0x5C cursor of item A (&Cursor) */
+    UCHAR *pMix_cur_b;                 /* 0x60 cursor of item B (&Cursor2) */
+    UCHAR Mix_type;                    /* 0x64 combine result kind (St_mix_result cases) */
+    UCHAR Mix_num;                     /* 0x65 combine result count */
+    SHORT Mix_dx;                      /* 0x66 icon slide per frame */
+    SHORT Mix_dy;                      /* 0x68 */
+    UCHAR Mix_tama_type;               /* 0x6A ammo kind of the combine (Mix_tama_tbl) */
     UCHAR pad6B[0x6E - 0x6B];
-    UCHAR Unk6E;                       /* 0x6E */
-    UCHAR Unk6F;                       /* 0x6F */
-    UCHAR Unk70;                       /* 0x70 */
-    signed char Unk71;                 /* 0x71 */
-    signed char Unk72;                 /* 0x72 */
-    UCHAR Unk73;                       /* 0x73 */
+    UCHAR Get_slot;                    /* 0x6E slot the picked-up item goes to */
+    UCHAR Zoom_w;                      /* 0x6F flying icon half size */
+    UCHAR Zoom_h;                      /* 0x70 */
+    signed char Zoom_dx;               /* 0x71 */
+    signed char Zoom_dy;               /* 0x72 */
+    UCHAR Get_stack;                   /* 0x73 1: added to an existing slot */
     UCHAR pad74[0x76 - 0x74];
-    UCHAR Unk76;                       /* 0x76 */
-    UCHAR Unk77;                       /* 0x77 */
+    UCHAR Chg_id;                      /* 0x76 item the examined item turns into */
+    UCHAR Chg_slot;                    /* 0x77 */
     UCHAR pad78[0x7C - 0x78];
-    LONG Unk7C;                        /* 0x7C */
-    LONG Unk80;                        /* 0x80 */
-    LONG Unk84;                        /* 0x84 */
-    LONG Unk88;                        /* 0x88 */
-    LONG Unk8C;                        /* 0x8C */
-    LONG Unk90;                        /* 0x90 */
-    LONG Unk94;                        /* 0x94 */
-    LONG Unk98;                        /* 0x98 */
-    LONG Unk9C;                        /* 0x9C */
-    LONG UnkA0;                        /* 0xA0 */
-    LONG UnkA4;                        /* 0xA4 */
-    UCHAR UnkA8;                       /* 0xA8 */
-    UCHAR UnkA9;                       /* 0xA9 */
-    UCHAR UnkAA;                       /* 0xAA */
-    UCHAR UnkAB;                       /* 0xAB */
-    UCHAR UnkAC;                       /* 0xAC */
-    UCHAR UnkAD;                       /* 0xAD */
-    signed char UnkAE;                 /* 0xAE */
-    signed char UnkAF;                 /* 0xAF */
-    UCHAR UnkB0;                       /* 0xB0 */
-    UCHAR UnkB1;                       /* 0xB1 */
+    LONG Map_x;                        /* 0x7C map scroll */
+    LONG Map_y;                        /* 0x80 */
+    LONG Map_x_old;                    /* 0x84 scroll before a zoom */
+    LONG Map_y_old;                    /* 0x88 */
+    LONG Map_dx_acc;                   /* 0x8C zoom easing accumulators */
+    LONG Map_dy_acc;                   /* 0x90 */
+    LONG Map_x0;                       /* 0x94 map origin (ST_MAP_INFO) */
+    LONG Map_y0;                       /* 0x98 */
+    LONG Map_x_max;                    /* 0x9C scroll limits (origin + 0x140 / 0xE0) */
+    LONG Map_y_max;                    /* 0xA0 */
+    LONG Map_zoom;                     /* 0xA4 percent, 50 or 100 */
+    UCHAR Zoom_out_flg;                /* 0xA8 */
+    UCHAR Pl_mark_flg;                 /* 0xA9 draw the player marker */
+    UCHAR Map_stage_cur;               /* 0xAA map stage the player is in */
+    UCHAR Map_stage;                   /* 0xAB map stage shown */
+    UCHAR Map_room_cur;                /* 0xAC map room the player is in */
+    UCHAR Floor_flg;                   /* 0xAD multi-floor map */
+    signed char Floor_disp;            /* 0xAE floor shown */
+    signed char Floor_pl;              /* 0xAF floor the player is on */
+    UCHAR Floor_num;                   /* 0xB0 */
+    UCHAR Menu_blink;                  /* 0xB1 area menu cursor blink */
     UCHAR padB2[0xB4 - 0xB2];
-    ULONG *pUnkB4;                     /* 0xB4 map data: word offsets to ST_MAP_ROOM/ST_MAP_INFO tables and (room, cut, flag, kind) lists */
-    USHORT UnkB8;                      /* 0xB8 */
-    UCHAR UnkBA;                       /* 0xBA */
-    signed char UnkBB;                 /* 0xBB */
-    UCHAR UnkBC;                       /* 0xBC file number */
-    UCHAR UnkBD;                       /* 0xBD page number */
-    signed char UnkBE;                 /* 0xBE blink timer */
-    UCHAR UnkBF;                       /* 0xBF */
-    UCHAR UnkC0;                       /* 0xC0 */
-    UCHAR UnkC1;                       /* 0xC1 */
+    ULONG *pMap_data;                  /* 0xB4 map data: word offsets to ST_MAP_ROOM/ST_MAP_INFO tables and ST_MAP_FLG lists */
+    USHORT Map_event;                  /* 0xB8 map opened by an event (sce2 opcode): 1 stage 0, 2 stage 4 */
+    UCHAR Map_return;                  /* 0xBA map re-entered after an area change */
+    signed char Area_cursor;           /* 0xBB area menu cursor */
+    UCHAR File_no;                     /* 0xBC file being read */
+    UCHAR Page_no;                     /* 0xBD page being read */
+    signed char Blink_timer;           /* 0xBE page arrow blink, -20..20 */
+    UCHAR File_exit;                   /* 0xBF exit marker selected on the last page */
+    UCHAR Page_cnt;                    /* 0xC0 page turn slide */
+    UCHAR File_page;                   /* 0xC1 file list page 0/1 */
     UCHAR padC2[0xC4 - 0xC2];
-    SHORT UnkC4;                       /* 0xC4 */
-    SHORT UnkC6;                       /* 0xC6 */
-    SHORT UnkC8;                       /* 0xC8 */
-    UCHAR UnkCA;                       /* 0xCA */
-    UCHAR UnkCB;                       /* 0xCB */
-    ULONG *UnkCC;                      /* 0xCC MAP.MAP data */
-    UCHAR UnkD0;                       /* 0xD0 clut rows of the status textures */
-    UCHAR UnkD1;                       /* 0xD1 */
-    UCHAR UnkD2;                       /* 0xD2 */
-    UCHAR UnkD3;                       /* 0xD3 */
-    UCHAR UnkD4;                       /* 0xD4 */
-    UCHAR UnkD5;                       /* 0xD5 */
-    UCHAR UnkD6;                       /* 0xD6 */
-    UCHAR UnkD7;                       /* 0xD7 */
-    UCHAR UnkD8;                       /* 0xD8 */
+    SHORT Page_spd;                    /* 0xC4 */
+    SHORT Page_acc;                    /* 0xC6 */
+    SHORT Box_scroll;                  /* 0xC8 item box scroll offset (+-20) */
+    UCHAR Box_scroll_dir;              /* 0xCA */
+    UCHAR Box_fast;                    /* 0xCB L1/R1 page scroll: 1 up, 2 down */
+    ULONG *pMap_file;                  /* 0xCC MAP.MAP entry */
+    UCHAR Clut_frame;                  /* 0xD0 clut rows (y - 0x1E0) of the status textures: panels */
+    UCHAR Clut_icon;                   /* 0xD1 item icons */
+    UCHAR Clut_face;                   /* 0xD2 */
+    UCHAR Clut_parts;                  /* 0xD3 font, arrows, markers (+n variants) */
+    UCHAR Clut_zoom;                   /* 0xD4 examined item picture (ITEMG) */
+    UCHAR Clut_box;                    /* 0xD5 item box bar */
+    UCHAR Clut_unused;                 /* 0xD6 */
+    UCHAR Clut_page;                   /* 0xD7 file page */
+    UCHAR Clut_file;                   /* 0xD8 file icons */
     UCHAR padD9[0xE0 - 0xD9];
-    UCHAR *UnkE0;                      /* 0xE0 */
+    UCHAR *pChk;                       /* 0xE0 Item_check_tbl record of the examined item */
     ST_POS Pos[32];                    /* 0xE4 panel positions, indexed by the prm>>8 byte of the prim setters */
     DR_TPAGE Ot[2][40];                /* 0x164 per-buffer ordering nodes, index prm>>16 of the prim setters */
-    DR_TPAGE Tpage[2][2];              /* 0x3E4 */
-    DR_TPAGE Tp404[4];                 /* 0x404 */
-    DR_TPAGE Tp424[2];                 /* 0x424 */
-    DR_TPAGE Tp434[2];                 /* 0x434 */
+    DR_TPAGE Tpage[2][2];              /* 0x3E4 file viewer */
+    DR_TPAGE Map_tpage[4];             /* 0x404 map, two per buffer */
+    DR_TPAGE Map_win_tpage[2];         /* 0x424 map area window */
+    DR_TPAGE File_tpage[2];            /* 0x434 file icons */
 } ST_WORK;
 extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 

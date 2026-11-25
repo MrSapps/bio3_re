@@ -1454,7 +1454,7 @@ ULONG func_80058C70(SCE_TASK *pSce)
     x = pSce->Data[2];
     G.Status_flg |= 0x200;
     Game.Unk1 = 1;
-    St.UnkB8 = x;
+    St.Map_event = x;
     pSce->Data += 4;
     return 1;
 }
