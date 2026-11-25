@@ -283,8 +283,40 @@ ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT)
     return 0;
 }
 
-/* push a COL_OBJ off a circle at (X, Z) radius R (another character, from oba Oba_em_hit_ck): pass-through test on the perpendicular diameter (Sca_ck_pass_line) plus Sca_hit_circle on Tmp_Sca */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_circle_obj);
+/* push pObj out of the circle of radius R around another object at (X, Z) (oba.c): first the
+   object's move is tested against the circle's diameter across the move direction (Sca_ck_pass_line),
+   then the circle push of Sca_hit_circle */
+LONG Sca_hit_obj_circle(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old)
+{
+    SCA_WORK *pW;
+    LONG Dz;
+    LONG Dx;
+    LONG Len;
+    LONG Ox;
+    LONG Oz;
+    LONG Ret;
+
+    pW = &Sca_work;
+    Dz = pObj->Pos_z - pObj->Old_z;
+    Dx = pObj->Old_x - pObj->Pos_x;
+    Ret = 0;
+    Len = SquareRoot0(Dz * Dz + Dx * Dx);
+    if (Len != 0) {
+        Dz *= R;
+        Ox = Dz / Len;
+        Dx *= R;
+        Oz = Dx / Len;
+        pW->Pt0 = ((X + Ox) << 16) | ((Z + Oz) & 0xFFFF);
+        pW->Pt1 = ((X - Ox) << 16) | ((Z - Oz) & 0xFFFF);
+        Ret = Sca_ck_pass_line(pObj, W, Old);
+    }
+    Tmp_Sca.X0 = X - R;
+    Tmp_Sca.Z0 = Z - R;
+    Tmp_Sca.X1 = X + R;
+    Tmp_Sca.Z1 = Z + R;
+    Ret |= Sca_hit_circle(pObj, W, &Tmp_Sca, Old);
+    return Ret;
+}
 
 /* did the move Old->Pos cross the segment Sca_work.Pt0-Pt1 (GTE nclip); if so add (Old - Pos) back and return 1 */
 ULONG Sca_ck_pass_line(COL_OBJ *pObj, LONG R, ULONG P0)
@@ -361,8 +393,76 @@ ULONG Sca_get_area(LONG X, LONG Z)
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground);
 
-/* highest standable top of the collision objects (Oba_work list, box/circle) under the position, starting from the room ground; records the character stood on in Sca_work.pEm_hit/pEm_hit2; called by Sca_get_ground */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground_oba);
+/* Sca_get_ground's pass over the collision object list: the highest top (lowest y) below Ground of the
+   objects under pPos; a character found there goes to pEm_hit/pEm_hit2 */
+LONG Sca_get_ground_obj(VECTOR *pPos, LONG R, ULONG Att, ULONG Flg, LONG Ground)
+{
+    SCA_WORK *pW;
+    COL_ENT *pEnt;
+    SCA_DATA *pT;
+    ULONG Area;
+    LONG High;
+
+    pW = &Sca_work;
+    pW->pEm_hit = NULL;
+    pW->pEm_hit2 = NULL;
+    High = Ground;
+    Area = Sca_get_area((SHORT)pPos->vx, (SHORT)pPos->vz);
+    pT = (SCA_DATA *)Oba_work.Ent;
+    for (pEnt = (COL_ENT *)pT; ((COL_ENT *)pT)->C.All != -1; pEnt = (COL_ENT *)pT) {
+        if ((pT->Type & Area) && (pT->Id & Att)) {
+            switch (pT->Id & 0xF) {
+            case 1:
+            case 7:
+                if (pPos->vy > pT->Floor_lo * -1800) {
+                    goto next;
+                }
+                if (pT->High >= Ground) {
+                    goto next;
+                }
+                if ((ULONG)(pPos->vx - pT->X0) < (ULONG)(pT->X1 - pT->X0) && (ULONG)(pPos->vz - pT->Z0) < (ULONG)(pT->Z1 - pT->Z0)) {
+                    High = pT->High;
+                }
+                break;
+            case 0:
+                if (Flg & 0x14) {
+                    if ((Flg & 0x10) && pEnt->Type != 3) {
+                        break;
+                    }
+                    pT = &Tmp_Sca;
+                    Oba_tmp_sca_set(pEnt->pObj, pT);
+                    if (pPos->vy > pT->Floor_lo * -1800) {
+                        goto next;
+                    }
+                    if (pT->High >= Ground) {
+                        goto next;
+                    }
+                    if (Sca_ck_circle(pPos, 0, pT)) {
+                        High = pT->High;
+                    }
+                }
+                break;
+            }
+            if (High < Ground) {
+                Ground = High;
+                if (High < pPos->vy) {
+                    if (pEnt->Type < 3) {
+                        pW->pEm_hit = pEnt->pObj->pEm;
+                        pW->pEm_hit2 = NULL;
+                        pW->Unk24 = 0x1000;
+                    } else {
+                        pW->pEm_hit2 = pEnt->pObj->pEm;
+                        pW->pEm_hit = NULL;
+                        pW->Unk24 = 0x1000;
+                    }
+                }
+            }
+        }
+    next:
+        pT = (SCA_DATA *)(pEnt + 1);
+    }
+    return Ground;
+}
 
 /* copy the 0xFF-terminated shape index list of the 16x16 room grid block containing pPos (table of USHORT offsets + byte lists); used by Sca_get_ground */
 ULONG Sca_get_block(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut)

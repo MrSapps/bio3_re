@@ -367,7 +367,7 @@ typedef struct tagGLOBAL {
     UCHAR Esp_clut_num;                /* 0x2113 height of the first effect TIM (Esp_data_set1): CLUT rows below 0x1E0, Col_chg_init uses the next */
     UCHAR Unk2114;                     /* 0x2114 cleared by Init_system */
     UCHAR Ovl_mode;                    /* 0x2115 mode passed to the menu overlays (title/option/mem_card/ending: result routine) */
-    UCHAR Bonus_timer;                 /* 0x2116 Mercenaries: frames the time bonus stays on screen (Quake_add, func_80048520) */
+    UCHAR Bonus_timer;                 /* 0x2116 Mercenaries: frames the time bonus stays on screen (Quake_add, Bonus_time_disp) */
     UCHAR pad2117;
     SHORT Bonus_time;                  /* 0x2118 Mercenaries: seconds gained, shown as "[%dsec" */
     USHORT Score;                      /* 0x211A Mercenaries score (result) */
@@ -488,7 +488,7 @@ typedef struct tagGLOBAL {
     ULONG Item_flg[8];                 /* 0x78D0 RE2 G.SaveData.Item_flg: room items taken, stages 0-1 */
     ULONG Item_flg2[8];                /* 0x78F0 RE2 G.SaveData.Item_flg2: same from stage 2 on */
     ULONG Item_chk_flg[1];             /* 0x7910 items examined once (RE2 Item_c_flg; exe symbol Item_chk_flg; Flg_addr[46]) */
-    ULONG Pri_be_flg[32];              /* 0x7914 RE2 G.SaveData.Pri_be_flg: one sprite-priority word per cut, index Cut_no (Psp_trans; -1 by func_800486C8) */
+    ULONG Pri_be_flg[32];              /* 0x7914 RE2 G.SaveData.Pri_be_flg: one sprite-priority word per cut, index Cut_no (Psp_trans; -1 by Pri_be_flg_init) */
     ULONG Key_flg[2];                  /* 0x7994 RE2 G.SaveData.Key_flg: doors unlocked (Key_id & 0x3F) */
     ULONG Om_flg[1];                   /* 0x799C object model on/off bits (sce1 Om_rev, om; Flg_addr[45]) */
     UCHAR pad79A0[0x79A4 - 0x79A0];

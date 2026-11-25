@@ -43,7 +43,9 @@ typedef struct tagSCA_WORK {
     LONG Z;                            /* 0x10 */
     LONG Old_x;                        /* 0x14 */
     LONG Old_z;                        /* 0x18 */
-    UCHAR pad1C[0x28 - 0x1C];
+    UCHAR pad1C[0x24 - 0x1C];
+    USHORT Unk24;                      /* 0x24 0x1000 when Sca_get_ground_obj finds a character under the point */
+    UCHAR pad26[0x28 - 0x26];
     struct tagENEMY_WORK *pEm_hit;     /* 0x28 character hit by Sca_ck_line-like scans (Sca_ck_line_oba) */
     struct tagENEMY_WORK *pEm_hit2;    /* 0x2C same, for objects of type >= 3 */
 } SCA_WORK;
@@ -64,12 +66,12 @@ ULONG Sca_hosei_box(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT);
 ULONG Sca_hit_slope(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
 ULONG Sca_hit_naname(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3);
 ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT);
-LONG Sca_hit_circle_obj(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old);
+LONG Sca_hit_obj_circle(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old);
 ULONG Sca_ck_pass_line(COL_OBJ *pObj, LONG R, ULONG P0);
 LONG Sca_hit_dummy(void);
 ULONG Sca_get_area(LONG X, LONG Z); /* area bits of a point */
 LONG Sca_get_ground(LONG *pPos, ULONG a1, ULONG a2, ULONG a3); /* ground height */
-void Sca_get_ground_oba(LONG Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
+LONG Sca_get_ground_obj(VECTOR *pPos, LONG R, ULONG Att, ULONG Flg, LONG Ground);
 ULONG Sca_get_block(VECTOR *pPos, LONG Arg1, UCHAR *pTbl, UCHAR *pOut);
 ULONG Sca_ck_circle2(VECTOR *pPos, LONG R, SCA_DATA *pT);
 LONG Sca_high_dummy(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High);
