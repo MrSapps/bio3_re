@@ -35,7 +35,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0 = 0;
         Snd_se_stad(((Rnd_l() & 1) << 1) | 0x10000, POS_V(pEm), 0, 0);
         pEm->UnkDA = 0;
-        pEm->Unk12C = 0;
+        pEm->Damage_no = 0;
         pEm->Neck_flg |= 0x12;
     case 1:
         Goto01(pEm, pAi->Cdir_y + pEm->Timer0, 0xD0);

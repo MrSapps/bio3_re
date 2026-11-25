@@ -133,14 +133,14 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM26_W(pEm)->No_catch_cnt--;
     if (EM26_W(pEm)->Unk0C)
         EM26_W(pEm)->Unk0C--;
-    Dist = (pTg == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
+    Dist = (pTg == G_PLAYER) ? pEm->L_pl : pEm->Unk158;
     if (Dist < 2000 && !Dir0)
         if (!EM26_W(pEm)->Unk0C && !EM26_W(pEm)->No_catch_cnt && !(pTg->Damage_cnt & 0x7F)) {
             pEm->Routine_1 = 3;
             EM_RTN23(pEm) = 0;
         }
     pTg = G_PLAYER;
-    if ((LONG)pEm->Unk154 < 550 && (G.Unk75E8 & 6) && pEm->nFloor == pTg->nFloor) {
+    if ((LONG)pEm->L_pl < 550 && (G.Unk75E8 & 6) && pEm->nFloor == pTg->nFloor) {
         if (EM_RTN01(pTg) == 0x101 || EM_RTN01(pTg) == 0x201 || EM_RTN01(pTg) == 0x301 || EM_RTN01(pTg) == 0x401) {
             EM_SET_RTN(pEm, 3, 0, 0, 0);
             Pad_vib_set0(1, 0);
@@ -166,7 +166,7 @@ void func_80100614(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM26_W(pEm)->Atck_flg = 0;
         EM26_W(pEm)->Chase_rot = ((0x1111 >> (Rnd() & 0xF)) & 1) ? -0x40 : 0x40;
         if ((LONG)G.Status_flg < 0) {
-            if ((LONG)pEm->Unk154 < (pEm->Unk158 & 0x3FFFFFFF))
+            if ((LONG)pEm->L_pl < (pEm->Unk158 & 0x3FFFFFFF))
                 EM26_W(pEm)->pTarget_pl = G_PLAYER;
             else
                 EM26_W(pEm)->pTarget_pl = G.pEnemy[1];
@@ -222,7 +222,7 @@ void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_y = 40;
         pEm->Be_flg |= 0x4000;
         Ground = func_8004D720_(&pEm->Pos_x, pEm->Col.W0, 0x200, 8, pEm->Pos_y);
-        pEm->Unk122 = Ground;
+        pEm->Ground = Ground;
         EM26_W(pEm)->Jump_flg = 1;
         pEm->nFloor = Ground / -1800;
     }
@@ -243,7 +243,7 @@ void func_80100848(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Be_flg |= 0x20;
         } else {
             pEm->Routine_1 = 1;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
             pEm->Be_flg &= ~0x20;
         }
         EM_RTN23(pEm) = 0;
@@ -284,7 +284,7 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_RTN23(pEm) = 0;
             pFp->No_catch_cnt = (Rnd() & 0x1F) + 0x1E;
             pEm->Be_flg &= ~0x20;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
         }
     }
 }
@@ -311,7 +311,7 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_8010100C(pEm, 0, 0x82);
         pEm->UnkE2 += Rnd() & 7;
     }
-    Dist = (EM26_W(pEm)->pTarget_pl == G_PLAYER) ? pEm->Unk154 : pEm->Unk158;
+    Dist = (EM26_W(pEm)->pTarget_pl == G_PLAYER) ? pEm->L_pl : pEm->Unk158;
     if (Dist < 2000 && !Dir0)
         if (!(pTg->Damage_cnt & 0x7F)) {
             pEm->Routine_1 = 3;
@@ -352,7 +352,7 @@ void func_80100CD0(void) {
 /* RE2 Em26_Die */
 void func_80100CD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if (Water_ck(pEm->Pos_x, pEm->Pos_z) >= pEm->Unk122 || EM26_W(pEm)->Jump_flg)
+    if (Water_ck(pEm->Pos_x, pEm->Pos_z) >= pEm->Ground || EM26_W(pEm)->Jump_flg)
         func_80100D5C(pEm, pKan, pSeq);
     else
         func_80100E38(pEm, pKan, pSeq);
@@ -391,7 +391,7 @@ void func_80100E38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Cdir_y += 0x20;
     pEm->Cdir_z += 0x40;
     Joint_move(pEm, pKan, pSeq, 0x400);
-    if (pEm->Pos_y >= pEm->Unk122 || pEm->Pos_y < pEm->Water)
+    if (pEm->Pos_y >= pEm->Ground || pEm->Pos_y < pEm->Water)
         KILL_ENEMY_WORK(pEm);
 }
 
@@ -414,7 +414,7 @@ ULONG func_80100EF4(ENEMY_WORK *pEm, ULONG Pl)
     pFp = EM26_W(pEm);
     if (!Pl) {
         pPl = &Pl_work;
-        Dist = pEm->Unk154;
+        Dist = pEm->L_pl;
     } else {
         pPl = G.pEnemy[1];
         Dist = pEm->Unk158 & 0x3FFFFFFF;
@@ -450,7 +450,7 @@ void func_8010100C(ENEMY_WORK *pTg, UCHAR Parts, UCHAR Type)
     pP += Parts;
     Sv.vx = pP->Workm.t[0];
     Sv.vy = pP->Workm.t[1];
-    if ((Type & 0x80) && pTg->Water < pTg->Unk122)
+    if ((Type & 0x80) && pTg->Water < pTg->Ground)
         Sv.vy = pTg->Water + 10;
     Sv.vz = pP->Workm.t[2];
     Esp_call(((pTbl->Flg & 0xF) << 24) | (pTbl->Type << 8) | pTbl->Id, (pTbl->Zoom << 16) | (USHORT)Dir, &GsIDMATRIX, &Sv, NULL);
@@ -471,7 +471,7 @@ LONG func_80101100(ENEMY_WORK *pEm)
     LONG Wat;
 
     Wat = Water_ck(pEm->Pos_x, pEm->Pos_z);
-    if (pEm->Pos_y >= pEm->Unk122)
+    if (pEm->Pos_y >= pEm->Ground)
         return 1;
     if (pEm->Pos_y - 10 >= Wat)
         return Wat;

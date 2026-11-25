@@ -17,7 +17,7 @@ void func_8010014C(ENEMY_WORK *pEm)
         pEm->Damage_cnt--;
     pEm->nFloor = pEm->Pos_y / -1800;
     if (!(EF(pEm)->Flg & 0x100))
-        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
+        pEm->Ground = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
     Vec0.vx = pEm->Pos_x;
     Vec0.vy = pEm->Pos_y;
     Vec0.vz = pEm->Pos_z;
@@ -28,7 +28,7 @@ void func_8010014C(ENEMY_WORK *pEm)
         EF(pEm)->Flg |= 2;
     else
         EF(pEm)->Flg &= ~2;
-    if ((LONG)pEm->Unk154 < 1100)
+    if ((LONG)pEm->L_pl < 1100)
         pEm->Col.Unk26 = 180;
     else
         pEm->Col.Unk26 = 530;
@@ -54,7 +54,7 @@ void func_801002F8(ENEMY_WORK *pEm)
     LONG Half;
 
     if (pEm->Routine_0 != 7) {
-        Dy = pEm->Unk122 - pEm->Pos_y - 250;
+        Dy = pEm->Ground - pEm->Pos_y - 250;
         if (Dy > 0) {
             Half = 0x57E40 / ((Dy + 0x708) >> 1);
             *(ULONG *)&pK->Half_x = Half | (Half << 16);
@@ -188,11 +188,11 @@ void func_80100834(ENEMY_WORK *pEm)
     LONG D0;
 
     D0 = 0;
-    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0 && (LONG)pEm->Unk154 < 1800)
+    if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0 && (LONG)pEm->L_pl < 1800)
         return;
-    if ((LONG)pEm->Unk154 <= 1800)
+    if ((LONG)pEm->L_pl <= 1800)
         D0 = 1;
-    if ((G.Unk75E8 & 4) && (LONG)pEm->Unk154 <= 5400)
+    if ((G.Unk75E8 & 4) && (LONG)pEm->L_pl <= 5400)
         D0 = 1;
     if (G.Unk75E8 & 1)
         D0 = 1;
@@ -442,13 +442,13 @@ void func_8010104C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80101238(ENEMY_WORK *pEm)
 {
     if (pEm->Type & 0x80) {
-        if ((LONG)pEm->Unk154 > 10800) {
+        if ((LONG)pEm->L_pl > 10800) {
             if (Rnd_l() & 0xF)
                 func_80104648(pEm, 8);
             else
                 func_80104648(pEm, 7);
         }
-    } else if ((LONG)pEm->Unk154 > 7200) {
+    } else if ((LONG)pEm->L_pl > 7200) {
         if (Rnd_l() & 3)
             func_80104648(pEm, 8);
         else
@@ -458,13 +458,13 @@ void func_80101238(ENEMY_WORK *pEm)
         pEm->Timer0 = Rnd_l() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
         func_80104648(pEm, 5);
-    } else if (pEm->Pos_y - pEm->Unk122 > -1800) {
+    } else if (pEm->Pos_y - pEm->Ground > -1800) {
         pEm->Timer0 = Rnd_l() & 0x3F;
         EF(pEm)->Tmp_0 = -120;
         func_80104648(pEm, 5);
     } else if (!(Rnd_l() & 0xF)) {
         pEm->Timer0 = Rnd_l() & 0x3F;
-        if (pEm->Unk122 - 3600 < pEm->Pos_y) {
+        if (pEm->Ground - 3600 < pEm->Pos_y) {
             EF(pEm)->Tmp_0 = -40;
             func_80104648(pEm, 5);
         } else {
@@ -514,9 +514,9 @@ void func_80101400(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80101538(ENEMY_WORK *pEm)
 {
     if (pEm->Type & 0x80) {
-        if (pEm->Pos_y < pEm->Unk122 - 6000)
+        if (pEm->Pos_y < pEm->Ground - 6000)
             func_80104648(pEm, 4);
-    } else if (pEm->Pos_y < pEm->Unk122 - 4800) {
+    } else if (pEm->Pos_y < pEm->Ground - 4800) {
         func_80104648(pEm, 4);
     }
     if (pEm->Timer0-- == 0)
@@ -553,7 +553,7 @@ void func_80101620(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* RE2 Em21_br_down_i */
 void func_80101708(ENEMY_WORK *pEm)
 {
-    if (pEm->Unk122 - 1800 < pEm->Pos_y)
+    if (pEm->Ground - 1800 < pEm->Pos_y)
         func_80104648(pEm, 4);
     if (pEm->Timer0-- == 0)
         func_80104648(pEm, 4);
@@ -615,7 +615,7 @@ void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
         Add_speedXYZ(pEm, 0, 0);
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (pEm->Pos_y - D0 > -300)
             pEm->Routine_2 = 2;
         Joint_move(pEm, pKan, pSeq, 0x200);
@@ -641,7 +641,7 @@ void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 4:
         pEm->Spd_x = 10;
         pEm->Spd_y = 0;
-        pEm->Pos_y = pEm->Unk122 - 250;
+        pEm->Pos_y = pEm->Ground - 250;
         EF(pEm)->Cnt = 0xFF;
         pEm->Routine_2 = 5;
     case 5:
@@ -653,7 +653,7 @@ void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
         Add_speedXYZ(pEm, 0, 0);
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y)
             pEm->Pos_y = D0;
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
@@ -665,7 +665,7 @@ void func_801018AC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 6:
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x80);
         Add_speedXYZ(pEm, 0, 0);
-        pEm->Pos_y = pEm->Unk122 - 250;
+        pEm->Pos_y = pEm->Ground - 250;
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EF(pEm)->Flg &= ~0x100;
             if (G.Player.Life < 0 && EF(pEm)->Pl_dead_cnt <= 0) {
@@ -703,7 +703,7 @@ void func_80101C0C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (EF(pEm)->Cnt2-- == 0)
             EF(pEm)->Cnt2 = 14;
-        if ((LONG)pEm->Unk154 < 900 && G.Player.Pos_y - 3700 < pEm->Pos_y)
+        if ((LONG)pEm->L_pl < 900 && G.Player.Pos_y - 3700 < pEm->Pos_y)
             pEm->Pos_y -= 50;
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x80);
         pEm->Cdir_y += (signed char)EF(pEm)->Tmp;
@@ -764,7 +764,7 @@ void func_80101E5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vx = pEm->Pos_x;
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -803,7 +803,7 @@ void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         EM_SET_MOVE(pEm, 4, 0, 7);
-        EF(pEm)->Tmp_0 = G.Player.Unk122 - 2800;
+        EF(pEm)->Tmp_0 = G.Player.Ground - 2800;
         D0 = EF(pEm)->Tmp_0 - pEm->Pos_y;
         if (D0 < 0)
             EF(pEm)->Tmp = 0;
@@ -821,14 +821,14 @@ void func_8010207C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Spd_x < 300)
             pEm->Spd_x += 5;
         Joint_move(pEm, pKan, pSeq, 0x200);
-        D0 = G.Player.Unk122 - 2800;
+        D0 = G.Player.Ground - 2800;
         if (EF(pEm)->Tmp == 0) {
             if (D0 < pEm->Pos_y)
                 pEm->Pos_y -= 40;
         } else if (pEm->Pos_y < D0) {
             pEm->Pos_y += 40;
         }
-        if ((LONG)pEm->Unk154 < 900) {
+        if ((LONG)pEm->L_pl < 900) {
             D0 = D0 - pEm->Pos_y;
             if (D0 > -360 && D0 < 360 && pEm->Spd_x > 230) {
                 func_80104648(pEm, 12);
@@ -879,7 +879,7 @@ void func_80102298(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vx = pEm->Pos_x;
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -941,7 +941,7 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Goto00(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x80);
             if (pEm->Spd_x < 300)
                 pEm->Spd_x += 4;
-            if ((LONG)pEm->Unk154 < 2300) {
+            if ((LONG)pEm->L_pl < 2300) {
                 if (EF(pEm)->Atck == 0) {
                     if (EF(pEm)->Unk0B == 0)
                         Snd_se_enem(6, pEm);
@@ -949,7 +949,7 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     EF(pEm)->Atck = 1;
                 }
             }
-            if ((LONG)pEm->Unk154 >= 2300) {
+            if ((LONG)pEm->L_pl >= 2300) {
                 if (EF(pEm)->Atck == 1)
                     EF(pEm)->Atck = 0;
             }
@@ -959,7 +959,7 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Spd_x += 12;
         }
         Joint_move(pEm, pKan, pSeq, 0x200);
-        EF(pEm)->Tmp_0 = G.Player.Unk122 - 2800;
+        EF(pEm)->Tmp_0 = G.Player.Ground - 2800;
         D1 = EF(pEm)->Tmp_0 - pEm->Pos_y;
         if (D1 < -60 || D1 > 60) {
             if (D1 < -60)
@@ -967,9 +967,9 @@ void func_80102550(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             else if (D1 > 60)
                 pEm->Pos_y += 60;
         }
-        if ((LONG)pEm->Unk154 < 900)
+        if ((LONG)pEm->L_pl < 900)
             func_80104D50(pEm, 100);
-        if ((LONG)pEm->Unk154 < 650) {
+        if ((LONG)pEm->L_pl < 650) {
             if (D1 > -100 && D1 < 100)
                 func_80104648(pEm, 14);
         } else {
@@ -1103,7 +1103,7 @@ void func_801027C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80102C48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Root_ck(pEm, POS_V(&G.Player), 0, 0);
-    Em21_dm[pEm->Unk12C - 1](pEm, pKan, pSeq);
+    Em21_dm[pEm->Damage_no - 1](pEm, pKan, pSeq);
 }
 
 /* RE2 Em21_dm00 */
@@ -1154,7 +1154,7 @@ void func_80102CC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Svec.vx = pEm->Pos_x;
         Svec.vy = pEm->Pos_y;
         Svec.vz = pEm->Pos_z;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -1296,7 +1296,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ_n(pEm, 0, 0);
         pEm->Pos_y += pEm->Spd_y;
         pEm->Spd_y += 20;
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             Snd_se_enem(5, pEm);
             pEm->Pos_y = D0;
@@ -1308,7 +1308,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_x = EF(pEm)->Old_x;
             pEm->Pos_y = EF(pEm)->Old_y;
             pEm->Pos_z = EF(pEm)->Old_z;
-            pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
+            pEm->Ground = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
             Snd_se_enem(3, pEm);
             func_80104C00(pEm);
             pEm->Spd_y = 0;
@@ -1327,7 +1327,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_y += pEm->Spd_y;
         pEm->Spd_y += 20;
         Add_speedXZ_n(pEm, 0, 0);
-        D0 = pEm->Unk122 - 250;
+        D0 = pEm->Ground - 250;
         if (D0 < pEm->Pos_y) {
             func_80104D50(pEm, 350);
             Snd_se_enem(5, pEm);
@@ -1792,7 +1792,7 @@ void func_801047A8(ENEMY_WORK *pEm)
         return;
     }
     Dy = -(pEm->Pos_y + 2800) + G.Player.Pos_y;
-    if ((LONG)pEm->Unk154 > 900 && (LONG)pEm->Unk154 < 7200 && !(G.Unk75EA & 1) && (EF(pEm)->Flg & 2)
+    if ((LONG)pEm->L_pl > 900 && (LONG)pEm->L_pl < 7200 && !(G.Unk75EA & 1) && (EF(pEm)->Flg & 2)
         && Dy < 1800 && Dy > -1800 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100)) {
         G.Unk75EA |= 1;
         EF(pEm)->Flg |= 4;
@@ -1802,7 +1802,7 @@ void func_801047A8(ENEMY_WORK *pEm)
             func_80104648(pEm, 13);
         return;
     }
-    if ((LONG)pEm->Unk154 < 900 && Dy < 900 && Dy > -1800) {
+    if ((LONG)pEm->L_pl < 900 && Dy < 900 && Dy > -1800) {
         if (!EF(pEm)->Obj_cnt && pEm->Spd_x > 230 && !(G.Unk75EA & 1)) {
             if (!Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100))
                 func_80104648(pEm, 12);
@@ -1837,7 +1837,7 @@ void func_80104A08(ENEMY_WORK *pEm)
 /* RE2 Em21_pl_dead_ck */
 void func_80104A90(ENEMY_WORK *pEm)
 {
-    if ((LONG)pEm->Unk154 < 1800)
+    if ((LONG)pEm->L_pl < 1800)
         func_80104648(pEm, 7);
 }
 
@@ -1854,7 +1854,7 @@ void func_80104AC4(ENEMY_WORK *pEm)
             G.Unk75EA &= ~1;
             EF(pEm)->Flg &= ~4;
         }
-        if ((LONG)pEm->Unk154 > 14400) {
+        if ((LONG)pEm->L_pl > 14400) {
             EF(pEm)->Atck = 0;
             EF(pEm)->Unk0B = 0;
             G.Unk75EA &= ~1;
@@ -1970,7 +1970,7 @@ void func_80104F48(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 0, 0, 7);
         pEm->Routine_2 = 1;
-        pEm->Unk12C = 0;
+        pEm->Damage_no = 0;
     case 1:
         Spd_get(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {

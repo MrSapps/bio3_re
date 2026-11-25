@@ -833,7 +833,7 @@ void Member_set_branch(ENEMY_WORK *pW, ULONG Member, LONG D0)
         pW->Status_flg = D0;
         break;
     case 17:
-        pW->Unk122 = D0;
+        pW->Ground = D0;
         break;
     case 18:
         pW->Dest_x = D0;
@@ -902,10 +902,10 @@ void Member_set_branch(ENEMY_WORK *pW, ULONG Member, LONG D0)
         pW->UnkC = D0;
         break;
     case 40:
-        pW->Unk12A = D0;
+        pW->Mot_scale_y = D0;
         break;
     case 41:
-        pW->Unk12C = D0;
+        pW->Damage_no = D0;
         break;
     case 42:
         pW->UnkD = D0;
@@ -952,7 +952,7 @@ LONG Load_member_branch(ENEMY_WORK *pW, ULONG Member)
     case 16:
         return pW->Status_flg;
     case 17:
-        return pW->Unk122;
+        return pW->Ground;
     case 18:
         return pW->Dest_x;
     case 19:
@@ -998,9 +998,9 @@ LONG Load_member_branch(ENEMY_WORK *pW, ULONG Member)
     case 39:
         return pW->UnkC;
     case 40:
-        return pW->Unk12A;
+        return pW->Mot_scale_y;
     case 41:
-        return pW->Unk12C;
+        return pW->Damage_no;
     case 42:
         return pW->UnkD;
     }
@@ -1045,7 +1045,7 @@ SHORT *Load_member_addr_branch(ENEMY_WORK *pW, ULONG Member)
     case 16:
         return (SHORT *)&pW->Status_flg;
     case 17:
-        return (SHORT *)&pW->Unk122;
+        return (SHORT *)&pW->Ground;
     case 18:
         return (SHORT *)&pW->Dest_x;
     case 19:
@@ -1091,9 +1091,9 @@ SHORT *Load_member_addr_branch(ENEMY_WORK *pW, ULONG Member)
     case 39:
         return (SHORT *)&pW->UnkC;
     case 40:
-        return (SHORT *)&pW->Unk12A;
+        return (SHORT *)&pW->Mot_scale_y;
     case 41:
-        return (SHORT *)&pW->Unk12C;
+        return (SHORT *)&pW->Damage_no;
     case 42:
         return (SHORT *)&pW->UnkD;
     }

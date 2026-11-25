@@ -12,15 +12,15 @@
 
 void func_8004B7E8(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
 {
-    pEm->Unk122 = Y;
+    pEm->Ground = Y;
     pEm->nFloor = Y / -1800;
     if (!(pEm->Be_flg & 0x400)) {
-        pEm->Base_pos_y = pEm->Pos_y = pEm->Unk122;
+        pEm->Base_pos_y = pEm->Pos_y = pEm->Ground;
     }
     if (D_800DEB58.Unk8 != 0) {
         pEm->Pos_y += pEm->Unk1B8;
-        if (pEm->Unk122 < pEm->Pos_y) {
-            pEm->Pos_y = pEm->Unk122;
+        if (pEm->Ground < pEm->Pos_y) {
+            pEm->Pos_y = pEm->Ground;
         }
     } else {
         pEm->Unk1B8 = 0;

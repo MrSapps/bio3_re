@@ -392,11 +392,11 @@ void Aida_mv00_br(ENEMY_WORK *pEm)
         } else {
             *(ULONG *)&pEm->Routine_0 = 0xD01;
         }
-    } else if ((LONG)pEm->Unk154 < 0xFA0 && G.Player.Routine_1 == 2
+    } else if ((LONG)pEm->L_pl < 0xFA0 && G.Player.Routine_1 == 2
                && ((LONG (*)(ENEMY_WORK *, ENEMY_WORK *))Cdir_ck2)(pEm, G_PLAYER) == 0
                && Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x200) == 0) {
         *(ULONG *)&pEm->Routine_0 = 0x301;
-    } else if ((LONG)pEm->Unk154 < 0x3E8 && G.Player.Routine_1 == 1
+    } else if ((LONG)pEm->L_pl < 0x3E8 && G.Player.Routine_1 == 1
                && ((LONG (*)(ENEMY_WORK *, ENEMY_WORK *))Cdir_ck2)(pEm, G_PLAYER) == 0
                && Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x200) == 0) {
         *(ULONG *)&pEm->Routine_0 = 0x301;
@@ -638,7 +638,7 @@ void Aida_mv01_br(ENEMY_WORK *pEm)
         if (D_8009E70C[0] != 0) {
             D_8009ECCC[D_8009EC3C[pT->Id - 0x10]](pEm, pEm->Type);
         }
-        if (Dist < 0x7D0 && Dist < pEm->Unk154) {
+        if (Dist < 0x7D0 && Dist < pEm->L_pl) {
             D_8009ECCC[D_8009EC3C[pT->Id - 0x10]](pEm, pEm->Type);
         }
     }
@@ -795,7 +795,7 @@ void Aida_mv01(ENEMY_WORK *pEm)
         } else {
             pEm->Timer0 = 0x3C;
         }
-        if ((LONG)pEm->Unk154 < 0x5DC && (pEm->Col.Hit_flg & 0x30)) {
+        if ((LONG)pEm->L_pl < 0x5DC && (pEm->Col.Hit_flg & 0x30)) {
             if (--pEm->UnkDA == 0) {
                 *(ULONG *)&pEm->Routine_0 = 0x401;
             }
@@ -804,7 +804,7 @@ void Aida_mv01(ENEMY_WORK *pEm)
         }
         break;
     }
-    if (pEm->Water < pEm->Unk122 - 0x1F4) {
+    if (pEm->Water < pEm->Ground - 0x1F4) {
         pEm->Spd_x -= pEm->Spd_x / 3;
     }
     Add_speedXZ(pEm, 0);
@@ -952,7 +952,7 @@ void Aida_mv02(ENEMY_WORK *pEm)
     if (pEm->Hokan_flg != 0) {
         pEm->Spd_x >>= 1;
     }
-    if (pEm->Water < pEm->Unk122 - 0x1F4) {
+    if (pEm->Water < pEm->Ground - 0x1F4) {
         pEm->Spd_x -= pEm->Spd_x / 3;
     }
     Add_speedXZ(pEm, 0);
@@ -1162,7 +1162,7 @@ void func_8005C2F8(ENEMY_WORK *pEm)
     ENEMY_WORK *pT;
 
     pT = pEm->pEnemy_ptr;
-    if ((LONG)(pT->Unk158 & 0x3FFFFFFF) < 0x9C4 && (pEm->Col.Hit_flg & 0x30) == 0 && (LONG)pEm->Unk154 >= 0xBB9) {
+    if ((LONG)(pT->Unk158 & 0x3FFFFFFF) < 0x9C4 && (pEm->Col.Hit_flg & 0x30) == 0 && (LONG)pEm->L_pl >= 0xBB9) {
         *(ULONG *)&pEm->Routine_0 = 0xF01;
         if (Rnd() & 1) {
             *(ULONG *)&pEm->Routine_0 = 0x201;
@@ -1473,7 +1473,7 @@ void Aida_mv08(ENEMY_WORK *pEm)
                 pEm->Hokan_flg = 0;
                 Add_speedXZ(pEm, 0);
                 pEm->Pos_y -= 0x708;
-                pEm->Unk122 -= 0x708;
+                pEm->Ground -= 0x708;
                 pEm->nFloor++;
             }
             if (pEm->Move_cnt == 0x77) {
@@ -1484,7 +1484,7 @@ void Aida_mv08(ENEMY_WORK *pEm)
             if (pEm->Move_cnt == 0x1D) {
                 Add_speedXZ(pEm, 0);
                 pEm->Pos_y -= 0x708;
-                pEm->Unk122 -= 0x708;
+                pEm->Ground -= 0x708;
                 pEm->nFloor++;
             }
             if (pEm->Move_cnt == 0x31) {
@@ -1542,10 +1542,10 @@ void Aida_mv09(ENEMY_WORK *pEm)
         pEm->nFloor--;
     case 3:
         pEm->Pos_y += pEm->Timer0++ * 30;
-        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 0x190, 0x8000, 1);
+        pEm->Ground = Sca_get_ground(&pEm->Pos_x, 0x190, 0x8000, 1);
         pEm->nFloor = pEm->Pos_y / -1800;
         Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
-        if (pEm->Unk122 - 300 < pEm->Pos_y) {
+        if (pEm->Ground - 300 < pEm->Pos_y) {
             pEm->Routine_3 = 4;
         }
         break;
@@ -1557,7 +1557,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         }
         pEm->Move_cnt = 4;
         pEm->Hokan_flg = 7;
-        pEm->Pos_y = pEm->Unk122;
+        pEm->Pos_y = pEm->Ground;
         pEm->Damage_cnt &= 0x7F;
         pEm->Be_flg &= ~0x8000;
         G.Unk75E8 |= 4;
@@ -1697,7 +1697,7 @@ void func_8005D4D8(ENEMY_WORK *pEm)
     ULONG Dist;
     ENEMY_WORK *pPl = &Pl_work;
 
-    Dist = pEm->Unk154;
+    Dist = pEm->L_pl;
     if (pEm->Routine_2 == 0) {
         pEm->Timer0 = 0x2D;
     }
@@ -2218,7 +2218,7 @@ void func_8005E90C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg |= 0x12;
         Snd_se_enem(1, pEm);
         pEm->Be_flg &= ~0x8000;
-        if (pEm->Unk132 & 0x500) {
+        if (pEm->Damage_flg & 0x500) {
             pP1 = pEm->pSin_parts_ptr;
             Esp_call(0x1001B03, ((((LONG (*)(void))Rnd)() << 1) + 0x800) << 16,
                           &pP1[2].Workm, NULL, 0);
@@ -2290,7 +2290,7 @@ void func_8005EBC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg |= 0x12;
         Snd_se_enem(2, pEm);
         pEm->Be_flg &= ~0x8000;
-        if (pEm->Unk132 & 0x500) {
+        if (pEm->Damage_flg & 0x500) {
             pP1 = pEm->pSin_parts_ptr;
             Esp_call(0x1001B03, ((((LONG (*)(void))Rnd)() << 1) + 0x800) << 16,
                           &pP1[2].Workm, NULL, 0);
@@ -2355,7 +2355,7 @@ void Spl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt |= 0x80;
         Snd_se_enem(3, pEm);
         G.System_flg |= 0x20000;
-        if (pEm->Unk132 & 0x500) {
+        if (pEm->Damage_flg & 0x500) {
             pP1 = pEm->pSin_parts_ptr;
             Esp_call(0x1001B03, ((((LONG (*)(void))Rnd)() << 1) + 0x800) << 16,
                           &pP1[2].Workm, NULL, 0);
@@ -2691,7 +2691,7 @@ LONG Spl_life_down(ENEMY_WORK *pEm, LONG Dmg, ULONG Flg)
     pW->Life -= Dmg;
     G.Unk7852 -= Dmg;
     *(ULONG *)&pW->Routine_0 = 2;
-    pW->Unk132 &= 0xE0FF;
+    pW->Damage_flg &= 0xE0FF;
     if (Flg & 2) {
         pW->Routine_1 = 2;
     }

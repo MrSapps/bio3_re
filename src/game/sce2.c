@@ -437,12 +437,12 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pEm->Em_set_flg = D_800E0198->Flg_no;
         pEm->Unk4B = D_800E0198->UnkA;
         pEm->nFloor = D_800E0198->nFloor;
-        pEm->Unk122 = -(D_800E0198->nFloor * 1800);
+        pEm->Ground = -(D_800E0198->nFloor * 1800);
         pEm->Damage_cnt = 0;
         pEm->UnkC6 = 0;
         pEm->Timer0 = D_800E0198->Timer0;
         pEm->UnkDA = D_800E0198->UnkDA;
-        pEm->Unk12A = 0x1000;
+        pEm->Mot_scale_y = 0x1000;
         pEm->pUnk114 = &Pl_work;
         pEm->UnkE2 = 0;
         pEm->UnkE3 = 0;
@@ -464,7 +464,7 @@ ULONG Sce_em_set(SCE_TASK *pSce)
         pEm->Tilt_spd = 0;
         pEm->Unk1CA = 0;
         pEm->Unk1C8 = 0;
-        pEm->Unk132 = 0;
+        pEm->Damage_flg = 0;
         pEm->Unk158 = 0;
         pEm->Col.Id = 0;
         pEm->UnkD = 0;
@@ -1370,7 +1370,7 @@ ULONG func_800589FC(SCE_TASK *pSce)
     pW->UnkDA = 0;
     pW->UnkE2 = 0;
     pW->UnkE3 = 0;
-    pW->Unk122 = -(nFloor * 1800);
+    pW->Ground = -(nFloor * 1800);
     if (pW->Kage.pKw != NULL) {
         pW->Kage.pKw->Be_flg = 0;
     }
@@ -1387,10 +1387,10 @@ ULONG func_800589FC(SCE_TASK *pSce)
     pW->Tilt[0] = 0;
     pW->Tilt_max = 0;
     pW->Unk1B8 = 0;
-    pW->Unk12A = 0x1000;
+    pW->Mot_scale_y = 0x1000;
     pW->Unk1CA = 0;
     pW->Unk1C8 = 0;
-    pW->Unk132 = 0;
+    pW->Damage_flg = 0;
     pW->Unk158 = 0;
     PartsWork_link(pW, 0, pW->pUnk10C);
     pSce->Data += 2;

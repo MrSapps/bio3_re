@@ -6,7 +6,7 @@
  * built on the RE2 enemy skeleton (EM_MAIN with Root_ck/Guide_check as RE2
  * EM10.C, Em_routine_0[8] = Init/Move/Damage/Die/Scenario/-/-/Dead, a pair of
  * br/mv tables of 22 routines selected by Routine_1, damage/die tables indexed
- * by the hit kind (Unk12C) and Routine_1, PLDAMEGE_EM/PLDIE_EM for the player
+ * by the hit kind (Damage_no) and Routine_1, PLDAMEGE_EM/PLDIE_EM for the player
  * held by it). Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"

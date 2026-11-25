@@ -35,7 +35,7 @@ void Spl(ENEMY_WORK *pEm)
     }
     Spl_Root_ck_sys(pEm);
     D_8009E6EC[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 0x1F4) {
+    if (pEm->Water != 0 && pEm->Water < pEm->Ground - 0x1F4) {
         pP = pEm->pSin_parts_ptr;
         Sv0.vx = pP->Workm.t[0];
         Sv0.vy = pEm->Water;
@@ -65,7 +65,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     USHORT *pSize;
 
     *(ULONG *)&pEm->Routine_0 = 1;
-    pEm->Unk12A = Neck_dir[pEm->Id - 0x50];
+    pEm->Mot_scale_y = Neck_dir[pEm->Id - 0x50];
     pEm->pEnemy_ptr = pEm;
     pEm->pUnk114 = pEm;
     *(LONG *)&pEm->Move_no = 2;
@@ -192,7 +192,7 @@ void func_800594D4(ENEMY_WORK *pEm)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->Unk12C = 0;
+        pEm->Damage_no = 0;
         *(LONG *)&pEm->Move_no = pEm->Add_dir + 0x70000;
         pEm->Neck_flg |= 0x12;
         pEm->Be_flg |= 0x2000;

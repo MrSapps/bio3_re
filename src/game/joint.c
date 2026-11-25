@@ -153,11 +153,11 @@ loop0:
         return;
     }
     if (Be_flg & 8) {
-        Model_col.Unk0[0] = pEm->Unk178[0];
-        Model_col.Unk0[1] = pEm->Unk178[1];
-        Model_col.Unk0[2] = pEm->Unk178[2];
-        Model_col.Unk6 = (pEm->Unk17E & 0xF00) >> 8;
-        i = (UCHAR)pEm->Unk17E;
+        Model_col.Unk0[0] = pEm->Add_col[0];
+        Model_col.Unk0[1] = pEm->Add_col[1];
+        Model_col.Unk0[2] = pEm->Add_col[2];
+        Model_col.Unk6 = (pEm->Col_flg & 0xF00) >> 8;
+        i = (UCHAR)pEm->Col_flg;
         Model_col.Rgb = i | (i << 8) | (i << 16);
     }
     i = pEm->Parts_num;
@@ -919,7 +919,7 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     pRot = (ULONG *)((UCHAR *)pRot + (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (((USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8))[2] + *(UCHAR *)pSeq) * 4);
     pP = pEm->pSin_parts_ptr;
     w = ((SHORT *)pRot)[3];
-    w *= pEm->Unk12A;
+    w *= pEm->Mot_scale_y;
     pP->Pos_y = w >> 12;
     Hokan = pEm->Hokan_flg;
     n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
@@ -1102,7 +1102,7 @@ ULONG Joint_move_p(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_
     pRot = (ULONG *)((UCHAR *)Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
     pRot += (((KAN_HEAD *)Kan_t_ptr)->Rec_sz >> 18) * (f_base + *(UCHAR *)pSeq);
     w = ((SHORT *)pRot)[3];
-    w *= G.pEm->Unk12A;
+    w *= G.pEm->Mot_scale_y;
     Hokan = pJp->Hokan_flg;
     pRot += 2;
     P0_no = pJp->P0_parts_no;

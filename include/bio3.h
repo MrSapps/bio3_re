@@ -245,17 +245,17 @@ typedef struct tagEM_HIT_AREA {
     ULONG *pUnk11C;                    /* 0x11C (func_8001760C: first EMD section) */ \
     UCHAR Neck_flg;                    /* 0x120 RE2 Neck_flg: 1 no neck turn, 2 keep y, 0x80 scenario speed */ \
     UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */ \
-    SHORT Unk122;                      /* 0x122 */                            \
+    SHORT Ground;                      /* 0x122 RE2 Ground: floor height under the work (Sca_get_ground) */ \
     SHORT Spd_base_x;                  /* 0x124 RE2 Spd_base_x (Spd_get) */   \
     SHORT Spd_base_y;                  /* 0x126 */                            \
     SHORT Spd_base_z;                  /* 0x128 */                            \
-    SHORT Unk12A;                      /* 0x12A */                            \
-    UCHAR Unk12C;                      /* 0x12C */                            \
+    SHORT Mot_scale_y;                 /* 0x12A root height scale of the motions, 0x1000 = 1 */ \
+    UCHAR Damage_no;                   /* 0x12C RE2 Damage_no: kind of the last hit */ \
     UCHAR Damage_cnt;                  /* 0x12D player: |= 0x80 on game over (Pl_life_down) */ \
     UCHAR Root_ck_cnt;                 /* 0x12E RE2 Root_ck_cnt */            \
     UCHAR Unk12F;                      /* 0x12F compared with the room sound table (Snd_se_enem) */ \
     SHORT Unk130;                      /* 0x130 direction */                  \
-    USHORT Unk132;                     /* 0x132 bits 8-12 cleared by Pl_life_down */ \
+    USHORT Damage_flg;                 /* 0x132 RE2 Damage_flg: hit flags (bits 8-12 cleared by Pl_life_down) */ \
     EM_HIT_AREA Hit_area;              /* 0x134 aim/hit box (pl_wep) */        \
     LONG Unk140;                       /* 0x140 */                            \
     USHORT Unk144;                     /* 0x144 0x100: no seq sound */        \
@@ -267,7 +267,7 @@ typedef struct tagEM_HIT_AREA {
     SHORT Unk14E;                      /* 0x14E */                            \
     USHORT Unk150;                     /* 0x150 0x80: scenario move request, low bits its kind (Spl_sce) */ \
     SHORT Unk152;                      /* 0x152 */                            \
-    ULONG Unk154;                      /* 0x154 */                            \
+    ULONG L_pl;                        /* 0x154 RE2 L_pl: distance to the player */ \
     LONG Unk158;                       /* 0x158 distance to target? (masked 0x3FFFFFFF) */ \
     LONG *pUnk15C;                     /* 0x15C target position (pl_mv0d) */ \
     union {                                                                   \
@@ -282,8 +282,8 @@ typedef struct tagEM_HIT_AREA {
     LONG *pUnk16C;                     /* 0x16C hit position (func_800445C8 arg 0) */ \
     LONG *pUnk170;                     /* 0x170 hitter position (func_800445C8 arg 1) */ \
     struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
-    SHORT Unk178[3];                   /* 0x178 copied to Model_col (Joint_trans2); em10 Dead fades [0], [2] to 0 */ \
-    USHORT Unk17E;                     /* 0x17E */                            \
+    SHORT Add_col[3];                  /* 0x178 colour added in the lit sorts (Model_col); em10 Dead fades [0], [2] to 0 */ \
+    USHORT Col_flg;                    /* 0x17E Model_col: bits 8-11 mode, low byte grey level */ \
     ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
     ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
@@ -307,7 +307,7 @@ typedef struct tagEM_HIT_AREA {
     UCHAR Unk1C0;                      /* 0x1C0 */                            \
     UCHAR Tilt_flg;                    /* 0x1C1 1/2/4: tilt direction, 8: return (Em_tilt_move) */ \
     SHORT Tilt_spd;                    /* 0x1C2 tilt step per frame */ \
-    ULONG Unk1C4;                      /* 0x1C4 em23: Routine_0..3 of the last frame */ \
+    ULONG Old_routine;                 /* 0x1C4 Routine_0..3 of the last frame (em23) */ \
     SHORT Unk1C8;                      /* 0x1C8 */                            \
     USHORT Unk1CA;                     /* 0x1CA */                            \
     /* 0x1CC */

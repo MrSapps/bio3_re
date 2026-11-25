@@ -37,7 +37,7 @@ void Player_move(ENEMY_WORK *pEm)
         pEm->Be_flg |= 0x10000000;
     }
     if (pEm->Damage_cnt & 0x80) {
-        pEm->Unk132 &= 0x7FFF;
+        pEm->Damage_flg &= 0x7FFF;
     }
     Pl_routine[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
     Mag_down(pEm);
@@ -45,7 +45,7 @@ void Player_move(ENEMY_WORK *pEm)
     Pl_wep_recoil_6(pEm);
     Pl_wep_recoil_10(pEm);
     Pl_wep_spin_0b(pEm);
-    if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500) {
+    if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500) {
         pParts = pEm->pSin_parts_ptr;
         sv.vx = pParts->Workm.t[0];
         sv.vy = pEm->Water;
@@ -89,7 +89,7 @@ void Pl_init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk140 = 0;
     pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
-    pEm->Unk122 = -(pEm->nFloor * 1800);
+    pEm->Ground = -(pEm->nFloor * 1800);
     pEm->Status_flg |= 0x400;
     pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pNeck = &pEm->pSin_parts_ptr[1];
@@ -113,7 +113,7 @@ void Pl_reset(ENEMY_WORK *pEm)
         Kage_work9_set(&pEm->Kage.pKw9, 0, 0x022601C2, 0, &pEm->Pos_x);
     }
     pEm->Water = 0;
-    pEm->Unk132 = 0;
+    pEm->Damage_flg = 0;
     pEm->Unk144 = 0;
     pEm->Unk150 = 0;
     pEm->Unk152 = 0;
@@ -378,7 +378,7 @@ void pl_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
     }
-    if (pEm->Water < pEm->Unk122 - 500) {
+    if (pEm->Water < pEm->Ground - 500) {
         spd_x = pEm->Spd_x;
         pEm->Spd_x = spd_x - spd_x / 3;
     }
@@ -485,7 +485,7 @@ void pl_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
     }
-    if (pEm->Water < pEm->Unk122 - 500) {
+    if (pEm->Water < pEm->Ground - 500) {
         spd_x = pEm->Spd_x;
         pEm->Spd_x = spd_x - spd_x / 3;
     }
@@ -623,7 +623,7 @@ void pl_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     }
-    if (pEm->Water < pEm->Unk122 - 500) {
+    if (pEm->Water < pEm->Ground - 500) {
         spd_x = pEm->Spd_x;
         pEm->Spd_x = spd_x - spd_x / 3;
     }
@@ -1443,7 +1443,7 @@ void pl_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Damage_cnt |= 0x80;
             pEm->nFloor++;
             pEm->Unk1CA = pEm->Unk1C8;
-            if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500) {
+            if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500) {
                 Pl_water(pEm);
             }
         }
@@ -1454,8 +1454,8 @@ void pl_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd_get(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
         if (pEm->Move_cnt == 0x1D) {
             pEm->Pos_y -= 0x708;
-            pEm->Unk122 -= 0x708;
-            if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500) {
+            pEm->Ground -= 0x708;
+            if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500) {
                 Pl_water(pEm);
             }
         }
@@ -1532,7 +1532,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Be_flg &= ~0x2000;
     case 3:
         pEm->Pos_y += pEm->Timer0++ * 30;
-        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 400, 0x8000, 0);
+        pEm->Ground = Sca_get_ground(&pEm->Pos_x, 400, 0x8000, 0);
         pEm->nFloor = pEm->Pos_y / -1800;
         Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         Flg = *pEm->pNow_seq;
@@ -1544,12 +1544,12 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
             G.Unk75E8 |= 4;
         }
-        if (pEm->Unk122 - 300 < pEm->Pos_y) {
+        if (pEm->Ground - 300 < pEm->Pos_y) {
             pEm->Routine_3 = 4;
             Pad_vib_set0(1, 0);
             Pad_vib_set1(6, 0x96, 0);
         }
-        if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500) {
+        if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500) {
             Pl_water(pEm);
         }
         break;
@@ -1561,7 +1561,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         pEm->Move_cnt = 4;
         pEm->Hokan_flg = 7;
-        pEm->Pos_y = pEm->Unk122;
+        pEm->Pos_y = pEm->Ground;
         pEm->Damage_cnt &= 0x7F;
         pEm->Be_flg &= ~0x8000;
         Snd_se_walk(1, 11, pEm);
@@ -1752,7 +1752,7 @@ void pl_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg |= 0x12;
         Snd_se_stad(0x10001, POS_V(pEm), 0, 0);
         pEm->Be_flg &= ~0x8000;
-        if (pEm->Unk132 & 0x500) {
+        if (pEm->Damage_flg & 0x500) {
             PARTS_W *pParts;
             PARTS_W *pParts1;
             PARTS_W *pParts2;
@@ -1821,7 +1821,7 @@ void pl_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg |= 0x12;
         Snd_se_stad(0x10002, POS_V(pEm), 0, 0);
         pEm->Be_flg &= ~0x8000;
-        if (pEm->Unk132 & 0x500) {
+        if (pEm->Damage_flg & 0x500) {
             PARTS_W *pParts;
             PARTS_W *pParts1;
             PARTS_W *pParts2;
@@ -1886,7 +1886,7 @@ void pl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Pad_vib_set0(3, 0);
         Pad_vib_set1(8, 200, 0);
         Pad_vib_fade_set(0x5A, 200, 0, 8);
-        if (pEm->Unk132 & 0x500) {
+        if (pEm->Damage_flg & 0x500) {
             PARTS_W *pParts;
             PARTS_W *pParts1;
             PARTS_W *pParts2;
@@ -1971,7 +1971,7 @@ ULONG Pl_life_down(LONG Down_life, ULONG Mode)
     }
     Life = (USHORT)pPl->Life - Down_life;
     pPl->Life = Life;
-    pPl->Unk132 &= 0xE0FF;
+    pPl->Damage_flg &= 0xE0FF;
     if (Mode == 1) {
         if ((SHORT)Life < 0) {
             pPl->Life = 0;

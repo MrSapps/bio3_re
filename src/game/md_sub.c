@@ -291,7 +291,7 @@ void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
     pFrame = (ULONG *)((UCHAR *)pKan + ((KAN_HEAD *)pKan)->Bone_ofs);
     pF0 = (KAN_FRAME3 *)(pFrame + (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq));
     pP = pEm->pSin_parts_ptr;
-    pP->Pos_base_y = (pF0->Pos_y * pEm->Unk12A) >> 12;
+    pP->Pos_base_y = (pF0->Pos_y * pEm->Mot_scale_y) >> 12;
     pP->Pos_base_x = pF0->Pos_x;
     pP->Pos_base_z = pF0->Pos_z;
     if (Late != 0) {
@@ -305,7 +305,7 @@ void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
     }
     pFrame += (((KAN_HEAD *)pKan)->Rec_sz >> 18) * (Base + *(UCHAR *)pSeq);
     pF = (KAN_FRAME3 *)pFrame;
-    pP->Pos_step_y = ((pF->Pos_y * pEm->Unk12A) >> 12) - pP->Pos_base_y;
+    pP->Pos_step_y = ((pF->Pos_y * pEm->Mot_scale_y) >> 12) - pP->Pos_base_y;
     pP->Pos_step_x = pF->Pos_x - pP->Pos_base_x;
     pP->Pos_step_z = pF->Pos_z - pP->Pos_base_z;
     Parts_cnt = *(USHORT *)&((KAN_HEAD *)pKan)->Rec_sz;

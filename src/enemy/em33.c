@@ -1582,9 +1582,9 @@ void Em30_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     SVECTOR Unused; /* frame size */
 
     pEm->Routine_1 = 0;
-    if (pEm->Unk12C == 30 && !(pEm->Unk132 & 4))
+    if (pEm->Damage_no == 30 && !(pEm->Damage_flg & 4))
         pEm->Routine_1 = 1;
-    Em33_damage_tbl[pEm->Unk12C - 1][pEm->Routine_1](pEm, pKan, pSeq);
+    Em33_damage_tbl[pEm->Damage_no - 1][pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* damage 0: the head slows down; a body segment passes the damage on to the head */
@@ -1597,7 +1597,7 @@ void func_80105BB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM33_W(pEm)->Unk0C++;
         if (EM33_W(pEm)->Unk04 > 10)
             EM33_W(pEm)->Unk04 -= 10;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80100B5C(pEm, pKan, pSeq);
         Snd_se_enem(2, pEm);
     } else {
@@ -1624,9 +1624,9 @@ void func_80105BB8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM33_W(pH)->Unk0F = 1;
         EM33_W(pH)->Unk0C++;
         Snd_se_enem(2, pH);
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
     }
-    if (pEm->Unk12C == 5) {
+    if (pEm->Damage_no == 5) {
         pEm->Unk16A = 1;
         EM33_B(pEm)->Old_life = pEm->Life;
     } else
@@ -1642,11 +1642,11 @@ void func_80105D74(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     if (pEm->Type & 1) {
         pH = G.pEnemy[EM33_B(pEm)->Oya];
-        pH->Unk12C = pEm->Unk12C;
+        pH->Damage_no = pEm->Damage_no;
         if (pH->Routine_0 == 1)
-            pH->Unk1C4 = EM_RTN(pH);
+            pH->Old_routine = EM_RTN(pH);
         EM_RTN(pH) = EM_RTN(pEm);
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_801061C4(pEm);
         return;
     }
@@ -1678,16 +1678,16 @@ void func_80105F10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Type & 1) {
         pH = G.pEnemy[EM33_B(pEm)->Oya];
         if (!Flg_ck(&G.Unk7888, 0) && EM33_W(pH)->Unk0B != 1) {
-            pH->Unk12C = pEm->Unk12C;
-            pH->Unk132 = pEm->Unk132;
+            pH->Damage_no = pEm->Damage_no;
+            pH->Damage_flg = pEm->Damage_flg;
             pH->Damage_cnt = 10;
-            pH->Unk1C4 = EM_RTN(pH);
+            pH->Old_routine = EM_RTN(pH);
             EM_RTN(pH) = EM_RTN(pEm);
             Em30_body_number(pEm);
             Flg_on(&G.Unk7888, 0);
         }
         pEm->Damage_cnt = 10;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         return;
     }
     if (EM33_W(pEm)->Unk0B != 1) {
@@ -1701,7 +1701,7 @@ void func_80105F10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em30_body_number(pEm);
         Flg_on(&G.Unk7888, 0);
     }
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
     func_80100B5C(pEm, pKan, pSeq);
 }
 
@@ -1713,18 +1713,18 @@ void Em30_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Type & 1) {
         pH = G.pEnemy[EM33_B(pEm)->Oya];
         if (!Flg_ck(&G.Unk7888, 0) && EM33_W(pH)->Unk0B != 1) {
-            pH->Unk12C = pEm->Unk12C;
-            pH->Unk132 = pEm->Unk132;
-            pH->Unk1C4 = EM_RTN(pH);
+            pH->Damage_no = pEm->Damage_no;
+            pH->Damage_flg = pEm->Damage_flg;
+            pH->Old_routine = EM_RTN(pH);
             EM_RTN(pH) = EM_RTN(pEm);
             Em30_body_number(pEm);
         }
         pEm->Damage_cnt = 10;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         return;
     }
     if (EM33_W(pEm)->Unk0B == 1) {
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80100B5C(pEm, pKan, pSeq);
         return;
     }
@@ -1732,7 +1732,7 @@ void Em30_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Flg_on(&G.Unk7888, 0);
     if (EM33_W(pEm)->Rtn == 0)
         Em30_body_number(pEm);
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
     func_80100B5C(pEm, pKan, pSeq);
     EM_SET_RTN(pEm, 3, 0, 0, 0);
 }
@@ -1991,7 +1991,7 @@ void Em30_dirt_steps(ENEMY_WORK *pEm)
 void func_80107160(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     EM33_W(pEm)->Unk0F = 1;
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
     func_80100B5C(pEm, pKan, pSeq);
 }
 #include "enemy/common/em30/Em30_se_set.inc.c"

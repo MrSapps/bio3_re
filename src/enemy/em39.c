@@ -174,7 +174,7 @@ void func_801006CC(ENEMY_WORK *pEm)
     ULONG Dist;
     SHORT Turn;
 
-    Dist = pEm->Unk154;
+    Dist = pEm->L_pl;
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x400);
     Turn = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x280);
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);

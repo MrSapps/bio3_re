@@ -378,7 +378,7 @@ void func_80034124(COL_OBJ *pObj)
     V.vy = pObj->Old_y = pObj->Pos_y = pEm->Pos_y + V.vy;
     V.vz = pObj->Old_z = pObj->Pos_z = pEm->Pos_z + V.vz;
     if (pObj->Type < 3) {
-        pEm->Unk122 = Sca_get_ground(&V.vx, pObj->W0, D_8009CBC8[pObj->Type], 9);
+        pEm->Ground = Sca_get_ground(&V.vx, pObj->W0, D_8009CBC8[pObj->Type], 9);
     }
 }
 

@@ -236,7 +236,7 @@ UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
         func_8007A2D4(pEm, (ULONG *)(pWork + Ofs));
     }
     pEm->Be_flg = 1;
-    pEm->Unk12A = 0x1000;
+    pEm->Mot_scale_y = 0x1000;
     return p;
 }
 

@@ -36,7 +36,7 @@ void Pl_neck(ENEMY_WORK *pEm, ULONG LL, SHORT Dir)
             do {
                 pCand = *ppEm;
                 if ((pCand->Be_flg & 1) && !(pCand->Type & 0xC000)) {
-                    Cand_dist = pCand->Unk154;
+                    Cand_dist = pCand->L_pl;
                     if (Sca_ck_line(WORKM_POS_V(&pEm->pSin_parts_ptr[pEm->Neck_no]), WORKM_POS_V(&pCand->pSin_parts_ptr[pCand->Neck_no]), 0x40, 1) == 0
                         && Goto00_ck(pEm, pCand->Pos_x, pCand->Pos_z, Dir) == 0) {
                         if (!(pCand->Type & 0x2000)) {
@@ -180,7 +180,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     CompM(&Mtx, (MATRIX *)pP[3].M, &Mtx);
     CompM(&Mtx, (MATRIX *)pP[4].M, &Mtx);
     if (pEm->Water != 0) {
-        if (pEm->Water < pEm->Unk122 - 500 && pEm->Move_cnt < 10 && (pEm->Move_cnt & 1)) {
+        if (pEm->Water < pEm->Ground - 500 && pEm->Move_cnt < 10 && (pEm->Move_cnt & 1)) {
             Pl_water(pEm);
         }
         if (pEm->Water < Mtx.t[1]) {
@@ -256,7 +256,7 @@ void pl_mv05_w0_t6(ENEMY_WORK *pEm)
     SHORT a;
 
     a = pEm->Water;
-    if (a != 0 && a < pEm->Unk122 - 500 && !(pEm->Move_cnt & 1) && pEm->Move_cnt < 9) {
+    if (a != 0 && a < pEm->Ground - 500 && !(pEm->Move_cnt & 1) && pEm->Move_cnt < 9) {
         Pl_water(pEm);
     }
     if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x400)) {
@@ -313,7 +313,7 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
         pEm->Spd_x = 0;
         pEm->Spd_z = 0;
-        if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500) {
+        if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500) {
             Pl_water(pEm);
         }
     case 1:
@@ -435,7 +435,7 @@ void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Sub_move_no = Pl_aim_dir * 2 + 0x30001;
     case 1:
         a = pEm->Water;
-        if (a != 0 && a < pEm->Unk122 - 500 && !(pEm->Move_cnt & 3) && pEm->Move_cnt < 10) {
+        if (a != 0 && a < pEm->Ground - 500 && !(pEm->Move_cnt & 3) && pEm->Move_cnt < 10) {
             Pl_water(pEm);
         }
         ((void (*)(ENEMY_WORK *))pl_mv05_t2_spr[(UCHAR)pEm->Type - 1])(pEm);
@@ -470,7 +470,7 @@ void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         *(ULONG *)&pEm->Move_no = 0x70000;
         *(ULONG *)&pEm->Sub_move_no = 0x70000;
         pEm->Spd_x = 0;
-        if (a != 0 && a < pEm->Unk122 - 500) {
+        if (a != 0 && a < pEm->Ground - 500) {
             Pl_water(pEm);
         }
     case 1:
@@ -902,7 +902,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             pEm->Routine_3 = 3;
             return;
         }
-        if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500 && !(pEm->Move_cnt & 3)) {
+        if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500 && !(pEm->Move_cnt & 3)) {
             Pl_water(pEm);
         }
         break;
@@ -1029,7 +1029,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             pEm->Routine_3 = 3;
             return;
         }
-        if (pEm->Water != 0 && pEm->Water < pEm->Unk122 - 500 && !(pEm->Move_cnt & 3)) {
+        if (pEm->Water != 0 && pEm->Water < pEm->Ground - 500 && !(pEm->Move_cnt & 3)) {
             Pl_water(pEm);
         }
         break;
@@ -2528,13 +2528,13 @@ LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm)
     Y += (H * pH->Rate0) >> 8;
     Y1 += (H * pH->Rate1) >> 8;
     if (Y < V.vy) {
-        Ret = pEm->Unk132 & 0x4000;
+        Ret = pEm->Damage_flg & 0x4000;
         return Ret == 0;
     }
     if (V.vy >= Y1) {
         return 2;
     }
-    return ((pEm->Unk132 & 0x8000) == 0) << 2;
+    return ((pEm->Damage_flg & 0x8000) == 0) << 2;
 }
 
 LONG func_800445C8(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm)
@@ -2652,7 +2652,7 @@ void Mag_set(ENEMY_WORK *pEm)
             pP->Timer3 = Flg;
             RotMatrix(CDIR_SV(pP), PW_M(pP));
             CompM(&pP_ptr[4].Workm, PW_M(pP), &pP->Workm);
-            pP->Old_x = pEm->Unk122;
+            pP->Old_x = pEm->Ground;
             Ts.vx = 0;
             Ts.vy = Pl_mag[Type].Dir + pEm->Cdir_y;
             Ts.vz = 0;
@@ -2752,7 +2752,7 @@ LONG func_800455B4(ENEMY_WORK *pEm)
             pW->pSuper = pM;
             pW->pOya_parts = &pP[4];
             CompM(pW->pSuper, PW_M(pW), &pW->Workm);
-            pW->Unk7C = pEm->Unk122;
+            pW->Unk7C = pEm->Ground;
             return 1;
         }
         pW++;
@@ -3366,38 +3366,38 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
                 }
                 if (Hit) {
                     Part = 0;
-                    pT->Unk132 &= 0xC000;
-                    pT->Unk1C4 = *(ULONG *)&pT->Routine_0;
-                    pT->Unk132 |= 4;
+                    pT->Damage_flg &= 0xC000;
+                    pT->Old_routine = *(ULONG *)&pT->Routine_0;
+                    pT->Damage_flg |= 4;
                     Dmg = pAttr->Damage;
                     Cnt = pAttr->Damage_cnt;
-                    pT->Unk132 |= 1;
+                    pT->Damage_flg |= 1;
                     Y = pT->Hit_area.Top;
                     H = pH->Bottom - Y;
                     Lo = Y + V.vy + ((H * pT->Hit_area.Rate0) >> 8);
                     Hi = Y + V.vy + ((H * pT->Hit_area.Rate1) >> 8);
                     if (Lo > 0) {
-                        pT->Unk132 = (pT->Unk132 & 0xFFFC) | 2;
+                        pT->Damage_flg = (pT->Damage_flg & 0xFFFC) | 2;
                         Part = 1;
                     }
                     if (Hi > 0) {
                         Part = 2;
-                        pT->Unk132 |= 3;
+                        pT->Damage_flg |= 3;
                     }
                     if (pT->Hit_area.Top + V.vy <= 0) {
                         Part = 0;
-                        pT->Unk132 = (pT->Unk132 & 0xFFFC) | 1;
+                        pT->Damage_flg = (pT->Damage_flg & 0xFFFC) | 1;
                     }
                     if (pH->Bottom + V.vy >= 0) {
                         Part = 2;
-                        pT->Unk132 |= 3;
+                        pT->Damage_flg |= 3;
                     }
-                    pT->Unk12C = pAttr->Unk1;
+                    pT->Damage_no = pAttr->Unk1;
                     pT->Damage_cnt = Cnt;
                     d = Cdir_ck_pos(pPos->vx, pPos->vz, pT);
                     Ret |= 0x20000001;
                     *(ULONG *)&pT->Routine_0 = (Part << 8) | 2;
-                    pT->Unk132 = pT->Unk132 | (d << 4) | ((Kind & 0x1F) << 8);
+                    pT->Damage_flg = pT->Damage_flg | (d << 4) | ((Kind & 0x1F) << 8);
                     pT->Life -= Dmg;
                     if (pT->Life < 0) {
                         *(ULONG *)&pT->Routine_0 = (Part << 8) | 3;

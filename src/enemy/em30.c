@@ -329,13 +329,13 @@ void func_80100DBC(ENEMY_WORK *pEm)
 {
     UCHAR Se[2] = {9, 6};
 
-    if ((LONG)pEm->Unk154 < 4500 && !EM30_W(pEm)->Unk03)
+    if ((LONG)pEm->L_pl < 4500 && !EM30_W(pEm)->Unk03)
         EM_SET_RTN(pEm, 1, 6, 0, 0);
-    if ((LONG)pEm->Unk154 < 4500 && !EM30_W(pEm)->Unk02)
+    if ((LONG)pEm->L_pl < 4500 && !EM30_W(pEm)->Unk02)
         EM_SET_RTN(pEm, 1, 2, 0, 0);
-    if ((LONG)pEm->Unk154 > 7000 && (LONG)pEm->Unk154 < 8000 && (Pl_work.Life > 80 || !EM30_W(pEm)->Unk02))
+    if ((LONG)pEm->L_pl > 7000 && (LONG)pEm->L_pl < 8000 && (Pl_work.Life > 80 || !EM30_W(pEm)->Unk02))
         EM_SET_RTN(pEm, 1, 4, 0, 0);
-    if ((LONG)pEm->Unk154 < 5000) {
+    if ((LONG)pEm->L_pl < 5000) {
         if (Pl_work.Life < 80 && !((Rnd_l() >> (Rnd_l() & 3)) & 3)) {
             EM_SET_RTN(pEm, 1, 5, 0, 0);
             if (!EM30_W(pEm)->Unk02)
@@ -344,7 +344,7 @@ void func_80100DBC(ENEMY_WORK *pEm)
             EM_SET_RTN(pEm, 1, 4, 0, 0);
         }
     }
-    if ((Pl_work.Col.Unk3A & 0x3FFF) || (LONG)pEm->Unk154 < 1200) {
+    if ((Pl_work.Col.Unk3A & 0x3FFF) || (LONG)pEm->L_pl < 1200) {
         EM30_W(pEm)->Unk1A++;
         if (EM30_W(pEm)->Unk04 >= 2)
             EM30_W(pEm)->Unk04 -= 2;
@@ -579,7 +579,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM30_W(pEm)->Unk24 = 0;
                 EM_SET_RTN(pEm, 1, 7, 4, 0);
             } else {
-                if ((LONG)pEm->Unk154 > 2500 && !Flg) {
+                if ((LONG)pEm->L_pl > 2500 && !Flg) {
                     pEm->Routine_2 = 3;
                     EM_SET_MOVE(pEm, 5, 0, 0);
                     EM30_W(pEm)->Unk18 = 8;
@@ -592,7 +592,7 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                         } else if (pEm->Spd_x < 100) {
                             pEm->Spd_x = 300;
                         }
-                        Dist = pEm->Unk154;
+                        Dist = pEm->L_pl;
                         if (Dist < 2500)
                             Zone = 1;
                         else
@@ -600,17 +600,17 @@ void func_80101388(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                         if ((ULONG)(Dist - 2500) > 4000 && Zone == EM30_W(pEm)->Unk31) {
                             if (Dist > 6500) {
                                 pEm->Spd_x += (Rnd_l() & 0x1F) - 15;
-                                if ((LONG)pEm->Unk154 >= EM30_W(pEm)->Unk2E)
+                                if ((LONG)pEm->L_pl >= EM30_W(pEm)->Unk2E)
                                     pEm->Spd_x = -pEm->Spd_x;
                             }
-                            if ((LONG)pEm->Unk154 < 2500) {
+                            if ((LONG)pEm->L_pl < 2500) {
                                 pEm->Spd_x += (Rnd_l() & 0x1F) - 15;
-                                if (EM30_W(pEm)->Unk2E >= (LONG)pEm->Unk154)
+                                if (EM30_W(pEm)->Unk2E >= (LONG)pEm->L_pl)
                                     pEm->Spd_x = -pEm->Spd_x;
                             }
                         }
                         EM30_W(pEm)->Unk31 = Zone;
-                        EM30_W(pEm)->Unk2E = pEm->Unk154;
+                        EM30_W(pEm)->Unk2E = pEm->L_pl;
                     }
                     pEm->Timer0 = (Rnd_l() + 30) & 0x1F;
                 }
@@ -1229,12 +1229,12 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Timer0 = (Rnd_l() + 15) & 0xF;
-        EM30_W(pEm)->Unk2E = pEm->Unk154;
+        EM30_W(pEm)->Unk2E = pEm->L_pl;
         {
             LONG Area_no;
 
-            if ((LONG)pEm->Unk154 >= 4500)
-                Area_no = ((LONG)pEm->Unk154 > 10000) * 2;
+            if ((LONG)pEm->L_pl >= 4500)
+                Area_no = ((LONG)pEm->L_pl > 10000) * 2;
             else
                 Area_no = 1;
             EM30_W(pEm)->Unk31 = Area_no;
@@ -1431,8 +1431,8 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 4:
-        Dist = pEm->Unk154;
-        if (Dist > 8000 || (!pEm->Timer0 && ((EM30_W(pEm)->Unk0F == 1 && Dist < 2000) || (EM30_W(pEm)->Unk0F == 9 && (LONG)pEm->Unk154 < 2000)))) {
+        Dist = pEm->L_pl;
+        if (Dist > 8000 || (!pEm->Timer0 && ((EM30_W(pEm)->Unk0F == 1 && Dist < 2000) || (EM30_W(pEm)->Unk0F == 9 && (LONG)pEm->L_pl < 2000)))) {
             if (pEm->Spd_x < 0)
                 pEm->Spd_x = -pEm->Spd_x;
         }
@@ -1441,14 +1441,14 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         if (!pEm->Timer0) {
             Flg = Flg_ck(&G.Unk7888, 4) != 0;
-            if ((LONG)pEm->Unk154 > 3450 && (LONG)pEm->Unk154 < 5000 && !Flg && !pPl->Damage_cnt) {
+            if ((LONG)pEm->L_pl > 3450 && (LONG)pEm->L_pl < 5000 && !Flg && !pPl->Damage_cnt) {
                 pEm->Cdir_y = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z);
                 pEm->Routine_2 = 0;
             } else if (Flg_ck(&G.Unk7888, 4)) {
                 EM_SET_RTN(pEm, 1, 8, 0, 0);
                 break;
             } else {
-                if ((LONG)pEm->Unk154 < 3450) {
+                if ((LONG)pEm->L_pl < 3450) {
                     EM30_W(pEm)->Unk11++;
                 } else {
                     EM30_W(pEm)->Unk11 = 0;
@@ -1464,28 +1464,28 @@ void func_80103684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     } else if (pEm->Spd_x < 100) {
                         pEm->Spd_x = 300;
                     }
-                    Dist = pEm->Unk154;
+                    Dist = pEm->L_pl;
                     if (Dist < 3450)
                         Zone = 1;
                     else
                         Zone = (Dist > 5000) * 2;
                 }
                 if (!EM30_W(pEm)->Unk19) {
-                    Dist = pEm->Unk154;
+                    Dist = pEm->L_pl;
                     if ((ULONG)(Dist - 3450) > 1550 && Zone == EM30_W(pEm)->Unk31) {
                         if (Dist > 5000) {
                             pEm->Spd_x += (Rnd_l() & 0x1F) - 15;
-                            if ((LONG)pEm->Unk154 >= EM30_W(pEm)->Unk2E)
+                            if ((LONG)pEm->L_pl >= EM30_W(pEm)->Unk2E)
                                 pEm->Spd_x = -pEm->Spd_x;
                         }
-                        if ((LONG)pEm->Unk154 < 3450) {
+                        if ((LONG)pEm->L_pl < 3450) {
                             pEm->Spd_x += (Rnd_l() & 0x1F) - 15;
-                            if (EM30_W(pEm)->Unk2E >= (LONG)pEm->Unk154)
+                            if (EM30_W(pEm)->Unk2E >= (LONG)pEm->L_pl)
                                 pEm->Spd_x = -pEm->Spd_x;
                         }
                     }
                     EM30_W(pEm)->Unk31 = Zone;
-                    EM30_W(pEm)->Unk2E = pEm->Unk154;
+                    EM30_W(pEm)->Unk2E = pEm->L_pl;
                 }
                 if (Rnd_l() & 3)
                     pEm->Timer0 = (Rnd_l() + 30) & 0x1F;
@@ -1741,9 +1741,9 @@ void Em30_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     SVECTOR Unused;
 
     pEm->Routine_1 = 0;
-    if (pEm->Unk12C == 30 && !(pEm->Unk132 & 4))
+    if (pEm->Damage_no == 30 && !(pEm->Damage_flg & 4))
         pEm->Routine_1 = 1;
-    Em30_dm[pEm->Unk12C - 1][pEm->Routine_1](pEm, pKan, pSeq);
+    Em30_dm[pEm->Damage_no - 1][pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* dm[0..28]: ordinary hit; a sub-work passes the damage on to the body */
@@ -1755,7 +1755,7 @@ void func_80105514(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (!(pEm->Type & 1)) {
         if (++EM30_W(pEm)->Unk0C >= 16 && EM30_W(pEm)->Unk0B != 1) {
             EM30_W(pEm)->Unk0C = 0;
-            pEm->Unk12C = 0x20;
+            pEm->Damage_no = 0x20;
             Em30_Damage(pEm, pKan, pSeq);
             EM30_W(pEm)->Unk03 = 0;
         } else {
@@ -1763,7 +1763,7 @@ void func_80105514(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Life = 0;
                 EM30_W(pEm)->Unk26 = 0;
             }
-            EM_RTN(pEm) = pEm->Unk1C4;
+            EM_RTN(pEm) = pEm->Old_routine;
             func_80100CBC(pEm, pKan, pSeq);
             Snd_se_enem(2, pEm);
         }
@@ -1789,7 +1789,7 @@ void func_80105514(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (pOya->Life < 0) {
             if (pOya->Routine_0 == 1 && EM30_W(pOya)->Unk0B != 1) {
-                pOya->Unk12C = pEm->Unk12C;
+                pOya->Damage_no = pEm->Damage_no;
                 EM_SET_RTN(pOya, 3, 0, 0, 0);
             } else {
                 pOya->Life = 0;
@@ -1798,9 +1798,9 @@ void func_80105514(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         EM30_W(pOya)->Unk0C++;
         Snd_se_enem(2, pOya);
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
     }
-    if (pEm->Unk12C == 5) {
+    if (pEm->Damage_no == 5) {
         pEm->Unk16A = 1;
         EM30_W(pEm)->Unk26 = pEm->Life;
     } else {
@@ -1817,11 +1817,11 @@ void func_80105740(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     if (pEm->Type & 1) {
         pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
-        pOya->Unk12C = pEm->Unk12C;
+        pOya->Damage_no = pEm->Damage_no;
         if (pOya->Routine_0 == 1)
-            pOya->Unk1C4 = EM_RTN(pOya);
+            pOya->Old_routine = EM_RTN(pOya);
         EM_RTN(pOya) = EM_RTN(pEm);
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80105C8C(pEm);
         return;
     }
@@ -1872,17 +1872,17 @@ void func_801059A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Type & 1) {
         pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         if (!Flg_ck(&G.Unk7888, 0) && EM30_W(pOya)->Unk0B != 1) {
-            pOya->Unk12C = pEm->Unk12C;
-            pOya->Unk132 = pEm->Unk132;
+            pOya->Damage_no = pEm->Damage_no;
+            pOya->Damage_flg = pEm->Damage_flg;
             pOya->Damage_cnt = 10;
-            pOya->Unk1C4 = EM_RTN(pOya);
+            pOya->Old_routine = EM_RTN(pOya);
             EM_RTN(pOya) = EM_RTN(pEm);
             Em30_body_number(pEm);
             Flg_on(&G.Unk7888, 0);
             G.Unk75EA = 1;
         }
         pEm->Damage_cnt = 10;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
     } else {
         if (EM30_W(pEm)->Unk0B != 1) {
             if (EM30_W(pEm)->Unk0A == 1) {
@@ -1898,7 +1898,7 @@ void func_801059A8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             else
                 Flg_on(&G.Unk7888, 0);
         }
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80100CBC(pEm, pKan, pSeq);
     }
 }
@@ -1911,23 +1911,23 @@ void Em30_dm_fire(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Type & 1) {
         pOya = G.pEnemy[EM30_SUB(pEm)->Oya_no];
         if (!Flg_ck(&G.Unk7888, 0) && EM30_W(pOya)->Unk0B != 1) {
-            pOya->Unk12C = pEm->Unk12C;
-            pOya->Unk132 = pEm->Unk132;
-            pOya->Unk1C4 = EM_RTN(pOya);
+            pOya->Damage_no = pEm->Damage_no;
+            pOya->Damage_flg = pEm->Damage_flg;
+            pOya->Old_routine = EM_RTN(pOya);
             EM_RTN(pOya) = EM_RTN(pEm);
             Em30_body_number(pEm);
         }
         pEm->Damage_cnt = 10;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
     } else if (EM30_W(pEm)->Unk0B == 1) {
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80100CBC(pEm, pKan, pSeq);
     } else {
         pEm->Life = -1;
         Flg_on(&G.Unk7888, 0);
         if (!EM30_W(pEm)->Unk13)
             Em30_body_number(pEm);
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80100CBC(pEm, pKan, pSeq);
         EM_SET_RTN(pEm, 3, 0, 0, 0);
     }
@@ -2186,10 +2186,10 @@ void func_80106C28(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (EM30_W(pEm)->Unk0B == 1) {
         pEm->Life = 1;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         func_80100CBC(pEm, pKan, pSeq);
     } else {
-        Em30_die[pEm->Unk12C - 1](pEm, pKan, pSeq);
+        Em30_die[pEm->Damage_no - 1](pEm, pKan, pSeq);
     }
 }
 

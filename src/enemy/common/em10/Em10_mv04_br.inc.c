@@ -9,7 +9,7 @@ void Em10_mv04_br(ENEMY_WORK *pEm)
     LONG Hit;
 
     pPl = &Pl_work;
-    LL = pEm->Unk154;
+    LL = pEm->L_pl;
     Dir = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100);
     Y = pPl->Pos_y;
     Hit = Y - 400 < pEm->pSin_parts_ptr[1].Workm.t[1] && pEm->pSin_parts_ptr[1].Workm.t[1] < Y + 200;
@@ -17,7 +17,7 @@ void Em10_mv04_br(ENEMY_WORK *pEm)
         && !((pEm->Col.Hit_flg ^ pPl->Col.Hit_flg) & 0x40)) {
         EM_SET_RTN(pEm, 1, 1, 0, 0);
         pEm->Damage_cnt |= 0x80;
-        pPl->Unk12C = 0;
+        pPl->Damage_no = 0;
         pPl->Damage_cnt |= 0x80;
     }
     if (pEm->Col.Hit_flg & 0x40)

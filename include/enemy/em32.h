@@ -23,7 +23,7 @@ typedef struct tagEM32_FREE {
     SHORT Pos_x_bak;                   /* 0x02 (0x1CE) start position */
     SHORT Pos_y_bak;                   /* 0x04 (0x1D0) */
     SHORT Pos_z_bak;                   /* 0x06 (0x1D2) */
-    SHORT Ground_bak;                  /* 0x08 (0x1D4) Unk122 */
+    SHORT Ground_bak;                  /* 0x08 (0x1D4) Ground */
     SHORT Cdir_y_bak;                  /* 0x0A (0x1D6) */
     SHORT Timer0_bak;                  /* 0x0C (0x1D8) */
     SHORT nFloor_bak;                  /* 0x0E (0x1DA) */

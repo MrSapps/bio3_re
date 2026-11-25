@@ -138,7 +138,7 @@ void func_801004F4(ENEMY_WORK *pEm)
 /* Em3e_damage: Routine_0 2, 3 */
 void func_801005E4(ENEMY_WORK *pEm)
 {
-    Em3e_damage_tbl[pEm->Unk12C - 1](pEm);
+    Em3e_damage_tbl[pEm->Damage_no - 1](pEm);
     func_8010158C(pEm);
     func_801015C0(pEm);
     if (pEm->Life < 0) {
@@ -166,7 +166,7 @@ void func_80100674(ENEMY_WORK *pEm)
     Ofs.vy = (signed char)Rnd() << 2;
     Ofs.vz = (signed char)Rnd() << 2;
     Esp_call(1, 0x14000000, &pP->Workm, &Ofs, NULL);
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
 }
 
 /* damage: sparks */
@@ -180,7 +180,7 @@ void func_80100704(ENEMY_WORK *pEm)
     Ofs.vy = (signed char)Rnd() << 2;
     Ofs.vz = (signed char)Rnd() << 2;
     Esp_call(1, 0x1C000000, &pP->Workm, &Ofs, NULL);
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
 }
 
 /* damage: spin around and back */
@@ -209,7 +209,7 @@ void func_80100788(ENEMY_WORK *pEm)
     case 3:
         pEm->Damage_cnt = 0;
         pEm->Cdir_y = 0xC00;
-        EM_RTN(pEm) = pEm->Unk1C4;
+        EM_RTN(pEm) = pEm->Old_routine;
         break;
     }
 }
@@ -218,7 +218,7 @@ void func_80100788(ENEMY_WORK *pEm)
 void func_80100878(ENEMY_WORK *pEm)
 {
     EM3E_W(pEm)->Time += 60;
-    EM_RTN(pEm) = pEm->Unk1C4;
+    EM_RTN(pEm) = pEm->Old_routine;
 }
 
 /* Em3e_sce: Routine_0 4 */

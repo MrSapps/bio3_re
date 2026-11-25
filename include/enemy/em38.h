@@ -7,7 +7,7 @@
  * The routine frame is RE2's G-type enemy (EM34.C / EM37.C): Em_routine_0 =
  * Init/Move/Damage/Die/Scenario/-/-/Dead, Move picks Em38_Move_type[Type & 3],
  * which runs a brain routine (mv_br) and a motion routine (mv) of 16, both
- * indexed by Routine_1. Damage is indexed by the hit kind (Unk12C), the
+ * indexed by Routine_1. Damage is indexed by the hit kind (Damage_no), the
  * scenario routines by Routine_1; PLDAMEGE_EM/PLDIE_EM tables for the player.
  */
 #include "bio3.h"

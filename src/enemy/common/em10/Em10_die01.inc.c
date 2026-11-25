@@ -15,7 +15,7 @@ void Em10_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg |= 1;
         pEm->Damage_cnt |= 0x80;
         Mode = 0;
-        if (pEm->Unk132 & 0x200)
+        if (pEm->Damage_flg & 0x200)
             Mode = 5;
         pP = pEm->pSin_parts_ptr;
         Sv.vx = 0;

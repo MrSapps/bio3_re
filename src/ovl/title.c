@@ -1202,7 +1202,7 @@ start:
         pPl->Pos_x = 0x33CE;
         pPl->Old_z = -0x30F9;
         pPl->Pos_z = -0x30F9;
-        pPl->Unk122 = 0;
+        pPl->Ground = 0;
         pPl->Cdir_y = 0x720;
         pPl->Old_y = 0;
         pPl->Pos_y = 0;
@@ -1216,7 +1216,7 @@ start:
         pPl->Id = 0;
         G.Unk7E20 = 0;
         G.Unk2115 = 0;
-        pPl->nFloor = pPl->Unk122 / -1800;
+        pPl->nFloor = pPl->Ground / -1800;
         break;
     case 1:
         pPl->Life = 200;
@@ -1228,7 +1228,7 @@ start:
         pPl->Cdir_y = 0xB58;
         pPl->Old_y = 0;
         pPl->Pos_y = 0;
-        pPl->Unk122 = 0;
+        pPl->Ground = 0;
         pPl->nFloor = 0;
         pPl->Status_flg = 0;
         pG->Unk783E = 1;
@@ -1251,7 +1251,7 @@ start:
         pPl->Cdir_y = 0xB4B;
         pPl->Old_y = 0;
         pPl->Pos_y = 0;
-        pPl->Unk122 = 0;
+        pPl->Ground = 0;
         pPl->nFloor = 0;
         pPl->Status_flg = 0;
         pG->Unk783E = 2;
@@ -1274,7 +1274,7 @@ start:
         pPl->Cdir_y = 0x4A8;
         pPl->Old_y = 0;
         pPl->Pos_y = 0;
-        pPl->Unk122 = 0;
+        pPl->Ground = 0;
         pPl->nFloor = 0;
         pG->Unk783E = 6;
         pG->Unk7840 = 12;

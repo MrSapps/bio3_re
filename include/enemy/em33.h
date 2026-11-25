@@ -101,7 +101,7 @@ extern USHORT Em33_col_size[10]; /* body collision W0/D0 by segment */
 extern void (*Em33_move_tbl0[11])();
 extern void (*Em33_move_tbl1[11])();
 extern void (*Em33_sub_tbl[5])();
-extern void (*Em33_damage_tbl[][2])(); /* index weapon Unk12C - 1 */
+extern void (*Em33_damage_tbl[][2])(); /* index weapon Damage_no - 1 */
 
 void func_801000D4(ENEMY_WORK *pEm);
 void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);

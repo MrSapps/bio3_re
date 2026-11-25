@@ -23,7 +23,7 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0 = (Em10_walk_rnd[pEm->UnkE3] & 0x7FFF) + (Rnd_l() & 0x1F);
             pEm->Cdir_y -= 0x10 - ((Rnd_l() & 1) << 5);
         }
-        if ((LONG)pEm->Unk154 > 5000)
+        if ((LONG)pEm->L_pl > 5000)
             Dir = 8 - ((Em10_walk_rnd[pEm->UnkE3] >> 15) << 4);
         else
             Dir = 8;
@@ -41,7 +41,7 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 }
             }
         }
-        if ((LONG)pEm->Unk154 < 3000)
+        if ((LONG)pEm->L_pl < 3000)
             Goto00(pEm, pEm->Dest_x, pEm->Dest_z, Dir * 2);
         Spd = pEm->Spd_x;
         Spd_get(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
@@ -51,10 +51,10 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         if (--pEm->UnkDA == 0) {
             pEm->UnkDA = (Rnd_l() >> 3) + 100;
-            if (!(Rnd_l() & 3) && (LONG)pEm->Unk154 < 5000)
+            if (!(Rnd_l() & 3) && (LONG)pEm->L_pl < 5000)
                 EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
-        if ((LONG)pEm->Unk154 < 4000 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x400) && !(G.Player.Damage_cnt & 0x80)) {
+        if ((LONG)pEm->L_pl < 4000 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x400) && !(G.Player.Damage_cnt & 0x80)) {
             EM_SET_RTN(pEm, 1, 2, 0, 0);
             if (EM10_W(pEm)->Flg & 0x4000)
                 EM_SET_RTN(pEm, 1, 0xB, 0, 0);

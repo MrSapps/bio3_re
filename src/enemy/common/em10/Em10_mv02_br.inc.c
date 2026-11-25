@@ -8,7 +8,7 @@ void Em10_mv02_br(ENEMY_WORK *pEm)
     ENEMY_WORK *pPl;
 
     pPl = &Pl_work;
-    LL = pEm->Unk154;
+    LL = pEm->L_pl;
     Dir0 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x280);
     Dir1 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x514);
     if (!EM10_W(pEm)->u2C.w.Unk2F) {
@@ -25,7 +25,7 @@ void Em10_mv02_br(ENEMY_WORK *pEm)
         if (pPl->Be_flg & 0x10000000)
             EM_SET_RTN(pEm, 1, 4, 0, 0);
         pEm->Damage_cnt |= 0x80;
-        pPl->Unk12C = 0;
+        pPl->Damage_no = 0;
         pPl->Damage_cnt |= 0x80;
     }
     if (Dir1 && LL < 2000 && !pPl->Damage_cnt && !EM10_W(pEm)->Unk26)

@@ -113,7 +113,7 @@ void func_8010047C(ENEMY_WORK *pEm)
     ULONG LL;
     SHORT Dir1;
 
-    LL = pEm->Unk154;
+    LL = pEm->L_pl;
     Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x400);
     Dir1 = Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x2F8);
     if (LL < 3000 && !Dir1 && pEm->Routine_2 == 2) {
@@ -540,7 +540,7 @@ void func_8010138C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 0, 0, 0xF);
         pEm->Routine_2 = 1;
         Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, POS_V(pEm), 0, 0);
-        pEm->Unk12C = 0;
+        pEm->Damage_no = 0;
     case 1:
         Joint_move(pEm, pKan, pSeq, 0x100);
         break;

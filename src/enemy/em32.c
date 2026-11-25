@@ -108,7 +108,7 @@ void func_801001F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 6, 0, 0);
         pEm->Damage_cnt = 0x80;
         pEm->Be_flg |= 0x2400;
-        pEm->Unk122 = pEm->Add_dir;
+        pEm->Ground = pEm->Add_dir;
         break;
     case 3:
         EM32_W(pEm)->Unk22 = 0;
@@ -137,7 +137,7 @@ void func_801001F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM32_W(pEm)->Pos_x_bak = pEm->Pos_x;
     EM32_W(pEm)->Pos_y_bak = pEm->Pos_y;
     EM32_W(pEm)->Pos_z_bak = pEm->Pos_z;
-    EM32_W(pEm)->Ground_bak = pEm->Unk122;
+    EM32_W(pEm)->Ground_bak = pEm->Ground;
     EM32_W(pEm)->Cdir_y_bak = pEm->Cdir_y;
     EM32_W(pEm)->Timer0_bak = pEm->Timer0;
     EM32_W(pEm)->Be_flg_bak = pEm->Be_flg & ~0x10;
@@ -182,9 +182,9 @@ void func_801005D0(ENEMY_WORK *pEm)
             EM32_W(pEm)->Rev = 1;
         }
         if (!EM32_W(pEm)->Red && !(pPl->Col.Hit_flg & 0x600)) {
-            if ((LONG)pEm->Unk154 < 1000)
+            if ((LONG)pEm->L_pl < 1000)
                 Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100);
-            if ((LONG)pEm->Unk154 > 1500 && (LONG)pEm->Unk154 < 2500 && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100) &&
+            if ((LONG)pEm->L_pl > 1500 && (LONG)pEm->L_pl < 2500 && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100) &&
                 pPl->Routine_0 == 1)
                 EM_SET_RTN(pEm, 1, 5, 0, 0);
         }
@@ -199,7 +199,7 @@ void func_801005D0(ENEMY_WORK *pEm)
             else
                 EM_SET_RTN(pEm, 1, 7, 0, 0);
         }
-        if ((LONG)pEm->Unk154 < 2000)
+        if ((LONG)pEm->L_pl < 2000)
             EM32_W(pEm)->Atck_cnt++;
         if (EM32_W(pEm)->Atck_cnt >= 31) {
             EM32_W(pEm)->Atck_cnt = 0;
@@ -211,7 +211,7 @@ void func_801005D0(ENEMY_WORK *pEm)
             else
                 EM_SET_RTN(pEm, 1, 7, 0, 0);
         }
-    } else if ((LONG)pEm->Unk154 < 4500 && Em32_alone_ck(pEm, 0x501) && (pEm->Col.Hit_flg & 0x20)) {
+    } else if ((LONG)pEm->L_pl < 4500 && Em32_alone_ck(pEm, 0x501) && (pEm->Col.Hit_flg & 0x20)) {
         if (++EM32_W(pEm)->Unk24 >= 16 && pEm->nFloor == pPl->nFloor && pEm->Pos_y == pPl->Pos_y)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
     }
@@ -360,7 +360,7 @@ void func_80100D54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_RTN(pEm, 1, 0, 1, 0);
         pEm->nFloor = EM32_W(pEm)->Unk14 + 1;
         pEm->pSin_parts_ptr->Old_y += 1800;
-        pEm->Unk122 = pEm->Pos_y = -(pEm->nFloor * 1800);
+        pEm->Ground = pEm->Pos_y = -(pEm->nFloor * 1800);
         Joint_move(pEm, pKan, pSeq, 0x100);
     }
 }
@@ -439,7 +439,7 @@ void func_80101180(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (pEm->Water && Water_ck(pEm->Pos_x, pEm->Pos_z) < pEm->Pos_y)
                 Snd_se_enem(0, pEm);
             if (pEm->Move_cnt == 5)
-                pEm->Unk122 = pEm->Pos_y + 1800;
+                pEm->Ground = pEm->Pos_y + 1800;
             if (pEm->Move_cnt >= 5 && pEm->Move_cnt < 25)
                 pEm->Pos_y += pEm->Spd_y;
             pEm->UnkE2--;
@@ -635,7 +635,7 @@ void func_80101C00(ENEMY_WORK *pEm)
     ENEMY_WORK *pPl = &Pl_work;
     LONG Dir;
 
-    if (pEm->Routine_2 == 1 && pEm->Move_cnt >= 6 && pEm->Move_cnt < 20 && (LONG)pEm->Unk154 < 1000 &&
+    if (pEm->Routine_2 == 1 && pEm->Move_cnt >= 6 && pEm->Move_cnt < 20 && (LONG)pEm->L_pl < 1000 &&
         !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100) && pPl->Routine_0 == 1 && pPl->Routine_1 < 7) {
         if (EM32_W(pEm)->Unk1C < 3 && pEm->pSin_parts_ptr->Workm.t[1] < pPl->Pos_y - 1200) {
             func_8010413C(++EM32_W(pEm)->Unk1C);
@@ -743,7 +743,7 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Pad_vib_set0(2, 0);
         pEm->Col.D0 = pEm->Col.W0 = 100;
         pEm->Routine_2++;
-        EM32_W(pEm)->Unk26 = pPl->Unk122;
+        EM32_W(pEm)->Unk26 = pPl->Ground;
     case 3:
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
         pEm->Cdir_y = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z);
@@ -821,7 +821,7 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
             Ground = Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 4);
-            pEm->Unk122 = Ground;
+            pEm->Ground = Ground;
             pEm->Pos_y = Ground;
             pEm->nFloor = Ground / -1800;
         }
@@ -846,8 +846,8 @@ void Em32_on_back(ENEMY_WORK *pEm, SHORT L, SHORT Dir, VECTOR *pPos)
     ApplyMatrixSV(&M, &Sv, &Sv);
     pEm->Pos_x = Sv.vx + pPos->vx;
     pEm->Pos_z = Sv.vz + pPos->vz;
-    pEm->Pos_y += pPl->Unk122 - EM32_W(pEm)->Unk26;
-    EM32_W(pEm)->Unk26 = pPl->Unk122;
+    pEm->Pos_y += pPl->Ground - EM32_W(pEm)->Unk26;
+    EM32_W(pEm)->Unk26 = pPl->Ground;
 }
 
 void func_8010268C(void) {
@@ -864,7 +864,7 @@ void func_80102694(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         Snd_se_enem(2, pEm);
         EM_SET_MOVE(pEm, 0xB, 0, 0xF);
-        pEm->Spd_y = (pEm->Unk122 - pEm->Pos_y) / 8;
+        pEm->Spd_y = (pEm->Ground - pEm->Pos_y) / 8;
         pEm->Move_cnt = 33;
         Spd_y = pEm->Spd_y;
         pEm->Routine_2++;
@@ -880,7 +880,7 @@ void func_80102694(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Be_flg &= ~0x400;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
             pEm->Be_flg |= 0x80000;
         }
         pEm->Spd_x -= Rnd_l() & 7;
@@ -901,7 +901,7 @@ void func_80102800(ENEMY_WORK *pEm)
     switch (pEm->UnkDA) {
     case 0:
         EM32_SABUN_P(pP)->Key[1].Rate = 0x1000;
-        if ((LONG)pEm->Unk154 < 3000)
+        if ((LONG)pEm->L_pl < 3000)
             pEm->UnkDA = 1;
         break;
     case 1:
@@ -918,7 +918,7 @@ void func_80102800(ENEMY_WORK *pEm)
         EM32_SABUN_P(pP)->Key[0].Rate -= Spd;
         if (EM32_SABUN_P(pP)->Key[0].Rate < 0) {
             EM32_SABUN_P(pP)->Key[0].Rate = 0;
-            if ((LONG)pEm->Unk154 > 4000)
+            if ((LONG)pEm->L_pl > 4000)
                 pEm->UnkDA = 3;
         }
         break;
@@ -1042,7 +1042,7 @@ void func_80102CE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE2 = 16;
         pEm->Routine_2++;
         pEm->Be_flg |= 0x400;
-        pEm->Spd_y = (pEm->Unk122 - pEm->Pos_y) / 20;
+        pEm->Spd_y = (pEm->Ground - pEm->Pos_y) / 20;
     case 2:
         Spd_y = pEm->Spd_y;
         Spd_get(pEm, pKan, pSeq, 0);
@@ -1061,7 +1061,7 @@ void func_80102CE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Damage_cnt = 0;
             pEm->Type &= 0xF0;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
         }
         if (pEm->Water && pEm->Water < pEm->pSin_parts_ptr->Workm.t[1] && !pEm->UnkE3) {
             pEm->UnkE3 = 1;
@@ -1092,7 +1092,7 @@ void func_80102FD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Type &= ~0x2000;
     pPl = &Pl_work;
     if (pEm->Routine_2 == 0) {
-        if (pEm->Pos_y != pEm->Unk122) {
+        if (pEm->Pos_y != pEm->Ground) {
             pEm->Life = -1;
             pEm->Routine_2 = 7;
             pEm->Damage_cnt |= 0x80;
@@ -1100,7 +1100,7 @@ void func_80102FD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Routine_2 == 0) {
             pEm->Life = -1;
             pEm->Damage_cnt |= 0x80;
-            Wep = pEm->Unk12C;
+            Wep = pEm->Damage_no;
             if ((UCHAR)Wep < 4 || (ULONG)(Wep - 12) < 4 || (UCHAR)Wep >= 17)
                 pEm->Routine_2 = 2;
             if (Rnd_l() & 1)
@@ -1181,7 +1181,7 @@ void func_80102FD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 7:
         EM_SET_MOVE(pEm, 0xB, 0, 0xF);
-        pEm->Spd_y = (pEm->Unk122 - pEm->Pos_y) / 8;
+        pEm->Spd_y = (pEm->Ground - pEm->Pos_y) / 8;
         pEm->Move_cnt = 33;
         Spd_y = pEm->Spd_y;
         pEm->Routine_2++;
@@ -1195,7 +1195,7 @@ void func_80102FD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             for (i = 0, pP = pEm->pSin_parts_ptr; i < 6; i++, pP++)
                 pP->UnkA2 |= 0x400;
-            pEm->Pos_y = pEm->Unk122;
+            pEm->Pos_y = pEm->Ground;
             pEm->Routine_2 = 0;
             pEm->Be_flg = (pEm->Be_flg & ~0x400) | 0x80000;
             break;
@@ -1230,7 +1230,7 @@ void func_8010356C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         pEm->Life = 1;
         pEm->Type = EM32_W(pEm)->Type_bak;
-        pEm->Unk122 = EM32_W(pEm)->Ground_bak;
+        pEm->Ground = EM32_W(pEm)->Ground_bak;
         pEm->Cdir_y = EM32_W(pEm)->Cdir_y_bak;
         pEm->Timer0 = EM32_W(pEm)->Timer0_bak;
         pEm->nFloor = EM32_W(pEm)->nFloor_bak;
@@ -1256,7 +1256,7 @@ void func_8010356C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_MOVE(pEm, 6, 0, 0);
             pEm->Damage_cnt = 0x80;
             pEm->Be_flg |= 0x2400;
-            pEm->Unk122 = pEm->Add_dir;
+            pEm->Ground = pEm->Add_dir;
             break;
         case 0x103:
             EM32_W(pEm)->Unk22 = 0;

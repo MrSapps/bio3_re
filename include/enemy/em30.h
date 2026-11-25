@@ -5,8 +5,8 @@
  * 0x8010D000 (slot 2). A large 17-part body (Type & 1 == 0) that spawns seven
  * collision sub-works (Type & 1) tied to its parts. Routine table
  * Init/Move/Damage/Die as RE2's EM2x modules; Move is the RE2 mv_br[]/mv[]
- * pair indexed by Routine_1, Damage is indexed by the hit weapon (Unk12C),
- * Die by Unk12C too. The die handler for the player is hooked into
+ * pair indexed by Routine_1, Damage is indexed by the hit weapon (Damage_no),
+ * Die by Damage_no too. The die handler for the player is hooked into
  * G.pPldie_Em[Id - 0x10].
  */
 #include "bio3.h"
