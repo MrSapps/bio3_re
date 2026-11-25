@@ -211,7 +211,7 @@ void Em25_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Em25_mv01_tbl[pEm->Routine_1 - 1][0] + 0x70000;
+        EM_SET_MOVE(pEm, Em25_mv01_tbl[pEm->Routine_1 - 1][0], 0, 7);
         pEm->Routine_2 = 1;
         pEm->Spd_z = 0;
         pEm->Timer0 = Rnd_l() & 0x3D;
@@ -260,7 +260,7 @@ void func_80100B18(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Em25_mv03_tbl[pEm->Routine_1 - 5][0] + 0x70000;
+        EM_SET_MOVE(pEm, Em25_mv03_tbl[pEm->Routine_1 - 5][0], 0, 7);
         pEm->Routine_2 = 1;
         pEm->UnkDA = (Rnd_l() & 0x1F) + 0x3C;
     case 1:
@@ -2426,7 +2426,7 @@ void Em25_Set_child(ENEMY_WORK *pEm, USHORT type, UCHAR cnt)
             pWk->Cdir_y = Rnd_l() << 4;
         else
             pWk->Cdir_y = (EF(pEm)->Wall_pos << 10) - (0x200 - (Rnd_l() << 2));
-        EM_RTN(pWk) = (child_rtn_tbl[(UCHAR)pWk->Type] << 8) | 1;
+        EM_SET_RTN(pWk, 1, child_rtn_tbl[(UCHAR)pWk->Type], 0, 0);
         switch ((UCHAR)pWk->Type) {
         case 2:
         case 3:

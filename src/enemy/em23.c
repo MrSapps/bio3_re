@@ -1928,7 +1928,7 @@ void func_801063E4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, 0xE, 0, 3);
         pEm->Col.H = 4000;
         pEm->Routine_2++;
-        EM_RTN(pPl) = (Cdir_ck(pEm, pPl) << 24) | 5;
+        EM_SET_RTN(pPl, 5, 0, 0, Cdir_ck(pEm, pPl));
         pPl->pEnemy_ptr = pEm;
         Set_base_pos(pPl, pKan, pSeq, 0);
         pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
@@ -2068,7 +2068,7 @@ void func_801071F8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_8002646C_(pEm, 300, 60, pEm->Col.Unk39);
         pEm->Col.H = 4000;
         pEm->Routine_2++;
-        EM_RTN(pPl) = (Cdir_ck(pEm, pPl) << 24) | 0x105;
+        EM_SET_RTN(pPl, 5, 1, 0, Cdir_ck(pEm, pPl));
         pPl->pEnemy_ptr = pEm;
         Set_base_pos(pPl, pKan, pSeq, 0);
         pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
@@ -2199,7 +2199,7 @@ void func_801075A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Move = 2;
             if (EF(pEm)->Flg & 1)
                 Move = 1;
-            EM_MOVE(pEm) = Move;
+            EM_SET_MOVE(pEm, Move, 0, 0);
             EM_SET_RTN(pEm, 1, 5, 0, 7);
         }
         func_8010387C(pEm, 0);
@@ -2585,7 +2585,7 @@ void func_80108904(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         Right = (Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z) - pEm->Cdir_y) & 0x800;
         Right = Right == 0;
-        EM_MOVE(pEm) = Right + 0x7001C;
+        EM_SET_MOVE(pEm, Right + 0x1C, 0, 7);
         if (Right)
             pEm->Timer0 = 10;
         else

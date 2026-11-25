@@ -1554,7 +1554,7 @@ void func_80104A10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Pad_vib_set1(3, 250, 4);
                 Pl_life_down(15, 1);
                 pPl->pEnemy_ptr = pEm;
-                EM_RTN(pPl) = (Cdir_ck(pEm, pPl) << 24) | 5;
+                EM_SET_RTN(pPl, 5, 0, 0, Cdir_ck(pEm, pPl));
                 pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
                 pPl->pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
                 pPl->Damage_cnt |= 0x80;
@@ -1694,7 +1694,7 @@ void func_801051C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pPl->pEnemy_ptr = pEm;
                 pPl->Damage_cnt |= 0x80;
                 pEm->Be_flg |= 0x8800;
-                EM_RTN(pPl) = (Dir << 24) | 6;
+                EM_SET_RTN(pPl, 6, 0, 0, Dir);
                 pPl->Be_flg |= 0xA800;
                 Set_base_pos(pPl, pKan, pSeq, 0);
             } else {
