@@ -390,7 +390,7 @@ void Bg_draw(void)
     Set_view(pG->pRoom->pRcut[pG->Cut_no].View_p, pG->pRoom->pRcut[pG->Cut_no].View_r);
     Sce.Cut = pG->pRoom->pRcut[pG->Cut_no];
     if (G.Status_flg & 0x1000) {
-        func_80048FF4();
+        Rain_drop_set();
     }
     Set_light_default();
     DecDCToutSync(0);

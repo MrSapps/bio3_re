@@ -433,7 +433,7 @@ typedef struct tagGLOBAL {
     UCHAR Back_func_rtn;               /* 0x75DB RE2 Back_func_rtn */
     void (*Front_func)(); /* 0x75DC RE2 Front_func */
     void (*Back_func)(); /* 0x75E0 RE2 Back_func */
-    SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp func_80049218) */
+    SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp Rain_wind_move) */
     SHORT Unk75E6;                     /* 0x75E6 screen shake y? */
     USHORT Unk75E8;                   /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */
     USHORT Unk75EA;                    /* 0x75EA */

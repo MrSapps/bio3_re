@@ -9,7 +9,7 @@
 
 extern UCHAR D_800E017F_[] __asm__("D_800E017F"); /* type differs from the canonical extern */
 extern UCHAR D_800D442E_[] __asm__("D_800D442E"); /* type differs from the canonical extern */
-LONG func_80048974_() __asm__("func_80048974"); /* returns long here (canonical void); unprototyped call */
+LONG func_80048974_() __asm__("Rain_init"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_set0_() __asm__("Pad_vib_set0"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_set1_() __asm__("Pad_vib_set1"); /* returns long here (canonical void); unprototyped call */
 LONG Pad_vib_fade_set_() __asm__("Pad_vib_fade_set"); /* returns long here (canonical void); unprototyped call */

@@ -125,7 +125,7 @@ void Set_room(void)
         Cd_read(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
-    func_80048630();
+    Psp_init();
     func_80078450();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;

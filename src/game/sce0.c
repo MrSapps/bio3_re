@@ -5,7 +5,6 @@
 #include "pad.h"
 #include "sld.h"
 
-extern s8 D_80098728_[] __asm__("Rnd_tbl"); /* type differs from the canonical extern */
 UCHAR Rnd_uc(void) __asm__("Rnd"); /* returns unsigned char here (canonical unsigned long) */
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
@@ -225,7 +224,7 @@ void Sce_rnd_set(void)
     LONG D0;
 
     D0 = (s8)Rnd_uc() << 8;
-    D0 += Rnd_uc() + D_80098728_[Sce.Unk149E++];
+    D0 += Rnd_uc() + (signed char)Rnd_tbl[Sce.Unk149E++];
     D_800D1F82 = D0;
 }
 
