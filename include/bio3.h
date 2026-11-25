@@ -530,7 +530,7 @@ typedef struct tagGLOBAL {
     SHORT Chaser_type;                 /* 0x7854 Nemesis Type & 1 (Chaser_data_save) */
     SHORT Chaser_life;                 /* 0x7856 Nemesis life (Chaser_data_save, Chaser_life_init) */
     SHORT Scrl_y;                      /* 0x7858 RE2 Scrl_y: background scroll y, -0xEF..0xEF (Swap_Cbuff) */
-    UCHAR pad785A[0x785C - 0x785A];
+    USHORT Unk785A;                    /* 0x785A Mercenaries counter, +1 per second while System_flg & 0x80 (Game_loop) */
     USHORT Chaser_no;                  /* 0x785C current Nemesis encounter (Chaser_evt_clr: 3..6), 0 once he is down */
     USHORT Dodge_cnt;                  /* 0x785E counted by pl_mv07 / pl_mv0d (dodges?) */
     USHORT Time;                       /* 0x7860 Mercenaries time left (result) */

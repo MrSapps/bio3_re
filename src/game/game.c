@@ -10,6 +10,14 @@
 #include "snd.h"
 #include "spl.h"
 #include "status.h"
+#include "cd.h"
+#include "sce_at.h"
+#include "joint.h"
+#include "pl_wep.h"
+#include "om.h"
+#include "psp.h"
+#include "line_scr.h"
+#include "80048520.h"
 
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
@@ -41,7 +49,361 @@
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
 /* RE2 Game_loop: game task: per frame player, enemies, scenario, drawing, room changes */
-INCLUDE_ASM("asm/nonmatchings/game/game", Game_loop);
+/* Game_loop passes the position as a 4th argument (joint.c defines it with 3) */
+void Joint_trans_4(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos) __asm__("Joint_trans");
+void func_8011A03C(void);
+extern UCHAR D_8011B4D8;
+extern ULONG D_800C7038;
+extern UCHAR D_800E0183;
+extern LONG D_800CCBA0;
+
+/* Mercenaries timer display */
+typedef struct tagGAME_TIMER {
+    UCHAR Col;                         /* 0x0 */
+    UCHAR pad1;
+    SHORT Cnt;                         /* 0x2 */
+    SHORT Sec;                         /* 0x4 */
+    UCHAR pad6[2];
+    ULONG Status_bak;                  /* 0x8 */
+} GAME_TIMER;
+extern GAME_TIMER D_800C79B8;
+
+void Game_loop(void)
+{
+    tagGLOBAL *pG;
+    ENEMY_WORK **ppEm;
+    ENEMY_WORK *pEm;
+    VECTOR *pPos;
+    LONG Px, Pz, x, z;
+    SHORT Min;
+    ULONG i;
+    ULONG Clr0, Clr1, Clr2;
+
+    pG = &G;
+    Game_init();
+    goto first;
+    do {
+        if (Main.Unk194 != 0) goto render;
+        if (G.System_flg & 0x200) {
+            if (D_800C79B8.Cnt == 0x10) {
+                if (G.Status_flg & 0x20) goto render;
+                Task_lexecute(1, 3);
+                Moji.Mess_flg = 0;
+                D_800C79B8.Cnt = -30000;
+                G.System_flg |= 0x40;
+            } else {
+                D_800C79B8.Cnt++;
+            }
+            goto render;
+        }
+        if (Game.Doordemo_flg == 1 && !(Moji.Mess_flg & 0x80) && Fade_status(0) == 0
+                && !(G.Status_flg & 0x10000000) && !(G.System_flg & 0x400)) {
+            G.Stop_flg |= 0xFF000000;
+            if (G.pSce_aot_on != NULL) {
+                G.System_flg |= 0x800000;
+                Fade_off(0);
+            }
+            G.System_flg |= 0x1000000;
+            Bg_set_mode(1, 0);
+            pG->Stop_flg = 0;
+            D_800C7038 = 0;
+            Set_door();
+first:
+            if (G.System_flg & 0x10000000) {
+                G_random = Game.pSave->Unk714;
+                G.Sce_random = Game.pSave->Unk718;
+                Sce_rnd_idx[0] = 0;
+            }
+            pG->pEm = PLAYER_EM(pG);
+            *(ULONG *)&pG->Player.Routine_0 = 0;
+            Pl_wep_eff_init(pG->pEm);
+            Player_move(PLAYER_EM(pG));
+            G.System_flg &= ~0x1000000;
+            Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 6);
+            Game.Doordemo_flg = 0;
+        }
+        switch (Game.Unk1) {
+        case 1:
+            if ((Moji.Mess_flg & 0x80) || Fade_status(0) != 0
+                    || (G.Status_flg & 0x10000000) || (G.System_flg & 0x400)) {
+                break;
+            }
+            G.Stop_flg |= 0xFF000000;
+            Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 6);
+            Game.Unk1 = 2;
+        case 2:
+            if (!(Fade_status(0) & FADE_END)) break;
+            Task_sleep(2);
+            Main.Fade[0].Flg = 0;
+            pG->Stop_flg = 0;
+            D_800C7038 = 0;
+            G.System_flg |= 0x1000000;
+            if (G.Status_flg & 0x200) {
+                Task_execute(1, Status);
+                Task_sleep(1);
+                G.Status_flg &= ~0x200;
+                D_800C7038 = Game.Stop_bak;
+                Game.Stop_bak = 0;
+            }
+            if (G.System_flg & 0x100000) {
+                G.Ovl_mode = 0;
+                Task_lexecute(1, 4);
+                Task_sleep(1);
+                G.System_flg &= ~0x100000;
+            }
+            if (G.System_flg & 0x80000) {
+                Task_lexecute(1, 2);
+                D_800C7038 = Game.Stop_bak;
+                Game.Stop_bak = 0;
+                Task_sleep(1);
+                G.System_flg &= ~0x80000;
+                G.System_flg &= ~0x40000;
+            }
+            pG->pEm = PLAYER_EM(pG);
+            *(ULONG *)&pG->Player.Routine_0 = 0;
+            Player_move(PLAYER_EM(pG));
+            Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 6);
+            Game.Unk1 = 3;
+            pG->Stop_flg = D_800C7038;
+            G.System_flg &= ~0x1000000;
+            if (G.Stop_flg & 0x1000000) {
+                pG->Key &= 0x3000;
+                pG->Key_trg &= 0x3000;
+            }
+            break;
+        case 3:
+            if (Fade_status(0) == 0) {
+                Game.Unk1 = 0;
+            }
+            break;
+        }
+        if (G.Unk246C & 0x40000000) goto render;
+        if (G.Status_flg & 0x2000000) {
+            if (!(D_800C79B8.Status_bak & 0x2000000)) {
+                D_8011B4D8 = 0;
+            }
+            func_8011A03C();
+        } else if (G.Status_flg & 0x4000000) {
+            if (G.System_flg & 0x80) {
+                Bonus_time_disp();
+            }
+            if (D_800C79B8.Cnt >= 30 || !(D_800C79B8.Status_bak & 0x4000000)) {
+                D_800C79B8.Cnt = 0;
+                D_800C79B8.Sec = 8;
+                pG->Time--;
+                if (G.System_flg & 0x80) {
+                    G.Unk785A++;
+                }
+            }
+            if ((SHORT)pG->Time < 60) {
+                D_800C79B8.Col = 4;
+            } else {
+                D_800C79B8.Col = 0;
+            }
+            if ((SHORT)pG->Time >= 0) {
+                Print_color(0xFF, 0, 0);
+                Min = (SHORT)pG->Time / 60;
+                Print14_col(0x6F, 0x20, D_800C79B8.Col, "%2d^", Min);
+                Print14_col(0x92, 0x20, D_800C79B8.Col, "%d%d.", (SHORT)((SHORT)((SHORT)pG->Time % 60) / 10), (SHORT)((SHORT)((SHORT)pG->Time % 60) % 10));
+                Print14_col(0xB5, 0x20, D_800C79B8.Col, "%d%d", 9 - (SHORT)(D_800C79B8.Cnt / 3), D_800C79B8.Sec);
+            } else {
+                Print_color(0xFF, 4, 0);
+                Print14(0x6F, 0x20, " 0^");
+                Print14(0x92, 0x20, "00.");
+                Print14(0xB5, 0x20, "00");
+            }
+            if ((SHORT)pG->Time < 0) {
+                if (*(USHORT *)&Game.Doordemo_flg != 0) goto render;
+                if (Fade_status(0) != 0) goto render;
+                if (Task_status(1) != 0) goto render;
+                if (CD.Xa_rtn_no != 0) {
+                    CD.Xa_rtn_no = 3;
+                }
+                D_800C79B8.Cnt = 0;
+                D_800C79B8.Sec = 0;
+                G.Status_flg &= ~0x4000000;
+                G.System_flg |= 0x200;
+                goto render;
+            }
+            if (*(USHORT *)&Game.Doordemo_flg == 0) {
+                D_800C79B8.Cnt++;
+                D_800C79B8.Sec -= 3;
+                if (D_800C79B8.Sec <= 0) {
+                    D_800C79B8.Sec = 8;
+                }
+            }
+        }
+        D_800C79B8.Status_bak = pG->Status_flg;
+        if (G.System_flg & 0x400) goto render;
+        if (G.Status_flg & 0x10000000) {
+            Ctrl_mode = 2;
+            if (Live_sel.Wait != 0 && G.Cbuf_id != 0) goto render;
+        }
+        if (pG->Front_func != NULL) {
+            pG->Front_func();
+        }
+        if (!(G.Status_flg & 0x80)) {
+            Cut_check(0);
+        }
+        pG->pEm = PLAYER_EM(pG);
+        Sce_scheduler();
+        if ((G.Status_flg & 0x10000000) && Task_status(1) == 0) {
+            Task_execute(1, Live_select);
+        }
+        if (Task_status(1) == 0 && !(G.System_flg & 0x10000000) && pG->Cut_no == pG->Next_cut_no
+                && Main.Unk18E == 0 && pG->Player.Damage_cnt == 0 && *(USHORT *)&Game.Doordemo_flg == 0
+                && !(D_800E0183 & 0xE) && !(Moji.Mess_flg & 0x80) && !(G.Stop_flg & 0x1000000)
+                && !(G.System_flg & 0x30000) && !(G.Status_flg & 0x108)) {
+            if (G.Key_trg & 0x4000) {
+                G.Status_flg |= 0x200;
+                St.St_type = 0;
+            }
+            if (G.Padd_trg & 1) {
+                St.St_type = 4;
+                G.Status_flg |= 0x200;
+            }
+            if ((G.Padd_trg & 0x100) && !(G.Status_flg & 0x200)) {
+                Snd_se_stad(6, 0, 0, 0);
+                Game.Unk1 = 1;
+                G.System_flg |= 0x100000;
+                Game.Stop_bak = pG->Stop_flg;
+                G.Stop_flg |= 0xFF000000;
+                goto render;
+            }
+            if (G.Status_flg & 0x200) {
+                Game.Unk1 = 1;
+                G.Status_flg |= 0x100;
+                Game.Stop_bak = pG->Stop_flg;
+                G.Stop_flg |= 0xFF000000;
+                if (St.St_type == 4) {
+                    Snd_se_stad(9, 0, 0, 0);
+                } else {
+                    Snd_se_stad(6, 0, 0, 0);
+                }
+                goto render;
+            }
+        }
+        SetSpadStack();
+        pG->Room_enemy_flg &= 0xFF;
+        if (!(D_800CCBA0 & 0x20000000)) {
+            Clr0 = 0xCFFFFFFF;
+            Clr1 = 0x3FFFFFFF;
+            Px = pG->Player.Pos_x;
+            Pz = pG->Player.Pos_z;
+            ppEm = &pG->pEnemy[1];
+            if (ppEm != pG->ppEnemy_end) do {
+                pEm = *ppEm;
+                pG->pEm = pEm;
+                pEm->Be_flg &= Clr0;
+                if ((pEm->Be_flg & 1) && !(pEm->Type & 0x8000)) {
+                    x = (pEm->Pos_x - Px) >> 1;
+                    z = (pEm->Pos_z - Pz) >> 1;
+                    pEm->L_pl = SquareRoot0(x * x + z * z) << 1;
+                    pG->Em_move_tbl[pEm->Id - 0x10](pEm);
+                }
+                pEm->Be_flg &= Clr1;
+                ppEm++;
+            } while (ppEm != pG->ppEnemy_end);
+        }
+        pG->pEm = PLAYER_EM(pG);
+        pEm = pG->pEm;
+        if (D_800CCBA0 >= 0 && !(pEm->Type & 0x8000)) {
+            pG->Player.Be_flg &= 0xCFFFFFFF;
+            Player_move(pEm);
+            pG->Player.Be_flg &= 0x3FFFFFFF;
+        }
+        Oba_main();
+        Om_move();
+        Sce_at();
+        if (pG->Back_func != NULL) {
+            pG->Back_func();
+        }
+        Esp_task_main();
+        if ((G.Status_flg & 0x1000) && !(G.Stop_flg & 0x10000000)) {
+            Rain_move();
+        }
+        ResetSpadStack();
+        if (G.System_flg & 0x2000) {
+            Task_lexecute(1, *(USHORT *)G.pAot_dat + 0xC);
+            G.System_flg &= ~0x2000;
+            goto post_render;
+        }
+        if ((G.System_flg & 0x20000) && Task_status(1) == 0 && Main.Unk18E == 0 && G.Cut_no == G.Next_cut_no) {
+            Task_lexecute(1, 3);
+            G.System_flg &= ~0x20000;
+            G.System_flg |= 0x40;
+        }
+render:
+        SetSpadStack();
+        Ot_set_all();
+        for (ppEm = pG->pEnemy; ppEm != pG->ppEnemy_end; ppEm++) {
+            pEm = *ppEm;
+            pG->pEm = pEm;
+            if (pEm->Be_flg & 1) {
+                Joint_trans_4(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, (VECTOR *)&pEm->Pos_x);
+                MulKage(pEm->Kage.pKw, pEm->Ground, pEm->Cdir_y, pEm->Be_flg & 0x30);
+                if (pEm->Be_flg & 0x2000000) {
+                    Sub_matrix_mul((UCHAR *)pEm);
+                }
+            }
+        }
+        if (Game.Plight_flg != 0) {
+            Gun_light_set();
+        }
+        Clr2 = 0xF0FFFFFF;
+        ppEm = pG->pEnemy;
+        pG->pPacket = (POLY_GT4 *)pG->pEm_mem + pG->Cbuf_id;
+        for (; ppEm != pG->ppEnemy_end; ppEm++) {
+            pEm = *ppEm;
+            if (pEm->Be_flg & 1) {
+                pPos = (VECTOR *)&pEm->Pos_x;
+                Set_light_pos(pPos);
+                SetColorMatrix(&COLORMATRIX);
+                pG->pEm = pEm;
+                Joint_trans2(pEm, pEm->pSin_parts_ptr, pEm->Be_flg, pPos);
+                pEm->Be_flg &= Clr2;
+            }
+        }
+        if (Game.Plight_flg != 0) {
+            Gun_light_reset();
+        }
+        Om_trans();
+        Eff_sprt_trans();
+        if ((LONG)G.System_flg >= 0) {
+            Psp_trans();
+        }
+        Kage_work_sort();
+        Kage_work9_sort();
+        Pl_wep_poly_trans();
+        if (Main.Unk194 == 0 && !(G.Stop_flg & 0x2000000)) {
+            Scr_effect();
+        }
+        if (G_status_flg & 0x1000) {
+            Rain_trans();
+        }
+        ResetSpadStack();
+post_render:
+        if (G.System_flg & 0x4000) {
+            Bg_set_mode(1, 0);
+            Task_lchain(9);
+        }
+        Task_sleep(1);
+    } while (G.System_flg & 0x8000000);
+    if ((G.System_flg & 0xC0) == 0xC0) {
+        G.System_flg &= ~0x40;
+        for (i = 0; i < 4; i++) {
+            Fade_off(i);
+        }
+        Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
+        D_800CC84D = 2;
+        Task_lexecute(1, 8);
+        Task_sleep(1);
+        Fade_set(0, 0, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
+        Retry_load();
+    }
+    G.System_flg |= 0x200000;
+    Task_exit();
+}
 
 /* RE2 Gun_light_set: muzzle flash light */
 void Gun_light_set(void)
