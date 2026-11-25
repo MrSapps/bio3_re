@@ -1501,7 +1501,7 @@ ULONG Message_on(SCE_TASK *pSce)
 
     Flg = ((SCE_MESSAGE_REC *)pSce->Data)->Flg << 16;
     Mess_set(0, ((SCE_MESSAGE_REC *)pSce->Data)->Id | 0x2000, ((SCE_MESSAGE_REC *)pSce->Data)->Mess, Flg);
-    G.Unk2468 |= Flg;
+    G.Stop_flg |= Flg;
     pSce->Data += 6;
     return 1;
 }
@@ -1760,7 +1760,7 @@ ULONG Sce_bgmtbl_set(SCE_TASK *pSce)
     return 1;
 }
 
-/* true when room (Data[2], Data[3]) has BGM (USHORT +4) in G.Unk7C84 */
+/* true when room (Data[2], Data[3]) has BGM (USHORT +4) in G.Bgm_tbl */
 ULONG Sce_bgmtbl_ck(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1776,7 +1776,7 @@ ULONG Sce_bgmtbl_ck(SCE_TASK *pSce)
         a -= 5;
     }
     pSce->Data = pData + 6;
-    return G.Unk7C84[Bgm_room_ofs[a - 1] + b] == c;
+    return G.Bgm_tbl[Bgm_room_ofs[a - 1] + b] == c;
 }
 
 /* RE2 Keep_Item_ck */
@@ -1840,7 +1840,7 @@ ULONG Sca_id_set(SCE_TASK *pSce)
     return 1;
 }
 
-/* object model Data[1]: sets its flag word (G.pUnk75AC[UnkC1]) to 0xFF */
+/* object model Data[1]: sets its flag word (G.pOm_target[UnkC1]) to 0xFF */
 ULONG Om_flg_clr(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1849,13 +1849,13 @@ ULONG Om_flg_clr(SCE_TASK *pSce)
     pData = pSce->Data;
     pOm = &G.Ob_model[pData[1]];
     if (pOm->Unk4A & 4) {
-        *G.pUnk75AC[pOm->UnkC1] = 0xFF;
+        *G.pOm_target[pOm->UnkC1] = 0xFF;
     }
     pSce->Data = pData + 2;
     return 1;
 }
 
-/* object model Data[1]: toggles its flag word between 0 and 0xFF and its G.Unk799C bit */
+/* object model Data[1]: toggles its flag word between 0 and 0xFF and its G.Om_flg bit */
 ULONG Om_rev(SCE_TASK *pSce)
 {
     UCHAR *pData;
@@ -1865,13 +1865,13 @@ ULONG Om_rev(SCE_TASK *pSce)
     pData = pSce->Data;
     pOm = &G.Ob_model[pData[1]];
     if ((pOm->Unk4A & 4) && (pOm->Type & 0x80)) {
-        pFlg = G.pUnk75AC[pOm->UnkC1];
+        pFlg = G.pOm_target[pOm->UnkC1];
         if (*pFlg == 0xFF) {
             *pFlg = 0;
-            Flg_off(G.Unk799C, pOm->UnkC2);
+            Flg_off(G.Om_flg, pOm->UnkC2);
         } else {
             *pFlg = 0xFF;
-            Flg_on(G.Unk799C, pOm->UnkC2);
+            Flg_on(G.Om_flg, pOm->UnkC2);
         }
     }
     pSce->Data = pData + 2;

@@ -6,7 +6,7 @@
  * br/mv tables of 8, Em2d_dm, Em2d_die, Pldamage_Em2d_tbl) and the P_hand[2][7]
  * part lists. RE3 adds Type & 0x20 (tilted, Cdir_z = -0x400: speeds are rotated
  * by Em2d_spd_rot) and a part colour fade (Em2d_hand_rgb).
- * RE2 -> RE3: Room_enemy_flg is G.Unk75EA, Timer1 UnkDA, Timer2 UnkE2, Timer3 UnkE3.
+ * RE2 -> RE3: Room_enemy_flg is G.Room_enemy_flg, Timer1 UnkDA, Timer2 UnkE2, Timer3 UnkE3.
  * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"

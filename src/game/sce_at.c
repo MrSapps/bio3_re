@@ -102,14 +102,14 @@ ULONG Sce_Door(void *pAot)
     pG = &G;
     pDoor = (SCE_AOT_DOOR *)pAot;
     pG->pAot_data = pCAot;
-    pG->pUnk21DC = pAot;
+    pG->pAot_dat = pAot;
     if (!(pG->Status_flg & 0x400000)) {
         if (pDoor->Key_id & 0x80) {
             if (pG->System_flg & 0x80) {
                 Mess_set(0, 0, 0xC, 0xFF000000);
                 return 0;
             }
-            if (!Flg_ck(pG->Unk7994, pDoor->Key_id & 0x3F)) {
+            if (!Flg_ck(pG->Key_flg, pDoor->Key_id & 0x3F)) {
                 Key_type = pDoor->Key_type;
                 if (Key_type == 0xFE) {
                     Snd_se_stad(0x226, 0, 0, 0);
@@ -133,7 +133,7 @@ ULONG Sce_Door(void *pAot)
                     pG->Front_func = Key_lost;
                     pG->Front_func_rtn = Key_work + 1;
                 door_in:
-                    Flg_on(pG->Unk7994, pDoor->Key_id & 0x3F);
+                    Flg_on(pG->Key_flg, pDoor->Key_id & 0x3F);
                     return 0;
                 }
                 if (pDoor->Mess & 0x80) {
@@ -166,7 +166,7 @@ ULONG Sce_Door(void *pAot)
         }
         Game.Doordemo_flg = 1;
         G.pSce_aot_on = pAot;
-        G.Unk2468 |= 0xFF000000;
+        G.Stop_flg |= 0xFF000000;
         return 0;
     }
 }
@@ -180,7 +180,7 @@ void Key_lost(void)
     Rtn = pG->Front_func_rtn;
     if (Rtn == 0) {
         if ((Moji.Mess_flg & 0x80) == 0) {
-            if (pG->Unk7848 == 0) {
+            if (pG->Mess_sel == 0) {
                 Item_delete(D_800DEC98);
             }
             pG->Front_func = NULL;
@@ -190,7 +190,7 @@ void Key_lost(void)
         if ((Moji.Mess_flg & 0x80) == 0) {
             if (Item_decrease(D_800DEC98, 1, 1) == 0) {
                 Mess_set(0, 0, 0x10, 0xff000000);
-                pG->Unk2468 |= 0xff000000;
+                pG->Stop_flg |= 0xff000000;
             } else {
                 pG->Front_func = NULL;
             }
@@ -203,10 +203,10 @@ void Key_lost(void)
 void Door_ask_entrance(void)
 {
     if (G.Front_func_rtn == 0 && (Moji.Mess_flg & 0x80) == 0) {
-        if (G.Unk7848 == 0) {
+        if (G.Mess_sel == 0) {
             Game.Doordemo_flg = 1;
-            G.pSce_aot_on = G.pUnk21DC;
-            G.Unk2468 |= 0xff000000;
+            G.pSce_aot_on = G.pAot_dat;
+            G.Stop_flg |= 0xff000000;
         }
         G.Front_func = NULL;
         G.Front_func_rtn = 0;
@@ -216,7 +216,7 @@ void Door_ask_entrance(void)
 /* RE2 Sce_Item */
 ULONG Sce_Item(void *pAot)
 {
-    G.pUnk21DC = pAot;
+    G.pAot_dat = pAot;
     G.pAot_data = pCAot;
     if ((((UCHAR *)pAot)[7] & 1) != 0) {
         G.Player.Routine_1 = 8;
@@ -230,7 +230,7 @@ ULONG Sce_Item(void *pAot)
     }
     St_type_a[0] = 1;
     Game.Unk1 = 1;
-    Game.Stop_bak = G.Unk2468;
+    Game.Stop_bak = G.Stop_flg;
     G.Status_flg |= 0x200;
     return 0;
 }
@@ -241,13 +241,13 @@ void Item_mess_entrance(void)
     tagGLOBAL *pG = &G;
     UCHAR *pDat;
 
-    pDat = pG->pUnk21DC;
+    pDat = pG->pAot_dat;
     switch (pG->Front_func_rtn) {
     case 0:
         Moji.Mess_item = pDat[0];
         Mess_set(0, 0, 6, 0xff000000);
         pG->Front_func_rtn = 1;
-        pG->Unk2468 |= 0xff000000;
+        pG->Stop_flg |= 0xff000000;
         break;
     case 1:
         if ((Moji.Mess_flg & 0x80) == 0) {
@@ -255,8 +255,8 @@ void Item_mess_entrance(void)
             pG->Front_func_rtn = 0;
             St_type_a[0] = 1;
             Game.Unk1 = 1;
-            Game.Stop_bak = pG->Unk2468;
-            pG->Unk2468 |= 0xff000000;
+            Game.Stop_bak = pG->Stop_flg;
+            pG->Stop_flg |= 0xff000000;
             pG->Status_flg |= 0x200;
         }
         break;
@@ -282,7 +282,7 @@ ULONG Sce_Message(void *pAot)
 /* RE2 Sce_Event */
 ULONG Sce_Event(void *pAot)
 {
-    if ((G.Unk2468 & 0x2000000) == 0) {
+    if ((G.Stop_flg & 0x2000000) == 0) {
         Event_exec(((USHORT *)pAot)[0], ((UCHAR *)pAot)[3]);
     }
     return 0;
@@ -319,8 +319,8 @@ ULONG Sce_Save(void *pAot)
     G.Back_func = Save_entrance;
     G.Back_func_rtn = 0;
     G.Save_area = *(UCHAR *)pAot;
-    Game.Stop_bak = G.Unk2468;
-    G.Unk2468 |= 0xff000000;
+    Game.Stop_bak = G.Stop_flg;
+    G.Stop_flg |= 0xff000000;
     return 0;
 }
 
@@ -337,17 +337,17 @@ void Save_entrance(void)
         } else {
             pG->Back_func = NULL;
             pG->Back_func_rtn = 0;
-            pG->Unk2468 = Game.Stop_bak;
+            pG->Stop_flg = Game.Stop_bak;
             Mess_set(0, 0, 0, 0xff000000);
         }
         break;
     case 1:
         if ((Moji.Mess_flg & 0x80) == 0) {
-            if (pG->Unk7848 == 0) {
+            if (pG->Mess_sel == 0) {
                 Game.Unk1 = 1;
                 pG->System_flg |= 0x80000;
             } else {
-                pG->Unk2468 = Game.Stop_bak;
+                pG->Stop_flg = Game.Stop_bak;
             }
             pG->Back_func = NULL;
             pG->Back_func_rtn = 0;
@@ -374,8 +374,8 @@ void Item_box_entrance(void)
     case 0:
         D_800DEC9C = 1;
         D_800DEC9E = 3;
-        Game.Stop_bak = pG->Unk2468;
-        pG->Unk2468 |= 0x7F000000;
+        Game.Stop_bak = pG->Stop_flg;
+        pG->Stop_flg |= 0x7F000000;
         Snd_se_stad(0x214, 0, 0, 0);
         D_800DECA0 = &pG->Ob_model[0];
         pG->Back_func_rtn = 1;
@@ -409,10 +409,10 @@ void Item_box_entrance(void)
     }
 }
 
-/* remembers the AOT in G.pUnk21DC and sets System_flg 0x2000 */
+/* remembers the AOT in G.pAot_dat and sets System_flg 0x2000 */
 ULONG Sce_Aot_set(void *pAot)
 {
-    G.pUnk21DC = pAot;
+    G.pAot_dat = pAot;
     G.System_flg |= 0x2000;
     return 0;
 }
@@ -428,29 +428,29 @@ ULONG Sce_Hikidashi(void *pAot)
     pDat = (USHORT *)pAot;
     if (pG->Front_func == NULL && pG->Player.Damage_cnt == 0 && !(pG->Status_flg & 0x300)
         && pG->Next_cut_no == pG->Cut_no) {
-        if (pG->Unk783E < 2) {
-            pFlg = pG->Unk78D0;
+        if (pG->Stage_no < 2) {
+            pFlg = pG->Item_flg;
         } else {
-            pFlg = pG->Unk78F0;
+            pFlg = pG->Item_flg2;
         }
         if (!Flg_ck(pFlg, ((SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data)->Data2)) {
-            if (!Flg_ck(pG->Unk7994, pDat[0])) {
+            if (!Flg_ck(pG->Key_flg, pDat[0])) {
                 if (Search_item_id(0x72, 0) >= 0) {
                     pG->Front_func_rtn = 1;
-                    pG->pUnk21DC = pAot;
+                    pG->pAot_dat = pAot;
                     pG->pAot_data = pCAot;
                     pG->Front_func = Hikidashi_entrance;
                 } else {
                     Mess_set(0, 0x2000, pDat[2] >> 8, 0xFF000000);
                 }
             } else {
-                pG->pUnk21DC = pAot;
+                pG->pAot_dat = pAot;
                 pG->pAot_data = pCAot;
                 Snd_se_stad(0x228, 0, 0, 0);
                 pG->Ob_model[((SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data)->Om_no].Be_flg |= 0x41;
                 Cut_change(((UCHAR *)pDat)[4]);
-                Game.Stop_bak = pG->Unk2468;
-                G.Unk2468 |= 0xFF000000;
+                Game.Stop_bak = pG->Stop_flg;
+                G.Stop_flg |= 0xFF000000;
                 G.Status_flg |= 0x100;
                 pG->Cccut_next->Xz[0][0] = -0x7FBC;
                 pG->Cccut_next->Xz[1][0] = -0x7FBC;
@@ -477,7 +477,7 @@ void Hikidashi_entrance(void)
     USHORT *pDat;
 
     pG = &G;
-    pDat = pG->pUnk21DC;
+    pDat = pG->pAot_dat;
     switch (pG->Front_func_rtn) {
     case 0:
         break;
@@ -490,8 +490,8 @@ void Hikidashi_entrance(void)
         if (Moji.Mess_flg & 0x80) {
             break;
         }
-        if (!(pG->Unk7848 & 1)) {
-            Flg_on(pG->Unk7994, pDat[0]);
+        if (!(pG->Mess_sel & 1)) {
+            Flg_on(pG->Key_flg, pDat[0]);
             Moji.Mess_item = 0x72;
             Mess_set(0, 0, 5, 0xFF000000);
         }
@@ -511,7 +511,7 @@ void Hikidashi_entrance(void)
         Hiki_pAot = pG->pAot_data;
         Hiki_pItem_dat = (SCE_ITEM_DATA *)&pG->Sce_aot[pDat[1]]->Data;
         pG->pAot_data = pG->Sce_aot[pDat[1]];
-        pG->pUnk21DC = &pG->Sce_aot[pDat[1]]->Data;
+        pG->pAot_dat = &pG->Sce_aot[pDat[1]]->Data;
         St.St_type = 1;
         G.Status_flg = (G.Status_flg & ~0x100) | 0x200;
         Game.Unk1 = 1;
@@ -573,7 +573,7 @@ ULONG Sce_Door2(void *pAot)
         (Moji.Mess_flg & 0xC0) == 0) {
         Game.Doordemo_flg = 1;
         G.pSce_aot_on = pAot;
-        G.Unk2468 |= 0xff000000;
+        G.Stop_flg |= 0xff000000;
         return 0;
     }
 }
@@ -583,8 +583,8 @@ ULONG Sce_Heal(void *pAot)
 {
     G.Back_func = Heal_entrance;
     G.Back_func_rtn = 0;
-    Game.Stop_bak = G.Unk2468;
-    G.Unk2468 |= 0xff000000;
+    Game.Stop_bak = G.Stop_flg;
+    G.Stop_flg |= 0xff000000;
     return 0;
 }
 
@@ -600,9 +600,9 @@ void Heal_entrance(void)
         break;
     case 1:
         if ((Moji.Mess_flg & 0x80) == 0) {
-            if (pG->Unk7848 == 0) {
+            if (pG->Mess_sel == 0) {
                 *(ULONG *)&pG->Player.Routine_0 = 1;
-                pG->Unk2468 = Game.Stop_bak;
+                pG->Stop_flg = Game.Stop_bak;
                 if (pG->Player.Status_flg & 0x200) {
                     pG->Player.Status_flg &= ~0x200;
                     Mess_set(0, 0, 8, 0xff000000);
@@ -614,7 +614,7 @@ void Heal_entrance(void)
             } else {
                 pG->Back_func = NULL;
                 pG->Back_func_rtn = 0;
-                pG->Unk2468 = Game.Stop_bak;
+                pG->Stop_flg = Game.Stop_bak;
             }
         }
         break;

@@ -51,23 +51,23 @@ typedef struct tagRESULT_WORK {
 /* G fields with other types than in tagGLOBAL, and past its end (The Mercenaries records) */
 typedef struct tagGLOBAL_RESULT {
     UCHAR pad0[0x20FC];
-    ULONG Key_rep;                     /* 0x20FC key repeat (tagGLOBAL.Unk20FC is USHORT) */
+    ULONG Padd_trg;                    /* 0x20FC tagGLOBAL.Padd_trg read as a ULONG */
     UCHAR pad2100[0x2108 - 0x2100];
     ULONG Key_trg;                     /* 0x2108 same as tagGLOBAL.Key_trg (here for one base register) */
     UCHAR pad210C[0x211A - 0x210C];
-    USHORT Score;                      /* 0x211A Mercenaries score (tagGLOBAL.Unk211A is SHORT) */
+    USHORT Score;                      /* 0x211A same as tagGLOBAL.Score */
     UCHAR pad211C[0x24D6 - 0x211C];
     UCHAR Pl_id;                       /* 0x24D6 same as tagGLOBAL.Player.Id */
     UCHAR pad24D7[0x77F8 - 0x24D7];
-    ULONG Unk77F8[3];                  /* 0x77F8 same as tagGLOBAL.Unk77F8 */
+    ULONG Game_flg[3];                 /* 0x77F8 same as tagGLOBAL.Game_flg */
     UCHAR pad7804[0x7848 - 0x7804];
-    SHORT Unk7848;                     /* 0x7848 same as tagGLOBAL.Unk7848 (message answer) */
+    SHORT Mess_sel;                    /* 0x7848 same as tagGLOBAL.Mess_sel (message answer) */
     UCHAR pad784A[0x7860 - 0x784A];
-    USHORT Time;                       /* 0x7860 Mercenaries time left (tagGLOBAL.Unk7860 is SHORT) */
+    USHORT Time;                       /* 0x7860 same as tagGLOBAL.Time */
     UCHAR pad7862[0x7868 - 0x7862];
-    ULONG Unk7868[8];                  /* 0x7868 same as tagGLOBAL.Unk7868 */
+    ULONG Scenario_flg[8];             /* 0x7868 same as tagGLOBAL.Scenario_flg */
     UCHAR pad7888[0x7E94 - 0x7888];
-    ULONG Unk7E94;                     /* 0x7E94 */
+    ULONG Cure_total;                  /* 0x7E94 same as tagGLOBAL.Cure_total */
     LONG Merc_time[3];                 /* 0x7E98 best time per character, -1 none */
     UCHAR Merc_grade[3];               /* 0x7EA4 best grade per character, 0xFF none */
     UCHAR pad7EA7;
@@ -93,7 +93,7 @@ extern UCHAR Result_ombg_sum[]; /* OMBG.TIM piece check sums */
 extern UCHAR Result_mess[]; /* shop messages */
 extern USHORT Result_mess_ofs[]; /* shop message offsets into Result_mess */
 extern UCHAR Result_grade_chr[]; /* grade letters "FEDCBA" */
-extern void (*Result_proc_tbl[])(void); /* task routines, index G.Unk2115 */
+extern void (*Result_proc_tbl[])(void); /* task routines, index G.Ovl_mode */
 extern void (*Result_merc_menu_tbl[])(RESULT_WORK *pWk); /* Mercenaries result routines */
 extern RESULT_POS Result_merc_menu_pos[]; /* Mercenaries result text positions */
 extern SEL_SPRT_DEF Result_merc_menu_spr[]; /* Mercenaries result sprites */
@@ -101,7 +101,7 @@ extern void (*Result_merc_clear_tbl[])(RESULT_WORK *pWk); /* Mercenaries shop ro
 extern RESULT_POS Result_merc_pos[]; /* shop text positions */
 extern SEL_SPRT_DEF Result_merc_spr[]; /* shop sprites */
 extern SHORT Result_shop_price[]; /* shop item prices */
-extern signed char Result_shop_flg[]; /* shop item flag bits (G.Unk77F8) */
+extern signed char Result_shop_flg[]; /* shop item flag bits (G.Game_flg) */
 extern void (*Result_merc_fail_tbl[])(RESULT_WORK *pWk); /* routine 2 routines */
 extern void (*Result_main_tbl[])(RESULT_WORK *pWk); /* routine 3 routines */
 extern RESULT_POS Result_main_pos[]; /* main game result text positions */

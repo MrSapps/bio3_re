@@ -39,7 +39,7 @@ void Card_access(void)
         Print_color(0xFF, 0, 0);
         pMw->Poll_flg = 0;
         pMw->Key_trg = G.Key_trg;
-        pMw->Key_rep = G.Unk20FC;
+        pMw->Key_rep = G.Padd_trg;
         Card_cursor(pMw);
         do {
             pMw->Rno_loop = 0;
@@ -62,7 +62,7 @@ void Card_access(void)
             }
         }
         G.Key_trg = pMw->Key_trg;
-        G.Unk20FC = pMw->Key_rep;
+        G.Padd_trg = pMw->Key_rep;
         Task_sleep(1);
     }
     Cardaccess_exit(pMw);
@@ -72,8 +72,8 @@ void Card_access(void)
 LONG Card_cursor(MWORK *pMw)
 {
     if (pMw->Key_lock == 0 && pMw->Cursor_max != 0) {
-        if ((USHORT)G.Unk20F8 & 0x5000) {
-            if (G.Unk20FC & 0x5000) {
+        if ((USHORT)G.Padd & 0x5000) {
+            if (G.Padd_trg & 0x5000) {
                 pMw->Key_wait = 10;
             } else {
                 if (pMw->Key_wait > 0) {
@@ -81,16 +81,16 @@ LONG Card_cursor(MWORK *pMw)
                 }
                 pMw->Key_wait = 2;
             }
-            if ((USHORT)G.Unk20F8 & 0x1000) {
+            if ((USHORT)G.Padd & 0x1000) {
                 pMw->Cursor--;
             }
-            if ((USHORT)G.Unk20F8 & 0x4000) {
+            if ((USHORT)G.Padd & 0x4000) {
                 pMw->Cursor++;
             }
             switch (pMw->Rno) {
             case 6:
                 if (pMw->Cursor == -1) {
-                    if (G.Unk20FC & 0x1000) {
+                    if (G.Padd_trg & 0x1000) {
                         pMw->Cursor = 14;
                         pMw->Scrl_top = 10;
                     } else {
@@ -99,7 +99,7 @@ LONG Card_cursor(MWORK *pMw)
                     }
                 }
                 if (pMw->Cursor == 15) {
-                    if (G.Unk20FC & 0x4000) {
+                    if (G.Padd_trg & 0x4000) {
                         pMw->Cursor = 0;
                         pMw->Scrl_top = 0;
                     } else {
@@ -128,7 +128,7 @@ LONG Card_cursor(MWORK *pMw)
             }
             if (pMw->Cursor != pMw->Cursor_old) {
                 G.Key_trg &= ~0x1000;
-                G.Unk20FC &= ~0x800;
+                G.Padd_trg &= ~0x800;
                 pMw->Blink = 0;
                 pMw->Cursor_old = pMw->Cursor;
                 Snd_se_stad(4, 0, 0, 0);
@@ -241,7 +241,7 @@ void Card_rno01(MWORK *pMw)
 void Card_rno02_slot_sel(MWORK *pMw)
 {
     pMw->Cursor_max = 2;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         Snd_se_stad(6, 0, 0, 0);
         {
             signed char c = pMw->Cursor;
@@ -264,7 +264,7 @@ void Card_rno03_err(MWORK *pMw)
 {
     pMw->Cursor_max = 0;
     pMw->Cursor = 0;
-    if ((G.Key_trg & 0x3000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x3000) || (G.Padd_trg & 0x800)) {
         Snd_se_stad(5, 0, 0, 0);
         pMw->Rno = 1;
         pMw->Key_lock = 0;
@@ -354,7 +354,7 @@ void Card_rno06_file_sel(MWORK *pMw)
 
     pMw->Cursor_max = 14;
     G.Save_slot = pMw->Cursor;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         Cursor = pMw->Cursor;
         if (!(pMw->F_num[Cursor] & 0x40)) {
             pMw->Slot = Cursor;
@@ -394,12 +394,12 @@ void Card_rno06_file_sel(MWORK *pMw)
 /* Rno 17: menu after saving */
 void Card_rno11_after_save(MWORK *pMw)
 {
-    if (Flg_ck(G.Unk77F8, 0x1F)) {
+    if (Flg_ck(G.Game_flg, 0x1F)) {
         pMw->Cursor_max = 3;
     } else {
         pMw->Cursor_max = 4;
     }
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         Snd_se_stad(6, 0, 0, 0);
         G.System_flg &= ~0x40000;
         G.System_flg &= ~0x20;
@@ -428,8 +428,8 @@ void Card_rno11_after_save(MWORK *pMw)
             }
             break;
         case 3:
-            if (Flg_ck(G.Unk77F8, 0x1F) == 0) {
-                G.Unk2115 = 1;
+            if (Flg_ck(G.Game_flg, 0x1F) == 0) {
+                G.Ovl_mode = 1;
                 break;
             }
         case 4:
@@ -622,7 +622,7 @@ void Card_rno0B_load(MWORK *pMw)
     }
     Memcpy(G.Card_head, pMw->Card_buf, 0x908);
     Load_pop();
-    if (Flg_ck(G.Unk77F8, 5)) {
+    if (Flg_ck(G.Game_flg, 5)) {
         pMw->Key_lock = 0;
         pMw->Cursor = pMw->Cursor_old = 0;
         pMw->Rno = 17;
@@ -637,7 +637,7 @@ void Card_rno0B_load(MWORK *pMw)
 void Card_rno0C_format_ask(MWORK *pMw)
 {
     pMw->Cursor_max = 1;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         if (pMw->Cursor != 0) {
             Snd_se_stad(5, 0, 0, 0);
             pMw->Cursor = 0;
@@ -689,7 +689,7 @@ void Card_rno0E_file_err(MWORK *pMw)
 {
     pMw->Cursor_max = 0;
     pMw->Cursor = 0;
-    if ((G.Key_trg & 0x3000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x3000) || (G.Padd_trg & 0x800)) {
         pMw->Key_lock = 0;
         Snd_se_stad(4, 0, 0, 0);
         if (pMw->Err == 2) {
@@ -713,7 +713,7 @@ void Card_rno0E_file_err(MWORK *pMw)
 void Card_rno0F_overwrite(MWORK *pMw)
 {
     pMw->Cursor_max = 1;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         if (pMw->Cursor == 0) {
             Snd_se_stad(6, 0, 0, 0);
             pMw->Rno = 8;
@@ -767,7 +767,7 @@ void Card_rno10_continue(MWORK *pMw)
 /* Rno 18: wait for a key, then leave */
 void Card_rno12_end(MWORK *pMw)
 {
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800) || (G.Key_trg & 0x2000)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800) || (G.Key_trg & 0x2000)) {
         pMw->Exit_flg = 1;
     }
 }
@@ -966,7 +966,7 @@ void Card_disp_continue(MWORK *pMw)
 /* Disp 17: menu after saving */
 void Card_disp_after_save(MWORK *pMw)
 {
-    if (Flg_ck(G.Unk77F8, 0x1F)) {
+    if (Flg_ck(G.Game_flg, 0x1F)) {
         Mess_print(Mess_center_x(27, 1), 0x40, MESS(27), 0x102);
         Mess_print(Mess_center_x(23, 1) + 8, 0x60, MESS(20), 0x102);
         Mess_print(Mess_center_x(23, 1) + 8, 0x78, MESS(24), 0x102);
@@ -1275,8 +1275,8 @@ void Save_push(void)
     pG->Save_vol = Snd_work.Vol.Se;
     pG->Save_vol2 = Snd_work.Vol.Bgm;
     pG->Save_mono = Snd_work.Mono;
-    pG->Save_unk780C = Main.Unk195;
-    pG->Save_unk780D = Main.Unk196;
+    pG->Save_key_idx = Main.Unk195;
+    pG->Save_option = Main.Unk196;
 }
 
 /* Load_pop: restore the game state from the loaded save area */
@@ -1302,8 +1302,8 @@ void Load_pop(void)
     Snd_work.Vol.Se = pG->Save_vol;
     Snd_work.Vol.Bgm = pG->Save_vol2;
     Snd_work.Mono = pG->Save_mono;
-    Main.Unk195 = pG->Save_unk780C;
-    Main.Unk196 = pG->Save_unk780D;
+    Main.Unk195 = pG->Save_key_idx;
+    Main.Unk196 = pG->Save_option;
     G.pItem_set = &G.Item_work[G.Item_work_no];
     Set_volume(CD.Vol);
 }
@@ -1325,10 +1325,10 @@ void Card_mess_make(char *pTitle, void *pHead, UCHAR Slot)
     pTitle[11] += No % 10;
     pTitle[0x2F] += pG->Save_cnt / 10;
     pTitle[0x31] += pG->Save_cnt % 10;
-    if (pG->Unk7806 != 0) {
-        if (pG->Unk7806 < 100) {
-            pTitle[0x35] += pG->Unk7806 / 10;
-            pTitle[0x37] += pG->Unk7806 % 10;
+    if (pG->Clear_cnt != 0) {
+        if (pG->Clear_cnt < 100) {
+            pTitle[0x35] += pG->Clear_cnt / 10;
+            pTitle[0x37] += pG->Clear_cnt % 10;
         } else {
             func_8001012C(pTitle + 0x34, "\x82\x77\x82\x77\x81\x76", 7);
         }
@@ -1337,7 +1337,7 @@ void Card_mess_make(char *pTitle, void *pHead, UCHAR Slot)
         func_8001012C(pTitle + 0x32, "\x81\x76", 3);
         pTitle += 0x34;
     }
-    if (Flg_ck(G.Unk77F8, 0x1F)) {
+    if (Flg_ck(G.Game_flg, 0x1F)) {
         func_8001012C(pTitle, "\x81\x40\x82\x64", 5);
     } else {
         func_8001012C(pTitle, "\x81\x40\x82\x67", 5);

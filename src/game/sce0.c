@@ -165,18 +165,18 @@ void Sce_model_init(void)
     }
 }
 
-/* clears the per-frame scenario work (G.Sce_work[], G.Unk2474[], G.Unk788C) */
+/* clears the per-frame scenario work (G.Sce_work[], G.Use_flg[], G.Room_flg[1]) */
 void Sce_work_clr(void)
 {
     G.Sce_work[0] = -1;
     G.Sce_work[1] = -1;
     G.Sce_work[2] = -1;
     G.Sce_work[3] = -1;
-    G.Unk788C = 0;
-    G.Unk2474[0] = 0;
-    G.Unk2474[1] = 0;
-    G.Unk2474[2] = 0;
-    G.Unk2474[3] = 0;
+    G.Room_flg[1] = 0;
+    G.Use_flg[0] = 0;
+    G.Use_flg[1] = 0;
+    G.Use_flg[2] = 0;
+    G.Use_flg[3] = 0;
     D_800E017E[0] = 0;
 }
 
@@ -202,7 +202,7 @@ void Sce_work_clr_set(void)
         pTask++;
     }
     Sce_aot_init();
-    pG->Unk7888 = 0;
+    pG->Room_flg[0] = 0;
     Sce.Unk1497 = 0xFF;
     Sce.Mizu_div_max = 0;
     Sce.Mizu_div_ctr = 0;
@@ -214,7 +214,7 @@ void Sce_work_clr_set(void)
     pG->Unk75D9 = -1;
     Sce.Em_set_kind0 = 0;
     Sce.Em_set_kind1 = 0;
-    G.pUnk75AC[10] = 0;
+    G.pOm_target[10] = 0;
     Sce.Em_dat_num = 0;
     Sce.Skip_state = 0;
     Sce.pEm_last = G.pEnemy[2];
@@ -335,13 +335,13 @@ void Sce_skip_ck(void)
     i = 2;
     switch (Sce.Skip_state) {
     case 1:
-        if (G.Unk20FC & 0x100) {
+        if (G.Padd_trg & 0x100) {
             Sce.Skip_state = 2;
             Fade_set(0, 1, 0, 2, 0, 0xFFFFFF, 0x10);
             Moji.Mess_flg = 0;
             Xa_fade_set(0x10);
-            Game.Stop_bak = G.Unk2468;
-            G.Unk2468 |= 0xFD000000;
+            Game.Stop_bak = G.Stop_flg;
+            G.Stop_flg |= 0xFD000000;
             do {
                 Sce.Sce_task[i].Status = 0;
             } while (i++ < 10);
@@ -357,7 +357,7 @@ void Sce_skip_ck(void)
         break;
     case 4:
         if (D_800B9E21 == 0) {
-            G.Unk2468 = Game.Stop_bak;
+            G.Stop_flg = Game.Stop_bak;
             Pad_vib_init();
             Fade_off(1);
             Fade_off(2);
@@ -393,33 +393,33 @@ void Sce_skip_end(void)
     }
 }
 
-/* clears the Nemesis room list G.Unk7E24[8] */
+/* clears the Nemesis room list G.Chaser_room_list[8] */
 void Chaser_room_clr(void)
 {
     UCHAR i;
     tagGLOBAL *pG = &G;
 
     for (i = 0; i < 8; i++) {
-        pG->Unk7E24[i] = 0;
+        pG->Chaser_room_list[i] = 0;
     }
 }
 
-/* Nemesis room state G.Unk7862: 3/4 -> 0, 5 -> 0 and clears the room list */
+/* Nemesis room state G.Chaser_state: 3/4 -> 0, 5 -> 0 and clears the room list */
 void Chaser_state_reset(void)
 {
-    switch (G.Unk7862) {
+    switch (G.Chaser_state) {
     case 3:
     case 4:
-        G.Unk7862 = 0;
+        G.Chaser_state = 0;
         break;
     case 5:
-        G.Unk7862 = 0;
+        G.Chaser_state = 0;
         Chaser_room_clr();
         break;
     }
 }
 
-/* Nemesis room check on room entry: sets G.Unk7862 from G.Unk784C and the room list */
+/* Nemesis room check on room entry: sets G.Chaser_state from G.Chaser_room and the room list */
 void Chaser_room_ck(void)
 {
     USHORT Id;
@@ -430,28 +430,28 @@ void Chaser_room_ck(void)
         return;
     }
     Chaser_state_reset();
-    Id = (USHORT)pG->Unk7840 + (((USHORT)pG->Unk783E + 1) << 8);
-    switch (pG->Unk7862) {
+    Id = (USHORT)pG->Room_no + (((USHORT)pG->Stage_no + 1) << 8);
+    switch (pG->Chaser_state) {
     case 6:
         Chaser_room_clr();
     case 0:
-        if (pG->Unk784C != Id) {
-            pG->Unk7862 = 3;
+        if (pG->Chaser_room != Id) {
+            pG->Chaser_state = 3;
         } else {
-            pG->Unk7862 = 4;
+            pG->Chaser_state = 4;
         }
         break;
     case 1:
-        if (pG->Unk784C == Id) {
-            pG->Unk7862 = 4;
+        if (pG->Chaser_room == Id) {
+            pG->Chaser_state = 4;
         }
         break;
     case 2:
         i = 0;
         do {
-            if (Id == (USHORT)pG->Unk7E24[i]) {
-                pG->Unk784C = Id;
-                pG->Unk7862 = 5;
+            if (Id == (USHORT)pG->Chaser_room_list[i]) {
+                pG->Chaser_room = Id;
+                pG->Chaser_state = 5;
                 break;
             }
         } while (i++ < 8);
@@ -477,7 +477,7 @@ void Sce_scheduler_set(void)
 /* per frame: runs the event tasks (Sce_scheduler_main) with the event skip checks */
 void Sce_scheduler(void)
 {
-    if ((G.Unk2468 & 0x2000000) == 0) {
+    if ((G.Stop_flg & 0x2000000) == 0) {
         Memcpy(ScratchPad, Sce_jmp_tbl, 0x400);
         Sce_rnd_set();
         Sce.Type = 0;

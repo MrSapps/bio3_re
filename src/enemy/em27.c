@@ -179,7 +179,7 @@ void Em27_mv01_br(ENEMY_WORK *pEm)
     if ((LONG)pEm->L_pl < 3000 && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x200) && pPl->Routine_0 == 1
         && pPl->Routine_1 < 6)
         EM_SET_RTN(pEm, 1, 2, 0, 0);
-    if ((LONG)pEm->L_pl < 750 && (G.Unk75E8 & 6) && pEm->nFloor == pPl->nFloor && pEm->Pos_y == pEm->Ground
+    if ((LONG)pEm->L_pl < 750 && (G.Room_player_flg & 6) && pEm->nFloor == pPl->nFloor && pEm->Pos_y == pEm->Ground
         && (EM_RTN01(pPl) == 0x101 || EM_RTN01(pPl) == 0x201 || EM_RTN01(pPl) == 0x301 || EM_RTN01(pPl) == 0x401)) {
         EM_SET_RTN(pEm, 3, 0, 0, 1);
         Snd_se_enem(15, pEm);
@@ -317,7 +317,7 @@ void Em27_mv04_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = G_PLAYER;
 
-    if (pEm->Routine_2 >= 2 && (LONG)pEm->L_pl < 750 && (G.Unk75E8 & 6) && pEm->nFloor == pPl->nFloor
+    if (pEm->Routine_2 >= 2 && (LONG)pEm->L_pl < 750 && (G.Room_player_flg & 6) && pEm->nFloor == pPl->nFloor
         && pEm->Pos_y == pEm->Ground
         && (EM_RTN01(pPl) == 0x101 || EM_RTN01(pPl) == 0x201 || EM_RTN01(pPl) == 0x301 || EM_RTN01(pPl) == 0x401)) {
         EM_SET_RTN(pEm, 3, 0, 0, 1);

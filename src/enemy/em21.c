@@ -195,9 +195,9 @@ void Em21_br_wait_i(ENEMY_WORK *pEm)
         return;
     if ((LONG)pEm->L_pl <= 1800)
         D0 = 1;
-    if ((G.Unk75E8 & 4) && (LONG)pEm->L_pl <= 5400)
+    if ((G.Room_player_flg & 4) && (LONG)pEm->L_pl <= 5400)
         D0 = 1;
-    if (G.Unk75E8 & 1)
+    if (G.Room_player_flg & 1)
         D0 = 1;
     if (EF(pEm)->Flg & 1) {
         if (pEm->Timer0-- == 0)
@@ -1371,7 +1371,7 @@ void Em21_sce_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Flg &= ~0x20;
         pEm->Routine_3++;
     case 3:
-        if (pEm->Add_dir == 1 || (G.Unk75E8 & 1)) {
+        if (pEm->Add_dir == 1 || (G.Room_player_flg & 1)) {
             pEm->Add_dir = 0;
             Em21_r0_set(pEm, 1, 1);
         }
@@ -1795,9 +1795,9 @@ void Em21_attack_ck(ENEMY_WORK *pEm)
         return;
     }
     Dy = -(pEm->Pos_y + 2800) + G.Player.Pos_y;
-    if ((LONG)pEm->L_pl > 900 && (LONG)pEm->L_pl < 7200 && !(G.Unk75EA & 1) && (EF(pEm)->Flg & 2)
+    if ((LONG)pEm->L_pl > 900 && (LONG)pEm->L_pl < 7200 && !(G.Room_enemy_flg & 1) && (EF(pEm)->Flg & 2)
         && Dy < 1800 && Dy > -1800 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100)) {
-        G.Unk75EA |= 1;
+        G.Room_enemy_flg |= 1;
         EF(pEm)->Flg |= 4;
         if (!(Rnd_l() & 0xF))
             Em21_r1_set(pEm, 11);
@@ -1806,7 +1806,7 @@ void Em21_attack_ck(ENEMY_WORK *pEm)
         return;
     }
     if ((LONG)pEm->L_pl < 900 && Dy < 900 && Dy > -1800) {
-        if (!EF(pEm)->Obj_cnt && pEm->Spd_x > 230 && !(G.Unk75EA & 1)) {
+        if (!EF(pEm)->Obj_cnt && pEm->Spd_x > 230 && !(G.Room_enemy_flg & 1)) {
             if (!Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x100))
                 Em21_r1_set(pEm, 12);
         }
@@ -1854,13 +1854,13 @@ void Em21_lock_off_ck(ENEMY_WORK *pEm)
         if (D0 < 11 || D0 > 14) {
             EF(pEm)->Atck = 0;
             EF(pEm)->Atck_se = 0;
-            G.Unk75EA &= ~1;
+            G.Room_enemy_flg &= ~1;
             EF(pEm)->Flg &= ~4;
         }
         if ((LONG)pEm->L_pl > 14400) {
             EF(pEm)->Atck = 0;
             EF(pEm)->Atck_se = 0;
-            G.Unk75EA &= ~1;
+            G.Room_enemy_flg &= ~1;
             EF(pEm)->Flg &= ~4;
         }
     }

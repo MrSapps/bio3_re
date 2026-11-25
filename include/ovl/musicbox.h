@@ -3,8 +3,8 @@
 /*
  * MUSICBOX.BIN overlay (loaded at 0x801C2000): the music box puzzle. Six
  * cylinders (object models 11..16) are each in one of two positions (flags
- * G.Unk7888 bits 6..11); the box plays the reference tune (Unk7 selects which),
- * then the player's tune. Matching it sets G.Unk7888 bit 13.
+ * G.Room_flg[0] bits 6..11); the box plays the reference tune (Unk7 selects which),
+ * then the player's tune. Matching it sets G.Room_flg[0] bit 13.
  */
 #include "bio3.h"
 #include "main.h"

@@ -40,7 +40,7 @@ void Em10_main(ENEMY_WORK *pEm)
         pEm->Damage_cnt--;
     if (EM10_W(pEm)->Hanare_cnt) {
         if (--EM10_W(pEm)->Hanare_cnt == 0)
-            G.Unk75EA &= ~1;
+            G.Room_enemy_flg &= ~1;
     }
     Em10_routine_0[pEm->Routine_0](pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr);
     if (pEm->Water) {

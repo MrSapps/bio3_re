@@ -374,7 +374,7 @@ void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 0:
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Sub_move_no = EM_MOVE(pEm) = Pl_aim_dir * 2 + 0x70002;
-        G.Unk75E8 |= 0x18;
+        G.Room_player_flg |= 0x18;
     case 1:
         Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -795,7 +795,7 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pEm->Routine_3 = 1;
         EM_MOVE(pEm) = Mv[Pl_aim_dir] + 0x70000;
         *(ULONG *)&pEm->Sub_move_no = Mv[Pl_aim_dir] + 0x70000;
-        G.Unk75E8 |= 0x18;
+        G.Room_player_flg |= 0x18;
     }
     Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
     pEm->Be_flg |= 0x2000000;
@@ -884,7 +884,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             pEm->Be_flg |= 0x2000000;
             return;
         }
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         ((void (*)(ENEMY_WORK *))pl_mv05_t2_spr[(UCHAR)pEm->Type - 1])(pEm);
         Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -1025,7 +1025,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         break;
     case 2:
         Pl_wep_flag_set(pEm);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         ((void (*)(ENEMY_WORK *))pl_mv05_t2_spr[(UCHAR)pEm->Type - 1])(pEm);
         Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -1177,7 +1177,7 @@ void pl_w02_t2_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
         Sv.vy = 0x96;
@@ -1212,7 +1212,7 @@ void pl_w03_t2_move(ENEMY_WORK *pEm)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
         Sv.vy = 0x5DC;
@@ -1309,7 +1309,7 @@ void pl_w04_t2_move(ENEMY_WORK *pEm)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
         Sv.vy = 0x21C;
@@ -1376,7 +1376,7 @@ void pl_w05_t2_move(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         func_8006D030_(1);
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
@@ -1423,7 +1423,7 @@ void pl_w06_t2_move(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         func_8006D030_(1);
         pM = &pP[4].Workm;
@@ -1470,7 +1470,7 @@ void pl_w07_t2_move(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         func_8006D030_(1);
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
@@ -1517,7 +1517,7 @@ void pl_w08_t2_move(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         func_8006D030_(1);
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
@@ -1564,7 +1564,7 @@ void pl_w09_t2_move(ENEMY_WORK *pEm)
     if (pEm->Move_cnt == 0) {
         pP = &pEm->pSin_parts_ptr[4];
         Snd_se_stad(0x10100, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         switch ((SHORT)(func_8006D030_(1) % 4)) {
         case 0:
@@ -1638,7 +1638,7 @@ void pl_w0a_t2_move(ENEMY_WORK *pEm)
         Sv.vx = -0x6C;
         Sv.vy = 0x528;
         Sv.vz = 0;
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Esp_call(1, 0x18000000, pM, &Sv, 0);
         Sv.vy = 0x60E;
         Dsv.vz = -0x400;
@@ -1683,7 +1683,7 @@ void pl_w0b_t2_move(ENEMY_WORK *pEm)
         func_800455B4_();
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
         Sv.vx = 0xBE;
@@ -1743,7 +1743,7 @@ void pl_w0c_t2_move(ENEMY_WORK *pEm)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
         Sv.vy = 0x96;
@@ -1826,7 +1826,7 @@ void pl_w0d_t2_move(ENEMY_WORK *pEm)
         Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Snd_se_stad(0x10100, WORKM_POS_V(pP), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         func_8006D030_(1);
         Game.Plight_flg = 1;
@@ -1850,7 +1850,7 @@ void pl_w0e_t2_move(ENEMY_WORK *pEm)
         Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         func_8006D030_(1);
         Sv.vx = 0xBE;
         Sv.vy = 0x514;
@@ -1925,7 +1925,7 @@ void pl_w0f_t2_move(ENEMY_WORK *pEm)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x50;
         Sv.vy = 0x33F;
@@ -2026,7 +2026,7 @@ void pl_w10_t2_move(ENEMY_WORK *pEm)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
         Sv.vy = 0x96;
@@ -2072,7 +2072,7 @@ void pl_w11_t2_move(ENEMY_WORK *pEm)
         Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         Sv.vx = 0x64;
         Sv.vy = 0x5DC;
@@ -2177,7 +2177,7 @@ void pl_w12_t2_move(ENEMY_WORK *pEm)
         func_800455B4_();
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Pl_weapon_vib(pEm);
         pM = &pP[4].Workm;
         Sv.vx = 0xBE;
@@ -3038,7 +3038,7 @@ void Pl_wep_poly_trans(void)
     SVECTOR Sv;
     DVECTOR Sxy[2];
 
-    if (pG->Unk2468 & 0x1000000) {
+    if (pG->Stop_flg & 0x1000000) {
         return;
     }
     pWp = Pl_wep_poly;
@@ -3156,7 +3156,7 @@ LONG Weapon_om_at_ck(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
     TransposeMatrix(pM, &Mt);
     SetRotMatrix(&Mt);
     i = pG->Om_target_num;
-    ppT = (OM_TARGET **)pG->pUnk75AC;
+    ppT = (OM_TARGET **)pG->pOm_target;
     do {
         pT = *ppT;
         if (pT->Flg == 0xFF) {
@@ -3256,7 +3256,7 @@ LONG Pos_om_at_ck(HIT_REQ *pReq, HIT_ATTR *pAttr)
     Rot.vy = pReq->R;
     Rot.vz = 0;
     RotMatrix_gte(&Rot, &M);
-    ppT = (OM_TARGET **)pG->pUnk75AC;
+    ppT = (OM_TARGET **)pG->pOm_target;
     *(VECTOR *)M.t = *pReq->pPos;
     pPos = pReq->pPos;
     Bottom = pAttr->Bottom;
@@ -3312,7 +3312,7 @@ VECTOR *Om_target_near(ENEMY_WORK *pEm, ULONG LL)
     if (i == 0) {
         return 0;
     }
-    ppT = (OM_TARGET **)pG->pUnk75AC;
+    ppT = (OM_TARGET **)pG->pOm_target;
     if (LL != 0) {
         Min = LL;
     }
@@ -3459,10 +3459,10 @@ ULONG Pos_em1_at_ck(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
 void Quake_add(LONG X, LONG Y)
 {
     G.Time += Y;
-    G.Unk2118 += Y;
+    G.Bonus_time += Y;
     G.Score += X;
-    if (G.Unk2116 == 0) {
-        G.Unk2116 += 0x5A;
+    if (G.Bonus_timer == 0) {
+        G.Bonus_timer += 0x5A;
     }
 }
 
@@ -3498,8 +3498,8 @@ void Em_kill_score(ULONG Id, LONG Flg)
     }
     if (!Flg) {
         Em_kill_combo++;
-        if (G.Unk2116 < 15) {
-            G.Unk2116 += 15;
+        if (G.Bonus_timer < 15) {
+            G.Bonus_timer += 15;
         }
     }
 }

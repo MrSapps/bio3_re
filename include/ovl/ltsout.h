@@ -4,9 +4,9 @@
  * LTSOUT.BIN overlay (loaded at 0x801C2000): the lamp ("lights out") puzzle.
  * Five switches toggle four lamps (a switch flips its lamp and both
  * neighbours); a random pattern from Lts_tbl must be turned into the one lamp
- * Lts_tbl names. Three rounds (G.Unk7888 bits 8, 9, 10), then the overlay sets
- * G.Unk7868 bit Flg_no. The lamps are shown through the cut flags
- * G.Cut_flg[G.Cut_no] (bits 0..3 lamp on, 4..7 answer lamp).
+ * Lts_tbl names. Three rounds (G.Room_flg[0] bits 8, 9, 10), then the overlay sets
+ * G.Scenario_flg bit Flg_no. The lamps are shown through the cut flags
+ * G.Pri_be_flg[G.Cut_no] (bits 0..3 lamp on, 4..7 answer lamp).
  */
 #include "bio3.h"
 #include "main.h"
@@ -29,7 +29,7 @@ typedef struct tagLTS_WORK {
     signed char Cursor;                /* 0x06 switch 1..5 */
     UCHAR Blink;                       /* 0x07 0 all off, 1 normal, 2 all on (bit flags while blinking) */
     UCHAR Pattern[4];                  /* 0x08 pattern of each round (index Stage + 1) */
-    UCHAR Flg_no;                      /* 0x0C G.Unk7868 bit set when solved */
+    UCHAR Flg_no;                      /* 0x0C G.Scenario_flg bit set when solved */
     UCHAR Mess;                        /* 0x0D first switch label */
     UCHAR Stage;                       /* 0x0E round 0..2 */
     UCHAR Answer;                      /* 0x0F lamp that must stay on */
@@ -38,7 +38,7 @@ typedef struct tagLTS_WORK {
     UCHAR Lamp[8];                     /* 0x48 lamp state, index 1..4 (0, 5 are padding for the switch toggle) */
 } LTS_WORK;
 
-/* the event data at G.Unk21DC */
+/* the event data at G.pAot_dat */
 typedef struct tagLTS_EVT {
     UCHAR pad0[2];
     UCHAR Flg_no;                      /* 0x2 */

@@ -25,7 +25,7 @@ void Mbox_main(void)
     Pad_rep_set(0xF00C, 0x60A);
     OM(10).Cdir.vy = 0x3F0;
     for (i = 0; i < MBOX_NOTE_NUM; i++) {
-        if (Flg_ck(&pG->Unk7888, i + 6)) {
+        if (Flg_ck(pG->Room_flg, i + 6)) {
             OM(i + 11).M.t[0] = Mbox_pos[i * 4];
             OM(i + 11).M.t[2] = Mbox_pos[i * 4 + 1];
         } else {
@@ -36,7 +36,7 @@ void Mbox_main(void)
     while (pMw->Run) {
         Mbox_ctr();
         Ot_set_all();
-        pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
+        pG->pPacket = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
         if ((LONG)G.System_flg >= 0)
             Psp_trans();
@@ -54,7 +54,7 @@ void Mbox_ctr(void)
 {
     tagGLOBAL *pG = &G;
     MBOX_WORK *pMw = &Mbox_wk;
-    USHORT *pCut = pG->pUnk21DC;
+    USHORT *pCut = pG->pAot_dat;
     ULONG Se_no;
 
     switch (pMw->Routine) {
@@ -106,15 +106,15 @@ void Mbox_ctr(void)
         }
         if (!(Moji.Mess_flg & 0x80)) {
             if (!pMw->Timer) {
-        switch (pG->Unk7848) {
+        switch (pG->Mess_sel) {
         case 0:
-            if (Flg_ck(&pG->Unk7888, pMw->Note))
+            if (Flg_ck(pG->Room_flg, pMw->Note))
                 pMw->Note_se = 7;
             else
                 pMw->Note_se = 1;
             pMw->Note_se += pMw->Note;
-            if (!Flg_ck(&pG->Unk7888, pMw->Note + 6)) {
-                Flg_on(&pG->Unk7888, pMw->Note + 6);
+            if (!Flg_ck(pG->Room_flg, pMw->Note + 6)) {
+                Flg_on(pG->Room_flg, pMw->Note + 6);
                 OM(pMw->Note + 11).M.t[0] = Mbox_pos[pMw->Note * 4];
                 OM(pMw->Note + 11).M.t[2] = Mbox_pos[pMw->Note * 4 + 1];
                 Snd_se_stad(0x20E, NULL, 0, 0);
@@ -123,13 +123,13 @@ void Mbox_ctr(void)
             pMw->Routine = 3;
             break;
         case 1:
-            if (Flg_ck(&pG->Unk7888, pMw->Note))
+            if (Flg_ck(pG->Room_flg, pMw->Note))
                 pMw->Note_se = 1;
             else
                 pMw->Note_se = 7;
             pMw->Note_se += pMw->Note;
-            if (Flg_ck(&pG->Unk7888, pMw->Note + 6)) {
-                Flg_off(&pG->Unk7888, pMw->Note + 6);
+            if (Flg_ck(pG->Room_flg, pMw->Note + 6)) {
+                Flg_off(pG->Room_flg, pMw->Note + 6);
                 OM(pMw->Note + 11).M.t[0] = Mbox_pos[pMw->Note * 4 + 2];
                 OM(pMw->Note + 11).M.t[2] = Mbox_pos[pMw->Note * 4 + 3];
                 Snd_se_stad(0x20E, NULL, 0, 0);
@@ -139,9 +139,9 @@ void Mbox_ctr(void)
             break;
         case 2:
             if (pMw->Note) {
-                if (Flg_ck(&pG->Unk7888, pMw->Note) && Flg_ck(&pG->Unk7888, pMw->Note + 6))
+                if (Flg_ck(pG->Room_flg, pMw->Note) && Flg_ck(pG->Room_flg, pMw->Note + 6))
                     pMw->Match |= 1 << pMw->Note;
-                else if (!Flg_ck(&pG->Unk7888, pMw->Note) && !Flg_ck(&pG->Unk7888, pMw->Note + 6))
+                else if (!Flg_ck(pG->Room_flg, pMw->Note) && !Flg_ck(pG->Room_flg, pMw->Note + 6))
                     pMw->Match |= 1 << pMw->Note;
                 else
                     pMw->Match &= ~(1 << pMw->Note);
@@ -156,9 +156,9 @@ void Mbox_ctr(void)
                 Snd_se_stad(0x700, NULL, 0, 0);
                 break;
             } else {
-                if (Flg_ck(&pG->Unk7888, pMw->Note) && Flg_ck(&pG->Unk7888, pMw->Note + 6))
+                if (Flg_ck(pG->Room_flg, pMw->Note) && Flg_ck(pG->Room_flg, pMw->Note + 6))
                     pMw->Match |= 1 << pMw->Note;
-                else if (!Flg_ck(&pG->Unk7888, pMw->Note) && !Flg_ck(&pG->Unk7888, pMw->Note + 6))
+                else if (!Flg_ck(pG->Room_flg, pMw->Note) && !Flg_ck(pG->Room_flg, pMw->Note + 6))
                     pMw->Match |= 1 << pMw->Note;
                 else
                     pMw->Match &= ~(1 << pMw->Note);
@@ -224,10 +224,10 @@ void Mbox_ctr(void)
         }
         if (pMw->Tune) {
             if (pMw->Match == 0x3F)
-                Flg_on(&pG->Unk7888, 13);
+                Flg_on(pG->Room_flg, 13);
         } else {
             if (!pMw->Match)
-                Flg_on(&pG->Unk7888, 13);
+                Flg_on(pG->Room_flg, 13);
         }
         pMw->Run = 0;
         break;

@@ -134,8 +134,8 @@ void Game_init(void)
             pPl->Pos_y = pPl->Old_y = 0;
             pPl->Ground = 0;
             pPl->nFloor = 0;
-            pG->Unk783E = 6;
-            pG->Unk7840 = 12;
+            pG->Stage_no = 6;
+            pG->Room_no = 12;
             pG->Cut_no = 2;
         } else {
             pPl->Max_life = pPl->Life = 200;
@@ -146,11 +146,11 @@ void Game_init(void)
             pPl->Ground = 0;
             pPl->nFloor = 0;
             pPl->Status_flg = 0;
-            pG->Unk7840 = 13;
-            pG->Unk783E = 0;
+            pG->Room_no = 13;
+            pG->Stage_no = 0;
             pG->Cut_no = 11;
-            pG->Unk7864 = 0;
-            pG->Unk784E = 0;
+            pG->Pl_id_bak = 0;
+            pG->Change_player = 0;
         }
     } else if (pG->System_flg & 0x10000000) {
         Game_save_load();
@@ -176,7 +176,7 @@ set:
     Snd_bgm_ck();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
-        G.Unk784A = Game.pSave->Unk718;
+        G.Sce_random = Game.pSave->Unk718;
         D_800E0186[0] = 0;
     }
     Set_room();
@@ -197,7 +197,7 @@ set:
     G.System_flg |= 0x8000000;
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
-        G.Unk784A = Game.pSave->Unk718;
+        G.Sce_random = Game.pSave->Unk718;
         D_800E0186[0] = 0;
         Game.Unk4E = 1;
     }
@@ -224,7 +224,7 @@ void Set_door(void)
     UCHAR n;
 
     pG = &G;
-    pG->Unk2470 = 0;
+    pG->Ot_sub_num = 0;
     if (pG->Status_flg & 0x40000000) {
         Chaser_data_save();
     }
@@ -244,11 +244,11 @@ void Set_door(void)
     pG->Player.nFloor = pAot->Next_nfloor;
     n = pAot->Next_cut;
     pG->Next_cut_no = n;
-    pG->Cut_no_old = pG->Unk7840 + (pG->Unk783E + 1) * 0x100;
+    pG->Cut_no_old = pG->Room_no + (pG->Stage_no + 1) * 0x100;
     pG->Cut_no = n;
-    pG->Unk7840 = pAot->Next_room;
-    if (pG->Unk783E != pAot->Next_stage % 9) {
-        pG->Unk783E = pAot->Next_stage % 9;
+    pG->Room_no = pAot->Next_room;
+    if (pG->Stage_no != pAot->Next_stage % 9) {
+        pG->Stage_no = pAot->Next_stage % 9;
         Set_stage();
     }
     Snd_bgm_ck();
@@ -265,7 +265,7 @@ void Set_door(void)
     Main.Unk18E = 1;
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
-        G.Unk784A = Game.pSave->Unk718;
+        G.Sce_random = Game.pSave->Unk718;
         D_800E0186[0] = 0;
         Game.Unk4E = 1;
     }
@@ -314,10 +314,10 @@ void Chaser_data_save(void)
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         pEm = *ppEm;
         if ((ULONG)(pEm->Id - 0x34) < 3) {
-            G.Unk7856 = pEm->Life;
-            G.Unk7854 = pEm->Type & 1;
+            G.Chaser_life = pEm->Life;
+            G.Chaser_type = pEm->Type & 1;
             for (i = 0; (ULONG)i < 12; i++) {
-                G.Unk7D90[i] = pEm->Unk1CC[i];
+                G.Chaser_free[i] = pEm->Unk1CC[i];
             }
         }
     }

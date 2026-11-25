@@ -369,7 +369,7 @@ void Aida_mv00_br(ENEMY_WORK *pEm)
         }
     }
     pT = pSpl_near_em[0];
-    if (pT != NULL && (G.Unk75E8 & 1)) {
+    if (pT != NULL && (G.Room_player_flg & 1)) {
         Aida_em_at00_pl[Aida_em_at_idx[pT->Id - 0x10]](pEm, pEm->Type);
     }
     r = Goto00_ck(pEm, SPL_W(pEm)->Unk1CC, SPL_W(pEm)->Unk1CE, 0x400);
@@ -488,10 +488,10 @@ void Aida_mv00_br_t0b(ENEMY_WORK *pEm)
         pEm->pEnemy_ptr = pT;
         return;
     }
-    if (G.Unk75EA & 3) {
+    if (G.Room_enemy_flg & 3) {
         EM_SET_RTN(pEm, 1, 15, 0, 0);
         SPL_W(pEm)->Unk1E0 &= ~2;
-        if (G.Unk75EA & 1) {
+        if (G.Room_enemy_flg & 1) {
             SPL_W(pEm)->Unk1E0 |= 2;
         }
         pEm->Timer0 = 0x14;
@@ -807,7 +807,7 @@ void Aida_mv01(ENEMY_WORK *pEm)
                 b = 1;
             }
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         if (SPL_W(pEm)->Unk1D2 < 0x5DC && (pEm->Col.Hit_flg & 0x30)) {
             if (--pEm->Timer0 == 0) {
@@ -923,11 +923,11 @@ void Aida_mv02_br_t0b(ENEMY_WORK *pEm)
         pEm->pEnemy_ptr = pT;
         return;
     }
-    if (G.Unk75EA & 3) {
+    if (G.Room_enemy_flg & 3) {
         EM_SET_RTN(pEm, 1, 15, 0, 0);
         v = SPL_W(pEm)->Unk1E0 & ~2;
         SPL_W(pEm)->Unk1E0 = v;
-        if (G.Unk75EA & 1) {
+        if (G.Room_enemy_flg & 1) {
             SPL_W(pEm)->Unk1E0 = v | 2;
         }
         pEm->Timer0 = 0x14;
@@ -967,7 +967,7 @@ void Aida_mv02(ENEMY_WORK *pEm)
                 b = 1;
             }
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         break;
     }
@@ -1036,7 +1036,7 @@ void Aida_mv03(ENEMY_WORK *pEm)
                 b = 1;
             }
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         pEm->UnkE2++;
         break;
@@ -1076,7 +1076,7 @@ void Aida_mv04(ENEMY_WORK *pEm)
                 b = 1;
             }
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         break;
     }
@@ -1288,7 +1288,7 @@ void Aida_mv05_w1_t1(ENEMY_WORK *pEm)
         v = D_8009E70D[0] * 2 + 0x70002;
         EM_MOVE(pEm) = v;
         *(ULONG *)&pEm->Sub_move_no = v;
-        G.Unk75E8 |= 0x18;
+        G.Room_player_flg |= 0x18;
         pEm->Timer0 = 0x1E;
         pEm->UnkDA = 0;
         if ((pEm->Type & 0xF) == 0xF) {
@@ -1594,7 +1594,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         pEm->Pos_y = pEm->Ground;
         pEm->Damage_cnt &= 0x7F;
         pEm->Be_flg &= ~0x8000;
-        G.Unk75E8 |= 4;
+        G.Room_player_flg |= 4;
     case 5:
         pEm->nFloor = pEm->Pos_y / -1800;
         pEm->Routine_3 += Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
@@ -1952,7 +1952,7 @@ void Aida_mv11(ENEMY_WORK *pEm)
             n = Flg & 0x400;
             b = n != 0;
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move(pEm, pEm->pUnk19C_kan_t_ptr, pEm->pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -1972,7 +1972,7 @@ void Aida_mv11(ENEMY_WORK *pEm)
             n = Flg & 0x400;
             b = n != 0;
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -2040,7 +2040,7 @@ void Aida_mv12(ENEMY_WORK *pEm)
             n = Flg & 0x400;
             b = n != 0;
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move(pEm, pEm->pUnk19C_kan_t_ptr, pEm->pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -2060,7 +2060,7 @@ void Aida_mv12(ENEMY_WORK *pEm)
             n = Flg & 0x400;
             b = n != 0;
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -2156,7 +2156,7 @@ void Aida_mv13(ENEMY_WORK *pEm)
             n = Flg & 0x400;
             b = n == 0;
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move(pEm, pEm->pUnk19C_kan_t_ptr, pEm->pUnk198_seq_t_ptr, 0x10200);
         pEm->Be_flg |= 0x2000000;
@@ -2179,7 +2179,7 @@ void Aida_mv13(ENEMY_WORK *pEm)
             n = Flg & 0x400;
             b = n != 0;
             Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -2718,11 +2718,11 @@ LONG Spl_life_sub(LONG Dmg, ULONG Flg)
         Dmg += 5;
     }
     pW->Life -= Dmg;
-    G.Unk7852 -= Dmg;
+    G.Spl_life -= Dmg;
     if (Flg & 1) {
         if (pW->Life < 0) {
             pW->Life = 0;
-            G.Unk7852 = 0;
+            G.Spl_life = 0;
         }
         return 0;
     }
@@ -2737,7 +2737,7 @@ LONG Spl_life_down(ENEMY_WORK *pEm, LONG Dmg, ULONG Flg)
 
     pW = G.pEnemy[1];
     pW->Life -= Dmg;
-    G.Unk7852 -= Dmg;
+    G.Spl_life -= Dmg;
     EM_SET_RTN(pW, 2, 0, 0, 0);
     pW->Damage_flg &= 0xE0FF;
     if (Flg & 2) {
@@ -2747,7 +2747,7 @@ LONG Spl_life_down(ENEMY_WORK *pEm, LONG Dmg, ULONG Flg)
     if (Flg & 1) {
         if (pW->Life < 0) {
             pW->Life = 0;
-            G.Unk7852 = 0;
+            G.Spl_life = 0;
         }
         return 0;
     }
@@ -2773,7 +2773,7 @@ void Spl_shot_eff(ENEMY_WORK *pEm)
         Sv.vx = 100;
         Sv.vy = 150;
         Sv.vz = 0;
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Esp_call(2, ((USHORT)(pEm->Cdir_y + 0x400)) | 0x8000000, pP, &Sv, 0);
         Sv.vx = 100;
         Sv.vy = 450;
@@ -2852,7 +2852,7 @@ void Spl_shot_eff_rapid(ENEMY_WORK *pEm)
             SPL_W(pEm)->Unk1D0 |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
     }
 }
 
@@ -2874,7 +2874,7 @@ void Spl_shot_eff_auto(ENEMY_WORK *pEm)
             SPL_W(pEm)->Unk1D0 |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
-        G.Unk75E8 |= 1;
+        G.Room_player_flg |= 1;
         Sv.vx = 0xBE;
         Sv.vy = 0x514;
         Sv.vz = 0x14;

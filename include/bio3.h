@@ -86,7 +86,7 @@ typedef struct tagOBJ_MODEL_WORK {
     USHORT UnkBA;                      /* 0xBA */
     UCHAR padBC[0xC0 - 0xBC];
     UCHAR Push_cnt;                    /* 0xC0 frames pushed (Om_push_ck) */
-    UCHAR UnkC1;                       /* 0xC1 index into G.pUnk75AC */
+    UCHAR UnkC1;                       /* 0xC1 index into G.pOm_target */
     UCHAR UnkC2;                       /* 0xC2 flag id set when done (Om_rtn_wait) */
     UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
     struct tagPARTS_W *pParts;         /* 0xC4 */
@@ -319,7 +319,7 @@ typedef struct tagPLAYER_WORK {
 
 typedef struct tagENEMY_WORK {
     EM_WORK_HEAD
-    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Unk7D90 (Chaser_data_save) */
+    ULONG Unk1CC[12];                  /* 0x1CC enemies only (the player has G.Pl_poison_timer here); copied to G.Chaser_free (Chaser_data_save) */
 } ENEMY_WORK;
 STATIC_ASSERT(player_work_size, sizeof(PLAYER_WORK) == 0x1CC);
 STATIC_ASSERT(enemy_work_size, sizeof(ENEMY_WORK) == 0x1FC);
@@ -350,13 +350,13 @@ typedef struct tagGLOBAL {
     ULONG *pOt1;                       /* 0x2044 */
     ULONG Ot2[2][8];                   /* 0x2048 RE2 Ot2, index Cbuf_id (main) */
     ULONG *pOt2;                       /* 0x2088 */
-    POLY_GT4 *pUnk208C;                /* 0x208C packet pointer of the model sorters (Parts_sort_ex) */
+    POLY_GT4 *pPacket;                 /* 0x208C packet pointer of the model sorters (Parts_sort_ex) */
     ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (Psp_trans) */
     UCHAR Padd_data[2][0x24];          /* 0x20B0 RE2 Padd_data (PadInitDirect buffers) */
-    LONG Unk20F8;                      /* 0x20F8 set to -1 on soft reset */
-    USHORT Unk20FC;                    /* 0x20FC */
+    LONG Padd;                         /* 0x20F8 RE2 Padd: raw pad bits (Pad_set; -1 on soft reset) */
+    USHORT Padd_trg;                   /* 0x20FC RE2 Padd_trg: newly pressed pad bits (a ULONG in Pad_set) */
     UCHAR pad20FE[0x2100 - 0x20FE];
-    USHORT Unk2100;                    /* 0x2100 key repeat? (status menu cursor moves) */
+    USHORT Padd_rep;                   /* 0x2100 Padd_trg plus key repeat (Pad_rep_set list; menu cursors) */
     UCHAR pad2102[0x2104 - 0x2102];
     ULONG Key;                        /* 0x2104 RE2 Key (held buttons) */
     ULONG Key_trg;                     /* 0x2108 RE2 Key_trg (Gacha_ch) */
@@ -364,22 +364,22 @@ typedef struct tagGLOBAL {
     UCHAR Cbuf_id;                     /* 0x2110 */
     UCHAR Unk2111;                     /* 0x2111 display buffer y != 0 (Swap_Cbuff) */
     UCHAR Pad_type;                    /* 0x2112 RE2 Pad_type1: PadInfoMode(0, 1, 0), 4 digital, 7 analog (Pad_set) */
-    UCHAR Unk2113;                     /* 0x2113 set from the first TIM loaded by Esp_data_set1 */
+    UCHAR Esp_clut_num;                /* 0x2113 height of the first effect TIM (Esp_data_set1): CLUT rows below 0x1E0, Col_chg_init uses the next */
     UCHAR Unk2114;                     /* 0x2114 cleared by Init_system */
-    UCHAR Unk2115;                     /* 0x2115 routine of the RESULT overlay task (result: Main task loop) */
-    UCHAR Unk2116;                     /* 0x2116 quake timer? (Quake_add) */
+    UCHAR Ovl_mode;                    /* 0x2115 mode passed to the menu overlays (title/option/mem_card/ending: result routine) */
+    UCHAR Bonus_timer;                 /* 0x2116 Mercenaries: frames the time bonus stays on screen (Quake_add, func_80048520) */
     UCHAR pad2117;
-    SHORT Unk2118;                     /* 0x2118 */
+    SHORT Bonus_time;                  /* 0x2118 Mercenaries: seconds gained, shown as "[%dsec" */
     USHORT Score;                      /* 0x211A Mercenaries score (result) */
     UCHAR pad211C[0x2120 - 0x211C];
     ULONG System_flg;                  /* 0x2120 */
-    USHORT *pBs_size;                  /* 0x2124 RE2 pBs_size: per room offset into pUnk2128 (Bg_draw) */
-    USHORT *pUnk2128;                  /* 0x2128 bs file sizes */
+    USHORT *pBs_size;                  /* 0x2124 RE2 pBs_size: per room offset into pBs_file_size (Bg_draw) */
+    USHORT *pBs_file_size;             /* 0x2128 bs file sizes, index *pBs_size + Cut_no (Bg_draw) */
     UCHAR *pBs_check_sum;              /* 0x212C RE2 pBs_check_sum */
     UCHAR pad2130[0x2134 - 0x2130];
     struct tagROOM_WORK *pRoom;        /* 0x2134 */
-    ULONG Unk2138;                     /* 0x2138 free memory after the 0x8011A000 overlay (Set_stage) */
-    ENEMY_WORK *pEm_mem;               /* 0x213C enemy work allocation pointer (Enemy_work_set) */
+    UCHAR *pFree_work_head;            /* 0x2138 RE2 pFree_work_head: free memory after the 0x8011A000 stage overlay (Set_stage) */
+    ENEMY_WORK *pEm_mem;               /* 0x213C RE2 pFree_work: allocation pointer, starts at pFree_work_head (Set_room, Enemy_work_set) */
     ENEMY_WORK *pEm;                   /* 0x2140 current enemy (RE2 G.pEm) */
     struct tagVCUT *Cccut;             /* 0x2144 RE2 G.Cccut (current camera cut zone) */
     struct tagVCUT *Cccut_next;        /* 0x2148 */
@@ -388,16 +388,16 @@ typedef struct tagGLOBAL {
     void *pSce_aot_on;                 /* 0x2154 RE2 pSce_aot_on (door AOT data) */
     struct tagSCE_AOT *Sce_aot[32];    /* 0x2158 RE2 Sce_aot (cleared by Sce_aot_init) */
     void *pAot_data;                   /* 0x21D8 RE2 pAot_data */
-    void *pUnk21DC;                    /* 0x21DC data of the AOT being handled (sce_at, status item pickup) */
+    void *pAot_dat;                    /* 0x21DC data of the AOT being handled (sce_at, status item pickup; RE2 local pDat) */
     ULONG Game_time_offset;            /* 0x21E0 RE2 Game_time_offset: VSync(-1) at the last play time update (mem_card Save_push) */
     USHORT *pXa_sector;                /* 0x21E4 RE2 G.pXa_sector (Xa_play table for the stage) */
     void (*pPldamage_Em[64])(); /* 0x21E8 RE2 pPldamage_Em, index enemy Id - 0x10 (Pl_Em_damage) */
     void (*pPldie_Em[64])(); /* 0x22E8 RE2 pPldie_Em (Pl_Em_die) */
     struct tagSCA_DATA *Sca_list[32];  /* 0x23E8 SCA shapes matching the last search (NULL terminated) */
-    ULONG Unk2468;                     /* 0x2468 flags; 0x1000000 tested by pl_mv06_pad / Pl_move */
+    ULONG Stop_flg;                    /* 0x2468 RE2 Stop_flg: 0x1000000 player, 0x2000000 AOTs, 0x20000000 enemies stopped (cleared from here by Init_global) */
     LONG Unk246C;                      /* 0x246C flags, cleared by Init_global; < 0 blocks the pause (main) */
-    ULONG Unk2470;                     /* 0x2470 */
-    ULONG Unk2474[4];                  /* 0x2474 */
+    ULONG Ot_sub_num;                  /* 0x2470 number of pOt_sub[] tables in use (main loop, Cut_flg_set) */
+    ULONG Use_flg[4];                  /* 0x2474 RE2 Use_flg (Flg_addr[44], cleared by Sce_work_clr) */
     union {
         USHORT Tpage_clut;             /* 0x2484 both bytes as one halfword (Bg_draw saves it) */
         struct {
@@ -407,7 +407,7 @@ typedef struct tagGLOBAL {
     } Ctp;
     UCHAR Next_cut_no;                /* 0x2486 */
     UCHAR Em_num;                      /* 0x2487 number of enemy works to allocate (Enemy_work_set) */
-    UCHAR Unk2488;                     /* 0x2488 non-zero: no vibration (RE2 G.Dummy8_3[0], Pad_set) */
+    UCHAR Pause_flg;                   /* 0x2488 set while the game is paused (main), no vibration then (Pad_set) */
     UCHAR Save_slot;                   /* 0x2489 last memory card slot used (mem_card) */
     UCHAR pad248A[0x248C - 0x248A];
     PLAYER_WORK Player;                /* 0x248C RE2 Player (= Pl_work) */
@@ -418,109 +418,109 @@ typedef struct tagGLOBAL {
     ENEMY_WORK Sub_work;               /* 0x2708 spare enemy work: every free pEnemy[] slot points here (Enemy_work_set) */
     struct tagKAGE_WORK9 Kage9[5];     /* 0x2904 */
     struct tagKAGE_WORK Kage[50];      /* 0x2990 */
-    void (*Em_routine[64])(ENEMY_WORK *); /* 0x3DE0 enemy main routine by Id - 0x10 (Em_init_move) */
-    void (*Unk3EE0[24])(); /* 0x3EE0 all set to Spl by Spl_set */
-    UCHAR pad3F40[0x3FA0 - 0x3F40];
+    void (*Em_move_tbl[112])(ENEMY_WORK *); /* 0x3DE0 RE2 Em_move_tbl: main routine by Id - 0x10 (Em_init_move); [0x40..0x57] = Spl (Spl_set) */
     void (*Em_ov_mtbl[2][112])(ENEMY_WORK *); /* 0x3FA0 RE2 Em_ov_mtbl: move routine by Id - 0x10 inside each enemy overlay bank (Em_move_tbl_set) */
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
     OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
     OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
-    USHORT *pUnk75AC[10];             /* 0x75AC per object model flag word (Om_rev); OM_TARGET records (pl_wep.h) */
-    ULONG Om_target_num;               /* 0x75D4 used entries of pUnk75AC (Obj_model_set; sce0 clears it as pUnk75AC[10]) */
+    USHORT *pOm_target[10];            /* 0x75AC per object model flag word (Om_rev); OM_TARGET records (pl_wep.h) */
+    ULONG Om_target_num;               /* 0x75D4 used entries of pOm_target (Obj_model_set; sce0 clears it as pOm_target[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
     UCHAR Front_func_rtn;              /* 0x75DA RE2 Front_func_rtn */
     UCHAR Back_func_rtn;               /* 0x75DB RE2 Back_func_rtn */
     void (*Front_func)(); /* 0x75DC RE2 Front_func */
     void (*Back_func)(); /* 0x75E0 RE2 Back_func */
-    SHORT Unk75E4;                     /* 0x75E4 screen shake x? (psp Rain_wind_move) */
-    SHORT Unk75E6;                     /* 0x75E6 screen shake y? */
-    USHORT Unk75E8;                   /* 0x75E8 |= 1 when the player fires (pl_wXX_t2_move) */
-    USHORT Unk75EA;                    /* 0x75EA */
-    UCHAR Unk75EC;                     /* 0x75EC cleared on exit by the PC_SYS overlay */
-    UCHAR Unk75ED;                     /* 0x75ED routine of the PC_SYS overlay task */
-    UCHAR Unk75EE;                     /* 0x75EE PC_SYS window open/close request (1..4) */
-    UCHAR Unk75EF;                     /* 0x75EF PC_SYS window zoom direction (0 open, 1 close) */
+    SHORT Wind_dir;                    /* 0x75E4 rain wind direction 0..0xFF0 (psp Rain_wind_move) */
+    SHORT Wind_pow;                    /* 0x75E6 rain wind strength 0..250 */
+    USHORT Room_player_flg;            /* 0x75E8 RE2 Room_player_flg: noise the player made this frame (1 shot, 2/4 steps), heard by the enemies */
+    USHORT Room_enemy_flg;             /* 0x75EA RE2 Room_enemy_flg: enemy kind state shared in the room (cleared by Set_room) */
+    UCHAR Up_event_no;                 /* 0x75EC RE2 Up_event_no (cleared on exit by the PC_SYS overlay) */
+    UCHAR Up_eve_rtn;                  /* 0x75ED RE2 Up_eve_rtn: routine of the PC_SYS overlay task */
+    UCHAR Up_key_rtn;                  /* 0x75EE RE2 Up_key_rtn: PC_SYS window open/close request (1..4) */
+    UCHAR Up_wnd_rtn;                  /* 0x75EF RE2 Up_wnd_rtn: PC_SYS window zoom direction (0 open, 1 close) */
     UCHAR Card_head[0x200];            /* 0x75F0 save image start: memory card file header (mem_card writes 0x980 bytes from here) */
     ULONG Game_time;                   /* 0x77F0 play time in frames (result grade) */
     ULONG Status_flg;                  /* 0x77F4 */
-    ULONG Unk77F8[1];                  /* 0x77F8 flag bits (result shop items bought; bit 0x1F tested by mem_card) */
+    ULONG Game_flg[1];                 /* 0x77F8 game/unlock flags (Flg_addr[49], kept by Keep_data_save): 0-4 epilogues, 5, 6-9 shop items, 10, 0x1F system data */
     SHORT Save_cdir_y;                 /* 0x77FC player state saved by mem_card Save_push */
     SHORT Save_pos_x;                  /* 0x77FE */
     SHORT Save_pos_y;                  /* 0x7800 */
     SHORT Save_pos_z;                  /* 0x7802 */
     SHORT Save_life;                   /* 0x7804 */
-    USHORT Unk7806;                    /* 0x7806 */
+    USHORT Clear_cnt;                  /* 0x7806 games cleared (ending ++; epilogue pages, save title) */
     UCHAR Save_cnt;                    /* 0x7808 number of saves; overwritten with the grade (result) */
     UCHAR Save_pl_id;                  /* 0x7809 Pl_id (mem_card Save_push) */
     UCHAR Save_poison;                 /* 0x780A 0x80 | poison timer (mem_card Save_push) */
     UCHAR Save_area;                   /* 0x780B RE2 G.SaveData.Save_area */
-    UCHAR Save_unk780C;                /* 0x780C Main.Unk195 (mem_card Save_push) */
-    UCHAR Save_unk780D;                /* 0x780D Main.Unk196 */
+    UCHAR Save_key_idx;                /* 0x780C RE2 G.SaveData.Key_idx: Main.Unk195, the Key_type row (mem_card Save_push) */
+    UCHAR Save_option;                 /* 0x780D Main.Unk196 option bits (0x80 no vibration, 0x40 tested by pl_wep) */
     SHORT Sce_work[8];                 /* 0x780E RE2 G.SaveData.Sce_work (SCE For2/Switch; RE3 indexes it directly, size unknown) */
     UCHAR pad781E[0x7826 - 0x781E];
     SHORT DSce_work[4];                /* 0x7826 RE2 G.SaveData.DSce_work (door type, set by Door_init) */
     UCHAR pad782E[0x783E - 0x782E];
-    SHORT Unk783E;                     /* 0x783E overlay task no - 0x11 (Set_stage) */
-    SHORT Unk7840;                     /* 0x7840 Room_no? (Chaser_room_ck) */
+    SHORT Stage_no;                    /* 0x783E RE2 G.SaveData.Stage_no (stage overlay = task file Stage_no + 0x11) */
+    SHORT Room_no;                     /* 0x7840 RE2 G.SaveData.Room_no */
     SHORT Cut_no;                      /* 0x7842 RE2 G.SaveData.Cut_no */
     SHORT Cut_no_old;                  /* 0x7844 RE2 G.SaveData.Cut_no_old (-1 on init) */
     SHORT Room_no_old;                 /* 0x7846 RE2 G.SaveData.Room_no_old (-1 on init) */
-    SHORT Unk7848;                     /* 0x7848 */
-    SHORT Unk784A;                     /* 0x784A (Set_door) */
-    SHORT Unk784C;                     /* 0x784C */
-    SHORT Unk784E;                     /* 0x784E player Id chosen in the select overlay */
-    USHORT Unk7850;                    /* 0x7850 sub player Status_flg kept across rooms (Spl_Init) */
-    SHORT Unk7852;                     /* 0x7852 player life restore value? */
-    SHORT Unk7854;                     /* 0x7854 */
-    SHORT Unk7856;                     /* 0x7856 */
-    SHORT Unk7858;                     /* 0x7858 bg scroll y, -0xEF..0xEF (Swap_Cbuff) */
+    SHORT Mess_sel;                    /* 0x7848 answer of the last yes/no message (Mess_set/Mess_disp) */
+    SHORT Sce_random;                  /* 0x784A RE2 G.SaveData.Sce_random (Sce_rnd_set; PC_SYS passwords) */
+    SHORT Chaser_room;                 /* 0x784C room id ((Stage_no + 1) << 8 | Room_no) Nemesis is in (Chaser_room_ck) */
+    SHORT Change_player;               /* 0x784E RE2 G.SaveData.Change_player: player Id to switch to on Set_room */
+    USHORT Spl_status_flg;             /* 0x7850 sub player Status_flg kept across rooms (Spl_Init) */
+    SHORT Spl_life;                    /* 0x7852 sub player life kept across rooms (RE2 G.SaveData.Dummy[0]) */
+    SHORT Chaser_type;                 /* 0x7854 Nemesis Type & 1 (Chaser_data_save) */
+    SHORT Chaser_life;                 /* 0x7856 Nemesis life (Chaser_data_save, Chaser_life_init) */
+    SHORT Scrl_y;                      /* 0x7858 RE2 Scrl_y: background scroll y, -0xEF..0xEF (Swap_Cbuff) */
     UCHAR pad785A[0x785C - 0x785A];
-    SHORT Unk785C;                     /* 0x785C cleared by em36 (Nemesis) death */
-    USHORT Unk785E;                    /* 0x785E counter (pl_mv0d) */
+    SHORT Chaser_no;                   /* 0x785C current Nemesis encounter (Chaser_evt_clr: 3..6), 0 once he is down */
+    USHORT Dodge_cnt;                  /* 0x785E counted by pl_mv07 / pl_mv0d (dodges?) */
     USHORT Time;                       /* 0x7860 Mercenaries time left (result) */
-    SHORT Unk7862;                     /* 0x7862 */
-    SHORT Unk7864;                     /* 0x7864 set with Unk784E by the title extra menu */
+    SHORT Chaser_state;                /* 0x7862 Nemesis room state 0..6 (Chaser_room_ck, Chaser_state_reset) */
+    SHORT Pl_id_bak;                   /* 0x7864 Jill's Id (costume) kept while another player Id is used (Set_room) */
     UCHAR pad7866[0x7868 - 0x7866];
-    ULONG Unk7868[8];                  /* 0x7868 flag bits (Flg_ck, status room/cut checks) */
-    ULONG Unk7888;                     /* 0x7888 cleared on room init (Sce_work_clr_set) */
-    ULONG Unk788C;                     /* 0x788C */
-    ULONG Unk7890[8];                  /* 0x7890 flag bits (Map_door_mark_ck) */
-    ULONG Unk78B0[8];                  /* 0x78B0 flag bits (Map_door_mark_ck) */
-    ULONG Unk78D0[8];                  /* 0x78D0 flag bits (Map_door_disp_ck, St_file_end) */
-    ULONG Unk78F0[8];                  /* 0x78F0 flag bits (Map_door_disp_ck, St_file_end) */
-    ULONG Unk7910[1];                  /* 0x7910 item flags (status: Flg_on with Item_data_tbl[id][2]) */
-    ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (Psp_trans) */
-    UCHAR pad7924[0x7994 - 0x7924];
-    ULONG Unk7994[2];                  /* 0x7994 flag bits (Map_door_mark_ck) */
-    ULONG Unk799C[1];                  /* 0x799C flag bits (Om_rev) */
+    /* flag words in RE3's Flg_addr order (sce1 Flg_addr[3..10]) */
+    ULONG Scenario_flg[8];             /* 0x7868 RE2 G.SaveData.Scenario_flg (also the exe symbol Scenario_flg) */
+    ULONG Room_flg[2];                 /* 0x7888 RE2 G.SaveData.Room_flg: [0] cleared by Sce_work_clr_set, [1] by Sce_work_clr */
+    ULONG Enemy_flg[8];                /* 0x7890 RE2 G.SaveData.Enemy_flg: enemies killed (Em_set_flg), stages 0-1 or Mercenaries */
+    ULONG Enemy_flg2[8];               /* 0x78B0 RE2 G.SaveData.Enemy_flg2: same from stage 2 on */
+    ULONG Item_flg[8];                 /* 0x78D0 RE2 G.SaveData.Item_flg: room items taken, stages 0-1 */
+    ULONG Item_flg2[8];                /* 0x78F0 RE2 G.SaveData.Item_flg2: same from stage 2 on */
+    ULONG Item_chk_flg[1];             /* 0x7910 items examined once (RE2 Item_c_flg; exe symbol Item_chk_flg; Flg_addr[46]) */
+    ULONG Pri_be_flg[32];              /* 0x7914 RE2 G.SaveData.Pri_be_flg: one sprite-priority word per cut, index Cut_no (Psp_trans; -1 by func_800486C8) */
+    ULONG Key_flg[2];                  /* 0x7994 RE2 G.SaveData.Key_flg: doors unlocked (Key_id & 0x3F) */
+    ULONG Om_flg[1];                   /* 0x799C object model on/off bits (sce1 Om_rev, om; Flg_addr[45]) */
     UCHAR pad79A0[0x79A4 - 0x79A0];
-    LONG Unk79A4[14];                  /* 0x79A4 (status: -1 on init) */
-    ULONG Unk79DC[4];                  /* 0x79DC */
-    ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (Map_door_disp_ck) */
+    ULONG Map_visit_flg[18];           /* 0x79A4 rooms visited, two words per stage (exe symbol Map_visit_flg; status sets [0..13] to -1) */
+    ULONG Map_get_flg[1];              /* 0x79EC map obtained, one bit per stage (exe symbol Map_get_flg) */
+    ULONG Map_area_flg[1];             /* 0x79F0 stages visited (Map_visit_set; exe symbol Map_area_flg) */
+    ULONG File_flg[1];                 /* 0x79F4 files obtained (RE2 G.SaveData.File_flg) */
+    ULONG File_num;                    /* 0x79F8 files read in order (status file viewer, 30 = all) */
     ITEM_SET Item_work[2];             /* 0x79FC per character, pItem_set points to one (mem_card Load_pop) */
     ITEM_SET *pItem_set;               /* 0x7C7C items of the current character */
     ULONG Item_work_no;                /* 0x7C80 index into Item_work (mem_card Load_pop) */
-    USHORT Unk7C84[1];                 /* 0x7C84 index from Bgm_room_ofs table */
-    UCHAR pad7C86[0x7D8C - 0x7C86];
+    USHORT Bgm_tbl[132];               /* 0x7C84 RE2 G.SaveData.Bgm_tbl: room BGM, index Bgm_room_ofs[Stage] + Room */
     UCHAR Save_vol;                    /* 0x7D8C Snd_work.Vol.Se (mem_card Save_push) */
     UCHAR Save_vol2;                   /* 0x7D8D Snd_work.Vol.Bgm */
     UCHAR Save_mono;                   /* 0x7D8E Snd_work.Mono */
     UCHAR pad7D8F;
-    ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (Chaser_data_save) */
-    struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (Om_drop_set) */
-        UCHAR Unk0;
-        UCHAR Unk1;
+    ULONG Chaser_free[12];             /* 0x7D90 Nemesis free work (enemy work +0x1CC), kept across rooms (Chaser_data_save) */
+    struct {                           /* 0x7DC0 items Nemesis dropped (Om_drop_set; Chaser_item_set) */
+        UCHAR Be_flg;                  /* 0x0 1: lying in its room, 0: picked up */
+        UCHAR Item_id;                 /* 0x1 item id (byte 0xC of the item AOT) */
         UCHAR pad2[2];
-        USHORT Unk4;
-        USHORT Pos_x;
-        USHORT Pos_y;
-        USHORT Pos_z;
-    } Unk7DC0[8];
-    LONG Unk7E20;                      /* 0x7E20 */
-    SHORT Unk7E24[8];                  /* 0x7E24 cleared by Chaser_room_clr */
-    UCHAR pad7E34[0x7E94 - 0x7E34];
-    LONG Unk7E94;                      /* 0x7E94 total life healed? (status) */
+        USHORT Room_id;                /* 0x4 (Stage_no + 1) << 8 | Room_no */
+        USHORT Pos_x;                  /* 0x6 */
+        USHORT Pos_y;                  /* 0x8 */
+        USHORT Pos_z;                  /* 0xA */
+    } Chaser_drop[8];
+    LONG Chaser_drop_num;              /* 0x7E20 used Chaser_drop[] entries */
+    SHORT Chaser_room_list[8];         /* 0x7E24 room ids Nemesis can show up in (Chaser_room_clr / Chaser_room_ck) */
+    UCHAR pad7E34[0x7E54 - 0x7E34];
+    ULONG Chaser_flg[4];               /* 0x7E54 Nemesis encounter flags (Flg_addr[47], Chaser_evt_clr; exe symbol Chaser_flg) */
+    UCHAR pad7E64[0x7E94 - 0x7E64];
+    LONG Cure_total;                   /* 0x7E94 life healed in total (St_item_use; result grade) */
     LONG Merc_time[3];                 /* 0x7E98 Mercenaries best time per character, -1 none (kept by Keep_data_save) */
     UCHAR Merc_grade[3];               /* 0x7EA4 best grade per character, 0xFF none */
     UCHAR pad7EA7;

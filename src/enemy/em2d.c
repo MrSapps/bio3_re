@@ -9,8 +9,8 @@ void Em2d_main(ENEMY_WORK *pEm)
 {
     SVECTOR Sv; /* unused, as in RE2 */
 
-    if ((G.Unk75EA & 0x7F) && (pEm->Type & 0x10))
-        G.Unk75EA--;
+    if ((G.Room_enemy_flg & 0x7F) && (pEm->Type & 0x10))
+        G.Room_enemy_flg--;
     if (Se_call && (pEm->Type & 0x10))
         Se_call--;
     if (pEm->Damage_cnt & 0x7F)
@@ -82,7 +82,7 @@ void Em2d_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk140 = 0;
     Se_call = 0;
     pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
-    G.Unk75EA = 0;
+    G.Room_enemy_flg = 0;
     EM_SET_MOVE(pEm, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
 }
@@ -254,10 +254,10 @@ void Em2d_mv03_br(ENEMY_WORK *pEm)
 
     pPt = pEm->pSin_parts_ptr + P_hand[pEm->Type & 1][2];
     Ck = L_pos_ckXZ(POS_V(&G.Player), WORKM_POS_V(pPt), 900);
-    if (Ck && pEm->Move_cnt >= 5 && !G.Unk75EA) {
+    if (Ck && pEm->Move_cnt >= 5 && !G.Room_enemy_flg) {
         if (!G.Player.Damage_cnt) {
             EM_SET_RTN(pEm, 1, 4, 0, 0);
-            G.Unk75EA |= 0x80;
+            G.Room_enemy_flg |= 0x80;
         } else {
             EM_SET_RTN(pEm, 1, 6, 0, 0);
         }
@@ -312,7 +312,7 @@ void Em2d_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (G.Player.Damage_cnt) {
             pEm->UnkE3 = 1;
-            G.Unk75EA |= 0xFF7F;
+            G.Room_enemy_flg |= 0xFF7F;
         }
         if (!pEm->Move_cnt && !pEm->UnkE3) {
             Pad_vib_set0(2, 0);
@@ -341,7 +341,7 @@ void Em2d_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 2:
-        G.Unk75EA = 60;
+        G.Room_enemy_flg = 60;
         EM_SET_RTN(pEm, 1, 5, 0, 0);
     }
 }
@@ -553,7 +553,7 @@ void Em2d_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 4:
         EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
-        G.Unk75EA &= ~0x80;
+        G.Room_enemy_flg &= ~0x80;
     }
 }
 

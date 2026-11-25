@@ -3,8 +3,8 @@
 /*
  * R214_OL.BIN overlay (loaded at 0x801C2000): the room 214 mixing puzzle.
  * Each step the player adds (Val[n] = Val[n - 1] + 15 * n) or removes
- * (- 5 * n, - 10 * n with G.Unk7868 bit 0x33) and an effect shows the choice;
- * after five steps the final value picks the result (G.Unk7888 bits 0..3).
+ * (- 5 * n, - 10 * n with G.Scenario_flg bit 0x33) and an effect shows the choice;
+ * after five steps the final value picks the result (G.Room_flg[0] bits 0..3).
  * The values are drawn as sprite digits.
  */
 #include "bio3.h"
@@ -34,7 +34,7 @@ typedef struct tagR214_WORK {
     DR_TPAGE Tpage[2];                 /* 0x33C OT entry the digits are linked into */
 } R214_WORK;
 
-/* the event data at G.Unk21DC */
+/* the event data at G.pAot_dat */
 typedef struct tagR214_EVT {
     UCHAR pad0[4];
     USHORT Cut_no;                     /* 0x4 close-up camera cut */

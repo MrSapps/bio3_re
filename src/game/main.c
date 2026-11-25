@@ -65,12 +65,12 @@ int main(void)
         ClearOTagR(pG->pOt0, 8);
         ClearOTagR(pG->pOt1, 0x400);
         ClearOTagR(pG->pOt2, 8);
-        if (pG->Unk2470) {
+        if (pG->Ot_sub_num) {
             i = 0;
             do {
                 ClearOTagR(pG->pOt_sub[pG->Cbuf_id][i + 1], 0x400);
                 i++;
-            } while (i < pG->Unk2470);
+            } while (i < pG->Ot_sub_num);
         }
         Moji_mode_init();
         if (pG->Padd_data[0][0] != 0) {
@@ -89,10 +89,10 @@ int main(void)
             continue;
         }
         if ((G.System_flg & 0x8000000) && Main.Unk18E == 0 && *(USHORT *)&Game.Doordemo_flg == 0
-            && *(USHORT *)&CD.Cd_rtn_no == 0 && !(G.Unk2468 & 0x1000000)
+            && *(USHORT *)&CD.Cd_rtn_no == 0 && !(G.Stop_flg & 0x1000000)
             && !(G.System_flg & 0x10594240) && !(G.Status_flg & 0x400208) && Main.Unk194 == 0) {
-            if ((G.Unk20FC & 0x800) && G.Unk246C >= 0) {
-                G.Unk20FC ^= 0x800;
+            if ((G.Padd_trg & 0x800) && G.Unk246C >= 0) {
+                G.Padd_trg ^= 0x800;
                 Main.Unk194 = 2;
             } else if (pG->Padd_data[0][0] == 0xFF) {
                 Main.Unk194 = 1;
@@ -102,16 +102,16 @@ int main(void)
             Snd_seq_pause(0);
             Snd_seq_pause(1);
             Snd_seq_pause(2);
-            G.Unk2488 = 1;
+            G.Pause_flg = 1;
         }
     no_pause:
         if (Main.Unk194 != 0) {
             Pause_disp();
-            if ((Main.Unk194 == 1 && pG->Padd_data[0][0] != 0xFF) || (Main.Unk194 == 2 && (G.Unk20FC & 0x800))) {
+            if ((Main.Unk194 == 1 && pG->Padd_data[0][0] != 0xFF) || (Main.Unk194 == 2 && (G.Padd_trg & 0x800))) {
                 Snd_seq_play_ck(0);
                 Snd_seq_play_ck(1);
                 Snd_seq_play_ck(2);
-                G.Unk2488 = 0;
+                G.Pause_flg = 0;
                 Main.Unk194 = 0;
             }
         }
@@ -145,7 +145,7 @@ void Scrn_negate(void)
 
     pM = &Main;
     pM->Vloop = 4;
-    if (G.Unk20FC & 0x20) {
+    if (G.Padd_trg & 0x20) {
         D_800CA720 = 0;
     }
     if (!(pM->Unk198 & 0x400000)) {
@@ -230,7 +230,7 @@ void Init_global(void)
     if (pG->System_flg & 0x80) {
         Keep_data_save();
     }
-    Memclr(&pG->Unk2468, 0x5A90);
+    Memclr(&pG->Stop_flg, 0x5A90);
     if (pG->System_flg & 0x80) {
         Keep_data_load();
     }
@@ -375,12 +375,12 @@ void Bg_draw(void)
         if (!(pG->System_flg & 0x80000000)) {
             Psp_set();
         }
-        pBs_size = (USHORT *)(pG->Unk7840 * 2 + (ULONG)pG->pBs_size);
-        Size = pG->pUnk2128[*pBs_size + pG->Cut_no];
+        pBs_size = (USHORT *)(pG->Room_no * 2 + (ULONG)pG->pBs_size);
+        Size = pG->pBs_file_size[*pBs_size + pG->Cut_no];
         CD.Check_sum_flg = 2;
         CD.Fsum = pG->pBs_check_sum[*pBs_size + pG->Cut_no];
         CD.Fsize = Size;
-        CD.Fno = Room_file_tbl[pG->Unk783E][pG->Unk7840 + 1] - 1;
+        CD.Fno = Room_file_tbl[pG->Stage_no][pG->Room_no + 1] - 1;
         CD.Fsector = (floc[CD.Fno].sec_high << 16) + floc[CD.Fno].sector + pG->Cut_no * 32;
         Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;
@@ -443,7 +443,7 @@ void Soft_reset(void)
     Snd_reset();
     Init_global();
     VSync(0);
-    G.Unk20F8 = -1;
+    G.Padd = -1;
     Task_lexecute(0, 0);
 }
 

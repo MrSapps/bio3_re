@@ -32,7 +32,7 @@ typedef struct tagCUTINFO {
     SHORT Free;                        /* 0x1A */
 } CUTINFO;
 
-/* per cut info: frames to wait before the camera, flags (bit 0: stop flags in G.Unk2468) */
+/* per cut info: frames to wait before the camera, flags (bit 0: stop flags in G.Stop_flg) */
 typedef struct tagDIE_WAIT {
     USHORT Wait;                       /* 0x0 */
     USHORT Flg;                        /* 0x2 */

@@ -189,7 +189,7 @@ void Em25_mv000(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em25_goto00(pEm, 0x100);
     if (Em25_goto00(pEm, 0x400) && LL < 8000)
         EM_SET_RTN(pEm, 1, 5, 0, 0);
-    if (G.Unk75E8 & 1) {
+    if (G.Room_player_flg & 1) {
         EM_SET_RTN(pEm, 1, 9, 0, 0);
         if (Rnd_l() & 1)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
@@ -485,7 +485,7 @@ void Em25_mv001(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Dir0 = Em25_goto00(pEm, 0x80);
     Em25_goto00(pEm, 0x100);
     Em25_goto00(pEm, 0x400);
-    if (G.Unk75E8 & 1) {
+    if (G.Room_player_flg & 1) {
         EM_SET_RTN(pEm, 1, 9, 0, 0);
         if (Rnd_l() & 1)
             EM_SET_RTN(pEm, 1, 5, 0, 0);

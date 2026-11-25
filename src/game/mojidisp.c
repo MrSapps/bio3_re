@@ -178,12 +178,12 @@ LONG Mess_set(ULONG Pos_xy, USHORT Attr, ULONG Mess_no, ULONG Stop_data)
         return -1;
     }
     pMoji->Mess_flg = 0x80;
-    pG->Unk7848 = 0;
+    pG->Mess_sel = 0;
     pMoji->Stop_data = Stop_data;
     pMoji->Mess_r_no0 = 0;
     pMoji->Mess_attr2 = Attr | 0x100;
     pG->Status_flg |= 0x100;
-    pMoji->Stop_keep = pG->Unk2468;
+    pMoji->Stop_keep = pG->Stop_flg;
     switch (Attr & 0x3000) {
     case 0:
         pMoji->Pos_x_def = 0x22;
@@ -264,7 +264,7 @@ void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
     } else {
         pStr = pData;
     }
-    Sel = G.Unk7848;
+    Sel = G.Mess_sel;
     if (pMoji->Timer != 0) {
         pMoji->Timer--;
     }
@@ -275,7 +275,7 @@ void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
                 G.Status_flg &= 0xEFFFFFFF;
                 G.System_flg |= 0x400;
                 pMoji->Mess_flg = (pMoji->Mess_flg & 0x7F) | 0x40;
-                G.Unk2468 = pMoji->Stop_keep;
+                G.Stop_flg = pMoji->Stop_keep;
                 if (pMoji->Mess_attr2 & 0x400) {
                     Se = 6;
                     if (Sel != 0) {
@@ -287,8 +287,8 @@ void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
                 }
                 return;
             }
-        } else if (*(ULONG *)&G.Unk20FC & 0x5000) {
-            USHORT Key = G.Unk20FC;
+        } else if (*(ULONG *)&G.Padd_trg & 0x5000) {
+            USHORT Key = G.Padd_trg;
 
             if (Key & 0x4000) {
                 Sel++;
@@ -306,7 +306,7 @@ void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
             pMoji->Timer = 0;
             pMoji->Mess_time = 0;
         }
-        G.Unk7848 = Sel;
+        G.Mess_sel = Sel;
     }
     for (i = 0; i < 2; i++) {
         pLine[i] = pStr;
@@ -769,7 +769,7 @@ static __inline__ UCHAR *Mess_sys_get(ULONG No)
     return Mess_sys_text + Mess_sys_ofs[No];
 }
 
-/* task: shows three two-line hint pages (by G+0x2115) for 3 seconds each */
+/* task: shows three two-line hint pages (by G.Ovl_mode) for 3 seconds each */
 void Mess_hint_task(void)
 {
     ULONG idx;

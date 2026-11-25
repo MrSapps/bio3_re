@@ -25,7 +25,7 @@ void Spl(ENEMY_WORK *pEm)
     ULONG Id;
     PARTS_W *pP;
 
-    if (G.Unk2468 & 0x40000000) {
+    if (G.Stop_flg & 0x40000000) {
         return;
     }
     if (pEm->Damage_cnt & 0x7F) {
@@ -108,14 +108,14 @@ void Spl_Init(ENEMY_WORK *pEm)
     PW_NECK(pP)->N_rot_y = 0;
     PW_NECK(pP)->N_rot_z = 0;
     if (G.Status_flg & 0x80000000) {
-        pEm->Life = G.Unk7852 + 50;
+        pEm->Life = G.Spl_life + 50;
         if (pEm->Life > 200) {
             pEm->Life = 200;
         }
-        pEm->Status_flg = G.Unk7850;
+        pEm->Status_flg = G.Spl_status_flg;
     } else {
-        pEm->Life = G.Unk7852 = 200;
-        pEm->Status_flg = G.Unk7850 = 0;
+        pEm->Life = G.Spl_life = 200;
+        pEm->Status_flg = G.Spl_status_flg = 0;
     }
     if (pEm->Type & 0x400) {
         pEm->Type &= ~0x1000;
@@ -158,30 +158,30 @@ INCLUDE_ASM("asm/nonmatchings/game/spl", Spl_wep_set);
 /* RE2 Spl_set: installs Spl as the routine of the sub player work slots */
 void Spl_set(void)
 {
-    G.Unk3EE0[0] = Spl;
-    G.Unk3EE0[1] = Spl;
-    G.Unk3EE0[2] = Spl;
-    G.Unk3EE0[3] = Spl;
-    G.Unk3EE0[4] = Spl;
-    G.Unk3EE0[5] = Spl;
-    G.Unk3EE0[6] = Spl;
-    G.Unk3EE0[7] = Spl;
-    G.Unk3EE0[8] = Spl;
-    G.Unk3EE0[9] = Spl;
-    G.Unk3EE0[10] = Spl;
-    G.Unk3EE0[11] = Spl;
-    G.Unk3EE0[12] = Spl;
-    G.Unk3EE0[13] = Spl;
-    G.Unk3EE0[14] = Spl;
-    G.Unk3EE0[15] = Spl;
-    G.Unk3EE0[16] = Spl;
-    G.Unk3EE0[17] = Spl;
-    G.Unk3EE0[18] = Spl;
-    G.Unk3EE0[19] = Spl;
-    G.Unk3EE0[20] = Spl;
-    G.Unk3EE0[21] = Spl;
-    G.Unk3EE0[22] = Spl;
-    G.Unk3EE0[23] = Spl;
+    G.Em_move_tbl[0x40] = Spl;
+    G.Em_move_tbl[0x41] = Spl;
+    G.Em_move_tbl[0x42] = Spl;
+    G.Em_move_tbl[0x43] = Spl;
+    G.Em_move_tbl[0x44] = Spl;
+    G.Em_move_tbl[0x45] = Spl;
+    G.Em_move_tbl[0x46] = Spl;
+    G.Em_move_tbl[0x47] = Spl;
+    G.Em_move_tbl[0x48] = Spl;
+    G.Em_move_tbl[0x49] = Spl;
+    G.Em_move_tbl[0x4A] = Spl;
+    G.Em_move_tbl[0x4B] = Spl;
+    G.Em_move_tbl[0x4C] = Spl;
+    G.Em_move_tbl[0x4D] = Spl;
+    G.Em_move_tbl[0x4E] = Spl;
+    G.Em_move_tbl[0x4F] = Spl;
+    G.Em_move_tbl[0x50] = Spl;
+    G.Em_move_tbl[0x51] = Spl;
+    G.Em_move_tbl[0x52] = Spl;
+    G.Em_move_tbl[0x53] = Spl;
+    G.Em_move_tbl[0x54] = Spl;
+    G.Em_move_tbl[0x55] = Spl;
+    G.Em_move_tbl[0x56] = Spl;
+    G.Em_move_tbl[0x57] = Spl;
 }
 
 /* thrown back by the work in Add_dir's slot: turn away, play the knock-back moves */

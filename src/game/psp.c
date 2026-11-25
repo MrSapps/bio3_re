@@ -135,7 +135,7 @@ void Psp_trans(void)
     n = pG->pRoom->nSprite;
     pId = Psp_id;
     pPrim = &pPsp_prim[pG->Cbuf_id];
-    pFlg = &pG->Cut_flg[pG->Cut_no];
+    pFlg = &pG->Pri_be_flg[pG->Cut_no];
     while (n--) {
         if (Flg_ck(pFlg, *pId)) {
             if ((USHORT)*pOtz < 0x400) {
@@ -318,7 +318,7 @@ void Rain_drop_set(void)
     }
 }
 
-/* wind: G.Unk75E4/75E6 drift to random targets over random times */
+/* wind: G.Wind_dir/Wind_pow drift to random targets over random times */
 void Rain_wind_move(RAIN_WORK *pW)
 {
     tagGLOBAL *pG;
@@ -331,24 +331,24 @@ void Rain_wind_move(RAIN_WORK *pW)
         break;
     case 1:
         pG = &G;
-        pW->Unk24 = pG->Unk75E4;
-        pW->Unk26 = pG->Unk75E6;
-        pW->Unk28 = (Rnd_l() << 4) - pG->Unk75E4;
-        pW->Unk2A = Rnd_l() * 250 / 256 - pG->Unk75E6;
+        pW->Unk24 = pG->Wind_dir;
+        pW->Unk26 = pG->Wind_pow;
+        pW->Unk28 = (Rnd_l() << 4) - pG->Wind_dir;
+        pW->Unk2A = Rnd_l() * 250 / 256 - pG->Wind_pow;
         pW->Unk22 = (Rnd_l() >> 4) + 10;
         pW->Unk23 = 0;
         pW->Unk21 = 2;
     case 2:
         pW->Unk23++;
-        G.Unk75E4 = pW->Unk24 + pW->Unk28 * pW->Unk23 / pW->Unk22;
-        G.Unk75E6 = pW->Unk26 + pW->Unk2A * pW->Unk23 / pW->Unk22;
+        G.Wind_dir = pW->Unk24 + pW->Unk28 * pW->Unk23 / pW->Unk22;
+        G.Wind_pow = pW->Unk26 + pW->Unk2A * pW->Unk23 / pW->Unk22;
         if (pW->Unk23 == pW->Unk22) {
             pW->Unk21 = 3;
         }
         break;
     case 3:
-        G.Unk75E4 = pW->Unk24 + pW->Unk28;
-        G.Unk75E6 = pW->Unk26 + pW->Unk2A;
+        G.Wind_dir = pW->Unk24 + pW->Unk28;
+        G.Wind_pow = pW->Unk26 + pW->Unk2A;
         pW->Unk22 = Rnd_l();
         pW->Unk21 = 0;
         break;

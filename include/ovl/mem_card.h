@@ -32,7 +32,7 @@ typedef struct tagCFILE_INFO {
 typedef struct tagSAVE_INFO {
     ULONG Game_play_time;              /* 0x00 G+0x77F0 */
     ULONG Status_flg;                  /* 0x04 G+0x77F4 */
-    ULONG Flg;                         /* 0x08 G+0x77F8 flag bits (Flg_ck) */
+    ULONG Flg;                         /* 0x08 G.Game_flg (Flg_ck) */
     SHORT Cdir_y;                      /* 0x0C */
     SHORT Pos_x;                       /* 0x0E */
     SHORT Pos_y;                       /* 0x10 */
@@ -81,7 +81,7 @@ typedef struct tagMWORK {
     UCHAR Saved_flg;                   /* 0x01A */
     UCHAR Timer;                       /* 0x01B */
     USHORT Key_trg;                    /* 0x01C G.Key_trg saved over a frame */
-    USHORT Key_rep;                    /* 0x01E G.Unk20FC saved over a frame */
+    USHORT Key_rep;                    /* 0x01E G.Padd_trg saved over a frame */
     UCHAR F_num[16];                   /* 0x020 card file index per slot; 0x80 empty, 0x40 used by another game */
     ULONG Total_size;                  /* 0x030 */
     CFILE_INFO File_info;              /* 0x034 */

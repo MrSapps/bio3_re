@@ -1526,11 +1526,11 @@ void Snd_bgm_ck(void)
     SHORT Stage;
     USHORT Bgm;
 
-    Stage = pG->Unk783E;
+    Stage = pG->Stage_no;
     if (Stage >= 5) {
         Stage -= 5;
     }
-    Bgm = pG->Unk7C84[Bgm_room_ofs[Stage] + pG->Unk7840];
+    Bgm = pG->Bgm_tbl[Bgm_room_ofs[Stage] + pG->Room_no];
     pW->Fade_vol = 0x3C00;
     pW->Fade_mask = 0xFF;
     pW->Fade_step = 0x400;
@@ -1735,5 +1735,5 @@ void Snd_bgm_tbl_set(UCHAR Stage, UCHAR Room, USHORT Bgm)
     if (Stage_idx >= 5) {
         Stage_idx -= 5;
     }
-    G.Unk7C84[Bgm_room_ofs[Stage_idx] + Room] = Bgm;
+    G.Bgm_tbl[Bgm_room_ofs[Stage_idx] + Room] = Bgm;
 }

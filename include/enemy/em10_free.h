@@ -23,7 +23,7 @@ typedef struct tagEM10_FREE {
     KAGE_WORK *pK_kage;                /* 0x0C (0x1D8) shadow of the lower body (Kage_work_set) */
     ULONG Old_r;                       /* 0x10 (0x1DC) Routine_0..3 of the last frame */
     ULONG Next_r;                      /* 0x14 (0x1E0) Routine_0..3 to return to after a scripted move */
-    UCHAR Hanare_cnt;                  /* 0x18 (0x1E4) timer; clears G.Unk75EA bit 0 when it runs out */
+    UCHAR Hanare_cnt;                  /* 0x18 (0x1E4) timer; clears G.Room_enemy_flg bit 0 when it runs out */
     UCHAR Die_r0;                      /* 0x19 (0x1E5) */
     SHORT Ground;                      /* 0x1A (0x1E6) floor height while lying */
     UCHAR Mot_dm;                      /* 0x1C (0x1E8) index of the motion triple in the die tables */

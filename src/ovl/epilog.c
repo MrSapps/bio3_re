@@ -84,7 +84,7 @@ void Epilog_menu(void)
     USHORT Max;
     UCHAR Se;
 
-    Max = G.Unk7806;
+    Max = G.Clear_cnt;
     if (Max >= 8) {
         Max = 8;
     }
@@ -112,19 +112,19 @@ void Epilog_menu(void)
         }
     } else {
         Se = 0;
-        if ((G.Unk2100 & 0x1000) && (signed char)(pWk->u.s.Cursor / 3) > 0) {
+        if ((G.Padd_rep & 0x1000) && (signed char)(pWk->u.s.Cursor / 3) > 0) {
             pWk->u.s.Cursor -= 3;
             Se = 1;
         }
-        if ((G.Unk2100 & 0x4000) && (signed char)(pWk->u.s.Cursor / 3) < 2) {
+        if ((G.Padd_rep & 0x4000) && (signed char)(pWk->u.s.Cursor / 3) < 2) {
             pWk->u.s.Cursor += 3;
             Se = 1;
         }
-        if ((G.Unk2100 & 0x8000) && (signed char)(pWk->u.s.Cursor % 3) > 0) {
+        if ((G.Padd_rep & 0x8000) && (signed char)(pWk->u.s.Cursor % 3) > 0) {
             pWk->u.s.Cursor--;
             Se = 1;
         }
-        if ((G.Unk2100 & 0x2000) && (signed char)(pWk->u.s.Cursor % 3) < 2) {
+        if ((G.Padd_rep & 0x2000) && (signed char)(pWk->u.s.Cursor % 3) < 2) {
             pWk->u.s.Cursor++;
             Se = 1;
         }

@@ -68,7 +68,7 @@ typedef struct tagHIT_AREA {
     UCHAR Id;                          /* 0x0A */
 } HIT_AREA;
 
-/* aim target of an object model, 0x18 bytes from G.pEm_mem, listed in G.pUnk75AC (Obj_model_set) */
+/* aim target of an object model, 0x18 bytes from G.pEm_mem, listed in G.pOm_target (Obj_model_set) */
 typedef struct tagOM_TARGET {
     USHORT Flg;                        /* 0x00 0xFF: off */
     SHORT Unk2;                        /* 0x02 */

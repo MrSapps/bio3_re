@@ -33,7 +33,7 @@ void Config(void)
     LONG Fade;
 
     Task_suspend(0);
-    if (G.Unk2115 == 1) {
+    if (G.Ovl_mode == 1) {
         Snd_se_stad(0x500, 0, 0, 0);
     }
     Config_init();
@@ -44,10 +44,10 @@ void Config(void)
         OPT_FRAME_SET();
         switch (Fade) {
         case 1:
-            G.Unk2468 |= 0xFF000000;
+            G.Stop_flg |= 0xFF000000;
             Fade_set(0, 1, 2, 2, 0, 0xFFFFFF, 0xF);
             Opt.Fade_mode = 2;
-            if (G.Unk2115 == 1 && Opt.Routine_next == 6) {
+            if (G.Ovl_mode == 1 && Opt.Routine_next == 6) {
                 Snd_work.Seq[0].Fade_vol = 0x3B5F;
                 Snd_work.Seq[0].Fade_mode = 2;
                 Snd_work.Seq[0].Fade_step = 0x4A0;
@@ -75,7 +75,7 @@ void Config(void)
             }
             if (Opt.Reset == 1) {
                 G.System_flg |= 0x200000;
-                if (G.Unk2115 == 0) {
+                if (G.Ovl_mode == 0) {
                     Snd_se_stad(0xE, 0, 0, 0);
                 }
                 goto exit;
@@ -88,7 +88,7 @@ void Config(void)
             Opt.Fade_mode = 3;
         case 3:
             if (Fade_status(0) == 0) {
-                G.Unk2468 = 0;
+                G.Stop_flg = 0;
                 Opt.Fade_mode = 0;
             }
             break;
@@ -107,7 +107,7 @@ void Config(void)
         Task_sleep(1);
     }
 exit:
-    G.Unk2468 = 0;
+    G.Stop_flg = 0;
     Config_exit();
     Task_signal(0);
     Task_exit();
@@ -119,15 +119,15 @@ void Config_padd_opt(void)
     OPT_WORK *pW;
 
     pW = &Opt;
-    if ((G.Unk20FC & 0x1000) && pW->Cur == 0) {
+    if ((G.Padd_trg & 0x1000) && pW->Cur == 0) {
         pW->Cur = 5;
-    } else if ((G.Unk20FC & 0x4000) && pW->Cur == 5) {
+    } else if ((G.Padd_trg & 0x4000) && pW->Cur == 5) {
         pW->Cur = 0;
     } else {
-        if (G.Unk2100 & 0x1000) {
+        if (G.Padd_rep & 0x1000) {
             pW->Cur--;
         }
-        if (G.Unk2100 & 0x4000) {
+        if (G.Padd_rep & 0x4000) {
             pW->Cur++;
         }
         pW->Cur = pW->Cur < 0 ? 0 : pW->Cur > 5 ? 5 : pW->Cur;
@@ -143,7 +143,7 @@ void Config_padd_opt(void)
             pW->Fade_mode = 1;
             pW->Routine_next = pW->Cur + 1;
         }
-        if ((G.Key_trg & 0x2000) || (G.Unk20FC & 0x100)) {
+        if ((G.Key_trg & 0x2000) || (G.Padd_trg & 0x100)) {
             Snd_se_stad(5, 0, 0, 0);
             pW->Routine_next = 6;
             pW->Fade_mode = 1;
@@ -450,27 +450,27 @@ void Config_padd_con(void)
         Config_pad_tim_load();
     }
     pW->Pad_type = G.Pad_type;
-    if ((G.Unk20FC & 0x1000) && pW->Sub_cur == 1) {
+    if ((G.Padd_trg & 0x1000) && pW->Sub_cur == 1) {
         Snd_se_stad(4, 0, 0, 0);
         pW->Timer = 0;
         pW->Sub_cur = 0;
     }
-    if ((G.Unk20FC & 0x4000) && Opt.Sub_cur == 0) {
+    if ((G.Padd_trg & 0x4000) && Opt.Sub_cur == 0) {
         Snd_se_stad(4, 0, 0, 0);
         Opt.Timer = 0;
         Opt.Sub_cur = 1;
     }
     switch (Opt.Sub_cur) {
     case 0:
-        if (G.Unk2100 & 0xA000) {
+        if (G.Padd_rep & 0xA000) {
             Snd_se_stad(4, 0, 0, 0);
-            if (G.Unk2100 & 0x2000) {
+            if (G.Padd_rep & 0x2000) {
                 if (++Opt.Pad_cfg == 3) {
                     Opt.Pad_cfg = 0;
                 }
                 Config_pad_arrow_r = 1;
             }
-            if (G.Unk2100 & 0x8000) {
+            if (G.Padd_rep & 0x8000) {
                 if (--Opt.Pad_cfg == -1) {
                     Opt.Pad_cfg = 2;
                 }
@@ -483,7 +483,7 @@ void Config_padd_con(void)
         } else {
             Opt.Flg &= ~0x40;
         }
-        if (!((USHORT)G.Unk20F8 & 0xA000)) {
+        if (!((USHORT)G.Padd & 0xA000)) {
             Opt.Arrow = 0;
             Config_pad_arrow_l = 0;
             Config_pad_arrow_r = 0;
@@ -573,12 +573,12 @@ void Config_padd_vib(void)
         pW->Step++;
         pW->Flg = Main.Unk196;
     }
-    if (!(pW->Flg & 0x80) && (G.Unk20FC & 0x2000)) {
+    if (!(pW->Flg & 0x80) && (G.Padd_trg & 0x2000)) {
         Snd_se_stad(4, 0, 0, 0);
         pW->Timer = 0;
         pW->Flg |= 0x80;
     }
-    if ((pW->Flg & 0x80) && (G.Unk20FC & 0x8000)) {
+    if ((pW->Flg & 0x80) && (G.Padd_trg & 0x8000)) {
         Snd_se_stad(4, 0, 0, 0);
         Opt.Timer = 0;
         Opt.Flg &= ~0x80;
@@ -629,20 +629,20 @@ void Config_padd_snd(void)
         pW->Vol_old[0] = pW->Vol[0];
         pW->Vol_old[1] = pW->Vol[1];
     }
-    if ((G.Unk20FC & 0x1000) && pW->Sub_cur == 0) {
+    if ((G.Padd_trg & 0x1000) && pW->Sub_cur == 0) {
         pW->Sub_cur = 3;
-    } else if ((G.Unk20FC & 0x4000) && Opt.Sub_cur == 3) {
+    } else if ((G.Padd_trg & 0x4000) && Opt.Sub_cur == 3) {
         Opt.Sub_cur = 0;
     } else {
-        if (G.Unk2100 & 0x1000) {
+        if (G.Padd_rep & 0x1000) {
             Opt.Sub_cur--;
         }
-        if (G.Unk2100 & 0x4000) {
+        if (G.Padd_rep & 0x4000) {
             Opt.Sub_cur++;
         }
         Opt.Sub_cur = Opt.Sub_cur < 0 ? 0 : Opt.Sub_cur > 3 ? 3 : Opt.Sub_cur;
     }
-    if (G.Unk2100 & 0x5000) {
+    if (G.Padd_rep & 0x5000) {
         Opt.Hold = 0;
         Opt.Arrow = 0;
         Config_pad_arrow_l = 0;
@@ -657,24 +657,24 @@ void Config_padd_snd(void)
     Opt.Sub_cur_old = Opt.Sub_cur;
     switch (Opt.Sub_cur) {
     case 0:
-        if (Opt.Stereo == 0 && (G.Unk20FC & 0x2000)) {
+        if (Opt.Stereo == 0 && (G.Padd_trg & 0x2000)) {
             Snd_se_stad(4, 0, 0, 0);
             Opt.Timer = 0;
             Opt.Stereo = 1;
         }
-        if (Opt.Stereo == 1 && (G.Unk20FC & 0x8000)) {
+        if (Opt.Stereo == 1 && (G.Padd_trg & 0x8000)) {
             Snd_se_stad(4, 0, 0, 0);
             Opt.Timer = 0;
             Opt.Stereo = 0;
         }
         break;
     case 1:
-        if (G.Unk2100 & 0xA000) {
+        if (G.Padd_rep & 0xA000) {
             Opt.Hold++;
-            if (G.Unk2100 & 0x2000) {
+            if (G.Padd_rep & 0x2000) {
                 Opt.Vol[0] += Opt.Hold / 6 + 1;
             }
-            if (G.Unk2100 & 0x8000) {
+            if (G.Padd_rep & 0x8000) {
                 Opt.Vol[0] -= Opt.Hold / 6 + 1;
             }
             Opt.Vol[0] = Opt.Vol[0] < 0 ? 0 : Opt.Vol[0] > 100 ? 100 : Opt.Vol[0];
@@ -690,7 +690,7 @@ void Config_padd_snd(void)
             }
             Opt.Vol_old[0] = Opt.Vol[0];
         }
-        if (!((USHORT)G.Unk20F8 & 0xA000)) {
+        if (!((USHORT)G.Padd & 0xA000)) {
             Opt.Hold = 0;
             Opt.Arrow = 0;
             Config_pad_arrow_l = 0;
@@ -700,12 +700,12 @@ void Config_padd_snd(void)
         }
         break;
     case 2:
-        if (G.Unk2100 & 0xA000) {
+        if (G.Padd_rep & 0xA000) {
             Opt.Hold++;
-            if (G.Unk2100 & 0x2000) {
+            if (G.Padd_rep & 0x2000) {
                 Opt.Vol[1] += Opt.Hold / 6 + 1;
             }
-            if (G.Unk2100 & 0x8000) {
+            if (G.Padd_rep & 0x8000) {
                 Opt.Vol[1] -= Opt.Hold / 6 + 1;
             }
             Opt.Vol[1] = Opt.Vol[1] < 0 ? 0 : Opt.Vol[1] > 100 ? 100 : Opt.Vol[1];
@@ -721,7 +721,7 @@ void Config_padd_snd(void)
             }
             Opt.Vol_old[1] = Opt.Vol[1];
         }
-        if (!((USHORT)G.Unk20F8 & 0xA000)) {
+        if (!((USHORT)G.Padd & 0xA000)) {
             Opt.Hold = 0;
             Opt.Arrow = 0;
             Config_pad_arrow_l = 0;
@@ -828,10 +828,10 @@ void Config_padd_res(void)
         pW->Timer = 0;
         pW->Step++;
     }
-    if (G.Unk20FC & 0x1000) {
+    if (G.Padd_trg & 0x1000) {
         pW->Sub_cur = 0;
     }
-    if (G.Unk20FC & 0x4000) {
+    if (G.Padd_trg & 0x4000) {
         pW->Sub_cur = 1;
     }
     if (pW->Sub_cur_old != pW->Sub_cur) {
@@ -841,10 +841,10 @@ void Config_padd_res(void)
     pW->Sub_cur_old = pW->Sub_cur;
     switch (pW->Sub_cur) {
     case 0:
-        if (G.Unk20FC & 0x2000) {
+        if (G.Padd_trg & 0x2000) {
             pW->No = 1;
         }
-        if (G.Unk20FC & 0x8000) {
+        if (G.Padd_trg & 0x8000) {
             pW->No = 0;
         }
         if (pW->No_old != pW->No) {

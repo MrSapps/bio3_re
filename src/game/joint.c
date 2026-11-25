@@ -210,8 +210,8 @@ void ko_joint_trans2(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
         gte_SetTransMatrix(&M);
     }
     if (Flg & 0x20) {
-        pG->pUnk208C = Bomb_Parts_SortGT3(pP->pTmd, pG->pUnk208C, pP);
-        pG->pUnk208C = Bomb_Parts_SortGT4(pP->pTmd, pG->pUnk208C, pP);
+        pG->pPacket = Bomb_Parts_SortGT3(pP->pTmd, pG->pPacket, pP);
+        pG->pPacket = Bomb_Parts_SortGT4(pP->pTmd, pG->pPacket, pP);
         Parts_bomb(pP);
     } else if (Flg & 0x10) {
         D_800C79F0 = &M;
@@ -266,22 +266,22 @@ void Parts_sort(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     }
     if (Flg & 0x40) {
         Prm.u.Rgb = Model_col.Unk6 << 24;
-        pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);
-        pG->pUnk208C = func_8002CABC(&Prm, pG->pUnk208C, Work0, (SHORT *)Work1);
+        pG->pPacket = func_8002C824(&Prm, pG->pPacket, Work0, Work1);
+        pG->pPacket = func_8002CABC(&Prm, pG->pPacket, Work0, (SHORT *)Work1);
     }
     if (Flg & 0x80) {
         Prm.u.Rgb = *(ULONG *)((UCHAR *)&Model_col + 8) | (*(SHORT *)((UCHAR *)&Model_col + 6) << 24); /* Rgb | Unk6 << 24, addressed from &Rgb */
-        pG->pUnk208C = func_8002CE08(&Prm, pG->pUnk208C, Work0, Work1);
-        pG->pUnk208C = func_8002CF90(&Prm, pG->pUnk208C, Work0, Work1);
+        pG->pPacket = func_8002CE08(&Prm, pG->pPacket, Work0, Work1);
+        pG->pPacket = func_8002CF90(&Prm, pG->pPacket, Work0, Work1);
     }
     Prm.u.Rgb = pObj[25];
-    Top = pG->pUnk208C;
+    Top = pG->pPacket;
     Prm.u.c.Code = Abr | 0x34;
-    pG->pUnk208C = func_8002D6D8(&Prm, pG->pUnk208C, Work0, Work1);
+    pG->pPacket = func_8002D6D8(&Prm, pG->pPacket, Work0, Work1);
     Prm.u.c.Code = Abr | 0x3C;
-    pG->pUnk208C = func_8002D898(&Prm, pG->pUnk208C, Work0, Work1);
+    pG->pPacket = func_8002D898(&Prm, pG->pPacket, Work0, Work1);
     if (Flg & 4) {
-        Rgb_blend((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
+        Rgb_blend((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pPacket, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
     }
 }
 
@@ -305,20 +305,20 @@ void Parts_sort_sabun(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.UnkC = (ULONG)&Skin_rgb;
     if (Flg & 0x40) {
         Prm.u.Rgb = Model_col.Unk6 << 24;
-        pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);
-        pG->pUnk208C = func_8002CABC(&Prm, pG->pUnk208C, Work0, (SHORT *)Work1);
+        pG->pPacket = func_8002C824(&Prm, pG->pPacket, Work0, Work1);
+        pG->pPacket = func_8002CABC(&Prm, pG->pPacket, Work0, (SHORT *)Work1);
     }
     if (Flg & 0x80) {
         Prm.u.Rgb = *(ULONG *)((UCHAR *)&Model_col + 8) | (*(SHORT *)((UCHAR *)&Model_col + 6) << 24); /* Rgb | Unk6 << 24, addressed from &Rgb */
-        pG->pUnk208C = func_8002CE08(&Prm, pG->pUnk208C, Work0, Work1);
-        pG->pUnk208C = func_8002CF90(&Prm, pG->pUnk208C, Work0, Work1);
+        pG->pPacket = func_8002CE08(&Prm, pG->pPacket, Work0, Work1);
+        pG->pPacket = func_8002CF90(&Prm, pG->pPacket, Work0, Work1);
     }
-    Top = pG->pUnk208C;
+    Top = pG->pPacket;
     Prm.u.Rgb = pObj[25];
-    pG->pUnk208C = func_8002DFE0(&Prm, Top, Work0, Work1);
-    pG->pUnk208C = func_8002E160(&Prm, pG->pUnk208C, Work0, Work1);
+    pG->pPacket = func_8002DFE0(&Prm, Top, Work0, Work1);
+    pG->pPacket = func_8002E160(&Prm, pG->pPacket, Work0, Work1);
     if (Flg & 4) {
-        Rgb_blend((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
+        Rgb_blend((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pPacket, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
     }
 }
 
@@ -336,9 +336,9 @@ void Parts_sort_ex(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Md_rtp(Work0, Work1, D0);
     Prm.u.c.Code = 0x34;
     Prm.UnkC = pP->UnkB8;
-    G.pUnk208C = func_8002DC98(&Prm, G.pUnk208C, Work0, Work1);
+    G.pPacket = func_8002DC98(&Prm, G.pPacket, Work0, Work1);
     Prm.u.c.Code = 0x3C;
-    G.pUnk208C = func_8002DE0C(&Prm, G.pUnk208C, Work0, Work1);
+    G.pPacket = func_8002DE0C(&Prm, G.pPacket, Work0, Work1);
 }
 
 /* sort a part without colour passes (Flg 8 picks the second sorter pair); pP unused */
@@ -356,14 +356,14 @@ void Parts_sort_simple(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Md_rtp(Work0, Work1, (MD_OBJ *)pObj[1]);
     if (Flg & 8) {
         Prm.u.c.Code = Abr | 0x34;
-        G.pUnk208C = func_8002D6D8(&Prm, G.pUnk208C, Work0, Work1);
+        G.pPacket = func_8002D6D8(&Prm, G.pPacket, Work0, Work1);
         Prm.u.c.Code = Abr | 0x3C;
-        G.pUnk208C = func_8002D898(&Prm, G.pUnk208C, Work0, Work1);
+        G.pPacket = func_8002D898(&Prm, G.pPacket, Work0, Work1);
     } else {
         Prm.u.c.Code = Abr | 0x34;
-        G.pUnk208C = func_8002B6FC(&Prm, G.pUnk208C, Work0, Work1);
+        G.pPacket = func_8002B6FC(&Prm, G.pPacket, Work0, Work1);
         Prm.u.c.Code = Abr | 0x3C;
-        G.pUnk208C = func_8002B86C(&Prm, G.pUnk208C, Work0, Work1);
+        G.pPacket = func_8002B86C(&Prm, G.pPacket, Work0, Work1);
     }
 }
 
@@ -1247,8 +1247,8 @@ void Om_joint_trans(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     gte_SetRotMatrix(&M);
     gte_SetTransMatrix(&M);
     if (Flg & 0x20) {
-        pG->pUnk208C = Bomb_Parts_SortGT3(pP->pTmd, pG->pUnk208C, pP);
-        pG->pUnk208C = Bomb_Parts_SortGT4(pP->pTmd, pG->pUnk208C, pP);
+        pG->pPacket = Bomb_Parts_SortGT3(pP->pTmd, pG->pPacket, pP);
+        pG->pPacket = Bomb_Parts_SortGT4(pP->pTmd, pG->pPacket, pP);
         Parts_bomb(pP);
     } else if (Flg & 2) {
         Parts_sort_simple(&pP->Attribute, Flg, pP);

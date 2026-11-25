@@ -4,7 +4,7 @@
 
 /* key repeat / stop state (D_800DE628) */
 typedef struct tagPAD_WORK {
-    ULONG Stop_bak;                    /* 0x00 G.Unk2468 saved while the game is stopped (RE2 static Stp_bak) */
+    ULONG Stop_bak;                    /* 0x00 G.Stop_flg saved while the game is stopped (RE2 static Stp_bak) */
     union {
         SHORT Both;                    /* set with one sh by Pad_rep_set */
         UCHAR Time[2];                 /* [0] first repeat delay, [1] repeat interval */

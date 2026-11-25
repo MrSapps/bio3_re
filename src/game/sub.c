@@ -320,8 +320,8 @@ void Keep_data_save(void)
 
     i = 0;
     p->Save_slot = pG->Save_slot;
-    p->Game_flg = pG->Unk77F8[0];
-    p->G_7806 = pG->Unk7806;
+    p->Game_flg = pG->Game_flg[0];
+    p->Clear_cnt = pG->Clear_cnt;
     Keep_data.Save_cnt = pG->Save_cnt;
     for (; i < 3; i++) {
         p->Merc_time[i] = pG->Merc_time[i];
@@ -340,8 +340,8 @@ void Keep_data_load(void)
 
     i = 0;
     pG->Save_slot = p->Save_slot;
-    pG->Unk77F8[0] = p->Game_flg;
-    pG->Unk7806 = p->G_7806;
+    pG->Game_flg[0] = p->Game_flg;
+    pG->Clear_cnt = p->Clear_cnt;
     pG->Save_cnt = Keep_data.Save_cnt;
     for (; i < 3; i++) {
         pG->Merc_time[i] = p->Merc_time[i];

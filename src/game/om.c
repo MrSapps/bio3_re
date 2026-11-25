@@ -316,7 +316,7 @@ void Om_move(void)
     if (G.pRoom->nOmodel == 0) {
         return;
     }
-    if (G.Unk2468 & 0x8000000) {
+    if (G.Stop_flg & 0x8000000) {
         return;
     }
     Om_push_num = 0;
@@ -407,7 +407,7 @@ void Om_rtn_wait(OBJ_MODEL_WORK *pOm)
             pOm_push = pOm;
         }
     }
-    if ((pOm->Unk4A & 4) && *G.pUnk75AC[pOm->UnkC1] == 0xFF) {
+    if ((pOm->Unk4A & 4) && *G.pOm_target[pOm->UnkC1] == 0xFF) {
         switch (pOm->Type & 0xC0) {
         case 0:
             Om_explosion(pOm, 1, 1);
@@ -606,13 +606,13 @@ void Om_rtn_target_off(OBJ_MODEL_WORK *pOm)
 {
     switch (pOm->Routine_1) {
     case 0:
-        *G.pUnk75AC[pOm->UnkC1] = 0xFF;
+        *G.pOm_target[pOm->UnkC1] = 0xFF;
         pOm->Routine_1 = 1;
         break;
     case 1:
         break;
     case 2:
-        *G.pUnk75AC[pOm->UnkC1] = 0;
+        *G.pOm_target[pOm->UnkC1] = 0;
         pOm->Routine_0 = 0;
         pOm->Routine_1 = 0;
         break;
@@ -668,7 +668,7 @@ void Om_trans(void)
     }
 }
 
-/* the object model of kind 8 falls where pEm is (Om_routine 4); logged in G.Unk7DC0 */
+/* the object model of kind 8 falls where pEm is (Om_routine 4); logged in G.Chaser_drop */
 void Om_drop_set(ENEMY_WORK *pEm, ULONG Arg1)
 {
     ENEMY_WORK **pp;
@@ -689,16 +689,16 @@ void Om_drop_set(ENEMY_WORK *pEm, ULONG Arg1)
             break;
     }
     pAot[3] = i | 0x80;
-    G.Unk7DC0[G.Unk7E20].Unk0 = 1;
-    G.Unk7DC0[G.Unk7E20].Unk1 = pAot[0xC];
-    G.Unk7DC0[G.Unk7E20].Unk4 = G.Unk7840 | ((G.Unk783E + 1) << 8);
-    G.Unk7DC0[G.Unk7E20].Pos_x = pEm->Pos_x;
-    G.Unk7DC0[G.Unk7E20].Pos_y = pEm->Pos_y;
-    G.Unk7DC0[G.Unk7E20].Pos_z = pEm->Pos_z;
+    G.Chaser_drop[G.Chaser_drop_num].Be_flg = 1;
+    G.Chaser_drop[G.Chaser_drop_num].Item_id = pAot[0xC];
+    G.Chaser_drop[G.Chaser_drop_num].Room_id = G.Room_no | ((G.Stage_no + 1) << 8);
+    G.Chaser_drop[G.Chaser_drop_num].Pos_x = pEm->Pos_x;
+    G.Chaser_drop[G.Chaser_drop_num].Pos_y = pEm->Pos_y;
+    G.Chaser_drop[G.Chaser_drop_num].Pos_z = pEm->Pos_z;
     p->Routine_0 = 4;
     p->Routine_1 = 0;
     p->Routine_2 = Arg1;
-    G.Unk7E20++;
+    G.Chaser_drop_num++;
 }
 
 /* ordering table of every live work and object model: by position, or the fixed one (Be_flg 0x80) */
@@ -743,7 +743,7 @@ ULONG *Ot_get_pos(LONG *pPos)
     USHORT *pBlk;
 
     pG = &G;
-    if (pG->Unk2470 == 0) {
+    if (pG->Ot_sub_num == 0) {
         goto end;
     }
     pHead = (USHORT *)pG->pRoom->pUnk40;

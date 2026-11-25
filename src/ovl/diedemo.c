@@ -15,13 +15,13 @@ void Die_demo(void)
     Diedemo.Ctr = 0;
     while (1) {
         if (Die_skip_ok) {
-            if (G.Unk20FC & 0x100) {
+            if (G.Padd_trg & 0x100) {
                 Fade_set(0, 0, 2, 2, 0, 0xFFFFFFFF, 0x20);
                 Die_skip_ok = 0;
                 if ((G.System_flg & 0x200) && (G.Status_flg & STAT_XA_VOICE)) {
                     Xa_error();
                 }
-                G.Unk2468 |= 0x1000000;
+                G.Stop_flg |= 0x1000000;
             }
         } else if (Fade_status(0) & FADE_END) {
             Diedemo.Rno = 7;
@@ -63,8 +63,8 @@ void Die_move_set(void)
         Diedemo.Id_ctr = 0;
         Diedemo.Wait_ctr = Die_wait_tbl[0];
     }
-    G.Unk2468 |= 0x2000000;
-    G.Unk2468 |= 0x1000000;
+    G.Stop_flg |= 0x2000000;
+    G.Stop_flg |= 0x1000000;
     G.Status_flg |= 0x180;
     G.Status_flg &= ~0x1000;
     G.Status_flg &= ~4;
@@ -84,7 +84,7 @@ void Die_move_set(void)
             G.Status_flg |= STAT_XA_VOICE;
             func_8003884C(Die_vib_tbl, 0);
         } else {
-            switch (G.Unk783E + 1) {
+            switch (G.Stage_no + 1) {
             case 4:
                 Snd_se_stad(0x208, NULL, 0, 0);
                 Xa_play(3, 0x19);
@@ -92,7 +92,7 @@ void Die_move_set(void)
                 func_8003884C(Die_vib_tbl, 1);
                 break;
             case 5:
-                if (G.Unk7840 == 9) {
+                if (G.Room_no == 9) {
                     Xa_play(3, 0x1F);
                     G.Status_flg |= STAT_XA_VOICE;
                 } else {
@@ -109,7 +109,7 @@ void Die_move_set(void)
         G.Status_flg &= ~0x4000000;
         G.Status_flg &= ~0x2000000;
     }
-    if (Flg_ck(G.Unk7868, 0xC2)) {
+    if (Flg_ck(G.Scenario_flg, 0xC2)) {
         Diedemo.Unk3B = 1;
         Diedemo.Id_ctr = 9;
         Cutinfo[9] = Die_cut_c2;
@@ -134,7 +134,7 @@ void Die_move_delay(void)
 /* routine 2 */
 void Die_move_fade(void)
 {
-    if (Flg_ck(G.Unk7868, 0xC2)) {
+    if (Flg_ck(G.Scenario_flg, 0xC2)) {
         Snd_se_stad(0x20A, NULL, 0, 0);
     }
     Fade_set(1, 1, 2, 1, 0, 0xFFFFFF, 0x1E);
@@ -157,11 +157,11 @@ void Die_move_slow(void)
         Diedemo.Addpos += 2;
         if (++Diedemo.Phase < 3) {
             if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
-                G.Unk2468 |= 0xFF000000;
+                G.Stop_flg |= 0xFF000000;
             }
         } else {
             if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
-                G.Unk2468 ^= 0xFC000000;
+                G.Stop_flg ^= 0xFC000000;
             }
             Diedemo.Phase = 0;
             pSnd->Seq[0].Fade_mode = 2;
@@ -205,14 +205,14 @@ void Die_move_slow(void)
         G.pEnemy[1]->Tilt[0] = 0;
         G.pEnemy[1]->Tilt[1] = 0;
         if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
-            G.Unk2468 |= 0x20000000;
+            G.Stop_flg |= 0x20000000;
         }
         Diedemo.Phase = 0;
         Die_spr_load();
         if (!(Diedemo.Em_flg & 1)) {
-            G.Unk2468 |= 0x40000000;
+            G.Stop_flg |= 0x40000000;
         } else {
-            G.Unk2468 |= 0x80000000;
+            G.Stop_flg |= 0x80000000;
         }
         G.pObj_work_end = &G.Ob_model[0];
         G.System_flg |= 0x80000000;
@@ -237,9 +237,9 @@ void Die_move_slow(void)
         Diedemo.Ctr = 0;
         Diedemo.Rno += (G.System_flg & 0x800) ? 1 : 2;
         if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
-            G.Unk2468 &= 0x3FFFFFF;
+            G.Stop_flg &= 0x3FFFFFF;
         }
-        G.Unk2468 &= ~0x1000000;
+        G.Stop_flg &= ~0x1000000;
         Fade_set(1, 1, 0, 1, 0xFFFFFF, 0, 0x1E);
         Die_spr_init();
     }
@@ -437,12 +437,12 @@ void Die_enemy_set_em(void)
     }
 }
 
-/* Unk7868 flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs D_80198228[Unk44] */
+/* Scenario_flg flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs D_80198228[Unk44] */
 void Die_enemy_set_sub(void)
 {
     tagGLOBAL *pG = &G;
 
-    if (Flg_ck(pG->Unk7868, 0xC2)) {
+    if (Flg_ck(pG->Scenario_flg, 0xC2)) {
         pG->pEnemy[1]->Be_flg &= 0xFFEF;
         pG->pEnemy[1]->Be_flg |= 0x2000;
         pG->pEnemy[1]->Type &= 0x7FFF;
@@ -467,8 +467,8 @@ void Die_enemy_set_sub(void)
         pG->pEnemy[2]->Routine_2 = 0;
         pG->pEnemy[2]->Routine_3 = 0;
         pG->pEnemy[2]->Type ^= 0x100;
-        pG->Unk2468 = (pG->Unk2468 & ~0x40000000) | 0x80000000;
-        Flg_off(pG->Unk7868, 0xC2);
+        pG->Stop_flg = (pG->Stop_flg & ~0x40000000) | 0x80000000;
+        Flg_off(pG->Scenario_flg, 0xC2);
         Diedemo.Unk44 = 0;
     }
     Die_sub_tbl[Diedemo.Unk44]();

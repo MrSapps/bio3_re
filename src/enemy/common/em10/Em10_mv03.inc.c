@@ -54,7 +54,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_MOVE(pEm, Type_mot[Flg][0] + 1, 0, 0);
         pEm->Routine_2 = 3;
         pEm->Timer0 = 148;
-        if (G.Unk75EA & 1)
+        if (G.Room_enemy_flg & 1)
             pEm->Timer0 = 74;
     case 3:
         Null_pos_set2(pEm, pKan, pSeq, 0);
@@ -171,9 +171,9 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             else
                 Snd_se_enem(15, pEm);
             pEm->Timer0 = 1;
-            if (!(G.Unk75EA & 1)) {
+            if (!(G.Room_enemy_flg & 1)) {
                 EM10_W(pEm)->Hanare_cnt = 150;
-                G.Unk75EA |= 1;
+                G.Room_enemy_flg |= 1;
             }
             break;
         }
@@ -190,9 +190,9 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 9:
         EM_SET_RTN(pEm, 1, 1, 0, 0);
         pEm->Be_flg |= 0x80000;
-        if (!(G.Unk75EA & 1)) {
+        if (!(G.Room_enemy_flg & 1)) {
             EM10_W(pEm)->Hanare_cnt = 150;
-            G.Unk75EA |= 1;
+            G.Room_enemy_flg |= 1;
         }
         break;
     }

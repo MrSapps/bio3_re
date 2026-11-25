@@ -51,7 +51,7 @@ void Em36_main(ENEMY_WORK *pEm)
     if (!(pEm->Type & 1))
         Em36_dodge(pEm);
     Em36_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    if (G.Unk783E == 4 && G.Unk7840 == 9) {
+    if (G.Stage_no == 4 && G.Room_no == 9) {
         Rno = pEm->Unk14E;
         if (Rno & 0x80) {
             if (!(EM36_W(pEm)->Flg & 0x1000)) {
@@ -194,7 +194,7 @@ void Em36_Move_type03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     Em36_mv_br03[pEm->Routine_1](pEm);
     Em36_mv03[pEm->Routine_1](pEm, pKan, pSeq);
-    if (G.Unk75E8 & 5) {
+    if (G.Room_player_flg & 5) {
         if (!EM36_W(pEm)->Lost_time)
             EM36_W(pEm)->Lost_time = 240;
         Em36_lost_pos.vx = pPl->Pos_x;
@@ -320,29 +320,29 @@ void Em36_walk_br(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 2, 0, 0);
     if (Dist < 5000 && Dir_far && EM36_W(pEm)->Flg & 0x800) {
         EM_SET_RTN(pEm, 1, 4, 0, 0);
-        if (Dist < 3500 && !Dir_eye && (Rnd() & 3) == 1 && !Flg_ck(&G.Unk7888, 0x1F))
+        if (Dist < 3500 && !Dir_eye && (Rnd() & 3) == 1 && !Flg_ck(G.Room_flg, 0x1F))
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     }
     if (Dist < 1300 && !Dir)
         EM_SET_RTN(pEm, 1, 3, 0, 0);
     if (!EM36_W(pEm)->Punch_timer && Dist < 3000 && !Dir && !pPl->Damage_cnt) {
         EM_SET_RTN(pEm, 1, 5, 0, 0);
-        if (pPl->Life < 40 && pPl->Damage_no != 0x80 && EM36_W(pEm)->Flg & 0x800 && !Flg_ck(&G.Unk7888, 0x1E)) {
+        if (pPl->Life < 40 && pPl->Damage_no != 0x80 && EM36_W(pEm)->Flg & 0x800 && !Flg_ck(G.Room_flg, 0x1E)) {
             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
             EM36_W(pEm)->Flg &= ~0x200;
         }
     }
-    if (EM36_W(pEm)->Punch_timer < 5 && Dist < 3000 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+    if (EM36_W(pEm)->Punch_timer < 5 && Dist < 3000 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1F))
         EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     if (EM36_W(pEm)->Flg & 0x800) {
-        if (!EM36_W(pEm)->Lunge_timer && Dist < 4500 && Dist > 2000 && !Dir && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E)) {
+        if (!EM36_W(pEm)->Lunge_timer && Dist < 4500 && Dist > 2000 && !Dir && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1E)) {
             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
             EM36_W(pEm)->Flg &= ~0x200;
         }
         if (!EM36_W(pEm)->Mv12_timer && Dist > 4500 && Dist < 5500 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
-    if (!EM36_W(pEm)->Sweep_timer && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+    if (!EM36_W(pEm)->Sweep_timer && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1F))
         EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     if (EM36_W(pEm)->Flg & 0x10)
         EM_SET_RTN(pEm, 1, 9, 0, 0);
@@ -414,18 +414,18 @@ void Em36_walk_br01(ENEMY_WORK *pEm)
     if (!EM36_W(pEm)->Punch_timer) {
         if (Dist < 3000 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
-        if (!EM36_W(pEm)->Punch_timer && Dist < 3500 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+        if (!EM36_W(pEm)->Punch_timer && Dist < 3500 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1F))
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     }
     if (EM36_W(pEm)->Flg & 0x800) {
-        if (!EM36_W(pEm)->Lunge_timer && Dist < 3500 && !Dir && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E)) {
+        if (!EM36_W(pEm)->Lunge_timer && Dist < 3500 && !Dir && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1E)) {
             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
             EM36_W(pEm)->Flg &= ~0x200;
         }
         if (!EM36_W(pEm)->Mv12_timer && Dist > 3500 && Dist < 4500 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
-    if (!EM36_W(pEm)->Sweep_timer && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+    if (!EM36_W(pEm)->Sweep_timer && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1F))
         EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     if (!EM36_W(pEm)->Punch_timer && Dist < 9000 && Dist > 6000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Dm_stage >= 2)
         EM_SET_RTN(pEm, 1, 0x12, 0, 0);
@@ -641,7 +641,7 @@ void Em36_turn_br(ENEMY_WORK *pEm)
     Dir = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x200);
     if (Dist < 3000 && pEm->Status_flg & 0x2000)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
-    if (Dist < 5000 && EM36_W(pEm)->Flg & 0x800 && !Dir && !Flg_ck(&G.Unk7888, 0x1E)) {
+    if (Dist < 5000 && EM36_W(pEm)->Flg & 0x800 && !Dir && !Flg_ck(G.Room_flg, 0x1E)) {
         EM_SET_RTN(pEm, 1, 0xA, 0, 0);
         EM36_W(pEm)->Flg |= 0x200;
     }
@@ -729,12 +729,12 @@ void Em36_back_br(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
     if (Dist < 4000 && Dir) {
         EM_SET_RTN(pEm, 1, 4, 0, 0);
-        if (Dist < 3000 && !Dir_eye && (Rnd() & 3) == 1 && !Flg_ck(&G.Unk7888, 0x1F))
+        if (Dist < 3000 && !Dir_eye && (Rnd() & 3) == 1 && !Flg_ck(G.Room_flg, 0x1F))
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     }
     if (!EM36_W(pEm)->Punch_timer && Dist < 3000 && !Dir_atk && !pPl->Damage_cnt)
         EM_SET_RTN(pEm, 1, 5, 0, 0);
-    if (!EM36_W(pEm)->Lunge_timer && Dist < 4500 && !Dir_atk && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
+    if (!EM36_W(pEm)->Lunge_timer && Dist < 4500 && !Dir_atk && !pPl->Damage_cnt && !Flg_ck(G.Room_flg, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
         EM_SET_RTN(pEm, 1, 0xA, 0, 0);
         EM36_W(pEm)->Flg &= ~0x200;
     }
@@ -887,7 +887,7 @@ void Em36_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Neck_flg &= ~3;
             if (pEm->UnkE2 && !(pEm->Type & 1))
                 EM_SET_RTN(pEm, 1, 7, 0, 0);
-            if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000 && !Flg_ck(&G.Unk7888, 0x1F))
+            if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000 && !Flg_ck(G.Room_flg, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             if (!(pEm->UnkE3 & 0x80))
                 EM36_W(pEm)->Hit_cnt++;
@@ -909,7 +909,7 @@ void Em36_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM36_W(pEm)->pSub->Routine_1 = 0;
                 EM36_W(pEm)->pSub->Routine_2 = 0;
                 pEm->Neck_flg &= ~3;
-                if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000 && !(Rnd() & 3) && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Unk7888, 0x1F))
+                if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000 && !(Rnd() & 3) && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(G.Room_flg, 0x1F))
                     EM_SET_RTN(pEm, 1, 0xF, 0, 0);
                 EM36_W(pEm)->Hit_cnt++;
                 return;
@@ -1318,7 +1318,7 @@ void Em36_lunge(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
             if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000
-                && Rnd() & 1 && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Unk7888, 0x1F))
+                && Rnd() & 1 && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(G.Room_flg, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             if (!(pEm->UnkE3 & 0x80))
                 EM36_W(pEm)->Hit_cnt += 2;
@@ -1355,7 +1355,7 @@ void Em36_lunge(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM36_W(pEm)->pSub->Routine_2 = 0;
             pEm->Neck_flg &= ~3;
             if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000
-                && Rnd() & 1 && !Flg_ck(&G.Unk7888, 0x1F))
+                && Rnd() & 1 && !Flg_ck(G.Room_flg, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             EM36_W(pEm)->Hit_cnt += 3;
             return;
@@ -1544,14 +1544,14 @@ void Em36_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0 = 8;
             pEm->Damage_cnt &= 0x7F;
             pEm->Cdir_y -= 0x400;
-            if (pPl->Life > 180 && !Flg_ck(&G.Unk7888, 0x1F)) {
+            if (pPl->Life > 180 && !Flg_ck(G.Room_flg, 0x1F)) {
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
                 EM36_W(pEm)->Punch_timer = 5;
                 EM36_W(pEm)->Mv12_timer = 45;
                 EM36_W(pEm)->Grab_timer = 45;
             }
             if (((Rnd() & 7) == 1 | pPl->Life < 0) && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 700)
-                && !Flg_ck(&G.Unk7888, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
+                && !Flg_ck(G.Room_flg, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
                 EM_SET_RTN(pEm, 1, 0xA, 0, 0);
                 EM36_W(pEm)->Flg = (EM36_W(pEm)->Flg & ~0x200) | 0x400;
             }
@@ -1570,7 +1570,7 @@ void Em36_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         if (--pEm->Timer0 == -1) {
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-            if (Flg_ck(&G.Unk7888, 0x1F))
+            if (Flg_ck(G.Room_flg, 0x1F))
                 EM_SET_RTN(pEm, 1, 5, 0, 0);
             EM36_W(pEm)->Punch_timer = 5;
             EM36_W(pEm)->Mv12_timer = 45;
@@ -1663,7 +1663,7 @@ void Em36_sweep(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (!Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 800) && (LONG)pEm->L_pl < 4000) {
                     EM_SET_RTN(pEm, 1, 5, 0, 0);
                     if (Rnd() & 1) {
-                        if (!Flg_ck(&G.Unk7888, 0x1E) && EM36_W(pEm)->Flg & 0x800)
+                        if (!Flg_ck(G.Room_flg, 0x1E) && EM36_W(pEm)->Flg & 0x800)
                             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
                     }
                 }
@@ -1853,7 +1853,7 @@ void Em36_swing_arm(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM36_W(pEm)->Flg &= ~1;
             pEm->Neck_flg &= ~3;
             if (!Dir_pos_ck_l(&pEm->Pos_x, &pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->L_pl < 3000
-                && !(Rnd() & 1) && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Unk7888, 0x1F))
+                && !(Rnd() & 1) && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(G.Room_flg, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             EM36_W(pEm)->Hit_cnt += 3;
         }
@@ -1949,11 +1949,11 @@ void Em36_run_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Goto00(pEm, Em36_route_pos[EM36_W(pEm)->Route_no].vx, Em36_route_pos[EM36_W(pEm)->Route_no].vz, 24);
         }
         if (pEm->Move_cnt == 25) {
-            Flg_on(&G.Unk7888, 0x20);
+            Flg_on(G.Room_flg, 0x20);
             if ((LONG)pEm->L_pl > 6000)
-                Flg_on(&G.Unk7888, 0x21);
+                Flg_on(G.Room_flg, 0x21);
             if ((LONG)pEm->L_pl > 10000)
-                Flg_on(&G.Unk7888, 0x22);
+                Flg_on(G.Room_flg, 0x22);
             Snd_se_enem(4, pEm);
         }
         if (pEm->Move_cnt == 28)
@@ -2258,7 +2258,7 @@ void Em36_dm_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Last) {
             EM_SET_MOVE(pEm, 0xD, 0, 0x1F);
             Em_dead_flg_on_cand(pEm);
-            pG->Unk785C = 0;
+            pG->Chaser_no = 0;
             pG->Status_flg &= ~0x40000000;
             pEm->Type |= 0x4000;
         }
@@ -2356,7 +2356,7 @@ void Em36_dm_part(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         EM36_W(pEm)->Mv06_timer = 0;
         pEm->Hit_area.R = 600;
-        Flg_on(&G.Unk7888, 0x1D);
+        Flg_on(G.Room_flg, 0x1D);
         EM36_W(pEm)->Flg &= ~0x40;
         EM36_W(pEm)->Stage_life = pEm->Life - 250;
         if (EM36_W(pEm)->Stage_life < 0)
@@ -2696,7 +2696,7 @@ void Em36_die_burn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_enem(13, pEm);
         else
             Snd_se_stad(0x1020F, POS_V(pEm), 0, 0);
-        G.Unk785C = 0;
+        G.Chaser_no = 0;
         G.Status_flg &= ~0x40000000;
         if (G.Status_flg & 0x2000)
             Om_drop_set(pEm, 10);
@@ -3657,7 +3657,7 @@ void Em36_dodge(ENEMY_WORK *pEm)
         EM36_W(pEm)->Dodge_timer &= 0x7F;
     }
     if (!(EM36_W(pEm)->Dodge_timer & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck_l(pEm, pPl)
-        && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Unk75E8 & 1) {
+        && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Room_player_flg & 1) {
         Div = 0;
         if ((UCHAR)pPl->Type == 10) {
             Div = 7000;

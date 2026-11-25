@@ -59,7 +59,7 @@ void Select_pl_main(void)
         Select_obj[3].Y += 10;
     }
     pG->pEm = pG->pEnemy[0];
-    pG->pUnk208C = (POLY_GT4 *)((ULONG *)pSel->pHeap + pG->Cbuf_id * 13);
+    pG->pPacket = (POLY_GT4 *)((ULONG *)pSel->pHeap + pG->Cbuf_id * 13);
     for (n = 3, i = 0; n != 0; i++, n--) {
         pEm = (&pG->pEnemy[0])[i];
         pG->pEm = pEm;
@@ -452,19 +452,19 @@ void Select_cursor_move(void)
     SELECT_WORK *pSel = &Select_wk;
 
     if (!(pSel->Flg & 1)) {
-        if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+        if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
             Select_wk.Main_no = 3;
             Snd_se_stad(1, NULL, 0, 0);
             return;
         }
-        if ((USHORT)G.Unk20F8 & 0x8000) {
+        if ((USHORT)G.Padd & 0x8000) {
             if (--pSel->Cursor_no < 0) {
                 pSel->Cursor_no = 2;
             }
             Select_pl_dir_set();
             Snd_se_stad(2, NULL, 0, 0);
         }
-        if ((USHORT)G.Unk20F8 & 0x2000) {
+        if ((USHORT)G.Padd & 0x2000) {
             if (++pSel->Cursor_no >= 3) {
                 pSel->Cursor_no = 0;
             }
@@ -524,12 +524,12 @@ void Select_exit(void)
     UCHAR Id;
 
     Id = Select_pl_init[pSel->Cursor_no].Id;
-    pG->Unk2118 = 0;
+    pG->Bonus_time = 0;
     pG->Score = 0;
-    pG->Unk2116 = 0;
+    pG->Bonus_timer = 0;
     pG->Player.Id = Id;
     Main.Vloop = pSel->Vloop_bak;
-    pG->Unk784E = pG->Player.Id;
+    pG->Change_player = pG->Player.Id;
     Task_signal(0);
     Task_exit();
 }

@@ -2,7 +2,7 @@
 #define OVL_EPILOG_H
 /*
  * EPILOG.BIN (loaded at 0x801C2000): epilogue gallery. A 3x3 menu of pages
- * (EPIS.TIM); one page per cleared game (G.Unk7806), the ninth slot exits.
+ * (EPIS.TIM); one page per cleared game (G.Clear_cnt), the ninth slot exits.
  * A page shows its picture from the packed OMBG.TIM file.
  */
 #include "bio3.h"

@@ -86,7 +86,7 @@ void Capcom_logo(TITLE_WORK *pTi)
             if (Step == 10) {
                 break;
             }
-            if (G.Unk20FC & 0x800) {
+            if (G.Padd_trg & 0x800) {
                 Bg_set_mode(1, 0);
                 Fade_off(0);
                 Task_sleep(2);
@@ -644,10 +644,10 @@ void Title_sel_menu(TITLE_WORK *pTi)
         pTi->Sub_rtn = 10;
         return;
     }
-    if (G.Unk20FC & 0x2000) {
+    if (G.Padd_trg & 0x2000) {
         pTi->Cur++;
     }
-    if (G.Unk20FC & 0x8000) {
+    if (G.Padd_trg & 0x8000) {
         pTi->Cur--;
     }
     if (pTi->Cur >= 3) {
@@ -662,7 +662,7 @@ void Title_sel_menu(TITLE_WORK *pTi)
         Snd_se_stad(4, NULL, 0, 0);
     }
     pTi->Cur_old = pTi->Cur;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         pTi->Kido_cnt = 0;
         switch (pTi->Cur) {
         case 0:
@@ -687,10 +687,10 @@ void Title_sel_menu(TITLE_WORK *pTi)
 /* title menu after clearing the game: new game / extra / load / option */
 void Title_sel_menu_ex(TITLE_WORK *pTi)
 {
-    if (G.Unk20FC & 0x4000) {
+    if (G.Padd_trg & 0x4000) {
         pTi->Cur++;
     }
-    if (G.Unk20FC & 0x1000) {
+    if (G.Padd_trg & 0x1000) {
         pTi->Cur--;
     }
     if (pTi->Cur >= 4) {
@@ -705,7 +705,7 @@ void Title_sel_menu_ex(TITLE_WORK *pTi)
         Snd_se_stad(4, NULL, 0, 0);
     }
     pTi->Cur_old = pTi->Cur;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         pTi->Kido_cnt = 0;
         switch (pTi->Cur) {
         case 0:
@@ -749,11 +749,11 @@ void Title_sel_start(TITLE_WORK *pTi)
         Title_menu_disp(pTi);
         Task_sleep(1);
     }
-    G.Unk2115 = 0;
+    G.Ovl_mode = 0;
     G.System_flg |= 0x40000;
     Task_lexecute(1, 2);
     Task_sleep(1);
-    if (G.Unk2115 != 0) {
+    if (G.Ovl_mode != 0) {
         Task_lexecute(1, 10);
         Task_sleep(1);
         pTi->Main_rtn = 1;
@@ -771,7 +771,7 @@ void Title_sel_start(TITLE_WORK *pTi)
         pTi->Main_rtn = 1;
         return;
     }
-    if (Flg_ck(G.Unk77F8, 0x1F) != 0) {
+    if (Flg_ck(G.Game_flg, 0x1F) != 0) {
         G.System_flg |= 0x100;
     }
     if (G.System_flg & 0x20) {
@@ -780,7 +780,7 @@ void Title_sel_start(TITLE_WORK *pTi)
         pTi->Sub_rtn = 1;
         return;
     }
-    G.Unk2115 = 1;
+    G.Ovl_mode = 1;
     Task_execute(1, Mess_hint_task);
     G.System_flg &= ~0x1000;
     pTi->Main_rtn = 4;
@@ -802,10 +802,10 @@ void Title_sel_mode(TITLE_WORK *pTi)
             Keep_data_save();
             goto init_tbl;
         }
-        if (G.Unk20FC & 0x2000) {
+        if (G.Padd_trg & 0x2000) {
             pTi->Cur++;
         }
-        if (G.Unk20FC & 0x8000) {
+        if (G.Padd_trg & 0x8000) {
             pTi->Cur--;
         }
         if (pTi->Cur >= 2) {
@@ -820,7 +820,7 @@ void Title_sel_mode(TITLE_WORK *pTi)
             Snd_se_stad(4, NULL, 0, 0);
         }
         pTi->Cur_old = pTi->Cur;
-        if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+        if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
             pTi->Kido_cnt = 0;
             switch (pTi->Cur) {
             case 0:
@@ -898,14 +898,14 @@ void Title_sel_mode(TITLE_WORK *pTi)
         }
         Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
         if (G.System_flg & 0x100) {
-            Flg_on(G.Unk77F8, 0x1F);
+            Flg_on(G.Game_flg, 0x1F);
         }
     }
     Status_init();
     if (G.System_flg & 0x80) {
-        G.Unk2115 = 2;
+        G.Ovl_mode = 2;
     } else {
-        G.Unk2115 = 0;
+        G.Ovl_mode = 0;
     }
     Task_execute(1, Mess_hint_task);
     pTi->Main_rtn = 4;
@@ -919,10 +919,10 @@ void Title_sub_nop3(TITLE_WORK *pTi)
 /* game mode select */
 void Title_game_mode_sel(TITLE_WORK *pTi)
 {
-    if (G.Unk20FC & 0x2000) {
+    if (G.Padd_trg & 0x2000) {
         pTi->Cur++;
     }
-    if (G.Unk20FC & 0x8000) {
+    if (G.Padd_trg & 0x8000) {
         pTi->Cur--;
     }
     if (pTi->Cur >= 2) {
@@ -937,7 +937,7 @@ void Title_game_mode_sel(TITLE_WORK *pTi)
         Snd_se_stad(4, NULL, 0, 0);
     }
     pTi->Cur_old = pTi->Cur;
-    if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+    if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
         Snd_se_stad(6, NULL, 0, 0);
         pTi->Kido_cnt = 0;
         switch (pTi->Cur) {
@@ -966,7 +966,7 @@ void Title_main_load(TITLE_WORK *pTi)
         Title_menu_disp(pTi);
         Task_sleep(1);
     }
-    G.Unk2115 = 1;
+    G.Ovl_mode = 1;
     Task_lexecute(1, 4);
     Task_sleep(1);
     Fade_set(0, 0, FADE_HOLD, 2, 0xFFFFFF, 0xFFFFFF, 1);
@@ -1000,11 +1000,11 @@ void Title_main_option(TITLE_WORK *pTi)
         Title_menu_disp(pTi);
         Task_sleep(1);
     }
-    Flg = G.Unk77F8[0];
-    G.Unk2115 = 0;
+    Flg = G.Game_flg[0];
+    G.Ovl_mode = 0;
     Task_lexecute(1, 8);
     Task_sleep(1);
-    if (Flg != G.Unk77F8[0]) {
+    if (Flg != G.Game_flg[0]) {
         Retry_load();
     }
     Main.Vloop = 1;
@@ -1047,7 +1047,7 @@ void Title_main_demo(TITLE_WORK *pTi)
     }
     Game.Unk4E = 0;
     Game.Pdemo_cnt = 0;
-    G.Unk2115 = 3;
+    G.Ovl_mode = 3;
     Task_execute(1, Mess_hint_task);
     G.System_flg = (G.System_flg | 0x10000000) & ~0x1000;
     pTi->Main_rtn = 4;
@@ -1107,22 +1107,22 @@ void Title_ex_init(TITLE_WORK *pTi)
     while (1) {
         pTi->Kido_cnt += 4;
         pTi->Kido = Title_sin_tbl[pTi->Kido_cnt] / 2 - 0x80;
-        if ((G.Key_trg & 0x1000) || (G.Unk20FC & 0x800)) {
+        if ((G.Key_trg & 0x1000) || (G.Padd_trg & 0x800)) {
             goto start;
         }
         if (G.Key_trg & 0x2000) {
             break;
         }
-        if ((G.Unk20FC & 0x2000) && pTi->Cur != 1) {
+        if ((G.Padd_trg & 0x2000) && pTi->Cur != 1) {
             pTi->Cur++;
         }
-        if ((G.Unk20FC & 0x8000) && pTi->Cur != 2) {
+        if ((G.Padd_trg & 0x8000) && pTi->Cur != 2) {
             pTi->Cur--;
         }
-        if (G.Unk20FC & 0x4000) {
+        if (G.Padd_trg & 0x4000) {
             pTi->Cur += 2;
         }
-        if (G.Unk20FC & 0x1000) {
+        if (G.Padd_trg & 0x1000) {
             pTi->Cur -= 2;
         }
         if ((UCHAR)pTi->Cur >= 4) {
@@ -1210,15 +1210,15 @@ start:
         pPl->Old_y = 0;
         pPl->Pos_y = 0;
         pPl->Status_flg = 0;
-        pG->Unk783E = 0;
-        pG->Unk7840 = 13;
+        pG->Stage_no = 0;
+        pG->Room_no = 13;
         pG->Cut_no = 11;
-        pG->Unk7864 = 0;
-        pG->Unk784E = 0;
+        pG->Pl_id_bak = 0;
+        pG->Change_player = 0;
 
         pPl->Id = 0;
-        G.Unk7E20 = 0;
-        G.Unk2115 = 0;
+        G.Chaser_drop_num = 0;
+        G.Ovl_mode = 0;
         pPl->nFloor = pPl->Ground / -1800;
         break;
     case 1:
@@ -1234,15 +1234,15 @@ start:
         pPl->Ground = 0;
         pPl->nFloor = 0;
         pPl->Status_flg = 0;
-        pG->Unk783E = 1;
-        pG->Unk7840 = 0x11;
+        pG->Stage_no = 1;
+        pG->Room_no = 0x11;
         pG->Cut_no = 5;
-        pG->Unk7864 = 0;
-        pG->Unk784E = 0;
+        pG->Pl_id_bak = 0;
+        pG->Change_player = 0;
 
         pPl->Id = 0;
-        G.Unk7E20 = 2;
-        G.Unk2115 = 1;
+        G.Chaser_drop_num = 2;
+        G.Ovl_mode = 1;
         break;
     case 2:
         pPl->Life = 200;
@@ -1257,15 +1257,15 @@ start:
         pPl->Ground = 0;
         pPl->nFloor = 0;
         pPl->Status_flg = 0;
-        pG->Unk783E = 2;
-        pG->Unk7840 = 3;
+        pG->Stage_no = 2;
+        pG->Room_no = 3;
         pG->Cut_no = 1;
-        pG->Unk7864 = 1;
-        pG->Unk784E = 1;
+        pG->Pl_id_bak = 1;
+        pG->Change_player = 1;
 
         pPl->Id = 1;
-        G.Unk7E20 = 2;
-        G.Unk2115 = 1;
+        G.Chaser_drop_num = 2;
+        G.Ovl_mode = 1;
         break;
     case 3:
         pPl->Life = 200;
@@ -1279,21 +1279,21 @@ start:
         pPl->Pos_y = 0;
         pPl->Ground = 0;
         pPl->nFloor = 0;
-        pG->Unk783E = 6;
-        pG->Unk7840 = 12;
+        pG->Stage_no = 6;
+        pG->Room_no = 12;
         pG->Cut_no = 2;
-        pG->Unk7864 = 8;
-        pG->Unk784E = 8;
+        pG->Pl_id_bak = 8;
+        pG->Change_player = 8;
 
         pPl->Id = 8;
-        G.Unk7E20 = 0;
-        G.Unk2115 = 2;
+        G.Chaser_drop_num = 0;
+        G.Ovl_mode = 2;
         break;
     }
     Extra_pl = pTi->Cur;
-    G.Unk2118 = 0;
+    G.Bonus_time = 0;
     G.Score = 0;
-    G.Unk2116 = 0;
+    G.Bonus_timer = 0;
     G.Next_cut_no = G.Cut_no;
     Status_init();
     Task_execute(1, Mess_hint_task);

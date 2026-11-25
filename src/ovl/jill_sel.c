@@ -84,7 +84,7 @@ void Jill_init(JILL_WORK *pW)
     Jill_obj[0].Flg &= ~1;
     pW->UnkC = 0;
     pW->Open_num = 0;
-    pFlg = pG->Unk77F8;
+    pFlg = pG->Game_flg;
     for (n = pG->Save_cnt; n != 0;) {
         if (!Flg_ck(pFlg, 0)) {
             Flg_on(pFlg, 0);
@@ -113,7 +113,7 @@ void Jill_init(JILL_WORK *pW)
     Moji.Mess_flg = 0;
     pW->Routine = 1;
     pW->Flg = 0;
-    if (!Flg_ck(G.Unk77F8, 10)) {
+    if (!Flg_ck(G.Game_flg, 10)) {
         pW->Flg |= 1;
         Jill_obj[0].Flg |= 1;
         Jill_obj_init(&Jill_obj[1], &Jill_sprt_def[9], 0x1F00016, 0x808080);
@@ -175,7 +175,7 @@ void Jill_init(JILL_WORK *pW)
         }
         Mess_set(0xB90000, 0x3403, (ULONG)&Jill_mess[Jill_mess_ofs[pW->Open_num + 4]], 0);
     }
-    Flg_on(G.Unk77F8, 10);
+    Flg_on(G.Game_flg, 10);
     Size = sizeof(ENEMY_WORK);         /* a variable: the step is kept in a register */
     pHeap = pW->pHeap;
     pW->pHeap = pHeap + sizeof(ENEMY_WORK) * 5;
@@ -193,7 +193,7 @@ void Jill_wait(JILL_WORK *pW)
 {
     if (G.Key_trg & 0x3000)
         pW->Routine = 2;
-    if (G.Unk20FC & 0x800)
+    if (G.Padd_trg & 0x800)
         pW->Routine = 2;
 }
 

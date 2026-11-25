@@ -9,7 +9,7 @@
 void R214_main(void)
 {
     tagGLOBAL *pG = &G;
-    R214_EVT *pEvt = pG->pUnk21DC;
+    R214_EVT *pEvt = pG->pAot_dat;
     R214_WORK *pRw;
     ULONG i;
 
@@ -79,7 +79,7 @@ void R214_ctr(void)
     case 1:
         if (Moji.Mess_flg & 0x80)
             break;
-        if (Flg_ck(G.Unk7868, 0x33)) {
+        if (Flg_ck(G.Scenario_flg, 0x33)) {
             Up = 15;
             Down = 10;
         } else {
@@ -87,7 +87,7 @@ void R214_ctr(void)
             Down = 5;
         }
         pG = &G;
-        Sel = pG->Unk7848;
+        Sel = pG->Mess_sel;
         switch (Sel) {
         case 0:
             Snd_se_stad(0x207, NULL, 0, 0);
@@ -120,7 +120,7 @@ void R214_ctr(void)
             return;
         case 3:
             Snd_se_stad(5, NULL, 0, 0);
-            Flg_on(&pG->Unk7888, 4);
+            Flg_on(pG->Room_flg, 4);
             pRw->Run = 0;
             return;
         }
@@ -154,7 +154,7 @@ void R214_ctr(void)
         break;
     case 2:
         Snd_se_stad(0x204, NULL, 0, 0);
-        Flg_on(&G.Unk7888, 0);
+        Flg_on(G.Room_flg, 0);
         pRw->Routine = 6;
         Esp_kill(0x1010000, NULL);
         pPos = R214_pos_ok0;
@@ -168,7 +168,7 @@ void R214_ctr(void)
         break;
     case 3:
         Snd_se_stad(0x204, NULL, 0, 0);
-        Flg_on(&G.Unk7888, 1);
+        Flg_on(G.Room_flg, 1);
         pRw->Routine = 6;
         Esp_kill(0x1020000, NULL);
         pPos = R214_pos_ok1;
@@ -182,12 +182,12 @@ void R214_ctr(void)
         break;
     case 4:
         Snd_se_stad(0x205, NULL, 0, 0);
-        Flg_on(&G.Unk7888, 2);
+        Flg_on(G.Room_flg, 2);
         pRw->Routine = 6;
         break;
     case 5:
         Snd_se_stad(0x205, NULL, 0, 0);
-        Flg_on(&G.Unk7888, 3);
+        Flg_on(G.Room_flg, 3);
         pRw->Routine = 6;
         break;
     case 6:

@@ -74,7 +74,7 @@ void Xa_play(ULONG mode, ULONG no)
         file_no = Xa_no[sub];
     } else {
         pwd = G.pXa_sector;
-        file_no = Xa_no[sub + (G.Unk783E + 1) * 2];
+        file_no = Xa_no[sub + (G.Stage_no + 1) * 2];
     }
     pwd += no * 3;
     pCd->Filter.file = 1;
@@ -694,7 +694,7 @@ void Cd_data_trans(tagCD *pCd)
             }
             pG->Em_bin_info[pCd->Em_no].Use = 1;
             pG->Em_bin_info[pCd->Em_no].Id = pCd->pEntry[No].Id;
-            pG->Em_routine[pCd->pEntry[No].Id - 0x10] = pG->Em_ov_mtbl[pCd->Em_no][pCd->pEntry[No].Id - 0x10];
+            pG->Em_move_tbl[pCd->pEntry[No].Id - 0x10] = pG->Em_ov_mtbl[pCd->Em_no][pCd->pEntry[No].Id - 0x10];
             return;
         }
         if (*Sce.pEmd_sce != 0) {

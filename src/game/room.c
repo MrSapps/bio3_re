@@ -32,12 +32,12 @@ void Set_room(void)
     LONG i;
     ENEMY_WORK *pEm_mem;
 
-    pEm_mem = (ENEMY_WORK *)pG->Unk2138;
+    pEm_mem = (ENEMY_WORK *)pG->pFree_work_head;
     pG->Ctp.Tpage_clut = 0xD05;
-    Stage = pG->Unk783E;
-    Room = pG->Unk7840;
-    pG->Unk75EA = 0;
-    pG->Unk75E8 = 0;
+    Stage = pG->Stage_no;
+    Room = pG->Room_no;
+    pG->Room_enemy_flg = 0;
+    pG->Room_player_flg = 0;
     pG->pEm_mem = pEm_mem;
     pG->pRoom = (ROOM_WORK *)pEm_mem;
     pG->Status_flg &= 0xFFFF0000;
@@ -59,12 +59,12 @@ void Set_room(void)
     for (i = 0; i < 32; i++) {
         pG->Ob_model[0].Be_flg = 0;
     }
-    if (pPl->Id != pG->Unk784E) {
-        if (pG->Unk784E >= 8) {
+    if (pPl->Id != pG->Change_player) {
+        if (pG->Change_player >= 8) {
             if (pPl->Id < 8) {
                 pPl->Life = 200;
                 pPl->Status_flg = 0;
-                pG->Unk7864 = pPl->Id;
+                pG->Pl_id_bak = pPl->Id;
             }
             G.Status_flg |= 0x8000000;
             Snd_vab_load(0, 8, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
@@ -72,25 +72,25 @@ void Set_room(void)
             if (pPl->Id >= 8) {
                 pPl->Life = 200;
                 pPl->Status_flg = 0;
-                pG->Unk784E = pG->Unk7864;
+                pG->Change_player = pG->Pl_id_bak;
             } else {
-                if (pG->Unk784E == 1) {
+                if (pG->Change_player == 1) {
                     Item_work0_num = 10;
                 }
-                if (pG->Unk7864 >= 2) {
-                    if (pG->Unk784E < 2) {
-                        pG->Unk784E = pG->Unk7864;
+                if (pG->Pl_id_bak >= 2) {
+                    if (pG->Change_player < 2) {
+                        pG->Change_player = pG->Pl_id_bak;
                     }
-                } else if (pG->Unk784E >= 2) {
-                    pG->Unk7864 = pG->Unk784E;
+                } else if (pG->Change_player >= 2) {
+                    pG->Pl_id_bak = pG->Change_player;
                 }
             }
             G.Status_flg &= ~0x8000000;
             Snd_vab_load(0, 2, (ULONG *)0x801FBC00, (ULONG *)0x801C1814);
         }
         pPl->Max_life = 200;
-        pPl->Id = pG->Unk784E;
-        St_chenge_pl(pG->Unk784E);
+        pPl->Id = pG->Change_player;
+        St_chenge_pl(pG->Change_player);
         Player_set(pPl);
         *(ULONG *)&pPl->Routine_0 = 0;
     }
@@ -120,7 +120,7 @@ void Set_room(void)
     Ot_sub_init();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
-        G.Unk784A = Game.pSave->Unk718;
+        G.Sce_random = Game.pSave->Unk718;
         D_800E0186[0] = 0;
     }
     Sce_scheduler_set();
@@ -132,7 +132,7 @@ void Set_room(void)
     Snd_sys_enem_set();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
-        G.Unk784A = Game.pSave->Unk718;
+        G.Sce_random = Game.pSave->Unk718;
         D_800E0186[0] = 0;
     }
     Em_init_move();
@@ -142,9 +142,9 @@ void Set_room(void)
 /* RE2 Set_stage: loads the stage overlay (task file Stage + 0x11) and sets the free memory after it */
 void Set_stage(void)
 {
-    ULONG Size = Task_lexecute(2, G.Unk783E + 0x11);
+    ULONG Size = Task_lexecute(2, G.Stage_no + 0x11);
 
-    G.Unk2138 = ((Size + 3) & ~3) + 0x8011A000;
+    G.pFree_work_head = (UCHAR *)(((Size + 3) & ~3) + 0x8011A000);
     Task_sleep(1);
 }
 
@@ -205,8 +205,8 @@ void Em_init_move(void)
     ENEMY_WORK **ppEm;
 
     Type_hi = 0;
-    if (G.Unk2468 & 0x20000000) {
-        G.Unk2468 &= ~0x20000000;
+    if (G.Stop_flg & 0x20000000) {
+        G.Stop_flg &= ~0x20000000;
         Stop_save = 1;
     } else {
         Stop_save = 0;
@@ -219,13 +219,13 @@ void Em_init_move(void)
             G.pEm = pEm;
             if (pEm->Be_flg & 1) {
                 Timer0_save = pEm->Timer0;
-                G.Em_routine[pEm->Id - 0x10](pEm);
+                G.Em_move_tbl[pEm->Id - 0x10](pEm);
                 if (Timer0_save != 0) {
                     *(ULONG *)&pEm->Routine_0 = ((Timer0_save & 0xFF00) - 0x100) | 4;
                     pEm->Move_no = Timer0_save;
                     pEm->Move_cnt = 0;
                     pEm->Unk144 = pEm->UnkDA;
-                    G.Em_routine[pEm->Id - 0x10](pEm);
+                    G.Em_move_tbl[pEm->Id - 0x10](pEm);
                 }
                 pEm->Type |= Type_hi; /* RE2 restored Type & 0x8000 here; RE3 keeps a dead 0 */
             }
@@ -233,6 +233,6 @@ void Em_init_move(void)
         } while (ppEm != G.ppEnemy_end);
     }
     if (Stop_save) {
-        G.Unk2468 |= 0x20000000;
+        G.Stop_flg |= 0x20000000;
     }
 }

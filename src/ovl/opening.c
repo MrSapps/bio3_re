@@ -36,7 +36,7 @@ void Opening_main(void)
                 break;
             }
         }
-        if (*(ULONG *)&G.Unk20FC & 0x900) {
+        if (*(ULONG *)&G.Padd_trg & 0x900) {
             break;
         }
         Task_sleep(1);

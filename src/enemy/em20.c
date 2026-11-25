@@ -224,10 +224,10 @@ void Em20_Move_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     ck = Em20_rndwalk(pEm, pKan, pSeq);
     if (__builtin_abs(G.Player.nFloor - pEm->nFloor) < 2 || (pEm->Status_flg & 0x2000)) {
-        if ((LONG)pEm->L_pl < 4000 || ck == 1 || (G.Unk75EA & 0x20)) {
+        if ((LONG)pEm->L_pl < 4000 || ck == 1 || (G.Room_enemy_flg & 0x20)) {
             pEm->Routine_1 = 1;
             EM_RTN23(pEm) = 0;
-        } else if ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)) {
+        } else if ((G.Room_player_flg & 1) && !(pEm->Type & 0x100)) {
             pEm->Routine_1 = 2;
             EM_RTN23(pEm) = 0;
         }
@@ -264,7 +264,7 @@ void Em20_Move_yori(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Add_speedXZ(pEm, 0);
     if ((LONG)pEm->L_pl < 3000) {
         pEm->UnkE2++;
-        if (G.Unk75E8 & 4)
+        if (G.Room_player_flg & 4)
             pEm->UnkE2 += 20;
         if (!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x80) && (LONG)pEm->L_pl > 600) {
             pEm->Routine_1 = 3;
@@ -273,10 +273,10 @@ void Em20_Move_yori(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     } else {
         if (pEm->UnkE2)
             pEm->UnkE2--;
-        if (!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x80) && (G.Unk75E8 & 4))
+        if (!Dir_pos_ck(POS_V(pEm), POS_V(pTg), pEm->Cdir_y, 0x80) && (G.Room_player_flg & 4))
             pEm->UnkE2 += 20;
     }
-    if (pEm->UnkE2 > 64 || ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)) || (G.Unk75EA & 0x20)) {
+    if (pEm->UnkE2 > 64 || ((G.Room_player_flg & 1) && !(pEm->Type & 0x100)) || (G.Room_enemy_flg & 0x20)) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
         pEm->UnkE2 = 0;
@@ -514,7 +514,7 @@ void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM20_W(pEm)->Jump_flg = 1;
         EM20_W(pEm)->Bang_ok = 1;
         Snd_se_enem(3, pEm);
-        G.Unk75EA |= 0x20;
+        G.Room_enemy_flg |= 0x20;
     }
     if (pEm->Timer0 < 6 && __builtin_abs(G.Player.nFloor - pEm->nFloor) < 2) {
         Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit0, pPl);
@@ -666,11 +666,11 @@ void Em20_Mv_sleep00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->L_pl <= range) {
         pEm->Routine_2 = 2;
         EM_SET_MOVE(pEm, 8, 0, 0xF);
-    } else if (((G.Unk75E8 & 1) && !(pEm->Type & 0x100)) || (G.Unk75EA & 0x20)) {
-        if (!(G.Unk75EA & 0x80)) {
+    } else if (((G.Room_player_flg & 1) && !(pEm->Type & 0x100)) || (G.Room_enemy_flg & 0x20)) {
+        if (!(G.Room_enemy_flg & 0x80)) {
             pEm->Routine_2 = 2;
             EM_SET_MOVE(pEm, 8, 0, 0xF);
-            G.Unk75EA |= 0x80;
+            G.Room_enemy_flg |= 0x80;
         } else {
             pEm->Timer0 = em20_time_tbl02[Rnd_l() & 7];
             pEm->Routine_2 = 1;
@@ -818,7 +818,7 @@ void Em20_Mv_critical00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!pFp->Em_next) {
             pFp->Em_next = 1;
             G.System_flg |= 0x20800;
-            G.Unk75EA |= 0x40;
+            G.Room_enemy_flg |= 0x40;
         }
         Add_speedXYZ(pEm, 0, 0);
         pEm->Spd_y += 40;
@@ -912,7 +912,7 @@ void Em20_Move_walk2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em20_rndwalk(pEm, pKan, pSeq);
     if ((G.Player.nFloor == pEm->nFloor || (pEm->Status_flg & 0x2000))
-        && ((LONG)pEm->L_pl < 4000 || (G.Unk75EA & 0x20) || ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)))) {
+        && ((LONG)pEm->L_pl < 4000 || (G.Room_enemy_flg & 0x20) || ((G.Room_player_flg & 1) && !(pEm->Type & 0x100)))) {
         pEm->Routine_1 = 2;
         EM_RTN23(pEm) = 0;
     }
@@ -980,10 +980,10 @@ void Em20_mv_eat00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             range = (EM_RTN01(pPl) == 0x201) ? 5000 : 3500;
             if (pEm->L_pl <= range)
                 EM_RTN23(pEm) = 1;
-            else if ((G.Unk75E8 & 1) && !(pEm->Type & 0x100)) {
-                if (!(G.Unk75EA & 0x80)) {
+            else if ((G.Room_player_flg & 1) && !(pEm->Type & 0x100)) {
+                if (!(G.Room_enemy_flg & 0x80)) {
                     EM_RTN23(pEm) = 1;
-                    G.Unk75EA |= 0x80;
+                    G.Room_enemy_flg |= 0x80;
                 } else {
                     pEm->Routine_3 = 2;
                     pEm->Timer0 = em20_time_tbl02[Rnd_l() & 7];
@@ -2222,14 +2222,14 @@ void Ck_Floor(ENEMY_WORK *pEm)
     if (__builtin_abs(G.Player.nFloor - pEm->nFloor) >= 2 && !(pEm->Status_flg & 0x2000)) {
         pEm->Routine_1 = 9;
         EM_RTN23(pEm) = 0;
-        G.Unk75EA &= 0xFFDF;
+        G.Room_enemy_flg &= 0xFFDF;
     }
 }
 
-/* RE2 Ck_Died: the scenario killed the pack (G.Unk75EA 0x40): routine 11 */
+/* RE2 Ck_Died: the scenario killed the pack (G.Room_enemy_flg 0x40): routine 11 */
 void Ck_Died(ENEMY_WORK *pEm)
 {
-    if (G.Unk75EA & 0x40) {
+    if (G.Room_enemy_flg & 0x40) {
         pEm->Routine_1 = 11;
         EM_RTN23(pEm) = 0;
     }

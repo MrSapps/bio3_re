@@ -1470,7 +1470,7 @@ void Em32_pldm_down(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
             pPl->Spd_x = 0;
             pPl->Spd_z = 9;
         }
-        if (Joint_move2(pPl, pKan, pSeq, 0x200) || ((G.Unk20FC & 0xF00F) && Joint_move2(pPl, pKan, pSeq, 0x200))) {
+        if (Joint_move2(pPl, pKan, pSeq, 0x200) || ((G.Padd_trg & 0xF00F) && Joint_move2(pPl, pKan, pSeq, 0x200))) {
             if (++pPl->Routine_3 >= 3)
                 pPl->Routine_2++;
             if (Pl_life_down(4, 0) & 2)

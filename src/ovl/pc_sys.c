@@ -16,7 +16,7 @@ void Pc_main(void)
     Task_suspend(0);
     DrawSync(0);
     for (;;) {
-        switch (((USHORT *)G.pUnk21DC)[1]) {
+        switch (((USHORT *)G.pAot_dat)[1]) {
         case 0:
             Pc_notice();
             break;
@@ -31,14 +31,14 @@ void Pc_main(void)
 /* window open/close requests; returns 1 while the window zooms */
 ULONG Pc_window_ctrl(void)
 {
-    switch (G.Unk75EE) {
+    switch (G.Up_key_rtn) {
     case 0:
         break;
     case 1:
         Snd_se_stad(0x206, NULL, 0, 0);
     case 2:
-        G.Unk75EF = 0;
-        G.Unk75EE = 2;
+        G.Up_wnd_rtn = 0;
+        G.Up_key_rtn = 2;
         if (Pc_zoom(0x30, 0x8E, 0xF7, 0x57))
             return 1;
         Pc_box_set(1, 0xF7, 0x57, 0x80);
@@ -47,23 +47,23 @@ ULONG Pc_window_ctrl(void)
         Snd_se_stad(0x207, NULL, 0, 0);
     case 4:
         Pc_box_set(0, 0, 0, 0x80);
-        G.Unk75EF = 1;
-        G.Unk75EE = 4;
+        G.Up_wnd_rtn = 1;
+        G.Up_key_rtn = 4;
         if (Pc_zoom(0x30, 0x8E, 0xF7, 0x57))
             return 1;
         break;
     }
-    G.Unk75EE = 0;
+    G.Up_key_rtn = 0;
     return 0;
 }
 
-/* window zoom frame step: grows (G.Unk75EF == 0) or shrinks in 12 steps */
+/* window zoom frame step: grows (G.Up_wnd_rtn == 0) or shrinks in 12 steps */
 ULONG Pc_zoom(ULONG X, ULONG Y, ULONG W, ULONG H)
 {
     PC_WORK *pPc = Pc_wk;
     tagGLOBAL *pG = &G;
 
-    if (pG->Unk75EF) {
+    if (pG->Up_wnd_rtn) {
         if (pPc->Zoom < 13) {
             Pc_zoom_frame(X, Y, X + W - pPc->Zoom * W / 12, Y + H - pPc->Zoom * H / 12);
             pPc->Zoom++;
@@ -77,7 +77,7 @@ ULONG Pc_zoom(ULONG X, ULONG Y, ULONG W, ULONG H)
         }
     }
     pPc->Zoom = 0;
-    pG->Unk75EF = 0;
+    pG->Up_wnd_rtn = 0;
     return 0;
 }
 
@@ -228,7 +228,7 @@ ULONG Pc_key_move(void)
 
     Move = 0;
     Pad_rep_set(0xF000, 0x20A);
-    if (G.Unk2100 & 0x1000) {
+    if (G.Padd_rep & 0x1000) {
         pPc->Key_y--;
         Move = 1;
         /* x 9, y 1 is the lower half of the two-row RETURN key */
@@ -237,17 +237,17 @@ ULONG Pc_key_move(void)
         if (pPc->Key_y < 0)
             pPc->Key_y = 2;
     }
-    if (G.Unk2100 & 0x4000) {
+    if (G.Padd_rep & 0x4000) {
         Move = 1;
         if (++pPc->Key_y >= 3)
             pPc->Key_y = 0;
     }
-    if (G.Unk2100 & 0x8000) {
+    if (G.Padd_rep & 0x8000) {
         Move = 1;
         if (--pPc->Key_x < 0)
             pPc->Key_x = 9;
     }
-    if (G.Unk2100 & 0x2000) {
+    if (G.Padd_rep & 0x2000) {
         Move = 1;
         if (++pPc->Key_x >= 10)
             pPc->Key_x = 0;
@@ -461,9 +461,9 @@ void Pc_notice(void)
             break;
         case 1:
             if (Pc0_done) {
-                if (G.Unk20FC & 0xF0)
+                if (G.Padd_trg & 0xF0)
                     Pc0_skip = Pc0_mode;
-                if (G.Unk20FC & 0xF)
+                if (G.Padd_trg & 0xF)
                     Pc0_skip = Pc0_mode;
             }
             break;
@@ -472,76 +472,76 @@ void Pc_notice(void)
             Pc0_voice = NULL;
             Pc0_voice2 = NULL;
         }
-        switch (Rno = G.Unk75ED) {
+        switch (Rno = G.Up_eve_rtn) {
         case 0:
             pG = &G;
             Pc_wk = (PC_WORK *)pG->pEm_mem;
             pG->pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)pG->pEm_mem + 1);
-            Pc_open(((USHORT *)pG->pUnk21DC)[2], 1);
+            Pc_open(((USHORT *)pG->pAot_dat)[2], 1);
             Pc0_pass_no = 0;
-            if (Flg_ck(pG->Unk7868, 8)) {
-                if (Flg_ck(pG->Unk7868, 0x3B)) {
-                    if (Flg_ck(pG->Unk7868, 0x3C))
+            if (Flg_ck(pG->Scenario_flg, 8)) {
+                if (Flg_ck(pG->Scenario_flg, 0x3B)) {
+                    if (Flg_ck(pG->Scenario_flg, 0x3C))
                         Pc0_pass_no = 3;
                     else
                         Pc0_pass_no = 2;
-                } else if (Flg_ck(pG->Unk7868, 0x3C)) {
+                } else if (Flg_ck(pG->Scenario_flg, 0x3C)) {
                     Pc0_pass_no = 1;
                 } else {
                     Pc0_pass_no = 0;
                 }
             } else {
-                if (pG->Unk784A & 0x200) {
-                    Flg_on(pG->Unk7868, 0x3B);
-                    if (pG->Unk784A & 0x40) {
+                if (pG->Sce_random & 0x200) {
+                    Flg_on(pG->Scenario_flg, 0x3B);
+                    if (pG->Sce_random & 0x40) {
                         Pc0_pass_no = 3;
-                        Flg_on(pG->Unk7868, 0x3C);
+                        Flg_on(pG->Scenario_flg, 0x3C);
                     } else {
                         Pc0_pass_no = 2;
                     }
-                } else if (pG->Unk784A & 0x40) {
+                } else if (pG->Sce_random & 0x40) {
                     Pc0_pass_no = 1;
-                    Flg_on(pG->Unk7868, 0x3C);
+                    Flg_on(pG->Scenario_flg, 0x3C);
                 } else {
                     Pc0_pass_no = 0;
                 }
-                Flg_on(G.Unk7868, 8);
+                Flg_on(G.Scenario_flg, 8);
             }
             Pc0_done = 0;
             Pc0_skip = 0;
-            G.Unk75ED = 1;
+            G.Up_eve_rtn = 1;
             break;
         case 1:
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[0]];
             Pc_print(1, "NOTICE TO STARS PERSONNEL]", &Pc0_done);
             if (Pc0_done & Pc0_skip)
-                G.Unk75ED = 2;
+                G.Up_eve_rtn = 2;
             break;
         case 2:
             Pc_print(1, ".[025.[025.]", &Pc0_done);
             if (Pc0_done)
-                G.Unk75ED = 3;
+                G.Up_eve_rtn = 3;
             break;
         case 3:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[1]];
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[2]];
             Pc_print(1, "Due to the emergency, the]", &Pc0_done);
             if (Pc0_done)
-                G.Unk75ED = 4;
+                G.Up_eve_rtn = 4;
             break;
         case 4:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[1]];
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[2]];
             Pc_print(1, "key to the STARS Office has]been moved to the evidence]room.]]", &Pc0_done);
             if (Pc0_done & Pc0_skip)
-                G.Unk75ED = 5;
+                G.Up_eve_rtn = 5;
             break;
         case 5:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[3]];
             Pc0_voice = &Pc_voice_data[Pc_voice_ofs[Pc0_pass_no + 4]];
             Pc_print(1, "Today's password for the]safe is ", &Pc0_done);
             if (Pc0_done)
-                G.Unk75ED = 6;
+                G.Up_eve_rtn = 6;
             break;
         case 6:
             Pc0_voice2 = &Pc_voice_data[Pc_voice_ofs[3]];
@@ -566,12 +566,12 @@ void Pc_notice(void)
             if (Pc0_done & Pc0_skip)
                 Pc_close(1);
         case 7:
-            if (G.Unk20FC & 0x20)
+            if (G.Padd_trg & 0x20)
                 Pc_close(1);
             break;
         }
     }
-    if ((Pc0_skip & Pc0_done) || Rno != G.Unk75ED) {
+    if ((Pc0_skip & Pc0_done) || Rno != G.Up_eve_rtn) {
         Pc0_voice = NULL;
         Pc0_done = 0;
         Pc0_skip = 0;
@@ -601,9 +601,9 @@ void Pc_security(void)
             break;
         case 1:
             if (Pc1_done) {
-                if (G.Unk20FC & 0xF0)
+                if (G.Padd_trg & 0xF0)
                     Pc1_skip = Pc1_mode;
-                if (G.Unk20FC & 0xF)
+                if (G.Padd_trg & 0xF)
                     Pc1_skip = Pc1_mode;
             }
             break;
@@ -612,108 +612,108 @@ void Pc_security(void)
             Pc1_voice = NULL;
             Pc1_voice2 = NULL;
         }
-        switch (Rno = G.Unk75ED) {
+        switch (Rno = G.Up_eve_rtn) {
         case 0:
             pG = &G;
             pPc = Pc_wk = (PC_WORK *)pG->pEm_mem;
             pG->pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)pG->pEm_mem + 1);
-            Pc_open(((USHORT *)pG->pUnk21DC)[2], 1);
+            Pc_open(((USHORT *)pG->pAot_dat)[2], 1);
             Pc1_done = 0;
             Pc1_skip = 0;
-            pG->Unk75ED = 1;
-            if (Flg_ck(pG->Unk7868, 0xA3)) {
+            pG->Up_eve_rtn = 1;
+            if (Flg_ck(pG->Scenario_flg, 0xA3)) {
                 Pc1_pass_no = 0;
-                if (Flg_ck(pG->Unk7868, 0xA8))
+                if (Flg_ck(pG->Scenario_flg, 0xA8))
                     Pc1_pass_no = 1;
-                if (Flg_ck(pG->Unk7868, 0xA9))
+                if (Flg_ck(pG->Scenario_flg, 0xA9))
                     Pc1_pass_no = 2;
-                Flg_on(pG->Unk7868, 0xAA);
+                Flg_on(pG->Scenario_flg, 0xAA);
             } else {
-                switch (Pc1_pass_no = (SHORT)(pG->Unk784A % 3)) {
+                switch (Pc1_pass_no = (SHORT)(pG->Sce_random % 3)) {
                 case 0:
-                    Flg_off(pG->Unk7868, 0xA8);
-                    Flg_off(pG->Unk7868, 0xA9);
+                    Flg_off(pG->Scenario_flg, 0xA8);
+                    Flg_off(pG->Scenario_flg, 0xA9);
                     break;
                 case 1:
-                    Flg_on(pG->Unk7868, 0xA8);
-                    Flg_off(pG->Unk7868, 0xA9);
+                    Flg_on(pG->Scenario_flg, 0xA8);
+                    Flg_off(pG->Scenario_flg, 0xA9);
                     break;
                 case 2:
-                    Flg_off(pG->Unk7868, 0xA8);
-                    Flg_on(pG->Unk7868, 0xA9);
+                    Flg_off(pG->Scenario_flg, 0xA8);
+                    Flg_on(pG->Scenario_flg, 0xA9);
                     break;
                 default:
-                    Flg_on(G.Unk7868, 0xA8);
-                    Flg_off(G.Unk7868, 0xA9);
+                    Flg_on(G.Scenario_flg, 0xA8);
+                    Flg_off(G.Scenario_flg, 0xA9);
                     Pc1_pass_no = 1;
                     break;
                 }
-                Flg_on(G.Unk7868, 0xA3);
+                Flg_on(G.Scenario_flg, 0xA3);
             }
             break;
         case 1:
-            G.Unk75ED = 2;
+            G.Up_eve_rtn = 2;
             break;
         case 2:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[8]];
             Pc_print(1, "Umbrella Security System]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 3;
+                G.Up_eve_rtn = 3;
             break;
         case 3:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[9]];
             Pc_print(1, "First Class ]Medical Storage Room:] Security Authorization]", &Pc1_done);
             if (Pc1_done & Pc1_skip) {
-                if (Flg_ck(G.Unk7994, 0x1B))
-                    G.Unk75ED = 15;
+                if (Flg_ck(G.Key_flg, 0x1B))
+                    G.Up_eve_rtn = 15;
                 else
-                    G.Unk75ED = 4;
+                    G.Up_eve_rtn = 4;
             }
             break;
         case 4:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[10]];
             Pc_print(1, "Current Status: |1Locked|0]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 5;
+                G.Up_eve_rtn = 5;
             break;
         case 5:
             Pc_print(1, "Please enter password and ]then press the RETURN key.]", &Pc1_done);
             if (Pc1_done)
-                G.Unk75ED = 6;
+                G.Up_eve_rtn = 6;
             break;
         case 6:
             Pc_print(1, "Enter Password:", &Pc1_done);
             if (Pc1_done & Pc1_skip) {
-                G.Unk75ED = 7;
-                G.Unk75EE = 1;
+                G.Up_eve_rtn = 7;
+                G.Up_key_rtn = 1;
             }
             break;
         case 7:
             if (Pc_input(8, 0)) {
-                G.Unk75EE = 3;
+                G.Up_key_rtn = 3;
                 switch (Pc1_pass_no) {
                 case 0:
                     if (strcmp(pPc->Input, "ADRAVIL") == 0) {
-                        G.Unk75ED = 10;
+                        G.Up_eve_rtn = 10;
                         Pc_clear();
                     } else {
-                        G.Unk75ED = 8;
+                        G.Up_eve_rtn = 8;
                     }
                     break;
                 case 1:
                     if (strcmp(pPc->Input, "SAFSPRIN") == 0) {
-                        G.Unk75ED = 10;
+                        G.Up_eve_rtn = 10;
                         Pc_clear();
                     } else {
-                        G.Unk75ED = 8;
+                        G.Up_eve_rtn = 8;
                     }
                     break;
                 case 2:
                     if (strcmp(pPc->Input, "AQUACURE") == 0) {
-                        G.Unk75ED = 10;
+                        G.Up_eve_rtn = 10;
                         Pc_clear();
                     } else {
-                        G.Unk75ED = 8;
+                        G.Up_eve_rtn = 8;
                     }
                     break;
                 }
@@ -723,47 +723,47 @@ void Pc_security(void)
             Pc_print(1, "|1ERROR...[020]ERROR...[020]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[15]];
             if (Pc1_done)
-                G.Unk75ED = 9;
+                G.Up_eve_rtn = 9;
             break;
         case 9:
             Pc_print(1, "|1Invalid password.]Please re-enter password and ]then press the RETURN key.|0]", &Pc1_done);
             Pc1_voice2 = &Pc_voice_data[Pc_voice_ofs[16]];
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[17]];
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 6;
+                G.Up_eve_rtn = 6;
             break;
         case 10:
             Pc_print(1, "Password: Confirmed]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[11]];
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 11;
+                G.Up_eve_rtn = 11;
             break;
         case 11:
             Pc_print(1, "Room Access: Confirmed]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[12]];
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 12;
+                G.Up_eve_rtn = 12;
             break;
         case 12:
             Pc_print(1, "Deactivating lock. ]Please wait[010.[010.[010.]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[13]];
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 13;
+                G.Up_eve_rtn = 13;
             break;
         case 13:
             Pc_print(1, "Current Status: Unlocked]", &Pc1_done);
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[14]];
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 14;
+                G.Up_eve_rtn = 14;
             break;
         case 14:
             /* the lock opens: three effects with sounds */
             Main.Vloop = 2;
-            Flg_on(G.Unk7994, 0x1B);
+            Flg_on(G.Key_flg, 0x1B);
             G.Next_cut_no = 4;
             Main.Unk18E = 1;
             for (i = 0; i < 30; i++) {
-                G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+                G.pPacket = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
                 Ot_set_all();
                 Om_move();
                 Esp_task_main();
@@ -775,7 +775,7 @@ void Pc_security(void)
             Esp_call(0x1010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x204, NULL, 0, 0);
             for (i = 0; i < 40; i++) {
-                G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+                G.pPacket = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
                 Ot_set_all();
                 Om_move();
                 Esp_task_main();
@@ -787,7 +787,7 @@ void Pc_security(void)
             Esp_call(0x2010015, 0x5000000, &GsIDMATRIX, &Pos, &Rot);
             Snd_se_stad(0x225, NULL, 0, 0);
             for (i = 0; i < 60; i++) {
-                G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+                G.pPacket = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
                 Ot_set_all();
                 Om_move();
                 Esp_task_main();
@@ -797,20 +797,20 @@ void Pc_security(void)
             }
             G.Next_cut_no = 9;
             Main.Unk18E = 1;
-            G.Unk75ED = 0x11;
+            G.Up_eve_rtn = 0x11;
             Main.Vloop = 1;
             break;
         case 15:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[14]];
             Pc_print(1, "Current Status: Unlocked]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 16;
+                G.Up_eve_rtn = 16;
             break;
         case 16:
             Pc1_voice = &Pc_voice_data[Pc_voice_ofs[18]];
             Pc_print(1, "System Status: Normal]", &Pc1_done);
             if (Pc1_done & Pc1_skip)
-                G.Unk75ED = 17;
+                G.Up_eve_rtn = 17;
             break;
         case 17:
             Pc_close(0);
@@ -818,10 +818,10 @@ void Pc_security(void)
         }
         if (pPc->Key == 1) {
             pPc->Key = 0;
-            G.Unk75ED = 0x11;
+            G.Up_eve_rtn = 0x11;
         }
     }
-    if ((Pc1_skip & Pc1_done) || Rno != G.Unk75ED) {
+    if ((Pc1_skip & Pc1_done) || Rno != G.Up_eve_rtn) {
         Pc1_voice = NULL;
         Pc1_done = 0;
         Pc1_skip = 0;
@@ -857,7 +857,7 @@ void Pc_open(ULONG Cut, LONG Zoom)
     Task_sleep(1);
     if (Zoom) {
         Snd_se_stad(0x206, NULL, 0, 0);
-        pG->Unk75EF = 0;
+        pG->Up_wnd_rtn = 0;
         while (Pc_zoom(0xC, 0xA, 0xFC, 0x8B)) {
             Pc_spr_trans(PC_SPR_NUM);
             Task_sleep(1);
@@ -872,12 +872,12 @@ void Pc_close(LONG Zoom)
 
     if (Zoom) {
         Snd_se_stad(0x207, NULL, 0, 0);
-        G.Unk75EF = 1;
+        G.Up_wnd_rtn = 1;
         while (Pc_zoom(0xC, 0xA, 0xFC, 0x8B))
             Task_sleep(1);
     }
-    G.Unk75EC = 0;
-    G.Unk75ED = 0;
+    G.Up_event_no = 0;
+    G.Up_eve_rtn = 0;
     G.pEm_mem = (struct tagENEMY_WORK *)((PC_WORK *)G.pEm_mem - 1);
     G.Next_cut_no = pPc->Cut_bak;
     Main.Unk18E = 1;

@@ -11,7 +11,7 @@
 #include "sce2.h"
 #include "sld.h"
 
-/* item AOT record at G+0x21DC */
+/* item AOT record at G.pAot_dat */
 typedef struct tagST_AOT_ITEM {
     USHORT Id;                         /* 0x0 */
     USHORT Num;                        /* 0x2 */
@@ -109,14 +109,14 @@ void St_file_read(ST_WORK *pSt)
         if (G.Key_trg & 0x2000) {
             goto exit;
         }
-        if (G.Unk2100 & 0x2000) {
+        if (G.Padd_rep & 0x2000) {
             if (pSt->Page_no >= File_page_num[pSt->File_no] - 1) {
                 Snd_se_stad(4, 0, 0, 0);
                 pSt->File_exit = 1;
                 pSt->Rtn1 = 4;
             }
         }
-        if ((USHORT)G.Unk20F8 & 0x8000) {
+        if ((USHORT)G.Padd & 0x8000) {
             if (pSt->Page_no != 0) {
                 pSt->Page_no--;
                 pSt->Page_cnt = 0;
@@ -130,7 +130,7 @@ void St_file_read(ST_WORK *pSt)
                 pSt->Rtn1++;
             }
         }
-        if ((USHORT)G.Unk20F8 & 0x2000) {
+        if ((USHORT)G.Padd & 0x2000) {
             if (pSt->Page_no < File_page_num[pSt->File_no] - 1) {
                 pSt->Page_no++;
                 pSt->Page_cnt = 0;
@@ -198,7 +198,7 @@ void St_file_read(ST_WORK *pSt)
             Snd_se_stad(5, 0, 0, 0);
             break;
         }
-        if (G.Unk2100 & 0x8000) {
+        if (G.Padd_rep & 0x8000) {
             pSt->File_exit = 0;
             pSt->Rtn1 = 0;
         }
@@ -222,7 +222,7 @@ void St_file_end(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     UCHAR *pAot = pG->pAot_data;
-    UCHAR *pItem = (UCHAR *)pG->pUnk21DC;
+    UCHAR *pItem = (UCHAR *)pG->pAot_dat;
     UCHAR Model_no;
     ULONG Item_flg;
     ULONG *p;
@@ -246,10 +246,10 @@ void St_file_end(ST_WORK *pSt)
             pSt->Flg &= ~0x100000;
             *pAot = 0;
             Model_no = pItem[6];
-            if (pG->Unk783E < 2) {
-                Flg_on(pG->Unk78D0, *(USHORT *)(pItem + 4));
+            if (pG->Stage_no < 2) {
+                Flg_on(pG->Item_flg, *(USHORT *)(pItem + 4));
             } else {
-                Flg_on(pG->Unk78F0, *(USHORT *)(pItem + 4));
+                Flg_on(pG->Item_flg2, *(USHORT *)(pItem + 4));
             }
             Esp_kill(0x705, &G.Ob_model[Model_no & 0xFF].M);
             Esp_kill(0x905, 0);
@@ -407,7 +407,7 @@ void St_box_inv_select(ST_WORK *pSt)
     UCHAR id;
     LONG Moved;
 
-    if ((G.Unk20FC & 0x20) | (G.Key_trg & 0x2000)) {
+    if ((G.Padd_trg & 0x20) | (G.Key_trg & 0x2000)) {
         pSt->Rtn0++;
         Snd_se_stad(5, 0, 0, 0);
     } else if (G.Key_trg & 0x1000) {
@@ -432,24 +432,24 @@ void St_box_inv_select(ST_WORK *pSt)
         }
     } else {
         Moved = 0;
-        if ((G.Unk2100 & 0x1000) && (signed char)pSt->Cursor >= 0) {
+        if ((G.Padd_rep & 0x1000) && (signed char)pSt->Cursor >= 0) {
             pSt->Cursor -= 2;
             Moved = 1;
         }
-        if (G.Unk2100 & 0x4000) {
+        if (G.Padd_rep & 0x4000) {
             if ((signed char)pSt->Cursor < G.pItem_set->Num - 2) {
                 pSt->Cursor += 2;
                 Moved = 1;
             }
         }
-        if (G.Unk2100 & 0x8000) {
+        if (G.Padd_rep & 0x8000) {
             if (pSt->Cursor & 1) {
                 if ((signed char)--pSt->Cursor >= 0) {
                     Moved = 1;
                 }
             }
         }
-        if (G.Unk2100 & 0x2000) {
+        if (G.Padd_rep & 0x2000) {
             if (!(pSt->Cursor & 1)) {
                 if ((signed char)++pSt->Cursor >= 0) {
                     Moved = 1;
@@ -571,7 +571,7 @@ void St_box_select(ST_WORK *pSt)
     }
     pSt->Flg &= ~0x10000;
     pSt->Flg &= ~0x8000;
-    if ((USHORT)G.Unk20F8 & 0x1000) {
+    if ((USHORT)G.Padd & 0x1000) {
         if (--pSt->Box_cursor < 0) {
             pSt->Box_cursor = 0x3F;
         }
@@ -585,7 +585,7 @@ void St_box_select(ST_WORK *pSt)
         pSt->Box_scroll_dir = 0;
         pSt->Flg |= 0x10000;
     }
-    if ((USHORT)G.Unk20F8 & 0x4000) {
+    if ((USHORT)G.Padd & 0x4000) {
         if (++pSt->Box_cursor >= 0x40) {
             pSt->Box_cursor = 0;
         }
@@ -599,7 +599,7 @@ void St_box_select(ST_WORK *pSt)
         pSt->Rtn1 = 3;
         pSt->Flg |= 0x8000;
     }
-    if (G.Unk20F8 & 0x5000) {
+    if (G.Padd & 0x5000) {
         pInv = &G.pItem_set->Item[Load_no + 10];
         Pix_unpack_box(Load_no, pInv->Id, 0x801A1500, (ULONG *)0x801A1000);
         DrawSync(0);
@@ -607,30 +607,30 @@ void St_box_select(ST_WORK *pSt)
     if (pSt->Rtn1 == 3) {
         return;
     }
-    if ((G.Unk20F8 & 0xC) == 0) {
+    if ((G.Padd & 0xC) == 0) {
         pSt->Box_fast = 0;
-    } else if ((G.Unk20F8 & 0xC) == 0xC) {
-        if (G.Unk20FC & 4) {
+    } else if ((G.Padd & 0xC) == 0xC) {
+        if (G.Padd_trg & 4) {
             pSt->Box_fast = 1;
         }
-        if (G.Unk20FC & 8) {
+        if (G.Padd_trg & 8) {
             pSt->Box_fast = 2;
         }
     } else {
-        if ((USHORT)G.Unk20F8 & 4) {
+        if ((USHORT)G.Padd & 4) {
             pSt->Box_fast = 1;
         }
-        if ((USHORT)G.Unk20F8 & 8) {
+        if ((USHORT)G.Padd & 8) {
             pSt->Box_fast = 2;
         }
     }
-    if ((G.Unk2100 & 4) && pSt->Box_fast == 1) {
+    if ((G.Padd_rep & 4) && pSt->Box_fast == 1) {
         if ((pSt->Box_cursor -= 5) < 0) {
             pSt->Box_cursor += 0x40;
         }
         Snd_se_stad(0x215, 0, 0, 0);
         pSt->Flg |= 0x10000;
-    } else if ((G.Unk2100 & 8) && pSt->Box_fast == 2) {
+    } else if ((G.Padd_rep & 8) && pSt->Box_fast == 2) {
         if ((pSt->Box_cursor += 5) >= 0x40) {
             pSt->Box_cursor -= 0x40;
         }
@@ -639,7 +639,7 @@ void St_box_select(ST_WORK *pSt)
         pSt->Flg |= 0x8000;
     }
     pG = &G;
-    if (*(ULONG *)&pG->Unk2100 & 0xC) {
+    if (*(ULONG *)&pG->Padd_rep & 0xC) {
         r.w = 20;
         r.h = 30;
         Load_no = pSt->Box_cursor - 2;
@@ -944,7 +944,7 @@ void St_item_select(ST_WORK *pSt)
     UCHAR *p;
     LONG Moved;
 
-    if ((G.Unk20FC & 0x20) | (G.Key_trg & 0x2000)) {
+    if ((G.Padd_trg & 0x20) | (G.Key_trg & 0x2000)) {
         pSt->Rtn0++;
         Snd_se_stad(5, 0, 0, 0);
     } else {
@@ -980,19 +980,19 @@ void St_item_select(ST_WORK *pSt)
             }
         } else {
             Moved = 0;
-            if (G.Unk2100 & 0x1000) {
+            if (G.Padd_rep & 0x1000) {
                 if ((signed char)pSt->Cursor >= -2) {
                     pSt->Cursor -= 2;
                     Moved = 1;
                 }
             }
-            if (G.Unk2100 & 0x4000) {
+            if (G.Padd_rep & 0x4000) {
                 if ((signed char)pSt->Cursor < G.pItem_set->Num - 2) {
                     pSt->Cursor += 2;
                     Moved = 1;
                 }
             }
-            if (G.Unk2100 & 0x8000) {
+            if (G.Padd_rep & 0x8000) {
                 if (pSt->Cursor & 1) {
                     pSt->Cursor--;
                     if ((signed char)pSt->Cursor >= -2) {
@@ -1000,7 +1000,7 @@ void St_item_select(ST_WORK *pSt)
                     }
                 }
             }
-            if (G.Unk2100 & 0x2000) {
+            if (G.Padd_rep & 0x2000) {
                 if (!(pSt->Cursor & 1)) {
                     pSt->Cursor++;
                     if ((signed char)pSt->Cursor >= -2) {
@@ -1050,10 +1050,10 @@ void St_cmd_select(ST_WORK *pSt)
         pSt->Timer = 0;
         Snd_se_stad(6, 0, 0, 0);
     } else {
-        if (G.Unk2100 & 0x1000) {
+        if (G.Padd_rep & 0x1000) {
             pSt->Cmd_cursor--;
         }
-        if (G.Unk2100 & 0x4000) {
+        if (G.Padd_rep & 0x4000) {
             pSt->Cmd_cursor++;
         }
         if ((signed char)pSt->Cmd_cursor < 0) {
@@ -1062,7 +1062,7 @@ void St_cmd_select(ST_WORK *pSt)
         if ((signed char)pSt->Cmd_cursor >= Cmd_num) {
             pSt->Cmd_cursor = 0;
         }
-        if (*(ULONG *)&G.Unk2100 & 0x5000) {
+        if (*(ULONG *)&G.Padd_rep & 0x5000) {
             Snd_se_stad(4, 0, 0, 0);
         }
     }
@@ -1190,10 +1190,10 @@ void St_file_list(ST_WORK *pSt)
         }
         if (G.Key_trg & 0x1000) {
             Sel_no = File_order_tbl_b[pSt->File_cursor][0];
-            if (G.Unk79EC[3] == 0x1E && pSt->File_cursor == 0) {
+            if (G.File_num == 0x1E && pSt->File_cursor == 0) {
                 Sel_no = 0x1E;
             }
-            if (Flg_ck(&G.Unk79EC[2], Sel_no)) {
+            if (Flg_ck(G.File_flg, Sel_no)) {
                 pSt->Timer = 0;
                 pSt->Rtn2++;
                 pSt->Flg &= ~0x1000000;
@@ -1209,7 +1209,7 @@ void St_file_list(ST_WORK *pSt)
         }
         Moved = 0;
         if (pSt->File_page == 0) {
-            if (G.Unk2100 & 0x2000) {
+            if (G.Padd_rep & 0x2000) {
                 if ((signed char)(pSt->File_cursor % 5) == 4) {
                     Moved = 1;
                     pSt->File_cursor += 11;
@@ -1217,7 +1217,7 @@ void St_file_list(ST_WORK *pSt)
                     pSt->Rtn2 = 8;
                 }
             }
-        } else if (G.Unk2100 & 0x8000) {
+        } else if (G.Padd_rep & 0x8000) {
             if ((signed char)(pSt->File_cursor % 5) == 0) {
                 Moved = 1;
                 pSt->File_cursor -= 11;
@@ -1238,25 +1238,25 @@ void St_file_list(ST_WORK *pSt)
             Snd_se_stad(4, 0, 0, 0);
             break;
         }
-        if (G.Unk2100 & 0x1000) {
+        if (G.Padd_rep & 0x1000) {
             if ((signed char)(pSt->File_cursor % 15) >= 5) {
                 pSt->File_cursor -= 5;
                 Moved = 1;
             }
         }
-        if (G.Unk2100 & 0x4000) {
+        if (G.Padd_rep & 0x4000) {
             if ((signed char)(pSt->File_cursor % 15) < 10) {
                 pSt->File_cursor += 5;
                 Moved = 1;
             }
         }
-        if (G.Unk2100 & 0x8000) {
+        if (G.Padd_rep & 0x8000) {
             if ((signed char)(pSt->File_cursor % 5) != 0) {
                 pSt->File_cursor--;
                 Moved = 1;
             }
         }
-        if (G.Unk2100 & 0x2000) {
+        if (G.Padd_rep & 0x2000) {
             if ((signed char)(pSt->File_cursor % 5) != 4) {
                 pSt->File_cursor++;
                 Moved = 1;
@@ -1488,25 +1488,25 @@ void St_mix_select(ST_WORK *pSt)
         return;
     }
     Moved = 0;
-    if (pG->Unk2100 & 0x1000) {
+    if (pG->Padd_rep & 0x1000) {
         if ((signed char)pSt->Cursor2 >= 2) {
             pSt->Cursor2 -= 2;
             Moved = 1;
         }
     }
-    if (G.Unk2100 & 0x4000) {
+    if (G.Padd_rep & 0x4000) {
         if ((signed char)pSt->Cursor2 < G.pItem_set->Num - 2) {
             pSt->Cursor2 += 2;
             Moved = 1;
         }
     }
-    if (G.Unk2100 & 0x8000) {
+    if (G.Padd_rep & 0x8000) {
         if (pSt->Cursor2 & 1) {
             pSt->Cursor2--;
             Moved = 1;
         }
     }
-    if (G.Unk2100 & 0x2000) {
+    if (G.Padd_rep & 0x2000) {
         if (!(pSt->Cursor2 & 1)) {
             pSt->Cursor2++;
             Moved = 1;
@@ -1536,7 +1536,7 @@ void St_mix_mess_wait(ST_WORK *pSt)
 void St_mix_yesno(ST_WORK *pSt)
 {
     if (!(Moji.Mess_flg & 0x80)) {
-        switch (G.Unk7848) {
+        switch (G.Mess_sel) {
         case 0:
             Pl_wep_eff_parts_init(G_PLAYER);
             Pl_wep_poly_init();
@@ -1555,7 +1555,7 @@ void St_mix_yesno(ST_WORK *pSt)
 void St_mix_next(ST_WORK *pSt)
 {
     if (!(Moji.Mess_flg & 0x80)) {
-        switch (G.Unk7848) {
+        switch (G.Mess_sel) {
         case 0:
             pSt->pMix++;
         case 1:
@@ -1609,7 +1609,7 @@ void St_mix_result(ST_WORK *pSt)
         pData = &Item_data_tbl[pA->Id];
         pA->Num = pMix->New_num;
         pA->Flg = pData->Attr;
-        if (Flg_ck(G.Unk77F8, 9) && (pA->Id == 0xD || pA->Id == 0x10)) {
+        if (Flg_ck(G.Game_flg, 9) && (pA->Id == 0xD || pA->Id == 0x10)) {
             pA->Flg |= 3;
         }
         Pix_trans(*pCur_a);
@@ -1765,7 +1765,7 @@ void St_item_check(ST_WORK *pSt)
         } else {
             p = &pG->pItem_set->Item[pSt->Cursor];
             pData = &Item_data_tbl[p->Id];
-            Flg_on(pG->Unk7910, pData->Chk_flg);
+            Flg_on(pG->Item_chk_flg, pData->Chk_flg);
             Mess_set(0, 0x1100, p->Id + 0x10, 0);
             pSt->Rtn2++;
         }
@@ -2012,11 +2012,11 @@ void St_item_shift(ST_WORK *pSt)
 
 signed char Search_item_id_u(UCHAR id, UCHAR i) __asm__("Search_item_id"); /* this file passes the start slot unsigned (andi, not sll/sra) */
 
-/* Rtn1 11: picks up the room item (G.pUnk21DC): yes/no, fly-in icon, flags, model hidden */
+/* Rtn1 11: picks up the room item (G.pAot_dat): yes/no, fly-in icon, flags, model hidden */
 void St_item_get(ST_WORK *pSt)
 {
     UCHAR *pAot = G.pAot_data;
-    ST_AOT_ITEM *pGet = G.pUnk21DC;
+    ST_AOT_ITEM *pGet = G.pAot_dat;
     ITEM_WORK *p;
     UCHAR id;
     signed char Slot;
@@ -2066,7 +2066,7 @@ void St_item_get(ST_WORK *pSt)
                 break;
             }
             pSt->Get_slot = Slot;
-            if (Flg_ck(G.Unk77F8, 9) && (UCHAR)pGet->Id == 0xC) {
+            if (Flg_ck(G.Game_flg, 9) && (UCHAR)pGet->Id == 0xC) {
                 Moji.Mess_item = 0x14;
             } else {
                 Moji.Mess_item = pGet->Id;
@@ -2083,7 +2083,7 @@ void St_item_get(ST_WORK *pSt)
         break;
     case 2:
         if (!(Moji.Mess_flg & 0x80)) {
-            switch (G.Unk7848) {
+            switch (G.Mess_sel) {
             case 0: {
                 UCHAR k;
 
@@ -2127,7 +2127,7 @@ void St_item_get(ST_WORK *pSt)
                 if (p->Id == 0xE) {
                     p->Flg = f | 0x100;
                 }
-                if (Flg_ck(G.Unk77F8, 9) && (ULONG)(p->Id - 2) < 0x13) {
+                if (Flg_ck(G.Game_flg, 9) && (ULONG)(p->Id - 2) < 0x13) {
                     p->Flg |= 3;
                     if (p->Id == 0xC) {
                         p->Id = 0x14;
@@ -2142,10 +2142,10 @@ void St_item_get(ST_WORK *pSt)
             G.Sce_work[3] = pGet->Id;
             *pAot = 0;
             Model_no = pGet->Md1;
-            if ((ULONG)((USHORT)G.Unk783E - 2) >= 3) {
-                Flg_on(G.Unk78D0, pGet->Flg);
+            if ((ULONG)((USHORT)G.Stage_no - 2) >= 3) {
+                Flg_on(G.Item_flg, pGet->Flg);
             } else {
-                Flg_on(G.Unk78F0, pGet->Flg);
+                Flg_on(G.Item_flg2, pGet->Flg);
             }
             Esp_kill(0x705, &G.Ob_model[Model_no].M);
             Esp_kill(0x905, 0);
@@ -2153,7 +2153,7 @@ void St_item_get(ST_WORK *pSt)
                 G.Ob_model[Model_no].Be_flg = 0;
             }
             if (pGet->Flg >= 0xF0) {
-                G.Unk7DC0[pGet->Flg - 0xF0].Unk0 = 0;
+                G.Chaser_drop[pGet->Flg - 0xF0].Be_flg = 0;
             }
             Mess_set(0, 0x1000, 6, 0);
             pSt->Rtn2 = 1;
@@ -2291,14 +2291,14 @@ void St_item_to_file(ST_WORK *pSt)
         pSt->Pos[14].X += 0x20;
     }
     Item_delete(pSt->Cursor);
-    Flg_on(&G.Unk79EC[2], pChk->Arg - 0x85);
+    Flg_on(G.File_flg, pChk->Arg - 0x85);
     for (i = 0; i < 30; i++) {
         if (File_order_tbl[i] == pSt->File_no) {
             break;
         }
     }
-    if (G.Unk79EC[3] == i) {
-        G.Unk79EC[3]++;
+    if (G.File_num == i) {
+        G.File_num++;
     }
     Pix_move(pSt->Cursor, 11);
     for (File = pSt->Cursor; File < 9; File = Next) {
@@ -2677,10 +2677,10 @@ void St_item_disp(ST_WORK *pSt)
             St_sprt_draw(pSt, (SPRT *)0x801ACA50, D_8009FF80, ((n * 2 + 1) << 16) | 0xE01);
             k = pSt->File_cursor;
             id = File_order_tbl[k];
-            if (G.Unk79EC[3] == 30 && k == 0) {
+            if (G.File_num == 30 && k == 0) {
                 id = 30;
             }
-            if (Flg_ck(&G.Unk79EC[2], id)) {
+            if (Flg_ck(G.File_flg, id)) {
                 Name_disp(0xE, 0xC8, 0x501, id + 0x85);
             }
         }
@@ -2985,14 +2985,14 @@ void St_file_icon_disp(ST_WORK *pSt)
         p->w = pI->W;
         p->h = pI->H;
         p->clut = (pSt->Clut_file + 0x1E0) << 6;
-        if (Flg_ck(&G.Unk79EC[2], File_order_tbl[i])) {
+        if (Flg_ck(G.File_flg, File_order_tbl[i])) {
             p->u0 = pI->U;
             p->v0 = pI->V;
         } else {
             p->u0 = File_icon_tbl[31].U;
             p->v0 = File_icon_tbl[31].V;
         }
-        if (G.Unk79EC[3] == 30 && i == 0) {
+        if (G.File_num == 30 && i == 0) {
             p->u0 = File_icon_tbl[30].U;
             p->v0 = File_icon_tbl[30].V;
         }
@@ -3222,11 +3222,11 @@ void Status_init(void)
         }
         pD = &G.Item_work[j].Item[0];
         while ((signed char)pS->Id != -1) {
-            if (G.Unk7806 == 0 || (UCHAR)(pS->Id + 0x7D) >= 2) {
+            if (G.Clear_cnt == 0 || (UCHAR)(pS->Id + 0x7D) >= 2) {
                 pD->Id = pS->Id;
                 pD->Num = pS->Num;
                 pD->Flg = pS->Flg;
-                if (Flg_ck(G.Unk77F8, 9) && mode != 2 && (UCHAR)(pD->Id - 2) < 0x13) {
+                if (Flg_ck(G.Game_flg, 9) && mode != 2 && (UCHAR)(pD->Id - 2) < 0x13) {
                     pD->Flg |= 3;
                 }
                 pD++;
@@ -3243,7 +3243,7 @@ void Status_init(void)
             pD->Id = pS->Id;
             pD->Num = pS->Num;
             pD->Flg = pS->Flg;
-            if (Flg_ck(G.Unk77F8, 9) && (UCHAR)(pD->Id - 2) < 0x13) {
+            if (Flg_ck(G.Game_flg, 9) && (UCHAR)(pD->Id - 2) < 0x13) {
                 pD->Flg |= 3;
             }
             pD++;
@@ -3252,25 +3252,25 @@ void Status_init(void)
         switch (mode) {
         case 0:
         case 1:
-            if (Flg_ck(G.Unk77F8, 6)) {
+            if (Flg_ck(G.Game_flg, 6)) {
                 pD = &G.Item_work[j].Box[28 + j];
                 pD->Id = 0xA;
                 pD->Num = 0xFF;
                 pD->Flg = 3;
             }
-            if (Flg_ck(G.Unk77F8, 7)) {
+            if (Flg_ck(G.Game_flg, 7)) {
                 pD = &G.Item_work[j].Box[29 + j];
                 pD->Id = 0xB;
                 pD->Num = 0xFF;
                 pD->Flg = 3;
             }
-            if (Flg_ck(G.Unk77F8, 8)) {
+            if (Flg_ck(G.Game_flg, 8)) {
                 pD = &G.Item_work[j].Box[30 + j];
                 pD->Id = 0xF;
                 pD->Num = 0xFF;
                 pD->Flg = 0x17;
             }
-            if (j == 0 && Flg_ck(G.Unk77F8, 10)) {
+            if (j == 0 && Flg_ck(G.Game_flg, 10)) {
                 pD = &G.Item_work[0].Box[31];
                 pD->Id = 0x80;
                 pD->Num = 1;
@@ -3289,22 +3289,22 @@ void Status_init(void)
         }
     }
     pG2 = &G;
-    pG2->Unk79EC[2] = 0;
-    pG2->Unk79EC[3] = 0;
-    Flg_on(&pG2->Unk79EC[2], 0x1E);
-    if (!Flg_ck(&pG2->System_flg, 0x18) && pG2->Unk7806) {
-        Flg_on(&pG2->Unk79EC[2], 0);
-        Flg_on(&pG2->Unk79EC[2], 0x1C);
-        pG2->Unk79EC[3] = 2;
+    pG2->File_flg[0] = 0;
+    pG2->File_num = 0;
+    Flg_on(pG2->File_flg, 0x1E);
+    if (!Flg_ck(&pG2->System_flg, 0x18) && pG2->Clear_cnt) {
+        Flg_on(pG2->File_flg, 0);
+        Flg_on(pG2->File_flg, 0x1C);
+        pG2->File_num = 2;
     }
     if (Flg_ck(&G.System_flg, 0x18)) {
         for (k = 0; k < 14; k++) {
-            G.Unk79A4[k] = -1;
+            G.Map_visit_flg[k] = -1;
         }
-        Flg_on(&G.Unk79EC[1], 0);
-        Flg_on(&G.Unk79EC[1], 1);
-        Flg_on(G.Unk79EC, 0);
-        Flg_on(G.Unk79EC, 1);
+        Flg_on(G.Map_area_flg, 0);
+        Flg_on(G.Map_area_flg, 1);
+        Flg_on(G.Map_get_flg, 0);
+        Flg_on(G.Map_get_flg, 1);
     }
 }
 
@@ -3371,7 +3371,7 @@ void St_init(ST_WORK *pSt)
     RECT r;
     tagGLOBAL *pG = &G;
     SND_WORK *pW = &Snd_work;
-    USHORT *pD = (USHORT *)pG->pUnk21DC;
+    USHORT *pD = (USHORT *)pG->pAot_dat;
     ENEMY_WORK *pPl;
     UCHAR *p;
     ULONG i;
@@ -3444,19 +3444,19 @@ void St_init(ST_WORK *pSt)
             pSt->St_type = 3;
             pSt->File_no = *pD + 0x7B;
             pSt->Page_no = 0;
-            Flg_on(&G.Unk79EC[2], pSt->File_no);
+            Flg_on(G.File_flg, pSt->File_no);
             for (i = 0; i < 30; i++) {
                 if (File_order_tbl[i] == pSt->File_no) {
                     break;
                 }
             }
-            if (G.Unk79EC[3] == i) {
-                G.Unk79EC[3] = i + 1;
+            if (G.File_num == i) {
+                G.File_num = i + 1;
             }
         }
         if (*pD >= 0xA4) {
             pSt->St_type = 5;
-            Flg_on(&G.Unk79EC[0], *pD - 0xA4);
+            Flg_on(G.Map_get_flg, *pD - 0xA4);
         }
     }
     switch (pSt->St_type) {
@@ -3622,7 +3622,7 @@ void St_exit(ST_WORK *pSt)
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
-    Cd_seek(Room_file_tbl[pG->Unk783E][pG->Unk7840 + 1] - 1, 0, "SEEK BSS");
+    Cd_seek(Room_file_tbl[pG->Stage_no][pG->Room_no + 1] - 1, 0, "SEEK BSS");
     Ctrl_mode = 2;
     Task_signal(0);
 }
@@ -3972,11 +3972,11 @@ void St_map_pos_init(ST_WORK *pSt)
 
     pSt->Area_cursor = 0;
     pSt->Map_return = 0;
-    pSt->Map_stage = (UCHAR)G.Unk783E;
-    pSt->Map_room_cur = (UCHAR)G.Unk7840;
+    pSt->Map_stage = (UCHAR)G.Stage_no;
+    pSt->Map_room_cur = (UCHAR)G.Room_no;
     Map_room_conv(&pSt->Map_stage, &pSt->Map_room_cur);
-    pSt->Map_stage_cur = (UCHAR)G.Unk783E;
-    Room = (UCHAR)G.Unk7840;
+    pSt->Map_stage_cur = (UCHAR)G.Stage_no;
+    Room = (UCHAR)G.Room_no;
     Map_room_conv(&pSt->Map_stage_cur, &Room);
 }
 
@@ -4053,8 +4053,8 @@ void St_map_init(ST_WORK *pSt)
             if (St.Map_event == 2) {
                 pSt->Floor_disp = on;
             }
-            if (G.Unk783E == 4 && pSt->Map_room_cur == 3) {
-                if (Flg_ck(G.Unk7868, 0xF1) && G.Cut_no_old != 0x503) {
+            if (G.Stage_no == 4 && pSt->Map_room_cur == 3) {
+                if (Flg_ck(G.Scenario_flg, 0xF1) && G.Cut_no_old != 0x503) {
                     pSt->Floor_pl = 0;
                     pSt->Floor_disp = 0;
                 } else {
@@ -4068,10 +4068,10 @@ void St_map_init(ST_WORK *pSt)
             z = G.Player.Pos_z;
             pRoom = MAP_LIST(ST_MAP_ROOM, (ST_MAP_DATA *)pRoom, Room_ofs);
             pRoom += pSt->Map_room_cur;
-            if (G.Unk783E == 1 && G.Unk7840 == 15 && x >= -0x2276) {
+            if (G.Stage_no == 1 && G.Room_no == 15 && x >= -0x2276) {
                 x += 0x251D;
             }
-            if (G.Unk783E == 3 && G.Unk7840 == 21 && G.Player.Pos_x >= 800) {
+            if (G.Stage_no == 3 && G.Room_no == 21 && G.Player.Pos_x >= 800) {
                 x = G.Player.Pos_x - 0x2328;
                 z = G.Player.Pos_z;
             }
@@ -4215,13 +4215,13 @@ void St_map_ctrl(ST_WORK *pSt)
         break;
     }
     pG = &G;
-    if ((pG->Key_trg & 0x2000) | (pG->Unk20FC & 1)) {
+    if ((pG->Key_trg & 0x2000) | (pG->Padd_trg & 1)) {
         pSt->Rtn1 = 0;
         pSt->Rtn0++;
         Snd_se_stad(5, 0, 0, 0);
         return;
     }
-    if (*(ULONG *)&pG->Unk20FC & 0x108) {
+    if (*(ULONG *)&pG->Padd_trg & 0x108) {
         pSt->Rtn1 = 2;
         pSt->Rtn2 = 0;
         pSt->Timer = 0;
@@ -4236,14 +4236,14 @@ void St_map_ctrl(ST_WORK *pSt)
             Snd_se_stad(6, 0, 0, 0);
             return;
         }
-        if (pG->Unk2100 & 0x4000) {
+        if (pG->Padd_rep & 0x4000) {
             if (--pSt->Floor_disp < 0) {
                 pSt->Floor_disp = 0;
             } else {
                 Snd_se_stad(6, 0, 0, 0);
             }
         }
-        if (G.Unk2100 & 0x1000) {
+        if (G.Padd_rep & 0x1000) {
             if (++pSt->Floor_disp >= pSt->Floor_num) {
                 pSt->Floor_disp = pSt->Floor_num - 1;
             } else {
@@ -4268,16 +4268,16 @@ void St_map_ctrl(ST_WORK *pSt)
             return;
         }
         if (pSt->Zoom_out_flg == 0) {
-            if ((USHORT)pG->Unk20F8 & 0x1000) {
+            if ((USHORT)pG->Padd & 0x1000) {
                 pSt->Map_y += 4;
             }
-            if ((USHORT)pG->Unk20F8 & 0x4000) {
+            if ((USHORT)pG->Padd & 0x4000) {
                 pSt->Map_y -= 4;
             }
-            if ((USHORT)pG->Unk20F8 & 0x8000) {
+            if ((USHORT)pG->Padd & 0x8000) {
                 pSt->Map_x += 4;
             }
-            if ((USHORT)pG->Unk20F8 & 0x2000) {
+            if ((USHORT)pG->Padd & 0x2000) {
                 pSt->Map_x -= 4;
             }
         }
@@ -4376,7 +4376,7 @@ void St_map_exit(ST_WORK *pSt)
 {
     tagGLOBAL *pG = &G;
     UCHAR *pAot = pG->pAot_data;
-    UCHAR *pItem = (UCHAR *)pG->pUnk21DC;
+    UCHAR *pItem = (UCHAR *)pG->pAot_dat;
     UCHAR Model_no;
 
     switch (pSt->Rtn1) {
@@ -4403,10 +4403,10 @@ void St_map_exit(ST_WORK *pSt)
         case 5:
             *pAot = 0;
             Model_no = pItem[6];
-            if (pG->Unk783E < 2) {
-                Flg_on(pG->Unk78D0, *(USHORT *)(pItem + 4));
+            if (pG->Stage_no < 2) {
+                Flg_on(pG->Item_flg, *(USHORT *)(pItem + 4));
             } else {
-                Flg_on(pG->Unk78F0, *(USHORT *)(pItem + 4));
+                Flg_on(pG->Item_flg2, *(USHORT *)(pItem + 4));
             }
             Esp_kill(0x705, &G.Ob_model[Model_no & 0xFF].M);
             Esp_kill(0x905, 0);
@@ -4518,10 +4518,10 @@ void St_map_draw(ST_WORK *pSt)
         pRm += pSt->Map_room_cur;
         px = G.Player.Pos_x;
         pz = G.Player.Pos_z;
-        if (G.Unk783E == 1 && G.Unk7840 == 0xF && px >= -0x2276) {
+        if (G.Stage_no == 1 && G.Room_no == 0xF && px >= -0x2276) {
             px += 0x251D;
         }
-        if (G.Unk783E == 3 && G.Unk7840 == 0x15 && G.Player.Pos_x >= 0x320) {
+        if (G.Stage_no == 3 && G.Room_no == 0x15 && G.Player.Pos_x >= 0x320) {
             px = G.Player.Pos_x - 0x2328;
             pz = G.Player.Pos_z;
         }
@@ -4776,7 +4776,7 @@ LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
         if ((code == 0x10C || code == 0x115) && Flg_ck(Scenario_flg, 0x3A) && Room != 0xC) {
             return 0;
         }
-        if ((USHORT)(G.Unk783E - 2) < 3 && Room == 0xC) {
+        if ((USHORT)(G.Stage_no - 2) < 3 && Room == 0xC) {
             return 0;
         }
         if (Room == (code == 0x10F ? 0x10 : 0xF)) {
@@ -4820,22 +4820,22 @@ LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
     ST_MAP_FLG *p;
     USHORT cur = St.Map_room_cur | (St.Map_stage_cur << 8);
     UCHAR fl = pG->Player.nFloor;
-    ULONG *pF0 = pG->Unk78D0;
-    ULONG *pF2 = pG->Unk7868;
-    ULONG *pF1 = G.Unk78F0;
-    ULONG *pF3 = G.Unk7994;
-    ULONG *pF4 = &G.Unk7888;
+    ULONG *pF0 = pG->Item_flg;
+    ULONG *pF2 = pG->Scenario_flg;
+    ULONG *pF1 = G.Item_flg2;
+    ULONG *pF3 = G.Key_flg;
+    ULONG *pF4 = G.Room_flg;
 
     MAP_FLG_LIST(p, Hide_ofs);
-    if (!Flg_ck(pG->Unk79EC, Stage)) {
+    if (!Flg_ck(pG->Map_get_flg, Stage)) {
         for (; (signed char)p->Room != -1; p++) {
             if (p->Room == Room && p->Part == Part) {
                 if (p->Kind) {
-                    if (!Flg_ck(G.Unk7868, p->Flg_no)) {
+                    if (!Flg_ck(G.Scenario_flg, p->Flg_no)) {
                         return 0;
                     }
                 } else {
-                    if (!Flg_ck(G.Unk7994, p->Flg_no)) {
+                    if (!Flg_ck(G.Key_flg, p->Flg_no)) {
                         return 0;
                     }
                 }
@@ -5356,7 +5356,7 @@ LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
                 return 0;
             }
         }
-        if (Flg_ck(G.Unk7868, 0xC4)) {
+        if (Flg_ck(G.Scenario_flg, 0xC4)) {
             if (Room == 0x10 && Part == 4) {
                 return 0;
             }
@@ -5448,7 +5448,7 @@ LONG Map_part_clut(UCHAR Stage, UCHAR Room, UCHAR Part)
         break;
     case 4:
         if (cur == 0x403) {
-            if (Flg_ck(G.Unk7868, 0xF1)) {
+            if (Flg_ck(G.Scenario_flg, 0xF1)) {
                 if (G.Cut_no_old == 0x503) {
                     if (Room == 3) {
                         if (Part == 0) {
@@ -5486,11 +5486,11 @@ LONG Map_part_clut(UCHAR Stage, UCHAR Room, UCHAR Part)
         for (MAP_FLG_LIST(p, Hide_ofs); (signed char)p->Room != -1; p++) {
             if (p->Room == Room && p->Part == Part) {
                 if (p->Kind) {
-                    if (!Flg_ck(G.Unk7868, p->Flg_no)) {
+                    if (!Flg_ck(G.Scenario_flg, p->Flg_no)) {
                         return 5;
                     }
                 } else {
-                    if (!Flg_ck(G.Unk7994, p->Flg_no)) {
+                    if (!Flg_ck(G.Key_flg, p->Flg_no)) {
                         return 5;
                     }
                 }
@@ -5591,12 +5591,12 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
     tagGLOBAL *pG = &G;
     UCHAR fl = pG->Player.nFloor;
     LONG cur = St.Map_room_cur | (St.Map_stage_cur << 8);
-    UCHAR f = Flg_ck(pG->Unk79EC, Stage);
-    ULONG *pF4 = &G.Unk7888;
-    ULONG *pF3 = G.Unk7994;
-    ULONG *pF0 = pG->Unk78D0;
-    ULONG *pF1 = pG->Unk78F0;
-    ULONG *pF2 = pG->Unk7868;
+    UCHAR f = Flg_ck(pG->Map_get_flg, Stage);
+    ULONG *pF4 = G.Room_flg;
+    ULONG *pF3 = G.Key_flg;
+    ULONG *pF0 = pG->Item_flg;
+    ULONG *pF1 = pG->Item_flg2;
+    ULONG *pF2 = pG->Scenario_flg;
     ULONG *pS = &pG->Status_flg;
     ST_MAP_FLG *p;
 
@@ -5741,7 +5741,7 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
         if (!Flg_ck(pF2, 0x60) && Room == 0x14 && Part == 8) {
             return 0;
         }
-        if ((USHORT)G.Unk783E >= 2 && (USHORT)G.Unk783E <= 4) {
+        if ((USHORT)G.Stage_no >= 2 && (USHORT)G.Stage_no <= 4) {
             if (Room == 0xB && Part == 1) {
                 return 0;
             }
@@ -5928,11 +5928,11 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
             }
             if (f) {
                 if (p->Kind & 1) {
-                    if (Flg_ck(G.Unk7868, p->Flg_no)) {
+                    if (Flg_ck(G.Scenario_flg, p->Flg_no)) {
                         return 0;
                     }
                 } else {
-                    if (Flg_ck(G.Unk7994, p->Flg_no)) {
+                    if (Flg_ck(G.Key_flg, p->Flg_no)) {
                         return 0;
                     }
                 }
@@ -5941,11 +5941,11 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
                     return 0;
                 }
                 if (p->Kind & 1) {
-                    if (Flg_ck(G.Unk7868, p->Flg_no)) {
+                    if (Flg_ck(G.Scenario_flg, p->Flg_no)) {
                         return 0;
                     }
                 } else {
-                    if (Flg_ck(G.Unk7994, p->Flg_no)) {
+                    if (Flg_ck(G.Key_flg, p->Flg_no)) {
                         return 0;
                     }
                 }
@@ -6022,22 +6022,22 @@ LONG Map_door_mark_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
         if (p->Room == Room && p->Part == Part) {
             switch (p->Kind) {
             case 0:
-                if (!Flg_ck(G.Unk7994, p->Flg_no)) {
+                if (!Flg_ck(G.Key_flg, p->Flg_no)) {
                     return 1;
                 }
                 break;
             case 1:
-                if (!Flg_ck(G.Unk7868, p->Flg_no)) {
+                if (!Flg_ck(G.Scenario_flg, p->Flg_no)) {
                     return 1;
                 }
                 break;
             case 2:
-                if (!Flg_ck(G.Unk7890, p->Flg_no)) {
+                if (!Flg_ck(G.Enemy_flg, p->Flg_no)) {
                     return 1;
                 }
                 break;
             case 3:
-                if (!Flg_ck(G.Unk78B0, p->Flg_no)) {
+                if (!Flg_ck(G.Enemy_flg2, p->Flg_no)) {
                     return 1;
                 }
                 break;
@@ -6094,11 +6094,11 @@ void Map_room_conv(UCHAR *pStage, UCHAR *pRoom)
         *pRoom = 0x11;
         return;
     }
-    if (*pStage == 4 && *pRoom == 2 && Flg_ck(&G.Unk7888, 0x1F)) {
+    if (*pStage == 4 && *pRoom == 2 && Flg_ck(G.Room_flg, 0x1F)) {
         *pRoom = 0x11;
         return;
     }
-    if (*pStage == 2 && *pRoom == 0x17 && G.Player.Pos_z >= -0x2C24 && !Flg_ck(G.Unk7868, 200)) {
+    if (*pStage == 2 && *pRoom == 0x17 && G.Player.Pos_z >= -0x2C24 && !Flg_ck(G.Scenario_flg, 200)) {
         *pRoom = 2;
     }
     if (*pStage >= 5) {

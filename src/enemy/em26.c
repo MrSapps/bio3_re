@@ -9,7 +9,7 @@ LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__
 /* RE2 EM_MAIN: per-frame entry of the young spider: routine dispatch, collision */
 void Em26_main(ENEMY_WORK *pEm)
 {
-    if (!(G.Unk2468 & 0x20000000)) {
+    if (!(G.Stop_flg & 0x20000000)) {
         if (pEm->Damage_cnt & 0x7F)
             pEm->Damage_cnt--;
         Em26_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
@@ -140,7 +140,7 @@ void Em26_Mv_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_RTN23(pEm) = 0;
         }
     pTg = G_PLAYER;
-    if ((LONG)pEm->L_pl < 550 && (G.Unk75E8 & 6) && pEm->nFloor == pTg->nFloor) {
+    if ((LONG)pEm->L_pl < 550 && (G.Room_player_flg & 6) && pEm->nFloor == pTg->nFloor) {
         if (EM_RTN01(pTg) == 0x101 || EM_RTN01(pTg) == 0x201 || EM_RTN01(pTg) == 0x301 || EM_RTN01(pTg) == 0x401) {
             EM_SET_RTN(pEm, 3, 0, 0, 0);
             Pad_vib_set0(1, 0);

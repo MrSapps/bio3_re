@@ -23,7 +23,7 @@ void Em134(ENEMY_WORK *pEm)
     SVECTOR Pos;
     SVECTOR Spd;
 
-    pG->Unk75EA &= 0xFF00;
+    pG->Room_enemy_flg &= 0xFF00;
     if ((LONG)pG->Status_flg < 0) {
         if ((pEm->Unk158 & 0x3FFFFFFF) < (LONG)pEm->L_pl >> 1) {
             EM34_W(pEm)->Target_time = 60;
@@ -48,7 +48,7 @@ void Em134(ENEMY_WORK *pEm)
         EM34_W(pEm)->pTarget = pPl;
     }
     if (EM34_W(pEm)->Flg & 0x100) {
-        G.Unk75EA |= 4;
+        G.Room_enemy_flg |= 4;
         pTv = POS_V(pG->pEnemy[1]);
     }
     Root_ck(pEm, pTv, 0, 0);
@@ -2120,7 +2120,7 @@ void Em34_rocket(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM34_W(pEm)->Unk0A = 0;
         EM34_W(pEm)->Flg &= ~0x18;
         Snd_se_enem(11, pEm);
-        G.Unk75EA |= 1;
+        G.Room_enemy_flg |= 1;
         pEm->Spd_x = 0;
         pEm->Damage_cnt |= 0x80;
     case 1:
@@ -2145,7 +2145,7 @@ void Em34_rocket(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Esp_call(0x1000602, (USHORT)(pEm->Cdir_y + EM34_W(pEm)->Shot_dir) | 0x10000000,
                       &pEm->pSin_parts_ptr[17].Workm, &Ofs, NULL);
         Snd_se_enem(7, pEm);
-        G.Unk75EA |= 2;
+        G.Room_enemy_flg |= 2;
         pEm->Spd_x = 300;
     case 4:
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
@@ -2173,7 +2173,7 @@ void Em34_rocket(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 8;
         EM34_W(pEm)->Unk0A = 0;
         EM34_W(pEm)->Flg &= ~8;
-        G.Unk75EA |= 1;
+        G.Room_enemy_flg |= 1;
     case 8:
         if (pEm->Move_cnt == 12) {
             Ofs.vx = 300;
@@ -2386,7 +2386,7 @@ void Em34_die_burn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em_dead_flg_on_cand(pEm);
         if (G.Status_flg & 0x2000)
             Om_drop_set(pEm, 30);
-        G.Unk785C = 0;
+        G.Chaser_no = 0;
         if (EM34_W(pEm)->pPartner) {
             EM34_W(pEm)->pPartner->Routine_0 = 1;
             EM34_W(pEm)->pPartner->Routine_1 = 0;
@@ -3676,7 +3676,7 @@ void Em34_before(ENEMY_WORK *pEm)
         EM34_W(pEm)->Dodge_timer &= 0x7F;
     }
     if (!(EM34_W(pEm)->Dodge_timer & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck_l(pEm, pPl)
-        && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Unk75E8 & 1) {
+        && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Room_player_flg & 1) {
         Div = 0;
         if ((UCHAR)pPl->Type == 10) {
             Div = 7000;

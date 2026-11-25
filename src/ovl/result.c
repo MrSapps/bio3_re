@@ -1,5 +1,5 @@
 /*
- * RESULT.BIN: end-of-game result screens. G.Unk2115 picks the routine (Result_proc_tbl): 0 Mercenaries records
+ * RESULT.BIN: end-of-game result screens. G.Ovl_mode picks the routine (Result_proc_tbl): 0 Mercenaries records
  * and shop, 1/2 Mercenaries run cleared/failed, 3 main game result (grade), 4 bonus message, 5 epilogue.
  */
 #include "ovl/result.h"
@@ -18,12 +18,12 @@ void Result_ombg_load(ULONG *pAdr, UCHAR No)
     Cd_read(0x3C, pAdr, 2, "OMBG.TIM");
 }
 
-/* overlay task: runs the routine selected by G.Unk2115 every frame */
+/* overlay task: runs the routine selected by G.Ovl_mode every frame */
 void Result_task(void)
 {
     Result_wk.Vloop = Main.Vloop;
     while (1) {
-        Result_proc_tbl[G.Unk2115]();
+        Result_proc_tbl[G.Ovl_mode]();
         Task_sleep(1);
     }
 }
@@ -201,25 +201,25 @@ void Result_merc_menu_init(RESULT_WORK *pWk)
     Jill_obj_init(&Result_obj[24], &Result_merc_menu_spr[28], 0x01F10017, 0x808080);
     Result_obj[24].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[7], &Result_merc_menu_spr[10], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 8)) {
+    if (Flg_ck(G.Game_flg, 8)) {
         Jill_obj_rgb(&Result_obj[7], 0x404040);
         Result_obj[21].Flg |= SEL_OBJ_ON;
     }
     Result_obj[7].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[8], &Result_merc_menu_spr[11], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 7)) {
+    if (Flg_ck(G.Game_flg, 7)) {
         Jill_obj_rgb(&Result_obj[8], 0x404040);
         Result_obj[22].Flg |= SEL_OBJ_ON;
     }
     Result_obj[8].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[9], &Result_merc_menu_spr[12], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 6)) {
+    if (Flg_ck(G.Game_flg, 6)) {
         Jill_obj_rgb(&Result_obj[9], 0x404040);
         Result_obj[23].Flg |= SEL_OBJ_ON;
     }
     Result_obj[9].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[10], &Result_merc_menu_spr[13], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 9)) {
+    if (Flg_ck(G.Game_flg, 9)) {
         Jill_obj_rgb(&Result_obj[10], 0x404040);
         Result_obj[24].Flg |= SEL_OBJ_ON;
     }
@@ -249,7 +249,7 @@ void Result_merc_menu_sel(RESULT_WORK *pWk)
         pWk->Routine_1 = 1;
         pWk->Timer = 0;
     case 1:
-        if (Gr.Key_rep & 0xA000) {
+        if (Gr.Padd_trg & 0xA000) {
             pWk->Timer = (pWk->Timer + 1) & 1;
             Result_obj[19].Flg |= SEL_OBJ_BLINK | SEL_OBJ_REQ;
             Snd_se_stad(4, 0, 0, 0);
@@ -420,22 +420,22 @@ void Result_merc_clear_init(RESULT_WORK *pWk)
     Jill_obj_init(&Result_obj[24], &Result_merc_spr[21], 0x01F10017, 0x808080);
     Result_obj[24].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[7], &Result_merc_spr[10], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 8)) {
+    if (Flg_ck(G.Game_flg, 8)) {
         Jill_obj_rgb(&Result_obj[7], 0x404040);
         Result_obj[21].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[8], &Result_merc_spr[11], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 7)) {
+    if (Flg_ck(G.Game_flg, 7)) {
         Jill_obj_rgb(&Result_obj[8], 0x404040);
         Result_obj[22].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[9], &Result_merc_spr[12], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 6)) {
+    if (Flg_ck(G.Game_flg, 6)) {
         Jill_obj_rgb(&Result_obj[9], 0x404040);
         Result_obj[23].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[10], &Result_merc_spr[13], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 9)) {
+    if (Flg_ck(G.Game_flg, 9)) {
         Jill_obj_rgb(&Result_obj[10], 0x404040);
         Result_obj[24].Flg |= SEL_OBJ_ON;
     }
@@ -451,7 +451,7 @@ void Result_merc_clear_init(RESULT_WORK *pWk)
     Jill_obj_init(&Result_obj[16], &Result_merc_spr[17], 0x01F00016, 0x808080);
     Result_obj[16].pOya = &Result_obj[5];
     pWk->Bonus = 0;
-    if (Flg_ck(G.Unk7868, 0x18)) {
+    if (Flg_ck(G.Scenario_flg, 0x18)) {
         pWk->Bonus = 100;
     }
     Result_merc_grade_set(pWk);
@@ -595,7 +595,7 @@ void Result_shop(RESULT_WORK *pWk)
         Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[pWk->Cursor + 1]], 0);
         pWk->Routine_2 = 1;
     case 1:
-        if (G.Unk20FC & 0x8000) {
+        if (G.Padd_trg & 0x8000) {
             if (--pWk->Cursor < 0) {
                 pWk->Cursor = 4;
             }
@@ -605,7 +605,7 @@ void Result_shop(RESULT_WORK *pWk)
             Result_obj[12].Flg |= SEL_OBJ_BLINK | SEL_OBJ_REQ;
             Snd_se_stad(4, 0, 0, 0);
         }
-        if (G.Unk20FC & 0x2000) {
+        if (G.Padd_trg & 0x2000) {
             if (++pWk->Cursor >= 5) {
                 pWk->Cursor = 0;
             }
@@ -624,7 +624,7 @@ void Result_shop(RESULT_WORK *pWk)
                 pWk->Routine_0++;
                 Snd_se_stad(6, 0, 0, 0);
                 Moji.Mess_flg = 0;
-            } else if (Flg_ck(Gr.Unk77F8, Result_shop_flg[pWk->Cursor])) {
+            } else if (Flg_ck(Gr.Game_flg, Result_shop_flg[pWk->Cursor])) {
                 Moji.Mess_flg = 0;
                 Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[7]], 0);
                 Snd_se_stad(7, 0, 0, 0);
@@ -642,12 +642,12 @@ void Result_shop(RESULT_WORK *pWk)
         break;
     case 2:
         if (!(Moji.Mess_flg & 0x80)) {
-            switch (Gr.Unk7848) {
+            switch (Gr.Mess_sel) {
             case 0:
                 pWk->Routine_2 = 3;
                 pWk->Count = Result_shop_price[pWk->Cursor];
                 pWk->Timer = 0;
-                Flg_on(Gr.Unk77F8, Result_shop_flg[pWk->Cursor]);
+                Flg_on(Gr.Game_flg, Result_shop_flg[pWk->Cursor]);
                 Jill_obj_rgb(&Result_obj[pWk->Cursor + 7], 0x404040);
                 Result_obj[pWk->Cursor + 21].Flg |= SEL_OBJ_ON;
                 Snd_se_stad(0xB, 0, 0, 0);
@@ -782,22 +782,22 @@ void Result_merc_fail_init(RESULT_WORK *pWk)
     Jill_obj_init(&Result_obj[24], &Result_merc_spr[21], 0x01F10017, 0x808080);
     Result_obj[24].Flg &= ~SEL_OBJ_ON;
     Jill_obj_init(&Result_obj[7], &Result_merc_spr[10], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 8)) {
+    if (Flg_ck(G.Game_flg, 8)) {
         Jill_obj_rgb(&Result_obj[7], 0x404040);
         Result_obj[21].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[8], &Result_merc_spr[11], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 7)) {
+    if (Flg_ck(G.Game_flg, 7)) {
         Jill_obj_rgb(&Result_obj[8], 0x404040);
         Result_obj[22].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[9], &Result_merc_spr[12], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 6)) {
+    if (Flg_ck(G.Game_flg, 6)) {
         Jill_obj_rgb(&Result_obj[9], 0x404040);
         Result_obj[23].Flg |= SEL_OBJ_ON;
     }
     Jill_obj_init(&Result_obj[10], &Result_merc_spr[13], 0x01F10017, 0x808080);
-    if (Flg_ck(G.Unk77F8, 9)) {
+    if (Flg_ck(G.Game_flg, 9)) {
         Jill_obj_rgb(&Result_obj[10], 0x404040);
         Result_obj[24].Flg |= SEL_OBJ_ON;
     }
@@ -1005,7 +1005,7 @@ void Result_wait(RESULT_WORK *pWk)
     if (G.Key_trg & 0x3000) {
         pWk->Routine_0 = 2;
     }
-    if (G.Unk20FC & 0x800) {
+    if (G.Padd_trg & 0x800) {
         pWk->Routine_0 = 2;
     }
 }
@@ -1024,16 +1024,16 @@ void Result_exit(RESULT_WORK *pWk)
     Task_exit();
 }
 
-/* routine 3: background (0x50, or 0x4C when G.Unk7868 bit 0x58 is set) */
+/* routine 3: background (0x50, or 0x4C when G.Scenario_flg bit 0x58 is set) */
 void Result_bg_load(void)
 {
-    Cd_read(!Flg_ck(Gr.Unk7868, 0x58) ? 0x50 : 0x4C, (ULONG *)0x8019C000, 0, "RESULT BG");
+    Cd_read(!Flg_ck(Gr.Scenario_flg, 0x58) ? 0x50 : 0x4C, (ULONG *)0x8019C000, 0, "RESULT BG");
     Cd_read(0x48, (ULONG *)0x80100000, 0, "RESULT");
     G.Ctp.Tpage_clut = 0xF15;
     Mapping_tim((ULONG *)0x80100000);
 }
 
-/* routine 4: one message, sets G.Unk77F8 bit 5 */
+/* routine 4: one message, sets G.Game_flg bit 5 */
 void Result_bonus(void)
 {
     RESULT_WORK *pWk = &Result_wk;
@@ -1060,7 +1060,7 @@ void Result_bonus_init(RESULT_WORK *pWk)
     Bg_set_mode(2, 0);
     Fade_set(0, 1, 0, 2, 0xFFFFFF, 0, 0xF);
     Snd_se_stad(0x600, 0, 0, 0);
-    Flg_on(G.Unk77F8, 5);
+    Flg_on(G.Game_flg, 5);
     Moji.Mess_flg = 0;
     Mess_set(0xB90000, 0x3402, (ULONG)&Result_mess[Result_mess_ofs[8]], 0);
 }
@@ -1071,7 +1071,7 @@ void Result_bonus_wait(RESULT_WORK *pWk)
     if (G.Key_trg & 0x3000) {
         pWk->Routine_0 = 2;
     }
-    if (G.Unk20FC & 0x800) {
+    if (G.Padd_trg & 0x800) {
         pWk->Routine_0 = 2;
     }
 }
@@ -1129,7 +1129,7 @@ void Result_epilogue_init(RESULT_WORK *pWk)
     Snd_se_stad(0x500, 0, 0, 0);
     Bg_set_mode(2, 0);
     Fade_set(1, 5, 2, 2, 0xFFFFFF, 0xFFFFFF, 1);
-    Flg_on(G.Unk77F8, 5);
+    Flg_on(G.Game_flg, 5);
 }
 
 /* routine 5: "EPILOGUE" title, then the epilogue pictures */
@@ -1170,14 +1170,14 @@ void Result_epilogue_main(RESULT_WORK *pWk)
         break;
     case 4:
         if (G.Key_trg & 0x3000) {
-            if (G.Unk7806 != 7) {
+            if (G.Clear_cnt != 7) {
                 pWk->Routine_0 = 2;
             } else {
                 pWk->Routine_1 = 5;
             }
         }
-        if (G.Unk20FC & 0x800) {
-            if (G.Unk7806 == 7) {
+        if (G.Padd_trg & 0x800) {
+            if (G.Clear_cnt == 7) {
                 pWk->Routine_1 = 5;
             } else {
                 pWk->Routine_0 = 2;
@@ -1202,7 +1202,7 @@ void Result_epilogue_main(RESULT_WORK *pWk)
         if (G.Key_trg & 0x3000) {
             pWk->Routine_0 = 2;
         }
-        if (G.Unk20FC & 0x800) {
+        if (G.Padd_trg & 0x800) {
             pWk->Routine_0 = 2;
         }
         break;
@@ -1229,7 +1229,7 @@ void Result_epilogue_exit(RESULT_WORK *pWk)
 /* routine 5: background */
 void Result_epilogue_bg_load(void)
 {
-    Result_ombg_load((ULONG *)0x8019C000, G.Unk7806);
+    Result_ombg_load((ULONG *)0x8019C000, G.Clear_cnt);
 }
 
 #include "ovl/common/jill_sel/Jill_obj_init.inc.c"
@@ -1238,7 +1238,7 @@ void Result_epilogue_bg_load(void)
 
 #include "ovl/common/jill_sel/Jill_obj_rgb.inc.c"
 
-/* main game grade from the number of saves, the play time and Unk7E94 */
+/* main game grade from the number of saves, the play time and Cure_total */
 void Result_grade_set(RESULT_WORK *pWk)
 {
     ULONG Time_pt;
@@ -1310,7 +1310,7 @@ void Result_grade_set(RESULT_WORK *pWk)
     if (Val <= 0x83D24) {
         Time_pt = 100;
     }
-    Val = Gr.Unk7E94;
+    Val = Gr.Cure_total;
     Unk_pt = 0;
     if (Val < 0xCE5) {
         Unk_pt = 10;

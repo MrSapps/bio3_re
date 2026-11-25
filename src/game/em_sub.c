@@ -1095,14 +1095,14 @@ void Now_seq_set(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
 void Em_dead_flg_on_cand(ENEMY_WORK *pEm)
 {
     if (G.System_flg & 0x80) {
-        if (Flg_ck(G.Unk7890, pEm->Em_set_flg) == 0) {
+        if (Flg_ck(G.Enemy_flg, pEm->Em_set_flg) == 0) {
             Em_kill_score(pEm->Id, 0);
         }
-        Flg_on(G.Unk7890, pEm->Em_set_flg);
-    } else if (G.Unk783E >= 2) {
-        Flg_on(G.Unk78B0, pEm->Em_set_flg);
+        Flg_on(G.Enemy_flg, pEm->Em_set_flg);
+    } else if (G.Stage_no >= 2) {
+        Flg_on(G.Enemy_flg2, pEm->Em_set_flg);
     } else {
-        Flg_on(G.Unk7890, pEm->Em_set_flg);
+        Flg_on(G.Enemy_flg, pEm->Em_set_flg);
     }
 }
 
@@ -1246,12 +1246,12 @@ void Esp_data_set1(ULONG *pTim)
 
     pTop = (UCHAR *)pTim;
     n = *pTim++;
-    G.Unk2113 = 0;
+    G.Esp_clut_num = 0;
     for (i = 0; i < n; i++, pTim++) {
         p = (ULONG *)(pTop + *pTim);
         LoadImage((RECT *)p, p + 2);
-        if (G.Unk2113 == 0) {
-            G.Unk2113 = ((UCHAR *)p)[6];
+        if (G.Esp_clut_num == 0) {
+            G.Esp_clut_num = ((UCHAR *)p)[6];
         }
     }
     DrawSync(0);
@@ -1342,7 +1342,7 @@ void Esp_task_main(void)
     ESP_WORK *pEw;
 
     for (pEw = pEsp_end - 1; pEw >= pEsp_top; pEw--) {
-        if (!(G.Unk2468 & 0x10000000) || pEw->Id.B[0] == 0x15 || pEw->Id.B[0] == 0x1B) {
+        if (!(G.Stop_flg & 0x10000000) || pEw->Id.B[0] == 0x15 || pEw->Id.B[0] == 0x1B) {
             if (pEw->Be_flg & 0x8000) {
                 if (pEw->pLink != NULL && pEw->pLink->Be_flg == 0) {
                     pEw->Routine_1 = 0;

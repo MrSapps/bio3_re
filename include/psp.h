@@ -46,8 +46,8 @@ typedef struct {
     UCHAR Unk21;                       /* 0x21 shake routine (Rain_wind_move) */
     UCHAR Unk22;                       /* 0x22 frames of the current step */
     UCHAR Unk23;                       /* 0x23 frame counter */
-    SHORT Unk24;                       /* 0x24 start G.Unk75E4 */
-    SHORT Unk26;                       /* 0x26 start G.Unk75E6 */
+    SHORT Unk24;                       /* 0x24 start G.Wind_dir */
+    SHORT Unk26;                       /* 0x26 start G.Wind_pow */
     SHORT Unk28;                       /* 0x28 delta x */
     SHORT Unk2A;                       /* 0x2A delta y */
 } RAIN_WORK;

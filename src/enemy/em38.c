@@ -39,7 +39,7 @@ void Em38_main(ENEMY_WORK *pEm)
         pTv = (VECTOR *)&Em38_root[EM38_W(pEm)->Root_no];
     if (pEm->Type & 1) {
         pTv = &Em38_goal_pos;
-        if (pEm->Pos_x >= -11999 && !Flg_ck(&G.Unk7888, 0x1D))
+        if (pEm->Pos_x >= -11999 && !Flg_ck(G.Room_flg, 0x1D))
             pTv = &Em38_goal_pos2;
     }
     Root_ck(pEm, pTv, 0, 0);
@@ -50,9 +50,9 @@ void Em38_main(ENEMY_WORK *pEm)
     EM38_W(pEm)->Flg &= ~0x80;
     if (!Hit_ck_point4(&pEm->Pos_x, G.Cccut))
         EM38_W(pEm)->Flg |= 0x80;
-    Flg_off(&G.Unk7888, 0x1B);
+    Flg_off(G.Room_flg, 0x1B);
     if (Hit_ck_point4(&pEm->Pos_x, &Em38_cut) && (pEm->Life < 203 || (pEm->Type & 1)))
-        Flg_on(&G.Unk7888, 0x1B);
+        Flg_on(G.Room_flg, 0x1B);
     if (EM38_W(pEm)->Atk_timer)
         EM38_W(pEm)->Atk_timer--;
     if (EM38_W(pEm)->Turn_timer)
@@ -561,7 +561,7 @@ void Em38_walk_br(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 8, 0, 0);
     if (L_pl < 5000 && Ck_600 && !EM38_W(pEm)->Bite_timer)
         EM_SET_RTN(pEm, 1, 6, 0, 0);
-    if (EM38_W(pEm)->Lost_cnt > 60 && !EM38_W(pEm)->Wall_timer && L_pl > 5000 && !Flg_ck(&G.Unk7888, 0x1C))
+    if (EM38_W(pEm)->Lost_cnt > 60 && !EM38_W(pEm)->Wall_timer && L_pl > 5000 && !Flg_ck(G.Room_flg, 0x1C))
         EM_SET_RTN(pEm, 1, 0xA, 0, 0);
 }
 
@@ -1257,7 +1257,7 @@ void Em38_climb(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0;
         EM38_W(pEm)->Flg |= 2;
-        Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+        Base = !Flg_ck(G.Room_flg, 0x1D) << 2;
         k = Base;
         for (n = 4; n != 0; n--) {
             if (Hit_ck_point4(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[k]))) {
@@ -1331,7 +1331,7 @@ void Em38_climb(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!Hit_ck_point4(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Root_no])) && !pEm->Timer0) {
             pEm->Routine_2 = 1;
             pEm->Timer0 = 30;
-            Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+            Base = !Flg_ck(G.Room_flg, 0x1D) << 2;
             n = 4;
             k = Base;
             for (; n != 0; n--) {
@@ -1437,7 +1437,7 @@ void Em38_drop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0;
         EM38_W(pEm)->Flg |= 2;
-        Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+        Base = !Flg_ck(G.Room_flg, 0x1D) << 2;
         k = Base;
         for (n = 4; n != 0; n--) {
             if (Hit_ck_point4(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[k + 8]))) {
@@ -1505,7 +1505,7 @@ void Em38_drop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!Hit_ck_point4(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Root_no])) && !pEm->Timer0) {
             pEm->Routine_2 = 1;
             pEm->Timer0 = 30;
-            Base = !Flg_ck(&G.Unk7888, 0x1D) << 2;
+            Base = !Flg_ck(G.Room_flg, 0x1D) << 2;
             n = 4;
             k = Base;
             for (; n != 0; n--) {
@@ -1596,7 +1596,7 @@ void Em38_burrow_br(ENEMY_WORK *pEm)
         Dx = (pV->vx - pEm->Pos_x) >> 1;
         Dz = (pV->vz - pEm->Pos_z) >> 1;
         if (SquareRoot0(Dx * Dx + Dz * Dz) * 2 < 901) {
-            Flg_on(&G.Unk7888, 0x1F);
+            Flg_on(G.Room_flg, 0x1F);
             pEm->Routine_2 = 2;
         }
     }
@@ -1604,7 +1604,7 @@ void Em38_burrow_br(ENEMY_WORK *pEm)
         Dx = (pV->vx - pEm->Pos_x) >> 1;
         Dz = (pV->vz - pEm->Pos_z) >> 1;
         if (SquareRoot0(Dx * Dx + Dz * Dz) * 2 > 2499) {
-            Flg_off(&G.Unk7888, 0x1F);
+            Flg_off(G.Room_flg, 0x1F);
             pEm->Routine_2 = 0;
         }
     }

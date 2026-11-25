@@ -268,7 +268,7 @@ void Em23_seq_sound(ENEMY_WORK *pEm)
         Pos.vx = pEm->Pos_x;
         Pos.vy = pEm->Pos_y;
         Pos.vz = pEm->Pos_z;
-        if (G.Unk783E == 4 && G.Unk7840 == 7 && pEm->Water)
+        if (G.Stage_no == 4 && G.Room_no == 7 && pEm->Water)
             Snd_se_stad(0x10208, &Pos, 0, 0);
     }
     Snd_se_enem(No, pEm);
@@ -305,7 +305,7 @@ void Em23_mv00_br(ENEMY_WORK *pEm)
     LONG T;
 
     Em23_root_stop_();
-    if (G.Unk75E8 & 7) {
+    if (G.Room_player_flg & 7) {
         EF(pEm)->Timer = 90;
         EM_SET_RTN(pEm, 1, 1, 0, 0);
     }
@@ -359,7 +359,7 @@ void Em23_mv01_br(ENEMY_WORK *pEm)
 /* turn towards Dest_x/Dest_z, faster the faster it moves */
 void Em23_goto_dest(ENEMY_WORK *pEm)
 {
-    if (G.Unk75E8 & 7) {
+    if (G.Room_player_flg & 7) {
         EF(pEm)->Timer = 90;
     } else if (--EF(pEm)->Timer == 0) {
         EM_SET_RTN(pEm, 1, 0, 0, 0);
@@ -2394,7 +2394,7 @@ void Em23_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EF(pEm)->Step_y = 0;
             EF(pEm)->Mode = 0;
             pEm->Pos_y = pEm->Ground;
-            if (pEm->Water && G.Unk783E == 4 && G.Unk7840 == 7) {
+            if (pEm->Water && G.Stage_no == 4 && G.Room_no == 7) {
                 Pos.vx = pEm->Pos_x;
                 Pos.vy = pEm->Pos_y;
                 Pos.vz = pEm->Pos_z;
@@ -2542,7 +2542,7 @@ void Em23_mv12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 6:
         EM_SET_MOVE(pEm, 0xA, 0, 7);
         Spd_get(pEm, pKan, pSeq, 0);
-        if (pEm->Water && G.Unk783E == 4 && G.Unk7840 == 7) {
+        if (pEm->Water && G.Stage_no == 4 && G.Room_no == 7) {
             Pos.vx = pEm->Pos_x;
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
@@ -2807,8 +2807,8 @@ void Em23_root_stop(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = G_PLAYER;
 
-    if ((((LONG)pEm->L_pl < 3000 && ((G.Unk75E8 & 6) || Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100)))
-            || ((LONG)pEm->L_pl < 5000 && (G.Unk75E8 & 4)))
+    if ((((LONG)pEm->L_pl < 3000 && ((G.Room_player_flg & 6) || Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100)))
+            || ((LONG)pEm->L_pl < 5000 && (G.Room_player_flg & 4)))
         && (EF(pEm)->Flg & 8)) {
         if (EF(pEm)->Flg & 7)
             EF(pEm)->Flg &= 7;

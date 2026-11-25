@@ -124,7 +124,7 @@ void Door_texture_load(void)
     pCd = &CD;
     Door_no = ((UCHAR *)G.pSce_aot_on)[0xC];
     pDoor_info = &Dinfo[Door_no];
-    File_no = Door_file_tbl[G.Unk783E][Door_no];
+    File_no = Door_file_tbl[G.Stage_no][Door_no];
     Sector = floc[File_no].sector + floc[File_no].sec_high * 0x10000 + pDoor_info->Sector_offset;
     pCd->Fsum = pDoor_info->Data_sum;
     pCd->Fsize = pDoor_info->Data_size;
@@ -217,7 +217,7 @@ void Door_snd_trans(void)
     }
     Sound_size = pDoor_info->Sound_size;
     Sum = pDoor_info->Sound_sum;
-    File_no = Door_file_tbl[G.Unk783E][Door_no];
+    File_no = Door_file_tbl[G.Stage_no][Door_no];
     Address = (ULONG *)((UCHAR *)0x8019D000 - Sound_size);
     pCd->Fsector = floc[File_no].sector + floc[File_no].sec_high * 0x10000;
     pCd->Fsum = Sum;

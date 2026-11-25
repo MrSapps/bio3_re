@@ -27,8 +27,8 @@ LONG Init_movie_work(ULONG Id)
     if (pTbl->Attribute & 8) {
         pSnd->Fade_mask = 0x80;
         pSnd->Fade_step = pSnd->Fade_vol = 0x3FFF;
-        pWork->Save_flg = G.Unk2468;
-        G.Unk2468 |= 0xFF000000;
+        pWork->Save_flg = G.Stop_flg;
+        G.Stop_flg |= 0xFF000000;
     }
     pMovie_result = Ret_Value;
     pVm_frm = (VM_FRAME *)pWork->pFree_work;
@@ -185,7 +185,7 @@ void Movie_main(void)
         if (pWork->Movie_cancel == 0)
             break;
         Pad_set();
-        if (!((USHORT)G.Unk20F8 & pWork->Movie_cancel))
+        if (!((USHORT)G.Padd & pWork->Movie_cancel))
             break;
     default:
         /* error, or skipped with a cancel button */
@@ -259,7 +259,7 @@ void Movie_exit(void)
             Main.Unk18E = 0;
             break;
         case 2:
-            G.Unk2468 = pWork->Save_flg;
+            G.Stop_flg = pWork->Save_flg;
             G.System_flg &= ~0x10000;
             SetDispMask(1);
             break;

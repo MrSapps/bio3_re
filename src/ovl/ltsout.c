@@ -9,7 +9,7 @@ LONG Rnd_l(void) __asm__("Rnd"); /* int here (implicit declaration): Rnd() % 10 
 void Lts_main(void)
 {
     tagGLOBAL *pG = &G;
-    LTS_EVT *pEvt = pG->pUnk21DC;
+    LTS_EVT *pEvt = pG->pAot_dat;
     LTS_WORK *pLw;
     ULONG i;
     TILE *pT;
@@ -34,9 +34,9 @@ void Lts_main(void)
     pG->Status_flg |= 0x400000;
     pLw->Flg_no = pEvt->Flg_no;
     pLw->Stage = 0;
-    if (Flg_ck(&pG->Unk7888, 8))
+    if (Flg_ck(pG->Room_flg, 8))
         pLw->Stage = 1;
-    if (Flg_ck(&pG->Unk7888, 9))
+    if (Flg_ck(pG->Room_flg, 9))
         pLw->Stage = 2;
     Pos.vy = -0x7B9;
     Pos.vz = -0x3C8C;
@@ -158,13 +158,13 @@ void Lts_ctr(void)
             }
             break;
         }
-        if (G.Unk2100 & 0x8000) {
+        if (G.Padd_rep & 0x8000) {
             if (pLw->Cursor >= 2) {
                 pLw->Cursor--;
                 Flg = 1;
             }
         }
-        if (G.Unk2100 & 0x2000) {
+        if (G.Padd_rep & 0x2000) {
             if (pLw->Cursor < LTS_SW_NUM) {
                 pLw->Cursor++;
                 Flg = 1;
@@ -196,7 +196,7 @@ void Lts_ctr(void)
                 Snd_se_stad(0x209, NULL, 0, 0);
         }
         if (pLw->Cnt >= 7) {
-            Flg_on(&G.Unk7888, pLw->Stage + 8);
+            Flg_on(G.Room_flg, pLw->Stage + 8);
             if (++pLw->Stage == 3) {
                 pLw->Cnt = 0;
                 pLw->Cnt2 = 0;
@@ -233,7 +233,7 @@ void Lts_ctr(void)
         }
         if (pLw->Cnt >= 9) {
             pLw->Run = 0;
-            Flg_on(G.Unk7868, pLw->Flg_no);
+            Flg_on(G.Scenario_flg, pLw->Flg_no);
         }
         break;
     }
@@ -268,22 +268,22 @@ void Lts_draw(void)
         if (i < LTS_SW_NUM) {
             switch (pLw->Blink) {
             case 0:
-                Flg_off(&G.Cut_flg[G.Cut_no], Bit);
-                Flg_off(&G.Cut_flg[G.Cut_no], Bit + 4);
+                Flg_off(&G.Pri_be_flg[G.Cut_no], Bit);
+                Flg_off(&G.Pri_be_flg[G.Cut_no], Bit + 4);
                 break;
             case 1:
                 if (pLw->Lamp[i])
-                    Flg_on(&G.Cut_flg[G.Cut_no], Bit);
+                    Flg_on(&G.Pri_be_flg[G.Cut_no], Bit);
                 else
-                    Flg_off(&G.Cut_flg[G.Cut_no], Bit);
+                    Flg_off(&G.Pri_be_flg[G.Cut_no], Bit);
                 if (i == pLw->Answer)
-                    Flg_on(&G.Cut_flg[G.Cut_no], Bit + 4);
+                    Flg_on(&G.Pri_be_flg[G.Cut_no], Bit + 4);
                 else
-                    Flg_off(&G.Cut_flg[G.Cut_no], Bit + 4);
+                    Flg_off(&G.Pri_be_flg[G.Cut_no], Bit + 4);
                 break;
             case 2:
-                Flg_on(&G.Cut_flg[G.Cut_no], Bit);
-                Flg_on(&G.Cut_flg[G.Cut_no], Bit + 4);
+                Flg_on(&G.Pri_be_flg[G.Cut_no], Bit);
+                Flg_on(&G.Pri_be_flg[G.Cut_no], Bit + 4);
                 break;
             }
         }

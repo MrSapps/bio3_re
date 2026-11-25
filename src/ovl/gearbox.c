@@ -16,7 +16,7 @@ void Gear_main(void)
         if (Gear_wk.Exit)
             break;
         Ot_set_all();
-        pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
+        pG->pPacket = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
     }
@@ -71,7 +71,7 @@ void Gear_line_init(void)
     } while (++i < 2);
 }
 
-/* back to the room camera, sets the puzzle-done flag (G.Unk7888 bit 0x1F) and resumes the game task */
+/* back to the room camera, sets the puzzle-done flag (G.Room_flg[0] bit 0x1F) and resumes the game task */
 void Gear_exit(void)
 {
     G.Cut_no = 2;
@@ -80,7 +80,7 @@ void Gear_exit(void)
     G.Player.Be_flg &= ~0x10;
     Cut_change(2);
     G.Status_flg |= 0x400000;
-    Flg_on(&G.Unk7888, 0x1F);
+    Flg_on(G.Room_flg, 0x1F);
     Task_signal(0);
     Task_exit();
 }
@@ -129,12 +129,12 @@ void Gear_cursor_move(void)
     ULONG Dir;
 
     if (pGw->Move_cnt != 0) {
-        Dir = (G.Unk20FC & 0x1000) ? 0 : 0x80;
-        if (G.Unk20FC & 0x4000)
+        Dir = (G.Padd_trg & 0x1000) ? 0 : 0x80;
+        if (G.Padd_trg & 0x4000)
             Dir = 1;
-        if (G.Unk20FC & 0x2000)
+        if (G.Padd_trg & 0x2000)
             Dir = 2;
-        if (G.Unk20FC & 0x8000)
+        if (G.Padd_trg & 0x8000)
             Dir = 3;
         if (Dir != 0x80 && Gear_dir_tbl[pGw->Cursor][Dir] != -1) {
             Snd_se_stad(4, NULL, 0, 0);
@@ -252,7 +252,7 @@ void Gear_turn(void)
     for (t = 0; t < 10; ) {
         t++;
         Ot_set_all();
-        G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+        G.pPacket = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
     }
@@ -289,7 +289,7 @@ void Gear_turn(void)
         }
         t++;
         Ot_set_all();
-        G.pUnk208C = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
+        G.pPacket = (POLY_GT4 *)((ULONG *)G.pEm_mem + G.Cbuf_id * 13);
         Om_trans();
         Task_sleep(1);
     }

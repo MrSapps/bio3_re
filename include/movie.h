@@ -46,7 +46,7 @@ typedef struct tagVM_WORK {
     ULONG Start_sector;                /* 0x20 */
     USHORT Movie_cancel;               /* 0x24 */
     USHORT pad26;
-    ULONG Save_flg;                    /* 0x28 G.Unk2468 saved while the movie plays */
+    ULONG Save_flg;                    /* 0x28 G.Stop_flg saved while the movie plays */
     UCHAR Movie_id;                    /* 0x2C RE2 G.Movie_id */
     UCHAR Padoff_stop;                 /* 0x2D RE2 Main.Padoff_stop_flg[1][1] */
     UCHAR Movie_Isrgb24;               /* 0x2E RE2 G.Movie_Isrgb24 */

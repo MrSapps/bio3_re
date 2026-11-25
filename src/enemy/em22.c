@@ -549,7 +549,7 @@ LONG Em22_ceil_ck(ENEMY_WORK *pEm)
     PARTS_W *pP = &pEm->pSin_parts_ptr[11];
     LONG Ceil;
 
-    if ((pEm->Type & 0x100) && Flg_ck(&G.Unk7888, 0x1F))
+    if ((pEm->Type & 0x100) && Flg_ck(G.Room_flg, 0x1F))
         return 1;
     if (__builtin_abs(pEm->nFloor - Pl_work.nFloor) >= 2)
         return 1;
@@ -564,7 +564,7 @@ LONG Em22_floor_ok_ck(ENEMY_WORK *pEm)
 
     if (__builtin_abs(pEm->nFloor - pG->Player.nFloor) >= 2)
         return 0;
-    if ((pEm->Type & 0x100) && Flg_ck(&pG->Unk7888, 0x1F))
+    if ((pEm->Type & 0x100) && Flg_ck(pG->Room_flg, 0x1F))
         return 0;
     return 1;
 }
@@ -736,7 +736,7 @@ void Em22_mv_jump_atck(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         if (pEm->Move_cnt == 9) {
             if (((pEm->Type & 0xF) == 4 && !EM22_W(pEm)->Unk13)
-                || (G.Unk783E == 4 && G.Unk7840 == 7 && pEm->Water)) {
+                || (G.Stage_no == 4 && G.Room_no == 7 && pEm->Water)) {
                 V.vx = pEm->Pos_x;
                 V.vy = pEm->Pos_y;
                 V.vz = pEm->Pos_z;
@@ -2253,7 +2253,7 @@ void Em22_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM22_W(pEm)->Dm_r3 = 0;
             EM22_W(pEm)->Dm_r2 = 0;
             pEm->Be_flg |= 0x80000;
-            if ((G.Unk75E8 & 8) && !(Rnd_l() & 1) && EM22_W(pEm)->Unk16 != 0xFF) {
+            if ((G.Room_player_flg & 8) && !(Rnd_l() & 1) && EM22_W(pEm)->Unk16 != 0xFF) {
                 if (Side && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x80) && EM22_W(pEm)->Unk28
                     && Em22_rtn_free_ck(pEm, 0x401) && (pEm->Status_flg & 0x2000)) {
                     EM_SET_RTN(pEm, 1, 4, 0, 0);
@@ -3126,7 +3126,7 @@ void Em22_foot_se(ENEMY_WORK *pEm)
     No = pSeq >> 12;
     if ((pEm->Type & 0xF) == 4)
         Stad = !EM22_W(pEm)->Unk13;
-    if (G.Unk783E == 4 && G.Unk7840 == 7 && pEm->Water)
+    if (G.Stage_no == 4 && G.Room_no == 7 && pEm->Water)
         Stad = 1;
     if (Stad) {
         V.vx = pEm->Pos_x;

@@ -32,23 +32,23 @@ void Ending_game(void)
     Task_lexecute(1, 0xB);
     Task_sleep(1);
     Moji.Mess_flg = 0;
-    G.Unk2115 = 3;
+    G.Ovl_mode = 3;
     Task_lexecute(1, 8);
     Task_sleep(1);
-    if (!Flg_ck(G.Unk77F8, 5)) {
-        G.Unk2115 = 4;
+    if (!Flg_ck(G.Game_flg, 5)) {
+        G.Ovl_mode = 4;
         Task_lexecute(1, 8);
         Task_sleep(1);
     }
-    if (!Flg_ck(G.Unk77F8, 1) || !Flg_ck(G.Unk77F8, 2) || !Flg_ck(G.Unk77F8, 3) ||
-        !Flg_ck(G.Unk77F8, 4) || !Flg_ck(G.Unk77F8, 0)) {
-        if (G.Save_cnt != 0 && (!(G.System_flg & 0x100) || !Flg_ck(G.Unk77F8, 10))) {
+    if (!Flg_ck(G.Game_flg, 1) || !Flg_ck(G.Game_flg, 2) || !Flg_ck(G.Game_flg, 3) ||
+        !Flg_ck(G.Game_flg, 4) || !Flg_ck(G.Game_flg, 0)) {
+        if (G.Save_cnt != 0 && (!(G.System_flg & 0x100) || !Flg_ck(G.Game_flg, 10))) {
             Task_lexecute(1, 7);
             Task_sleep(1);
         }
     }
-    if (!(G.System_flg & 0x100) && G.Unk7806 < 8) {
-        G.Unk2115 = 5;
+    if (!(G.System_flg & 0x100) && G.Clear_cnt < 8) {
+        G.Ovl_mode = 5;
         Task_lexecute(1, 8);
         Task_sleep(1);
     }
@@ -66,7 +66,7 @@ void Ending_game(void)
 /* plays ending movie 10, or 11 when scenario flag 0x58 is set, and waits for it */
 void Ending_movie(void)
 {
-    if (!Flg_ck(G.Unk7868, 0x58)) {
+    if (!Flg_ck(G.Scenario_flg, 0x58)) {
         Init_movie_work(10);
         while (G.System_flg & 0x10000) {
             Task_sleep(1);
@@ -82,7 +82,7 @@ void Ending_movie(void)
 /* Mercenaries run end (System_flg 0x80): result routine 1, then Retry_load */
 void Ending_load(void)
 {
-    G.Unk2115 = 1;
+    G.Ovl_mode = 1;
     Task_lexecute(1, 8);
     Task_sleep(1);
     Retry_load();
@@ -95,5 +95,5 @@ void Ending_next_game(void)
     G.Save_area = 0x1C;
     G.Next_cut_no = G.Cut_no;
     Retry_file_load((ULONG *)0x80100000);
-    G.Unk7806++;
+    G.Clear_cnt++;
 }

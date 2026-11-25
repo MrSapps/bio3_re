@@ -3,7 +3,7 @@
 /*
  * PC_SYS.BIN overlay (loaded at 0x801C2000): the in-game computer terminals.
  * A window zooms open, text is typed out on a 30 x 12 character screen, and a
- * 10 x 3 on-screen keyboard reads passwords. The AOT (G.Unk21DC) word at +2
+ * 10 x 3 on-screen keyboard reads passwords. The AOT (G.pAot_dat) word at +2
  * picks the terminal: 0 the R.P.D. STARS notice (safe password), 1 the hospital
  * "Umbrella Security System" (medical storage room lock).
  */

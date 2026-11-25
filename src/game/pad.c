@@ -7,8 +7,8 @@
 #include "sce_at.h"
 
 /* RE2 Padd_trg / Padd_rep are ULONG; tagGLOBAL has USHORT views (lhu readers elsewhere) */
-#define PADD_TRG(pG) (*(ULONG *)&(pG)->Unk20FC)
-#define PADD_REP(pG) (*(ULONG *)&(pG)->Unk2100)
+#define PADD_TRG(pG) (*(ULONG *)&(pG)->Padd_trg)
+#define PADD_REP(pG) (*(ULONG *)&(pG)->Padd_rep)
 
 /* RE2 Pad_set: reads pad 0 (type, analog stick, actuators), builds held/trigger/repeat keys */
 void Pad_set(void)
@@ -58,7 +58,7 @@ accepted:
     PadActData[1] = 0;
     PadActData[0] = 0;
     Pad_type_old = pG->Pad_type;
-    if (pG->Unk2488 == 0) {
+    if (pG->Pause_flg == 0) {
         if ((!(Moji.Mess_flg & 0x80) || (G.Status_flg & STAT_CINESCO)) && !(G.System_flg & 0x10000000)) {
             Work = SetPadActData(Vib_req0);
             Work2 = SetPadActData(Vib_req1);
@@ -76,42 +76,42 @@ accepted:
         PadActData[0] = 0;
     }
     pKey = Key_type[Main.Unk195];
-    PADD_TRG(pG) = pG->Unk20F8;
+    PADD_TRG(pG) = pG->Padd;
     if (!(G.System_flg & 0x10000000)) {
         Padd = ~(pG->Padd_data[0][2] << 8 | pG->Padd_data[0][3]);
-        pG->Unk20F8 = (USHORT)Padd;
+        pG->Padd = (USHORT)Padd;
         if (pG->Pad_type == 7) {
             Stk_act = 0;
             if (!(Padd & 0xF000)) {
                 if (Stk_y < 0x30) {
-                    pG->Unk20F8 |= 0x1000;
+                    pG->Padd |= 0x1000;
                 }
                 if (Stk_y > 0xD0) {
-                    pG->Unk20F8 |= 0x4000;
+                    pG->Padd |= 0x4000;
                 }
                 if (Stk_x < 0x50) {
                     if (Stk_x != 0) {
                         Stk_x = 0x50 - Stk_x;
                     }
                     Stk_act = 1;
-                    pG->Unk20F8 |= 0x8000;
+                    pG->Padd |= 0x8000;
                 }
                 if (Stk_x > 0xB0) {
                     if (Stk_x < 0xFF) {
                         Stk_x += 0x50;
                     }
                     Stk_act |= 1;
-                    pG->Unk20F8 |= 0x2000;
+                    pG->Padd |= 0x2000;
                 }
             }
-            if (pG->Unk20F8 & 0x400) {
-                pG->Unk20F8 |= 0x800;
+            if (pG->Padd & 0x400) {
+                pG->Padd |= 0x800;
             }
         }
     } else if (G.System_flg & 0x8000000) {
         Padd = pG->Padd_data[0][2] << 8 | pG->Padd_data[0][3];
-        pG->Unk20F8 = (USHORT)~Padd;
-        Work2 = (PADD_TRG(pG) ^ pG->Unk20F8) & pG->Unk20F8;
+        pG->Padd = (USHORT)~Padd;
+        Work2 = (PADD_TRG(pG) ^ pG->Padd) & pG->Padd;
         switch (Game.Unk4E) {
         case 1:
             if (Game.Pdemo_cnt < Game.pSave->Pdemo_cnt - 0x1F && !(Work2 & 0xC00)) {
@@ -132,10 +132,10 @@ accepted:
         }
         if (Game.Unk4E != 0) {
             pKey = Key_type_demo;
-            *(USHORT *)&G.Unk20F8 = Game.pSave->Padd[Game.Pdemo_cnt++];
+            *(USHORT *)&G.Padd = Game.pSave->Padd[Game.Pdemo_cnt++];
         }
     }
-    Padd = pG->Unk20F8;
+    Padd = pG->Padd;
     pG->Key_old = pG->Key;
     pG->Key = 0;
     Bit = 1;
@@ -146,25 +146,25 @@ accepted:
         Bit <<= 1;
         pKey++;
     } while (Bit & 0xFFFF);
-    if (G.Unk2468 & 0x1000000) {
+    if (G.Stop_flg & 0x1000000) {
         pG->Key &= 0x3000;
-        Pad_work.Stop_bak = pG->Unk2468;
+        Pad_work.Stop_bak = pG->Stop_flg;
     } else if (Pad_work.Stop_bak & 0x1000000) {
         Pad_work.Stop_bak = 0;
         pG->Key_old = pG->Key;
     }
     if (!(G.System_flg & 0x10000000) && pG->Pad_type == 7 && Stk_act) {
         if (Stk_x != 0xFF) {
-            pG->Unk20F8 &= ~0x2000;
+            pG->Padd &= ~0x2000;
             PADD_TRG(pG) &= ~0x2000;
         }
         if (Stk_x != 0) {
-            pG->Unk20F8 &= ~0x8000;
+            pG->Padd &= ~0x8000;
             PADD_TRG(pG) &= ~0x8000;
         }
     }
     PADD_REP(pG) = 0;
-    PADD_TRG(pG) = (PADD_TRG(pG) ^ pG->Unk20F8) & pG->Unk20F8;
+    PADD_TRG(pG) = (PADD_TRG(pG) ^ pG->Padd) & pG->Padd;
     pG->Key_trg = (pG->Key_old ^ pG->Key) & pG->Key;
     if (pW->Num != 0) {
         Work2 = pW->Num;
@@ -175,7 +175,7 @@ accepted:
                 pT[1] = pW->Rep.Time[0];
                 PADD_REP(pG) |= Work;
             }
-            if (pG->Unk20F8 & Work) {
+            if (pG->Padd & Work) {
                 if (pT[1] != 0) {
                     pT[1]--;
                 } else {

@@ -8,8 +8,8 @@
 typedef struct tagKEEP_DATA {
     UCHAR Save_cnt;                    /* 0x00 G.Save_cnt */
     UCHAR Save_slot;                   /* 0x01 G.Save_slot */
-    USHORT G_7806;                     /* 0x02 G.Unk7806 */
-    LONG Game_flg;                     /* 0x04 G.Unk77F8[0] (game mode / unlock flags) */
+    USHORT Clear_cnt;                  /* 0x02 G.Clear_cnt */
+    LONG Game_flg;                     /* 0x04 G.Game_flg[0] (game mode / unlock flags) */
     LONG Merc_time[3];                 /* 0x08 G.Merc_time[] */
     UCHAR Merc_grade[4];               /* 0x14 G.Merc_grade[] */
     LONG Merc_money[3];                /* 0x18 G.Merc_money[] */

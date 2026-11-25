@@ -27,11 +27,11 @@ void Player_move(ENEMY_WORK *pEm)
     SVECTOR sv2;
     PARTS_W *pParts;
 
-    if ((LONG)G.Unk2468 < 0) {
+    if ((LONG)G.Stop_flg < 0) {
         return;
     }
     G.Status_flg &= ~0x40;
-    G.Unk75E8 &= 0xFFE0;
+    G.Room_player_flg &= 0xFFE0;
     if (pEm->Damage_cnt & 0x7F) {
         pEm->Damage_cnt--;
         pEm->Be_flg |= 0x10000000;
@@ -133,7 +133,7 @@ void Pl_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Pl_mv_pad[pEm->Routine_1](pEm, G.Key, G.Key_trg);
     Pl_mv[pEm->Routine_1](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
-    if ((pEm->Status_flg & 0x200) && !(G.Unk2468 & 0x1000000)) {
+    if ((pEm->Status_flg & 0x200) && !(G.Stop_flg & 0x1000000)) {
         if (--G.Pl_poison_timer == -1) {
             G.Pl_poison_timer = 30;
             if (pEm->Life >= 2) {
@@ -372,7 +372,7 @@ void pl_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(0, m * 3 + 11, pEm);
-            G.Unk75E8 |= 2;
+            G.Room_player_flg |= 2;
         }
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
@@ -479,7 +479,7 @@ void pl_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
@@ -619,7 +619,7 @@ void pl_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(0, m * 3 + 11, pEm);
-            G.Unk75E8 |= 2;
+            G.Room_player_flg |= 2;
         }
         break;
     }
@@ -758,7 +758,7 @@ void pl_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(0, m * 3 + 11, pEm);
-            G.Unk75E8 |= 2;
+            G.Room_player_flg |= 2;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -768,7 +768,7 @@ void pl_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 /* Pl_mv_pad 6: quick turn (back to standing when the game is stopped) */
 void pl_mv06_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
 {
-    if (G.Unk2468 & 0x1000000) {
+    if (G.Stop_flg & 0x1000000) {
         EM_SET_RTN(pEm, 1, 0, 0, 0); /* Routine_0 = 1, Routine_1..3 = 0 */
     }
 }
@@ -789,14 +789,14 @@ void pl_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         EM_MOVE(pEm) = n;
         Get_speedXZ(pEm, 0x700, &pEm->Spd_x, &pEm->Spd_z);
         G.Status_flg &= ~0x100;
-        G.Unk75E8 |= 4;
+        G.Room_player_flg |= 4;
         Snd_se_walk(0, 11, pEm);
     case 1:
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x100);
         pEm->Cdir_y += 0x100;
         if (--*((signed char *)pEm + 0xE2) == 0) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
             Snd_se_walk(0, 11, pEm);
         }
         pEm->Pos_x += pEm->Spd_x;
@@ -834,7 +834,7 @@ void pl_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             St.St_type = 1;
             Game.Unk1 = 1;
             G.Status_flg |= 0x200;
-            Game.Stop_bak = G.Unk2468;
+            Game.Stop_bak = G.Stop_flg;
         }
         pEm->Routine_2 = 3;
         break;
@@ -887,7 +887,7 @@ void pl_mv0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         dir = pEm->Cdir_y;
@@ -1023,7 +1023,7 @@ void pl_mv_slope_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -1045,7 +1045,7 @@ void pl_mv_slope_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1144,7 +1144,7 @@ void pl_mv_slope_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n == 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x10200);
         pEm->Be_flg |= 0x2000000;
@@ -1169,7 +1169,7 @@ void pl_mv_slope_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1256,7 +1256,7 @@ void pl_mv_slope_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move(pEm, G.Player.pUnk19C_kan_t_ptr, G.Player.pUnk198_seq_t_ptr, 0x200);
         pEm->Be_flg |= 0x2000000;
@@ -1278,7 +1278,7 @@ void pl_mv_slope_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
         break;
@@ -1417,7 +1417,7 @@ void pl_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Oba_hit_clr(&Pl_work.Col);
         dir = pEm->Cdir_y;
@@ -1467,7 +1467,7 @@ void pl_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Add_speedXZ(pEm, 0);
         Oba_hit_clr(&Pl_work.Col);
@@ -1508,7 +1508,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         Add_speedXZ(pEm, 0);
         Oba_hit_clr(&Pl_work.Col);
@@ -1542,7 +1542,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             n = Flg & 0x400;
             m = n != 0;
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
-            G.Unk75E8 |= 4;
+            G.Room_player_flg |= 4;
         }
         if (pEm->Ground - 300 < pEm->Pos_y) {
             pEm->Routine_3 = 4;
@@ -1565,7 +1565,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt &= 0x7F;
         pEm->Be_flg &= ~0x8000;
         Snd_se_walk(1, 11, pEm);
-        G.Unk75E8 |= 4;
+        G.Room_player_flg |= 4;
     case 5:
         if (pEm->Move_cnt == 6) {
             Snd_se_walk(1, 14, pEm);
@@ -1605,8 +1605,8 @@ void pl_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         Snd_se_stad(0x1000B, POS_V(pEm), 0, 0);
         G.Status_flg |= 0x100;
-        G.Unk75E8 |= 0x1C;
-        G.Unk785E++;
+        G.Room_player_flg |= 0x1C;
+        G.Dodge_cnt++;
         Goto00(pEm, pT->Pos_x, pT->Pos_z, 0x100);
         pEm->UnkE3 = 0;
         pEm->Neck_flg |= 0x12;
@@ -1734,7 +1734,7 @@ void pl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         n = Flg & 0x400;
         m = n != 0;
         Snd_se_walk(1, m * 14, pEm);
-        G.Unk75E8 |= 4;
+        G.Room_player_flg |= 4;
     }
 }
 

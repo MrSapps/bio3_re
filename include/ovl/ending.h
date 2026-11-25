@@ -2,7 +2,7 @@
 #define OVL_ENDING_H
 /*
  * ENDING.BIN (loaded at 0x80194000): ending task. Plays the ending movie, then
- * runs the RESULT overlay screens (G.Unk2115 = result routine) and reloads the
+ * runs the RESULT overlay screens (G.Ovl_mode = result routine) and reloads the
  * game state. Much smaller than RE2 ENDING.C, which drew the ending itself.
  */
 #include "bio3.h"

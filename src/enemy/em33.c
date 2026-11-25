@@ -278,7 +278,7 @@ void Em33_Move_type(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* move 0, 2, 5: wait for flag 31, then come out */
 void Em33_wait_br(ENEMY_WORK *pEm)
 {
-    if (Flg_ck(&G.Unk7888, 31)) {
+    if (Flg_ck(G.Room_flg, 31)) {
         if (++pEm->Timer0 > 30) {
             pEm->Timer0 = 180;
             pEm->Routine_1 = 1;
@@ -986,7 +986,7 @@ void Em33_zone_set(ENEMY_WORK *pEm, LONG Flg)
     Zone[1] = -20090;
     if (func_800101C8(&Pos.vx, Zone))
         EM30_W(pEm)->u10.Side = 1;
-    if (Flg_ck(&G.Unk7888, 0) && Flg_ck(&G.Unk7888, 1)) {
+    if (Flg_ck(G.Room_flg, 0) && Flg_ck(G.Room_flg, 1)) {
         Zone[2] = 2400;
         Zone[3] = 4400;
         Zone[0] = -23650;
@@ -1007,13 +1007,13 @@ void Em33_zone_set(ENEMY_WORK *pEm, LONG Flg)
         EM30_W(pEm)->u10.Side = 3;
     if (Flg) {
         EM30_W(pEm)->Dive_life = pEm->Life;
-        if (Flg_ck(&G.Unk7888, 0)) {
-            if (Flg_ck(&G.Unk7888, 1)) {
+        if (Flg_ck(G.Room_flg, 0)) {
+            if (Flg_ck(G.Room_flg, 1)) {
                 if (EM30_W(pEm)->u10.Side == 2 || EM30_W(pEm)->u10.Side == 4)
                     EM30_W(pEm)->u10.Side = 0;
             } else if (EM30_W(pEm)->u10.Side == 0 || EM30_W(pEm)->u10.Side == 4)
                 EM30_W(pEm)->u10.Side = 2;
-        } else if (Flg_ck(&G.Unk7888, 1)) {
+        } else if (Flg_ck(G.Room_flg, 1)) {
             if (EM30_W(pEm)->u10.Side == 1 || EM30_W(pEm)->u10.Side == 4)
                 EM30_W(pEm)->u10.Side = 3;
         } else if (EM30_W(pEm)->u10.Side < 2)
@@ -1668,14 +1668,14 @@ void Em33_dm_heavy(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     if (pEm->Type & 1) {
         pH = G.pEnemy[EM30_SUB(pEm)->Oya_no];
-        if (!Flg_ck(&G.Unk7888, 0) && EM30_W(pH)->Under != 1) {
+        if (!Flg_ck(G.Room_flg, 0) && EM30_W(pH)->Under != 1) {
             pH->Damage_no = pEm->Damage_no;
             pH->Damage_flg = pEm->Damage_flg;
             pH->Damage_cnt = 10;
             pH->Old_routine = EM_RTN(pH);
             EM_RTN(pH) = EM_RTN(pEm);
             Em30_body_number(pEm);
-            Flg_on(&G.Unk7888, 0);
+            Flg_on(G.Room_flg, 0);
         }
         pEm->Damage_cnt = 10;
         EM_RTN(pEm) = pEm->Old_routine;
@@ -1690,7 +1690,7 @@ void Em33_dm_heavy(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Damage_cnt = 10;
         pEm->Life /= 3;
         Em30_body_number(pEm);
-        Flg_on(&G.Unk7888, 0);
+        Flg_on(G.Room_flg, 0);
     }
     EM_RTN(pEm) = pEm->Old_routine;
     Em30_Move(pEm, pKan, pSeq);

@@ -3,7 +3,7 @@
 /*
  * JILL_SEL.BIN overlay (loaded at 0x801C2000): the "Jill" reward screen after
  * clearing the game. Each clear (G.Save_cnt) unlocks one of the five epilogue
- * files (bits 0-4 of G.Unk77F8); the screen shows Jill on a background with
+ * files (bits 0-4 of G.Game_flg); the screen shows Jill on a background with
  * sprite captions and a message, then fades out on a button press.
  * The sprite objects, the light helper and the model loaders are copies of the
  * SELECT overlay's (see ovl/select.h for SEL_OBJ / SEL_SPRT_DEF).
@@ -18,7 +18,7 @@ typedef struct tagJILL_WORK {
     UCHAR *pHeap;                      /* 0x8 bump pointer for the enemy works */
     UCHAR UnkC;                        /* 0xC */
     UCHAR Open_num;                    /* 0xD epilogue files unlocked now */
-    UCHAR Flg;                         /* 0xE bit 0: first visit (G.Unk77F8 bit 10 was clear) */
+    UCHAR Flg;                         /* 0xE bit 0: first visit (G.Game_flg bit 10 was clear) */
     UCHAR Vloop_bak;                   /* 0xF Main.Vloop on entry */
 } JILL_WORK;
 

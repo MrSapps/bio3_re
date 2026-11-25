@@ -408,17 +408,17 @@ ULONG Sce_em_set(SCE_TASK *pSce)
     ENEMY_WORK *pNext;
 
     D_800E0198 = (SCE_EM_SET *)pSce->Data;
-    if (pG->Unk783E >= 2 && !(pG->System_flg & 0x80))
-        pFlg = pG->Unk78B0;
+    if (pG->Stage_no >= 2 && !(pG->System_flg & 0x80))
+        pFlg = pG->Enemy_flg2;
     else
-        pFlg = pG->Unk7890;
+        pFlg = pG->Enemy_flg;
     if (D_800E0198->Flg_no == 0xFF || !Flg_ck(pFlg, D_800E0198->Flg_no)) {
         if (G.Player.Id < 8) {
             if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Player.Id >= 2)
                 D_800E0198->Id = G.Player.Id + 0x60;
         } else {
-            if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Unk7864 >= 2)
-                D_800E0198->Id = G.Unk7864 + 0x60;
+            if ((D_800E0198->Id == 0x5B || D_800E0198->Id == 0x5F) && G.Pl_id_bak >= 2)
+                D_800E0198->Id = G.Pl_id_bak + 0x60;
         }
         No = D_800E0198->Work_no + 2;
         if (No != 1)
@@ -795,7 +795,7 @@ ULONG Splc_ret(SCE_TASK *pSce)
     pW->Neck_flg = 0;
     pW->Type = (pW->Type & 0xAEFF) | 0x400;
     G.Status_flg |= 0x80000000;
-    pW->Life = G.Unk7852;
+    pW->Life = G.Spl_life;
     pW->Max_life = 200;
     pSce->Data++;
     Oba_hit_clr(&pW->Col);
@@ -875,7 +875,7 @@ ULONG Item_aot_set(SCE_TASK *pSce)
         pG->nSce_aot++;
     }
     pG->Sce_aot[Aot] = (struct tagSCE_AOT *)&pData->Id;
-    if (pG->Unk783E >= 2 && !(pG->System_flg & 0x80)) {
+    if (pG->Stage_no >= 2 && !(pG->System_flg & 0x80)) {
         pFlg = D_8009E418;
     } else {
         pFlg = D_8009E414;
@@ -950,7 +950,7 @@ ULONG Item_aot_set_4p(SCE_TASK *pSce)
         pG->nSce_aot++;
     }
     pG->Sce_aot[Aot] = (struct tagSCE_AOT *)&pData->Id;
-    if (pG->Unk783E >= 2 && !(pG->System_flg & 0x80)) {
+    if (pG->Stage_no >= 2 && !(pG->System_flg & 0x80)) {
         pFlg = D_8009E418;
     } else {
         pFlg = D_8009E414;
@@ -1172,7 +1172,7 @@ ULONG Status_on(SCE_TASK *pSce)
     St_type_a[0] = 0;
     Game.Unk1 = 1;
     G.Status_flg |= 0x200;
-    Game.Stop_bak = G.Unk2468;
+    Game.Stop_bak = G.Stop_flg;
     pSce->Data++;
     return 1;
 }
@@ -1224,7 +1224,7 @@ ULONG Sel_evt_on(SCE_TASK *pSce)
     return 1;
 }
 
-/* places Nemesis' item drops by room (G+0x7DC0 records, D_8009E4D0 room table) */
+/* places Nemesis' item drops by room (G.Chaser_drop records, D_8009E4D0 room table) */
 INCLUDE_ASM("asm/nonmatchings/game/sce2", Chaser_item_set);
 
 /* RE2 Sce_parts_bomb: makes part Parts fly off (colour R, G, B and speeds W[]) */
@@ -1301,7 +1301,7 @@ ULONG Cut_flg_set(SCE_TASK *pSce)
 
     pData = pSce->Data;
     pSce->Data = pData + 4;
-    if (G.Unk2470 != 0) {
+    if (G.Ot_sub_num != 0) {
         p = G.pRoom->pUnk40;
         if (((USHORT *)p)[1] <= G.Cut_no) {
             return 1;
@@ -1438,7 +1438,7 @@ ULONG Sce_em_reset(SCE_TASK *pSce)
     return 1;
 }
 
-/* adds room id (USHORT +2) to the Nemesis room list G.Unk7E24 (when chasing) */
+/* adds room id (USHORT +2) to the Nemesis room list G.Chaser_room_list (when chasing) */
 ULONG Ahead_room_set(SCE_TASK *pSce)
 {
     UCHAR i;
@@ -1449,8 +1449,8 @@ ULONG Ahead_room_set(SCE_TASK *pSce)
         return 1;
     }
     for (i = 0; i < 8; i++) {
-        if ((USHORT)pG->Unk7E24[i] == 0) {
-            pG->Unk7E24[i] = ((USHORT *)pSce->Data)[1];
+        if ((USHORT)pG->Chaser_room_list[i] == 0) {
+            pG->Chaser_room_list[i] = ((USHORT *)pSce->Data)[1];
             break;
         }
     }
@@ -1495,7 +1495,7 @@ ULONG Sce_map_open(SCE_TASK *pSce)
     ULONG x;
 
     St.St_type = 4;
-    Game.Stop_bak = G.Unk2468;
+    Game.Stop_bak = G.Stop_flg;
     x = pSce->Data[2];
     G.Status_flg |= 0x200;
     Game.Unk1 = 1;
