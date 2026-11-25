@@ -980,3 +980,13 @@ Near misses (paths under the agentM scratchpad):
   pseudos need a longer summed life (cse sharing across the UNDER/FRONT blocks?).
 - om.c keeps private copies of struct tagSCE_AOT and PW_FREE (sce_at.c / joint.c have the same); sce0.c's SCE_AOT view
   differs (signed nFloor, Data[4], pParts), so they were not unified.
+- em38 Em38_sce03 (dscore 3 / 7 words, agentO/em2238/best): left a3-before-a2 arg setup at the first Esp_call of case 5
+  and the `Timer0 |= 0x8000` / `li -800` order in case 6. 210 -> 3 came from local roles: pP/pS/pW split by region,
+  separate once-assigned pM2/pM3/pM4/pM in the kill block, a separate counter `n` for the size loops, `i = 22` first.
+- em22 Em22_mv_jump (15): registers only (&pPl->pSin_parts_ptr[1] and the water-tail parts pointer want a0).
+- em23 Em23_mv0b (35): the target stores Jump_x/Jump_z (and Move_cnt) and reloads them in the same block; ours keeps
+  the register. Not reproduced (`+=`, free-work pointer, SHORT/LONG temps, volatile).
+- em23 Em23_mv03 (89): `do {} while (--N)` frame loops, empty `case 13:`, Cdir stores per Side branch; left Wall_dir
+  copy, `Pos_y + 1600` folded, the reload issue above.
+- Tools: agentO/cdgen.py (greedy one-slot-at-a-time over `{{NAME:a||b}}` templates; gen.py's full cartesian product
+  once wrote 476k files), opd.py (register-blind diff), dscore.py now returns 9999 on any cc1 stderr.
