@@ -940,7 +940,7 @@ void func_80102800(ENEMY_WORK *pEm)
         }
         break;
     }
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
 }
 
 /* where part Parts would be after this frame's motion: move the work by the

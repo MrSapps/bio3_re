@@ -6,7 +6,7 @@
 #include "snd.h"
 
 
-LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54"); /* int-returning alias */
+LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("Sa_morph_blend"); /* int-returning alias */
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here, as in em30 */
 
 /* EM_MAIN */
@@ -431,8 +431,8 @@ LONG func_80101454(ENEMY_WORK *pEm)
         }
         break;
     }
-    func_8004AC54(pEm, &pP[0]);
-    func_8004AC54(pEm, &pP[1]);
+    Sa_morph_blend(pEm, &pP[0]);
+    Sa_morph_blend(pEm, &pP[1]);
     return func_8004AC54_l(pEm, &pP[2]);
 }
 
@@ -450,7 +450,7 @@ void Em30_morph_step(ENEMY_WORK *pEm, LONG Step, LONG Dir)
         if (EM33_SABUN_P(pP)->Key[0].Rate > 0x1000)
             EM33_SABUN_P(pP)->Key[0].Rate = 0x1000;
     }
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
 }
 
 /* fade a body part in: Cnt counts down from 0x40, 8 steps per part (parts 3 and 5 skipped) */

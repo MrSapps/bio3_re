@@ -52,7 +52,7 @@ typedef struct tagEM32_FREE {
 /* shadow polygons: colour + code word of POLY_FT4 */
 #define PRIM_RGBC(p) (*(ULONG *)&(p).r0)
 
-/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c func_8004AC54) */
+/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c Sa_morph_blend) */
 typedef struct tagEM32_SABUN {
     ULONG Ofs;                         /* 0x00 */
     ULONG Size;                        /* 0x04 */

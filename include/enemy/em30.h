@@ -68,7 +68,7 @@ typedef struct tagEM30_SUB_FREE {
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 #define PW_FREE_L(p) ((ULONG *)&(p)->Unk74)
 
-/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c func_8004AC54) */
+/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c Sa_morph_blend) */
 typedef struct tagEM30_SABUN {
     ULONG Ofs;                         /* 0x00 */
     ULONG Size;                        /* 0x04 */

@@ -6,10 +6,10 @@
 #include "oba.h"
 
 void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData);
-void func_8004A934(ENEMY_WORK *pEm, PARTS_W *pP);
-void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP); /* apply the morph keys */
-void func_8004AD94(ENEMY_WORK *pEm, PARTS_W *pP);
-LONG func_8004AF04(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
-LONG func_8004B374(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
+void Sa_morph_step(ENEMY_WORK *pEm, PARTS_W *pP);
+void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP); /* apply the morph keys */
+void Sa_joint_blend(ENEMY_WORK *pEm, PARTS_W *pP);
+LONG Sca_hit_all(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj);
+LONG Pl_floor_ck(COL_ENT *pEnt, ULONG Type, ULONG Arg2);
 
 #endif /* SABUN_H */

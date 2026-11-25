@@ -8,7 +8,7 @@
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");          /* em_sub.c, UCHAR result used as int */
 
-LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54"); /* returns long here (canonical void) */
+LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("Sa_morph_blend"); /* returns long here (canonical void) */
 
 /* RE2 EM_MAIN */
 void func_801000AC(ENEMY_WORK *pEm)
@@ -1694,8 +1694,8 @@ LONG func_80104F20(ENEMY_WORK *pEm)
             }
             break;
         }
-        func_8004AC54(pEm, &pP[0]);
-        func_8004AC54(pEm, &pP[1]);
+        Sa_morph_blend(pEm, &pP[0]);
+        Sa_morph_blend(pEm, &pP[1]);
         return func_8004AC54_l(pEm, &pP[2]);
     }
 }
@@ -1714,7 +1714,7 @@ void Em30_morph_step(ENEMY_WORK *pEm, LONG Step, LONG Dir)
         if (EM30_SABUN_P(pP)->Key[0].Rate > 0x1000)
             EM30_SABUN_P(pP)->Key[0].Rate = 0x1000;
     }
-    func_8004AC54(pEm, pP);
+    Sa_morph_blend(pEm, pP);
 }
 
 /* pick the hole the em30 heads for (Unk19 1 or 9) by its x */

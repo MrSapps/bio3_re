@@ -35,7 +35,7 @@ void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
 }
 
 /* morph step: blends a part's vertices between key Key_no - 1 and Key_no (em34/em36 bodies) */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004A934);
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_morph_step);
 
 /* morph (sabun) data at PARTS_W.pUnk98 */
 typedef struct {
@@ -48,7 +48,7 @@ typedef struct {
 } SA_DATA;
 
 /* weighted morph: base shape plus every target scaled by its Rate (0x1000 = full) */
-void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP)
+void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP)
 {
     SA_DATA *pSa;
     SVECTOR *pVert;
@@ -105,11 +105,11 @@ void func_8004AC54(ENEMY_WORK *pEm, PARTS_W *pP)
 }
 
 /* interpolates the parts' joint offsets between two morph keys with the GTE (gpf/gpl) */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004AD94);
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_joint_blend);
 
 /* collision pass over the room's SCA blocks: calls each shape's hit routine (D_8009DFEC table), then
- * func_8004B374 */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004AF04);
+ * Pl_floor_ck */
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Sca_hit_all);
 
 /* player-only check: floor heights at points around the player (Rot_vector + floor height), sets the hit flags */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", func_8004B374);
+INCLUDE_ASM("asm/nonmatchings/game/sabun", Pl_floor_ck);

@@ -1460,7 +1460,7 @@ void Em34_roar(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pP->Cdir_z += 0x80;
                 RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
             }
-            func_8004A934(pEm, pP);
+            Sa_morph_step(pEm, pP);
         }
         func_80018EC8(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x100))
@@ -1588,7 +1588,7 @@ void Em34_bite(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP->Cdir_z += 0x80;
             RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
         }
-        func_8004A934(pEm, pP);
+        Sa_morph_step(pEm, pP);
         if (pEm->Move_cnt < 100 && pEm->Move_cnt % 7 == 1) {
             Ofs.vx = 0;
             Ofs.vy = 0;

@@ -6,7 +6,7 @@
 #include "snd.h"
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("func_8004A934"); /* 3 args here (canonical 2) */
+void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("Sa_morph_step"); /* 3 args here (canonical 2) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck"); /* returns long here (canonical UC) */
 LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck"); /* arg 3 long (canonical short); arg 4 long (canonical short) */
 
@@ -3919,7 +3919,7 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             }
             break;
         }
-        func_8004A934(pEm, pP);
+        Sa_morph_step(pEm, pP);
         pP++;
     } while (--i);
 }

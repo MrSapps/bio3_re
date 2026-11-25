@@ -52,7 +52,7 @@ typedef struct tagEM36_FREE {
     UCHAR Unk2A;                       /* 0x2A (0x1F6) timer */
 } EM36_FREE;
 
-/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c func_8004AC54) */
+/* morph (sabun) data at PARTS_W.pUnk98: key weights, 0x1000 = full (sabun.c Sa_morph_blend) */
 typedef struct tagEM36_SABUN {
     ULONG Ofs;                         /* 0x00 */
     ULONG Size;                        /* 0x04 */
@@ -65,7 +65,7 @@ typedef struct tagEM36_SABUN {
 } EM36_SABUN;
 #define EM36_SABUN_P(pP) ((EM36_SABUN *)(pP)->pUnk98)
 
-/* PARTS_W free work of the morphing body parts (func_8004A934 blends keys Key_no - 1 and Key_no) */
+/* PARTS_W free work of the morphing body parts (Sa_morph_step blends keys Key_no - 1 and Key_no) */
 typedef struct tagEM36_PARTS_FREE {
     UCHAR Key_no;                      /* 0x74 */
     UCHAR Unk01;                       /* 0x75 */
