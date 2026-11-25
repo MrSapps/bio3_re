@@ -7,6 +7,11 @@
 #include "sld.h"
 #include "snd.h"
 
+/*
+ * ESP_R.C (RE2 ESP_R.C): the second half of the effect routines (Esp_tblj slots 0x21..0x3F) and
+ * the sprite drawing of the effect pool (Esp_trans_main). The first half is at the end of em_sub.c.
+ */
+
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
 #define gte_ldsv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 2(%0); lhu $14, 4(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
@@ -35,6 +40,7 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
+/* Esp_tblj 0x21 effect routine */
 void Esp_21(ESP_WORK *pEsp)
 {
     ESP_WORK *pNew;
@@ -89,6 +95,7 @@ typedef struct tagESP_PRM4B8 {
     SHORT pad;
 } ESP_PRM4B8;
 
+/* Esp_tblj 0x22 effect routine */
 void Esp_22(ESP_WORK *pEsp)
 {
     ESP_PRM4B8 Tbl[4] = {
@@ -123,6 +130,7 @@ void Esp_22(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x23 effect routine */
 void Esp_23(ESP_WORK *pEsp)
 {
     ESP_WORK *pNew;
@@ -140,6 +148,7 @@ void Esp_23(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x24 effect routine */
 void Esp_24(ESP_WORK *pEsp)
 {
     SHORT Tbl[3][4] = { { 2, 0, 50, -50 }, { 4, 0xE00, 60, -80 }, { 2, 0xA00, 70, -100 } };
@@ -165,6 +174,7 @@ void Esp_24(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x25 effect routine */
 void Esp_25(ESP_WORK *pEsp)
 {
     ESP_WORK *pNew;
@@ -196,6 +206,7 @@ void Esp_25(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x26 effect routine */
 void Esp_26(ESP_WORK *pEsp)
 {
     if (pEsp->UnkBA < 0x14) {
@@ -209,6 +220,7 @@ void Esp_26(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x27 effect routine */
 void Esp_27(ESP_WORK *pEsp)
 {
     SHORT y;
@@ -254,6 +266,7 @@ void Esp_27(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x28 effect routine */
 void Esp_28(ESP_WORK *pEsp)
 {
     UCHAR Tbl[5] = { 4, 5, 0, 0, 7 };
@@ -398,6 +411,7 @@ void Esp_29(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x2A effect routine */
 void Esp_2a(ESP_WORK *pEsp)
 {
     HIT_REQ Hit;
@@ -432,6 +446,7 @@ void Esp_2a(ESP_WORK *pEsp)
     pEsp->UnkB4++;
 }
 
+/* Esp_tblj 0x2B effect routine */
 void Esp_2b(ESP_WORK *pEsp)
 {
     if (pEsp->UnkB4 >= 3) {
@@ -441,24 +456,31 @@ void Esp_2b(ESP_WORK *pEsp)
     pEsp->UnkB4++;
 }
 
+/* Esp_tblj 0x2C effect routine */
 void Esp_2c(void) {
 }
 
+/* Esp_tblj 0x2D effect routine */
 void Esp_2d(void) {
 }
 
+/* Esp_tblj 0x2E effect routine */
 void Esp_2e(void) {
 }
 
+/* Esp_tblj 0x2F effect routine */
 void Esp_2f(void) {
 }
 
+/* Esp_tblj 0x30 effect routine */
 void Esp_30(void) {
 }
 
+/* Esp_tblj 0x31 effect routine */
 void Esp_31(void) {
 }
 
+/* Esp_tblj 0x32 effect routine */
 void Esp_32(ESP_WORK *pEsp)
 {
     switch (pEsp->Routine_1) {
@@ -476,6 +498,7 @@ void Esp_32(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x33 effect routine */
 void Esp_33(ESP_WORK *pEsp)
 {
     ULONG Cnt;
@@ -494,6 +517,7 @@ void Esp_33(ESP_WORK *pEsp)
     pEsp->UnkB4++;
 }
 
+/* Esp_tblj 0x34 effect routine */
 void Esp_34(ESP_WORK *pEsp)
 {
     VECTOR Pos;
@@ -574,6 +598,7 @@ void Esp_34(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x35 effect routine */
 void Esp_35(ESP_WORK *pEsp)
 {
     ULONG Size;
@@ -603,9 +628,11 @@ void Esp_35(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x36 effect routine */
 void Esp_36(void) {
 }
 
+/* Esp_tblj 0x37 effect routine */
 void Esp_37(ESP_WORK *pEsp)
 {
     SVECTOR Dir;
@@ -680,6 +707,7 @@ void Esp_37(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x38 effect routine */
 void Esp_38(ESP_WORK *pEsp)
 {
     VECTOR v;
@@ -709,12 +737,15 @@ void Esp_38(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x39 effect routine */
 void Esp_39(void) {
 }
 
+/* Esp_tblj 0x3A effect routine */
 void Esp_3a(void) {
 }
 
+/* Esp_tblj 0x3B effect routine */
 void Esp_3b(ESP_WORK *pEsp)
 {
     ESP_WORK *pNew;
@@ -737,6 +768,7 @@ void Esp_3b(ESP_WORK *pEsp)
     pEsp->UnkB4++;
 }
 
+/* Esp_tblj 0x3C effect routine */
 void Esp_3c(ESP_WORK *pEsp)
 {
     SVECTOR v;
@@ -778,9 +810,11 @@ void Esp_3c(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x3D effect routine */
 void Esp_3d(void) {
 }
 
+/* Esp_tblj 0x3E effect routine */
 void Esp_3e(ESP_WORK *pEsp)
 {
     SHORT Tbl[6][3] = { { 0, 2, 4 }, { 0xFF, 0xFF, 0xFF }, { 1, 3, 5 }, { 0xFF, 0xFF, 0xFF }, { 0, 2, 4 }, { 0xFF, 0xFF, 0xFF } };
@@ -805,6 +839,7 @@ void Esp_3e(ESP_WORK *pEsp)
     }
 }
 
+/* Esp_tblj 0x3F effect routine */
 void Esp_3f(ESP_WORK *pEsp)
 {
     VECTOR v;

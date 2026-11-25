@@ -249,9 +249,9 @@ void func_80016600(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     } else if (pEm->Routine_1 != 20) {
         if (!(Flg & 0x800)) {
             D_80097AA0[pEm->Routine_1](pEm, pKan, pSeq);
-            func_80060464(pEm, pKan, pSeq);
+            Spl_sce_hokan_set(pEm, pKan, pSeq);
         } else {
-            func_8006037C(pEm, pKan, pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200);
+            Spl_sce_hokan(pEm, pKan, pSeq, ((Flg = (R = Flg & 0x80) != 0) << 16) | 0x200);
         }
     }
     if (pEm->Unk144 & 1) {
