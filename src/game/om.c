@@ -774,4 +774,46 @@ end:
     return pG->pOt1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/om", Ot_sub_init);
+/* room OT blocks: Unk2470 extra 0x400-entry OTs per buffer (pOt_sub[][1..]) from the enemy work memory */
+void Ot_sub_init(void)
+{
+    tagGLOBAL *pG;
+    ROOM_WORK *pRoom;
+    USHORT *pData;
+    ULONG n;
+    ULONG i, j;
+
+    pG = &G;
+    pRoom = pG->pRoom;
+    pG->Unk2470 = 0;
+    pData = (USHORT *)pRoom->pUnk40;
+    if (pData == NULL) {
+        return;
+    }
+    n = *pData;
+    if (n == 0) {
+        pRoom->pUnk40 = NULL;
+        return;
+    }
+    j = 0;
+    do {
+        pG->pOt_sub[j][0] = pG->Ot1[j];
+        i = 1;
+        do {
+            pG->pOt_sub[j][i] = (ULONG *)pG->pEm_mem;
+            pG->pEm_mem = (ENEMY_WORK *)((UCHAR *)pG->pEm_mem + 0x1000);
+            i++;
+        } while (i < n + 1);
+        j++;
+    } while (j < 2);
+    pG->Unk2470 = n;
+    i = 0;
+    do {
+        j = 0;
+        do {
+            ClearOTagR(pG->pOt_sub[i][j + 1], 0x400);
+            j++;
+        } while (j < n);
+        i++;
+    } while (i < 2);
+}
