@@ -180,7 +180,6 @@ void Snd_seq_stop_all(void);
 
 extern UCHAR Bgm_room_ofs[];
 extern UCHAR Vab_head_ofs[];
-extern ULONG D_800A1000;
 extern UCHAR Snd_pan_tbl[]; /* pan curve, 0x80 entries */
 extern UCHAR Snd_dist_atten[]; /* attenuation by distance / 250 */
 extern UCHAR D_800A10F4[][0x14];
@@ -191,9 +190,7 @@ extern LONG Snd_pitch_up_tbl[];
 extern LONG Snd_pitch_down_tbl[];
 extern void (*Snd_midi_tbl[])(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG Status);
 extern UCHAR *Snd_edt; /* [3]: sound bank id of the room */
-extern ULONG D_800CC858;
 extern LONG Snd_event;
-extern SHORT D_800E067C;
 extern SpuCommonAttr D_800E10F8;
 
 void Snd_sys_init(void);

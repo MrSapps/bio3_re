@@ -251,7 +251,7 @@ void Snd_cd_mix_set(LONG on)
 /* queues a sound request: code = Mode << 16 | Bank << 8 | No, at pPos (RE2 Snd_se_stad) */
 void Snd_se_stad(ULONG code, void *pPos, SHORT Vol_add, SHORT Note_add)
 {
-    if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(D_800CC858 & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
+    if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(G.System_flg & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
         Snd_work.pReq->Mode = code >> 16;
         Snd_work.pReq->Bank = code >> 8;
         Snd_work.pReq->No = code & 0xFF;
@@ -1711,7 +1711,7 @@ void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
             pW->Bank_id[3].pData = (UCHAR *)(0x3DE10 - size);
         }
     } else if (no == 5) {
-        pW->Bank_id[5].pData = (UCHAR *)D_800A1000;
+        pW->Bank_id[5].pData = (UCHAR *)Snd_spu_adr[5];
     } else {
         p->Bank_id[0].pData = (UCHAR *)(0x7B7C0 - size);
     }
@@ -1720,10 +1720,10 @@ void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
 /* RE2 Snd_sys_enem_set role: registers the enemy bank (3) when the room has enemies */
 void Snd_sys_enem_set(void)
 {
-    if (D_800CCBBF) {
+    if (G.Em_num) {
         Snd_vab_head_set(3, (ULONG *)0x801FB600);
     } else {
-        D_800E067C = -1;
+        Snd_work.Bank_id[3].Id = -1;
     }
 }
 
