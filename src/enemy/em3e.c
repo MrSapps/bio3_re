@@ -42,7 +42,7 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk26 = 1800;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     EM3E_W(pEm)->Sway_rtn = 0;
     EM3E_W(pEm)->Bob_rtn = 0;
     EM3E_W(pEm)->Time = 0;

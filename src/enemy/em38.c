@@ -175,7 +175,7 @@ void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
     pEm->Be_flg |= 0x8000;
-    Id = func_80033580(&pEm->Col, 0);
+    Id = Oba_set(&pEm->Col, 0);
     Em38_col[3].pEm = pEm;
     Em38_col[3].W0 = 900;
     Em38_col[3].D0 = 900;
@@ -185,7 +185,7 @@ void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em38_col[3].Unk26 = 0;
     Em38_col[3].Flg = 0x80;
     Em38_col[3].Type = 2;
-    func_80033580(&Em38_col[3], Id);
+    Oba_set(&Em38_col[3], Id);
     Em38_col[3].pM = &pEm->pSin_parts_ptr[4].Workm;
     Em38_col[4].W0 = 900;
     Em38_col[4].D0 = 900;
@@ -196,7 +196,7 @@ void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em38_col[4].Unk26 = 0;
     Em38_col[4].Flg = 0x80;
     Em38_col[4].Type = 2;
-    func_80033580(&Em38_col[4], Id);
+    Oba_set(&Em38_col[4], Id);
     Em38_col[4].pM = &pEm->pSin_parts_ptr[2].Workm;
     pEm->Hit_area.Bottom = -800;
     pEm->Hit_area.Rate0 = 100;

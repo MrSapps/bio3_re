@@ -111,7 +111,7 @@ void Set_room(void)
     Esp_init_R();
     func_80078204();
     Cut_change(pG->Cut_no);
-    func_80033508();
+    Oba_init();
     func_800486C8();
     Sce_model_init();
     Ot_sub_init();

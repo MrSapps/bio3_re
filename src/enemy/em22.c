@@ -64,7 +64,7 @@ void func_8010023C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk26 = pCol->Unk28 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     pP = &pEm->pSin_parts_ptr[pEm->Neck_no = 3];
     pEm->Neck_flg = 0;
     PW_FREE(pP)[3] = PW_FREE(pP)[2] = 0x40;

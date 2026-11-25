@@ -574,7 +574,7 @@ typedef struct tagPARTS_W {
     UCHAR pad7A[0x7C - 0x7A];
     SHORT Unk7C;                       /* 0x7C (Pl_wep_eff_parts_set) */
     UCHAR pad7E[0x82 - 0x7E];
-    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (func_800336B4) */
+    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (Em_work_no_get) */
     UCHAR Parts_no;                    /* 0x84 RE2 Parts_no: index in pSin_parts_ptr[] */
     signed char Timer1;                /* 0x85 RE2 Timer1: fall speed added to Old_y (Parts_down) */
     signed char Timer2;                /* 0x86 RE2 Timer2: frames left to blend into the fall rotation (Parts_down) */

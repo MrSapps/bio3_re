@@ -55,7 +55,7 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk28 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     pEm->Hit_area.Bottom = -1000;
     pEm->Hit_area.Top = 1200;
     pEm->Hit_area.Rate0 = 0x54;

@@ -4,14 +4,15 @@
 #include "sabun.h"
 #include "sub.h"
 
-void func_80033508(void)
+/* empty the collision list and set up the player's COL_OBJ */
+void Oba_init(void)
 {
     ENEMY_WORK *pEm;
     COL_OBJ *pObj;
 
-    D_800DCED0.pTail = NULL;
-    D_800DCED0.pTop = NULL;
-    D_800DCED0.Ent[0].C.All = -1;
+    Oba_work.pTail = NULL;
+    Oba_work.pTop = NULL;
+    Oba_work.Ent[0].C.All = -1;
     pEm = &Pl_work;
     pObj = &pEm->Col;
     pObj->pEm = pEm;
@@ -23,17 +24,18 @@ void func_80033508(void)
     pObj->Unk28 = 0;
     pObj->Flg = 0;
     pObj->Type = 0;
-    func_80033580(pObj, 0);
+    Oba_set(pObj, 0);
 }
 
-UCHAR func_80033580(COL_OBJ *pObj, ULONG Id)
+/* add pObj to the collision list (once) with shape Id */
+UCHAR Oba_set(COL_OBJ *pObj, ULONG Id)
 {
     COL_OBJ *p;
     ULONG No;
     ULONG Old;
 
     No = 1;
-    for (p = D_800DCED0.pTop; p != NULL; p = p->pNext) {
+    for (p = Oba_work.pTop; p != NULL; p = p->pNext) {
         if (p == pObj) {
             return;
         }
@@ -47,7 +49,7 @@ UCHAR func_80033580(COL_OBJ *pObj, ULONG Id)
     } else {
         do {
             Old = No;
-            for (p = D_800DCED0.pTop; p != NULL; p = p->pNext) {
+            for (p = Oba_work.pTop; p != NULL; p = p->pNext) {
                 if (p->Id == No) {
                     No++;
                     break;
@@ -57,14 +59,14 @@ UCHAR func_80033580(COL_OBJ *pObj, ULONG Id)
         pObj->Id = No;
     }
     pObj->Hit_flg = 0;
-    if ((p = D_800DCED0.pTop) != NULL) {
-        D_800DCED0.pTop = pObj;
+    if ((p = Oba_work.pTop) != NULL) {
+        Oba_work.pTop = pObj;
         pObj->pNext = p;
     } else {
-        D_800DCED0.pTail = pObj;
-        D_800DCED0.pTop = pObj;
+        Oba_work.pTail = pObj;
+        Oba_work.pTop = pObj;
     }
-    func_80034124(pObj);
+    Oba_hit_clr(pObj);
     pObj->pM = NULL;
     pObj->Unk39 = 8;
     pObj->Old_x = pObj->Pos_x;
@@ -73,12 +75,13 @@ UCHAR func_80033580(COL_OBJ *pObj, ULONG Id)
     pObj->W1 = pObj->W0;
     pObj->D1 = pObj->D0;
     if (pObj->Type < 3) {
-        pObj->Em_idx = func_800336B4(pObj->pEm);
+        pObj->Em_idx = Em_work_no_get(pObj->pEm);
     }
     return pObj->Id;
 }
 
-LONG func_800336B4(ENEMY_WORK *pEm)
+/* index of pEm in G.pEnemy[] (0 if absent) */
+LONG Em_work_no_get(ENEMY_WORK *pEm)
 {
     LONG i;
 
@@ -90,7 +93,8 @@ LONG func_800336B4(ENEMY_WORK *pEm)
     return 0;
 }
 
-void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt)
+/* collect the live collision objects into COL_ENT records (two passes) */
+void Oba_ent_collect(COL_OBJ *pTop, COL_ENT *pEnt)
 {
     COL_OBJ *p;
     ENEMY_WORK *pEm;
@@ -100,7 +104,7 @@ void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt)
 
     n = 0;
     for (Pass = -1; Pass != 1; Pass++) {
-        for (p = D_800DCED0.pTop; p != NULL; p = p->pNext) {
+        for (p = Oba_work.pTop; p != NULL; p = p->pNext) {
             pEm = p->pEm;
             if (p->Id != 0) {
                 Be = pEm->Be_flg;
@@ -116,14 +120,15 @@ void func_800336F0(COL_OBJ *pTop, COL_ENT *pEnt)
                 continue;
             }
             do {
-                D_800DCDD0[n++] = p;
+                pOba_list[n++] = p;
             } while (0); /* needed for register allocation */
         }
     }
-    D_800DCDD0[n] = NULL;
+    pOba_list[n] = NULL;
 }
 
-void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
+/* per object: keep the sticky Hit_flg bits, test it against the records */
+void Oba_hit_ck_all(COL_OBJ *pTop, COL_ENT *pEnt)
 {
     COL_OBJ **pp;
     COL_OBJ *p;
@@ -134,7 +139,7 @@ void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
     UCHAR Idx;
     LONG i;
 
-    for (i = 0; (p = D_800DCDD0[i]) != NULL; i++) {
+    for (i = 0; (p = pOba_list[i]) != NULL; i++) {
         Flg = p->Hit_flg;
         p->Hit_flg = Flg & 0x6C0;
         pEm = p->pEm;
@@ -155,7 +160,7 @@ void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
             pEnt->Id = 0xFE40;
             pEnt->Area = 0xF00;
             pEnt->C.All = 0;
-            func_80034284(p, pEnt);
+            Oba_ent_floor_set(p, pEnt);
         }
         pEnt++;
     }
@@ -163,7 +168,7 @@ void func_800337B8(COL_OBJ *pTop, COL_ENT *pEnt)
 }
 
 /* no return value: v0 stays out of the last delay slot */
-LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
+LONG Oba_push_all(COL_OBJ *pTop, COL_ENT *pEnt)
 {
     COL_OBJ *p;
     ENEMY_WORK *pEm;
@@ -178,9 +183,9 @@ LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
     LONG i;
 
     i = 0;
-    if ((p = D_800DCDD0[0]) != NULL) {
+    if ((p = pOba_list[0]) != NULL) {
         do {
-            pEnt = D_800DCED0.Ent;
+            pEnt = Oba_work.Ent;
             pEm = p->pEm;
             while (pEnt->pObj != p) {
                 pEnt++;
@@ -195,7 +200,7 @@ LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
             if (p->Type < 3) {
                 func_80034814(pEm, p->W0, Tbl, p);
             } else {
-                func_80035184(pEm, p->W0, Tbl, p);
+                Oba_area_ck(pEm, p->W0, Tbl, p);
             }
             if (!(p->Flg & 0x80)) {
                 func_8004AF04(pEm, p->W0, Tbl, p);
@@ -240,23 +245,25 @@ LONG func_8003389C(COL_OBJ *pTop, COL_ENT *pEnt)
             pEnt->X1 += dx;
             pEnt->Z0 += dz;
             pEnt->Z1 += dz;
-        } while ((p = D_800DCDD0[++i]) != NULL);
+        } while ((p = pOba_list[++i]) != NULL);
     }
 }
 
-void func_80033B20(void)
+/* per frame: collect, update positions, test, push, write back */
+void Oba_main(void)
 {
     COL_OBJ *pTop;
 
-    pTop = D_800DCED0.pTop;
-    func_800336F0(pTop, D_800DCED0.Ent);
-    func_80033FBC(pTop);
-    func_800337B8(pTop, D_800DCED0.Ent);
-    func_8003389C(pTop, D_800DCED0.Ent);
-    func_80033B88(pTop);
+    pTop = Oba_work.pTop;
+    Oba_ent_collect(pTop, Oba_work.Ent);
+    Oba_pos_update(pTop);
+    Oba_hit_ck_all(pTop, Oba_work.Ent);
+    Oba_push_all(pTop, Oba_work.Ent);
+    Oba_pos_back(pTop);
 }
 
-void func_80033B88(COL_OBJ *pTop)
+/* write the resolved positions back to the works */
+void Oba_pos_back(COL_OBJ *pTop)
 {
     LONG i;
     COL_OBJ *p;
@@ -268,7 +275,7 @@ void func_80033B88(COL_OBJ *pTop)
     ULONG Tbl;
 
     pV = &V;
-    for (i = 0; (p = D_800DCDD0[i]) != NULL; i++) {
+    for (i = 0; (p = pOba_list[i]) != NULL; i++) {
         pEm = p->pEm;
         if (pEm->Be_flg & 0x2000) {
             continue;
@@ -301,7 +308,8 @@ void func_80033B88(COL_OBJ *pTop)
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80033CF4);
 
-void func_80033F38(COL_OBJ *pObj, COL_ENT *pEnt, LONG n)
+/* fill a COL_ENT for pObj (shape 8, all areas) with its floor range */
+void Oba_ent_set(COL_OBJ *pObj, COL_ENT *pEnt, LONG n)
 {
     SVECTOR Unused[3];
     LONG y;
@@ -310,11 +318,12 @@ void func_80033F38(COL_OBJ *pObj, COL_ENT *pEnt, LONG n)
     pEnt->Id = 0x8008;
     pEnt->pObj = pObj;
     pEnt->Area = 0xF00;
-    func_80034284(pObj, pEnt);
+    Oba_ent_floor_set(pObj, pEnt);
     COL_ENT_SET_HIGH(pEnt, pObj, y, n);
 }
 
-void func_80033FBC(COL_OBJ *pTop)
+/* reset the per-frame hit state and take the positions from the matrices */
+void Oba_pos_update(COL_OBJ *pTop)
 {
     LONG i;
     COL_OBJ *p;
@@ -323,7 +332,7 @@ void func_80033FBC(COL_OBJ *pTop)
     VECTOR V;
     MATRIX M;
 
-    for (i = 0; (p = D_800DCDD0[i]) != NULL; i++) {
+    for (i = 0; (p = pOba_list[i]) != NULL; i++) {
         p->Unk3 = 0xFF;
         pEm = p->pEm;
         p->Unk2A = 0;
@@ -348,7 +357,8 @@ void func_80033FBC(COL_OBJ *pTop)
     }
 }
 
-void func_80034124(COL_OBJ *pObj)
+/* clear the hit state of one object and re-read its position */
+void Oba_hit_clr(COL_OBJ *pObj)
 {
     ENEMY_WORK *pEm;
     SVECTOR Sv;
@@ -382,7 +392,8 @@ void func_80034124(COL_OBJ *pObj)
     }
 }
 
-void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt)
+/* floor range of a record from the room shapes around the object */
+void Oba_ent_floor_set(COL_OBJ *pObj, COL_ENT *pEnt)
 {
     SCA_HEAD *pSca;
     LONG x0;
@@ -435,7 +446,8 @@ void func_80034284(COL_OBJ *pObj, COL_ENT *pEnt)
     }
 }
 
-LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
+/* is pT within reach in front of pEm? */
+LONG Oba_front_ck(ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     SVECTOR Sv;
     LONG w;
@@ -474,7 +486,8 @@ LONG func_80034448(ENEMY_WORK *pEm, ENEMY_WORK *pT)
     return !((ULONG)(dz + d) > (ULONG)(d * 2));
 }
 
-LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm)
+/* does pPos lie inside another live enemy than pEm? */
+LONG Oba_pos_em_ck(VECTOR *pPos, ENEMY_WORK *pEm)
 {
     ENEMY_WORK **pp;
     ENEMY_WORK *pT;
@@ -498,14 +511,15 @@ LONG func_800345C0(VECTOR *pPos, ENEMY_WORK *pEm)
         if (pT->Col.Id == pEm->Col.Id) {
             continue;
         }
-        if (func_800346AC(pPos, pEm, pT)) {
+        if (Oba_pos_em2_ck(pPos, pEm, pT)) {
             return 1;
         }
     }
     return 0;
 }
 
-LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
+/* does pPos lie inside pT (as seen by pEm)? */
+LONG Oba_pos_em2_ck(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
 {
     COL_OBJ *pA;
     COL_OBJ *pB;
@@ -555,12 +569,13 @@ LONG func_800346AC(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
 
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034814);
 
-void func_80034D74(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
+/* player against a pushable object record (Type 7 / 8) */
+void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
 {
     ENEMY_WORK *pPl;
 
     pPl = &Pl_work;
-    if (func_80034448(pPl, pEnt->pObj->pEm)) {
+    if (Oba_front_ck(pPl, pEnt->pObj->pEm)) {
         if (Type == 7 && !(pObj->Hit_flg & 0x600)) {
             if (func_8004B374(pEnt, 7, 0) == 0) {
                 pEnt->pObj->Hit_flg |= 0x10;
@@ -581,7 +596,7 @@ INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034E78);
 INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034F08);
 
 /* no return value; pE and pEnt walk the same list (two pointers in the original) */
-LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
+LONG Oba_area_ck(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
 {
     COL_ENT *pEnt;
     COL_ENT *pE;
@@ -591,7 +606,7 @@ LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
     ULONG Tbe;
     LONG Shape;
 
-    pE = pEnt = D_800DCED0.Ent;
+    pE = pEnt = Oba_work.Ent;
     Area = func_8004D6B8((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
     for (; pEnt->C.All != -1; pEnt = ++pE) {
         if ((pEnt->Area & Area) != Area) {
@@ -642,13 +657,14 @@ LONG func_80035184(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
         if (Shape != 0) {
             continue;
         }
-        if (pT->Type == 0 && (pObj->pEm->Be_flg & 0x100) && pT->pEm->Damage_cnt == 0 && func_800353CC(pObj, pT) == 0) {
+        if (pT->Type == 0 && (pObj->pEm->Be_flg & 0x100) && pT->pEm->Damage_cnt == 0 && Oba_cross_ck(pObj, pT) == 0) {
             pObj->Hit_flg |= 0x2000;
         }
     }
 }
 
-LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT)
+/* does the move of pObj cross pT? */
+LONG Oba_cross_ck(COL_OBJ *pObj, COL_OBJ *pT)
 {
     LONG x;
     LONG z;
@@ -668,7 +684,7 @@ LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT)
     tz = pT->Pos_z;
     tex = pT->pEm->Pos_x;
     tez = pT->pEm->Pos_z;
-    func_8003553C(pObj, pT);
+    Oba_push_out(pObj, pT);
     Ret = func_8004AF04(pObj->pEm, pObj->W0, 0x4000, pObj);
     if (Ret != 0 || !(D_800D1F2C & 0x10) || pT->pEm->Damage_cnt != 0) {
         pObj->Pos_x = x;
@@ -690,7 +706,8 @@ LONG func_800353CC(COL_OBJ *pObj, COL_OBJ *pT)
     return Ret;
 }
 
-LONG func_8003553C(COL_OBJ *pObj, COL_OBJ *pT)
+/* push pObj (and its work) out of pT along x or z */
+LONG Oba_push_out(COL_OBJ *pObj, COL_OBJ *pT)
 {
     LONG r;
     LONG dx;

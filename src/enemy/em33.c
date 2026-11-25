@@ -141,7 +141,7 @@ void func_80100424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Unk26 = 0;
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
-    func_80033580(&pEm->Col, 0);
+    Oba_set(&pEm->Col, 0);
     pEm->Hit_area.Top = 1800;
     pEm->Hit_area.Bottom = -1400;
     pEm->Hit_area.Rate0 = 0x78;
@@ -247,7 +247,7 @@ void func_801009DC(ENEMY_WORK *pEm, LONG No, ENEMY_WORK *pOya, LONG Parts)
     pCol->Unk26 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, EM33_W(pOya)->Col_id);
+    Oba_set(pCol, EM33_W(pOya)->Col_id);
     pCol->pM = &pOya->pSin_parts_ptr[Parts].Workm;
     pEm->Hit_area.pM = &pOya->pSin_parts_ptr[Parts].Workm;
     pEm->Hit_area.Top = 1800;
@@ -258,8 +258,8 @@ void func_801009DC(ENEMY_WORK *pEm, LONG No, ENEMY_WORK *pOya, LONG Parts)
     pEm->Unk140 = 0;
     EM33_W(pEm)->Old_life = pEm->Max_life = pEm->Life = 30000;
     EM33_B(pEm)->Parts = Parts;
-    EM33_B(pEm)->Oya = func_800336B4(pOya);
-    PW_FREE(&pOya->pSin_parts_ptr[Parts])[7] = func_800336B4(pEm);
+    EM33_B(pEm)->Oya = Em_work_no_get(pOya);
+    PW_FREE(&pOya->pSin_parts_ptr[Parts])[7] = Em_work_no_get(pEm);
 }
 
 /* Em33_move: Routine_0 1 */

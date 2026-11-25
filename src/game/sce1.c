@@ -1420,7 +1420,7 @@ ULONG Pos_set(SCE_TASK *pSce)
     pW->Pos_y = y;
     pW->Old_z = z;
     pW->Pos_z = z;
-    func_80034124(&pW->Col);
+    Oba_hit_clr(&pW->Col);
     pSce->Data = pData + 8;
     return 1;
 }

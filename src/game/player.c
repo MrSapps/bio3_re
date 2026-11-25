@@ -1419,7 +1419,7 @@ void pl_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_walk(1, (m << 1) + m + 11, pEm);
             G.Unk75E8 |= 4;
         }
-        func_80034124(&Pl_work.Col);
+        Oba_hit_clr(&Pl_work.Col);
         dir = pEm->Cdir_y;
         if (dir & 0x200) {
             pEm->Cdir_y = dir + (UCHAR)(dir >> 2);
@@ -1470,7 +1470,7 @@ void pl_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             G.Unk75E8 |= 4;
         }
         Add_speedXZ(pEm, 0);
-        func_80034124(&Pl_work.Col);
+        Oba_hit_clr(&Pl_work.Col);
         break;
     case 4:
         pEm->Routine_1 = 0;
@@ -1511,7 +1511,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             G.Unk75E8 |= 4;
         }
         Add_speedXZ(pEm, 0);
-        func_80034124(&Pl_work.Col);
+        Oba_hit_clr(&Pl_work.Col);
         if (pEm->Move_cnt == 0xE) {
             pEm->Routine_3 = 2;
         }
@@ -1527,7 +1527,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         pEm->Unk1CA = 0;
         pEm->nFloor--;
-        func_80034124(&Pl_work.Col);
+        Oba_hit_clr(&Pl_work.Col);
         pEm->UnkE3 = 0;
         pEm->Be_flg &= ~0x2000;
     case 3:
@@ -1572,7 +1572,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         pEm->nFloor = pEm->Pos_y / -1800;
         pEm->Routine_3 += Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
-        func_80034124(&Pl_work.Col);
+        Oba_hit_clr(&Pl_work.Col);
         break;
     case 6:
         G.Status_flg &= ~0x100;

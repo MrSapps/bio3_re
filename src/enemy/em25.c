@@ -75,7 +75,7 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk26 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     if (!Ck_em_id(pEm, &pFp->pPair, 0x25, 1))
         pFp->pPair = NULL;
     switch (pEm->Type & 0xF) {
@@ -114,7 +114,7 @@ void Em25_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pFp->Down_point = ((pEm->Type & 0x70) >> 4) * -1800 + 1250;
         pFp->Kage_routine = 1;
         Em25_wall_init(pEm, pKan, pSeq);
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
         break;
     }
     if (pEm->Type & 0x100)

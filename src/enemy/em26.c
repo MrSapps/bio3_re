@@ -87,7 +87,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pCol->Unk26 = 0;
             pCol->Flg = 0;
             pCol->Type = 2;
-            func_80033580(pCol, 0);
+            Oba_set(pCol, 0);
             Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, &pCp->Pos_x);
         }
         break;
@@ -103,7 +103,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Be_flg |= 0x404000;
         break;
     }
-    func_80033580(&pEm->Col, 0);
+    Oba_set(&pEm->Col, 0);
     Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, &pEm->Pos_x);
 }
 

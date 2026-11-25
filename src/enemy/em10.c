@@ -104,7 +104,7 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Unk26 = 0;
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
-    func_80033580(&pEm->Col, 0);
+    Oba_set(&pEm->Col, 0);
     pEm->Hit_area.Top = 0x708;
     pEm->Hit_area.Bottom = -0x4B0;
     pEm->Hit_area.Rate0 = 0x78;

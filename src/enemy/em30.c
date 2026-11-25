@@ -162,7 +162,7 @@ void func_80100544(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk26 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, 0);
+    Oba_set(pCol, 0);
     pEm->Hit_area.Top = 1800;
     pEm->Hit_area.Bottom = -1200;
     pEm->Hit_area.Rate0 = 0x78;
@@ -276,7 +276,7 @@ void func_80100B34(ENEMY_WORK *pSub, LONG No, ENEMY_WORK *pEm, LONG Parts_no)
     pCol->Unk26 = 0;
     pCol->Flg = 0;
     pCol->Type = 2;
-    func_80033580(pCol, EM30_W(pEm)->Unk0E);
+    Oba_set(pCol, EM30_W(pEm)->Unk0E);
     pCol->pM = &pEm->pSin_parts_ptr[Parts_no].Workm;
     pSub->Hit_area.pM = &pEm->pSin_parts_ptr[Parts_no].Workm;
     pSub->Hit_area.Top = 1800;
@@ -292,8 +292,8 @@ void func_80100B34(ENEMY_WORK *pSub, LONG No, ENEMY_WORK *pEm, LONG Parts_no)
     pSub->Max_life = 30000;
     EM30_W(pSub)->Unk26 = 30000;
     EM30_SUB(pSub)->Parts_no = Parts_no;
-    EM30_SUB(pSub)->Oya_no = func_800336B4(pEm);
-    pEm->pSin_parts_ptr[Parts_no].Unk82 = func_800336B4(pSub);
+    EM30_SUB(pSub)->Oya_no = Em_work_no_get(pEm);
+    pEm->pSin_parts_ptr[Parts_no].Unk82 = Em_work_no_get(pSub);
     pSub->Status_flg |= 0x100;
 }
 
@@ -2570,7 +2570,7 @@ void func_80107EE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y = 0x98B;
         pEm->UnkE2 = 0;
         pEm->Routine_2++;
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
     case 2:
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x80);
         if (!EM30_W(pEm)->Unk13)

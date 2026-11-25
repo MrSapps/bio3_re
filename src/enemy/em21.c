@@ -118,7 +118,7 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Flg = 0;
     pEm->Col.Type = 2;
     func_80104D50(pEm, 350);
-    func_80033580(&pEm->Col, 0);
+    Oba_set(&pEm->Col, 0);
     Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, &pEm->Pos_x);
     if (pEm->Type & 0x4000) {
         pEm->Routine_0 = 4;

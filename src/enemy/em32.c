@@ -79,7 +79,7 @@ void func_801001F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pCol->Unk28 = 0;
     pCol->Unk26 = 0;
     pCol->Flg = 0;
-    func_80033580(pCol, Pl_work.Col.Id);
+    Oba_set(pCol, Pl_work.Col.Id);
     pP = pEm->pSin_parts_ptr;
     pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
@@ -263,7 +263,7 @@ LONG Em32_fall_ck(ENEMY_WORK *pEm)
     VECTOR Pos;
 
     if (pEm->Col.pSca_hit_data && (pEm->Col.pSca_hit_data->Id & 0xF) == 7) {
-        if (func_800345C0(&Pos, pEm))
+        if (Oba_pos_em_ck(&Pos, pEm))
             return 0;
         Sv.vx = 1600;
         Sv.vz = 0;
@@ -356,7 +356,7 @@ void func_80100D54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Move_cnt = Rnd_l() & 7;
         pEm->UnkE2 = 1;
         Spd_get(pEm, pKan, pSeq, 0);
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
         EM_SET_RTN(pEm, 1, 0, 1, 0);
         pEm->nFloor = EM32_W(pEm)->Unk14 + 1;
         pEm->pSin_parts_ptr->Old_y += 1800;
@@ -395,7 +395,7 @@ LONG func_80100F84(ENEMY_WORK *pEm)
         Pos.vy = pEm->Pos_y + 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
         if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 4) >= Pos.vy)
-            return !func_800345C0(&Pos, pEm);
+            return !Oba_pos_em_ck(&Pos, pEm);
     }
     return 0;
 }
@@ -446,7 +446,7 @@ void func_80101180(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else {
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Be_flg &= ~0x400;
-            func_80034124(&pEm->Col);
+            Oba_hit_clr(&pEm->Col);
             pEm->nFloor = EM32_W(pEm)->Unk14 - 1;
             pEm->Pos_y = -(pEm->nFloor * 1800);
         }
@@ -995,7 +995,7 @@ void func_80102B50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } while (i >= 0);
         Pos.vx = pEm->Pos_x;
         Pos.vz = pEm->Pos_z;
-        if (func_800345C0(&Pos, pEm))
+        if (Oba_pos_em_ck(&Pos, pEm))
             break;
         pEm->Be_flg &= ~0x10;
         pEm->Routine_2++;
@@ -1006,7 +1006,7 @@ void func_80102B50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Timer0--;
             } else if (pEm->Type & 0xF) {
                 pEm->Be_flg &= ~0x2000;
-                func_80034124(&pEm->Col);
+                Oba_hit_clr(&pEm->Col);
                 EM_SET_RTN(pEm, 1, 0, 0, 0);
                 pEm->Damage_cnt = 0;
                 pEm->Type &= 0xF0;
@@ -1033,7 +1033,7 @@ void func_80102CE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         Pos.vx = pEm->Pos_x;
         Pos.vz = pEm->Pos_z;
-        if (func_800345C0(&Pos, pEm))
+        if (Oba_pos_em_ck(&Pos, pEm))
             break;
         pEm->Be_flg &= ~0x10;
         pEm->Routine_2++;
@@ -1057,7 +1057,7 @@ void func_80102CE0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else if (pEm->Type & 0xF) {
             pEm->Be_flg &= ~0x400;
             pEm->Be_flg &= ~0x2000;
-            func_80034124(&pEm->Col);
+            Oba_hit_clr(&pEm->Col);
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Damage_cnt = 0;
             pEm->Type &= 0xF0;
@@ -1235,7 +1235,7 @@ void func_8010356C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Timer0 = EM32_W(pEm)->Timer0_bak;
         pEm->nFloor = EM32_W(pEm)->nFloor_bak;
         pEm->Be_flg = EM32_W(pEm)->Be_flg_bak | 0x10;
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
         pEm->Size = 0x1000;
         pEm->Be_flg &= 0xFFCFFFFF;
         for (i = 0, pP = pEm->pSin_parts_ptr; i < 6; i++, pP++) {

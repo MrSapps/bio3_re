@@ -92,7 +92,7 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Unk26 = 0;
     pEm->Col.Flg = 0;
     pEm->Be_flg |= 0x400000;
-    func_80033580(&pEm->Col, 0);
+    Oba_set(&pEm->Col, 0);
     pEm->Hit_area.Bottom = -1000;
     pEm->Hit_area.Top = 600;
     pEm->Hit_area.Rate0 = 0x50;
@@ -128,7 +128,7 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EF(pEm)->Unk01 = 1;
         pEm->Be_flg |= 0x2420;
         pEm->Type |= 0x8100;
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
         EM_SET_MOVE(pEm, 0, 0, 7);
         Joint_move(pEm, pKan, pSeq, 0x100);
         EM_SET_RTN(pEm, 4, 0x14, 0, 0);
@@ -150,7 +150,7 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_x = 3454;
         pEm->Pos_y = -7500;
         pEm->Pos_z = -6255;
-        func_80034124(&pEm->Col);
+        Oba_hit_clr(&pEm->Col);
         EM_SET_MOVE(pEm, 1, 0, 7);
         Spd_get(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x100);
@@ -409,7 +409,7 @@ void func_80101008(ENEMY_WORK *pEm)
         Pos.vx = EF(pEm)->Unk12;
         Pos.vz = EF(pEm)->Unk14;
         Pos.vy = pEm->Pos_y;
-        Hit = func_800345C0(&Pos, pEm);
+        Hit = Oba_pos_em_ck(&Pos, pEm);
         if (!(pEm->Status_flg & 2) && !Hit)
             EM_SET_RTN(pEm, 1, 0x12, 0, 0);
     }
@@ -457,7 +457,7 @@ void func_80101364(ENEMY_WORK *pEm)
         Pos.vx = EF(pEm)->Unk12;
         Pos.vz = EF(pEm)->Unk14;
         Pos.vy = pEm->Pos_y;
-        Hit = func_800345C0(&Pos, pEm);
+        Hit = Oba_pos_em_ck(&Pos, pEm);
         if (!(pEm->Status_flg & 2) && !Hit)
             EM_SET_RTN(pEm, 1, 0x12, 0, 0);
     }
@@ -1126,7 +1126,7 @@ void func_801035A8(ENEMY_WORK *pEm)
     pEm->Pos_z = pEm->pSin_parts_ptr->Workm.t[2] + Sv.vz;
     pEm->Pos_y = pEm->pSin_parts_ptr->Workm.t[1] + Sv.vy;
     pEm->Col.Unk26 = -900;
-    func_80034124(&pEm->Col);
+    Oba_hit_clr(&pEm->Col);
     if (EF(pEm)->Mode == 4) {
         EF(pEm)->Mode = 2;
         EF(pEm)->Unk04 = 0x800;
@@ -1148,7 +1148,7 @@ void func_801036E8(ENEMY_WORK *pEm, LONG Dir)
     pEm->Col.Unk26 = -900;
     pEm->Pos_x = pEm->Old_x = EF(pEm)->Unk12;
     pEm->Pos_z = pEm->Old_z = EF(pEm)->Unk14;
-    func_80034124(&pEm->Col);
+    Oba_hit_clr(&pEm->Col);
     EF(pEm)->Unk04 = Dir & 0xFFF;
     if (EF(pEm)->Unk04 > 0x400 && EF(pEm)->Unk04 < 0xC00) {
         EF(pEm)->Mode = 2;
@@ -1685,7 +1685,7 @@ void func_801058F8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     Pos.vx = EF(pEm)->Unk12;
                     Pos.vz = EF(pEm)->Unk14;
                     Pos.vy = pEm->Pos_y;
-                    Hit = func_800345C0(&Pos, pEm);
+                    Hit = Oba_pos_em_ck(&Pos, pEm);
                     if (!(pEm->Status_flg & 2) && !Hit)
                         EM_SET_RTN(pEm, 1, 0x12, 0, 0);
                 }

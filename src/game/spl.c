@@ -85,7 +85,7 @@ void Spl_Init(ENEMY_WORK *pEm)
     } else {
         pCol->Type = 2;
     }
-    func_80033580(&pEm->Col, 0);
+    Oba_set(&pEm->Col, 0);
     pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     pEm->Hit_area.Top = 1500;

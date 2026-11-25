@@ -52,7 +52,7 @@ typedef struct tagEM33_FREE {
 /* free work of a body segment at 0x1CC */
 typedef struct tagEM33_BODY {
     LONG Parts;                        /* 0x00 (0x1CC) head part followed */
-    LONG Oya;                          /* 0x04 (0x1D0) index of the head work (func_800336B4) */
+    LONG Oya;                          /* 0x04 (0x1D0) index of the head work (Em_work_no_get) */
     UCHAR pad08[0x0A - 0x08];
     signed char Unk0A;                 /* 0x0A (0x1D6) */
     UCHAR pad0B[0x13 - 0x0B];

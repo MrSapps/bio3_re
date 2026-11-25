@@ -592,7 +592,7 @@ LONG func_8004ED4C(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
     if (pT->X0 == 0) {
         return Ret;
     }
-    pT = (SCA_DATA *)D_800DCED0.Ent;
+    pT = (SCA_DATA *)Oba_work.Ent;
     P0 = ((pA->vx >> 1) << 16) | ((pA->vz >> 1) & 0xFFFF);
     P1 = ((pB->vx >> 1) << 16) | ((pB->vz >> 1) & 0xFFFF);
     for (pEnt = (COL_ENT *)pT; ((COL_ENT *)pT)->C.All != -1 && Ret == 0; pEnt = (COL_ENT *)pT) {

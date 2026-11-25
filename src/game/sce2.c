@@ -698,7 +698,7 @@ ULONG Plc_ret(SCE_TASK *pSce)
     pW->Damage_cnt = 0;
     pW->Type &= 0xAEFF;
     pSce->Data++;
-    func_80034124(&pW->Col);
+    Oba_hit_clr(&pW->Col);
     return 1;
 }
 
@@ -773,7 +773,7 @@ ULONG Splc_ret(SCE_TASK *pSce)
     pW->Life = G.Unk7852;
     pW->Max_life = 200;
     pSce->Data++;
-    func_80034124(&pW->Col);
+    Oba_hit_clr(&pW->Col);
     return 1;
 }
 
