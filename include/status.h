@@ -352,13 +352,9 @@ extern ITEM_CHECK Item_check_tbl[];    /* Id 0xFF ends it */
 extern ITEM_TAMA Item_tama_tbl[];      /* Wep_id 0xFF ends it */
 extern LONG Extra_pl; /* extra game character (Status_init) */
 extern SHORT Mapping_tpage_clut;
-extern ULONG Scenario_flg[]; /* G.Scenario_flg under its own symbol (RE2 Scenario_flg) */
-extern ULONG Map_visit_flg[]; /* G.Map_visit_flg under its own symbol */
-extern ULONG Map_get_flg[];   /* G.Map_get_flg */
-extern ULONG Map_area_flg[];  /* G.Map_area_flg */
+extern ULONG Map_visit_flg[]; /* G.Map_visit_flg under its own symbol (Map_visit_set needs it: G.Map_visit_flg changes the code) */
 extern UCHAR Item_work0_num; /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
 extern ITEM_WORK *pItem_slot; /* G.pItem_set as one ITEM_WORK array: [0..9] inventory, [10..73] box */
-extern LONG St_pl_kind; /* G.Item_work_no under its own symbol */
 extern UCHAR D_800D442D;
 extern UCHAR D_800D442E;
 

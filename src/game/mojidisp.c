@@ -666,7 +666,7 @@ UCHAR *name_ptr_set(UCHAR No)
     Flg = Item_data_tbl[No].Chk_flg;
     pTop = Item_name_text;
     pOfs = Item_name_ofs;
-    if (Flg != 0 && Flg_ck(Item_chk_flg, Flg)) {
+    if (Flg != 0 && Flg_ck(G.Item_chk_flg, Flg)) {
         No = Flg - 0x55;
     }
     return pTop + pOfs[No];

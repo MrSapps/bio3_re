@@ -3955,10 +3955,10 @@ void St_chenge_pl(ULONG no)
     case 5:
     case 6:
     case 7:
-        St_pl_kind = 0;
+        G.Item_work_no = 0;
         break;
     case 8:
-        St_pl_kind = 1;
+        G.Item_work_no = 1;
         break;
     }
     G.pItem_set = &G.Item_work[G.Item_work_no];
@@ -4469,7 +4469,7 @@ void St_map_draw(ST_WORK *pSt)
     AddPrim(G.pOt0 + 1, pOt0);
     AddPrim(G.pOt0 + 6, pOt1);
     for (i = 0; i < num; i++, pRoom++) {
-        if (!Flg_ck(Map_get_flg, pSt->Map_stage)) {
+        if (!Flg_ck(G.Map_get_flg, pSt->Map_stage)) {
             if (i >= 0x30) {
                 continue;
             }
@@ -4670,7 +4670,7 @@ void St_map_draw(ST_WORK *pSt)
                 Mess_print(0x47, (signed char)pSt->Area_cursor * 16 + 0x4C, Map_mess + Map_mess_ofs[8], 0x501);
             }
             for (i = 0; i < 7; i++) {
-                if (Flg_ck(Map_area_flg, Map_area_list[i])) {
+                if (Flg_ck(G.Map_area_flg, Map_area_list[i])) {
                     Mess_print(0x55, i * 16 + 0x4C, Map_mess + Map_mess_ofs[Map_area_list[i]], 0x501);
                 } else {
                     Mess_print(0x55, i * 16 + 0x4C, Map_mess + Map_mess_ofs[9], 0x531);
@@ -4753,7 +4753,7 @@ void Map_visit_set(UCHAR Stage, UCHAR Room)
 /* room visited? */
 ULONG Map_visit_ck(UCHAR Stage, UCHAR Room)
 {
-    ULONG *pFlg = &Map_visit_flg[Stage * 2 + (Room >> 5)];
+    ULONG *pFlg = &G.Map_visit_flg[Stage * 2 + (Room >> 5)];
 
     return *pFlg & (0x80000000U >> (Room & 0x1F));
 }
@@ -4773,7 +4773,7 @@ LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
         }
         break;
     case 1:
-        if ((code == 0x10C || code == 0x115) && Flg_ck(Scenario_flg, 0x3A) && Room != 0xC) {
+        if ((code == 0x10C || code == 0x115) && Flg_ck(G.Scenario_flg, 0x3A) && Room != 0xC) {
             return 0;
         }
         if ((USHORT)(G.Stage_no - 2) < 3 && Room == 0xC) {
@@ -4791,7 +4791,7 @@ LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
         }
         break;
     case 3:
-        f = Flg_ck(Scenario_flg, 0xC4);
+        f = Flg_ck(G.Scenario_flg, 0xC4);
         if (Room == (f ? 0x11 : 0x15)) {
             return 0;
         }
@@ -5376,7 +5376,7 @@ LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
                 return 0;
             }
         }
-        if (!Flg_ck(Chaser_flg, 0x45)) {
+        if (!Flg_ck(G.Chaser_flg, 0x45)) {
             if (Room == 3 && Part == 1) {
                 return 0;
             }

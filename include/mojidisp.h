@@ -61,7 +61,6 @@ extern USHORT Mess_st_ofs[];
 extern UCHAR Item_name_text[];
 extern USHORT Item_name_ofs[];
 extern UCHAR D_800C703F;
-extern ULONG Item_chk_flg[];
 extern UCHAR D_800D4433;
 
 void Print8_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr);
