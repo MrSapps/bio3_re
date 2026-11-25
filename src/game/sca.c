@@ -272,7 +272,40 @@ ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D404);
+/* push pObj out of the circle of radius R around another object at (X, Z) (oba.c): first the
+   object's move is tested against the circle's diameter across the move direction (func_8004D590),
+   then the circle push of func_8004C408 */
+LONG Sca_hit_obj_circle(COL_OBJ *pObj, LONG W, SHORT X, SHORT Z, SHORT R, ULONG Old)
+{
+    SCA_WORK *pW;
+    LONG Dz;
+    LONG Dx;
+    LONG Len;
+    LONG Ox;
+    LONG Oz;
+    LONG Ret;
+
+    pW = &D_800DEB58;
+    Dz = pObj->Pos_z - pObj->Old_z;
+    Dx = pObj->Old_x - pObj->Pos_x;
+    Ret = 0;
+    Len = SquareRoot0(Dz * Dz + Dx * Dx);
+    if (Len != 0) {
+        Dz *= R;
+        Ox = Dz / Len;
+        Dx *= R;
+        Oz = Dx / Len;
+        pW->Pt0 = ((X + Ox) << 16) | ((Z + Oz) & 0xFFFF);
+        pW->Pt1 = ((X - Ox) << 16) | ((Z - Oz) & 0xFFFF);
+        Ret = func_8004D590(pObj, W, Old);
+    }
+    Tmp_Sca.X0 = X - R;
+    Tmp_Sca.Z0 = Z - R;
+    Tmp_Sca.X1 = X + R;
+    Tmp_Sca.Z1 = Z + R;
+    Ret |= func_8004C408(pObj, W, &Tmp_Sca, Old);
+    return Ret;
+}
 
 ULONG func_8004D590(COL_OBJ *pObj, LONG R, ULONG P0)
 {
