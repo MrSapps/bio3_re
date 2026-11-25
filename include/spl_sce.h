@@ -27,7 +27,7 @@ void func_800608C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce05(ENEMY_WORK *pEm);
 void func_80060E90(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce06(ENEMY_WORK *pEm);
-void Spl_sce07(ENEMY_WORK *pEm);
+void Spl_sce07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq); /* pKan, pSeq unused; Spl_sce06 passes them */
 void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 void Spl_sce09(ENEMY_WORK *pEm);

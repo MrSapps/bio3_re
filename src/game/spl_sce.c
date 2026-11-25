@@ -9,9 +9,9 @@
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
-void FA_Add_speedXZ3(ENEMY_WORK *pEm, LONG a, LONG b) __asm__("Add_speedXZ"); /* 3 args here (canonical 2) */
+/* SPL_SCE.C passed Add_speedXZ a third (unused) argument; the 2-argument canonical prototype gives other code */
+void Add_speedXZ3(ENEMY_WORK *pEm, LONG muki, LONG Unused) __asm__("Add_speedXZ");
 
-void MY_func_800611E0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq) __asm__("Spl_sce07"); /* 3 args here (canonical 1) */
 
 /* local prototypes (this module) */
 
@@ -481,7 +481,7 @@ void Spl_sce06(ENEMY_WORK *pEm)
     }
 }
 
-void Spl_sce07(ENEMY_WORK *pEm)
+void Spl_sce07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ULONG *pKan = pEm->pSub0_kan_t_ptr;
     ULONG *pSeq = pEm->pSub0_seq_t_ptr;
@@ -564,7 +564,7 @@ void func_80061390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if (!(pEm->Col.Hit_flg & 0x40)) {
         *(ULONG *)&pEm->Routine_0 = 0x704;
-        MY_func_800611E0(pEm, pKan, pSeq);
+        Spl_sce07(pEm, pKan, pSeq);
         return;
     }
     switch (pEm->Routine_2) {
@@ -809,7 +809,8 @@ void func_80061BC4(ENEMY_WORK *pEm)
     }
 }
 
-signed char Rnd_sc(void) __asm__("Rnd"); /* returns signed char here (canonical unsigned long) */
+/* Rnd (SLD.S) seen with the return types the original files declared: signed char here, long below */
+signed char Rnd_sc(void) __asm__("Rnd");
 
 void func_80061DF4(ENEMY_WORK *pEm)
 {
@@ -946,7 +947,7 @@ void func_8006236C(ENEMY_WORK *pEm)
     func_800623C4(pEm, pEm->pSub1_kan_t_ptr, pEm->pSub1_seq_t_ptr);
 }
 
-LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
+LONG Rnd_l(void) __asm__("Rnd");
 
 void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
@@ -1178,11 +1179,11 @@ void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             pEm->Cdir_y += pEm->Unk14A;
             if (!(pEm->Unk144 & 0x20)) {
-                FA_Add_speedXZ3(pEm, 0, 0);
+                Add_speedXZ3(pEm, 0, 0);
             }
         } else {
             if (!(pEm->Unk144 & 0x20)) {
-                FA_Add_speedXZ3(pEm, 0, 0);
+                Add_speedXZ3(pEm, 0, 0);
             }
             f = pEm->Unk144;
             if (f & 8) {
@@ -1196,7 +1197,7 @@ void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     pEm->Cdir_y += pEm->Unk14A;
                 }
                 if (!(pEm->Unk144 & 0x20)) {
-                    FA_Add_speedXZ3(pEm, 0, 0);
+                    Add_speedXZ3(pEm, 0, 0);
                 }
             }
             pEm->Cdir_y += pEm->Add_dir;
@@ -1228,7 +1229,7 @@ void func_80062F64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             pEm->Cdir_y += pEm->Unk14A;
             if (!(pEm->Unk144 & 0x20)) {
-                FA_Add_speedXZ3(pEm, 0, 0);
+                Add_speedXZ3(pEm, 0, 0);
             }
         } else {
             if (pEm->Id == 0) {
@@ -1237,7 +1238,7 @@ void func_80062F64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 func_80079868(pEm, 0x200);
             }
             if (!(pEm->Unk144 & 0x20)) {
-                FA_Add_speedXZ3(pEm, 0, 0);
+                Add_speedXZ3(pEm, 0, 0);
             }
             f = pEm->Unk144;
             if (f & 8) {
@@ -1256,7 +1257,7 @@ void func_80062F64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     func_80079868(pEm, 0x200);
                 }
                 if (!(pEm->Unk144 & 0x20)) {
-                    FA_Add_speedXZ3(pEm, 0, 0);
+                    Add_speedXZ3(pEm, 0, 0);
                 }
             }
             pEm->Cdir_y += pEm->Add_dir;
