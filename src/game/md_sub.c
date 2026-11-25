@@ -151,8 +151,8 @@ void MulLMatrix(MATRIX *lwm, MATRIX *klwm, MATRIX *nlm)
     nlm->t[2] = vec.vz;
 }
 
-/* floor panel GT4 sort (func_8002E74C): one colour, screen xy / z from the projected tables */
-void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+/* floor panel GT4 sort (Mizu_trans): one colour, screen xy / z from the projected tables */
+void SortGT4_lno(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 {
     ULONG IdxMask;
     LONG Otz;
@@ -363,10 +363,11 @@ loop:
         goto loop;
     }
 end:
-    func_8002B5FC(pEm->pSin_parts_ptr, Parts_cnt);
+    Hokan_spd_set(pEm->pSin_parts_ptr, Parts_cnt);
 }
 
-void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
+/* end of Hokan_key_set: Rot_spd = key angle - Rot, wrapped to +-0x800 per part (no RE2 equivalent) */
+void Hokan_spd_set(PARTS_W *pP, ULONG Cnt)
 {
     LONG w;
     LONG w2;
@@ -405,7 +406,7 @@ void func_8002B5FC(PARTS_W *pP, ULONG Cnt)
 
 /* sort the GT3 prims of pPrm->pObj (one colour for all vertices) into packets 0x68 bytes apart:
    back faces culled with nclip, OT depth avsz3 >> 3; returns the next free packet */
-POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+POLY_GT4 *SortGT3_lno_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 {
     ULONG *pPrim;
     ULONG *pOt;
@@ -471,7 +472,7 @@ end:
 }
 
 /* the same for the GT4 prims; the OT depth is the sum of the four z values >> 7 */
-POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+POLY_GT4 *SortGT4_lno_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 {
     ULONG *pPrim;
     ULONG *pOt;
@@ -569,9 +570,9 @@ POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     ULONG i1;
     ULONG i2;
 
-    RotMatrix(&D_80098B00, &D_800D4570);
-    D_80098B00.vy += 0x80;
-    D_80098B00.vx += 0x80;
+    RotMatrix(&Bomb_rot, &Bomb_m);
+    Bomb_rot.vy += 0x80;
+    Bomb_rot.vx += 0x80;
     cnt0 = pObj->n_prim3;
     if (cnt0 == 0) {
         return pPacket;
@@ -604,21 +605,21 @@ POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     s3 = &sp[i2];
     do {
         gte_stlvnl(v);
-        D_800D4570.t[0] = (s1->vx + s2->vx + s3->vx) / 3;
-        D_800D4570.t[1] = (s1->vy + s2->vy + s3->vy) / 3;
-        D_800D4570.t[2] = (s1->vz + s2->vz + s3->vz) / 3;
-        gte_SetRotMatrix(&D_800D4570);
-        gte_SetTransMatrix(&D_800D4570);
-        Vec.vx = -D_800D4570.t[0];
-        Vec.vy = -D_800D4570.t[1];
-        Vec.vz = -D_800D4570.t[2];
+        Bomb_m.t[0] = (s1->vx + s2->vx + s3->vx) / 3;
+        Bomb_m.t[1] = (s1->vy + s2->vy + s3->vy) / 3;
+        Bomb_m.t[2] = (s1->vz + s2->vz + s3->vz) / 3;
+        gte_SetRotMatrix(&Bomb_m);
+        gte_SetTransMatrix(&Bomb_m);
+        Vec.vx = -Bomb_m.t[0];
+        Vec.vy = -Bomb_m.t[1];
+        Vec.vz = -Bomb_m.t[2];
         gte_ldlv0(&Vec);
         gte_rtv0tr();
-        gte_stlvnl(D_800D4570.t);
-        D_800D4570.t[0] += (s0->vx >> 10) * bomb;
-        D_800D4570.t[1] += (s0->vy >> 10) * bomb;
-        D_800D4570.t[2] += (s0->vz >> 10) * bomb;
-        CompM(&bbm0, &D_800D4570, &bbm1);
+        gte_stlvnl(Bomb_m.t);
+        Bomb_m.t[0] += (s0->vx >> 10) * bomb;
+        Bomb_m.t[1] += (s0->vy >> 10) * bomb;
+        Bomb_m.t[2] += (s0->vz >> 10) * bomb;
+        CompM(&bbm0, &Bomb_m, &bbm1);
         gte_SetRotMatrix(&bbm1);
         gte_SetTransMatrix(&bbm1);
         gte_ldv3(s1, s2, s3);
@@ -722,21 +723,21 @@ POLY_GT4 *Bomb_Parts_SortGT4(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     s3 = &sp[i2];
     do {
         gte_stlvnl(v);
-        D_800D4570.t[0] = (s1->vx + s3->vx) / 2;
-        D_800D4570.t[1] = (s1->vy + s3->vy) / 2;
-        D_800D4570.t[2] = (s1->vz + s3->vz) / 2;
-        gte_SetRotMatrix(&D_800D4570);
-        gte_SetTransMatrix(&D_800D4570);
-        Vec.vx = -D_800D4570.t[0];
-        Vec.vy = -D_800D4570.t[1];
-        Vec.vz = -D_800D4570.t[2];
+        Bomb_m.t[0] = (s1->vx + s3->vx) / 2;
+        Bomb_m.t[1] = (s1->vy + s3->vy) / 2;
+        Bomb_m.t[2] = (s1->vz + s3->vz) / 2;
+        gte_SetRotMatrix(&Bomb_m);
+        gte_SetTransMatrix(&Bomb_m);
+        Vec.vx = -Bomb_m.t[0];
+        Vec.vy = -Bomb_m.t[1];
+        Vec.vz = -Bomb_m.t[2];
         gte_ldlv0(&Vec);
         gte_rtv0tr();
-        gte_stlvnl(D_800D4570.t);
-        D_800D4570.t[0] += (s0->vx >> 10) * bomb;
-        D_800D4570.t[1] += (s0->vy >> 10) * bomb;
-        D_800D4570.t[2] += (s0->vz >> 10) * bomb;
-        CompM(&bbm0, &D_800D4570, &bbm1);
+        gte_stlvnl(Bomb_m.t);
+        Bomb_m.t[0] += (s0->vx >> 10) * bomb;
+        Bomb_m.t[1] += (s0->vy >> 10) * bomb;
+        Bomb_m.t[2] += (s0->vz >> 10) * bomb;
+        CompM(&bbm0, &Bomb_m, &bbm1);
         gte_SetRotMatrix(&bbm1);
         gte_SetTransMatrix(&bbm1);
         gte_ldv3(s1, s2, s3);
@@ -786,7 +787,8 @@ POLY_GT4 *Bomb_Parts_SortGT4(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     return pPacket;
 }
 
-void func_8002C680(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add)
+/* add tpage (Ctp), clut (Ccl), v offset and Add to every prim of an MD_OBJ; Em34_Init (RE2 does this inside Mapping_tmd) */
+void Md_tex_ofs(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add)
 {
     ULONG *p;
     ULONG n;
@@ -843,7 +845,7 @@ void Md_set_abr(MD_OBJ *pObj, ULONG Abr)
 }
 
 /* lit GT3 sort: flat-ish light from the normals, back faces and unlit faces skipped */
-POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+POLY_GT4 *SortGT3_plus_light(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 {
     VECTOR Lv;
     LONG Otz;
@@ -872,7 +874,7 @@ POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
     if (n == 0) {
         return pPacket;
     }
-    ReadLightMatrix(&D_800D4550);
+    ReadLightMatrix(&Plus_lm_save);
     SetLightMatrix((MATRIX *)&Model_col); /* the light matrix starts with the MODEL_COL fields */
     ot = pPrm->pOt;
     np = (SVECTOR *)pPrm->pObj->pNorm;
@@ -881,9 +883,9 @@ POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
     i1 = (p[2] >> 16) & 0xFF;
     i2 = p[2] >> 24;
     Uv2 = pPrm->u.c.Code;              /* the code byte selects the uv set */
-    Uv0 = D_80098B28[Uv2][0];
-    Uv1 = D_80098B28[Uv2][1];
-    Uv2 = D_80098B28[Uv2][2];
+    Uv0 = Plus_uv_tbl[Uv2][0];
+    Uv1 = Plus_uv_tbl[Uv2][1];
+    Uv2 = Plus_uv_tbl[Uv2][2];
 loop:
     gte_ldsxy3(pSxy[i0], pSxy[i1], pSxy[i2]);
     p += 3;
@@ -939,8 +941,8 @@ next:
     return pPacket;
 }
 
-/* lit GT4 sort (see func_8002C824), z from the summed vertex depths; restores the light matrix */
-POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz)
+/* lit GT4 sort (see SortGT3_plus_light), z from the summed vertex depths; restores the light matrix */
+POLY_GT4 *SortGT4_plus_light(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz)
 {
     VECTOR Lv;
     LONG Otz;
@@ -979,10 +981,10 @@ POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT 
     p = (LONG *)pPrm->pObj->pPrim4;
     ot = pPrm->pOt;
     Uv3 = pPrm->u.c.Code;
-    Uv0 = D_80098B28[Uv3][0];
-    Uv1 = D_80098B28[Uv3][1];
-    Uv2 = D_80098B28[Uv3][2];
-    Uv3 = D_80098B28[Uv3][3];
+    Uv0 = Plus_uv_tbl[Uv3][0];
+    Uv1 = Plus_uv_tbl[Uv3][1];
+    Uv2 = Plus_uv_tbl[Uv3][2];
+    Uv3 = Plus_uv_tbl[Uv3][3];
     i0 = (p[2] & 0xFF0000) >> 16;
     i1 = p[2] >> 24;
     i2 = (p[3] & 0xFF0000) >> 16;
@@ -1048,12 +1050,12 @@ next:
     if (n != 0) {
         goto loop;
     }
-    SetLightMatrix(&D_800D4550);
+    SetLightMatrix(&Plus_lm_save);
     return pPacket;
 }
 
 /* unlit GT3 sort with one colour (semi-transparent code 0x36) */
-POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+POLY_GT4 *SortGT3_plus_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 {
     LONG Unused[4];
     LONG Otz;
@@ -1085,9 +1087,9 @@ POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
     i0 = p[1] >> 24;
     i1 = (p[2] >> 16) & 0xFF;
     i2 = p[2] >> 24;
-    Uv0 = D_80098B28[Uv2][0];
-    Uv1 = D_80098B28[Uv2][1];
-    Uv2 = D_80098B28[Uv2][2];
+    Uv0 = Plus_uv_tbl[Uv2][0];
+    Uv1 = Plus_uv_tbl[Uv2][1];
+    Uv2 = Plus_uv_tbl[Uv2][2];
 loop:
     gte_ldsxy3(pSxy[i0], pSxy[i1], pSxy[i2]);
     p += 3;
@@ -1125,9 +1127,9 @@ next:
     return pPacket;
 }
 
-/* sort the GT4 prims of pPrm->pObj with one colour (code 0x3E) and the fixed uv words D_80098B28[code]
+/* sort the GT4 prims of pPrm->pObj with one colour (code 0x3E) and the fixed uv words Plus_uv_tbl[code]
    (packets 0x68 bytes apart, OT depth = sum of the four z >> 7); returns the next free packet */
-POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+POLY_GT4 *SortGT4_plus_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 {
     SVECTOR Unused[2]; /* frame padding */
     LONG Z;
@@ -1158,7 +1160,7 @@ POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
     pPrim = (LONG *)pPrm->pObj->pPrim4;
     Uv3 = pPrm->u.Rgb >> 24; /* the primitive code picks the uv set */
     Rgb = (pPrm->u.Rgb & 0xFFFFFF) | 0x3E000000;
-    pUv_tbl = D_80098B28;
+    pUv_tbl = Plus_uv_tbl;
     pOt = pPrm->pOt;
     pUv = pUv_tbl[Uv3];
     Uv0 = pUv[0];
@@ -1306,28 +1308,37 @@ void Rgb_blend(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb)
     } while (p <= pEnd);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D4B0);
+/* m2 = m0 * m1 incl. translation (hand-written GTE); already aliased as CompM = 0x8002D4B0 in syms/re2_names.txt, so this only renames the INCLUDE_ASM label (RE2 MD_SUB.C CompM) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", CompM);
 
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", Md_rtp);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D6D8);
+/* lit GT3 sort (ncct with per-vertex normals), packet built from the MD prim, Parts_sort / Parts_sort_simple Flg8 (RE2 SortGT3_neo variant) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_neo_uv);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002D898);
+/* GT4 counterpart of SortGT3_neo_uv (nccs + ncct), OT = sum of 4 z >> 7 (RE2 SortGT4_neo variant) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_neo_uv);
 
 /* hand-scheduled: Otz is loaded (lw v0,0(sp)) between the lwc2 $0 and lwc2 $1 of one gte_ldv3 asm */
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002DAAC);
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_neo);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002DC98);
+/* GT3 sort with per-polygon vertex colours read sequentially from Prm.UnkC (3 words/prim, pointer written back), Parts_sort_ex (no RE2 equivalent) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_col);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002DE0C);
+/* GT4 counterpart of SortGT3_col (4 colour words/prim) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_col);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002DFE0);
+/* GT3 sort with per-vertex colours Prm.UnkC[vertex] (= Skin_rgb), Parts_sort_sabun (no RE2 equivalent; cf. Skin_sort_gt3) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_sabun);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002E160);
+/* GT4 counterpart of SortGT3_sabun */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_sabun);
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002E318);
+/* dead hand-written twin of Skin_vtx0 (CompM per bone + rtpt of index triplets, z clamp 0x7FFF) using an older work layout (parts at +0x100 stride 0xC8, pos table +0x110) (no RE2 equivalent) */
+INCLUDE_ASM("asm/nonmatchings/game/md_sub", Skin_vtx0_old);
 
-POLY_GT4 *func_8002E61C(MD_WORK2 *pW, POLY_GT4 *pPrim)
+/* preset double-buffered GT4 packets of a water object (Om Id 1), grey 0x808080, abr from Attr (RE2 uses PresetObjectGT4_neo here) */
+POLY_GT4 *PresetObjectGT4_mizu(MD_WORK2 *pW, POLY_GT4 *pPrim)
 {
     MD_OBJ *pObj;
     ULONG n;
@@ -1373,7 +1384,8 @@ typedef struct tagMODEL_HEAD {
 } MODEL_HEAD;
 #define EM_MD(p) ((MODEL_HEAD *)&(p)->Attribute)
 
-void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
+/* sort the water surface and show/hide each cell by Hit_ck_point4 against the cut, then the ripple split (RE2 MIZU_SYS.C Mizu_trans) */
+void Mizu_trans(ENEMY_WORK *pEm, ULONG Abr)
 {
     ULONG Sxy[0x3C];
     USHORT Sz[0x3C];
@@ -1397,7 +1409,7 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
     Prm.u.Rgb = pMd->Poly_rgb;
     Md_rtp(Sxy, Sz, pMd->pObj);
     Prm.u.c.Code = (Abr << 1) | 0x3C;
-    func_8002AF9C(&Prm, (POLY_GT4 *)pEm->pUnk188_seq_t_ptr + G.Cbuf_id, Sxy, Sz);
+    SortGT4_lno(&Prm, (POLY_GT4 *)pEm->pUnk188_seq_t_ptr + G.Cbuf_id, Sxy, Sz);
     Dir = (Dir & 0xFFF) >> 10;
     switch (Dir) {
     case 0:
@@ -1427,9 +1439,9 @@ void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr)
     }
     pPrim = (POLY_GT4 *)pEm->pUnk188_seq_t_ptr;
     pPrim += G.Cbuf_id;
-    pBits = &D_80098BA8[D_80098B8C[pEm->Type]];
-    W = D_80098B58[pEm->Type][0];
-    H = D_80098B58[pEm->Type][1];
+    pBits = &Mizu_struct_tbl[Mizu_tbl[pEm->Type]];
+    W = Mizu_size_tbl[pEm->Type][0];
+    H = Mizu_size_tbl[pEm->Type][1];
     switch (Dir) {
     case 0:
     case 2:
@@ -1477,18 +1489,19 @@ void Draw_list_all(ENEMY_WORK *pFloor, ULONG W, ULONG H)
 {
     ENEMY_WORK **ppEm;
 
-    func_8002EB9C(pFloor, W, H, G.pEnemy[0]);
+    Mizu_div_main(pFloor, W, H, G.pEnemy[0]);
     if (G.pEnemy[1]->Be_flg & 1) {
-        func_8002EB9C(pFloor, W, H, G.pEnemy[1]);
+        Mizu_div_main(pFloor, W, H, G.pEnemy[1]);
     }
     for (ppEm = &G.pEnemy[2]; ppEm != G.ppEnemy_end; ppEm++) {
         if ((*ppEm)->Be_flg & 1) {
-            func_8002EB9C(pFloor, W, H, *ppEm);
+            Mizu_div_main(pFloor, W, H, *ppEm);
         }
     }
 }
 
-void func_8002EB9C(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm)
+/* replace the water cell under one model by 13 subdivided GT4s in Sce.pMizu_div (RE2 MIZU_SYS.C Mizu_div_main) */
+void Mizu_div_main(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm)
 {
     SHORT Area[4];
     VECTOR Pos;
@@ -1523,14 +1536,14 @@ void func_8002EB9C(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm)
     M = GsIDMATRIX;
     RotMatrixY(-pFloor->Cdir_y, &M);
     ApplyMatrix(&M, (SVECTOR *)V, &Pos);
-    if (func_800101C8(&Pos.vx, Area) == 0) {
+    if (Hit_ck_box(&Pos.vx, Area) == 0) {
         return;
     }
     Pz = Pos.vz / 0x708;
     Px = Pos.vx / 0x708;
     k = 0;
     Cnt = 0;
-    pBits = &D_80098BA8[D_80098B8C[pFloor->Type]];
+    pBits = &Mizu_struct_tbl[Mizu_tbl[pFloor->Type]];
     Idx = Px + Pz * W;
     for (j = 0; j < H; j++) {
         for (i = 0; i < W; i++) {
@@ -1580,20 +1593,20 @@ found:
     SetRotMatrix(&M);
     SetTransMatrix(&M);
     pOt = G.Ot1[G.Cbuf_id];
-    pTbl = D_80098D68[0];
+    pTbl = Div_prim_coord[0];
     j = 0;
     do {
-        pPrim->u0 = D_80098D68[j][0] * 63 / 18;
-        pPrim->v0 = V0 + D_80098D68[j][1] * 63 / 18;
+        pPrim->u0 = Div_prim_coord[j][0] * 63 / 18;
+        pPrim->v0 = V0 + Div_prim_coord[j][1] * 63 / 18;
         *(ULONG *)&pPrim->r1 = 0x808080;
-        pPrim->u1 = D_80098D68[j][2] * 63 / 18;
-        pPrim->v1 = V0 + D_80098D68[j][3] * 63 / 18;
+        pPrim->u1 = Div_prim_coord[j][2] * 63 / 18;
+        pPrim->v1 = V0 + Div_prim_coord[j][3] * 63 / 18;
         *(ULONG *)&pPrim->r2 = 0x808080;
-        pPrim->u2 = D_80098D68[j][4] * 63 / 18;
-        pPrim->v2 = V0 + D_80098D68[j][5] * 63 / 18;
+        pPrim->u2 = Div_prim_coord[j][4] * 63 / 18;
+        pPrim->v2 = V0 + Div_prim_coord[j][5] * 63 / 18;
         *(ULONG *)&pPrim->r3 = 0x808080;
-        pPrim->u3 = D_80098D68[j][6] * 63 / 18;
-        pPrim->v3 = V0 + D_80098D68[j][7] * 63 / 18;
+        pPrim->u3 = Div_prim_coord[j][6] * 63 / 18;
+        pPrim->v3 = V0 + Div_prim_coord[j][7] * 63 / 18;
         V[0][0] = Px - pTbl[0] * 100;
         V[0][1] = Pz + pTbl[1] * 100;
         V[1][0] = Px - pTbl[2] * 100;

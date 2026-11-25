@@ -187,7 +187,7 @@ void Init_system(void)
     Cd_init();
     Snd_sys_init();
     Init_scheduler();
-    VSyncCallback(func_800101AC);
+    VSyncCallback(Vsync_cb);
     pM->Vloop = 1;
     D_800D454C = 0;
     SetDefDrawEnv(&pM->Db[0].Draw, 0, 0, 320, 240);
@@ -385,7 +385,7 @@ void Bg_draw(void)
         Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;
         if (*(ULONG *)(0x80193FFC + Size) != 0) {
-            func_80010000(*(ULONG *)(0x80193FF8 + Size) + 0x80194000, (ULONG *)0x801AC000);
+            Lz_unpack(*(ULONG *)(0x80193FF8 + Size) + 0x80194000, (ULONG *)0x801AC000);
             pG->Ctp.Tpage_clut = 0x15;
             Mapping_tim((ULONG *)0x801AC000);
             pG->Ctp.Tpage_clut = Ctpage_save;

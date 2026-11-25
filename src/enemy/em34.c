@@ -2710,9 +2710,9 @@ void Em34_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 = 1;
         EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         pEm->Type = (pEm->Type & ~0xF) | 3;
-        func_8002C680(pEm->pSin_parts_ptr[1].pTmd, 1, 1, 0, 0);
-        func_8002C680(pEm->pSin_parts_ptr[2].pTmd, 4, 4, 0, 0);
-        func_8002C680(pEm->pSin_parts_ptr[6].pTmd, 1, 1, 0, 0);
+        Md_tex_ofs(pEm->pSin_parts_ptr[1].pTmd, 1, 1, 0, 0);
+        Md_tex_ofs(pEm->pSin_parts_ptr[2].pTmd, 4, 4, 0, 0);
+        Md_tex_ofs(pEm->pSin_parts_ptr[6].pTmd, 1, 1, 0, 0);
         pParts = pEm->pSin_parts_ptr;
         pP = &pParts[17];
         if (G.System_flg & 0x100) {

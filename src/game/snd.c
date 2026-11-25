@@ -1510,7 +1510,7 @@ UCHAR Snd_floor_kind(LONG x, LONG z, LONG id)
     while (n--) {
         pFlr -= 0xC;
         Attr = ((SHORT *)pFlr)[5];
-        if (!(Attr & 0x100) && id == (Attr & 0x7F) && func_800101C8(pos, (SHORT *)pFlr)) {
+        if (!(Attr & 0x100) && id == (Attr & 0x7F) && Hit_ck_box(pos, (SHORT *)pFlr)) {
             return pFlr[8];
         }
     }

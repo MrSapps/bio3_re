@@ -27,7 +27,7 @@ void Om_init(ENEMY_WORK *pEm, ULONG *pData)
     pEm->pTmd = pData + 2;
     pEm->Poly_rgb = 0x808080;
     if (pEm->Id == 1) {
-        G.pEm_mem = (ENEMY_WORK *)func_8002E61C((MD_WORK2 *)pEm, (POLY_GT4 *)G.pEm_mem); /* MD_WORK2: the model view of the work */
+        G.pEm_mem = (ENEMY_WORK *)PresetObjectGT4_mizu((MD_WORK2 *)pEm, (POLY_GT4 *)G.pEm_mem); /* MD_WORK2: the model view of the work */
     } else {
         G.pEm_mem = (ENEMY_WORK *)Om_parts_work_set(pEm, (PARTS_W *)G.pEm_mem);
         Om_parts_link((OBJ_MODEL_WORK *)pEm, pEm->pUnk184_kan_t_ptr);
@@ -656,7 +656,7 @@ void Om_trans(void)
             CompM(&GsWSMATRIX, &pOm->Workm, &M);
             SetRotMatrix(&M);
             SetTransMatrix(&M);
-            func_8002E74C((ENEMY_WORK *)pOm, 1); /* the model work shares the ENEMY_WORK head */
+            Mizu_trans((ENEMY_WORK *)pOm, 1); /* the model work shares the ENEMY_WORK head */
         } else {
             Joint_trans_om(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
             Om_joint_trans2(pOm, pOm->pParts, pOm->Be_flg, pOm->Workm.t);
@@ -759,7 +759,7 @@ start:
     p = (UCHAR *)(pBlk + 2);
     for (; n != 0; n--) {
         if (p[1] == 0) {
-            if (!(p[0] & 2) && func_800101C8(pPos, (SHORT *)(p + 4))) {
+            if (!(p[0] & 2) && Hit_ck_box(pPos, (SHORT *)(p + 4))) {
                 goto found;
             }
             p += 12;

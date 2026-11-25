@@ -29,7 +29,7 @@ typedef struct tagMD_WORK {
     POLY_GT4 *pPrim4;                  /* 0x0C */
 } MD_WORK;
 
-/* second model work layout (func_8002E61C) */
+/* second model work layout (PresetObjectGT4_mizu) */
 typedef struct tagMD_WORK2 {
     UCHAR pad0[0x10];
     ULONG Attr;                        /* 0x010 bits 2-3: semi-trans rate */
@@ -49,7 +49,7 @@ typedef struct tagRGB_BLEND_WORK {
     UCHAR pad2C[0x68 - 0x2C];
 } RGB_BLEND_WORK;
 
-/* primitive sort parameters (Parts_sort_ex -> func_8002DC98 / func_8002DE0C) */
+/* primitive sort parameters (Parts_sort_ex -> SortGT3_col / SortGT4_col) */
 typedef struct tagSORT_PARAM {
     MD_OBJ *pObj;                      /* 0x0 */
     union {
@@ -70,46 +70,46 @@ ULONG Mapping_md(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl); /* RE2 Mapping_tmd count
 void Md_set_abr(MD_OBJ *pObj, ULONG Abr); /* set semi-trans rate of all prims */
 
 extern SHORT Bomb_tbl[2][30]; /* RE2 Bomb_tbl: push-out distance per frame */
-extern SVECTOR D_80098B00; /* spin of the exploding parts, +0x80 per call */
-extern ULONG D_80098B28[][4]; /* uv words per primitive code */
-extern UCHAR D_80098B58[][2]; /* panel columns, rows */
-extern UCHAR D_80098B8C[]; /* first row bitmask in D_80098BA8 */
-extern USHORT D_80098BA8[]; /* one bit per panel, MSB first */
-extern UCHAR D_80098D68[13][8];
-extern MATRIX D_800D4550; /* light matrix saved by func_8002C824, restored by func_8002CABC */
-extern MATRIX D_800D4570; /* rotation of D_80098B00, translation = polygon centre */
+extern SVECTOR Bomb_rot; /* spin of the exploding parts, +0x80 per call */
+extern ULONG Plus_uv_tbl[][4]; /* uv words per primitive code */
+extern UCHAR Mizu_size_tbl[][2]; /* panel columns, rows */
+extern UCHAR Mizu_tbl[]; /* first row bitmask in Mizu_struct_tbl */
+extern USHORT Mizu_struct_tbl[]; /* one bit per panel, MSB first */
+extern UCHAR Div_prim_coord[13][8];
+extern MATRIX Plus_lm_save; /* light matrix saved by SortGT3_plus_light, restored by SortGT4_plus_light */
+extern MATRIX Bomb_m; /* rotation of Bomb_rot, translation = polygon centre */
 
 POLY_GT3 *PresetObjectGT3_neo(MD_WORK *pW, POLY_GT3 *pPrim);
 POLY_GT4 *PresetObjectGT4_neo(MD_WORK *pW, POLY_GT4 *pPrim);
 void MulLMatrix(MATRIX *lwm, MATRIX *klwm, MATRIX *nlm); /* libgte (not in libgte.h) */
-void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+void SortGT4_lno(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 void Parts_hokan(ULONG n, PARTS_W *pP, ULONG Late, LONG Rate);
 void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
-void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
-POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+void Hokan_spd_set(PARTS_W *pP, ULONG Cnt);
+POLY_GT4 *SortGT3_lno_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT4_lno_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
 POLY_GT4 *Bomb_Parts_SortGT4(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP);
-void func_8002C680(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add);
-POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002CABC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
-POLY_GT4 *func_8002CE08(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+void Md_tex_ofs(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add);
+POLY_GT4 *SortGT3_plus_light(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT4_plus_light(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, SHORT *pSz);
+POLY_GT4 *SortGT3_plus_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT4_plus_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 void Md_rtp_floor(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM);
 void Rgb_blend(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb);
 void CompM(MATRIX *m0, MATRIX *m1, MATRIX *m2);
 void Md_rtp(ULONG *pSxy, USHORT *pSz, MD_OBJ *pObj);
-POLY_GT4 *func_8002D6D8(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002D898(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void func_8002DAAC(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
-POLY_GT4 *func_8002DC98(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002DE0C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002DFE0(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-POLY_GT4 *func_8002E160(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void func_8002E318(LONG Arg0, LONG Arg1, ULONG *Arg2, LONG Arg3); /* args from the asm */
-POLY_GT4 *func_8002E61C(MD_WORK2 *pW, POLY_GT4 *pPrim);
-void func_8002E74C(ENEMY_WORK *pEm, ULONG Abr);
+POLY_GT4 *SortGT3_neo_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT4_neo_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+void SortGT3_neo(ULONG *Arg0, LONG Arg1, LONG Arg2, LONG Arg3); /* args from the asm */
+POLY_GT4 *SortGT3_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT4_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT3_sabun(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+POLY_GT4 *SortGT4_sabun(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
+void Skin_vtx0_old(LONG Arg0, LONG Arg1, ULONG *Arg2, LONG Arg3); /* args from the asm */
+POLY_GT4 *PresetObjectGT4_mizu(MD_WORK2 *pW, POLY_GT4 *pPrim);
+void Mizu_trans(ENEMY_WORK *pEm, ULONG Abr);
 void Draw_list_all(ENEMY_WORK *pFloor, ULONG W, ULONG H);
-void func_8002EB9C(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm);
+void Mizu_div_main(ENEMY_WORK *pFloor, ULONG W, ULONG H, ENEMY_WORK *pEm);
 
 #endif /* MD_SUB_H */

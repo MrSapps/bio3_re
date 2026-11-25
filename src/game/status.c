@@ -2411,7 +2411,7 @@ void Pix_unpack(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
 {
     RECT r;
 
-    func_80010000(ofs + Item_pix_ofs[tbl], pBuf);
+    Lz_unpack(ofs + Item_pix_ofs[tbl], pBuf);
     r.x = Item_pix_pos[no][0];
     r.y = Item_pix_pos[no][1];
     r.w = 0x14;
@@ -2424,7 +2424,7 @@ void Pix_unpack_box(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf)
 {
     RECT r;
 
-    func_80010000(ofs + Item_pix_ofs[tbl], pBuf);
+    Lz_unpack(ofs + Item_pix_ofs[tbl], pBuf);
     r.x = Box_pix_pos[no % 8][0];
     r.y = Box_pix_pos[no % 8][1];
     r.w = 0x14;

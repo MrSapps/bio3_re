@@ -286,7 +286,7 @@ typedef struct tagEM_HIT_AREA {
     USHORT Col_flg;                    /* 0x17E Model_col: bits 8-11 mode, low byte grey level */ \
     ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of Leg_ik_kan (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
-    ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in func_8002E74C works */ \
+    ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in Mizu_trans works */ \
     ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */                            \
     ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (func_800498F0) */ \
     ULONG *pUnk194_kan_t_ptr;          /* 0x194 */                            \

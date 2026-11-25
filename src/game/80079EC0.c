@@ -171,8 +171,8 @@ void Skin_sort(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
     pEnv->pEm = G.pEm;
     pEnv->pMdl = (SORT_MDL *)Arg2;
     pEnv->pWs = &GsWSMATRIX;
-    pEnv->pM = D_800C79F0;
-    pEnv->pV = D_800C79F4;
+    pEnv->pM = pSkin_m;
+    pEnv->pV = pSkin_v;
     pData = (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF));
     Skin_vtx0(pWork0, pWork1, pEnv, pData);
     Skin_light0(Skin_rgb, pP, pEnv, pData);
@@ -198,8 +198,8 @@ void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
     pEnv->pEm = G.pEm;
     pEnv->pMdl = (SORT_MDL *)Arg2;
     pEnv->pWs = &GsWSMATRIX;
-    pEnv->pM = D_800C79F0;
-    pEnv->pV = D_800C79F4;
+    pEnv->pM = pSkin_m;
+    pEnv->pV = pSkin_v;
     Skin_ofs = Ofs;
     Skin_vtx0_alt(pWork0, pWork1, pEnv, (UCHAR *)((ULONG)pHead + (Ofs & 0xFFFF)));
     Skin_light0(Skin_rgb, pP, pEnv, pSkin_head + (USHORT)Skin_ofs);

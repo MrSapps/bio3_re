@@ -652,7 +652,7 @@ LONG Water_ck(LONG Pos_x, LONG Pos_z)
                     if (Hit_ck_point4((LONG *)&Vec, (VCUT *)Work)) {
                         return ((SHORT *)pAot)[10];
                     }
-                } else if (func_800101C8((LONG *)&Vec, (SHORT *)(pAot + 4))) {
+                } else if (Hit_ck_box((LONG *)&Vec, (SHORT *)(pAot + 4))) {
                     return ((SHORT *)pAot)[6];
                 }
             }
