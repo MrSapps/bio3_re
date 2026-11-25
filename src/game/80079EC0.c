@@ -332,7 +332,10 @@ void Skin_vtx0(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 /* blended vertices of the second skin list */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
 
-/* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
+/* blended vertices of the third skin list (each vertex rotated by two bones, mixed with gpf/gpl by weight, like
+   Skin_light2). C: reload uses s4 as a spill register (pOfs/pSxy/pSz reloads, &Skin_nor[k] rematerialised).
+   Draft (agentxC best/Skin_vtx2.c) is structurally complete; the target has more register pressure (pSxy/pSz
+   spilled to their home slots) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2);
 
 /* lit colours of the first skin list: per bone, light matrix = LIGHTMATRIX * bone rotation, then ncct over
@@ -889,5 +892,5 @@ void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
     } while (*pData != 0xFF);
 }
 
-/* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
+/* Skin_vtx2 for the alternate routines. C like Skin_vtx1_alt (reload rematerialises constants into spill regs) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);

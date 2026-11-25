@@ -1341,33 +1341,46 @@ void Rgb_blend(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb)
     } while (p <= pEnd);
 }
 
-/* m2 = m0 * m1 incl. translation (hand-written GTE); already aliased as CompM = 0x8002D4B0 in syms/re2_names.txt, so this only renames the INCLUDE_ASM label (RE2 MD_SUB.C CompM) */
+/* m2 = m0 * m1 incl. translation (RE2 MD_SUB.C CompM). Hand-written: a leaf that loads into t0..t7 while v0/v1/a3
+   are free (gcc's allocation order starts at v0), and the columns are software-pipelined (column k's sh stores come
+   after column k+1's mvmva), which no sequence of volatile asm macros can produce. Not PsyQ's CompMatrix. */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", CompM);
 
+/* rtpt over packed vertex triplets with a z clamp to 0x7FFF one triplet late. Hand-written: a leaf that keeps
+   values in s0/s1 while every t-register is unused (gcc never picks a call-saved register there), and the loop is
+   software-pipelined (clamp of the previous z after the next rtpt, the last clamp repeated after the loop). */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", Md_rtp);
 
-/* lit GT3 sort (ncct with per-vertex normals), packet built from the MD prim, Parts_sort / Parts_sort_simple Flg8 (RE2 SortGT3_neo variant) */
+/* lit GT3 sort (ncct with per-vertex normals), packet built from the MD prim, Parts_sort / Parts_sort_simple Flg8 (RE2 SortGT3_neo variant).
+   Hand-edited: frame -0x1C (gcc 2.8 rounds every frame to 8; of the ~2390 frames in the EXE and overlays only
+   SortGT3/4_neo_uv, SortGT4_col and SortGT3/4_sabun are not multiples of 8) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_neo_uv);
 
-/* GT4 counterpart of SortGT3_neo_uv (nccs + ncct), OT = sum of 4 z >> 7 (RE2 SortGT4_neo variant) */
+/* GT4 counterpart of SortGT3_neo_uv (nccs + ncct), OT = sum of 4 z >> 7 (RE2 SortGT4_neo variant). Hand-edited: frame -0x24 */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_neo_uv);
 
-/* hand-scheduled: Otz is loaded (lw v0,0(sp)) between the lwc2 $0 and lwc2 $1 of one gte_ldv3 asm */
+/* hand-edited: Otz is loaded (lw v0,0(sp)) between the lwc2 $0 and lwc2 $1 of one vertex, and the normals are
+   loaded vertex 2 first; a volatile asm is a scheduling barrier, so a C load cannot land inside a gte_ldv3/ldv0.
+   No other function in the game splits an lwc2 pair (checked over all asm) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_neo);
 
 /* GT3 sort with per-polygon vertex colours read sequentially from Prm.UnkC (3 words/prim, pointer written back), Parts_sort_ex (no RE2 equivalent) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_col);
 
-/* GT4 counterpart of SortGT3_col (4 colour words/prim) */
+/* GT4 counterpart of SortGT3_col (4 colour words/prim). Hand-edited: frame -0x1C (not a multiple of 8) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_col);
 
-/* GT3 sort with per-vertex colours Prm.UnkC[vertex] (= Skin_rgb), Parts_sort_sabun (no RE2 equivalent; cf. Skin_sort_gt3) */
+/* GT3 sort with per-vertex colours Prm.UnkC[vertex] (= Skin_rgb), Parts_sort_sabun (no RE2 equivalent; cf. Skin_sort_gt3).
+   Hand-edited: frame -0x1C (not a multiple of 8), s0..s4 saved in ascending order */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_sabun);
 
-/* GT4 counterpart of SortGT3_sabun */
+/* GT4 counterpart of SortGT3_sabun. Hand-edited: frame -0x1C (not a multiple of 8) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_sabun);
 
-/* dead hand-written twin of Skin_vtx0 (CompM per bone + rtpt of index triplets, z clamp 0x7FFF) using an older work layout (parts at +0x100 stride 0xC8, pos table +0x110) (no RE2 equivalent) */
+/* dead hand-edited twin of Skin_vtx0 (CompM per bone + rtpt of index triplets, z clamp 0x7FFF) using an older work layout
+   (parts at +0x100 stride 0xC8, pos table +0x110) (no RE2 equivalent). Skin_vtx0 itself is C (80079EC0.c); here the
+   SetRotMatrix text is split up (ctc2 from v0/v1, not the macro's $12-$14) and lbu/addiu sit inside the two GTE slots
+   before mvmva, which volatile asm macros cannot produce */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", Skin_vtx0_old);
 
 /* preset double-buffered GT4 packets of a water object (Om Id 1), grey 0x808080, abr from Attr (RE2 uses PresetObjectGT4_neo here) */
