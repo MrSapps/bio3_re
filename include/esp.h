@@ -57,13 +57,13 @@ typedef struct tagESP_WORK {
     } Id;
     UCHAR Unk2A;                       /* 0x2A */
     UCHAR Timer;                       /* 0x2B */
-    USHORT Unk2C;                      /* 0x2C */
-    USHORT Unk2E;                      /* 0x2E */
-    SHORT Unk30;                       /* 0x30 offset added to Unk38 (Esp_trans_main) */
-    SHORT Unk32;                       /* 0x32 */
-    SHORT Unk34;                       /* 0x34 */
+    USHORT Dir_y;                      /* 0x2C RE2 DirY (low half of Esp_call's Dir word) */
+    USHORT Size;                       /* 0x2E sprite size, 0x1000 = 1 (high half of the Dir word) */
+    SHORT Mov_x;                       /* 0x30 RE2 Mov_x: offset moved by Spd (Esp_speed_add), added to Base */
+    SHORT Mov_y;                       /* 0x32 */
+    SHORT Mov_z;                       /* 0x34 */
     UCHAR pad36[0x38 - 0x36];
-    LONG Unk38[3];                     /* 0x38 base position */
+    LONG Base[3];                      /* 0x38 start position (pPos of Esp_call) */
     USHORT Clut;                       /* 0x44 (Esp_call) */
     USHORT Tpage;                      /* 0x46 */
     VECTOR Pos;                        /* 0x48 Pos.pad: ground height (Esp_hit_ck) */
@@ -96,7 +96,7 @@ ULONG Esp_data_set0(UCHAR *pData, ULONG *pOfs, ULONG Mode);
 void Esp_data_set1(ULONG *pTim);
 /* what Esp_call_child / Esp_call and the other effect starters return when no effect was started */
 #define ESP_NONE ((ESP_WORK *)-1)
-ESP_WORK *Esp_call_child(ESP_WORK *pParent, ULONG a1, ULONG a2, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
+ESP_WORK *Esp_call_child(ESP_WORK *pParent, ULONG Id, ULONG Dir_size, MATRIX *pM, LONG *pPos, SVECTOR *pSpd);
 ESP_WORK *Esp_call(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd);
 void Esp_ctrl();
 void Esp_task_main(void);
@@ -104,7 +104,7 @@ void Esp_speed_add(ESP_WORK *pEw);
 void Esp_pos_matrix(ESP_WORK *pEw);
 void Esp_hit_ck(ESP_WORK *pEw);
 void Esp_anm_move(ESP_WORK *pEw);
-UCHAR *Esp_work_get(void);
+ESP_WORK *Esp_work_get(void);
 ESP_WORK *Esp_search(USHORT Id);
 void Esp_00(void);
 void Esp_01(ESP_WORK *pEw);
@@ -122,12 +122,12 @@ void Esp_0c(void);
 void Esp_0d(void);
 void Esp_0e(void);
 void Esp_0f(void);
-void func_8001CDA4(ESP_WORK *pEw, ULONG n); /* random start frame of the sequence */
-void func_8001CE24(ESP_WORK *pEw, ULONG a1, ULONG a2); /* random byte table, indexed by Rnd() */
-void func_8001CF24(ESP_WORK *pEw, ULONG a1, ULONG a2);
-void func_8001CFF4(ESP_WORK *pEw, ULONG n);
+void Esp_seq_rnd_set(ESP_WORK *pEw, ULONG n);
+void Esp_spd_rnd_set(ESP_WORK *pEw, ULONG Spread_x, ULONG Spread_y);
+void Esp_end(ESP_WORK *pEw, ULONG Kind, ULONG Type);
+void Esp_child_burst(ESP_WORK *pEw, ULONG n);
 void Esp_10(ESP_WORK *pEw);
-void Esp_11(UCHAR *p);
+void Esp_11(ESP_WORK *pEw);
 void Esp_12(ESP_WORK *pEw);
 void Esp_13(void);
 void Esp_14(void);
@@ -136,7 +136,7 @@ void Esp_16(ESP_WORK *pEw);
 void Esp_17(ESP_WORK *pEsp);
 void Esp_18(ESP_WORK *pEw);
 void Esp_19(ESP_WORK *pEw);
-void Esp_1a(UCHAR *p);
+void Esp_1a(ESP_WORK *pEw);
 void Esp_1b(ESP_WORK *pEw);
 void Esp_1c(ESP_WORK *pEw);
 void Esp_1d(ESP_WORK *pEw);

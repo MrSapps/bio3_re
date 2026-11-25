@@ -1209,3 +1209,7 @@ Esp_3d = 0x80022660; // type:func
 Esp_3e = 0x80022668; // type:func
 Esp_3f = 0x8002289C; // type:func
 Esp = 0x800BA8A8;
+Esp_seq_rnd_set = 0x8001CDA4; // type:func
+Esp_spd_rnd_set = 0x8001CE24; // type:func
+Esp_end = 0x8001CF24; // type:func
+Esp_child_burst = 0x8001CFF4; // type:func

@@ -409,3 +409,7 @@ pEsp_end2 = 0x80098090; // ESP_WORK * = &Esp[96]
 Rnd_tbl = 0x80098728; // UCHAR[256] random bytes, indexed by Rnd()
 Rsin_tbl = 0x80098828; // signed char[256] sine, +-127
 Esp_data = 0x800BA728; // ESP_DATA[32] effect data per id: [0..15] core (CORE00.ESP), [16..31] room; RE2 Espid/pEspdt/pEspmv
+Esp_seq_rnd_set = 0x8001CDA4; // type:func esp: start the sprite sequence at a random one of n frames from Unk0F
+Esp_spd_rnd_set = 0x8001CE24; // type:func esp: scale Acc/Spd by Size, with a random spread on Spd_x/Spd_y
+Esp_end = 0x8001CF24; // type:func esp: end an effect by Routine_1: 2 starts a follow-up effect, 0 frees it, 3 stops it moving
+Esp_child_burst = 0x8001CFF4; // type:func esp: start n child effects at once and run their first frames

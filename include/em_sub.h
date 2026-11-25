@@ -9,13 +9,15 @@
 
 typedef void (*EFF_PROC)(ESP_WORK *pEw);
 
-/* 0xC-byte table entry, 16 entries at Esp_data / D_800BA7E8 (filled by Esp_data_set0) */
-typedef struct {
-    ULONG *pData;                      /* 0x0 */
-    ULONG *pData2;                     /* 0x4 */
-    UCHAR Id;                          /* 0x8 */
+/* effect data registered per effect id (RE2 Espid/pEspdt/pEspmv as one record); Esp_data[32]:
+ * [0..15] core effects (CORE00.ESP, Esp_init_C), [16..31] room effects (Esp_init_R) */
+typedef struct tagESP_DATA {
+    ULONG *pData;                      /* 0x0 RE2 pEspdt: the effect's sprite data block */
+    ULONG *pMove;                      /* 0x4 RE2 pEspmv: move records after the sprite data */
+    UCHAR Id;                          /* 0x8 RE2 Espid: effect id, 0xFF free */
     UCHAR pad9[3];
-} TBL12;
+} ESP_DATA;
+#define ESP_DATA_ROOM 16
 
 /* animation table header at Kan (RE2 KAN_HEAD, JOINT.H) */
 typedef struct tagKAN_HEAD {
@@ -62,9 +64,7 @@ extern ESP_WORK *pEsp_top2; /* pool 2 start */
 extern ESP_WORK *pEsp_end2; /* pool 2 end */
 extern UCHAR Rnd_tbl[]; /* random offsets (Sce_rnd_set) */
 extern signed char Rsin_tbl[]; /* 0x80098828 sine, 256 steps, +-127 */
-extern TBL12 Esp_data[16];
-extern TBL12 D_800BA7E8[16];
-extern UCHAR D_800BF754[];
+extern ESP_DATA Esp_data[32];
 
 ULONG Gacha_ch(void);
 ULONG Sikai_ck(ENEMY_WORK *pEm, VECTOR *pTa, LONG Han, VECTOR *pAi);
