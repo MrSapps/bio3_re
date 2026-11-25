@@ -5,8 +5,7 @@
 #include "pad.h"
 #include "sld.h"
 
-extern s8 D_80098728_[] __asm__("D_80098728"); /* type differs from the canonical extern */
-UCHAR Rnd_uc(void) __asm__("Rnd"); /* returns unsigned char here (canonical unsigned long) */
+UCHAR Rnd_uc(void) __asm__("Rnd"); /* RE2 declared Rnd as UCHAR; the canonical ULONG keeps unsigned arithmetic for the other callers */
 
 /* AOT entry (RE2 struct tagSCE_AOT, SCE1.H); RE3 entries made at run time carry a part pointer */
 struct tagSCE_AOT {
@@ -64,29 +63,29 @@ void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
 
 ULONG Em_kind_search(ULONG Id)
 {
-    UCHAR *p;
+    EM_KIND *p;
 
     p = Em_kind_tbl;
     do {
-        if (p[0] == Id) {
-            return p[1];
+        if (p->Id == Id) {
+            return p->Kind;
         }
-        p += 3;
-    } while (p[0] != 0xFF);
+        p++;
+    } while (p->Id != 0xFF);
     return 0x80;
 }
 
 UCHAR Em_kind_flg_search(ULONG Id)
 {
-    UCHAR *p;
+    EM_KIND *p;
 
     p = Em_kind_tbl;
     do {
-        if (p[0] == Id) {
-            return p[2];
+        if (p->Id == Id) {
+            return p->Flg;
         }
-        p += 3;
-    } while (p[0] != 0xFF);
+        p++;
+    } while (p->Id != 0xFF);
     return 0x80;
 }
 
@@ -225,7 +224,7 @@ void Sce_rnd_set(void)
     LONG D0;
 
     D0 = (s8)Rnd_uc() << 8;
-    D0 += Rnd_uc() + D_80098728_[Sce.Unk149E++];
+    D0 += Rnd_uc() + (s8)D_80098728[Sce.Unk149E++];
     D_800D1F82 = D0;
 }
 

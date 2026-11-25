@@ -83,7 +83,13 @@ extern SCE_JMP_FUNC Sce_jmp_tbl[];      /* 0x8009E0F8, SCE opcode handlers */
 void Event_init(SCE_TASK *pSce, ULONG Evt_no); /* RE2 Event_init */
 void Event_exec(ULONG Task_level, ULONG Evt_no); /* RE2 Event_exec */
 
-extern UCHAR Em_kind_tbl[];
+/* enemy kind table (Em_kind_tbl, Id 0xFF ends it) */
+typedef struct tagEM_KIND {
+    UCHAR Id;                          /* 0x0 enemy id */
+    UCHAR Kind;                        /* 0x1 model data kind; enemies of one kind share the loaded data (Em_dat) */
+    UCHAR Flg;                         /* 0x2 ORed into ENEMY_WORK.Unk4B */
+} EM_KIND;
+extern EM_KIND Em_kind_tbl[];
 extern UCHAR D_8009E6BC[];
 extern SHORT D_8009E6D4[];
 extern SHORT D_8009E6DC[];
