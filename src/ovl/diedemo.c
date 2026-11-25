@@ -194,11 +194,11 @@ void Die_move_slow(void)
             Task_sleep(1);
         }
         G.pEnemy[0]->Be_flg |= 0x80000;
-        G.pEnemy[0]->Unk1BC[0] = 0;
-        G.pEnemy[0]->Unk1BC[1] = 0;
+        G.pEnemy[0]->Tilt[0] = 0;
+        G.pEnemy[0]->Tilt[1] = 0;
         G.pEnemy[1]->Be_flg |= 0x80000;
-        G.pEnemy[1]->Unk1BC[0] = 0;
-        G.pEnemy[1]->Unk1BC[1] = 0;
+        G.pEnemy[1]->Tilt[0] = 0;
+        G.pEnemy[1]->Tilt[1] = 0;
         if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 |= 0x20000000;
         }

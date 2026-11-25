@@ -75,7 +75,7 @@ LONG func_8006037C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg)
             pSeq = pEm->pSub1_seq_t_ptr;
             break;
         }
-        func_80027338(pKan, pSeq, 0x80, Flg);
+        J_seq_hokan(pKan, pSeq, 0x80, Flg);
         if (!(pEm->Unk144 & 0x20)) {
             ((void (*)(ENEMY_WORK *, LONG, LONG))Add_speedXZ)(pEm, 0, 0);
         }
@@ -112,7 +112,7 @@ void func_80060464(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else {
             pEm->Move_cnt--;
         }
-        func_8002B2BC(pKan, pSeq, pEm->pNow_seq, *(UCHAR *)&pEm->Unk144 >> 7);
+        Hokan_key_set(pKan, pSeq, pEm->pNow_seq, *(UCHAR *)&pEm->Unk144 >> 7);
     }
     pEm->Unk144 ^= 0x800;
 }

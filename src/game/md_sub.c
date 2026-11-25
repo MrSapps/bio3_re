@@ -239,14 +239,14 @@ next:
     }
 }
 
-void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
+void Parts_hokan(ULONG n, PARTS_W *pP, ULONG Late, LONG Rate)
 {
     SVECTOR Sv;
     SVECTOR *pSv;
     SHORT Hokan;
 
     pSv = &Sv;
-    Hokan = 0x1000 - G.pEm->Hokan_flg * Rate;
+    Hokan = 0x1000 - G.pEm->Hokan_flg * (SHORT)Rate;
     do {
         pSv->vx = pP->Rot_x + ((ULONG)(pP->Rot_spd_x * Late) >> 8);
         pSv->vy = pP->Rot_y + ((ULONG)(pP->Rot_spd_y * Late) >> 8);
@@ -271,7 +271,7 @@ typedef struct tagKAN_FRAME3 {
 /* Rot_spd_x/Rot_spd_y written as one word */
 #define ROT_XY(p) (*(ULONG *)&(p)->Rot_spd_x)
 
-void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
+void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -740,7 +740,7 @@ POLY_GT4 *func_8002C824(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT
         return pPacket;
     }
     ReadLightMatrix(&D_800D4550);
-    SetLightMatrix((MATRIX *)&D_80098B08); /* the light matrix starts with the MODEL_COL fields */
+    SetLightMatrix((MATRIX *)&Model_col); /* the light matrix starts with the MODEL_COL fields */
     ot = pPrm->pOt;
     np = (SVECTOR *)pPrm->pObj->pNorm;
     p = (LONG *)pPrm->pObj->pPrim3;

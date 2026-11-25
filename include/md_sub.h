@@ -49,7 +49,7 @@ typedef struct tagRGB_BLEND_WORK {
     UCHAR pad2C[0x68 - 0x2C];
 } RGB_BLEND_WORK;
 
-/* primitive sort parameters (func_80025FB0 -> func_8002DC98 / func_8002DE0C) */
+/* primitive sort parameters (Parts_sort_ex -> func_8002DC98 / func_8002DE0C) */
 typedef struct tagSORT_PARAM {
     MD_OBJ *pObj;                      /* 0x0 */
     union {
@@ -83,8 +83,8 @@ POLY_GT3 *PresetObjectGT3_neo(MD_WORK *pW, POLY_GT3 *pPrim);
 POLY_GT4 *PresetObjectGT4_neo(MD_WORK *pW, POLY_GT4 *pPrim);
 void MulLMatrix(MATRIX *lwm, MATRIX *klwm, MATRIX *nlm); /* libgte (not in libgte.h) */
 void func_8002AF9C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
-void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-void func_8002B2BC(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
+void Parts_hokan(ULONG n, PARTS_W *pP, ULONG Late, LONG Rate);
+void Hokan_key_set(ULONG *pKan, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late);
 void func_8002B5FC(PARTS_W *pP, ULONG Cnt);
 POLY_GT4 *func_8002B6FC(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);
 POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz);

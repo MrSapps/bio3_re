@@ -3,7 +3,7 @@
 /* RE2 JOINT.C: model parts setup / joint animation */
 #include "em_sub.h"
 
-/* model colour parameters set from ENEMY_WORK+0x178 (func_800254AC) */
+/* model colour parameters set from ENEMY_WORK+0x178 (Joint_trans2) */
 typedef struct tagMODEL_COL {
     USHORT Unk0[3];                    /* 0x0 */
     SHORT Unk6;                        /* 0x6 */
@@ -42,37 +42,52 @@ typedef struct tagPARTS_RGB_FREE_WORK {
 } PARTS_RGB_FREE_WORK;
 #define PW_RGB(p) ((PARTS_RGB_FREE_WORK *)&(p)->Unk74)
 
+/* PARTS_W free work of a part flying off in an explosion (Parts_bomb; RE2 Free[0..6]) */
+typedef struct tagPARTS_BOMB_FREE_WORK {
+    USHORT Dir_y;                      /* 0x74 flight direction */
+    USHORT Spd_y;                      /* 0x76 vertical speed */
+    USHORT Spd;                        /* 0x78 horizontal speed, stops at 0 */
+    USHORT Add_y;                      /* 0x7A gravity */
+    USHORT Timer;                      /* 0x7C frames flown (bit 15 ignored) */
+    USHORT pad7E;
+    USHORT Add;                        /* 0x80 horizontal acceleration */
+} PARTS_BOMB_FREE_WORK;
+#define PW_BOMB(p) ((PARTS_BOMB_FREE_WORK *)&(p)->Unk74)
+
+/* PARTS_W Rot_x/y/z (+ Rot_spd_z as pad) as an SVECTOR */
+#define PW_ROT_SV(p) ((SVECTOR *)&(p)->Rot_x)
+
 ULONG Joint_move_p(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg);
 ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top); /* PartsWork_set */
 void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan); /* part positions from kan data */
 
-extern MODEL_COL D_80098B08; /* light matrix of the lit sorts */
+extern MODEL_COL Model_col; /* light matrix of the lit sorts */
 
-void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg); /* RE2 Joint_trans */
-void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
-void func_800254AC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos);
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
-void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
-void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP);
-void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2);
-void func_8002606C(ULONG *pObj, ULONG Flg);
-ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan);
-void func_8002646C(ENEMY_WORK *pEm, SHORT A, SHORT B, UCHAR C);
-void func_80026498(ENEMY_WORK *pEm);
-void func_80026648(ENEMY_WORK *pEm);
+void Joint_trans(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg); /* RE2 Joint_trans */
+void ko_joint_trans(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm);
+void Joint_trans2(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos);
+void ko_joint_trans2(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
+void ko_joint_trans3(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
+void Parts_sort(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void Parts_sort_sabun(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void Parts_sort_ex(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+void Parts_sort_simple(ULONG *pObj, ULONG Flg, PARTS_W *pP);
+ULONG PartsWork_link(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan);
+void Em_tilt_set(ENEMY_WORK *pEm, SHORT Max, SHORT Spd, UCHAR Flg);
+void Em_tilt_move(ENEMY_WORK *pEm);
+void Em_tilt_return(ENEMY_WORK *pEm);
 void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate);
 void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate);
 ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg);
 ULONG J_seq(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
 void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate);
-ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg);
-void func_80027568(PARTS_W *pP_ptr, MATRIX *wm);
-void func_8002783C(PARTS_W *pP_ptr);
+ULONG J_seq_hokan(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg);
+void Parts_down(PARTS_W *pP_ptr, MATRIX *wm);
+void Parts_bomb(PARTS_W *pP_ptr);
 ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg); /* RE2 JOINT.C Joint_move */
 ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg);
-ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg);
-void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
+ULONG J_seq2_hokan(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg);
+void Parts_hokan2(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate);
+void Om_joint_trans(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM);
 
 #endif /* JOINT_H */

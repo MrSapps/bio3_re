@@ -151,7 +151,7 @@ typedef struct tagCOL_OBJ {
     MATRIX *pM;                        /* 0x30 (em30 sub-works: matrix of the followed part) */
     struct tagCOL_OBJ *pNext;          /* 0x34 */
     UCHAR Em_idx;                      /* 0x38 */
-    signed char Unk39;                 /* 0x39 (em10 pldm00 passes it to func_8002646C) */
+    signed char Unk39;                 /* 0x39 (em10 pldm00 passes it to Em_tilt_set) */
     USHORT Unk3A;                      /* 0x3A bits of the works hit (RE2 At_em_flg, em10 pldm00) */
     struct tagSCA_DATA *pSca_hit_data; /* 0x3C RE2 pSca_hit_data (wall hit by Sca_ck_em) */
 } COL_OBJ;
@@ -238,7 +238,7 @@ typedef struct tagEM_HIT_AREA {
     ULONG *pUnk100_kan_t_ptr;          /* 0x100 */                            \
     ULONG *pUnk104_seq_t_ptr;          /* 0x104 */                            \
     struct tagPARTS_W *pSin_parts_ptr; /* 0x108 */                            \
-    ULONG *pUnk10C;                    /* 0x10C base kan of the part tree (func_800261AC) */ \
+    ULONG *pUnk10C;                    /* 0x10C base kan of the part tree (PartsWork_link) */ \
     struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */                            \
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */                            \
     ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */ \
@@ -282,7 +282,7 @@ typedef struct tagEM_HIT_AREA {
     LONG *pUnk16C;                     /* 0x16C hit position (func_800445C8 arg 0) */ \
     LONG *pUnk170;                     /* 0x170 hitter position (func_800445C8 arg 1) */ \
     struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
-    SHORT Unk178[3];                   /* 0x178 copied to D_80098B08 (func_800254AC); em10 Dead fades [0], [2] to 0 */ \
+    SHORT Unk178[3];                   /* 0x178 copied to Model_col (Joint_trans2); em10 Dead fades [0], [2] to 0 */ \
     USHORT Unk17E;                     /* 0x17E */                            \
     ULONG *pUnk180_seq_t_ptr;          /* 0x180 seq/kan of func_80079690 (second part set) */ \
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
@@ -302,11 +302,11 @@ typedef struct tagEM_HIT_AREA {
     UCHAR pad1B2[0x1B4 - 0x1B2];                                              \
     ULONG *pUnk1B4;                    /* 0x1B4 weapon data (G.Player.pUnk1B4, select overlay) */ \
     SHORT Unk1B8;                      /* 0x1B8 vertical speed added to Pos_y (func_8004B7E8) */ \
-    SHORT Unk1BA;                      /* 0x1BA func_8002646C */              \
-    SHORT Unk1BC[2];                   /* 0x1BC decayed by Unk1C2 (func_80026648) */ \
+    SHORT Tilt_max;                    /* 0x1BA body tilt limit (Em_tilt_set) */ \
+    SHORT Tilt[2];                     /* 0x1BC body tilt x, z (Joint_trans, Foot_set_pl) */ \
     UCHAR Unk1C0;                      /* 0x1C0 */                            \
-    UCHAR Unk1C1;                      /* 0x1C1 func_8002646C */              \
-    SHORT Unk1C2;                      /* 0x1C2 func_8002646C */              \
+    UCHAR Tilt_flg;                    /* 0x1C1 1/2/4: tilt direction, 8: return (Em_tilt_move) */ \
+    SHORT Tilt_spd;                    /* 0x1C2 tilt step per frame */ \
     ULONG Unk1C4;                      /* 0x1C4 em23: Routine_0..3 of the last frame */ \
     SHORT Unk1C8;                      /* 0x1C8 */                            \
     USHORT Unk1CA;                     /* 0x1CA */                            \
@@ -349,7 +349,7 @@ typedef struct tagGLOBAL {
     ULONG *pOt1;                       /* 0x2044 */
     ULONG Ot2[2][8];                   /* 0x2048 RE2 Ot2, index Cbuf_id (main) */
     ULONG *pOt2;                       /* 0x2088 */
-    POLY_GT4 *pUnk208C;                /* 0x208C packet pointer of the model sorters (func_80025FB0) */
+    POLY_GT4 *pUnk208C;                /* 0x208C packet pointer of the model sorters (Parts_sort_ex) */
     ULONG *pOt_sub[2][4];              /* 0x2090 per-buffer OT tables, index Cbuf_id (Psp_trans) */
     UCHAR Padd_data[2][0x24];          /* 0x20B0 RE2 Padd_data (PadInitDirect buffers) */
     LONG Unk20F8;                      /* 0x20F8 set to -1 on soft reset */
@@ -599,7 +599,7 @@ typedef struct tagPARTS_W {
     SHORT Pos_step_z;                  /* 0xB2 root step to the next key frame, * rate >> 8 */
     SHORT Pos_step_x;                  /* 0xB4 */
     SHORT Pos_step_y;                  /* 0xB6 */
-    UCHAR padB8[0xBC - 0xB8];
+    ULONG UnkB8;                       /* 0xB8 sort parameter (Parts_sort_ex) */
 } PARTS_W;
 
 #endif /* BIO3_H */

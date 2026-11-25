@@ -293,7 +293,7 @@ void func_80033B88(COL_OBJ *pTop)
             p->Unk39 |= 8;
             p->Hit_flg &= ~0x40;
             if (p->Type < 3) {
-                pEm->Unk1C1 = p->Unk39;
+                pEm->Tilt_flg = p->Unk39;
             }
         }
     }

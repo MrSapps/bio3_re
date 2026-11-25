@@ -50,7 +50,7 @@ void func_80035B84(OBJ_MODEL_WORK *pOm, PARTS_W *pParts, ULONG Flg, LONG *pPos)
         n = pOm->Parts_num;
     loop:
         if (pParts->Be_flg & 1) {
-            func_800288C8((ENEMY_WORK *)pOm, pParts, (SHORT)pParts->UnkA2, &pParts->Workm);
+            Om_joint_trans((ENEMY_WORK *)pOm, pParts, (SHORT)pParts->UnkA2, &pParts->Workm);
         }
         pParts++;
         if (--n != 0) {
@@ -601,7 +601,7 @@ void func_8003783C(OBJ_MODEL_WORK *pOm)
     }
 }
 
-void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("func_800251FC"); /* 4 args here (canonical 3) */
+void Joint_trans_om(OBJ_MODEL_WORK *pOm, struct tagPARTS_W *pParts, ULONG Be_flg, LONG *pPos) __asm__("Joint_trans"); /* 4 args here (canonical 3) */
 
 void Om_trans(void)
 {

@@ -6,7 +6,7 @@
 
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
 void Root_ck_(ENEMY_WORK *pEm, VECTOR *pV, LONG a2, LONG a3) __asm__("Root_ck"); /* returns void here (canonical long); arg 3 long (canonical UC); arg 4 long (canonical UC) */
-void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
+void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");   /* Cdir_ck, result used unmasked */
 
 /* RE2 EM_MAIN */
@@ -1234,7 +1234,7 @@ void Em10_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Col.D0 > 500)
             pEm->Col.W0 = pEm->Col.D0 = 500;
         if (pEm->Move_cnt == 0x37) {
-            pEm->Unk1C2 = 30;
+            pEm->Tilt_spd = 30;
             pEm->Unk132 &= 0x7FFF;
             pEm->Be_flg |= 0x80000;
         }
@@ -2337,7 +2337,7 @@ void func_80109E54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        pEm->Unk1C2 = 30;
+        pEm->Tilt_spd = 30;
         pEm->Be_flg |= 0x80000;
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0;
@@ -3165,8 +3165,8 @@ void func_8010C3F0(ENEMY_WORK *pEm, LONG Mode, LONG Foot)
     RotMatrix((SVECTOR *)&pEm->Cdir_x, (MATRIX *)pEm->Workm_m);
     if (pEm->Be_flg & 0xC0000) {
         Rot.vy = 0;
-        Rot.vx = pEm->Unk1BC[0];
-        Rot.vz = pEm->Unk1BC[1];
+        Rot.vx = pEm->Tilt[0];
+        Rot.vz = pEm->Tilt[1];
         RotMatrix_gte(&Rot, &M);
         MulMatrix2(&M, (MATRIX *)pEm->Workm_m);
     }

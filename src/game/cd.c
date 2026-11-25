@@ -668,7 +668,7 @@ void func_800130A0(tagCD *pCd)
         Sce.Type = 0;
         Sce.pCScd = pG->pRoom->pScd;
         Work = PartsWork_set(pEm, Work);
-        Work = func_800261AC(pEm, Work, pEm->pUnk10C);
+        Work = PartsWork_link(pEm, Work, pEm->pUnk10C);
         Sa_dat_set(pEm, pEm->pUnk118);
         pCd->Unk8CC = Work;
         if (pEm->Id < 0x50) {
@@ -1307,7 +1307,7 @@ copy:
             pEm->pUnk188_seq_t_ptr = Sce.pUnk1460->pUnk188_seq_t_ptr;
             pEm->pUnk18C_kan_t_ptr = Sce.pUnk1460->pUnk18C_kan_t_ptr;
             Work = PartsWork_set(pEm, Work);
-            Work = func_800261AC(pEm, Work, pEm->pUnk10C);
+            Work = PartsWork_link(pEm, Work, pEm->pUnk10C);
             Sa_dat_set(pEm, pEm->pUnk118);
         }
     }

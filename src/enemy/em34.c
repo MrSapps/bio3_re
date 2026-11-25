@@ -8,7 +8,7 @@
 
 extern LONG D_800D1F2C_ __asm__("D_800D1F2C"); /* type differs from the canonical extern */
 LONG Rnd_l(void) __asm__("Rnd"); /* returns long here (canonical unsigned long) */
-void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("func_8002646C"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
+void func_8002646C_(ENEMY_WORK *pEm, LONG A, LONG B, LONG C) __asm__("Em_tilt_set"); /* arg 2 long (canonical short); arg 3 long (canonical short); arg 4 long (canonical UC) */
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");      /* em_sub.c, result used as int */
 
 /* module .data (names after RE2 EM2A.C) */

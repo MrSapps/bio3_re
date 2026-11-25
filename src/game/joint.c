@@ -5,11 +5,16 @@
 #include "pcstr.h"
 #include "sld.h"
 
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
+/*
+ * JOINT.C (RE2 JOINT.C): the model part tree of a work. Joint_trans builds the part matrices,
+ * Joint_trans2 / ko_joint_trans2 light and sort them, PartsWork_set/PartsWork_link set the
+ * tree up, Joint_move / Joint_move2 / Joint_move_p play kan/seq animations (J_seq*, with
+ * interpolated frames in J_seq*_hokan), Parts_down / Parts_bomb move detached parts.
+ * The sort helpers take pObj = &pP->Attribute: pObj[1] is the part's pTmd, pObj[25] its Poly_rgb.
+ */
+
+/* the PARTS_W free work as RE2's raw Free[] (PartsWork_link clears it; typed views in joint.h) */
 #define PW_FREE(p) ((USHORT *)&(p)->Unk74)
-#define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
-/* RE2 ENEMY_WORK.M: rotation matrix at +0x20, its t[] is Pos_x..Pos_z */
-#define EM_M(p) ((MATRIX *)(p)->Workm_m)
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -39,7 +44,8 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
-void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg)
+/* body matrix (Cdir, Size scale, tilt), then the world matrix of every live part and the part scales */
+void Joint_trans(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg)
 {
     VECTOR Dummy;
     SVECTOR Sv;
@@ -50,34 +56,34 @@ void func_800251FC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg)
     if (Be_flg & 0x10) {
         return;
     }
-    RotMatrix_gte((SVECTOR *)&pEm->Cdir_x, EM_M(pEm));
+    RotMatrix_gte(CDIR_SV(pEm), EM_WORKM(pEm));
     if (pEm->Be_flg & 0x100000) {
         v.vx = 0x1000;
         v.vy = pEm->Size;
         v.vz = 0x1000;
-        ScaleMatrix(EM_M(pEm), &v);
+        ScaleMatrix(EM_WORKM(pEm), &v);
     }
     if (pEm->Be_flg & 0x80000) {
         if (!(G.Status_flg & 0x200) && !(G.Unk246C & 0x40000000)) {
-            func_80026648(pEm);
+            Em_tilt_return(pEm);
         }
     } else if (pEm->Be_flg & 0x40000) {
         if (!(G.Status_flg & 0x200) && !(G.Unk246C & 0x40000000)) {
-            func_80026498(pEm);
+            Em_tilt_move(pEm);
         }
     } else {
         goto parts;
     }
     Sv.vy = 0;
-    Sv.vx = pEm->Unk1BC[0];
-    Sv.vz = pEm->Unk1BC[1];
+    Sv.vx = pEm->Tilt[0];
+    Sv.vz = pEm->Tilt[1];
     RotMatrix_gte(&Sv, &M);
-    MulMatrix2(&M, EM_M(pEm));
+    MulMatrix2(&M, EM_WORKM(pEm));
 parts:
     i = pEm->Parts_num;
     do {
         if (pP->Be_flg & 1) {
-            func_800253F0(pEm, pP, pP->Be_flg, &pP->Workm);
+            ko_joint_trans(pEm, pP, pP->Be_flg, &pP->Workm);
         }
         pP++;
     } while (--i != 0);
@@ -98,7 +104,8 @@ loop:
     }
 }
 
-void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm)
+/* world matrix of one part (pSuper * M); falling (Be_flg 8) and flying (UnkA2 0x20) parts move here */
+void ko_joint_trans(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm)
 {
     MATRIX *pSuper;
     MATRIX *pM;
@@ -108,7 +115,7 @@ void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm)
 
     Flg = pP_ptr->UnkA2;
     pSuper = pP_ptr->pSuper;
-    pM = (MATRIX *)pP_ptr->M;
+    pM = PW_M(pP_ptr);
     if ((pP_ptr->pOya_parts->Be_flg & 9) == 8) {
         pP_ptr->Be_flg = (pP_ptr->Be_flg & ~1) | 8;
         return;
@@ -117,15 +124,16 @@ void func_800253F0(ENEMY_WORK *pEm, PARTS_W *pP_ptr, ULONG Be_flg, MATRIX *wm)
         CompM(pSuper, pM, wm);
     }
     if (Be_flg & 8) {
-        func_80027568(pP_ptr, wm);
+        Parts_down(pP_ptr, wm);
         return;
     }
     if (Flg & 0x20) {
-        func_8002783C(pP_ptr);
+        Parts_bomb(pP_ptr);
     }
 }
 
-void func_800254AC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos)
+/* draw the parts of pEm: off screen (pPos outside the cut) only the always-drawn ones; Be_flg 8 sets Model_col */
+void Joint_trans2(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos)
 {
     ULONG i;
 
@@ -136,7 +144,7 @@ void func_800254AC(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos)
         i = pEm->Parts_num;
 loop0:
         if ((pP->Be_flg & 0x21) == 0x21 && (pP->UnkA2 & 1)) {
-            func_80025610(pEm, pP, pP->UnkA2, &pP->Workm);
+            ko_joint_trans2(pEm, pP, pP->UnkA2, &pP->Workm);
         }
         pP++;
         if (--i != 0) {
@@ -145,17 +153,17 @@ loop0:
         return;
     }
     if (Be_flg & 8) {
-        D_80098B08.Unk0[0] = pEm->Unk178[0];
-        D_80098B08.Unk0[1] = pEm->Unk178[1];
-        D_80098B08.Unk0[2] = pEm->Unk178[2];
-        D_80098B08.Unk6 = (pEm->Unk17E & 0xF00) >> 8;
+        Model_col.Unk0[0] = pEm->Unk178[0];
+        Model_col.Unk0[1] = pEm->Unk178[1];
+        Model_col.Unk0[2] = pEm->Unk178[2];
+        Model_col.Unk6 = (pEm->Unk17E & 0xF00) >> 8;
         i = (UCHAR)pEm->Unk17E;
-        D_80098B08.Rgb = i | (i << 8) | (i << 16);
+        Model_col.Rgb = i | (i << 8) | (i << 16);
     }
     i = pEm->Parts_num;
 loop1:
     if ((pP->Be_flg & 1) && (pP->UnkA2 & 1)) {
-        func_80025610(pEm, pP, pP->UnkA2, &pP->Workm);
+        ko_joint_trans2(pEm, pP, pP->UnkA2, &pP->Workm);
     }
     pP++;
     if (--i != 0) {
@@ -163,7 +171,8 @@ loop1:
     }
 }
 
-void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+/* light matrix (optionally lit from the part itself), screen matrix and sort of one part by its UnkA2 flags */
+void ko_joint_trans2(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
 {
     MATRIX M;
     VECTOR Scale;
@@ -203,17 +212,18 @@ void func_80025610(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     if (Flg & 0x20) {
         pG->pUnk208C = Bomb_Parts_SortGT3(pP->pTmd, pG->pUnk208C, pP);
         pG->pUnk208C = Bomb_Parts_SortGT4(pP->pTmd, pG->pUnk208C, pP);
-        func_8002783C(pP);
+        Parts_bomb(pP);
     } else if (Flg & 0x10) {
         D_800C79F0 = &M;
         D_800C79F4 = &Scale;
-        func_80025DE8(&pP->Attribute, Flg, pP);
+        Parts_sort_sabun(&pP->Attribute, Flg, pP);
     } else if (Flg & 2) {
-        func_80025C04(&pP->Attribute, Flg, pP);
+        Parts_sort(&pP->Attribute, Flg, pP);
     }
 }
 
-void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+/* light and screen matrices of a part, then Parts_sort_ex */
+void ko_joint_trans3(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
 {
     MATRIX M;
     VECTOR M2;
@@ -227,12 +237,13 @@ void func_80025A28(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     gte_SetTransMatrix(&M);
     if (Flg & 1) {
         if (Flg & 2) {
-            func_80025FB0(&pP->Attribute, (SHORT)pP->UnkA2, (ULONG *)pP);
+            Parts_sort_ex(&pP->Attribute, (SHORT)pP->UnkA2, pP);
         }
     }
 }
 
-void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP)
+/* sort a part: optional colour passes (Flg 0x40/0x80), the textured polygons, colour blend (Flg 4, PW_RGB) */
+void Parts_sort(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
     ULONG Work0[0x70];
     USHORT Work1[0x70];
@@ -254,12 +265,12 @@ void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP)
         func_8002D5D8(Work0, Work1, (MD_OBJ *)pObj[1]);
     }
     if (Flg & 0x40) {
-        Prm.u.Rgb = D_80098B08.Unk6 << 24;
+        Prm.u.Rgb = Model_col.Unk6 << 24;
         pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);
         pG->pUnk208C = func_8002CABC(&Prm, pG->pUnk208C, Work0, (SHORT *)Work1);
     }
     if (Flg & 0x80) {
-        Prm.u.Rgb = *(ULONG *)((UCHAR *)&D_80098B08 + 8) | (*(SHORT *)((UCHAR *)&D_80098B08 + 6) << 24);
+        Prm.u.Rgb = *(ULONG *)((UCHAR *)&Model_col + 8) | (*(SHORT *)((UCHAR *)&Model_col + 6) << 24); /* Rgb | Unk6 << 24, addressed from &Rgb */
         pG->pUnk208C = func_8002CE08(&Prm, pG->pUnk208C, Work0, Work1);
         pG->pUnk208C = func_8002CF90(&Prm, pG->pUnk208C, Work0, Work1);
     }
@@ -270,11 +281,12 @@ void func_80025C04(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.u.c.Code = Abr | 0x3C;
     pG->pUnk208C = func_8002D898(&Prm, pG->pUnk208C, Work0, Work1);
     if (Flg & 4) {
-        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_FREEL(pP)[0], PW_FREEL(pP)[1]);
+        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
     }
 }
 
-void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP)
+/* Parts_sort for a vertex-animated (sabun) part */
+void Parts_sort_sabun(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
     ULONG Work0[0x70];
     USHORT Work1[0x70];
@@ -292,12 +304,12 @@ void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     }
     Prm.UnkC = (ULONG)&D_800E1388;
     if (Flg & 0x40) {
-        Prm.u.Rgb = D_80098B08.Unk6 << 24;
+        Prm.u.Rgb = Model_col.Unk6 << 24;
         pG->pUnk208C = func_8002C824(&Prm, pG->pUnk208C, Work0, Work1);
         pG->pUnk208C = func_8002CABC(&Prm, pG->pUnk208C, Work0, (SHORT *)Work1);
     }
     if (Flg & 0x80) {
-        Prm.u.Rgb = *(ULONG *)((UCHAR *)&D_80098B08 + 8) | (*(SHORT *)((UCHAR *)&D_80098B08 + 6) << 24);
+        Prm.u.Rgb = *(ULONG *)((UCHAR *)&Model_col + 8) | (*(SHORT *)((UCHAR *)&Model_col + 6) << 24); /* Rgb | Unk6 << 24, addressed from &Rgb */
         pG->pUnk208C = func_8002CE08(&Prm, pG->pUnk208C, Work0, Work1);
         pG->pUnk208C = func_8002CF90(&Prm, pG->pUnk208C, Work0, Work1);
     }
@@ -306,11 +318,12 @@ void func_80025DE8(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     pG->pUnk208C = func_8002DFE0(&Prm, Top, Work0, Work1);
     pG->pUnk208C = func_8002E160(&Prm, pG->pUnk208C, Work0, Work1);
     if (Flg & 4) {
-        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_FREEL(pP)[0], PW_FREEL(pP)[1]);
+        func_8002D41C((RGB_BLEND_WORK *)Top, (RGB_BLEND_WORK *)pG->pUnk208C, PW_RGB(pP)->Rgb0, PW_RGB(pP)->Rgb1);
     }
 }
 
-void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2)
+/* sort a part with its extra sort parameter pP->UnkB8 */
+void Parts_sort_ex(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
     ULONG Work0[0x72];
     USHORT Work1[0x74];
@@ -322,13 +335,14 @@ void func_80025FB0(ULONG *pObj, ULONG Arg1, ULONG *pObj2)
     Prm.pOt = G.pEm->pUnk7C;
     func_8002D5D8(Work0, Work1, D0);
     Prm.u.c.Code = 0x34;
-    Prm.UnkC = pObj2[46];
+    Prm.UnkC = pP->UnkB8;
     G.pUnk208C = func_8002DC98(&Prm, G.pUnk208C, Work0, Work1);
     Prm.u.c.Code = 0x3C;
     G.pUnk208C = func_8002DE0C(&Prm, G.pUnk208C, Work0, Work1);
 }
 
-void func_8002606C(ULONG *pObj, ULONG Flg)
+/* sort a part without colour passes (Flg 8 picks the second sorter pair); pP unused */
+void Parts_sort_simple(ULONG *pObj, ULONG Flg, PARTS_W *pP)
 {
     ULONG Work0[0x70];
     USHORT Work1[0x70];
@@ -353,6 +367,7 @@ void func_8002606C(ULONG *pObj, ULONG Flg)
     }
 }
 
+/* take Parts_num PARTS_W from work_top for pEm; returns the next free address */
 ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top)
 {
     pEm->Parts_num = ((UCHAR *)pEm->pTmd)[-4];
@@ -360,7 +375,8 @@ ULONG PartsWork_set(ENEMY_WORK *pEm, ULONG work_top)
     return work_top + pEm->Parts_num * sizeof(PARTS_W);
 }
 
-ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
+/* set up the part tree from the kan: models, rest positions, parents (pSuper / pOya_parts) */
+ULONG PartsWork_link(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
 {
     LONG Unused[28];
     ULONG Link_cnt;
@@ -388,12 +404,12 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
     pCur->pOya_parts = (PARTS_W *)pEm;
     while (n-- != 0) {
         Copy_matrix(&GsIDMATRIX, &pCur->Workm);
-        Copy_rot_matrix(&GsIDMATRIX, (MATRIX *)pCur->M);
+        Copy_rot_matrix(&GsIDMATRIX, PW_M(pCur));
         pCur->Poly_rgb = 0x808080;
         pCur->Attribute = 0;
         *(ULONG *)&pCur->Cdir_x = 0;
         pCur->Cdir_z = 0;
-        PW_FREE(pCur)[0] = 0;
+        PW_FREE(pCur)[0] = 0; /* RE2 PartsWork_link clears Free[0..5] */
         PW_FREE(pCur)[1] = 0;
         PW_FREE(pCur)[2] = 0;
         PW_FREE(pCur)[3] = 0;
@@ -433,6 +449,7 @@ ULONG func_800261AC(ENEMY_WORK *pEm, ULONG work_top, ULONG *pKan)
     return work_top;
 }
 
+/* reset every part to its rest position from the kan */
 void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan)
 {
     SHORT *pPos;
@@ -451,21 +468,23 @@ void Parts_work_pos_init(ENEMY_WORK *pEm, SHORT *pKan)
     }
 }
 
-void func_8002646C(ENEMY_WORK *pEm, SHORT A, SHORT B, UCHAR C)
+/* start tilting the body (Be_flg 0x40000) up to Max by Spd per frame, direction in Flg */
+void Em_tilt_set(ENEMY_WORK *pEm, SHORT Max, SHORT Spd, UCHAR Flg)
 {
-    pEm->Unk1BA = A;
-    pEm->Unk1C1 = C;
-    pEm->Unk1C2 = B;
+    pEm->Tilt_max = Max;
+    pEm->Tilt_flg = Flg;
+    pEm->Tilt_spd = Spd;
     pEm->Be_flg = (pEm->Be_flg | 0x40000) & ~0x80000;
 }
 
-void func_80026498(ENEMY_WORK *pEm)
+/* one tilt step in the Tilt_flg direction, clamped to Tilt_max; flag 8 switches to Em_tilt_return */
+void Em_tilt_move(ENEMY_WORK *pEm)
 {
     UCHAR Flg;
     LONG d;
     SHORT a;
 
-    Flg = pEm->Unk1C1;
+    Flg = pEm->Tilt_flg;
     if (Flg & 8) {
         pEm->Be_flg = (pEm->Be_flg & ~0x40000) | 0x80000;
         return;
@@ -473,80 +492,81 @@ void func_80026498(ENEMY_WORK *pEm)
     if (Flg & 2) {
         if (Flg & 4) {
             if (Flg & 1) {
-                pEm->Unk1BC[1] += pEm->Unk1C2;
+                pEm->Tilt[1] += pEm->Tilt_spd;
             } else {
-                pEm->Unk1BC[1] -= pEm->Unk1C2;
+                pEm->Tilt[1] -= pEm->Tilt_spd;
             }
         } else {
-            pEm->Unk1BC[1] = 0;
+            pEm->Tilt[1] = 0;
         }
-        if (pEm->Unk1C1 & 1) {
-            pEm->Unk1BC[0] -= pEm->Unk1C2;
+        if (pEm->Tilt_flg & 1) {
+            pEm->Tilt[0] -= pEm->Tilt_spd;
         } else {
-            pEm->Unk1BC[0] += pEm->Unk1C2;
+            pEm->Tilt[0] += pEm->Tilt_spd;
         }
     } else {
         if (Flg & 4) {
             if (Flg & 1) {
-                pEm->Unk1BC[0] += pEm->Unk1C2;
+                pEm->Tilt[0] += pEm->Tilt_spd;
             } else {
-                pEm->Unk1BC[0] -= pEm->Unk1C2;
+                pEm->Tilt[0] -= pEm->Tilt_spd;
             }
         } else {
-            pEm->Unk1BC[0] = 0;
+            pEm->Tilt[0] = 0;
         }
-        if (pEm->Unk1C1 & 1) {
-            pEm->Unk1BC[1] += pEm->Unk1C2;
+        if (pEm->Tilt_flg & 1) {
+            pEm->Tilt[1] += pEm->Tilt_spd;
         } else {
-            pEm->Unk1BC[1] -= pEm->Unk1C2;
+            pEm->Tilt[1] -= pEm->Tilt_spd;
         }
     }
-    d = pEm->Unk1BC[0];
-    if (pEm->Unk1BA < __builtin_abs(d)) {
-        a = pEm->Unk1BA;
+    d = pEm->Tilt[0];
+    if (pEm->Tilt_max < __builtin_abs(d)) {
+        a = pEm->Tilt_max;
         if (d <= 0) {
             a = -a;
         }
-        pEm->Unk1BC[0] = a;
+        pEm->Tilt[0] = a;
     }
-    d = pEm->Unk1BC[1];
-    if (pEm->Unk1BA < __builtin_abs(d)) {
-        a = pEm->Unk1BA;
+    d = pEm->Tilt[1];
+    if (pEm->Tilt_max < __builtin_abs(d)) {
+        a = pEm->Tilt_max;
         if (d <= 0) {
             a = -a;
         }
-        pEm->Unk1BC[1] = a;
+        pEm->Tilt[1] = a;
     }
 }
 
-void func_80026648(ENEMY_WORK *pEm)
+/* bring the tilt back to 0 by Tilt_spd; clears Be_flg 0x80000 when level */
+void Em_tilt_return(ENEMY_WORK *pEm)
 {
     pEm->Be_flg &= ~0x40000;
-    if (*(ULONG *)pEm->Unk1BC != 0) {
-        if (pEm->Unk1BC[0] > 0) {
-            if (pEm->Unk1C2 < pEm->Unk1BC[0]) {
-                pEm->Unk1BC[0] -= pEm->Unk1C2;
+    if (*(ULONG *)pEm->Tilt != 0 /* either tilt left */) {
+        if (pEm->Tilt[0] > 0) {
+            if (pEm->Tilt_spd < pEm->Tilt[0]) {
+                pEm->Tilt[0] -= pEm->Tilt_spd;
             } else {
-                pEm->Unk1BC[0] = 0;
+                pEm->Tilt[0] = 0;
             }
         } else {
-            if (pEm->Unk1C2 < -pEm->Unk1BC[0]) {
-                pEm->Unk1BC[0] += pEm->Unk1C2;
+            if (pEm->Tilt_spd < -pEm->Tilt[0]) {
+                pEm->Tilt[0] += pEm->Tilt_spd;
             } else {
-                pEm->Unk1BC[0] = 0;
+                pEm->Tilt[0] = 0;
             }
         }
-        if (pEm->Unk1BC[1] > 0) {
-            if (pEm->Unk1C2 < pEm->Unk1BC[1]) {
-                pEm->Unk1BC[1] -= pEm->Unk1C2;
+        if (pEm->Tilt[1] > 0) {
+            if (pEm->Tilt_spd < pEm->Tilt[1]) {
+                pEm->Tilt[1] -= pEm->Tilt_spd;
             } else {
-                pEm->Unk1BC[1] = 0;
+                pEm->Tilt[1] = 0;
             }
         } else {
-            if (pEm->Unk1C2 < -pEm->Unk1BC[1]) {
-                pEm->Unk1BC[1] += pEm->Unk1C2;
+            if (pEm->Tilt_spd < -pEm->Tilt[1]) {
+                pEm->Tilt[1] += pEm->Tilt_spd;
             } else {
-                pEm->Unk1BC[1] = 0;
+                pEm->Tilt[1] = 0;
             }
         }
     } else {
@@ -554,6 +574,7 @@ void func_80026648(ENEMY_WORK *pEm)
     }
 }
 
+/* pM2 = rotation of pM0 blended towards pM1 by Rate (0..0x1000), renormalised (RE2 HMatrix) */
 void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
 {
     SVECTOR Sv;
@@ -593,6 +614,7 @@ void HMatrix(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
     MatrixNormal_0(pM2, pM2);
 }
 
+/* HMatrix that also blends the translation (RE2 HMatrix1) */
 void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
 {
     SVECTOR Sv;
@@ -648,6 +670,7 @@ void HMatrix1(MATRIX *pM0, MATRIX *pM1, MATRIX *pM2, LONG Rate)
     pM2->t[2] = Sv.vz;
 }
 
+/* play one frame of pEm's motion (RE2 Joint_move); 1 at the end of the motion */
 ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     USHORT *p;
@@ -662,10 +685,10 @@ ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late
     }
     if (*p & 0x100) {
         if (!(*pEm->pNow_seq & 0x100)) {
-            func_8002B2BC(Kan_t_ptr, Seq_t_ptr, pEm->pNow_seq, Late_flg >> 16);
+            Hokan_key_set(Kan_t_ptr, Seq_t_ptr, pEm->pNow_seq, Late_flg >> 16);
         }
         pEm->pNow_seq = p;
-        return func_80027338(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
+        return J_seq_hokan(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
     } else {
         pEm->pNow_seq = p;
         return J_seq(Kan_t_ptr, Seq_t_ptr, p, Late_flg);
@@ -674,6 +697,7 @@ ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late
 
 INCLUDE_ASM("asm/nonmatchings/game/joint", J_seq);
 
+/* pOut = rotation pCur blended towards pDst by Rate, the short way round each axis (RE2 hokan_svec) */
 void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
 {
     LONG dx;
@@ -703,9 +727,10 @@ void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
     gte_stsv(pOut);
 }
 
-void func_8002B190_(ULONG n, PARTS_W *pP, LONG Rate, ULONG Late) __asm__("func_8002B190"); /* arg 3 long (canonical unsigned long); arg 4 unsigned long (canonical short) */
 
-ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
+
+/* interpolated frame of Joint_move: root and part rotations = key + step * No / 256 */
+ULONG J_seq_hokan(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -731,7 +756,7 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
             pP_walk->Cdir_y = pP_walk->Rot_y + ((pP_walk->Rot_spd_y * No) >> 8);
             pP_walk->Cdir_z = pP_walk->Rot_z + ((pP_walk->Rot_spd_z * No) >> 8);
             if (!(pP_walk->Be_flg & 0x10)) {
-                RotMatrix_gte((SVECTOR *)&pP_walk->Cdir_x, (MATRIX *)pP_walk->M);
+                RotMatrix_gte(CDIR_SV(pP_walk), PW_M(pP_walk));
             }
             pP_walk++;
         } while (--n);
@@ -749,7 +774,7 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         gte_gpl12();
         gte_stlvl(&pP->Pos_x);
         pEm->Hokan_flg--;
-        func_8002B190_(n, pP, No, Late_flg);
+        Parts_hokan(n, pP, No, Late_flg);
     }
     pP->Old_x = pP->Pos_x;
     pP->Old_y = pP->Pos_y;
@@ -761,7 +786,8 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
     return 1;
 }
 
-void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
+/* falling part: bounces on the floor (Timer3 bounces) and blends into its fall rotation (RE2 Parts_down) */
+void Parts_down(PARTS_W *pP_ptr, MATRIX *wm)
 {
     MATRIX M;
     SVECTOR Sv;
@@ -780,14 +806,14 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
         pP_ptr->Timer2 = 0xF;
     }
     if (pP_ptr->Timer3 > 1) {
-        Pos = *(VECTOR *)pP_ptr->Workm.t;
+        Pos = *PW_POS_V(pP_ptr);
         Floor_y = func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1);
         wm->t[0] += pP_ptr->Old_x;
         pP_ptr->Old_y += (signed char)pP_ptr->Timer1;
         wm->t[1] += pP_ptr->Old_y;
         wm->t[2] += pP_ptr->Old_z;
         if (func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1) < Floor_y) {
-            *(VECTOR *)pP_ptr->Workm.t = Pos;
+            *PW_POS_V(pP_ptr) = Pos;
             pP_ptr->Old_x >>= 2;
             pP_ptr->Old_z >>= 2;
             pP_ptr->Old_x *= -1;
@@ -816,39 +842,41 @@ void func_80027568(PARTS_W *pP_ptr, MATRIX *wm)
     }
 }
 
-void func_8002783C(PARTS_W *pP_ptr)
+/* part flying off in an explosion: moves along Dir_y, falls, disappears after 0x1D frames (RE2 Parts_bomb) */
+void Parts_bomb(PARTS_W *pP_ptr)
 {
     MATRIX M;
     SVECTOR Sv;
     SVECTOR Sv1;
-    SHORT new_cnt;
-    USHORT r;
+    SHORT Spd_y;
+    USHORT Spd;
 
-    if ((PW_FREE(pP_ptr)[4] & 0x7FFF) >= 0x1D) {
+    if ((PW_BOMB(pP_ptr)->Timer & 0x7FFF) >= 0x1D) {
         pP_ptr->Be_flg = 0;
         Esp_kill(0xFF05, &pP_ptr->Workm);
     } else {
-        PW_FREE(pP_ptr)[4]++;
+        PW_BOMB(pP_ptr)->Timer++;
     }
-    new_cnt = PW_FREE(pP_ptr)[1] + PW_FREE(pP_ptr)[3];
-    PW_FREE(pP_ptr)[1] = new_cnt;
-    pP_ptr->Workm.t[1] += new_cnt;
-    Sv.vy = PW_FREE(pP_ptr)[0];
+    Spd_y = PW_BOMB(pP_ptr)->Spd_y + PW_BOMB(pP_ptr)->Add_y;
+    PW_BOMB(pP_ptr)->Spd_y = Spd_y;
+    pP_ptr->Workm.t[1] += Spd_y;
+    Sv.vy = PW_BOMB(pP_ptr)->Dir_y;
     Sv.vz = 0;
     Sv.vx = 0;
     RotMatrix(&Sv, &M);
-    r = PW_FREE(pP_ptr)[2] + PW_FREE(pP_ptr)[6];
-    PW_FREE(pP_ptr)[2] = r;
-    if ((LONG)(r << 16) < 0) {
-        PW_FREE(pP_ptr)[2] = 0;
+    Spd = PW_BOMB(pP_ptr)->Spd + PW_BOMB(pP_ptr)->Add;
+    PW_BOMB(pP_ptr)->Spd = Spd;
+    if ((LONG)(Spd << 16) < 0) {
+        PW_BOMB(pP_ptr)->Spd = 0;
     }
-    Sv.vx = PW_FREE(pP_ptr)[2];
+    Sv.vx = PW_BOMB(pP_ptr)->Spd;
     Sv.vz = 0;
     ApplyMatrixSV(&M, &Sv, &Sv1);
     pP_ptr->Workm.t[0] += Sv1.vx;
     pP_ptr->Workm.t[2] += Sv1.vz;
 }
 
+/* Joint_move for the 15-part packed kan format (J_seq2) */
 ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     USHORT *p;
@@ -863,16 +891,17 @@ ULONG Joint_move2(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Lat
     }
     if (*p & 0x100) {
         if (!(*pEm->pNow_seq & 0x100)) {
-            func_8002B2BC(Kan_t_ptr, Seq_t_ptr, pEm->pNow_seq, Late_flg >> 16);
+            Hokan_key_set(Kan_t_ptr, Seq_t_ptr, pEm->pNow_seq, Late_flg >> 16);
         }
         pEm->pNow_seq = p;
-        return func_80027F8C(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
+        return J_seq2_hokan(Kan_t_ptr, Seq_t_ptr, *(UCHAR *)p, Late_flg);
     } else {
         pEm->pNow_seq = p;
         return J_seq2(Kan_t_ptr, Seq_t_ptr, p, (Late_flg & 0xFFFF) | (f_num << 16));
     }
 }
 
+/* decode the packed 12-bit rotations of 15 parts for the current frame and blend them in (RE2 J_seq2) */
 ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
@@ -940,7 +969,7 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     copy:
         *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Rot_x;
         pP->Cdir_z = pP->Rot_z;
-        RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+        RotMatrix_gte(CDIR_SV(pP), PW_M(pP));
         pP++;
         if (--n != 0) {
             goto copy;
@@ -949,11 +978,11 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
         pEm->Hokan_flg--;
     hokan:
         if (n >= 7) {
-            hokan_svec((SVECTOR *)&pP->Rot_x, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
-            RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+            hokan_svec(PW_ROT_SV(pP), CDIR_SV(pP), CDIR_SV(pP), w);
+            RotMatrix_gte(CDIR_SV(pP), PW_M(pP));
         } else {
-            RotMatrix_gte((SVECTOR *)&pP->Rot_x, &M);
-            HMatrix((MATRIX *)pP->M, &M, (MATRIX *)pP->M, 0xFFF - w);
+            RotMatrix_gte(PW_ROT_SV(pP), &M);
+            HMatrix(PW_M(pP), &M, PW_M(pP), 0xFFF - w);
         }
         pP++;
         n--;
@@ -968,7 +997,8 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     return 0;
 }
 
-ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
+/* interpolated frame of Joint_move2 */
+ULONG J_seq2_hokan(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
 {
     ENEMY_WORK *pEm;
     PARTS_W *pP;
@@ -993,7 +1023,7 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
             pP_walk->Cdir_x = pP_walk->Rot_x + ((pP_walk->Rot_spd_x * No) >> 8);
             pP_walk->Cdir_y = pP_walk->Rot_y + ((pP_walk->Rot_spd_y * No) >> 8);
             pP_walk->Cdir_z = pP_walk->Rot_z + ((pP_walk->Rot_spd_z * No) >> 8);
-            RotMatrix_gte((SVECTOR *)&pP_walk->Cdir_x, (MATRIX *)pP_walk->M);
+            RotMatrix_gte(CDIR_SV(pP_walk), PW_M(pP_walk));
             pP_walk++;
         } while (--n);
     } else {
@@ -1010,7 +1040,7 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         gte_gpl12();
         gte_stlvl(&pP->Pos_x);
         pEm->Hokan_flg--;
-        func_800281B4(15, pP, No, Late_flg);
+        Parts_hokan2(15, pP, No, Late_flg);
     }
     pP->Old_x = pP->Pos_x;
     pP->Old_y = pP->Pos_y;
@@ -1022,7 +1052,8 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
     return 1;
 }
 
-void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
+/* blend 15 parts from their rotation to the interpolated key rotation */
+void Parts_hokan2(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
 {
     SVECTOR Sv;
     MATRIX M;
@@ -1036,15 +1067,16 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
         pSv->vy = pP->Rot_y + ((ULONG)(pP->Rot_spd_y * Late) >> 8);
         pSv->vz = pP->Rot_z + ((ULONG)(pP->Rot_spd_z * Late) >> 8);
         if (n >= 7) {
-            hokan_svec((SVECTOR *)&pP->Cdir_x, pSv, (SVECTOR *)&pP->Cdir_x, Hokan);
-            RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+            hokan_svec(CDIR_SV(pP), pSv, CDIR_SV(pP), Hokan);
+            RotMatrix_gte(CDIR_SV(pP), PW_M(pP));
         } else {
             RotMatrix_gte(pSv, &M);
-            HMatrix((MATRIX *)pP->M, &M, (MATRIX *)pP->M, Hokan);
+            HMatrix(PW_M(pP), &M, PW_M(pP), Hokan);
         }
     } while (--n != 0);
 }
 
+/* Joint_move for a JOINT_P piece: only the parts in On_parts_flg (RE2 Joint_move_p) */
 ULONG Joint_move_p(JOINT_P *pJp, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late_flg)
 {
     ULONG *pRot;
@@ -1148,7 +1180,7 @@ unpacked:
             if (On_flg & 1) {
                 *(ULONG *)&pP->Cdir_x = *(ULONG *)&pP->Rot_x;
                 pP->Cdir_z = pP->Rot_z;
-                RotMatrix_gte((SVECTOR *)&pP->Rot_x, (MATRIX *)pP->M);
+                RotMatrix_gte(PW_ROT_SV(pP), PW_M(pP));
             }
             On_flg >>= 1;
             pP++;
@@ -1177,7 +1209,7 @@ unpacked:
                 gte_ldsv(&pP->Rot_x);
                 gte_gpl12();
                 gte_stsv(&pP->Cdir_x);
-                RotMatrix_gte((SVECTOR *)&pP->Cdir_x, (MATRIX *)pP->M);
+                RotMatrix_gte(CDIR_SV(pP), PW_M(pP));
             }
             On_flg >>= 1;
             pP++;
@@ -1191,9 +1223,8 @@ unpacked:
     return 0;
 }
 
-void func_8002606C_(ULONG *pObj, ULONG Flg, PARTS_W *pP) __asm__("func_8002606C"); /* 3 args here (canonical 2) */
-
-void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
+/* light, screen matrix and sort of an object model part (om.c) */
+void Om_joint_trans(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
 {
     MATRIX M;
     VECTOR Scale;
@@ -1218,8 +1249,8 @@ void func_800288C8(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Flg, MATRIX *pM)
     if (Flg & 0x20) {
         pG->pUnk208C = Bomb_Parts_SortGT3(pP->pTmd, pG->pUnk208C, pP);
         pG->pUnk208C = Bomb_Parts_SortGT4(pP->pTmd, pG->pUnk208C, pP);
-        func_8002783C(pP);
+        Parts_bomb(pP);
     } else if (Flg & 2) {
-        func_8002606C_(&pP->Attribute, Flg, pP);
+        Parts_sort_simple(&pP->Attribute, Flg, pP);
     }
 }

@@ -110,12 +110,12 @@ void func_80038F98(ENEMY_WORK *pEm)
     pEm->Unk150 = 0;
     pEm->Unk152 = 0;
     pEm->Unk1B8 = 0;
-    pEm->Unk1BA = 0;
-    pEm->Unk1BC[0] = 0;
-    pEm->Unk1BC[1] = 0;
+    pEm->Tilt_max = 0;
+    pEm->Tilt[0] = 0;
+    pEm->Tilt[1] = 0;
     pEm->Unk1C0 = 0;
-    pEm->Unk1C1 = 0;
-    pEm->Unk1C2 = 0;
+    pEm->Tilt_flg = 0;
+    pEm->Tilt_spd = 0;
     pEm->Unk1CA = 0;
     pEm->Unk1C8 = 0;
 }

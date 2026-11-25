@@ -394,12 +394,12 @@ void get_null_pos2(SVECTOR *pSv, ULONG R_flg, ULONG *pKan, ULONG *pSeq_t)
         rr = r;
         if (R_flg != 0) {
             if (!(pSeq[1] & 0x100)) {
-                func_8002B2BC(pKan, pSeq_t, pSeq + 1, R_flg);
+                Hokan_key_set(pKan, pSeq_t, pSeq + 1, R_flg);
             }
             rr = 0x100 - r;
         } else {
             if (!(pSeq[-1] & 0x100)) {
-                func_8002B2BC(pKan, pSeq_t, pSeq - 1, 0);
+                Hokan_key_set(pKan, pSeq_t, pSeq - 1, 0);
             }
         }
         pP = pEm->pSin_parts_ptr;
@@ -445,8 +445,8 @@ void Foot_set_pl(ENEMY_WORK *pEm, ULONG Mode, ULONG Foot_no)
     RotMatrix(CDIR_SV(pEm), pM);
     if (pEm->Be_flg & 0xC0000) {
         Rot.vy = 0;
-        Rot.vx = pEm->Unk1BC[0];
-        Rot.vz = pEm->Unk1BC[1];
+        Rot.vx = pEm->Tilt[0];
+        Rot.vz = pEm->Tilt[1];
         RotMatrix_gte(&Rot, &Mat);
         MulMatrix2(&Mat, pM);
     }
@@ -990,7 +990,7 @@ ENEMY_WORK *Em_work_add(ENEMY_WORK *pSrc)
     pG->ppEnemy_end = &pG->pEnemy[i + 1];
     pG->pEm_mem++;
     *pG->pEnemy[i] = *pSrc;
-    pG->pEm_mem = (ENEMY_WORK *)func_800261AC(pG->pEnemy[i], PartsWork_set(pG->pEnemy[i], (ULONG)pG->pEm_mem),
+    pG->pEm_mem = (ENEMY_WORK *)PartsWork_link(pG->pEnemy[i], PartsWork_set(pG->pEnemy[i], (ULONG)pG->pEm_mem),
                                               pG->pEnemy[i]->pUnk10C);
     return pG->pEnemy[i];
 }
