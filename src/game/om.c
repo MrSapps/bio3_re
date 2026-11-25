@@ -785,7 +785,7 @@ void Ot_sub_init(void)
 
     pG = &G;
     pRoom = pG->pRoom;
-    pG->Unk2470 = 0;
+    pG->Ot_sub_num = 0;
     pData = (USHORT *)pRoom->pUnk40;
     if (pData == NULL) {
         return;
@@ -806,7 +806,7 @@ void Ot_sub_init(void)
         } while (i < n + 1);
         j++;
     } while (j < 2);
-    pG->Unk2470 = n;
+    pG->Ot_sub_num = n;
     i = 0;
     do {
         j = 0;
