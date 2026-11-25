@@ -12,8 +12,8 @@ void func_8004A934_(ENEMY_WORK *pEm, PARTS_W *pP, LONG a2) __asm__("func_8004A93
 LONG Cdir_ck_l(ENEMY_WORK *pEm, ENEMY_WORK *pT) __asm__("Cdir_ck");
 LONG Dir_pos_ck_l(VECTOR *pV, VECTOR *pP, LONG Hed_dir, LONG Hani_dir) __asm__("Dir_pos_ck");
 
-/* RE2 Em12a: enemy main routine */
-void func_801000F8(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 Em12a / EM_MAIN) */
+void Em36_main(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     VECTOR *pTv;
@@ -32,9 +32,9 @@ void func_801000F8(ENEMY_WORK *pEm)
         pTv = &Em36_lost_pos;
     if ((UCHAR)pEm->Type == 8 || (UCHAR)pEm->Type == 12)
         pTv = &Em36_route_pos[EM36_W(pEm)->Route_no];
-    if (EM36_W(pEm)->Flg & 0x1000 && *(SHORT *)&pEm->Routine_0 != 0x601 && EM36_W(pEm)->Unk15 < 3) {
+    if (EM36_W(pEm)->Flg & 0x1000 && *(SHORT *)&pEm->Routine_0 != 0x601 && EM36_W(pEm)->Dm_stage < 3) {
         Route = pEm->Unk14E & 0xF;
-        pTv = &Em36_route[Route][EM36_W(pEm)->Unk28];
+        pTv = &Em36_route[Route][EM36_W(pEm)->Route_pt];
     }
     Root_ck(pEm, pTv, 0, 0);
     EM36_W(pEm)->Flg &= ~0x800;
@@ -49,7 +49,7 @@ void func_801000F8(ENEMY_WORK *pEm)
     if (pEm->Damage_cnt & 0x7F)
         pEm->Damage_cnt--;
     if (!(pEm->Type & 1))
-        func_8010B19C(pEm);
+        Em36_dodge(pEm);
     Em36_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
     if (G.Unk783E == 4 && G.Unk7840 == 9) {
         Rno = pEm->Unk14E;
@@ -57,36 +57,36 @@ void func_801000F8(ENEMY_WORK *pEm)
             if (!(EM36_W(pEm)->Flg & 0x1000)) {
                 Route = Rno & 0xF;
                 pV = &Em36_route[Route][0];
-                EM36_W(pEm)->Unk26 = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
-                if (EM36_W(pEm)->Unk26 < 3000) {
-                    EM36_W(pEm)->Unk28 = 1;
+                EM36_W(pEm)->Route_dist2 = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
+                if (EM36_W(pEm)->Route_dist2 < 3000) {
+                    EM36_W(pEm)->Route_pt = 1;
                     EM36_W(pEm)->Flg |= 0x1000;
                     pV = &Em36_route[Route][1];
                     Dist = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
                     pV = &Em36_route[Route][2];
                     if (SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z)) < Dist)
-                        EM36_W(pEm)->Unk28 = 2;
+                        EM36_W(pEm)->Route_pt = 2;
                 }
             }
         } else {
             EM36_W(pEm)->Flg &= ~0x1000;
         }
     }
-    func_8010BEAC(pEm);
-    func_8010BDD0(pEm);
-    func_8010B308(pEm);
+    Em36_body_morph(pEm);
+    Em36_mouth_morph(pEm);
+    Em36_head_shake(pEm);
     if (pEm->Type & 1) {
-        func_8010C4FC(pEm);
-        if (EM36_W(pEm)->Unk15 >= 2)
-            func_8010C6CC(pEm);
-        if (EM36_W(pEm)->Unk15 >= 3)
-            func_8010C764(pEm);
+        Em36_wound_fx(pEm);
+        if (EM36_W(pEm)->Dm_stage >= 2)
+            Em36_wound_fx2(pEm);
+        if (EM36_W(pEm)->Dm_stage >= 3)
+            Em36_wound_fx3(pEm);
     }
     if ((LONG)pEm->Unk154 < 3000) {
-        if (EM36_W(pEm)->Unk29)
-            EM36_W(pEm)->Unk29--;
+        if (EM36_W(pEm)->Sweep_timer)
+            EM36_W(pEm)->Sweep_timer--;
     } else {
-        EM36_W(pEm)->Unk29 = 120;
+        EM36_W(pEm)->Sweep_timer = 120;
     }
     if (pEm->Be_flg & 8) {
         if (pEm->Unk178[2] > 0) {
@@ -117,16 +117,16 @@ void func_801000F8(ENEMY_WORK *pEm)
             pP->UnkA2 &= ~0x40;
         }
     }
-    if (EM36_W(pEm)->Unk08)
-        EM36_W(pEm)->Unk08--;
-    if (EM36_W(pEm)->Unk06)
-        EM36_W(pEm)->Unk06--;
-    if (EM36_W(pEm)->Unk09)
-        EM36_W(pEm)->Unk09--;
-    if (EM36_W(pEm)->Unk14)
-        EM36_W(pEm)->Unk14--;
-    if (EM36_W(pEm)->Unk2A)
-        EM36_W(pEm)->Unk2A--;
+    if (EM36_W(pEm)->Punch_timer)
+        EM36_W(pEm)->Punch_timer--;
+    if (EM36_W(pEm)->Mv12_timer)
+        EM36_W(pEm)->Mv12_timer--;
+    if (EM36_W(pEm)->Grab_timer)
+        EM36_W(pEm)->Grab_timer--;
+    if (EM36_W(pEm)->Lunge_timer)
+        EM36_W(pEm)->Lunge_timer--;
+    if (EM36_W(pEm)->Run_timer)
+        EM36_W(pEm)->Run_timer--;
     func_8001AECC(pEm, 0xFE700002, 0x190000C);
     pEm->pEnemy_ptr = pPl;
     Rot_neck_em(pEm, pEm->Cdir_y);
@@ -134,11 +134,11 @@ void func_801000F8(ENEMY_WORK *pEm)
     if (pEm->Routine_0 == 7 || EM_RTN(pEm) == 0x30801)
         Spd = 0;
     pP = &pEm->pSin_parts_ptr[1];
-    EM36_SABUN_P(pP)->Key[0].Rate += EM36_W(pEm)->Unk16;
+    EM36_SABUN_P(pP)->Key[0].Rate += EM36_W(pEm)->Morph_spd;
     if (EM36_SABUN_P(pP)->Key[0].Rate >= 0x1000)
-        EM36_W(pEm)->Unk16 = -Spd;
+        EM36_W(pEm)->Morph_spd = -Spd;
     if (EM36_SABUN_P(pP)->Key[0].Rate <= 0)
-        EM36_W(pEm)->Unk16 = Spd;
+        EM36_W(pEm)->Morph_spd = Spd;
     func_8004A934_(pEm, pP, Spd);
     Seq = *pEm->pNow_seq;
     if (Seq & 0xF000) {
@@ -150,21 +150,23 @@ void func_801000F8(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em36", func_8010076C);
+INCLUDE_ASM("asm/nonmatchings/enemy/em36", Em36_Init);
 
-/* RE2 Em2a_Move */
-void func_8010105C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 1: move routine set by Type */
+void Em36_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em36_Move_type[(UCHAR)pEm->Type](pEm, pKan, pSeq);
 }
 
-void func_80101098(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 0) */
+void Em36_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em36_mv_br00[pEm->Routine_1](pEm);
     Em36_mv00[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-void func_8010111C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 1) */
+void Em36_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em36_mv_br01[pEm->Routine_1](pEm);
     Em36_mv01[pEm->Routine_1](pEm, pKan, pSeq);
@@ -176,7 +178,8 @@ void func_8010111C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801011EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 2) */
+void Em36_Move_type02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     pEm->Damage_cnt |= 0x80;
     pEm->Status_flg &= ~0x2000;
@@ -184,7 +187,8 @@ void func_801011EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em36_mv00[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-void func_80101288(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 3) */
+void Em36_Move_type03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = G_PLAYER;
 
@@ -212,7 +216,8 @@ void func_80101288(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801013F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 6) */
+void Em36_Move_type06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
 
@@ -229,7 +234,8 @@ void func_801013F4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80101520(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 8) */
+void Em36_Move_type08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
 
@@ -251,7 +257,8 @@ void func_80101520(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80101688(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 10) */
+void Em36_Move_type10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
 
@@ -260,7 +267,8 @@ void func_80101688(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em36_mv00[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-void func_80101760(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* brain and motion routines by Routine_1 (Type 12) */
+void Em36_Move_type12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
 
@@ -270,7 +278,7 @@ void func_80101760(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: stand */
-void func_80101838(ENEMY_WORK *pEm)
+void Em36_stand_br(ENEMY_WORK *pEm)
 {
     ULONG Dist = pEm->Unk154;
     SHORT Dir = Goto00_ck(pEm, Pl_work.Pos_x, Pl_work.Pos_z, 0x400);
@@ -284,7 +292,7 @@ void func_80101838(ENEMY_WORK *pEm)
 }
 
 /* motion: stand */
-void func_801018BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_stand(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -298,7 +306,7 @@ void func_801018BC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: walk (RE2 Em2a_brain) */
-void func_80101958(ENEMY_WORK *pEm)
+void Em36_walk_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -308,7 +316,7 @@ void func_80101958(ENEMY_WORK *pEm)
     Dir = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x200);
     Dir_far = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x500);
     Dir_eye = Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4);
-    if (Dist > 8000 && !Dir && pEm->Status_flg & 0x2000 && !EM36_W(pEm)->Unk2A)
+    if (Dist > 8000 && !Dir && pEm->Status_flg & 0x2000 && !EM36_W(pEm)->Run_timer)
         EM_SET_RTN(pEm, 1, 2, 0, 0);
     if (Dist < 5000 && Dir_far && EM36_W(pEm)->Flg & 0x800) {
         EM_SET_RTN(pEm, 1, 4, 0, 0);
@@ -317,31 +325,31 @@ void func_80101958(ENEMY_WORK *pEm)
     }
     if (Dist < 1300 && !Dir)
         EM_SET_RTN(pEm, 1, 3, 0, 0);
-    if (!EM36_W(pEm)->Unk08 && Dist < 3000 && !Dir && !pPl->Damage_cnt) {
+    if (!EM36_W(pEm)->Punch_timer && Dist < 3000 && !Dir && !pPl->Damage_cnt) {
         EM_SET_RTN(pEm, 1, 5, 0, 0);
         if (pPl->Life < 40 && pPl->Unk12C != 0x80 && EM36_W(pEm)->Flg & 0x800 && !Flg_ck(&G.Unk7888, 0x1E)) {
             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
             EM36_W(pEm)->Flg &= ~0x200;
         }
     }
-    if (EM36_W(pEm)->Unk08 < 5 && Dist < 3000 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+    if (EM36_W(pEm)->Punch_timer < 5 && Dist < 3000 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
         EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     if (EM36_W(pEm)->Flg & 0x800) {
-        if (!EM36_W(pEm)->Unk14 && Dist < 4500 && Dist > 2000 && !Dir && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E)) {
+        if (!EM36_W(pEm)->Lunge_timer && Dist < 4500 && Dist > 2000 && !Dir && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E)) {
             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
             EM36_W(pEm)->Flg &= ~0x200;
         }
-        if (!EM36_W(pEm)->Unk06 && Dist > 4500 && Dist < 5500 && !Dir && !pPl->Damage_cnt)
+        if (!EM36_W(pEm)->Mv12_timer && Dist > 4500 && Dist < 5500 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
-    if (!EM36_W(pEm)->Unk29 && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+    if (!EM36_W(pEm)->Sweep_timer && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
         EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     if (EM36_W(pEm)->Flg & 0x10)
         EM_SET_RTN(pEm, 1, 9, 0, 0);
 }
 
 /* motion: walk */
-void func_80101CC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd_old;
     LONG Side;
@@ -387,7 +395,7 @@ void func_80101CC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: walk (type 1) */
-void func_80101EC8(ENEMY_WORK *pEm)
+void Em36_walk_br01(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -403,27 +411,27 @@ void func_80101EC8(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 3, 0, 0);
     if (Dist < 6000 && Dir_far && !pEm->Hokan_flg)
         EM_SET_RTN(pEm, 1, 4, 0, 0);
-    if (!EM36_W(pEm)->Unk08) {
+    if (!EM36_W(pEm)->Punch_timer) {
         if (Dist < 3000 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
-        if (!EM36_W(pEm)->Unk08 && Dist < 3500 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+        if (!EM36_W(pEm)->Punch_timer && Dist < 3500 && !Dir_eye && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     }
     if (EM36_W(pEm)->Flg & 0x800) {
-        if (!EM36_W(pEm)->Unk14 && Dist < 3500 && !Dir && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E)) {
+        if (!EM36_W(pEm)->Lunge_timer && Dist < 3500 && !Dir && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E)) {
             EM_SET_RTN(pEm, 1, 0xA, 0, 0);
             EM36_W(pEm)->Flg &= ~0x200;
         }
-        if (!EM36_W(pEm)->Unk06 && Dist > 3500 && Dist < 4500 && !Dir && !pPl->Damage_cnt)
+        if (!EM36_W(pEm)->Mv12_timer && Dist > 3500 && Dist < 4500 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 0xC, 0, 0);
     }
-    if (!EM36_W(pEm)->Unk29 && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
+    if (!EM36_W(pEm)->Sweep_timer && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1F))
         EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-    if (!EM36_W(pEm)->Unk08 && Dist < 9000 && Dist > 6000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Unk15 >= 2)
+    if (!EM36_W(pEm)->Punch_timer && Dist < 9000 && Dist > 6000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Dm_stage >= 2)
         EM_SET_RTN(pEm, 1, 0x12, 0, 0);
     if (EM36_W(pEm)->Flg & 0x1000) {
         EM_SET_RTN(pEm, 1, 0x14, 0, 0);
-        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Unk28];
+        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Route_pt];
         if (Goto00_ck(pEm, pV->vx, pV->vz, 0x400))
             pEm->Routine_2 = 2;
     }
@@ -432,7 +440,7 @@ void func_80101EC8(ENEMY_WORK *pEm)
 }
 
 /* motion: run */
-void func_80102204(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_run(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd_old;
     SHORT Add;
@@ -485,7 +493,7 @@ void func_80102204(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: run */
-void func_80102420(ENEMY_WORK *pEm)
+void Em36_run_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -502,7 +510,7 @@ void func_80102420(ENEMY_WORK *pEm)
 }
 
 /* brain: combo (next routine from Em36_combo_tbl) */
-void func_80102504(ENEMY_WORK *pEm)
+void Em36_combo_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     UCHAR Rtn;
@@ -513,8 +521,8 @@ void func_80102504(ENEMY_WORK *pEm)
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100);
     Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4);
     if (EM36_W(pEm)->Flg & 0x100) {
-        Rtn = Em36_combo_tbl[EM36_W(pEm)->Unk20][EM36_W(pEm)->Unk1D];
-        EM36_W(pEm)->Unk1D++;
+        Rtn = Em36_combo_tbl[EM36_W(pEm)->Combo_set][EM36_W(pEm)->Combo_no];
+        EM36_W(pEm)->Combo_no++;
         if (!(Rtn & 0x80)) {
             EM_RTN(pEm) = (Rtn << 8) + 1;
             EM36_W(pEm)->Flg &= ~0x200;
@@ -525,7 +533,7 @@ void func_80102504(ENEMY_WORK *pEm)
 }
 
 /* motion: run to the last seen player position */
-void func_80102608(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_run_lost(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd_old;
 
@@ -553,33 +561,33 @@ void func_80102608(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (++pEm->UnkDA > 150) {
                 pEm->UnkDA = 0;
                 EM36_W(pEm)->Lost_dir -= (SHORT)(Rnd() * 4 - 0xA00);
-                EM36_W(pEm)->Unk1D = 0;
+                EM36_W(pEm)->Combo_no = 0;
                 EM36_W(pEm)->Flg |= 0x100;
-                EM36_W(pEm)->Unk20 = Rnd() & 7;
+                EM36_W(pEm)->Combo_set = Rnd() & 7;
             }
         }
         if (pEm->Col.Hit_flg & 0x10 && !EM36_W(pEm)->Lost_time) {
             if ((pEm->UnkDA += 20) > 150) {
                 pEm->UnkDA = 0;
                 EM36_W(pEm)->Lost_dir -= (SHORT)(Rnd() * 4 - 0xA00);
-                EM36_W(pEm)->Unk1D = 0;
+                EM36_W(pEm)->Combo_no = 0;
                 EM36_W(pEm)->Flg |= 0x100;
-                EM36_W(pEm)->Unk20 = Rnd() & 7;
+                EM36_W(pEm)->Combo_set = Rnd() & 7;
             }
         }
         if (EM36_W(pEm)->Lost_time) {
             EM36_W(pEm)->Lost_time--;
             if (pEm->Col.Hit_flg & 0x10 || !EM36_W(pEm)->Lost_time) {
-                EM36_W(pEm)->Unk1D = 0;
+                EM36_W(pEm)->Combo_no = 0;
                 EM36_W(pEm)->Flg |= 0x100;
-                EM36_W(pEm)->Unk20 = Rnd() & 7;
+                EM36_W(pEm)->Combo_set = Rnd() & 7;
             }
         }
     }
 }
 
 /* brain: walk along the route (type 8) */
-void func_80102894(ENEMY_WORK *pEm)
+void Em36_route_br04(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
@@ -595,14 +603,14 @@ void func_80102894(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 2, 0, 0);
     if (Dist < 5000 && Dir_far)
         EM_SET_RTN(pEm, 1, 4, 0, 0);
-    if (!EM36_W(pEm)->Unk08 && Dist < 2500 && !Dir)
+    if (!EM36_W(pEm)->Punch_timer && Dist < 2500 && !Dir)
         EM_SET_RTN(pEm, 1, 0x13, 0, 0);
     if (Dist_pl < 2000 && !Dir_wide)
         EM_SET_RTN(pEm, 1, 3, 0, 0);
 }
 
 /* brain: walk along the route (type 12) */
-void func_801029E0(ENEMY_WORK *pEm)
+void Em36_route_br05(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
@@ -623,7 +631,7 @@ void func_801029E0(ENEMY_WORK *pEm)
 }
 
 /* brain: attack wait */
-void func_80102B00(ENEMY_WORK *pEm)
+void Em36_turn_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -639,7 +647,7 @@ void func_80102B00(ENEMY_WORK *pEm)
     }
 }
 
-void func_80102BD4(ENEMY_WORK *pEm)
+void Em36_turn_br02(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -650,7 +658,7 @@ void func_80102BD4(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
 }
 
-void func_80102C44(ENEMY_WORK *pEm)
+void Em36_turn_br04(ENEMY_WORK *pEm)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
     ULONG Dist = EM36_W(pEm)->Route_dist;
@@ -662,7 +670,7 @@ void func_80102C44(ENEMY_WORK *pEm)
 }
 
 /* motion: turn */
-void func_80102CC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_turn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd_old;
     SHORT Add;
@@ -703,7 +711,7 @@ void func_80102CC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: turn */
-void func_80102E70(ENEMY_WORK *pEm)
+void Em36_back_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -722,15 +730,15 @@ void func_80102E70(ENEMY_WORK *pEm)
         if (Dist < 3000 && !Dir_eye && (Rnd() & 3) == 1 && !Flg_ck(&G.Unk7888, 0x1F))
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     }
-    if (!EM36_W(pEm)->Unk08 && Dist < 3000 && !Dir_atk && !pPl->Damage_cnt)
+    if (!EM36_W(pEm)->Punch_timer && Dist < 3000 && !Dir_atk && !pPl->Damage_cnt)
         EM_SET_RTN(pEm, 1, 5, 0, 0);
-    if (!EM36_W(pEm)->Unk14 && Dist < 4500 && !Dir_atk && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
+    if (!EM36_W(pEm)->Lunge_timer && Dist < 4500 && !Dir_atk && !pPl->Damage_cnt && !Flg_ck(&G.Unk7888, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
         EM_SET_RTN(pEm, 1, 0xA, 0, 0);
         EM36_W(pEm)->Flg &= ~0x200;
     }
 }
 
-void func_8010304C(ENEMY_WORK *pEm)
+void Em36_back_br04(ENEMY_WORK *pEm)
 {
     VECTOR *pV = &Em36_route_pos[EM36_W(pEm)->Route_no];
     ULONG Dist = EM36_W(pEm)->Route_dist;
@@ -742,7 +750,7 @@ void func_8010304C(ENEMY_WORK *pEm)
 }
 
 /* motion: walk back */
-void func_801030C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd_old;
 
@@ -763,11 +771,13 @@ void func_801030C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801031E0(void) {
+/* no brain step for this move */
+void Em36_turn_around_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: turn around */
-void func_801031E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_turn_around(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -798,11 +808,13 @@ void func_801031E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_8010332C(void) {
+/* no brain step for this move */
+void Em36_punch_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: punch */
-void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SHORT Spd_x, Spd_z;
@@ -860,12 +872,12 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z -= ((pEm->Spd_z - Spd_z) * pEm->Hokan_flg) >> 5;
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
-            EM36_W(pEm)->Unk08 = 30;
-            EM36_W(pEm)->Unk14 += 5;
-            EM36_W(pEm)->Unk06 += 10;
+            EM36_W(pEm)->Punch_timer = 30;
+            EM36_W(pEm)->Lunge_timer += 5;
+            EM36_W(pEm)->Mv12_timer += 10;
             if (pEm->Type & 1) {
-                EM36_W(pEm)->Unk08 += 10;
-                EM36_W(pEm)->Unk06 += 10;
+                EM36_W(pEm)->Punch_timer += 10;
+                EM36_W(pEm)->Mv12_timer += 10;
             }
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
@@ -875,7 +887,7 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (!Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->Unk154 < 3000 && !Flg_ck(&G.Unk7888, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             if (!(pEm->UnkE3 & 0x80))
-                EM36_W(pEm)->Unk22++;
+                EM36_W(pEm)->Hit_cnt++;
         }
         Add_speedXZ(pEm, 0);
         if (!(pEm->UnkE3 & 0x80)) {
@@ -888,7 +900,7 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Dist = pEm->Unk154;
             if (pEm->Move_cnt >= 11 && pEm->Move_cnt < 20 && (Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 800) || Dist > 4500) && !(EM36_W(pEm)->Flg & 0x80)) {
                 EM_SET_RTN(pEm, 1, 1, 0, 0);
-                EM36_W(pEm)->Unk08 = 30;
+                EM36_W(pEm)->Punch_timer = 30;
                 EM36_W(pEm)->Flg &= ~1;
                 EM36_W(pEm)->pSub->Routine_0 = 1;
                 EM36_W(pEm)->pSub->Routine_1 = 0;
@@ -896,7 +908,7 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->Unk120 &= ~3;
                 if (!Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->Unk154 < 3000 && !(Rnd() & 3) && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Unk7888, 0x1F))
                     EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-                EM36_W(pEm)->Unk22++;
+                EM36_W(pEm)->Hit_cnt++;
                 return;
             }
         }
@@ -945,7 +957,7 @@ void func_80103334(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: attack */
-void func_80103A20(ENEMY_WORK *pEm)
+void Em36_mv06_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -956,17 +968,17 @@ void func_80103A20(ENEMY_WORK *pEm)
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);
     Dir_near = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x200);
     Dir_eye = Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4);
-    if (!EM36_W(pEm)->Unk08) {
+    if (!EM36_W(pEm)->Punch_timer) {
         if (Dist < 3000 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
-        if (!EM36_W(pEm)->Unk08 && Dist < 3000 && !Dir_eye && !pPl->Damage_cnt)
+        if (!EM36_W(pEm)->Punch_timer && Dist < 3000 && !Dir_eye && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
     }
-    if (EM36_W(pEm)->Unk08 < 10 && Dist < 9000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Unk15 >= 2 && Dist > 3500)
+    if (EM36_W(pEm)->Punch_timer < 10 && Dist < 9000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Dm_stage >= 2 && Dist > 3500)
         EM_SET_RTN(pEm, 1, 0x12, 0, 0);
 }
 
-void func_80103B9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Old;
     SHORT Spd;
@@ -1017,7 +1029,7 @@ void func_80103B9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         } else {
             pEm->UnkDA = 0;
         }
-        if (!EM36_W(pEm)->Unk1A)
+        if (!EM36_W(pEm)->Mv06_timer)
             pEm->Routine_2 = 2;
         break;
     case 2:
@@ -1034,9 +1046,9 @@ void func_80103B9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM36_W(pEm)->pSub->Spd_x = 0x200;
         }
         EM36_W(pEm)->Flg &= ~0x40;
-        pEm->Life = EM36_W(pEm)->Unk18;
-        EM36_W(pEm)->Unk18 -= 250;
-        pEm->Max_life = EM36_W(pEm)->Unk18 + 200;
+        pEm->Life = EM36_W(pEm)->Stage_life;
+        EM36_W(pEm)->Stage_life -= 250;
+        pEm->Max_life = EM36_W(pEm)->Stage_life + 200;
         pEm->Damage_cnt |= 0x80;
     case 3:
         func_80018EC8(pEm, pKan, pSeq, 0);
@@ -1055,13 +1067,13 @@ void func_80103B9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         break;
     }
-    if (EM36_W(pEm)->Unk1A)
-        EM36_W(pEm)->Unk1A--;
-    func_80103F88(pEm);
+    if (EM36_W(pEm)->Mv06_timer)
+        EM36_W(pEm)->Mv06_timer--;
+    Em36_punch_effect(pEm);
 }
 
 /* effects of the punch motion (part 5) */
-void func_80103F88(ENEMY_WORK *pEm)
+void Em36_punch_effect(ENEMY_WORK *pEm)
 {
     MATRIX *pM;
     SVECTOR Ofs;
@@ -1086,11 +1098,13 @@ void func_80103F88(ENEMY_WORK *pEm)
     }
 }
 
-void func_801040E4(void) {
+/* no brain step for this move */
+void Em36_roar_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: roar */
-void func_801040EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_roar(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Unused[2];
 
@@ -1110,11 +1124,13 @@ void func_801040EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801041BC(void) {
+/* no brain step for this move */
+void Em36_stand_up_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: stand up */
-void func_801041C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_stand_up(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Unused[2];
 
@@ -1150,11 +1166,13 @@ void func_801041C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_8010435C(void) {
+/* no brain step for this move */
+void Em36_side_step_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: step aside */
-void func_80104364(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_side_step(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
 
@@ -1186,11 +1204,13 @@ void func_80104364(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_801044BC(void) {
+/* no brain step for this move */
+void Em36_lunge_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: lunge (tentacle stab) */
-void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_lunge(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Ofs;
@@ -1235,7 +1255,7 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Move_cnt = 10;
             EM36_W(pEm)->pSub->Move_cnt = 10;
         }
-        if (EM36_W(pEm)->Unk22 > 10) {
+        if (EM36_W(pEm)->Hit_cnt > 10) {
             pEm->Move_cnt = 15;
             EM36_W(pEm)->pSub->Move_cnt = 15;
             pEm->UnkE2 = 0x80;
@@ -1283,13 +1303,13 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             pEm->Unk120 &= ~3;
             EM36_W(pEm)->Flg &= ~1;
-            EM36_W(pEm)->Unk14 = (Rnd() & 0x1F) - 0x6A;
-            EM36_W(pEm)->Unk08 += 10;
-            EM36_W(pEm)->Unk06 += 10;
+            EM36_W(pEm)->Lunge_timer = (Rnd() & 0x1F) - 0x6A;
+            EM36_W(pEm)->Punch_timer += 10;
+            EM36_W(pEm)->Mv12_timer += 10;
             if (pEm->Type & 1) {
-                EM36_W(pEm)->Unk08 += 10;
-                EM36_W(pEm)->Unk06 += 10;
-                EM36_W(pEm)->Unk14 = (Rnd() & 0xF) + 90;
+                EM36_W(pEm)->Punch_timer += 10;
+                EM36_W(pEm)->Mv12_timer += 10;
+                EM36_W(pEm)->Lunge_timer = (Rnd() & 0xF) + 90;
             }
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
@@ -1297,7 +1317,7 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 && Rnd() & 1 && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Unk7888, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             if (!(pEm->UnkE3 & 0x80))
-                EM36_W(pEm)->Unk22 += 2;
+                EM36_W(pEm)->Hit_cnt += 2;
         }
         Add_speedXZ(pEm, 0);
         if (*pEm->pNow_seq & 0x200 && !pPl->Damage_cnt && !(pPl->Col.Hit_flg & 0x40) && !(pEm->Col.Hit_flg & 0x40) && EM36_W(pEm)->Flg & 0x800) {
@@ -1324,7 +1344,7 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt >= 11 && pEm->Move_cnt < 25 && !(EM36_W(pEm)->Flg & 0x200)
             && (Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 800) || (LONG)pEm->Unk154 > 5500) && !(EM36_W(pEm)->Flg & 0x80)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
-            EM36_W(pEm)->Unk14 = 10;
+            EM36_W(pEm)->Lunge_timer = 10;
             EM36_W(pEm)->Flg &= ~1;
             EM36_W(pEm)->pSub->Routine_0 = 1;
             EM36_W(pEm)->pSub->Routine_1 = 0;
@@ -1333,7 +1353,7 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (!Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->Unk154 < 3000
                 && Rnd() & 1 && !Flg_ck(&G.Unk7888, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-            EM36_W(pEm)->Unk22 += 3;
+            EM36_W(pEm)->Hit_cnt += 3;
             return;
         }
     }
@@ -1353,11 +1373,13 @@ void func_801044C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80104CA4(void) {
+/* no brain step for this move */
+void Em36_squeeze_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: grab and squeeze the player */
-void func_80104CAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_squeeze(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = G_PLAYER;
     SHORT Base_x, Base_z;
@@ -1386,7 +1408,7 @@ void func_80104CAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM36_W(pEm)->pSub->Routine_0 = 1;
         EM36_W(pEm)->pSub->Routine_1 = 4;
         EM36_W(pEm)->pSub->Routine_2 = 0;
-        EM36_W(pEm)->Unk22 = 0;
+        EM36_W(pEm)->Hit_cnt = 0;
     case 1:
         if (pEm->Move_cnt < 8)
             Goto01(pEm, pEm->Timer0, 0x100);
@@ -1442,32 +1464,36 @@ void func_80104CAC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
-            EM36_W(pEm)->Unk08 = 5;
-            EM36_W(pEm)->Unk06 = 45;
-            EM36_W(pEm)->Unk09 = 45;
-            EM36_W(pEm)->Unk14 = 250;
+            EM36_W(pEm)->Punch_timer = 5;
+            EM36_W(pEm)->Mv12_timer = 45;
+            EM36_W(pEm)->Grab_timer = 45;
+            EM36_W(pEm)->Lunge_timer = 250;
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
             pEm->Unk120 &= ~3;
             pEm->Damage_cnt &= 0x7F;
             if (pPl->Life < 50)
-                EM36_W(pEm)->Unk14 = 60;
+                EM36_W(pEm)->Lunge_timer = 60;
         }
         Add_speedXZ(pEm, 0);
         break;
     }
 }
 
-void func_80105114(void) {
+/* no brain step for this move */
+void Em36_mv12_br(ENEMY_WORK *pEm)
+{
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em36", func_8010511C);
+INCLUDE_ASM("asm/nonmatchings/enemy/em36", Em36_mv12);
 
-void func_8010580C(void) {
+/* no brain step for this move */
+void Em36_grab_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: grab the player */
-void func_80105814(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = G_PLAYER;
     VECTOR *pV;
@@ -1516,9 +1542,9 @@ void func_80105814(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Cdir_y -= 0x400;
             if (pPl->Life > 180 && !Flg_ck(&G.Unk7888, 0x1F)) {
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-                EM36_W(pEm)->Unk08 = 5;
-                EM36_W(pEm)->Unk06 = 45;
-                EM36_W(pEm)->Unk09 = 45;
+                EM36_W(pEm)->Punch_timer = 5;
+                EM36_W(pEm)->Mv12_timer = 45;
+                EM36_W(pEm)->Grab_timer = 45;
             }
             if (((Rnd() & 7) == 1 | pPl->Life < 0) && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 700)
                 && !Flg_ck(&G.Unk7888, 0x1E) && EM36_W(pEm)->Flg & 0x800) {
@@ -1527,7 +1553,7 @@ void func_80105814(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             if (EM36_W(pEm)->Flg & 0x1000) {
                 EM_SET_RTN(pEm, 1, 0x14, 0, 0);
-                pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Unk28];
+                pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Route_pt];
                 if (Goto00_ck(pEm, pV->vx, pV->vz, 0x400))
                     pEm->Routine_2 = 2;
             }
@@ -1542,25 +1568,31 @@ void func_80105814(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_RTN(pEm, 1, 0xF, 0, 0);
             if (Flg_ck(&G.Unk7888, 0x1F))
                 EM_SET_RTN(pEm, 1, 5, 0, 0);
-            EM36_W(pEm)->Unk08 = 5;
-            EM36_W(pEm)->Unk06 = 45;
-            EM36_W(pEm)->Unk09 = 45;
+            EM36_W(pEm)->Punch_timer = 5;
+            EM36_W(pEm)->Mv12_timer = 45;
+            EM36_W(pEm)->Grab_timer = 45;
         }
         break;
     }
 }
 
-void func_80105BF0(void) {
+/* no brain step for this move */
+void Em36_mv14_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_80105BF8(void) {
+/* empty move slot */
+void Em36_mv14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_80105C00(void) {
+/* no brain step for this move */
+void Em36_sweep_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: sweep the arm (tentacle) */
-void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sweep(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Ofs;
@@ -1613,17 +1645,17 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_RTN(pEm, 1, 1, 0, 0);
             if (!(Rnd() & 3) && !(pEm->Type & 1))
                 EM_SET_RTN(pEm, 1, 7, 0, 0);
-            EM36_W(pEm)->Unk08 = 30;
-            EM36_W(pEm)->Unk29 = 180;
+            EM36_W(pEm)->Punch_timer = 30;
+            EM36_W(pEm)->Sweep_timer = 180;
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
             pEm->Unk120 &= ~3;
             pEm->Cdir_y += 0x400;
             EM36_W(pEm)->Flg &= ~3;
-            EM36_W(pEm)->Unk06 += 10;
-            EM36_W(pEm)->Unk14 += 5;
+            EM36_W(pEm)->Mv12_timer += 10;
+            EM36_W(pEm)->Lunge_timer += 5;
             if (!(pEm->UnkE2 & 0x80)) {
-                EM36_W(pEm)->Unk22 += 2;
+                EM36_W(pEm)->Hit_cnt += 2;
                 if (!Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 800) && (LONG)pEm->Unk154 < 4000) {
                     EM_SET_RTN(pEm, 1, 5, 0, 0);
                     if (Rnd() & 1) {
@@ -1703,17 +1735,23 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_80106260(void) {
+/* no brain step for this move */
+void Em36_mv16_br(ENEMY_WORK *pEm)
+{
 }
 
-void func_80106268(void) {
+/* empty move slot */
+void Em36_mv16(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
 }
 
-void func_80106270(void) {
+/* no brain step for this move */
+void Em36_swing_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: swing */
-void func_80106278(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     LONG Unused[2];
@@ -1746,18 +1784,20 @@ void func_80106278(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM_SET_RTN(pEm, 1, 4, 0, 0);
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
-            EM36_W(pEm)->Unk08 = 20;
+            EM36_W(pEm)->Punch_timer = 20;
             pEm->Unk120 &= ~3;
         }
         Add_speedXZ(pEm, 0);
     }
 }
 
-void func_80106430(void) {
+/* no brain step for this move */
+void Em36_swing_arm_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: swing the arm (tentacle) */
-void func_80106438(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_swing_arm(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Ofs;
@@ -1805,13 +1845,13 @@ void func_80106438(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
-            EM36_W(pEm)->Unk08 = 15;
+            EM36_W(pEm)->Punch_timer = 15;
             EM36_W(pEm)->Flg &= ~1;
             pEm->Unk120 &= ~3;
             if (!Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4) && (LONG)pEm->Unk154 < 3000
                 && !(Rnd() & 1) && !(EM36_W(pEm)->Flg & 0x80) && !Flg_ck(&G.Unk7888, 0x1F))
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-            EM36_W(pEm)->Unk22 += 3;
+            EM36_W(pEm)->Hit_cnt += 3;
         }
         Add_speedXZ(pEm, 0);
         if (*pEm->pNow_seq & 0x200 && !pPl->Damage_cnt) {
@@ -1868,11 +1908,13 @@ void func_80106438(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_8010698C(void) {
+/* no brain step for this move */
+void Em36_run_punch_br(ENEMY_WORK *pEm)
+{
 }
 
 /* motion: punch on the run (route type) */
-void func_80106994(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_run_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SVECTOR Ofs;
@@ -1919,7 +1961,7 @@ void func_80106994(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
             EM_SET_RTN(pEm, 1, 1, 0, 0);
-            EM36_W(pEm)->Unk08 = 30;
+            EM36_W(pEm)->Punch_timer = 30;
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
             pEm->Unk120 &= ~3;
@@ -1961,7 +2003,7 @@ void func_80106994(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* brain: on a route (type 1) */
-void func_80106D98(ENEMY_WORK *pEm)
+void Em36_route_br(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = &Pl_work;
     ULONG Dist = pEm->Unk154;
@@ -1972,13 +2014,13 @@ void func_80106D98(ENEMY_WORK *pEm)
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x500);
     Dir_near = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x100);
     Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x500, 0x3E4);
-    if (!EM36_W(pEm)->Unk08) {
+    if (!EM36_W(pEm)->Punch_timer) {
         if (Dist < 3000 && !Dir && !pPl->Damage_cnt)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
-        if (!EM36_W(pEm)->Unk08) {
+        if (!EM36_W(pEm)->Punch_timer) {
             if (Dist < 3000 && Dir_wide && !pPl->Damage_cnt)
                 EM_SET_RTN(pEm, 1, 0xF, 0, 0);
-            if (!EM36_W(pEm)->Unk08 && Dist < 9000 && Dist > 6000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Unk15 >= 2)
+            if (!EM36_W(pEm)->Punch_timer && Dist < 9000 && Dist > 6000 && !Dir_near && !pPl->Damage_cnt && EM36_W(pEm)->Dm_stage >= 2)
                 EM_SET_RTN(pEm, 1, 0x12, 0, 0);
         }
     }
@@ -1987,7 +2029,7 @@ void func_80106D98(ENEMY_WORK *pEm)
 }
 
 /* motion: follow the route */
-void func_80106F2C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_route_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pPl = &Pl_work;
     SHORT Spd_old;
@@ -2016,7 +2058,7 @@ void func_80106F2C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         Joint_move(pEm, pKan, pSeq, 0x40);
         Add_speedXZ(pEm, 0);
-        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Unk28];
+        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Route_pt];
         Dist = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
         if (Dist < 500
             && Goto00_ck(pEm, pV->vx, pV->vz, 0x200))
@@ -2033,7 +2075,7 @@ void func_80106F2C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, -32);
         Joint_move(pEm, pKan, pSeq, 0x40);
         Add_speedXZ(pEm, 0);
-        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Unk28];
+        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Route_pt];
         Dist = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
         if (Dist < 500
             && !Goto00_ck(pEm, pV->vx, pV->vz, 0x200))
@@ -2046,7 +2088,7 @@ void func_80106F2C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd_get(pEm, pKan, pSeq, 0);
         Joint_move(pEm, pKan, pSeq, 0x40);
         Add_speedXZ(pEm, 0);
-        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Unk28];
+        pV = &Em36_route[pEm->Unk14E & 0xF][EM36_W(pEm)->Route_pt];
         Dist = SquareRoot0((pV->vx - pEm->Pos_x) * (pV->vx - pEm->Pos_x) + (pV->vz - pEm->Pos_z) * (pV->vz - pEm->Pos_z));
         if (Dist > 1500
             && (LONG)pEm->Unk154 > 7000)
@@ -2061,8 +2103,8 @@ void func_80106F2C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* routine 2: damage (RE2 Em2a_damage) */
-void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 2: damage (RE2 Em2a_damage) */
+void Em36_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Lim;
     LONG Unused[2];
@@ -2073,9 +2115,9 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Unk132 & 0x400)
             Em34_blood_spray(pEm);
         if (pEm->Unk132 & 0x200)
-            func_8010BBE8(pEm);
+            Em36_knock_back2(pEm);
         if (pEm->Unk132 & 0x800)
-            func_8010B804(pEm);
+            Em36_knock_back(pEm);
     }
     Lim = 400;
     if (G.System_flg & 0x100)
@@ -2091,13 +2133,13 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 EM36_W(pEm)->Flg &= ~0x20;
         }
         if (EM36_W(pEm)->Flg & 1) {
-            EM36_W(pEm)->Unk0C = 1;
+            EM36_W(pEm)->Shake_no = 1;
             EM_RTN(pEm) = pEm->Unk1C4;
             Em34_blood_set(pEm);
             if (pEm->Routine_0 == 4)
-                func_80108EA4(pEm, pKan, pSeq);
+                Em36_Scenario(pEm, pKan, pSeq);
             else
-                func_8010105C(pEm, pKan, pSeq);
+                Em36_Move(pEm, pKan, pSeq);
             return;
         }
         Em36_dm[pEm->Unk12C - 1][pEm->Routine_1](pEm, pKan, pSeq);
@@ -2105,15 +2147,15 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     if (EM36_W(pEm)->Flg & 0x40 && !pEm->Routine_2 && pEm->Unk12C != 30) {
         pEm->Unk12C = 32;
-        pEm->Life = EM36_W(pEm)->Unk18;
+        pEm->Life = EM36_W(pEm)->Stage_life;
         if (!(EM36_W(pEm)->Flg & 2))
             EM36_W(pEm)->Flg &= ~3;
         pEm->Be_flg |= 0x8000;
     }
-    if (EM36_W(pEm)->Unk18 > pEm->Life && !pEm->Routine_2) {
-        pEm->Life = EM36_W(pEm)->Unk18;
+    if (EM36_W(pEm)->Stage_life > pEm->Life && !pEm->Routine_2) {
+        pEm->Life = EM36_W(pEm)->Stage_life;
         EM36_W(pEm)->Flg |= 0x40;
-        EM36_W(pEm)->Unk1A = 450;
+        EM36_W(pEm)->Mv06_timer = 450;
         if (!(EM36_W(pEm)->Flg & 2))
             EM36_W(pEm)->Flg &= ~3;
         pEm->Unk12C = 33;
@@ -2126,13 +2168,13 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Unk12C == 30)
             EM36_W(pEm)->Flg |= 0x2000;
         if (EM36_W(pEm)->Flg & 1) {
-            EM36_W(pEm)->Unk0C = 1;
+            EM36_W(pEm)->Shake_no = 1;
             EM_RTN(pEm) = pEm->Unk1C4;
             Em34_blood_set(pEm);
             if (pEm->Routine_0 == 4)
-                func_80108EA4(pEm, pKan, pSeq);
+                Em36_Scenario(pEm, pKan, pSeq);
             else
-                func_8010105C(pEm, pKan, pSeq);
+                Em36_Move(pEm, pKan, pSeq);
             return;
         }
     }
@@ -2140,7 +2182,7 @@ void func_80107390(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* damage: flinch */
-void func_80107724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_dm_flinch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG Unused[2];
 
@@ -2194,7 +2236,7 @@ void func_80107724(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* damage: down; Last (player Id >= 8, System_flg 0x80 clear) also clears Status_flg 0x40000000 */
-void func_80107990(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_dm_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     tagGLOBAL *pG = &G;
     LONG Last;
@@ -2233,11 +2275,11 @@ void func_80107990(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (pEm->Type & 1) {
             EM36_W(pEm)->Flg &= ~0x40;
-            pEm->Life = EM36_W(pEm)->Unk18;
-            EM36_W(pEm)->Unk18 -= 250;
-            pEm->Max_life = EM36_W(pEm)->Unk18 + 200;
+            pEm->Life = EM36_W(pEm)->Stage_life;
+            EM36_W(pEm)->Stage_life -= 250;
+            pEm->Max_life = EM36_W(pEm)->Stage_life + 200;
         }
-        EM36_W(pEm)->Unk1A = 0;
+        EM36_W(pEm)->Mv06_timer = 0;
         pEm->Unk13A = 600;
     case 1:
         if (pEm->Move_cnt == 40) {
@@ -2267,9 +2309,9 @@ void func_80107990(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* damage: light hit, keep moving */
-void func_80107C60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_dm_light(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    EM36_W(pEm)->Unk0C = 1;
+    EM36_W(pEm)->Shake_no = 1;
     if ((UCHAR)pEm->Type != 3) {
         if (Rnd() & 1)
             Snd_se_enem(12, pEm);
@@ -2285,11 +2327,11 @@ void func_80107C60(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (EM36_W(pEm)->Flg & 0x40)
             EM_SET_RTN(pEm, 1, 6, 0, 0);
     }
-    func_8010105C(pEm, pKan, pSeq);
+    Em36_Move(pEm, pKan, pSeq);
 }
 
 /* damage: lose a part (Unk15 = damage stage) */
-void func_80107D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_dm_part(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2308,14 +2350,14 @@ void func_80107D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM36_W(pEm)->pSub->Spd_y = 0x1000;
             EM36_W(pEm)->pSub->Spd_x = 0x200;
         }
-        EM36_W(pEm)->Unk1A = 0;
+        EM36_W(pEm)->Mv06_timer = 0;
         pEm->Unk13A = 600;
         Flg_on(&G.Unk7888, 0x1D);
         EM36_W(pEm)->Flg &= ~0x40;
-        EM36_W(pEm)->Unk18 = pEm->Life - 250;
-        if (EM36_W(pEm)->Unk18 < 0)
-            EM36_W(pEm)->Unk18 = 0;
-        pEm->Max_life = EM36_W(pEm)->Unk18 + 200;
+        EM36_W(pEm)->Stage_life = pEm->Life - 250;
+        if (EM36_W(pEm)->Stage_life < 0)
+            EM36_W(pEm)->Stage_life = 0;
+        pEm->Max_life = EM36_W(pEm)->Stage_life + 200;
         Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[1].Workm, NULL, NULL);
         Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[3].Workm, NULL, NULL);
         Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[14].Workm, NULL, NULL);
@@ -2323,21 +2365,21 @@ void func_80107D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM36_W(pEm)->Flg &= ~0x2000;
         Snd_se_stad(0x10204, (VECTOR *)&pEm->Pos_x, 0, 0);
     case 1:
-        switch (EM36_W(pEm)->Unk15) {
+        switch (EM36_W(pEm)->Dm_stage) {
         case 0:
-            func_801082BC(pEm);
-            EM36_W(pEm)->Unk15 = 1;
+            Em36_parts_effect(pEm);
+            EM36_W(pEm)->Dm_stage = 1;
             break;
         case 1:
             if (pEm->Move_cnt == 15) {
-                func_8010832C(pEm);
-                EM36_W(pEm)->Unk15 = 2;
+                Em36_blow_off6(pEm);
+                EM36_W(pEm)->Dm_stage = 2;
             }
             break;
         case 2:
             if (pEm->Move_cnt == 15) {
-                func_801084F8(pEm);
-                EM36_W(pEm)->Unk15 = 3;
+                Em36_blow_off22(pEm);
+                EM36_W(pEm)->Dm_stage = 3;
                 EM36_W(pEm)->Lost_time = 60;
                 pEm->Type = (pEm->Type & 0xFFF0) | 3;
                 EM36_W(pEm)->Flg |= 0x80;
@@ -2376,7 +2418,7 @@ void func_80107D5C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* damage: knocked down */
-void func_80108134(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_dm_knock(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2394,7 +2436,7 @@ void func_80108134(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM36_W(pEm)->pSub->Spd_y = 0x1000;
             EM36_W(pEm)->pSub->Spd_x = 0x200;
         }
-        EM36_W(pEm)->Unk1A = 0;
+        EM36_W(pEm)->Mv06_timer = 0;
         pEm->Unk13A = 600;
     case 1:
         func_80018EC8(pEm, pKan, pSeq, 0);
@@ -2412,7 +2454,7 @@ void func_80108134(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* effects on parts 16..21 */
-void func_801082BC(ENEMY_WORK *pEm)
+void Em36_parts_effect(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     LONG i;
@@ -2429,7 +2471,7 @@ void func_801082BC(ENEMY_WORK *pEm)
 }
 
 /* blow off part 6 (and part 8) */
-void func_8010832C(ENEMY_WORK *pEm)
+void Em36_blow_off6(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -2479,7 +2521,7 @@ void func_8010832C(ENEMY_WORK *pEm)
 }
 
 /* blow off part 22 (copy of part 2) */
-void func_801084F8(ENEMY_WORK *pEm)
+void Em36_blow_off22(ENEMY_WORK *pEm)
 {
     PARTS_W *pParts;
     PARTS_W *pP;
@@ -2525,7 +2567,7 @@ void func_801084F8(ENEMY_WORK *pEm)
 }
 
 /* blow off part 23 (copy of part 4), part 5 and the sub work's parts 0 and 3 */
-void func_801086F0(ENEMY_WORK *pEm)
+void Em36_blow_off23(ENEMY_WORK *pEm)
 {
     PARTS_W *pParts;
     PARTS_W *pP;
@@ -2606,8 +2648,8 @@ void func_801086F0(ENEMY_WORK *pEm)
     Esp_call(0, 0x10000000, pM4, NULL, NULL);
 }
 
-/* routine 3: die */
-void func_80108988(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 3: die */
+void Em36_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (!pEm->Routine_2) {
         if (pEm->Unk132 & 0x100)
@@ -2615,9 +2657,9 @@ void func_80108988(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Unk132 & 0x400)
             Em34_blood_spray(pEm);
         if (pEm->Unk132 & 0x200)
-            func_8010BBE8(pEm);
+            Em36_knock_back2(pEm);
         if (pEm->Unk132 & 0x800)
-            func_8010B804(pEm);
+            Em36_knock_back(pEm);
     }
     if (EM36_W(pEm)->Flg & 2) {
         if (pEm->Unk12C == 30) {
@@ -2629,15 +2671,15 @@ void func_80108988(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Damage_cnt &= 0x7F;
             EM_RTN(pEm) = pEm->Unk1C4;
             Em34_blood_set(pEm);
-            func_8010105C(pEm, pKan, pSeq);
+            Em36_Move(pEm, pKan, pSeq);
         }
     } else {
-        func_80108AC0(pEm, pKan, pSeq);
+        Em36_die_burn(pEm, pKan, pSeq);
     }
 }
 
 /* die: fall down and burn */
-void func_80108AC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_die_burn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     MATRIX *pM;
     SVECTOR Ofs;
@@ -2700,8 +2742,8 @@ void func_80108AC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* scenario move (RE2 Em2a_sce) */
-void func_80108EA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 4: scenario routine by Routine_1 (RE2 Em2a_sce) */
+void Em36_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100) {
         func_80016600(pEm, pKan, pSeq);
@@ -2711,7 +2753,7 @@ void func_80108EA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: stand */
-void func_80108F00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_stand(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2725,7 +2767,7 @@ void func_80108F00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: walk to Dest */
-void func_80108F9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2740,7 +2782,7 @@ void func_80108F9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: play motion Add_dir from the sub animation */
-void func_80109050(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_motion(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2765,7 +2807,7 @@ void func_80109050(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: turn around */
-void func_80109164(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_turn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2784,7 +2826,7 @@ void func_80109164(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: play motion Add_dir from the sub animation, stop at frame Unk14C */
-void func_80109224(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_motion_stop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2818,7 +2860,7 @@ void func_80109224(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 #include "enemy/common/em34/Em34_sce05.inc.c"
 
 /* sce: jump forward, then slide to a stop */
-void func_80109440(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_jump(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2896,7 +2938,7 @@ void func_80109440(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: jump with speed Unk14C / gravity Unk14E, land at Unk122 */
-void func_801096B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_leap(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2965,7 +3007,7 @@ void func_801096B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: jump down (Add_dir motion, then fall) */
-void func_80109900(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_jump_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -3030,7 +3072,7 @@ void func_80109900(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: die (parts fall off) */
-void func_80109B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_die_fall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pParts;
     PARTS_W *pP;
@@ -3049,13 +3091,13 @@ void func_80109B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM36_W(pEm)->pSub->Spd_y = 0x1000;
             EM36_W(pEm)->pSub->Spd_x = 0x200;
         }
-        EM36_W(pEm)->Unk15 = 1;
+        EM36_W(pEm)->Dm_stage = 1;
         Esp_call(0x1C03, 0xA000000, &pEm->pSin_parts_ptr[2].Workm, NULL, NULL);
         Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[9].Workm, NULL, NULL);
         Snd_se_stad(0x10204, (VECTOR *)&pEm->Pos_x, 0, 0);
     case 1:
         if (!(pEm->Move_cnt % 60))
-            func_801082BC(pEm);
+            Em36_parts_effect(pEm);
         if (pEm->Move_cnt == 30) {
         pParts = pEm->pSin_parts_ptr;
         pP = &pParts[21];
@@ -3160,7 +3202,7 @@ void func_80109B30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: die (parts blown off) */
-void func_80109FCC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_die_blow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -3204,15 +3246,15 @@ void func_80109FCC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Esp_call(0x1C03, 0xA000000, pM, &Pos, NULL);
     case 1:
         if (pEm->Move_cnt == 18) {
-            if (EM36_W(pEm)->Unk15 < 2)
-                func_8010832C(pEm);
-            if (EM36_W(pEm)->Unk15 < 3) {
-                func_801084F8(pEm);
+            if (EM36_W(pEm)->Dm_stage < 2)
+                Em36_blow_off6(pEm);
+            if (EM36_W(pEm)->Dm_stage < 3) {
+                Em36_blow_off22(pEm);
                 pEm->Type = (pEm->Type & 0xFFF0) | 3;
             }
         }
         if (pEm->Move_cnt == 90)
-            func_801086F0(pEm);
+            Em36_blow_off23(pEm);
         if (pEm->Move_cnt == 25)
             Snd_se_stad(0x1020D, (VECTOR *)&pEm->Pos_x, 0, 0);
         func_80018EC8(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
@@ -3229,7 +3271,7 @@ void func_80109FCC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* sce: grab the work Add_dir (G.pEnemy[0][]) and throw it */
-void func_8010A29C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_sce_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pT;
     SHORT Base_x, Base_z;
@@ -3294,8 +3336,8 @@ void func_8010A29C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* routine 7: fade out the shadow */
-void func_8010A53C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 7: fade out the shadow */
+void Em36_Dead(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     KAGE_WORK *pK = pEm->Kage.pKw;
 
@@ -3338,14 +3380,14 @@ void func_8010A53C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-/* die: dispatch */
-void func_8010A684(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* G.pPldamage_Em hook (RE2 PLDAMEGE_EM): the player's damage routine by Routine_1 */
+void Pldamege_Em36(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    Em36_die[pEm->Routine_1](pEm, pKan, pSeq);
+    Pldamage_Em36_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
 /* player damage: grabbed and thrown */
-void func_8010A6C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_pldm_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pE;
     SHORT Old_x, Old_z, Cdir;
@@ -3515,7 +3557,7 @@ void func_8010A6C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* player damage: thrown by the punch */
-void func_8010AE3C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em36_pldm_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     ENEMY_WORK *pE;
     SHORT Cdir;
@@ -3580,32 +3622,37 @@ void func_8010AE3C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-void func_8010B150(void) {
-}
-
-void func_8010B158(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* unused */
+void Em36_dummy0(void)
 {
-    Em36_die2[pEm->Routine_1](pEm, pKan, pSeq);
 }
 
-void func_8010B194(void) {
+/* G.pPldie_Em hook (RE2 PLDIE_EM): the player's death routine by Routine_1 */
+void Pldie_Em36(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    Pldie_Em36_tbl[pEm->Routine_1](pEm, pKan, pSeq);
+}
+
+/* unused */
+void Em36_dummy1(void)
+{
 }
 
 /* dodge timer: step aside when the player aims and fires */
-void func_8010B19C(ENEMY_WORK *pEm)
+void Em36_dodge(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pPl = G_PLAYER;
     LONG Div;
     LONG Time;
 
     EM36_W(pEm)->Flg &= ~0x10;
-    if (EM36_W(pEm)->Unk07 & 0x7F)
-        EM36_W(pEm)->Unk07--;
+    if (EM36_W(pEm)->Dodge_timer & 0x7F)
+        EM36_W(pEm)->Dodge_timer--;
     if ((EM36_FLGW(pEm) & 0xFF000000) == 0x80000000) {
         EM36_W(pEm)->Flg |= 0x10;
-        EM36_W(pEm)->Unk07 &= 0x7F;
+        EM36_W(pEm)->Dodge_timer &= 0x7F;
     }
-    if (!(EM36_W(pEm)->Unk07 & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck_l(pEm, pPl)
+    if (!(EM36_W(pEm)->Dodge_timer & 0x80) && *(USHORT *)&pPl->Routine_0 == 0x501 && !Cdir_ck_l(pEm, pPl)
         && !Goto00_ck(pPl, pEm->Pos_x, pEm->Pos_z, 0x80) && G.Unk75E8 & 1) {
         Div = 0;
         if ((UCHAR)pPl->Type == 10) {
@@ -3621,13 +3668,13 @@ void func_8010B19C(ENEMY_WORK *pEm)
         if (Div) {
             Time = (LONG)pEm->Unk154 / Div - 5;
             if (Time >= 0)
-                EM36_W(pEm)->Unk07 = Time | 0x80;
+                EM36_W(pEm)->Dodge_timer = Time | 0x80;
         }
     }
 }
 
 /* head shake when hit (part 1) */
-void func_8010B308(ENEMY_WORK *pEm)
+void Em36_head_shake(ENEMY_WORK *pEm)
 {
     SVECTOR Rot;
     MATRIX M;
@@ -3635,27 +3682,27 @@ void func_8010B308(ENEMY_WORK *pEm)
     LONG Unused2[4];
     signed char Swing[8] = { 8, 12, -8, -12, -4, 0, 4, 0 };
 
-    switch (EM36_W(pEm)->Unk0C) {
+    switch (EM36_W(pEm)->Shake_no) {
     case 0:
         break;
     case 1:
-        EM36_W(pEm)->Unk0F = Swing[Rnd() & 7];
-        EM36_W(pEm)->Unk0C = 2;
-        EM36_W(pEm)->Unk0D = 0;
-        EM36_W(pEm)->Unk0E = 1;
+        EM36_W(pEm)->Shake_amp = Swing[Rnd() & 7];
+        EM36_W(pEm)->Shake_no = 2;
+        EM36_W(pEm)->Shake_cnt = 0;
+        EM36_W(pEm)->Shake_side = 1;
         if (pEm->Unk132 & 0x10)
-            EM36_W(pEm)->Unk0E = -1;
+            EM36_W(pEm)->Shake_side = -1;
     case 2: {
         PARTS_W *pP = pEm->pSin_parts_ptr;
 
         Rot.vx = 0;
-        Rot.vy = -(EM36_W(pEm)->Unk0D * EM36_W(pEm)->Unk0F * 8) * EM36_W(pEm)->Unk0E;
-        Rot.vz = -(EM36_W(pEm)->Unk0D * 64) * EM36_W(pEm)->Unk0E;
+        Rot.vy = -(EM36_W(pEm)->Shake_cnt * EM36_W(pEm)->Shake_amp * 8) * EM36_W(pEm)->Shake_side;
+        Rot.vz = -(EM36_W(pEm)->Shake_cnt * 64) * EM36_W(pEm)->Shake_side;
         RotMatrix(&Rot, &M);
         MulMatrix((MATRIX *)pP[1].M, &M);
-        if (EM36_W(pEm)->Unk0D++ >= 3) {
-            EM36_W(pEm)->Unk0C = 3;
-            EM36_W(pEm)->Unk0D = 16;
+        if (EM36_W(pEm)->Shake_cnt++ >= 3) {
+            EM36_W(pEm)->Shake_no = 3;
+            EM36_W(pEm)->Shake_cnt = 16;
         }
         break;
     }
@@ -3663,12 +3710,12 @@ void func_8010B308(ENEMY_WORK *pEm)
         PARTS_W *pP = pEm->pSin_parts_ptr;
 
         Rot.vx = 0;
-        Rot.vy = -(EM36_W(pEm)->Unk0D * EM36_W(pEm)->Unk0F) * EM36_W(pEm)->Unk0E;
-        Rot.vz = -(EM36_W(pEm)->Unk0D * 8) * EM36_W(pEm)->Unk0E;
+        Rot.vy = -(EM36_W(pEm)->Shake_cnt * EM36_W(pEm)->Shake_amp) * EM36_W(pEm)->Shake_side;
+        Rot.vz = -(EM36_W(pEm)->Shake_cnt * 8) * EM36_W(pEm)->Shake_side;
         RotMatrix(&Rot, &M);
         MulMatrix((MATRIX *)pP[1].M, &M);
-        if (--EM36_W(pEm)->Unk0D == -1)
-            EM36_W(pEm)->Unk0C = 0;
+        if (--EM36_W(pEm)->Shake_cnt == -1)
+            EM36_W(pEm)->Shake_no = 0;
         break;
     }
     }
@@ -3678,11 +3725,13 @@ void func_8010B308(ENEMY_WORK *pEm)
 
 #include "enemy/common/em34/Em34_blood_set.inc.c"
 
-void func_8010B7FC(void) {
+/* unused */
+void Em36_dummy2(void)
+{
 }
 
 /* knocked back by a strong hit: lean the body away from the player */
-void func_8010B804(ENEMY_WORK *pEm)
+void Em36_knock_back(ENEMY_WORK *pEm)
 {
     SVECTOR Sv;
     MATRIX M;
@@ -3725,8 +3774,8 @@ void func_8010B804(ENEMY_WORK *pEm)
 
 #include "enemy/common/em34/Em34_blood_spray.inc.c"
 
-/* knocked back (weaker variant of func_8010B804) */
-void func_8010BBE8(ENEMY_WORK *pEm)
+/* knocked back (weaker variant of Em36_knock_back) */
+void Em36_knock_back2(ENEMY_WORK *pEm)
 {
     SVECTOR Sv;
     MATRIX M;
@@ -3768,16 +3817,16 @@ void func_8010BBE8(ENEMY_WORK *pEm)
 }
 
 /* morph of part 2 (mouth) driven by seq flag 0x800 */
-void func_8010BDD0(ENEMY_WORK *pEm)
+void Em36_mouth_morph(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     ULONG Mode;
 
-    EM36_W(pEm)->Unk10 = 0;
+    EM36_W(pEm)->Mouth = 0;
     pP = &pEm->pSin_parts_ptr[2];
     if (*pEm->pNow_seq & 0x800)
-        EM36_W(pEm)->Unk10 = 1;
-    switch (Mode = EM36_W(pEm)->Unk10) {
+        EM36_W(pEm)->Mouth = 1;
+    switch (Mode = EM36_W(pEm)->Mouth) {
     case 0:
         EM36_SABUN_P(pP)->Key[0].Rate -= 0x100;
         if (EM36_SABUN_P(pP)->Key[0].Rate <= 0)
@@ -3787,7 +3836,7 @@ void func_8010BDD0(ENEMY_WORK *pEm)
         EM36_SABUN_P(pP)->Key[0].Rate += 0x100;
         if (EM36_SABUN_P(pP)->Key[0].Rate >= 0x1000) {
             EM36_SABUN_P(pP)->Key[0].Rate = 0x1000;
-            EM36_W(pEm)->Unk10 = Mode;
+            EM36_W(pEm)->Mouth = Mode;
         }
         break;
     }
@@ -3795,7 +3844,7 @@ void func_8010BDD0(ENEMY_WORK *pEm)
 }
 
 /* morph of parts 16..21 (cycle through the 7 keys) */
-void func_8010BEAC(ENEMY_WORK *pEm)
+void Em36_body_morph(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     LONG Add;
@@ -3814,7 +3863,7 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             if (pP->Size_y < 0x600)
                 pP->Size_y = 0x600;
         }
-        switch (pP->Unk74) {
+        switch (EM36_PF(pP)->Key_no) {
         case 0:
             EM36_SABUN_P(pP)->Key[4].Rate -= Add;
             if (EM36_SABUN_P(pP)->Key[4].Rate <= 0)
@@ -3825,9 +3874,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[0].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[0].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[0].Rate = 0x1000;
-                pP->Unk74 = 1;
+                EM36_PF(pP)->Key_no = 1;
                 if (Rnd() & 1)
-                    pP->Unk74 = 3;
+                    EM36_PF(pP)->Key_no = 3;
             }
             break;
         case 1:
@@ -3840,9 +3889,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[1].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[1].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[1].Rate = 0x1000;
-                pP->Unk74 = 2;
+                EM36_PF(pP)->Key_no = 2;
                 if (Rnd() & 1)
-                    pP->Unk74 = 4;
+                    EM36_PF(pP)->Key_no = 4;
             }
             break;
         case 2:
@@ -3855,9 +3904,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[2].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[2].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[2].Rate = 0x1000;
-                pP->Unk74 = 3;
+                EM36_PF(pP)->Key_no = 3;
                 if (Rnd() & 1)
-                    pP->Unk74 = 5;
+                    EM36_PF(pP)->Key_no = 5;
             }
             break;
         case 3:
@@ -3870,9 +3919,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[3].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[3].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[3].Rate = 0x1000;
-                pP->Unk74 = 4;
+                EM36_PF(pP)->Key_no = 4;
                 if (Rnd() & 1)
-                    pP->Unk74 = 6;
+                    EM36_PF(pP)->Key_no = 6;
             }
             break;
         case 4:
@@ -3885,9 +3934,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[4].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[4].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[4].Rate = 0x1000;
-                pP->Unk74 = 5;
+                EM36_PF(pP)->Key_no = 5;
                 if (Rnd() & 1)
-                    pP->Unk74 = 0;
+                    EM36_PF(pP)->Key_no = 0;
             }
             break;
         case 5:
@@ -3900,9 +3949,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[5].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[5].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[5].Rate = 0x1000;
-                pP->Unk74 = 6;
+                EM36_PF(pP)->Key_no = 6;
                 if (Rnd() & 1)
-                    pP->Unk74 = 1;
+                    EM36_PF(pP)->Key_no = 1;
             }
             break;
         case 6:
@@ -3915,9 +3964,9 @@ void func_8010BEAC(ENEMY_WORK *pEm)
             EM36_SABUN_P(pP)->Key[6].Rate += Add;
             if (EM36_SABUN_P(pP)->Key[6].Rate >= 0x1000) {
                 EM36_SABUN_P(pP)->Key[6].Rate = 0x1000;
-                pP->Unk74 = 0;
+                EM36_PF(pP)->Key_no = 0;
                 if (Rnd() & 1)
-                    pP->Unk74 = 2;
+                    EM36_PF(pP)->Key_no = 2;
             }
             break;
         }
@@ -3927,7 +3976,7 @@ void func_8010BEAC(ENEMY_WORK *pEm)
 }
 
 /* effects of parts 1 and 4 */
-void func_8010C4FC(ENEMY_WORK *pEm)
+void Em36_wound_fx(ENEMY_WORK *pEm)
 {
     MATRIX *pM;
     SVECTOR Ofs;
@@ -3967,7 +4016,7 @@ void func_8010C4FC(ENEMY_WORK *pEm)
 }
 
 /* effects of part 1 */
-void func_8010C6CC(ENEMY_WORK *pEm)
+void Em36_wound_fx2(ENEMY_WORK *pEm)
 {
     MATRIX *pM;
     SVECTOR Ofs;
@@ -3984,7 +4033,7 @@ void func_8010C6CC(ENEMY_WORK *pEm)
 }
 
 /* effects of part 1 */
-void func_8010C764(ENEMY_WORK *pEm)
+void Em36_wound_fx3(ENEMY_WORK *pEm)
 {
     MATRIX *pM;
     SVECTOR Ofs;
