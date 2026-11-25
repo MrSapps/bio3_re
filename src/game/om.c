@@ -343,7 +343,7 @@ void Om_push_ck(void)
                 Pos_x = pOm->M.t[0];
                 Pos_z = pOm->M.t[2];
                 if (++pOm->Push_cnt >= 6) {
-                    if (pOm->UnkAE & 0x20) {
+                    if (pOm->Col.Hit_flg & 0x20) {
                         pOm->Push_cnt = 0;
                     } else {
                         Om_push_num = 0;
@@ -401,13 +401,13 @@ void Om_rtn_wait(OBJ_MODEL_WORK *pOm)
     if (pG->Player.Routine_1 != 1 && pG->Player.Routine_1 != 9) {
         pOm->Push_cnt = 0;
     }
-    if ((pOm->UnkAE & 0x10) && (pOm->UnkBA & 0x8000)) {
+    if ((pOm->Col.Hit_flg & 0x10) && (pOm->Col.Unk3A & 0x8000)) {
         Om_push_num++;
         if (pG->Player.nFloor == pOm->nFloor) {
             pOm_push = pOm;
         }
     }
-    if ((pOm->Unk4A & 4) && *G.pOm_target[pOm->UnkC1] == 0xFF) {
+    if ((pOm->Unk4A & 4) && G.pOm_target[pOm->UnkC1]->Flg == 0xFF) {
         switch (pOm->Type & 0xC0) {
         case 0:
             Om_explosion(pOm, 1, 1);
@@ -454,7 +454,7 @@ void Om_rtn_drop(OBJ_MODEL_WORK *pOm)
         } else {
             pOm->M.t[1] += (SHORT)(pOm->Unk18C / 3);
         }
-        if (pOm->UnkBA != 0) {
+        if (pOm->Col.Unk3A != 0) {
             Om_explosion(pOm, 0, 0);
         }
         break;
@@ -579,7 +579,7 @@ void Om_explosion_set(OBJ_MODEL_WORK *pOm)
             PW_BOMB(pP)->Gxz = 0;
             pP++;
         } while (--n != 0);
-        pOm->Unk130 = 0x101020;
+        pOm->Parts.Poly_rgb = 0x101020;
         pOm->Routine_2 = 1;
         pOm->Routine_3 = 10;
         break;
@@ -606,13 +606,13 @@ void Om_rtn_target_off(OBJ_MODEL_WORK *pOm)
 {
     switch (pOm->Routine_1) {
     case 0:
-        *G.pOm_target[pOm->UnkC1] = 0xFF;
+        G.pOm_target[pOm->UnkC1]->Flg = 0xFF;
         pOm->Routine_1 = 1;
         break;
     case 1:
         break;
     case 2:
-        *G.pOm_target[pOm->UnkC1] = 0;
+        G.pOm_target[pOm->UnkC1]->Flg = 0;
         pOm->Routine_0 = 0;
         pOm->Routine_1 = 0;
         break;

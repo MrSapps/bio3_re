@@ -1077,7 +1077,7 @@ void Pl_wep_ready_reset(ENEMY_WORK *pEm)
 {
     PARTS_W *pParts = &pEm->pSin_parts_ptr[22];
 
-    pParts->Unk94 = 0;
+    pParts->Timer0 = 0;
     pParts->Timer2 = 0;
     pParts->Timer3 = 0;
 }
@@ -2296,7 +2296,7 @@ void Pl_weapon_ch(ENEMY_WORK *pEm)
         pW->Be_flg = 0;
         pW->Parts_no = No;
         *(SHORT *)&pW->Workm.t[0] = 0;
-        pW->Unk94 = 0;
+        pW->Timer0 = 0;
         pW->Timer1 = 0;
         pW->Timer2 = 0;
         pW->Timer3 = 0;
@@ -2676,7 +2676,7 @@ void Mag_set(ENEMY_WORK *pEm)
             Spd_y = Pl_mag[Type].V_y;
             pP->Timer1 = 1;
             pP->Timer2 = 0;
-            pP->Unk94 = Spd_y;
+            pP->Timer0 = Spd_y;
             Flg = Pl_mag[Type].Flg;
             pP->Cdir_x = 0;
             pP->Cdir_y = 0;
@@ -3158,7 +3158,7 @@ LONG Weapon_om_at_ck(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
     TransposeMatrix(pM, &Mt);
     SetRotMatrix(&Mt);
     i = pG->Om_target_num;
-    ppT = (OM_TARGET **)pG->pOm_target;
+    ppT = pG->pOm_target;
     do {
         pT = *ppT;
         if (pT->Flg == 0xFF) {
@@ -3258,7 +3258,7 @@ LONG Pos_om_at_ck(HIT_REQ *pReq, HIT_ATTR *pAttr)
     Rot.vy = pReq->R;
     Rot.vz = 0;
     RotMatrix_gte(&Rot, &M);
-    ppT = (OM_TARGET **)pG->pOm_target;
+    ppT = pG->pOm_target;
     *(VECTOR *)M.t = *pReq->pPos;
     pPos = pReq->pPos;
     Bottom = pAttr->Bottom;
@@ -3314,7 +3314,7 @@ VECTOR *Om_target_near(ENEMY_WORK *pEm, ULONG LL)
     if (i == 0) {
         return 0;
     }
-    ppT = (OM_TARGET **)pG->pOm_target;
+    ppT = pG->pOm_target;
     if (LL != 0) {
         Min = LL;
     }

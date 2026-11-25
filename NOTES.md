@@ -624,3 +624,43 @@ Near misses (agentJ/best):
   to v1 by reload); ours keeps them in s2.
 - em_sub Spd_get_sub (Spd_get_sub.c): the pKan copy (t5) comes out right, the pSeq_t copy (t3) never does.
 - Kage_work9_sort (not attempted) saves t0/t3/t4 around its jals; probably gcc caller-saves (on at -O2), so C, not hand-written (unverified).
+## Matching round agentK (types; drafts in the session scratchpad agentK/best)
+Matched: sce2 Obj_model_set (272 insns, first try from RE2 SCE1.C's version once the types were right).
+Type fixes (all 60 OK, committed separately):
+- PARTS_W 0x94 is RE2 Timer0 (was Unk94): Pl_wep_ready_reset is RE2 G_rot_st (Timer0/2/3 = 0), Mag_set/Mag_down
+  use it as the fall speed.
+- OBJ_MODEL_WORK embeds `COL_OBJ Col` at 0x80 and `PARTS_W Parts` at 0xC8 (RE2 has Parts at its end). The old
+  UnkAE/UnkBA/Unk130 were Col.Hit_flg, Col.Unk3A and Parts.Poly_rgb (om.c renamed). COL_OBJ and PARTS_W moved above
+  OBJ_MODEL_WORK in bio3.h. Obj_model_set fills Col (W0/H/D0, Unk24..28, pEm, Flg, Type; Oba_set(&pOm->Col, 0)).
+- tagGLOBAL.pOm_target is `struct tagOM_TARGET *[10]` (pl_wep.c's three `(OM_TARGET **)` casts are gone, om.c/sce1.c
+  read ->Flg instead of `*G.pOm_target[i]`; sce1.c now includes pl_wep.h).
+- St_box_frame_draw takes the ST_WORK (prototype was `LONG Arg0`).
+- G_pRoom (root_ck.c, not touched) is just G.pRoom (0x800CC86C = G + 0x2134); Cd_link_search reads the link list as
+  G.pRoom->pEdt0 (the snd.c room sound table and the CD_LINK list are the same 4-byte records).
+Rules learnt:
+- Capcom reuses a handful of Work_* locals for unrelated values (RE2 Obj_model_set has Work_a/b/c/d). A variable set
+  more than once is not tied by cse/local-alloc like a single-set one; in Obj_model_set the last two register diffs
+  went away only when Pos_z was read into the same local that earlier held the flag byte (Work_d), and the first
+  local (Om_no) also carries the flag index for Flg_ck before it holds the model number. When a value sits in "the
+  wrong" scratch register, try reading it into an existing local that already holds another value.
+- An argument computed before the condition of a guarded call (`addiu a0,s0,ofs` in the delay slot of the first
+  test) came from a local assigned before the test (`pFlg = pG->Om_flg; if (n == 0xFF || !Flg_ck(pFlg, n))`).
+- Early `return` vs the whole body inside `if (skip test fails) { ... }` changes the epilogue order (`li v0,1`
+  after the s-reg restores in the target).
+- A private record struct for opcode data (SCE_OM_SET) instead of `*(SHORT *)&pData[n]` reads.
+- tools in agentK: try.sh SRC FUNC DRAFT (insert + fdiff + restore, KEEP=1 keeps a match), mk.sh (permute dir +
+  inc.h for -imacros), sc.sh DIR files (expands every header macro through `cpp -imacros DIR/inc.h`, so no per-macro
+  sed list is needed), ad.py (aligned diff of `V=-v sc.sh` output), dump.sh (cc1 -dL/-dl/-dg dumps of a draft).
+Near misses (agentK/best):
+- pl_wep Mag_down (12): the RE2 layout (adds inside the Timer3 & 1 block, `if (Timer1) return;`) is right; reading
+  Old_x/Timer3 through one reused local puts Timer3 in a0 like the target but leaves a v0/v1 swap in the halving.
+- pl_wep Pl_wep_parts_drop (2): unchanged; a multi-set pointer gets `s0 = M` scheduled before `a0 = CDIR`, a
+  single-set one gets the right order but loop.c combines the two blocks' M givs (benefit 4) and strength-reduces them.
+- em27 Em27_Init (18 with Top/R sharing one constant): target loads pSin_parts_ptr once and copies it (pP = copy,
+  pM from the load); every order tried loads it twice or ties the copy.
+- cd Cd_link_search (54): structure matches; the loop's 0xFFFF compare constant is hoisted
+  by loop.c in ours (threshold: the target loop must have ~5 more RTL insns or one more movable moved first).
+- status St_map_area_select (~118, layout of case 0 and the G re-materialisation after the cancel test),
+  St_box_frame_draw (~40: AddPrim offsets need the Ot index in a variable per loop, loops 2/3 do not hoist `ot*8`).
+- em22 Em22_dir_quarter (13 with a static inline helper, 16 without): the double `move v1,a0; move v0,v1` return.
+- pc_sys Pc_box_set (12), Pc_text_set (7): unchanged (register choice only).

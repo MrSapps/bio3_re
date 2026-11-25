@@ -428,7 +428,7 @@ void St_icon_swap(UCHAR Inv_no, UCHAR Box_no);
 void St_icon_copy(UCHAR Box_no, UCHAR Inv_no);
 void St_box_list_draw(ST_WORK *pSt, UCHAR Box_cursor, SHORT Ofs_y);
 void St_box_prim_init(ST_WORK *pSt);
-void St_box_frame_draw(LONG Arg0); /* args from the asm */
+void St_box_frame_draw(ST_WORK *pSt);
 void St_status_init(ST_WORK *pSt);
 void St_status_main(ST_WORK *pSt);
 void St_item_select(ST_WORK *pSt);

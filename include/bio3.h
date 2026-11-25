@@ -51,79 +51,6 @@ typedef struct tagRCUT {
     ULONG *pSp;                        /* 0x1C */
 } RCUT;
 
-/* Object model work (RE2 struct tagOBJ_MODEL_WORK, OMA.H). Only proven fields. */
-typedef struct tagOBJ_MODEL_WORK {
-    ULONG Be_flg;                      /* 0x00 */
-    UCHAR Routine_0;                   /* 0x04 */
-    UCHAR Routine_1;                   /* 0x05 */
-    UCHAR Routine_2;                   /* 0x06 */
-    UCHAR Routine_3;                   /* 0x07 */
-    UCHAR Parts_num;                   /* 0x08 */
-    signed char nFloor;                /* 0x09 */
-    UCHAR padA[0xD - 0xA];
-    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (Ot_set_all) */
-    UCHAR padE[0x10 - 0xE];
-    ULONG Attribute;                   /* 0x10 RE2 Attribute (Om_parts_link) */
-    struct tagMD_OBJ *pTmd;            /* 0x14 RE2 pTmd (an MD object in RE3) */
-    UCHAR pad18[0x20 - 0x18];
-    MATRIX M;                          /* 0x20 M.t = Pos_x/y/z */
-    SHORT Old_x;                       /* 0x40 */
-    SHORT Old_y;                       /* 0x42 */
-    SHORT Old_z;                       /* 0x44 */
-    USHORT Type;                       /* 0x46 */
-    UCHAR Tpage;                       /* 0x48 */
-    UCHAR Unk49;                       /* 0x49 */
-    UCHAR Unk4A;                       /* 0x4A Id; 1: packets at pPacket188 */
-    UCHAR pad4B;
-    MATRIX Workm;                      /* 0x4C */
-    SVECTOR Cdir;                      /* 0x6C */
-    ULONG Poly_rgb;                    /* 0x74 */
-    MATRIX *pSuper;                    /* 0x78 */
-    ULONG *pUnk7C;                     /* 0x7C ordering table (Ot_set_all) */
-    UCHAR pad80[0xAE - 0x80];
-    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (Om_push_ck) */
-    UCHAR padB0[0xBA - 0xB0];
-    USHORT UnkBA;                      /* 0xBA */
-    UCHAR padBC[0xC0 - 0xBC];
-    UCHAR Push_cnt;                    /* 0xC0 frames pushed (Om_push_ck) */
-    UCHAR UnkC1;                       /* 0xC1 index into G.pOm_target */
-    UCHAR UnkC2;                       /* 0xC2 flag id set when done (Om_rtn_wait) */
-    UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
-    struct tagPARTS_W *pParts;         /* 0xC4 */
-    UCHAR padC8[0x130 - 0xC8];
-    ULONG Unk130;                      /* 0x130 */
-    UCHAR pad134[0x188 - 0x134];
-    ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (Col_chg_init) */
-    SHORT Unk18C;                      /* 0x18C fall speed (Om_rtn_drop) */
-    SHORT Unk18E;                      /* 0x18E */
-    SHORT Unk190;                      /* 0x190 */
-    SHORT Unk192;                      /* 0x192 ground y */
-} OBJ_MODEL_WORK;                      /* 0x194, G.Ob_model[] */
-
-/* item slot (RE2 struct tagITEM_WORK, STATUS.H) */
-typedef struct tagITEM_WORK {
-    UCHAR Id;                          /* 0x0 */
-    UCHAR Num;                         /* 0x1 */
-    USHORT Flg;                        /* 0x2 RE2 Size, dummy */
-} ITEM_WORK;
-
-/* items of one character (G.Item_work[], 0x140 bytes) */
-typedef struct tagITEM_SET {
-    ITEM_WORK Item[10];                /* 0x000 inventory */
-    ITEM_WORK Box[64];                 /* 0x028 item box */
-    UCHAR Equip_no;                    /* 0x128 equipped slot (0xFF none), RE2 Equip_item_no */
-    UCHAR Equip_id;                    /* 0x129 equipped item id, RE2 Equip_item_id */
-    UCHAR Num;                         /* 0x12A inventory size (8 or 10) */
-    UCHAR pad12B;
-    USHORT Tama_mix_cnt[10];           /* 0x12C ammo combines per ammo kind (St_mix_select caps some at 6) */
-} ITEM_SET;
-
-/* enemy code bank in one overlay load slot (RE2 struct tagEM_BIN_INFO, EM_SET.H) */
-typedef struct tagEM_BIN_INFO {
-    USHORT Id;                         /* 0x0 enemy kind of the loaded bank */
-    USHORT Use;                        /* 0x2 set once loaded */
-} EM_BIN_INFO;
-
 /* collision object: one node of the OBA.C collision list, embedded in every ENEMY_WORK at 0x80 (Col) */
 typedef struct tagCOL_OBJ {
     UCHAR Id;                          /* 0x00 */
@@ -155,6 +82,136 @@ typedef struct tagCOL_OBJ {
     USHORT Unk3A;                      /* 0x3A bits of the works hit (RE2 At_em_flg, em10 pldm00) */
     struct tagSCA_DATA *pSca_hit_data; /* 0x3C RE2 pSca_hit_data (wall hit by Sca_ck_em) */
 } COL_OBJ;
+
+/* model part (RE2 struct tagPARTS_W, JOINT.H; RE3 has no pTmd2/pPacket2/dummy00, 0xBC bytes) */
+typedef struct tagPARTS_W {
+    ULONG Be_flg;                      /* 0x00 */
+    ULONG Attribute;                   /* 0x04 */
+    struct tagMD_OBJ *pTmd;            /* 0x08 RE2 pTmd: the part's model object (md_sub.h) */
+    ULONG *pPacket;                    /* 0x0C */
+    ULONG Unk10;                       /* 0x10 */
+    SHORT M[3][3];                     /* 0x14 */
+    SHORT pad26;                       /* 0x26 */
+    LONG Pos_x;                        /* 0x28 */
+    LONG Pos_y;                        /* 0x2C */
+    LONG Pos_z;                        /* 0x30 */
+    SHORT Old_x;                       /* 0x34 */
+    SHORT Old_y;                       /* 0x36 */
+    SHORT Old_z;                       /* 0x38 */
+    SHORT Old_x2;                      /* 0x3A */
+    SHORT Old_y2;                      /* 0x3C */
+    SHORT Old_z2;                      /* 0x3E */
+    MATRIX Workm;                      /* 0x40 */
+    SHORT Cdir_x;                      /* 0x60 */
+    SHORT Cdir_y;                      /* 0x62 */
+    SHORT Cdir_z;                      /* 0x64 */
+    USHORT dummy01;                    /* 0x66 */
+    ULONG Poly_rgb;                    /* 0x68 */
+    MATRIX *pSuper;                    /* 0x6C */
+    UCHAR pad70[0x74 - 0x70];
+    UCHAR Unk74;                       /* 0x74 */
+    UCHAR pad75[0x78 - 0x75];
+    SHORT Unk78;                       /* 0x78 ground height (Pl_wep_parts_drop) */
+    UCHAR pad7A[0x7C - 0x7A];
+    SHORT Unk7C;                       /* 0x7C (Pl_wep_eff_parts_set) */
+    UCHAR pad7E[0x82 - 0x7E];
+    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (Em_work_no_get) */
+    UCHAR Parts_no;                    /* 0x84 RE2 Parts_no: index in pSin_parts_ptr[] */
+    signed char Timer1;                /* 0x85 RE2 Timer1: fall speed added to Old_y (Parts_down) */
+    signed char Timer2;                /* 0x86 RE2 Timer2: frames left to blend into the fall rotation (Parts_down) */
+    UCHAR pad87;
+    SHORT Rot_x;                       /* 0x88 RE2 Rot_x: rotation of the current key frame */
+    SHORT Rot_y;                       /* 0x8A */
+    SHORT Rot_z;                       /* 0x8C */
+    SHORT Rot_spd_z;                   /* 0x8E rotation step to the next key frame, * rate >> 8 */
+    SHORT Rot_spd_x;                   /* 0x90 */
+    SHORT Rot_spd_y;                   /* 0x92 */
+    SHORT Timer0;                      /* 0x94 RE2 Timer0: fall speed of a dropped part (Mag_down, Pl_wep_parts_drop) */
+    SHORT Timer3;                      /* 0x96 RE2 Timer3: bounces left (Parts_down) */
+    ULONG *pSa_dat_head;               /* 0x98 RE2 pSa_dat_head: per-part animation data (Sa_dat_set) */
+    SHORT Size_x;                      /* 0x9C RE2 Size_x */
+    SHORT Size_y;                      /* 0x9E RE2 Size_y */
+    SHORT Size_z;                      /* 0xA0 RE2 Size_z */
+    SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
+    struct tagPARTS_W *pOya_parts;     /* 0xA4 */
+    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (Skin_set, Skin_sort) */
+    SHORT Pos_base_x;                  /* 0xAC root position of the current key frame (get_null_pos2) */
+    SHORT Pos_base_y;                  /* 0xAE */
+    SHORT Pos_base_z;                  /* 0xB0 */
+    SHORT Pos_step_z;                  /* 0xB2 root step to the next key frame, * rate >> 8 */
+    SHORT Pos_step_x;                  /* 0xB4 */
+    SHORT Pos_step_y;                  /* 0xB6 */
+    ULONG UnkB8;                       /* 0xB8 sort parameter (Parts_sort_ex) */
+} PARTS_W;
+
+/* Object model work (RE2 struct tagOBJ_MODEL_WORK, OMA.H). Only proven fields. */
+typedef struct tagOBJ_MODEL_WORK {
+    ULONG Be_flg;                      /* 0x00 */
+    UCHAR Routine_0;                   /* 0x04 */
+    UCHAR Routine_1;                   /* 0x05 */
+    UCHAR Routine_2;                   /* 0x06 */
+    UCHAR Routine_3;                   /* 0x07 */
+    UCHAR Parts_num;                   /* 0x08 */
+    signed char nFloor;                /* 0x09 */
+    UCHAR padA[0xD - 0xA];
+    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (Ot_set_all) */
+    UCHAR padE[0x10 - 0xE];
+    ULONG Attribute;                   /* 0x10 RE2 Attribute (Om_parts_link) */
+    struct tagMD_OBJ *pTmd;            /* 0x14 RE2 pTmd (an MD object in RE3) */
+    UCHAR pad18[0x20 - 0x18];
+    MATRIX M;                          /* 0x20 M.t = Pos_x/y/z */
+    SHORT Old_x;                       /* 0x40 */
+    SHORT Old_y;                       /* 0x42 */
+    SHORT Old_z;                       /* 0x44 */
+    USHORT Type;                       /* 0x46 */
+    UCHAR Tpage;                       /* 0x48 */
+    UCHAR Unk49;                       /* 0x49 */
+    UCHAR Unk4A;                       /* 0x4A Id; 1: packets at pPacket188 */
+    UCHAR pad4B;
+    MATRIX Workm;                      /* 0x4C */
+    SVECTOR Cdir;                      /* 0x6C */
+    ULONG Poly_rgb;                    /* 0x74 */
+    MATRIX *pSuper;                    /* 0x78 */
+    ULONG *pUnk7C;                     /* 0x7C ordering table (Ot_set_all) */
+    COL_OBJ Col;                       /* 0x80 collision node (Oba_set); Col.Hit_flg 0x10: pushable, 0x20: keeps being pushed (Om_push_ck) */
+    UCHAR Push_cnt;                    /* 0xC0 frames pushed (Om_push_ck) */
+    UCHAR UnkC1;                       /* 0xC1 index into G.pOm_target */
+    UCHAR UnkC2;                       /* 0xC2 flag id set when done (Om_rtn_wait) */
+    UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
+    struct tagPARTS_W *pParts;         /* 0xC4 */
+    PARTS_W Parts;                     /* 0xC8 RE2 Parts (Parts.Be_flg = 1 in Obj_model_set) */
+    UCHAR pad184[0x188 - 0x184];
+    ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (Col_chg_init) */
+    SHORT Unk18C;                      /* 0x18C fall speed (Om_rtn_drop) */
+    SHORT Unk18E;                      /* 0x18E */
+    SHORT Unk190;                      /* 0x190 */
+    SHORT Unk192;                      /* 0x192 ground y */
+} OBJ_MODEL_WORK;                      /* 0x194, G.Ob_model[] */
+
+/* item slot (RE2 struct tagITEM_WORK, STATUS.H) */
+typedef struct tagITEM_WORK {
+    UCHAR Id;                          /* 0x0 */
+    UCHAR Num;                         /* 0x1 */
+    USHORT Flg;                        /* 0x2 RE2 Size, dummy */
+} ITEM_WORK;
+
+/* items of one character (G.Item_work[], 0x140 bytes) */
+typedef struct tagITEM_SET {
+    ITEM_WORK Item[10];                /* 0x000 inventory */
+    ITEM_WORK Box[64];                 /* 0x028 item box */
+    UCHAR Equip_no;                    /* 0x128 equipped slot (0xFF none), RE2 Equip_item_no */
+    UCHAR Equip_id;                    /* 0x129 equipped item id, RE2 Equip_item_id */
+    UCHAR Num;                         /* 0x12A inventory size (8 or 10) */
+    UCHAR pad12B;
+    USHORT Tama_mix_cnt[10];           /* 0x12C ammo combines per ammo kind (St_mix_select caps some at 6) */
+} ITEM_SET;
+
+/* enemy code bank in one overlay load slot (RE2 struct tagEM_BIN_INFO, EM_SET.H) */
+typedef struct tagEM_BIN_INFO {
+    USHORT Id;                         /* 0x0 enemy kind of the loaded bank */
+    USHORT Use;                        /* 0x2 set once loaded */
+} EM_BIN_INFO;
+
 
 /* hit area: a box Top..Bottom high, radius R, around pM->t (ENEMY_WORK + 0x134, OM_TARGET + 0x8) */
 typedef struct tagEM_HIT_AREA {
@@ -423,7 +480,7 @@ typedef struct tagGLOBAL {
     EM_BIN_INFO Em_bin_info[2];        /* 0x4320 RE2 Em_bin_info: enemy code bank per load slot (Id 0xFF on room load) */
     OBJ_MODEL_WORK Ob_model[32];       /* 0x4328 RE2 Ob_model */
     OBJ_MODEL_WORK *pObj_work_end;     /* 0x75A8 RE2 pObj_work_end (end of the used Ob_model[]) */
-    USHORT *pOm_target[10];            /* 0x75AC per object model flag word (Om_rev); OM_TARGET records (pl_wep.h) */
+    struct tagOM_TARGET *pOm_target[10]; /* 0x75AC aim targets of the object models (OM_TARGET, pl_wep.h; Flg is the Om_rev on/off word) */
     ULONG Om_target_num;               /* 0x75D4 used entries of pOm_target (Obj_model_set; sce0 clears it as pOm_target[10]) */
     UCHAR nSce_aot;                    /* 0x75D8 RE2 nSce_aot */
     signed char Unk75D9;               /* 0x75D9 -1 on room init (Sce_work_clr_set) */
@@ -542,65 +599,5 @@ extern tagGLOBAL G;                    /* 0x800CA738 */
 /* G.Status_flg bits */
 #define STAT_XA_VOICE 0x20
 
-/* model part (RE2 struct tagPARTS_W, JOINT.H; RE3 has no pTmd2/pPacket2/dummy00, 0xBC bytes) */
-typedef struct tagPARTS_W {
-    ULONG Be_flg;                      /* 0x00 */
-    ULONG Attribute;                   /* 0x04 */
-    struct tagMD_OBJ *pTmd;            /* 0x08 RE2 pTmd: the part's model object (md_sub.h) */
-    ULONG *pPacket;                    /* 0x0C */
-    ULONG Unk10;                       /* 0x10 */
-    SHORT M[3][3];                     /* 0x14 */
-    SHORT pad26;                       /* 0x26 */
-    LONG Pos_x;                        /* 0x28 */
-    LONG Pos_y;                        /* 0x2C */
-    LONG Pos_z;                        /* 0x30 */
-    SHORT Old_x;                       /* 0x34 */
-    SHORT Old_y;                       /* 0x36 */
-    SHORT Old_z;                       /* 0x38 */
-    SHORT Old_x2;                      /* 0x3A */
-    SHORT Old_y2;                      /* 0x3C */
-    SHORT Old_z2;                      /* 0x3E */
-    MATRIX Workm;                      /* 0x40 */
-    SHORT Cdir_x;                      /* 0x60 */
-    SHORT Cdir_y;                      /* 0x62 */
-    SHORT Cdir_z;                      /* 0x64 */
-    USHORT dummy01;                    /* 0x66 */
-    ULONG Poly_rgb;                    /* 0x68 */
-    MATRIX *pSuper;                    /* 0x6C */
-    UCHAR pad70[0x74 - 0x70];
-    UCHAR Unk74;                       /* 0x74 */
-    UCHAR pad75[0x78 - 0x75];
-    SHORT Unk78;                       /* 0x78 ground height (Pl_wep_parts_drop) */
-    UCHAR pad7A[0x7C - 0x7A];
-    SHORT Unk7C;                       /* 0x7C (Pl_wep_eff_parts_set) */
-    UCHAR pad7E[0x82 - 0x7E];
-    SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (Em_work_no_get) */
-    UCHAR Parts_no;                    /* 0x84 RE2 Parts_no: index in pSin_parts_ptr[] */
-    signed char Timer1;                /* 0x85 RE2 Timer1: fall speed added to Old_y (Parts_down) */
-    signed char Timer2;                /* 0x86 RE2 Timer2: frames left to blend into the fall rotation (Parts_down) */
-    UCHAR pad87;
-    SHORT Rot_x;                       /* 0x88 RE2 Rot_x: rotation of the current key frame */
-    SHORT Rot_y;                       /* 0x8A */
-    SHORT Rot_z;                       /* 0x8C */
-    SHORT Rot_spd_z;                   /* 0x8E rotation step to the next key frame, * rate >> 8 */
-    SHORT Rot_spd_x;                   /* 0x90 */
-    SHORT Rot_spd_y;                   /* 0x92 */
-    SHORT Unk94;                       /* 0x94 */
-    SHORT Timer3;                      /* 0x96 RE2 Timer3: bounces left (Parts_down) */
-    ULONG *pSa_dat_head;               /* 0x98 RE2 pSa_dat_head: per-part animation data (Sa_dat_set) */
-    SHORT Size_x;                      /* 0x9C RE2 Size_x */
-    SHORT Size_y;                      /* 0x9E RE2 Size_y */
-    SHORT Size_z;                      /* 0xA0 RE2 Size_z */
-    SHORT UnkA2;                       /* 0xA2 flags; signed (em10 masks it with a register -2) */
-    struct tagPARTS_W *pOya_parts;     /* 0xA4 */
-    ULONG *pUnkA8;                     /* 0xA8 extra sort data: [0] two USHORT offsets, [1] offset (Skin_set, Skin_sort) */
-    SHORT Pos_base_x;                  /* 0xAC root position of the current key frame (get_null_pos2) */
-    SHORT Pos_base_y;                  /* 0xAE */
-    SHORT Pos_base_z;                  /* 0xB0 */
-    SHORT Pos_step_z;                  /* 0xB2 root step to the next key frame, * rate >> 8 */
-    SHORT Pos_step_x;                  /* 0xB4 */
-    SHORT Pos_step_y;                  /* 0xB6 */
-    ULONG UnkB8;                       /* 0xB8 sort parameter (Parts_sort_ex) */
-} PARTS_W;
 
 #endif /* BIO3_H */

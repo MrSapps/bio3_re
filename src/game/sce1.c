@@ -6,6 +6,7 @@
 #include "door.h"
 #include "movie.h"
 #include "sce1.h"
+#include "pl_wep.h"
 
 extern UCHAR Rbj_id_a[] __asm__("Rbj_id"); /* Sce_rbj_set stores through an array: pSce->Data is reloaded after it */
 extern UCHAR Main_bg_chg_flg_a[] __asm__("Main_bg_chg_flg"); /* stored through an array view here (see Rbj_id_a) */
@@ -1849,7 +1850,7 @@ ULONG Om_flg_clr(SCE_TASK *pSce)
     pData = pSce->Data;
     pOm = &G.Ob_model[pData[1]];
     if (pOm->Unk4A & 4) {
-        *G.pOm_target[pOm->UnkC1] = 0xFF;
+        G.pOm_target[pOm->UnkC1]->Flg = 0xFF;
     }
     pSce->Data = pData + 2;
     return 1;
@@ -1865,7 +1866,7 @@ ULONG Om_rev(SCE_TASK *pSce)
     pData = pSce->Data;
     pOm = &G.Ob_model[pData[1]];
     if ((pOm->Unk4A & 4) && (pOm->Type & 0x80)) {
-        pFlg = G.pOm_target[pOm->UnkC1];
+        pFlg = &G.pOm_target[pOm->UnkC1]->Flg;
         if (*pFlg == 0xFF) {
             *pFlg = 0;
             Flg_off(G.Om_flg, pOm->UnkC2);
