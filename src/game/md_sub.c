@@ -1125,7 +1125,87 @@ next:
     return pPacket;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002CF90);
+/* sort the GT4 prims of pPrm->pObj with one colour (code 0x3E) and the fixed uv words D_80098B28[code]
+   (packets 0x68 bytes apart, OT depth = sum of the four z >> 7); returns the next free packet */
+POLY_GT4 *func_8002CF90(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+{
+    SVECTOR Unused[2]; /* frame padding */
+    LONG Z;
+    LONG *pPrim;
+    ULONG *pOt;
+    ULONG (*pUv_tbl)[4];
+    ULONG *pUv;
+    ULONG Rgb;
+    ULONG Uv0;
+    ULONG Uv1;
+    ULONG Uv2;
+    ULONG Uv3;
+    ULONG n;
+    LONG v0;
+    LONG v1;
+    LONG v2;
+    LONG v3;
+    LONG Last;
+    USHORT *pZ0;
+    USHORT *pZ1;
+    USHORT *pZ2;
+    ULONG *pO;
+
+    n = pPrm->pObj->n_prim4;
+    if (n == 0) {
+        return pPacket;
+    }
+    pPrim = (LONG *)pPrm->pObj->pPrim4;
+    Uv3 = pPrm->u.Rgb >> 24; /* the primitive code picks the uv set */
+    Rgb = (pPrm->u.Rgb & 0xFFFFFF) | 0x3E000000;
+    pUv_tbl = D_80098B28;
+    pOt = pPrm->pOt;
+    pUv = pUv_tbl[Uv3];
+    Uv0 = pUv[0];
+    Uv1 = pUv[1];
+    Uv2 = pUv[2];
+    Uv3 = pUv[3];
+    v0 = (pPrim[2] & 0xFF0000) >> 16;
+    v1 = pPrim[2] >> 24;
+    v2 = (pPrim[3] & 0xFF0000) >> 16;
+    v3 = pPrim[3] >> 24;
+loop:
+    gte_ldsxy3(pSxy[v0], pSxy[v1], pSxy[v2]);
+    pPrim += 4;
+    n--;
+    gte_nclip_b();
+    pZ0 = &pSz[v0];
+    pZ1 = &pSz[v1];
+    pZ2 = &pSz[v2];
+    Last = v3;
+    v0 = (pPrim[2] & 0xFF0000) >> 16;
+    v1 = pPrim[2] >> 24;
+    v2 = (pPrim[3] & 0xFF0000) >> 16;
+    v3 = pPrim[3] >> 24;
+    gte_stopz(&Z);
+    if (Z > 0) {
+        Z = (SHORT)*pZ0 + (SHORT)*pZ1 + (SHORT)*pZ2 + (SHORT)pSz[Last];
+        *(ULONG *)&pPacket->x3 = pSxy[Last];
+        *(ULONG *)&pPacket->r0 = Rgb;
+        *(ULONG *)&pPacket->r1 = Rgb;
+        *(ULONG *)&pPacket->r2 = Rgb;
+        *(ULONG *)&pPacket->r3 = Rgb;
+        *(ULONG *)&pPacket->u0 = Uv0;
+        *(ULONG *)&pPacket->u1 = Uv1;
+        *(ULONG *)&pPacket->u2 = Uv2;
+        *(ULONG *)&pPacket->u3 = Uv3;
+        gte_stsxy3_gt3(pPacket);
+        pO = &pOt[Z >> 7];
+        Z = *pO;
+        *pO = (ULONG)pPacket & 0xFFFFFF;
+        pPacket->tag = Z | 0x0C000000;
+        pPacket = (POLY_GT4 *)((UCHAR *)pPacket + 0x68);
+    }
+    if (n != 0) {
+        goto loop;
+    }
+    return pPacket;
+}
 
 /* project the vertices flattened onto the floor (y clamped to <= 0) into screen xy / z tables */
 void func_8002D184(ULONG *pXy, USHORT *pZ, MD_OBJ *pObj, MATRIX *pM)
