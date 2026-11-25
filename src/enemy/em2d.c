@@ -539,7 +539,7 @@ void func_8010138C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         EM_SET_MOVE(pEm, 0, 0, 0xF);
         pEm->Routine_2 = 1;
-        Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(((Rnd() & 1) + 1) | 0x10000, &pEm->Pos_x, 0, 0);
         pEm->Unk12C = 0;
     case 1:
         Joint_move(pEm, pKan, pSeq, 0x100);

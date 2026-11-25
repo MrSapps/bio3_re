@@ -762,7 +762,7 @@ void Em10_pldm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Timer0 = 0x800;
         if (pEm->Routine_1 & 1)
             pEm->Timer0 = 0;
-        Snd_se_stad(0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10000, &pEm->Pos_x, 0, 0);
         pEm->Unk12C = 0;
         pEm->Unk120 |= 0x12;
     case 1:

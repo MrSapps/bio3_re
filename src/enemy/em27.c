@@ -557,7 +557,7 @@ void func_801018D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         EM_SET_MOVE(pEm, 0, 0, 7);
-        Snd_se_stad(0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10000, &pEm->Pos_x, 0, 0);
         pEm->Routine_2++;
         pEm->Unk120 |= 0x12;
     case 1:

@@ -452,7 +452,7 @@ void func_80100F94(ENEMY_WORK *pEm)
     Ofs.vz = 0x80C;
     pP = &pEm->pSin_parts_ptr[1];
     Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
-    Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+    Snd_se_stad(0x1020F, &pEm->Pos_x, 0, 0);
 }
 
 /* Em3e_shot_l */
@@ -466,7 +466,7 @@ void func_80101008(ENEMY_WORK *pEm)
     Ofs.vz = -0x80C;
     pP = &pEm->pSin_parts_ptr[1];
     Esp_call(0xE02, (USHORT)pEm->Cdir_y | 0x8000000, &pP->Workm, &Ofs, NULL);
-    Snd_se_stad(0x1020F, (VECTOR *)&pEm->Pos_x, 0, 0);
+    Snd_se_stad(0x1020F, &pEm->Pos_x, 0, 0);
 }
 
 /* Em3e_explode */

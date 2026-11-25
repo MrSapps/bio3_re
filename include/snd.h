@@ -201,7 +201,7 @@ void Snd_reset(void);
 void Snd_reverb_set(void);
 void Snd_se_call(void);
 void Snd_cd_mix_set(LONG on); /* RE2 Close_movie: SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SOFF) */
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT Vol_add, SHORT Note_add);
+void Snd_se_stad(ULONG code, void *pPos, SHORT Vol_add, SHORT Note_add); /* pPos: x, y, z LONGs (a VECTOR or &Pos_x), may be 0 */
 void Snd_se_req(SND_REQ *pReq);
 void Snd_seq_req(SND_REQ *pReq);
 void Snd_seq_fade_in(SND_SEQ *pSeq);

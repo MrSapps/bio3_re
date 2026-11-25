@@ -840,7 +840,7 @@ void pl_mv0a_pad(ENEMY_WORK *pEm, ULONG Flg)
         pEm->Move_no = 6;
         pEm->Move_cnt = 0;
         pEm->Hokan_flg = 7;
-        Snd_se_stad(0x10200, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10200, &pEm->Pos_x, 0, 0);
         Pad_vib_init();
     }
 }
@@ -888,7 +888,7 @@ void pl_mv0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         *(ULONG *)&pEm->Move_no = 0x70007;
     case 5:
         if (pEm->Move_cnt == 1) {
-            Snd_se_stad(0x1022C, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x1022C, &pEm->Pos_x, 0, 0);
             Pad_vib_set0(2, 0);
             Pad_vib_set1(3, 0x96, 0);
             Pad_vib_fade_set(0x14, 0x96, 0, 3);
@@ -1565,7 +1565,7 @@ void func_8003CEA0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         *(ULONG *)&pEm->Move_no = 0x30012;
         pEm->Routine_2 = 1;
-        Snd_se_stad(0x1000B, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x1000B, &pEm->Pos_x, 0, 0);
         G.Status_flg |= 0x100;
         G.Unk75E8 |= 0x1C;
         G.Unk785E++;
@@ -1617,7 +1617,7 @@ void func_8003CEA0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if ((ULONG)(Snd_edt[3] - 1) < 30) {
                 no = 0x13;
             }
-            Snd_se_stad(no | 0x10300, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(no | 0x10300, &pEm->Pos_x, 0, 0);
         }
     default:
         Add_speedXZ(pEm, 0);
@@ -1636,7 +1636,7 @@ void pl_dm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         *(ULONG *)&pEm->Move_no = 0x30004;
         pEm->Routine_2 = 1;
-        Snd_se_stad(0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10000, &pEm->Pos_x, 0, 0);
         pEm->Damage_cnt = 0x80;
         Pad_vib_set0(5, 0);
         Pad_vib_set1(8, 0x96, 0);
@@ -1665,7 +1665,7 @@ void pl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         pEm->Routine_2 = 1;
         *(ULONG *)&pEm->Move_no = (pEm->Routine_1 & 1) + 0x30002;
-        Snd_se_stad(((pEm->Routine_1 & 1) + 1) | 0x10000, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(((pEm->Routine_1 & 1) + 1) | 0x10000, &pEm->Pos_x, 0, 0);
         pEm->Damage_cnt = 0x80;
         Pad_vib_set0(5, 0);
         Pad_vib_set1(8, 200, 0);
@@ -1708,7 +1708,7 @@ void pl_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
         pEm->Unk120 |= 0x12;
-        Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10001, &pEm->Pos_x, 0, 0);
         pEm->Be_flg &= ~0x8000;
         if (pEm->Unk132 & 0x500) {
             PARTS_W *pParts;
@@ -1776,7 +1776,7 @@ void pl_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
         pEm->Unk120 |= 0x12;
-        Snd_se_stad(0x10002, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10002, &pEm->Pos_x, 0, 0);
         pEm->Be_flg &= ~0x8000;
         if (pEm->Unk132 & 0x500) {
             PARTS_W *pParts;
@@ -1836,7 +1836,7 @@ void pl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         *(LONG *)&pEm->Spd_x = 0;
         pEm->Spd_z = 0;
         pEm->Damage_cnt |= 0x80;
-        Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10003, &pEm->Pos_x, 0, 0);
         pEm->Unk120 = 1;
         Pad_vib_set0(3, 0);
         Pad_vib_set1(8, 200, 0);

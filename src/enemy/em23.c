@@ -3958,10 +3958,10 @@ void func_8010BEA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 0:
         if (pEm->Routine_3) {
             EM_SET_MOVE(pEm, 4, 0, 3);
-            Snd_se_stad(0x10002, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10002, &pEm->Pos_x, 0, 0);
         } else {
             EM_SET_MOVE(pEm, 0, 0, 3);
-            Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10001, &pEm->Pos_x, 0, 0);
         }
         func_8002646C_(pEm, 300, 60, pEm->Col.Unk39);
         pEm->Routine_2++;
@@ -4048,10 +4048,10 @@ void func_8010C314(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_8002646C_(pEm, 300, 60, pEm->Col.Unk39);
         if (pEm->Routine_3) {
             EM_SET_MOVE(pEm, 9, 0, 7);
-            Snd_se_stad(0x10002, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10002, &pEm->Pos_x, 0, 0);
         } else {
             EM_SET_MOVE(pEm, 8, 0, 7);
-            Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10001, &pEm->Pos_x, 0, 0);
         }
         pEm->Unk120 |= 0x12;
         pEm->Routine_2++;
@@ -4108,7 +4108,7 @@ void func_8010C4B4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x100))
             pEm->Routine_2++;
         if (pEm->Move_cnt == 55)
-            Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10003, &pEm->Pos_x, 0, 0);
         break;
     case 2:
         EM_SET_RTN(pEm, 7, 0, 0, 0);

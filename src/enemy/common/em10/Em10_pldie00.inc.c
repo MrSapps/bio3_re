@@ -15,7 +15,7 @@ void Em10_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Routine_1 & 1)
             pEm->Timer0 = 0;
         pEm->Unk120 |= 1;
-        Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10003, &pEm->Pos_x, 0, 0);
         pEm->Unk120 |= 0x12;
         Pad_vib_fade_set(0x21, 0x32, 0x96, 0);
         Pad_vib_set1(8, 0xFA, 0x12);

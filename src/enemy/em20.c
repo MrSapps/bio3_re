@@ -1986,7 +1986,7 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_1 = 1;
         EM_SET_MOVE(pEm, 0, 0, 0x1F);
         pEm->Unk120 |= 1;
-        Snd_se_stad(0x10001, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10001, &pEm->Pos_x, 0, 0);
         break;
     case 1:
         pEm->Cdir_y += 0x800;
@@ -1996,7 +1996,7 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (Joint_move2(pEm, pKan, pSeq, 0x80))
             pEm->Routine_1 = 2;
         if (pEm->Move_cnt == 0x62) {
-            Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
+            Snd_se_stad(0x10003, &pEm->Pos_x, 0, 0);
             for (i = 0; i < 4; i++) {
                 pP = &G.Player.pSin_parts_ptr[pl_chi_parts[i]];
                 PW_FREEL(pP)[0] = 0x20;

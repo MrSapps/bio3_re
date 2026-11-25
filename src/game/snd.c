@@ -249,13 +249,13 @@ void Snd_cd_mix_set(LONG on)
 }
 
 /* queues a sound request: code = Mode << 16 | Bank << 8 | No, at pPos (RE2 Snd_se_stad) */
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT Vol_add, SHORT Note_add)
+void Snd_se_stad(ULONG code, void *pPos, SHORT Vol_add, SHORT Note_add)
 {
     if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(D_800CC858 & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
         Snd_work.pReq->Mode = code >> 16;
         Snd_work.pReq->Bank = code >> 8;
         Snd_work.pReq->No = code & 0xFF;
-        Snd_work.pReq->Pos = *pPos;
+        Snd_work.pReq->Pos = *(VECTOR *)pPos;
         Snd_work.pReq->Vol_add = Vol_add;
         Snd_work.pReq->Note_add = Note_add;
         Snd_work.pReq++;

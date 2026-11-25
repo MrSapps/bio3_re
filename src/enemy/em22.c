@@ -1760,7 +1760,7 @@ void func_801055B8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Be_flg &= ~0x30;
         pEm->Routine_2++;
         Snd_se_enem(2, pEm);
-        Snd_se_stad(0x10204, (VECTOR *)&pEm->Pos_x, 0, 0);
+        Snd_se_stad(0x10204, &pEm->Pos_x, 0, 0);
         pEm->UnkDA = 0;
         pEm->Pos_y = 1800;
     case 2:
@@ -2853,10 +2853,10 @@ void func_80108680(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
     case 0:
         if (pPl->Routine_3) {
             EM_SET_MOVE(pPl, 3, 0, 7);
-            Snd_se_stad(0x10002, (VECTOR *)&pPl->Pos_x, 0, 0);
+            Snd_se_stad(0x10002, &pPl->Pos_x, 0, 0);
         } else {
             EM_SET_MOVE(pPl, 2, 0, 7);
-            Snd_se_stad(0x10001, (VECTOR *)&pPl->Pos_x, 0, 0);
+            Snd_se_stad(0x10001, &pPl->Pos_x, 0, 0);
         }
         pPl->Timer0 = 200;
         pPl->UnkDA = 0;

@@ -1423,7 +1423,7 @@ void func_80103D60(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
     switch (pPl->Routine_2) {
     case 0:
         EM_SET_MOVE(pPl, 6, 0, 7);
-        Snd_se_stad(0x10000, (VECTOR *)&pPl->Pos_x, 0, 0);
+        Snd_se_stad(0x10000, &pPl->Pos_x, 0, 0);
         pPl->Routine_2++;
         pPl->Unk120 |= 0x12;
     case 1:
