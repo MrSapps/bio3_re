@@ -1131,7 +1131,31 @@ ULONG func_80057E28(SCE_TASK *pSce)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sce2", Flr_set);
+ULONG Flr_set(SCE_TASK *pSce)
+{
+    UCHAR *pData;
+    USHORT *pFlr;
+    USHORT *pAttr;
+    UCHAR *p;
+    ULONG n;
+
+    pData = pSce->Data;
+    pFlr = G.pRoom->pUnk34;
+    n = pData[1];
+    if (n < pFlr[0]) {
+        p = (UCHAR *)pFlr;
+        p += n * 12;
+        pAttr = (USHORT *)(p + 12);
+        p = pData;
+        if (p[2] == 1) {
+            *pAttr &= ~0x100;
+        } else {
+            *pAttr |= 0x100;
+        }
+    }
+    pSce->Data += 3;
+    return 1;
+}
 
 ULONG Sce_Item_lost(SCE_TASK *pSce)
 {
