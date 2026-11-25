@@ -251,10 +251,10 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 0;
             Sv.pad = 1200;
-            Hit = func_80044420(&pP[2].Workm, &Sv, pPl);
-            Hit |= func_80044420(&pP[3].Workm, &Sv, pPl);
-            Hit |= func_80044420(&pP[4].Workm, &Sv, pPl);
-            Hit |= func_80044420(&pP[5].Workm, &Sv, pPl);
+            Hit = Hit_area_ck(&pP[2].Workm, &Sv, pPl);
+            Hit |= Hit_area_ck(&pP[3].Workm, &Sv, pPl);
+            Hit |= Hit_area_ck(&pP[4].Workm, &Sv, pPl);
+            Hit |= Hit_area_ck(&pP[5].Workm, &Sv, pPl);
             if (Hit) {
                 Dir_old = pEm->Cdir_y;
                 d = Direction_ck(pEm->Pos_x, pEm->Pos_z, pPl->Pos_x, pPl->Pos_z);
@@ -288,21 +288,21 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Area.pBox = Em39_box1;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 17 && pEm->Move_cnt < 21) {
                 Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box2;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 20 && pEm->Move_cnt < 24) {
                 Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box0;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
         } else {
             if (pEm->Move_cnt >= 12 && pEm->Move_cnt < 18) {
@@ -310,21 +310,21 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Area.pBox = Em39_box0;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 17 && pEm->Move_cnt < 21) {
                 Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box2;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
             if (pEm->Move_cnt >= 20 && pEm->Move_cnt < 24) {
                 Area.pPos = POS_V(pEm);
                 Area.pBox = Em39_box1;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x43;
-                func_800445C8(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
+                Hit_area_em_ck(pEm->pSin_parts_ptr->Workm.t, &pEm->Pos_x, &Area, &Pl_work);
             }
         }
         if (pEm->Cdir_z < 0) {

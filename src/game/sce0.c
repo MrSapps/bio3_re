@@ -21,7 +21,7 @@ struct tagSCE_AOT {
     PARTS_W *pParts;                   /* 0x14 */
 };
 
-/* AOT for a dropped part (func_800452E8: a part landing on the floor) */
+/* AOT for a dropped part (Pl_wep_parts_drop: a part landing on the floor) */
 void func_80051F78(ULONG Mode, PARTS_W *pP, UCHAR *pArg)
 {
     struct tagSCE_AOT *pAot;

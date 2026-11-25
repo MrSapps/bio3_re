@@ -210,7 +210,7 @@ typedef struct tagEM_HIT_AREA {
     SHORT Spd_y;                       /* 0x0C2 */                            \
     SHORT Spd_z;                       /* 0x0C4 */                            \
     UCHAR UnkC6;                       /* 0xC6 */                             \
-    UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (func_800445C8) */ \
+    UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (Hit_area_em_ck) */ \
     UCHAR Move_no;                     /* 0x0C8 */                            \
     UCHAR Move_cnt;                    /* 0x0C9 */                            \
     UCHAR Hokan_flg;                   /* 0x0CA RE2 Hokan_flg: joint interpolation rate */ \
@@ -279,8 +279,8 @@ typedef struct tagEM_HIT_AREA {
     SHORT Unk168;                      /* 0x168 */                            \
     UCHAR Unk16A;                      /* 0x16A em22: set on a seq flag 0x800 (id 0x24) */ \
     UCHAR Unk16B;                      /* 0x16B */                            \
-    LONG *pUnk16C;                     /* 0x16C hit position (func_800445C8 arg 0) */ \
-    LONG *pUnk170;                     /* 0x170 hitter position (func_800445C8 arg 1) */ \
+    LONG *pUnk16C;                     /* 0x16C hit position (Hit_area_em_ck arg 0) */ \
+    LONG *pUnk170;                     /* 0x170 hitter position (Hit_area_em_ck arg 1) */ \
     struct tagMD_OBJ *pUnk174;         /* 0x174 model objects of the parts, part pTmd = &pUnk174[n] (em10 Init) */ \
     SHORT Add_col[3];                  /* 0x178 colour added in the lit sorts (Model_col); em10 Dead fades [0], [2] to 0 */ \
     USHORT Col_flg;                    /* 0x17E Model_col: bits 8-11 mode, low byte grey level */ \
@@ -570,9 +570,9 @@ typedef struct tagPARTS_W {
     UCHAR pad70[0x74 - 0x70];
     UCHAR Unk74;                       /* 0x74 */
     UCHAR pad75[0x78 - 0x75];
-    SHORT Unk78;                       /* 0x78 ground height (func_800452E8) */
+    SHORT Unk78;                       /* 0x78 ground height (Pl_wep_parts_drop) */
     UCHAR pad7A[0x7C - 0x7A];
-    SHORT Unk7C;                       /* 0x7C (func_800455B4) */
+    SHORT Unk7C;                       /* 0x7C (Pl_wep_eff_parts_set) */
     UCHAR pad7E[0x82 - 0x7E];
     SHORT Unk82;                       /* 0x82 em30: index of the collision sub-work on this part (func_800336B4) */
     UCHAR Parts_no;                    /* 0x84 RE2 Parts_no: index in pSin_parts_ptr[] */

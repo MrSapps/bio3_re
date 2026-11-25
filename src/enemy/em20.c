@@ -514,8 +514,8 @@ void Em20_Mv_atck00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         G.Unk75EA |= 0x20;
     }
     if (pEm->Timer0 < 6 && __builtin_abs(G.Player.nFloor - pEm->nFloor) < 2) {
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit0, pPl);
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit1, pPl);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit0, pPl);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit1, pPl);
     }
 }
 

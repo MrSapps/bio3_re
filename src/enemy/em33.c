@@ -1192,7 +1192,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x85;
-            func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
             EM33_W(pEm)->Unk04 -= EM33_W(pEm)->Unk08;
             if (EM33_W(pEm)->Unk04 < 30)
                 EM33_W(pEm)->Unk04 = 30;
@@ -1205,7 +1205,7 @@ void func_801043A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vy = 0;
             Sv.vz = 0;
             Sv.pad = 1200;
-            if (!pPl->Damage_cnt && func_80044420(&pEm->pSin_parts_ptr[8].Workm, &Sv, pPl) && !pEm->UnkE2) {
+            if (!pPl->Damage_cnt && Hit_area_ck(&pEm->pSin_parts_ptr[8].Workm, &Sv, pPl) && !pEm->UnkE2) {
                 Snd_se_enem(1, pEm);
                 Pad_vib_set0(7, 0);
                 Pad_vib_set1(3, 250, 4);

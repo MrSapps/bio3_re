@@ -322,7 +322,7 @@ void Esp_29(ESP_WORK *pEsp)
         Hit.H = 0;
         Hit.D = 0;
         Hit.R = Rot;
-        Hit_flg |= func_800472EC(&Hit, Esp_at_tbl[pEsp->Unk18]);
+        Hit_flg |= Pos_em_at_ck(&Hit, Esp_at_tbl[pEsp->Unk18]);
         if (Hit_flg != 0 && pEsp->Unk22 == 1) {
             G.Player.Status_flg |= 0x200;
         }
@@ -365,12 +365,12 @@ void Esp_29(ESP_WORK *pEsp)
         Area.pBox = D_80098074;
         Area.Dir = Rot;
         Area.Id = 0x42;
-        func_800445C8(&pEsp->Pos.vx, &pEsp->pEm->Pos_x, &Area, &Pl_work);
+        Hit_area_em_ck(&pEsp->Pos.vx, &pEsp->pEm->Pos_x, &Area, &Pl_work);
         Area.pPos = &pEsp->Pos;
         Area.pBox = D_8009807C;
         Area.Dir = Rot;
         Area.Id = 0x41;
-        func_800445C8(&pEsp->Pos.vx, &pEsp->pEm->Pos_x, &Area, &Pl_work);
+        Hit_area_em_ck(&pEsp->Pos.vx, &pEsp->pEm->Pos_x, &Area, &Pl_work);
     } else {
         if (pEsp->Flg2 & 4) {
             pEsp->UnkBA = 1;
@@ -437,7 +437,7 @@ void Esp_2a(ESP_WORK *pEsp)
             Hit.H = 0;
             Hit.D = 0;
             Hit.R = pEsp->Dir_y;
-            if (func_800472EC(&Hit, Esp_at_tbl[pEsp->Unk18]) < 0) {
+            if (Pos_em_at_ck(&Hit, Esp_at_tbl[pEsp->Unk18]) < 0) {
                 pEsp->UnkB6 = 1;
                 Esp_call_child(pEsp, 0x1503, (pEsp->Size << 16) | pEsp->Dir_y, &GsIDMATRIX, &pEsp->Pos.vx, 0);
             }
@@ -545,8 +545,8 @@ void Esp_34(ESP_WORK *pEsp)
         Hit.H = 0;
         Hit.D = 0;
         Hit.R = 0;
-        func_800472EC(&Hit, Esp_at_tbl[pEsp->Snd_no]);
-        func_80047BD0(&Hit, Esp_at_tbl[pEsp->Snd_no]);
+        Pos_em_at_ck(&Hit, Esp_at_tbl[pEsp->Snd_no]);
+        Pos_om_at_ck(&Hit, Esp_at_tbl[pEsp->Snd_no]);
     }
     if (pEsp->Routine_1 == 0) {
         Pos.vx = 0;

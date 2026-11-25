@@ -175,10 +175,10 @@ void func_801005DC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em21_hit_area.pBox = Em21_peck_box0;
         Em21_hit_area.Dir = pEm->Cdir_y;
         Em21_hit_area.Id = 1;
-        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
         Em21_hit_area.pBox = Em21_peck_box1;
         Em21_hit_area.Id = 2;
-        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em21_hit_area, &Pl_work);
     }
 }
 

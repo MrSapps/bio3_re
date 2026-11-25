@@ -42,9 +42,7 @@ extern EM_FUNC3 Spl_dm[];
 extern EM_FUNC3 Spl_die[];
 extern SHORT Em_dir[3]; /* RE2 Em_dir: direction to the three nearest enemies */
 extern ENEMY_WORK *pSpl_near_em[3];    /* the three nearest enemies (Spl_enemy_ck), RE2 SPL.H */
-extern ENEMY_WORK *D_800E01AC;
 extern USHORT Em_l[3]; /* RE2 Em_l: distance to the three nearest enemies */
-extern USHORT D_800E01B6;
 
 void Spl_Auto(UCHAR *p);
 void Spl_Root_ck_sys(ENEMY_WORK *pEm);

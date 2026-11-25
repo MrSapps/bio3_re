@@ -41,7 +41,7 @@ void Player_move(ENEMY_WORK *pEm)
     }
     Pl_routine[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
     Mag_down(pEm);
-    func_80045950(pEm);
+    Pl_wep_eff_move(pEm);
     Pl_wep_recoil_6(pEm);
     Pl_wep_recoil_10(pEm);
     Pl_wep_spin_0b(pEm);
@@ -1647,7 +1647,7 @@ void pl_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Req.H = 0;
             Req.D = 0;
             Req.R = pEm->Cdir_y;
-            hit = func_800472EC(&Req, &D_8009CE0C);
+            hit = Pos_em_at_ck(&Req, &D_8009CE0C);
             pEm->Damage_cnt |= 0x80;
         }
         if (hit) {

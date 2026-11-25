@@ -310,7 +310,7 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Hit.pBox = Box;
         Hit.Dir = pEm->Cdir_y;
         Hit.Id = 0x81;
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (!Dir)
             pEm->Routine_2 = 4;
@@ -331,7 +331,7 @@ void func_80100C80(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Hit.pBox = Box;
         Hit.Dir = pEm->Cdir_y;
         Hit.Id = 0x81;
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit, pTg);
         Goto00(pEm, pTg->Pos_x, pTg->Pos_z, 0x10);
         Add_speedXZ(pEm, EF(pEm)->Flip);
         Joint_move(pEm, pKan, pSeq, 0x200);
@@ -382,7 +382,7 @@ void func_80101028(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Hit.pBox = Box;
             Hit.Dir = pEm->Cdir_y;
             Hit.Id = 0x81;
-            func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Hit, pPl);
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Hit, pPl);
         }
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
         break;

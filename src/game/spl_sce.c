@@ -812,7 +812,7 @@ void Spl_sce0a_02(ENEMY_WORK *pEm)
         sv.vz = 0;
         Esp_call(3, (USHORT)pEm->Cdir_y | 0x10000000, &pP[4].Workm, &sv, 0);
         SPL_W(pEm)->Unk1D0 &= ~0x4000;
-        r = (LONG)func_80044804(&pEm->pSin_parts_ptr[4].Workm, D_8009DBB4[8], 3); /* 0xFF: no target */
+        r = (LONG)Weapon_at_ck(&pEm->pSin_parts_ptr[4].Workm, Pl_wep_data[8], 3); /* 0xFF: no target */
         if (r != 0 && r != 0xFF) {
             SPL_W(pEm)->Unk1D0 |= 0x4000;
         }

@@ -956,7 +956,7 @@ void Em_dead_flg_on_cand(ENEMY_WORK *pEm)
 {
     if (G.System_flg & 0x80) {
         if (Flg_ck(G.Unk7890, pEm->Em_set_flg) == 0) {
-            func_8004834C(pEm->Id, 0);
+            Em_kill_score(pEm->Id, 0);
         }
         Flg_on(G.Unk7890, pEm->Em_set_flg);
     } else if (G.Unk783E >= 2) {
@@ -1502,7 +1502,7 @@ void Esp_06(ESP_WORK *pEw)
             Req.H = pEw->Unk1E;
             Req.D = pEw->Unk20;
             Req.R = pEw->Dir_y;
-            if (func_800472EC(&Req, Esp_at_tbl[pEw->Unk18]) < 0) {
+            if (Pos_em_at_ck(&Req, Esp_at_tbl[pEw->Unk18]) < 0) {
                 pEw->UnkB8 = 30;
                 if (pEw->Unk1A != 0xFF) {
                     Flg_on(D_800D1FC0, pEw->Unk1A);
@@ -1518,7 +1518,7 @@ void Esp_06(ESP_WORK *pEw)
         Req.H = pEw->Unk1E;
         Req.D = pEw->Unk20;
         Req.R = pEw->Dir_y;
-        if (func_800472EC(&Req, Esp_at_tbl[pEw->Snd_no]) & 0x20000000) {
+        if (Pos_em_at_ck(&Req, Esp_at_tbl[pEw->Snd_no]) & 0x20000000) {
             if (pEw->Unk1B != 0xFF) {
                 Flg_on(D_800D1FC0, pEw->Unk1B);
             }
@@ -1769,7 +1769,7 @@ void Esp_12(ESP_WORK *pEw)
         Req.H = 0;
         Req.D = 0;
         Req.R = pEw->Dir_y;
-        Hit |= func_800472EC(&Req, Esp_at_tbl[30]);
+        Hit |= Pos_em_at_ck(&Req, Esp_at_tbl[30]);
         if (Hit) {
             pEw->Be_flg = 0;
         }
@@ -1821,8 +1821,8 @@ void Esp_15(ESP_WORK *pEw)
         pEw->Dir_y = 0;
     }
     Ret = pEw->Flg2 & 0x30;
-    Ret |= (LONG)func_80044804(&pEw->Workm2, D_8009DBB4[0], pEw->Routine_1 + 6);
-    Ret |= func_80047860(&pEw->Workm2, D_8009DBB4[0], pEw->Routine_1 + 6);
+    Ret |= (LONG)Weapon_at_ck(&pEw->Workm2, Pl_wep_data[0], pEw->Routine_1 + 6);
+    Ret |= Weapon_om_at_ck(&pEw->Workm2, Pl_wep_data[0], pEw->Routine_1 + 6);
     if (++pEw->UnkB4 >= 15) {
         Ret |= 1;
     }
@@ -1839,8 +1839,8 @@ void Esp_15(ESP_WORK *pEw)
         Req.H = 0;
         Req.D = 0;
         Req.R = pEw->UnkBA;
-        func_800472EC(&Req, Esp_at_tbl[15]);
-        func_80047BD0(&Req, Esp_at_tbl[15]);
+        Pos_em_at_ck(&Req, Esp_at_tbl[15]);
+        Pos_om_at_ck(&Req, Esp_at_tbl[15]);
         Ret |= 1;
         if (Water_ck(pEw->Pos.vx, pEw->Pos.vz) != 1) {
             Esp_call_child(pEw, 0x71C, (USHORT)pEw->UnkBA | 0x0C000000, &GsIDMATRIX, &Pos.vx, 0);
@@ -1897,8 +1897,8 @@ void Esp_15(ESP_WORK *pEw)
             Req.H = 0;
             Req.D = 0;
             Req.R = pEw->UnkBA;
-            func_800472EC(&Req, Esp_at_tbl[15]);
-            func_80047BD0(&Req, Esp_at_tbl[15]);
+            Pos_em_at_ck(&Req, Esp_at_tbl[15]);
+            Pos_om_at_ck(&Req, Esp_at_tbl[15]);
             break;
         case 1:
             Snd_se_stad(0x1010F, &pEw->Pos, 0, 0);
@@ -1921,8 +1921,8 @@ void Esp_15(ESP_WORK *pEw)
             Req.H = 0;
             Req.D = 0;
             Req.R = pEw->UnkBA;
-            func_800472EC(&Req, Esp_at_tbl[16]);
-            func_80047BD0(&Req, Esp_at_tbl[16]);
+            Pos_em_at_ck(&Req, Esp_at_tbl[16]);
+            Pos_om_at_ck(&Req, Esp_at_tbl[16]);
             break;
         case 2:
             Snd_se_stad(0x10110, &pEw->Pos, 0, 0);
@@ -2026,8 +2026,8 @@ void Esp_16(ESP_WORK *pEw)
         Pos.vx = (pEw->Pos.vx + pEw->Old.vx) / 2;
         Pos.vy = (pEw->Pos.vy + pEw->Old.vy) / 2;
         Pos.vz = (pEw->Pos.vz + pEw->Old.vz) / 2;
-        Hit |= (LONG)func_80044804(&pEw->Workm2, D_8009DBB4[0], 10);
-        Hit |= func_80047860(&pEw->Workm2, D_8009DBB4[0], 10);
+        Hit |= (LONG)Weapon_at_ck(&pEw->Workm2, Pl_wep_data[0], 10);
+        Hit |= Weapon_om_at_ck(&pEw->Workm2, Pl_wep_data[0], 10);
         Spd.vx = (signed char)Rnd_tbl[Rnd()] >> 1;
         Spd.vy = 500;
         Spd.vz = (signed char)Rnd_tbl[Rnd()] >> 1;
@@ -2139,8 +2139,8 @@ void Esp_1b(ESP_WORK *pEw)
             Req.H = 0;
             Req.D = 0;
             Req.R = pEw->Dir_y;
-            Hit |= func_800472EC(&Req, Esp_at_tbl[19]);
-            Hit |= func_80047BD0(&Req, Esp_at_tbl[19]);
+            Hit |= Pos_em_at_ck(&Req, Esp_at_tbl[19]);
+            Hit |= Pos_om_at_ck(&Req, Esp_at_tbl[19]);
             if (Hit) {
                 pEw->Be_flg = 0;
             }
@@ -2267,8 +2267,8 @@ void Esp_1e(ESP_WORK *pEw)
                     Req.H = 0;
                     Req.D = 0;
                     Req.R = pEw->Dir_y;
-                    Hit |= func_800472EC(&Req, Esp_at_tbl[17]);
-                    Hit |= func_80047BD0(&Req, Esp_at_tbl[17]);
+                    Hit |= Pos_em_at_ck(&Req, Esp_at_tbl[17]);
+                    Hit |= Pos_om_at_ck(&Req, Esp_at_tbl[17]);
                     if (Hit) {
                         pEw->UnkBA = 0;
                         pEw->Unk0A += pEw->UnkB4 << 5;
@@ -2329,8 +2329,8 @@ void Esp_1f(ESP_WORK *pEw)
     Req.H = 0;
     Req.D = 0;
     Req.R = pEw->Dir_y;
-    func_800472EC(&Req, Esp_at_tbl[18]);
-    func_80047BD0(&Req, Esp_at_tbl[18]);
+    Pos_em_at_ck(&Req, Esp_at_tbl[18]);
+    Pos_om_at_ck(&Req, Esp_at_tbl[18]);
     if (++pEw->UnkB4 >= 3) {
         if (pEw->UnkB6 != 0) {
             Pos.vx = pEw->Pos.vx;

@@ -1748,13 +1748,13 @@ void func_80105C14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Area.pBox = (SHORT *)&Sv;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x80;
-            func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
         }
         Sv.vx = 400;
         Sv.vz = 0;
         Sv.vy = 0;
         Sv.pad = 600;
-        if (((*pEm->pNow_seq >> 11) & 1) && func_80044420(&pEm->pSin_parts_ptr[10].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 11) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[10].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkE2) {
             pEm->UnkE2++;
             Pad_vib_set0(7, 0);
@@ -1768,7 +1768,7 @@ void func_80105C14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             Snd_se_enem(4, pEm);
         }
-        if (((*pEm->pNow_seq >> 10) & 1) && func_80044420(&pEm->pSin_parts_ptr[13].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 10) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[13].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkE3) {
             pEm->UnkE3++;
             Pad_vib_set0(7, 0);
@@ -1908,7 +1908,7 @@ void func_801060D0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Area.pBox = (SHORT *)&Sv;
     Area.Dir = pEm->Cdir_y;
     Area.Id = 0x81;
-    func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+    Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
 }
 
 void func_801063DC(void) {
@@ -2158,13 +2158,13 @@ void func_801075A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Area.pBox = (SHORT *)&Sv;
             Area.Dir = pEm->Cdir_y;
             Area.Id = (Rnd_l() & 1) - 0x7F;
-            func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
         }
         Sv.vx = 400;
         Sv.vz = 0;
         Sv.vy = 0;
         Sv.pad = 600;
-        if (((*pEm->pNow_seq >> 11) & 1) && func_80044420(&pEm->pSin_parts_ptr[10].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 11) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[10].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkE2) {
             pEm->UnkE2++;
             Pad_vib_set0(7, 0);
@@ -2175,7 +2175,7 @@ void func_801075A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (Pl_life_down(10, 0) & 2)
                 EM_SET_RTN(&Pl_work, 3, 0, 0, 0);
         }
-        if (((*pEm->pNow_seq >> 10) & 1) && func_80044420(&pEm->pSin_parts_ptr[13].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 10) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[13].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkE3) {
             pEm->UnkE3++;
             Pad_vib_set0(7, 0);
@@ -2337,7 +2337,7 @@ void func_80107D9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Sv.vz = 0;
         Sv.vy = 0;
         Sv.pad = 600;
-        if (((*pEm->pNow_seq >> 11) & 1) && func_80044420(&pEm->pSin_parts_ptr[10].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 11) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[10].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkE2) {
             pEm->UnkE2++;
             Pad_vib_set0(7, 0);
@@ -2351,7 +2351,7 @@ void func_80107D9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             }
             Snd_se_enem(4, pEm);
         }
-        if (((*pEm->pNow_seq >> 10) & 1) && func_80044420(&pEm->pSin_parts_ptr[13].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 10) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[13].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkE3) {
             pEm->UnkE3++;
             Pad_vib_set0(7, 0);
@@ -2596,7 +2596,7 @@ void func_80108904(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Sv.vz = 0;
         Sv.vy = 0;
         Sv.pad = 600;
-        if (((*pEm->pNow_seq >> 10) & 1) && func_80044420(&pEm->pSin_parts_ptr[pEm->Timer0].Workm, &Sv, pPl)
+        if (((*pEm->pNow_seq >> 10) & 1) && Hit_area_ck(&pEm->pSin_parts_ptr[pEm->Timer0].Workm, &Sv, pPl)
             && !pPl->Damage_cnt && !pEm->UnkDA) {
             pEm->UnkDA++;
             Pad_vib_set0(7, 0);
@@ -2651,7 +2651,7 @@ void func_80108BC4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Area.pBox = (SHORT *)&Sv;
         Area.Dir = pEm->Cdir_y;
         Area.Id = (Rnd_l() & 1) - 0x7F;
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
         Spd_get(pEm, pKan, pSeq, 0);
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
         Add_speedXZ(pEm, 0);

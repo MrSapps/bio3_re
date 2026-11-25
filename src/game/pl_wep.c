@@ -1,5 +1,6 @@
 #include "pad.h"
 #include "pl_wep.h"
+#include "enemy/em_common.h"
 #include "player.h"
 #include "cd.h"
 #include "sca.h"
@@ -8,6 +9,13 @@
 #include "snd.h"
 #include "status.h"
 #include "sub.h"
+
+/*
+ * PL_WEP.C + PL_WEP2.C (RE2): the player's weapons: Pl_mv slot 5 (pl_mv05_*: aim, fire, reload by
+ * weapon class), the per-weapon firing motions pl_wXX_t2_move, magazines (Mag_set), the weapon effect
+ * parts and light polys (Pl_wep_eff_*, Pl_wep_poly_*), and the hit checks shared by everyone
+ * (Weapon_at_ck, Pos_em_at_ck, Hit_area_em_ck, ...).
+ */
 
 
 
@@ -110,7 +118,7 @@ void pl_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     D_800DE8E8++;
     if ((G.System_flg & 0x100) && pEm->Damage_cnt == 0 && pEm->Routine_2 < 6) {
         if ((LONG)pEm->Be_flg < 0 && (D_800DE8E8 % 5) == 0 && ((Rnd_l() >> (Rnd_l() & 3)) & 1)) {
-            *(ULONG *)&pEm->Routine_0 = 0x20701;
+            EM_SET_RTN(pEm, 1, 7, 2, 0);
             Pl_mv[pEm->Routine_1](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
             return;
         }
@@ -144,7 +152,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Sub_move_no = *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x30001;
+        *(ULONG *)&pEm->Sub_move_no = EM_MOVE(pEm) = Pl_aim_dir * 2 + 0x30001;
         pEm->UnkE3 = 0;
         pEm->UnkE2 = 0;
     }
@@ -207,15 +215,15 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         M.t[0] = Mtx.t[0];
         M.t[1] = Mtx.t[1];
         M.t[2] = Mtx.t[2];
-        pHit = func_80044804(&M, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        if (func_80047860(&M, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type)) {
+        pHit = Weapon_at_ck(&M, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        if (Weapon_om_at_ck(&M, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type)) {
             Snd_se_stad(0x10108, WORKM_POS_V(&pP2[4]), 0, 0);
         }
         Mtx.t[0] += Spd.vx;
         Mtx.t[2] += Spd.vz;
         if ((SHORT)Sca_get_ground(Mtx.t, 10, 0x2040, 0x10) < Mtx.t[1]) {
             *(USHORT *)&pEm->Routine_2 = 7;
-            *(ULONG *)&pEm->Move_no = 0x30007;
+            EM_SET_MOVE(pEm, 7, 0, 3);
             *(ULONG *)&pEm->Sub_move_no = 0x30007;
             Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x400);
             pEm->Be_flg |= 0x2000000;
@@ -284,12 +292,12 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         Found = 0;
         pEm->Routine_3 = 1;
         pEm->Timer0 = 7;
-        *(ULONG *)&pEm->Sub_move_no = *(ULONG *)&pEm->Move_no = 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = EM_SET_MOVE(pEm, 0, 0, 7);
         pEm->UnkE3 = 0;
         pEm->UnkE2 = 0;
         pEm->Neck_flg |= 0x12;
         if (Key & 0x400) {
-            pPos = func_80047DD0(pEm, 0);
+            pPos = Om_target_near(pEm, 0);
             if (pPos != 0) {
                 pEm->Unk164 = pPos->vx;
                 pEm->Unk168 = pPos->vz;
@@ -319,7 +327,7 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 1:
         pEm->Be_flg |= 0x10000000;
         if (pEm->Move_cnt < 5 && (UCHAR)pEm->Type >= 2 && pEm->Life >= 0x15 && (LONG)pEm->Be_flg < 0) {
-            *(ULONG *)&pEm->Routine_0 = 0x20701;
+            EM_SET_RTN(pEm, 1, 7, 2, 0);
             Pl_mv[pEm->Routine_1](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
             return;
         }
@@ -365,7 +373,7 @@ void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Sub_move_no = *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x70002;
+        *(ULONG *)&pEm->Sub_move_no = EM_MOVE(pEm) = Pl_aim_dir * 2 + 0x70002;
         G.Unk75E8 |= 0x18;
     case 1:
         Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
@@ -402,7 +410,7 @@ void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
                 pEm->Be_flg &= 0x7FFFFFFF;
             }
             if ((LONG)pEm->Be_flg < 0 && pEm->Life >= 0x15) {
-                *(ULONG *)&pEm->Routine_0 = 0x20701;
+                EM_SET_RTN(pEm, 1, 7, 2, 0);
                 Pl_mv[pEm->Routine_1](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
             }
             return;
@@ -430,7 +438,7 @@ void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x30001;
+        EM_MOVE(pEm) = Pl_aim_dir * 2 + 0x30001;
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Sub_move_no = Pl_aim_dir * 2 + 0x30001;
     case 1:
@@ -467,7 +475,7 @@ void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 0:
         a = pEm->Water;
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Move_no = 0x70000;
+        EM_SET_MOVE(pEm, 0, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x70000;
         pEm->Spd_x = 0;
         if (a != 0 && a < pEm->Ground - 500) {
@@ -475,7 +483,7 @@ void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
     case 1:
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x10200)) {
-            *(ULONG *)&pEm->Routine_0 = 1;
+            EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Neck_flg &= 0xED;
             G.Status_flg &= ~0x40;
             G.Status_flg &= ~0x100;
@@ -494,7 +502,7 @@ void pl_mv05_w1_t4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Move_no = 0x70007;
+        EM_SET_MOVE(pEm, 7, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x70007;
     }
     if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200)) {
@@ -528,7 +536,7 @@ void pl_mv05_w1_t5(ENEMY_WORK *pEm)
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
-        func_8003F79C(pEm);
+        Pl_target_next(pEm);
         pEm->Be_flg |= 0x2000000;
         pT = pEm->pEnemy_ptr;
         if (pT == pEm) {
@@ -552,7 +560,8 @@ void pl_mv05_w1_t5(ENEMY_WORK *pEm)
     }
 }
 
-void func_8003F79C(ENEMY_WORK *pEm)
+/* aim at the next live enemy in view after the current pEnemy_ptr (or the player itself) */
+void Pl_target_next(ENEMY_WORK *pEm)
 {
     tagGLOBAL *pG = &G;
     ENEMY_WORK **ppT;
@@ -629,14 +638,15 @@ void func_8003F79C(ENEMY_WORK *pEm)
     pEm->pEnemy_ptr = G.pEnemy[Sel];
 }
 
-void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
+/* pl_mv05_w0_tbl slot 6: turn to the point pUnk15C, upper body played separately */
+void pl_mv05_w_turn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
     LONG *pPos;
 
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Move_no = 0x70002;
+        EM_SET_MOVE(pEm, 2, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x70002;
         pEm->Spd_x = 0;
         pEm->Spd_z = 0;
@@ -654,7 +664,7 @@ void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         func_80079868(pEm, 0x200);
         break;
     case 2:
-        *(ULONG *)&pEm->Move_no = 0x70002;
+        EM_SET_MOVE(pEm, 2, 0, 7);
         pEm->Routine_3 = 3;
     case 3:
         Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200);
@@ -664,18 +674,18 @@ void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
 signed char func_8006CF0C_c(ULONG Arg0) __asm__("func_8006CF0C"); /* arg 1 unsigned long (canonical UC) */
 
-void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
+void pl_mv05_w0_t8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
     pEm->Be_flg |= 0x20000000;
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = 0x7000D;
+        EM_SET_MOVE(pEm, 13, 0, 7);
         pEm->Routine_3 = 1;
         pEm->Spd_x = 1;
         pEm->Neck_flg |= 0x12;
         Pl_aim_dir = 0;
         if (!(Pl_wep_flg[(UCHAR)pEm->Type] & 0x80)) {
-            *(ULONG *)&pEm->Move_no = 0x70011;
+            EM_SET_MOVE(pEm, 17, 0, 7);
             pEm->Spd_x = 0;
         }
     case 1:
@@ -684,7 +694,7 @@ void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
         if (Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200)) {
             pEm->Routine_3 = 2;
-            *(ULONG *)&pEm->Move_no = 0xF;
+            EM_SET_MOVE(pEm, 15, 0, 0);
             pEm->UnkE3 = 0xF;
             pEm->Spd_x = 0;
             if (!(Pl_wep_flg[(UCHAR)pEm->Type] & 0x80)) {
@@ -726,13 +736,13 @@ void pl_mv05_w0_t9(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = 0xE;
+        EM_SET_MOVE(pEm, 14, 0, 0);
         pEm->Routine_3 = 1;
     case 1:
         pl_mv05_t2_spr[(UCHAR)pEm->Type - 1](pEm, pKan, pSeq, Key);
         if (Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200)) {
             *(USHORT *)&pEm->Routine_2 = 0x208;
-            *(ULONG *)&pEm->Move_no = 0xF;
+            EM_SET_MOVE(pEm, 15, 0, 0);
         }
         break;
     }
@@ -742,7 +752,7 @@ void pl_mv05_w0_t10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = 0x10;
+        EM_SET_MOVE(pEm, 16, 0, 0);
         pEm->Routine_3 = 1;
         pEm->Spd_x = 0;
     case 1:
@@ -753,16 +763,17 @@ void pl_mv05_w0_t10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     }
 }
 
-void func_8003FEFC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
+/* lower the weapon and go back to standing (no table refers to it) */
+void pl_mv05_w_end(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = 0x11;
+        EM_SET_MOVE(pEm, 17, 0, 0);
         pEm->Routine_3 = 1;
         pEm->Spd_x = 0;
     case 1:
         if (Joint_move2(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0x200)) {
-            *(ULONG *)&pEm->Routine_0 = 1;
+            EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Neck_flg &= 0xED;
             G.Status_flg &= ~0x100;
             G.Status_flg &= ~0x40;
@@ -782,7 +793,7 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Move_no = Mv[Pl_aim_dir] + 0x70000;
+        EM_MOVE(pEm) = Mv[Pl_aim_dir] + 0x70000;
         *(ULONG *)&pEm->Sub_move_no = Mv[Pl_aim_dir] + 0x70000;
         G.Unk75E8 |= 0x18;
     }
@@ -824,7 +835,7 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             }
             pEm->Be_flg |= 0x10000000;
             if ((LONG)pEm->Be_flg < 0 && pEm->Life >= 0x15) {
-                *(ULONG *)&pEm->Routine_0 = 0x20701;
+                EM_SET_RTN(pEm, 1, 7, 2, 0);
                 Pl_mv[pEm->Routine_1](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
             }
             return;
@@ -846,7 +857,7 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 }
 
 #define RND() ((signed char)Rnd())
-LONG func_800455B4_() __asm__("func_800455B4"); /* unprototyped call */
+LONG func_800455B4_() __asm__("Pl_wep_eff_parts_set"); /* unprototyped call */
 
 void func_80079868_800402F4(ENEMY_WORK *pEm, ULONG Flg) __asm__("func_80079868"); /* arg 2 unsigned long (canonical long) */
 
@@ -857,7 +868,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = Mv0[Pl_aim_dir] + 0x70000;
+        EM_MOVE(pEm) = Mv0[Pl_aim_dir] + 0x70000;
         *(ULONG *)&pEm->Sub_move_no = Mv0[Pl_aim_dir] + 0x70000;
         Pad_vib_fade_set(10, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
     case 1:
@@ -907,7 +918,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
         break;
     case 3:
-        *(ULONG *)&pEm->Move_no = Mv1[Pl_aim_dir] + 0x70000;
+        EM_MOVE(pEm) = Mv1[Pl_aim_dir] + 0x70000;
         *(ULONG *)&pEm->Sub_move_no = Mv1[Pl_aim_dir] + 0x70000;
         pEm->Routine_3 = 4;
     case 4:
@@ -948,7 +959,7 @@ void pl_mv05_w2_t4(ENEMY_WORK *pEm)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Move_no = 0x7000A;
+        EM_SET_MOVE(pEm, 10, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x7000A;
     }
     if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200) != 0) {
@@ -983,7 +994,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     switch (pEm->Routine_3) {
     case 0:
-        *(ULONG *)&pEm->Move_no = 0x70001;
+        EM_SET_MOVE(pEm, 1, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x70001;
         pEm->Routine_3 = 1;
         Snd_se_stad(0x10112, WORKM_POS_V(&pEm->pSin_parts_ptr[4]), 0, 0);
@@ -991,7 +1002,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 1:
         Pl_wep_flag_set(pEm);
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200)) {
-            *(ULONG *)&pEm->Move_no = 0x70002;
+            EM_SET_MOVE(pEm, 2, 0, 7);
             *(ULONG *)&pEm->Sub_move_no = 0x70002;
             pEm->Routine_3 = 2;
         }
@@ -1034,7 +1045,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
         break;
     case 3:
-        *(ULONG *)&pEm->Move_no = 0x70004;
+        EM_SET_MOVE(pEm, 4, 0, 7);
         *(ULONG *)&pEm->Sub_move_no = 0x70004;
         pEm->Routine_3 = 4;
         pEm->Spd_x = 0;
@@ -1162,8 +1173,8 @@ void pl_w02_t2_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     if (pEm->Move_cnt == 0) {
         pP = pEm->pSin_parts_ptr;
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -1184,7 +1195,8 @@ void pl_w02_t2_move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     }
 }
 
-void func_800410F8(ENEMY_WORK *pEm)
+/* pl_mv05_t2_spr slot 2 (weapon 3): firing motion, RE2 naming */
+void pl_w03_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1196,8 +1208,8 @@ void func_800410F8(ENEMY_WORK *pEm)
     pP = pEm->pSin_parts_ptr;
     if (pEm->Move_cnt == 0) {
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -1262,7 +1274,7 @@ void func_800410F8(ENEMY_WORK *pEm)
         Esp_call(0xA01, (RND() + 0x1000) << 16, &pP[4].Workm, &Sv, &Dsv);
     }
     if (pEm->Move_cnt == 1 || pEm->Move_cnt == 2) {
-        func_80044804(&pP[4].Workm, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(&pP[4].Workm, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
@@ -1282,7 +1294,8 @@ void func_800410F8(ENEMY_WORK *pEm)
     }
 }
 
-void func_80041594(ENEMY_WORK *pEm)
+/* firing motion of weapon 4 */
+void pl_w04_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1292,8 +1305,8 @@ void func_80041594(ENEMY_WORK *pEm)
     pP = pEm->pSin_parts_ptr;
     if (pEm->Move_cnt == 0) {
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -1351,7 +1364,8 @@ void func_80041594(ENEMY_WORK *pEm)
     }
 }
 
-void func_800418CC(ENEMY_WORK *pEm)
+/* firing motion of weapon 5 */
+void pl_w05_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP = pEm->pSin_parts_ptr;
     MATRIX *pM;
@@ -1397,7 +1411,8 @@ void func_800418CC(ENEMY_WORK *pEm)
     }
 }
 
-void func_80041A80(ENEMY_WORK *pEm)
+/* firing motion of weapon 6 */
+void pl_w06_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP = pEm->pSin_parts_ptr;
     MATRIX *pM;
@@ -1443,7 +1458,8 @@ void func_80041A80(ENEMY_WORK *pEm)
     }
 }
 
-void func_80041C34(ENEMY_WORK *pEm)
+/* firing motion of weapon 7 */
+void pl_w07_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP = pEm->pSin_parts_ptr;
     MATRIX *pM;
@@ -1489,7 +1505,8 @@ void func_80041C34(ENEMY_WORK *pEm)
     }
 }
 
-void func_80041DE8(ENEMY_WORK *pEm)
+/* firing motion of weapon 8 */
+void pl_w08_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP = pEm->pSin_parts_ptr;
     MATRIX *pM;
@@ -1535,7 +1552,8 @@ void func_80041DE8(ENEMY_WORK *pEm)
     }
 }
 
-void func_80041F9C(ENEMY_WORK *pEm)
+/* firing motion of weapon 9 */
+void pl_w09_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1601,7 +1619,8 @@ void func_80041F9C(ENEMY_WORK *pEm)
     G.Status_flg &= ~0x40;
 }
 
-void func_800421F8(ENEMY_WORK *pEm)
+/* firing motion of weapon 0xA */
+void pl_w0a_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1613,8 +1632,8 @@ void func_800421F8(ENEMY_WORK *pEm)
     Cnt = pEm->Move_cnt % 3;
     if (Cnt == 0) {
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         Sv.vx = -0x6C;
         Sv.vy = 0x528;
@@ -1646,11 +1665,12 @@ void func_800421F8(ENEMY_WORK *pEm)
         Esp_call(0x603, (USHORT)(signed char)Rnd() | 0x10000000, &pP[4].Workm, &Sv, 0);
     }
     if (Cnt == 1) {
-        func_80044804(&pP[4].Workm, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(&pP[4].Workm, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
     }
 }
 
-void func_80042474(ENEMY_WORK *pEm)
+/* firing motion of weapon 0xB */
+void pl_w0b_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1709,7 +1729,8 @@ void func_80042474(ENEMY_WORK *pEm)
     }
 }
 
-void func_80042660(ENEMY_WORK *pEm)
+/* firing motion of weapon 0xC */
+void pl_w0c_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1718,8 +1739,8 @@ void func_80042660(ENEMY_WORK *pEm)
     if (pEm->Move_cnt == 0) {
         pP = pEm->pSin_parts_ptr;
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -1740,7 +1761,8 @@ void func_80042660(ENEMY_WORK *pEm)
     }
 }
 
-void func_800427D8(ENEMY_WORK *pEm)
+/* firing motion of weapon 0xD */
+void pl_w0d_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1801,8 +1823,8 @@ void func_800427D8(ENEMY_WORK *pEm)
             pEsp->Spd_x = 0x14;
             pEsp->Spd_y = -0x28;
         }
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Snd_se_stad(0x10100, WORKM_POS_V(pP), 0, 0);
         G.Unk75E8 |= 1;
         Pl_weapon_vib(pEm);
@@ -1811,7 +1833,8 @@ void func_800427D8(ENEMY_WORK *pEm)
     }
 }
 
-void func_80042AE4(ENEMY_WORK *pEm)
+/* firing motion of weapon 0xE */
+void pl_w0e_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     PARTS_W *pO;
@@ -1824,8 +1847,8 @@ void func_80042AE4(ENEMY_WORK *pEm)
         pP = pEm->pSin_parts_ptr;
         pO = &pP[4];
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
         func_8006D030_(1);
@@ -1884,7 +1907,8 @@ void func_80042AE4(ENEMY_WORK *pEm)
     }
 }
 
-void func_80042E34(ENEMY_WORK *pEm)
+/* firing motion of weapon 0xF */
+void pl_w0f_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1896,9 +1920,9 @@ void func_80042E34(ENEMY_WORK *pEm)
     pP = pEm->pSin_parts_ptr;
     if (pEm->Move_cnt == 0) {
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -1961,8 +1985,8 @@ void func_80042E34(ENEMY_WORK *pEm)
         Dsv.vy = 0;
         Dsv.vz = (RND() >> 1) - 0x360;
         Esp_call(0xA01, (RND() + 0xE00) << 16, &pP[4].Workm, &Sv, &Dsv);
-        func_80044804(&pP[4].Workm, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80044804(&pP[4].Workm, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(&pP[4].Workm, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(&pP[4].Workm, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
@@ -1987,7 +2011,8 @@ void func_80042E34(ENEMY_WORK *pEm)
     }
 }
 
-void func_80043328(ENEMY_WORK *pEm)
+/* firing motion of weapon 0x10 */
+void pl_w10_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -1997,8 +2022,8 @@ void func_80043328(ENEMY_WORK *pEm)
     if (pEm->Move_cnt == 0) {
         pP = pEm->pSin_parts_ptr;
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -2030,7 +2055,8 @@ void func_80043328(ENEMY_WORK *pEm)
     }
 }
 
-void func_800434F8(ENEMY_WORK *pEm)
+/* firing motion of weapon 0x11 */
+void pl_w11_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -2042,8 +2068,8 @@ void func_800434F8(ENEMY_WORK *pEm)
     pP = pEm->pSin_parts_ptr;
     if (pEm->Move_cnt == 0) {
         pM = &pP[4].Workm;
-        func_80044804(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
-        func_80047860(pM, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_om_at_ck(pM, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
         func_8006D030_(1);
         Snd_se_stad(0x10100, WORKM_POS_V(&pP[4]), 0, 0);
         G.Unk75E8 |= 1;
@@ -2116,7 +2142,7 @@ void func_800434F8(ENEMY_WORK *pEm)
         Esp_call(0xA01, (RND() + 0x1300) << 16, &pP[4].Workm, &Sv, &Dsv);
     }
     if (pEm->Move_cnt == 1 || pEm->Move_cnt == 2) {
-        func_80044804(&pP[4].Workm, D_8009DBB4[pEm->Id], (UCHAR)pEm->Type);
+        Weapon_at_ck(&pP[4].Workm, Pl_wep_data[pEm->Id], (UCHAR)pEm->Type);
     }
     n = *pEm->pNow_seq & 0xF000;
     if (n != 0) {
@@ -2137,7 +2163,8 @@ void func_800434F8(ENEMY_WORK *pEm)
     G.Status_flg &= ~0x40;
 }
 
-void func_800439F8(ENEMY_WORK *pEm)
+/* firing motion of weapon 0x12 */
+void pl_w12_t2_move(ENEMY_WORK *pEm)
 {
     PARTS_W *pP;
     MATRIX *pM;
@@ -2494,7 +2521,8 @@ ULONG Em_ck(ENEMY_WORK *pEm, ULONG LL)
     return 1;
 }
 
-LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm)
+/* is the point pSv (in pM's space) inside pEm's Hit_area box? */
+LONG Hit_area_ck(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm)
 {
     EM_HIT_AREA *pH;
     MATRIX *pHm;
@@ -2537,7 +2565,8 @@ LONG func_80044420(MATRIX *pM, SVECTOR *pSv, ENEMY_WORK *pEm)
     return ((pEm->Damage_flg & 0x8000) == 0) << 2;
 }
 
-LONG func_800445C8(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm)
+/* is pEm inside the attack area pA (pPos0 -> pPos1)? used by every enemy module */
+LONG Hit_area_em_ck(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm)
 {
     SVECTOR Rot;
     MATRIX M;
@@ -2568,7 +2597,8 @@ LONG func_800445C8(LONG *pPos0, LONG *pPos1, HIT_AREA *pA, ENEMY_WORK *pEm)
     return 1;
 }
 
-LONG func_8004470C(ULONG A, ULONG B, VECTOR *pV, LONG W)
+/* pV inside the wedge given by the packed shorts A, B, widened by W (y/z) */
+LONG Wedge_ck_w(ULONG A, ULONG B, VECTOR *pV, LONG W)
 {
     SHORT ay, ax, by, bx;
     LONG t;
@@ -2588,7 +2618,8 @@ LONG func_8004470C(ULONG A, ULONG B, VECTOR *pV, LONG W)
     return (SHORT)(ay - t + W) >= pV->vz;
 }
 
-LONG func_8004479C(ULONG A, ULONG B, VECTOR *pV)
+/* pV inside the wedge given by the packed shorts A, B (y/x) */
+LONG Wedge_ck(ULONG A, ULONG B, VECTOR *pV)
 {
     SHORT ay, by, bx;
     LONG t;
@@ -2605,9 +2636,10 @@ LONG func_8004479C(ULONG A, ULONG B, VECTOR *pV)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80044804);
+INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Weapon_at_ck);
 
-void func_80044E90(MATRIX *pM0, MATRIX *pM1, SVECTOR *pOut)
+/* position of pM1's origin in pM0's space */
+void Matrix_rel_pos(MATRIX *pM0, MATRIX *pM1, SVECTOR *pOut)
 {
     MATRIX M;
     VECTOR V;
@@ -2671,13 +2703,13 @@ INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Mag_down);
 void Pl_wep_eff_init(ENEMY_WORK *pEm)
 {
     Pl_wep_eff_parts_init(pEm);
-    func_80046C90();
+    Pl_wep_poly_init();
 }
 
 void func_800452E0(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_800452E8);
+INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pl_wep_parts_drop);
 
 void func_80045514(void) {
 }
@@ -2702,7 +2734,8 @@ LONG Pl_wep_eff_parts_init(ENEMY_WORK *pEm)
     return 0;
 }
 
-LONG func_800455B4(ENEMY_WORK *pEm)
+/* start the weapon effect parts (parts 15..20) of the player */
+LONG Pl_wep_eff_parts_set(ENEMY_WORK *pEm)
 {
     PARTS_W *pW;
     PARTS_W *pP;
@@ -2778,7 +2811,8 @@ UCHAR Pl_wep_eff_parts_cnt(void)
     return Cnt;
 }
 
-ENEMY_WORK *func_800457A4(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim)
+/* nearest live enemy within LL of pPos and Lim of the direction Dir */
+ENEMY_WORK *Em_near_dir_ck(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim)
 {
     tagGLOBAL *pG;
     ENEMY_WORK **ppT;
@@ -2820,9 +2854,10 @@ ENEMY_WORK *func_800457A4(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim)
     return G.pEm;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_80045950);
+INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pl_wep_eff_move);
 
-ULONG func_80046A0C(ENEMY_WORK *pEm, MATRIX *pM, UCHAR *pTbl)
+/* part of pEm (from the list pTbl) nearest to pM's origin */
+ULONG Parts_near_get(ENEMY_WORK *pEm, MATRIX *pM, UCHAR *pTbl)
 {
     ULONG Min;
     ULONG Ret;
@@ -2876,7 +2911,8 @@ LONG Dir_limit(LONG Dir, LONG Base, LONG Lim, SHORT *pDir)
     return 1;
 }
 
-void func_80046B94(SVECTOR *pV, SVECTOR *pOut)
+/* y and z angles of the vector pV */
+void Vec_dir_get(SVECTOR *pV, SVECTOR *pOut)
 {
     SHORT Dir_y;
     SHORT Dir_z;
@@ -2907,7 +2943,8 @@ SHORT Get_dir_xz(LONG X, LONG Z)
     return Dir;
 }
 
-void func_80046C90(void)
+/* set up the six weapon light polys */
+void Pl_wep_poly_init(void)
 {
     PL_WEP_POLY *pWp;
     LONG i;
@@ -2939,10 +2976,10 @@ void func_80046C90(void)
     } while (--i != 0);
 }
 
-void Pl_wep_poly_set(PL_WEP_POLY *pWp, SHORT Unk2, LONG Unk4)
+void Pl_wep_poly_set(PL_WEP_POLY *pWp, SHORT Unk2, LONG *pPos)
 {
     pWp->Be_flg = 1;
-    pWp->Unk4 = Unk4;
+    pWp->pPos = pPos;
     pWp->Unk2 = Unk2;
 }
 
@@ -2954,18 +2991,20 @@ void Pl_wep_poly_rgb(PL_WEP_POLY *pWp, ULONG Rgb)
     *(ULONG *)&pWp->Poly[1].r0 |= Rgb;
 }
 
-void func_80046DF8(PL_WEP_POLY *pWp)
+/* hide a weapon light poly */
+void Pl_wep_poly_off(PL_WEP_POLY *pWp)
 {
     pWp->Be_flg = 0;
 }
 
-void func_80046E00(PL_WEP_POLY *pWp, SVECTOR *pV)
+/* show a weapon light poly at half brightness when its depth is in range */
+void Pl_wep_poly_ck(PL_WEP_POLY *pWp, SVECTOR *pV)
 {
     LONG d;
     ULONG Rgb;
 
     pWp->Be_flg = 0;
-    d = (USHORT)((SVECTOR *)pWp->Unk4)->vz - (USHORT)pV[7].vx;
+    d = *(USHORT *)&pWp->pPos[1] - (USHORT)pV[7].vx;
     if ((USHORT)(d + 0xC7F) < 0x125B) {
         pWp->Be_flg = 1;
         Rgb = *(ULONG *)&pWp->Poly[0].r0 & 0xFFFFFF;
@@ -2983,7 +3022,8 @@ void func_80046E00(PL_WEP_POLY *pWp, SVECTOR *pV)
     }
 }
 
-void func_80046EC4(void)
+/* draw the visible weapon light polys */
+void Pl_wep_poly_trans(void)
 {
     tagGLOBAL *pG = &G;
     PL_WEP_POLY *pWp;
@@ -3011,14 +3051,14 @@ void func_80046EC4(void)
             pWp++;
             continue;
         }
-        if (!Hit_ck_point4((LONG *)pWp->Unk4, G.Cccut)) {
+        if (!Hit_ck_point4(pWp->pPos, G.Cccut)) {
             pWp++;
             continue;
         }
-        pOt = Ot_get_pos((LONG *)pWp->Unk4);
-        Sv.vx = ((VECTOR *)pWp->Unk4)->vx;
-        Sv.vy = ((VECTOR *)pWp->Unk4)->vy;
-        Sv.vz = ((VECTOR *)pWp->Unk4)->vz;
+        pOt = Ot_get_pos(pWp->pPos);
+        Sv.vx = pWp->pPos[0];
+        Sv.vy = pWp->pPos[1];
+        Sv.vz = pWp->pPos[2];
         Z = RotTransPers(&Sv, (LONG *)&Sxy[0], (LONG *)&Sxy[1], (LONG *)&Sxy[1]);
         if (Z < 8) {
             pWp++;
@@ -3037,7 +3077,8 @@ void func_80046EC4(void)
     } while (--i != 0);
 }
 
-ULONG func_800470F4(VECTOR *pPos, LONG Ll0, LONG Ll1)
+/* flags of the enemies whose parts are within Ll0/Ll1 of pPos */
+ULONG Em_near_pos_ck(VECTOR *pPos, LONG Ll0, LONG Ll1)
 {
     tagGLOBAL *pG = &G;
     ENEMY_WORK **ppT;
@@ -3086,9 +3127,10 @@ ULONG func_800470F4(VECTOR *pPos, LONG Ll0, LONG Ll1)
     return Ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", func_800472EC);
+INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pos_em_at_ck);
 
-LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
+/* weapon hit check against the object model targets */
+LONG Weapon_om_at_ck(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
 {
     tagGLOBAL *pG = &G;
     OM_TARGET **ppT;
@@ -3152,7 +3194,7 @@ LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
         V.vy = 0;
         V.vz = pTm->t[2] - pM->t[2];
         ApplyRotMatrixLV(&V, &V);
-        if (!func_8004470C(0x1900000 | pW->UnkC, 0x1000, &V, pH->R)) {
+        if (!Wedge_ck_w(0x1900000 | pW->UnkC, 0x1000, &V, pH->R)) {
             goto next;
         }
         V.vx = pTm->t[0] - pM->t[0];
@@ -3164,7 +3206,7 @@ LONG func_80047860(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
         V2.vz = pTm->t[2] - pM->t[2];
         ApplyRotMatrixLV(&V2, &V2);
         if (V2.vx < 0 || V.vx > 0) {
-            if (!func_8004479C(0x3E80000 | pW->UnkC, 0x1001000, &V) && !func_8004479C(0x3E80000 | pW->UnkC, 0x1001000, &V2)) {
+            if (!Wedge_ck(0x3E80000 | pW->UnkC, 0x1001000, &V) && !Wedge_ck(0x3E80000 | pW->UnkC, 0x1001000, &V2)) {
                 goto next;
             }
         }
@@ -3187,7 +3229,8 @@ end:
     return Min != 0x7FFFFFFF;
 }
 
-LONG func_80047BD0(HIT_REQ *pReq, HIT_ATTR *pAttr)
+/* damage request against the object model targets */
+LONG Pos_om_at_ck(HIT_REQ *pReq, HIT_ATTR *pAttr)
 {
     tagGLOBAL *pG = &G;
     OM_TARGET **ppT;
@@ -3249,7 +3292,8 @@ LONG func_80047BD0(HIT_REQ *pReq, HIT_ATTR *pAttr)
     return Ret;
 }
 
-VECTOR *func_80047DD0(ENEMY_WORK *pEm, ULONG LL)
+/* position of the nearest object model target within LL */
+VECTOR *Om_target_near(ENEMY_WORK *pEm, ULONG LL)
 {
     tagGLOBAL *pG = &G;
     OM_TARGET **ppT;
@@ -3304,7 +3348,8 @@ VECTOR *func_80047DD0(ENEMY_WORK *pEm, ULONG LL)
     return 0;
 }
 
-ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
+/* damage request against one enemy pEm */
+ULONG Pos_em1_at_ck(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
 {
     ENEMY_WORK **ppT;
     ENEMY_WORK **ppEnd;
@@ -3396,11 +3441,11 @@ ULONG func_80047F70(ENEMY_WORK *pEm, HIT_REQ *pReq, HIT_ATTR *pAttr)
                     pT->Damage_cnt = Cnt;
                     d = Cdir_ck_pos(pPos->vx, pPos->vz, pT);
                     Ret |= 0x20000001;
-                    *(ULONG *)&pT->Routine_0 = (Part << 8) | 2;
+                    EM_RTN(pT) = (Part << 8) | 2;
                     pT->Damage_flg = pT->Damage_flg | (d << 4) | ((Kind & 0x1F) << 8);
                     pT->Life -= Dmg;
                     if (pT->Life < 0) {
-                        *(ULONG *)&pT->Routine_0 = (Part << 8) | 3;
+                        EM_RTN(pT) = (Part << 8) | 3;
                         pT->Damage_cnt |= 0x80;
                     }
                 }
@@ -3421,7 +3466,8 @@ void Quake_add(LONG X, LONG Y)
     }
 }
 
-void func_8004834C(ULONG Id, LONG Flg)
+/* score / time bonus for killing enemy Id (Flg: no combo count) */
+void Em_kill_score(ULONG Id, LONG Flg)
 {
     UCHAR n;
 
@@ -3430,28 +3476,28 @@ void func_8004834C(ULONG Id, LONG Flg)
         return;
     }
     if ((Pl_work.Type & 0x1F) == 10) {
-        Quake_add((UCHAR)(D_8009DDC4[n][0] / 3), D_8009DDC4[n][1]);
+        Quake_add((UCHAR)(Em_score_tbl[n][0] / 3), Em_score_tbl[n][1]);
     } else {
-        Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1]);
+        Quake_add(Em_score_tbl[n][0], Em_score_tbl[n][1]);
     }
     if ((Pl_work.Type & 0x1F) == 1) {
         if (n == 0x26) {
             Quake_add(D_8009DE10, 0);
         } else {
-            Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1] * 7);
+            Quake_add(Em_score_tbl[n][0], Em_score_tbl[n][1] * 7);
         }
     }
-    if (D_8009DE24) {
-        Quake_add(D_8009DDC4[n][0] >> 1, D_8009DDC4[n][1] >> 1);
+    if (Em_kill_combo) {
+        Quake_add(Em_score_tbl[n][0] >> 1, Em_score_tbl[n][1] >> 1);
     }
-    if (D_8009DE24 >= 2) {
-        Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1]);
+    if (Em_kill_combo >= 2) {
+        Quake_add(Em_score_tbl[n][0], Em_score_tbl[n][1]);
     }
-    if (D_8009DE24 >= 3) {
-        Quake_add(D_8009DDC4[n][0], D_8009DDC4[n][1]);
+    if (Em_kill_combo >= 3) {
+        Quake_add(Em_score_tbl[n][0], Em_score_tbl[n][1]);
     }
     if (!Flg) {
-        D_8009DE24++;
+        Em_kill_combo++;
         if (G.Unk2116 < 15) {
             G.Unk2116 += 15;
         }

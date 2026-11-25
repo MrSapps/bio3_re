@@ -714,8 +714,8 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Be_flg |= 0x2000;
     case 1:
         if (pEm->Move_cnt < 10)
-            func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Ha0, pPl);
-        func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Ha1, pPl);
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Ha0, pPl);
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Ha1, pPl);
         Spd_get(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x200)) {
             EM_SET_RTN(pEm, 1, 0, 0, 0);

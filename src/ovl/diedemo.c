@@ -64,7 +64,7 @@ void Die_move_set(void)
     G.Status_flg &= ~4;
     G.Status_flg &= ~2;
     Pl_wep_eff_parts_init(G_PLAYER);
-    func_80046C90();
+    Pl_wep_poly_init();
     if (G.Status_flg & STAT_XA_VOICE) {
         Xa_error();
     }

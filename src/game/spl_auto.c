@@ -2766,7 +2766,7 @@ void Spl_shot_eff(ENEMY_WORK *pEm)
 
     if (pEm->Move_cnt == 0) {
         pP = &pEm->pSin_parts_ptr[4].Workm;
-        if (func_80044804(pP, D_8009DBB4[0], 3) != 0) {
+        if (Weapon_at_ck(pP, Pl_wep_data[0], 3) != 0) {
             SPL_W(pEm)->Unk1D0 |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
@@ -2848,7 +2848,7 @@ void Spl_shot_eff_rapid(ENEMY_WORK *pEm)
             pEsp->Spd_x = 0x14;
             pEsp->Spd_y = -0x28;
         }
-        if (func_80044804(pM, D_8009DBB4[0], 0xE) != 0) {
+        if (Weapon_at_ck(pM, Pl_wep_data[0], 0xE) != 0) {
             SPL_W(pEm)->Unk1D0 |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);
@@ -2870,7 +2870,7 @@ void Spl_shot_eff_auto(ENEMY_WORK *pEm)
         pP = pEm->pSin_parts_ptr;
         pO = &pP[4];
         pM = &pP[4].Workm;
-        if (func_80044804(pM, D_8009DBB4[0], 0xF) != 0) {
+        if (Weapon_at_ck(pM, Pl_wep_data[0], 0xF) != 0) {
             SPL_W(pEm)->Unk1D0 |= 0x4000;
         }
         Snd_se_enem(0xF, pEm);

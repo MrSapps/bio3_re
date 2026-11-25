@@ -590,8 +590,8 @@ void Om_explosion_set(OBJ_MODEL_WORK *pOm)
             Req.H = 0;
             Req.D = 0;
             Req.R = 0;
-            func_800472EC(&Req, Om_at_tbl[pOm->Type & 0xF]);
-            func_80047BD0(&Req, Om_at_tbl[pOm->Type & 0xF]);
+            Pos_em_at_ck(&Req, Om_at_tbl[pOm->Type & 0xF]);
+            Pos_om_at_ck(&Req, Om_at_tbl[pOm->Type & 0xF]);
         } else {
             pOm->Routine_2 = 2;
         }

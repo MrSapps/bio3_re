@@ -867,7 +867,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
     SVECTOR Ofs;
     MATRIX Mat;
-    HIT_REQ At; /* attack box handed to func_80047F70: hits other enemies */
+    HIT_REQ At; /* attack box handed to Pos_em1_at_ck: hits other enemies */
     UCHAR Id_tbl0[8] = { 0, 1, 2, 3, 2, 0, 1, 3 };
     UCHAR Id_tbl1[8] = { 0, 1, 2, 1, 2, 0, 1, 2 };
     tagGLOBAL *pG;
@@ -976,7 +976,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Mat.t[1] += 400;
                 if (pEm->nFloor + 1 == pPl->nFloor)
                     Ofs.vy = -400;
-                if (func_80044420(&Mat, &Ofs, pPl)) {
+                if (Hit_area_ck(&Mat, &Ofs, pPl)) {
                     LONG Ang;
 
                     Side = 0x400;
@@ -1002,7 +1002,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 At.H = 100;
                 At.D = 0;
                 At.R = pEm->Cdir_y;
-                if (func_80047F70(pEm, &At, &Em34_at_data))
+                if (Pos_em1_at_ck(pEm, &At, &Em34_at_data))
                     Snd_se_enem(4, pEm);
             }
             if (D_800D1F2C_ < 0 && !pSpl->Damage_cnt) {
@@ -1012,7 +1012,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Ofs.vz = 0;
                 Ofs.pad = 600;
                 Mat.t[1] += 400;
-                if (func_80044420(&Mat, &Ofs, pSpl)) {
+                if (Hit_area_ck(&Mat, &Ofs, pSpl)) {
                     LONG Ang;
 
                     Side = 0x400;
@@ -1036,13 +1036,13 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Em34_hit_area.Id = Id_tbl0[(Rnd_l() >> (Rnd_l() & 3)) & 7];
             if (pPl->Pos_y < pEm->Pos_y)
                 Em34_hit_area.Id = Id_tbl1[(Rnd_l() >> (Rnd_l() & 3)) & 7];
-            func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G_PLAYER);
+            Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G_PLAYER);
             if ((LONG)G.Status_flg < 0) {
                 Em34_hit_area.pPos = POS_V(pEm);
                 Em34_hit_area.pBox = Em34_at_box;
                 Em34_hit_area.Dir = pEm->Cdir_y;
                 Em34_hit_area.Id = 0;
-                func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G.pEnemy[1]);
+                Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, G.pEnemy[1]);
             }
         }
         break;
@@ -1060,7 +1060,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     ENEMY_WORK *pPl = PLAYER_EM(pG);
     PARTS_W *pP;
     SVECTOR Ofs;
-    HIT_REQ At; /* attack box handed to func_80047F70: hits other enemies */
+    HIT_REQ At; /* attack box handed to Pos_em1_at_ck: hits other enemies */
 
     switch (pEm->Routine_2) {
     case 0:
@@ -1104,7 +1104,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Ofs.vx = 0;
                 Ofs.vz = 0;
                 Ofs.pad = 700;
-                if (func_80044420(&pP->Workm, &Ofs, pPl)) {
+                if (Hit_area_ck(&pP->Workm, &Ofs, pPl)) {
                     EM_RTN(pPl) = (Cdir_ck(pEm, pPl) + 2) << 8 | 2;
                     pPl->Damage_cnt |= 0x80;
                     Snd_se_enem(4, pEm);
@@ -1119,7 +1119,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 At.H = 300;
                 At.D = 0;
                 At.R = pEm->Cdir_y;
-                if (func_80047F70(pEm, &At, &Em34_at_data))
+                if (Pos_em1_at_ck(pEm, &At, &Em34_at_data))
                     Snd_se_enem(4, pEm);
             }
             if (D_800D1F2C_ < 0 && !pSpl->Damage_cnt) {
@@ -1127,7 +1127,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Ofs.vx = 0;
                 Ofs.vz = 0;
                 Ofs.pad = 700;
-                if (func_80044420(&pP->Workm, &Ofs, pSpl)) {
+                if (Hit_area_ck(&pP->Workm, &Ofs, pSpl)) {
                     EM_RTN(pSpl) = (Cdir_ck(pEm, pSpl) + 2) << 8 | 2;
                     pSpl->Damage_cnt |= 0x80;
                     if (Spl_life_sub(15, 0) == 2)
@@ -1143,10 +1143,10 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em34_hit_area.pBox = Em34_at_box2;
         Em34_hit_area.Dir = pEm->Cdir_y;
         Em34_hit_area.Id = 1;
-        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
         Em34_hit_area.pBox = Em34_at_box3;
         Em34_hit_area.Id = 2;
-        func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
     }
 }
 
@@ -1219,7 +1219,7 @@ void Em34_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.vz = 200;
             Ofs.vx = 0;
             Ofs.pad = 400;
-            if (func_80044420(pM, &Ofs, pPl)) {
+            if (Hit_area_ck(pM, &Ofs, pPl)) {
                 EM_SET_RTN(pEm, 1, 8, 0, 0);
                 pEm->Damage_cnt |= 0x80;
                 pPl->Damage_cnt |= 0x80;
@@ -1239,7 +1239,7 @@ void Em34_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Em34_hit_area.Id = Id_tbl1[(Rnd_l() >> (Rnd_l() & 3)) & 7] + 0x40;
             if ((Rnd_l() & 3) == 1)
                 Em34_hit_area.Id = 0x62;
-            func_800445C8(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+            Hit_area_em_ck(pEm->pSin_parts_ptr[8].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
         }
         break;
     }
@@ -1896,10 +1896,10 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.pad = 800;
             pP = EM34_W(pEm)->pPartner->pSin_parts_ptr;
             Hit = 0;
-            Hit |= func_80044420(&pP[1].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[2].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[3].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[1].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[2].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[3].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[4].Workm, &Ofs, pPl);
             if (Hit) {
                 pEm->Cdir_y += 0x400;
                 Hit = Cdir_ck(pEm, pPl);
@@ -1945,9 +1945,9 @@ void Em34_club(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Em34_hit_area.pBox = Em34_at_box4;
         Em34_hit_area.Dir = pEm->Cdir_y;
         Em34_hit_area.Id = Id_tbl[(Rnd_l() >> (Rnd_l() & 3)) & 7];
-        func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
         Em34_hit_area.pBox = Em34_at_box5;
-        func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
+        Hit_area_em_ck(pEm->pSin_parts_ptr[5].Workm.t, pPos, &Em34_hit_area, &Pl_work);
     }
 }
 
@@ -2011,11 +2011,11 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Ofs.pad = 400;
             pP = EM34_W(pEm)->pPartner->pSin_parts_ptr;
             Hit = 0;
-            Hit |= func_80044420(&pP[1].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[2].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[3].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[4].Workm, &Ofs, pPl);
-            Hit |= func_80044420(&pP[5].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[1].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[2].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[3].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[4].Workm, &Ofs, pPl);
+            Hit |= Hit_area_ck(&pP[5].Workm, &Ofs, pPl);
             if (Hit) {
                 EM_RTN(pPl) = (Cdir_ck(pEm, pPl) + 2) << 8 | 2;
                 pPl->Damage_cnt |= 0x80;
@@ -2052,14 +2052,14 @@ void Em34_swing(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Em34_hit_area.Id = 1;
             if (!(Rnd_l() & 3))
                 Em34_hit_area.Id = 3;
-            func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+            Hit_area_em_ck(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
             Em34_hit_area.pPos = (VECTOR *)pPos;
             Em34_hit_area.pBox = Em34_at_box7;
             Em34_hit_area.Dir = pEm->Cdir_y;
             Em34_hit_area.Id = 2;
             if (!(Rnd_l() & 3))
                 Em34_hit_area.Id = 3;
-            func_800445C8(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
+            Hit_area_em_ck(pEm->pSin_parts_ptr[5].Workm.t, &pEm->Pos_x, &Em34_hit_area, &Pl_work);
         }
     }
 }
