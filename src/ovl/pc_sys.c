@@ -217,8 +217,27 @@ ULONG Pc_input(ULONG Max, ULONG Mode)
 /* the original .rodata has a stray " " string after "]" */
 __asm__(".section .rodata\n\t.byte 0x20, 0\n\t.section .text");
 
-/* window box sprite; draft in scratchpad/drafts: register allocation differs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys", Pc_box_set);
+/* window box sprite: on/off, size and grey level; resets the key cursor */
+void Pc_box_set(UCHAR On, SHORT W, SHORT H, UCHAR Col)
+{
+    PC_WORK *pPc = Pc_wk;
+    PC_SPR *pSpr = &pPc->Spr[PC_SPR_BOX];
+    SHORT Y;
+
+    pSpr->s.Col = Col;
+    pSpr->s.On = On;
+    pSpr->s.X = Pc_spr_def[PC_SPR_BOX].s.X + 0x30;
+    Y = Pc_spr_def[PC_SPR_BOX].s.Y;
+    do {
+        pSpr->s.W = W;
+        pSpr->s.H = H;
+    } while (0);
+    pSpr->s.Y = Y + 0x8E;
+    pPc->Spr[PC_SPR_KEY].s.On = On;
+    pPc->Key_x = 1;
+    pPc->Key_y = 0;
+    pPc->Push = 0;
+}
 
 /* on-screen keyboard: cursor moves, returns the key pressed (0 none, 1 cancel) */
 ULONG Pc_key_move(void)
