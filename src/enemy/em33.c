@@ -1276,7 +1276,318 @@ LONG Em33_zone_ck(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em33", Em33_mv07);
+/* mv[7]: wait under water, come out of the hole by the player's zone, bite, and dive back */
+void Em33_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Sv;
+    HIT_AREA Area;
+    SHORT Spd_z[5] = { -10, 14, -20, 28, -24 };
+    ENEMY_WORK *pPl = &Pl_work;
+    LONG n = 4;
+    LONG d;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        if (G.System_flg & 0x100)
+            pEm->Timer0 = (Rnd() & 7) + 20;
+        else
+            pEm->Timer0 = (Rnd() & 7) + 7;
+        if (EM30_W(pEm)->Under) {
+            pEm->Timer0 = pEm->Timer0 + 35 + (Rnd() & 0xF);
+            EM30_W(pEm)->Under = 0;
+        }
+        pEm->Neck_flg &= ~2;
+        PW_NECK(&pEm->pSin_parts_ptr[8])->L_rot_y = 0x300;
+        pEm->Routine_2++;
+    case 1:
+        if (--pEm->Timer0)
+            break;
+        Em33_zone_set(pEm, 1);
+        if (EM30_W(pEm)->u10.Side != EM30_W(pEm)->Dirt_part) {
+            EM30_W(pEm)->Dirt_part = EM30_W(pEm)->u10.Side;
+            pEm->Timer0 = pEm->Timer0 + 25 + (Rnd() & 0xF);
+            return;
+        }
+        if (EM30_W(pEm)->u10.Side == 4) {
+            EM_SET_RTN(pEm, 1, 7, 0, 0);
+            return;
+        }
+        if (EM30_W(pEm)->u10.Side == 1) {
+            EM_SET_RTN(pEm, 1, 8, 0, 0);
+            return;
+        }
+        switch (EM30_W(pEm)->u10.Side) {
+        case 0:
+            pEm->Pos_x = -30000;
+            pEm->Pos_y = 200;
+            pEm->Pos_z = -19000;
+            pEm->Col.D0 = 2000;
+            pEm->Col.W0 = 2000;
+            pEm->Cdir_y = 0;
+            {
+                ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
+            pW->Col.D0 = 1800;
+            pW->Col.W0 = 1800;
+            }
+            break;
+        case 1:
+            break;
+        case 2:
+            pEm->Pos_x = -22700;
+            pEm->Pos_y = -300;
+            pEm->Pos_z = -9000;
+            pEm->Cdir_y = 0x400;
+            break;
+        case 3:
+            pEm->Pos_x = -9650;
+            pEm->Pos_y = -300;
+            pEm->Pos_z = -28500;
+            pEm->Cdir_y = 0xC00;
+            break;
+        }
+        pEm->UnkDA = 10;
+        EM30_W(pEm)->Spd = 10;
+        EM30_W(pEm)->Spd_lim = 50;
+        EM30_W(pEm)->Spd_add = 2;
+        pEm->Timer0 = 0;
+        pEm->UnkE3 = 0;
+        EM30_W(pEm)->Timer = 60;
+        pEm->Routine_2++;
+        break;
+    case 2:
+        if (!Em33_zone_ck(pEm)) {
+            if (--pEm->UnkDA == 0)
+                pEm->Routine_2 = 0;
+            break;
+        }
+        pEm->UnkDA = 0;
+        pEm->Routine_2++;
+    case 3:
+        Snd_se_enem(4, pEm);
+        EM_SET_MOVE(pEm, 9, 0, 0x1F);
+        pEm->Spd_z = 0;
+        pEm->UnkE2 = 0;
+        pEm->UnkE3 = 0;
+        EM30_W(pEm)->u13.Clip_no = EM30_W(pEm)->u10.Side;
+        pEm->Routine_2++;
+        G.Status_flg |= 2;
+        Em33_vib_leap();
+        EM30_W(pEm)->Spd = 100;
+        EM30_W(pEm)->Spd_add = 100;
+        EM30_W(pEm)->Spd_lim = 100;
+        EM30_W(pEm)->Morph_dir = 1;
+        Em30_morph_step(pEm, 0x1000, 1);
+    case 4:
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+            EM_SET_MOVE(pEm, 9, 0x18, 0x1F);
+            pEm->UnkE2 = 0;
+            pEm->Spd_x = -90;
+            pEm->Spd_z = 0;
+            Add_speedXZ(pEm, 0);
+            EM30_W(pEm)->Spd = -70;
+            EM30_W(pEm)->Spd_lim = -160;
+            EM30_W(pEm)->Spd_add = -40;
+            pEm->UnkDA = EM30_W(pEm)->u10.Side;
+            Em33_zone_set(pEm, 0);
+            if (pEm->UnkDA != EM30_W(pEm)->u10.Side) {
+                G.Status_flg |= 4;
+                EM30_W(pEm)->Timer = 60;
+                pEm->Neck_flg |= 2;
+                EM30_W(pEm)->Spd = -70;
+                EM30_W(pEm)->Spd_lim = -70;
+                EM30_W(pEm)->Spd_add = 0;
+                EM_SET_MOVE(pEm, 6, 0, 0x1F);
+                EM30_W(pEm)->Morph_dir = 0;
+                PW_NECK(&pEm->pSin_parts_ptr[8])->L_rot_y = 0x100;
+                pEm->Routine_2++;
+            } else {
+                pEm->UnkDA = 0;
+                EM_SET_RTN(pEm, 1, 10, 0, 0);
+            }
+        }
+        if ((*pEm->pNow_seq >> 10) & 1) {
+            Sv.vx = 1800;
+            Sv.vy = 0;
+            Sv.vz = 1200;
+            Sv.pad = 1200;
+            Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
+            Area.pBox = &Sv.vx;
+            Area.Dir = pEm->Cdir_y;
+            Area.Id = 0x85;
+            Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+            EM30_W(pEm)->Spd -= EM30_W(pEm)->Spd_add;
+            if (EM30_W(pEm)->Spd < 30)
+                EM30_W(pEm)->Spd = 30;
+        }
+        pEm->Spd_z = 0;
+        pEm->Spd_x = EM30_W(pEm)->Spd;
+        Add_speedXZ(pEm, 0);
+        if ((*pEm->pNow_seq >> 9) & 1) {
+            if (EM30_W(pEm)->u13.Clip_no == 0) {
+                d = 1400;
+                if (pEm->Move_cnt < 23)
+                    d = 2000;
+            } else {
+                d = 800;
+                if (pEm->Move_cnt < 23)
+                    d = 1800;
+            }
+            Sv.vx = d;
+            Sv.vy = 0;
+            Sv.vz = 0;
+            Sv.pad = 1200;
+            do {
+                if (!pPl->Damage_cnt && Hit_area_ck(&pEm->pSin_parts_ptr[8].Workm, &Sv, pPl) && !pEm->UnkE2) {
+                    Snd_se_enem(1, pEm);
+                    Pad_vib_set0(7, 0);
+                    Pad_vib_set1(3, 250, 4);
+                    pPl->Routine_0 = 2;
+                    pPl->Routine_1 = Cdir_ck(pEm, pPl);
+                    pPl->Routine_2 = 0;
+                    if (Pl_life_down(30, 0) & 2)
+                        EM_SET_RTN(&Pl_work, 3, 0, 0, 0);
+                    pEm->UnkE2 = 1;
+                    pEm->UnkE3 = -100;
+                }
+            } while (0);
+        }
+        if (pEm->Move_cnt == 23 || pEm->Move_cnt == 42) {
+            if (!pEm->UnkE2)
+                Snd_se_enem(0, pEm);
+            pEm->UnkE2 = 0;
+        }
+        if (pEm->Move_cnt == 10)
+            G.Status_flg &= ~2;
+        if (pEm->Move_cnt == 30) {
+            EM30_W(pEm)->Spd = -70;
+            EM30_W(pEm)->Spd_lim = 300;
+            EM30_W(pEm)->Spd_add = 80;
+        }
+        if (pEm->Move_cnt == 36) {
+            EM30_W(pEm)->Spd = 300;
+            EM30_W(pEm)->Spd_lim = -70;
+            EM30_W(pEm)->Spd_add = -80;
+            pEm->Timer0 = Rnd() & 7;
+        }
+        if (pEm->Move_cnt == 38 && pEm->Timer0) {
+            pEm->Timer0--;
+            pEm->Move_cnt = 37;
+        }
+        EM30_W(pEm)->Spd += EM30_W(pEm)->Spd_add;
+        if (EM30_W(pEm)->Spd_add > 0 && EM30_W(pEm)->Spd > EM30_W(pEm)->Spd_lim)
+            EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+        if (EM30_W(pEm)->Spd_add < 0 && EM30_W(pEm)->Spd < EM30_W(pEm)->Spd_lim)
+            EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+        break;
+    case 5:
+        pEm->Col.D0 = 1200;
+        pEm->Col.W0 = 1200;
+        {
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
+        pW->Col.D0 = 1400;
+        pW->Col.W0 = 1400;
+        }
+        if (pEm->Timer0) {
+            pEm->Timer0--;
+            pEm->Move_cnt = 45;
+        }
+        do {
+            if (Joint_move(pEm, pKan, pSeq, 0x10080)) {
+                if (EM30_W(pEm)->Die_flg)
+                    Snd_se_enem(5, pEm);
+                switch (EM30_W(pEm)->u13.Clip_no) {
+                case 0:
+                    if (pEm->Pos_x <= -30000) {
+                        EM30_W(pEm)->Pl_type = 1;
+                        n = 1;
+                        G.Status_flg &= ~4;
+                        EM30_W(pEm)->u13.Clip_no = 4;
+                        EM_SET_RTN(pEm, 1, 7, 0, 0);
+                    } else
+                        pEm->Move_cnt = 49;
+                    break;
+                case 1:
+                    if (pEm->Pos_x >= -4000) {
+                        EM30_W(pEm)->Pl_type = 1;
+                        n = 1;
+                        G.Status_flg &= ~4;
+                        EM30_W(pEm)->u13.Clip_no = 4;
+                        EM_SET_RTN(pEm, 1, 7, 0, 0);
+                    } else
+                        pEm->Move_cnt = 49;
+                    break;
+                case 2:
+                    if (pEm->Pos_z >= -9000) {
+                        EM30_W(pEm)->Pl_type = 1;
+                        n = 1;
+                        G.Status_flg &= ~4;
+                        EM30_W(pEm)->u13.Clip_no = 4;
+                        EM_SET_RTN(pEm, 1, 7, 0, 0);
+                    } else
+                        pEm->Move_cnt = 49;
+                    break;
+                case 3:
+                    if (pEm->Pos_z <= -28500) {
+                        EM30_W(pEm)->Pl_type = 1;
+                        n = 1;
+                        G.Status_flg &= ~4;
+                        EM30_W(pEm)->u13.Clip_no = 4;
+                        EM_SET_RTN(pEm, 1, 7, 0, 0);
+                    } else
+                        pEm->Move_cnt = 49;
+                    break;
+                }
+            }
+            pEm->Spd_z = 0;
+            pEm->Spd_x = EM30_W(pEm)->Spd;
+            Add_speedXZ(pEm, 0);
+            EM30_W(pEm)->Spd += EM30_W(pEm)->Spd_add;
+            if (EM30_W(pEm)->Spd < EM30_W(pEm)->Spd_lim)
+                EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+            Em30_morph_step(pEm, 0x80, EM30_W(pEm)->Morph_dir);
+            if (!EM30_W(pEm)->Die_flg && (pEm->Move_cnt == 2 || pEm->Move_cnt == 38))
+                Snd_se_enem(3, pEm);
+        } while (--n);
+        break;
+    case 6:
+        pEm->Col.D0 = 1200;
+        pEm->Col.W0 = 1200;
+        {
+            ENEMY_WORK *pW = G.pEnemy[pEm->pSin_parts_ptr[8].Unk82];
+        pW->Col.D0 = 1400;
+        pW->Col.W0 = 1400;
+        }
+        if (Joint_move(pEm, pKan, pSeq, 0x80)) {
+            EM30_W(pEm)->Under = 1;
+            EM30_W(pEm)->Spd = -70;
+            EM30_W(pEm)->Spd_lim = -70;
+            EM30_W(pEm)->Spd_add = 0;
+            EM_SET_MOVE(pEm, 6, 0, 0x1F);
+            pEm->Routine_2--;
+        }
+        pEm->Spd_z = 0;
+        pEm->Spd_x = EM30_W(pEm)->Spd;
+        Add_speedXZ(pEm, 0);
+        EM30_W(pEm)->Spd += EM30_W(pEm)->Spd_add;
+        if (EM30_W(pEm)->Spd < EM30_W(pEm)->Spd_lim)
+            EM30_W(pEm)->Spd = EM30_W(pEm)->Spd_lim;
+        Em30_morph_step(pEm, 0x80, EM30_W(pEm)->Morph_dir);
+        break;
+    }
+    Em33_clip(pEm);
+    if (pEm->UnkE2 && pEm->UnkE3) {
+        Sv.vx = Rnd() & 0x3F;
+        Sv.vy = 150;
+        Sv.vz = 0;
+        if (pEm->UnkE3 == -100)
+            Esp_call(0x700, (USHORT)pPl->Cdir_y | 0x14000000, &pPl->pSin_parts_ptr[8].Workm, &Sv, 0);
+        Esp_call(0, (USHORT)pPl->Cdir_y | 0x18000000, &pPl->pSin_parts_ptr[8].Workm, &Sv, 0);
+        pPl->Spd_x = pEm->UnkE3;
+        pPl->Spd_z = 0;
+        Add_speedXZ(pPl, 0);
+        pEm->UnkE3 += 10;
+    }
+}
 
 /* mv_br[8]: break off (Die_flg or 80 damage since the dive) */
 void Em33_leap_br(ENEMY_WORK *pEm)
