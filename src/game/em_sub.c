@@ -782,6 +782,9 @@ void MulKage(KAGE_WORK *pKw, SHORT Grand, SHORT Dir_y, ULONG Flg)
 
 /* GTE inline macros (PsyQ inline_c.h with the opcodes written out) */
 #define gte_ldv0(r0) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0)" : : "r"(r0))
+#define gte_SetRotMatrix(r0) __asm__ volatile("lw $12, 0(%0); lw $13, 4(%0); ctc2 $12, $0; ctc2 $13, $1; lw $12, 8(%0); lw $13, 12(%0); lw $14, 16(%0); ctc2 $12, $2; ctc2 $13, $3; ctc2 $14, $4" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_rtv0() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_stlvnl(r0) __asm__ volatile("swc2 $25, 0(%0); swc2 $26, 4(%0); swc2 $27, 8(%0)" : : "r"(r0) : "memory")
 #define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_rtps() __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_b() __asm__ volatile(".word 0x4A280030")
@@ -1369,7 +1372,106 @@ void Esp_task_main(void)
 
 INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_speed_add);
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_pos_matrix);
+/* Pos = Workm * Base + RotY(Dir_y) * Mov (or Workm * (Base + RotY * Mov) with Be_flg 0x400);
+   Workm2 = Workm with Pos as translation */
+void Esp_pos_matrix(ESP_WORK *pEw)
+{
+    MATRIX M;
+    MATRIX *pM;
+    VECTOR Ofs;
+    SVECTOR V;
+    LONG X;
+    LONG Y;
+    LONG Z;
+    LONG Ox;
+    LONG Oy;
+    LONG Oz;
+
+    if (pEw->Be_flg & 0x800) {
+        Memcpy(&pEw->Workm, pEw->pMat, 0x20);
+    }
+    pM = &M;
+    *(int *)&pM->m[0][0] = 0x1000;
+    *(int *)&pM->m[0][2] = 0;
+    *(int *)&pM->m[1][1] = 0x1000;
+    *(int *)&pM->m[2][0] = 0;
+    *(int *)&pM->m[2][2] = 0x1000;
+    pM->t[0] = 0;
+    X = pEw->Pos.vx;
+    Y = pEw->Pos.vy;
+    Z = pEw->Pos.vz;
+    pEw->Old.vx = X;
+    pEw->Old.vy = Y;
+    pEw->Old.vz = Z;
+    if (!(pEw->Be_flg & 0x400)) {
+        do { /* (matching: raises X's register priority) */
+            X = pEw->Base[0];
+        } while (0);
+        Y = pEw->Base[1];
+        Z = pEw->Base[2];
+        V.vx = X;
+        V.vy = Y;
+        V.vz = Z;
+        gte_SetRotMatrix(&pEw->Workm);
+        gte_ldv0(&V);
+        gte_rtv0();
+        Ox = pEw->Workm.t[0];
+        Oy = pEw->Workm.t[1];
+        Oz = pEw->Workm.t[2];
+        gte_stlvnl(&Ofs);
+        RotMatrixY(pEw->Dir_y, pM);
+        gte_SetRotMatrix(pM);
+        gte_ldv0(&pEw->Mov_x); /* Mov_x..Mov_z as an SVECTOR */
+        gte_rtv0();
+        X = Ofs.vx;
+        Y = Ofs.vy;
+        Z = Ofs.vz;
+        X += Ox;
+        Y += Oy;
+        Z += Oz;
+        gte_stlvnl(&Ofs);
+    } else {
+        RotMatrixY(pEw->Dir_y, pM);
+        gte_SetRotMatrix(pM);
+        gte_ldv0(&pEw->Mov_x);
+        gte_rtv0();
+        X = pEw->Base[0];
+        Y = pEw->Base[1];
+        Z = pEw->Base[2];
+        gte_stlvnl(&Ofs);
+        Ox = Ofs.vx;
+        Oy = Ofs.vy;
+        Oz = Ofs.vz;
+        X += Ox;
+        Y += Oy;
+        Z += Oz;
+        V.vx = X;
+        V.vy = Y;
+        V.vz = Z;
+        gte_SetRotMatrix(&pEw->Workm);
+        gte_ldv0(&V);
+        gte_rtv0();
+        X = pEw->Workm.t[0];
+        Y = pEw->Workm.t[1];
+        Z = pEw->Workm.t[2];
+        gte_stlvnl(&Ofs);
+    }
+    do { /* (matching: raises the priority of Ox..Oz over pM) */
+        Ox = Ofs.vx;
+        Oy = Ofs.vy;
+        Oz = Ofs.vz;
+        X += Ox;
+        Y += Oy;
+        Z += Oz;
+        pEw->Pos.vx = X;
+        pEw->Pos.vy = Y;
+    } while (0);
+    pEw->Pos.vz = Z;
+    Memcpy(&pEw->Workm2, &pEw->Workm, 0x20);
+    pEw->Workm2.t[0] = pEw->Pos.vx;
+    pEw->Workm2.t[1] = pEw->Pos.vy;
+    pEw->Workm2.t[2] = pEw->Pos.vz;
+}
 
 /* water, floor and wall checks of an effect, result in Flg2 */
 void Esp_hit_ck(ESP_WORK *pEw)
