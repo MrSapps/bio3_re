@@ -1,14 +1,14 @@
 #include "enemy/em40.h"
 #include "joint.h"
 
-/* RE2 EM_MAIN */
-void func_80100004(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 EM_MAIN): routine by Routine_0 */
+void Em40_main(ENEMY_WORK *pEm)
 {
     Em40_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
 }
 
-/* Em40_init */
-void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 0: invulnerable; part 3 turns towards the player (neck) */
+void Em40_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
@@ -18,17 +18,18 @@ void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Neck_no = 3;
     pEm->Unk120 = 0;
     pP = &pEm->pSin_parts_ptr[3];
-    PW_FREE(pP)[2] = 0x40;
-    PW_FREE(pP)[3] = 0x40;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[5] = 0x138;
+    PW_NECK(pP)->Add_dir_y = 0x40;
+    PW_NECK(pP)->Add_dir_z = 0x40;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->L_rot_z = 0x138;
     pEm->Life = -1;
     pEm->Max_life = -1;
     pEm->Damage_cnt = 0x80;
 }
 
-void func_801000CC(void)
+/* Routine_0 1: nothing */
+void Em40_Move(ENEMY_WORK *pEm)
 {
 }

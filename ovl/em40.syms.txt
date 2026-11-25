@@ -1,3 +1,6 @@
 // em40.BIN symbols (loaded at 0x80100000)
 // names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
 Em40_routine_0 = 0x801000D4;
+Em40_main = 0x80100004; // type:func
+Em40_Init = 0x80100048; // type:func
+Em40_Move = 0x801000CC; // type:func

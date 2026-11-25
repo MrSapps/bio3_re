@@ -1,3 +1,6 @@
 // em2c.BIN symbols (loaded at 0x80100000)
 // names the C used through __asm__("func_/D_...") aliases, given to the split (phase 4)
 Em2c_routine_0 = 0x801004E4;
+Em2c_main = 0x8010001C; // type:func
+Em2c_Init = 0x80100060; // type:func
+Em2c_Move = 0x801004B0; // type:func

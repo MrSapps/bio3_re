@@ -2,14 +2,14 @@
 #include "joint.h"
 #include "md_sub.h"
 
-/* RE2 EM_MAIN */
-void func_8010001C(ENEMY_WORK *pEm)
+/* per-frame entry (RE2 EM_MAIN): routine by Routine_0 */
+void Em2c_main(ENEMY_WORK *pEm)
 {
     Em2c_routine_0[pEm->Routine_0](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
 }
 
-/* RE2 Em2c_Init */
-void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+/* Routine_0 0 (RE2 Em2c_Init): invulnerable; hide parts and bend the body by Type & 0xF */
+void Em2c_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     /* parts hidden for Type 3.. : -1 separated lists, list n hides for Type >= n + 3 */
     signed char Hide[23] = {
@@ -41,12 +41,12 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Neck_no = 1;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
-    PW_FREE(pP)[2] = 0x40;
-    PW_FREE(pP)[3] = 0x40;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[5] = 0x138;
+    PW_NECK(pP)->Add_dir_y = 0x40;
+    PW_NECK(pP)->Add_dir_z = 0x40;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->L_rot_z = 0x138;
     if ((pEm->Type & 0xF) < 2) {
         pP->Cdir_z += 0x18;
     } else {
@@ -102,8 +102,8 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* the original .rodata ends with a junk byte after Hide[] (linker filler: slot 2 has 0x55, ovl/em2c_2.fixup) */
 __asm__(".section .rodata\n\t.byte 0xFE\n\t.section .text");
 
-/* RE2 Em2c_Move: grow the shadow of Type 0 */
-void func_801004B0(ENEMY_WORK *pEm)
+/* Routine_0 1 (RE2 Em2c_Move): Type 0 lets its dark red shadow (a pool) spread */
+void Em2c_Move(ENEMY_WORK *pEm)
 {
     KAGE_WORK9 *pK = pEm->Kage.pKw9;
 
