@@ -52,7 +52,7 @@ void Em10_main(ENEMY_WORK *pEm)
     EM10_W(pEm)->A_timer++;
     if (*pFlg & 0x180)
         Em10_Kubigoro(pEm);
-    EM10_W(pEm)->Old_r = *(ULONG *)&pEm->Routine_0;
+    EM10_W(pEm)->Old_r = EM_RTN(pEm);
     Em_seq_sound(pEm);
 }
 
