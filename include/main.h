@@ -89,7 +89,7 @@ typedef struct tagMAIN {
     UCHAR Unk195;                      /* 0x195 */
     UCHAR Unk196;                      /* 0x196 */
     UCHAR pad197;
-    ULONG Unk198;                      /* 0x198 flags (0x400000 tested by func_80029700) */
+    ULONG Unk198;                      /* 0x198 flags (0x400000 tested by Scrn_negate) */
     FADE Fade[4];                      /* 0x19C */
 } tagMAIN;
 extern tagMAIN Main;                   /* 0x800D42A0 */
@@ -157,7 +157,7 @@ void Soft_reset(void);
 void Card_event_set(void); /* Card_event_set */
 void System_trans_all(void);
 void Curtain_trans(void);
-void func_8002A49C(void);
+void Fade_trans(void);
 void Fade_out_reset(void);
 void Bg_set_mode(ULONG Mode, ULONG Rgb);
 void Fade_set(ULONG No, UCHAR Pri, ULONG Flg, ULONG Abr, ULONG Rgb0, ULONG Rgb1, USHORT Cnt_max);
@@ -173,11 +173,11 @@ extern volatile ULONG D_800D454C; /* right after Main.Fade[]: vsync counter */
 
 int main(void);
 void Swap_Cbuff(void);
-void func_80029700(void);
+void Scrn_negate(void);
 void Init_system(void);
 void Init_main(void);
-void func_80029D00(void);
+void Main_dummy(void);
 void Bg_draw(void);
-void func_8002A2B8(void);
+void Pause_disp(void);
 
 #endif /* MAIN_H */

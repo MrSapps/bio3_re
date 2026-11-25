@@ -1410,3 +1410,7 @@ Ik_mat = 0x800E1200;
 Ik_mat1 = 0x800E1220;
 Ik_mat3 = 0x800E1260;
 Ik_mat4 = 0x800E1280;
+Scrn_negate = 0x80029700; // type:func
+Pause_disp = 0x8002A2B8; // type:func
+Fade_trans = 0x8002A49C; // type:func
+Main_dummy = 0x80029D00; // type:func
