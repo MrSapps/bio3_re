@@ -17,7 +17,7 @@ void func_8010014C(ENEMY_WORK *pEm)
         pEm->Damage_cnt--;
     pEm->nFloor = pEm->Pos_y / -1800;
     if (!(EF(pEm)->Flg & 0x100))
-        pEm->Unk122 = func_8004D720(&pEm->Pos_x, 350, 0x200, 1);
+        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
     Vec0.vx = pEm->Pos_x;
     Vec0.vy = pEm->Pos_y;
     Vec0.vz = pEm->Pos_z;
@@ -1308,7 +1308,7 @@ void func_80103320(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Pos_x = EF(pEm)->Old_x;
             pEm->Pos_y = EF(pEm)->Old_y;
             pEm->Pos_z = EF(pEm)->Old_z;
-            pEm->Unk122 = func_8004D720(&pEm->Pos_x, 350, 0x200, 1);
+            pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 350, 0x200, 1);
             Snd_se_enem(3, pEm);
             func_80104C00(pEm);
             pEm->Spd_y = 0;

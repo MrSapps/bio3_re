@@ -677,7 +677,7 @@ void Kage_work_sort(void)
     Unit = 0x1000;
     do {
         if (pKw->Be_flg & 4) if (!(pKw->Be_flg & 8)) {
-            Ot_base = func_80037D50(pKw->pPos);
+            Ot_base = Ot_get_pos(pKw->pPos);
             *(LONG *)&Mx.m[0][0] = Unit;
             *(LONG *)&Mx.m[0][2] = 0;
             *(LONG *)&Mx.m[1][1] = Unit;
@@ -1212,7 +1212,7 @@ void Esp_hit_ck(ESP_WORK *pEw)
     }
     if (*(ULONG *)&pEw->Be_flg & 0x50) {
         if (pEw->Be_flg & 0x40) {
-            y = func_8004D720(&pEw->Pos.vx, 2, 0x1000, 0);
+            y = Sca_get_ground(&pEw->Pos.vx, 2, 0x1000, 0);
             if (y < pEw->Pos.vy) {
                 if (y < pEw->Pos.pad) {
                     pEw->Flg2 |= 0x80;
@@ -1221,7 +1221,7 @@ void Esp_hit_ck(ESP_WORK *pEw)
                 }
             }
         }
-        y = func_8004D720(&pEw->Pos.vx, 2, 0x2000, 0);
+        y = Sca_get_ground(&pEw->Pos.vx, 2, 0x2000, 0);
         if (y < pEw->Pos.vy) {
             if (y < pEw->Pos.pad) {
                 pEw->Flg2 |= 0x20;

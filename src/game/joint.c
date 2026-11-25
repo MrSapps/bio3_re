@@ -257,7 +257,7 @@ void Parts_sort(ULONG *pObj, ULONG Flg, PARTS_W *pP)
     Prm.pOt = pG->pEm->pUnk7C;
     Abr = (Flg & 0x100) >> 7;
     if (Flg & 0x2000) {
-        Prm.pOt = func_80037D50(pP->Workm.t);
+        Prm.pOt = Ot_get_pos(pP->Workm.t);
     }
     if (Flg & 0x400) {
         func_8002D184(Work0, Work1, (MD_OBJ *)pObj[1], &pP->Workm);
@@ -807,12 +807,12 @@ void Parts_down(PARTS_W *pP_ptr, MATRIX *wm)
     }
     if (pP_ptr->Timer3 > 1) {
         Pos = *PW_POS_V(pP_ptr);
-        Floor_y = func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1);
+        Floor_y = Sca_get_ground(pP_ptr->Workm.t, 100, 0x2000, 1);
         wm->t[0] += pP_ptr->Old_x;
         pP_ptr->Old_y += (signed char)pP_ptr->Timer1;
         wm->t[1] += pP_ptr->Old_y;
         wm->t[2] += pP_ptr->Old_z;
-        if (func_8004D720(pP_ptr->Workm.t, 100, 0x2000, 1) < Floor_y) {
+        if (Sca_get_ground(pP_ptr->Workm.t, 100, 0x2000, 1) < Floor_y) {
             *PW_POS_V(pP_ptr) = Pos;
             pP_ptr->Old_x >>= 2;
             pP_ptr->Old_z >>= 2;

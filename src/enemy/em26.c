@@ -4,7 +4,7 @@
 #include "snd.h"
 #include "sld.h"
 
-LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__("func_8004D720"); /* 5 args here (canonical 4) */
+LONG func_8004D720_(LONG *pPos, ULONG W, ULONG a2, ULONG a3, LONG Pos_y) __asm__("Sca_get_ground"); /* 5 args here (canonical 4) */
 
 /* RE2 EM_MAIN */
 void func_8010001C(ENEMY_WORK *pEm)

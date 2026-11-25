@@ -44,9 +44,9 @@ void func_8010003C(ENEMY_WORK *pEm)
         }
         func_80101854(pEm);
     }
-    Under = (SHORT)func_8004D720(pP[2].Workm.t, 500, 0x2000, 0) < pP[2].Workm.t[1];
+    Under = (SHORT)Sca_get_ground(pP[2].Workm.t, 500, 0x2000, 0) < pP[2].Workm.t[1];
     n = Under;
-    if ((SHORT)func_8004D720(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
+    if ((SHORT)Sca_get_ground(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
         n = Under + 1;
     if (EM37_W(pEm)->pParent->Damage_cnt & 0x80)
         n = 0;

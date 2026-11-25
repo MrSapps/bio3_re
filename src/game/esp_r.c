@@ -332,7 +332,7 @@ void Esp_29(ESP_WORK *pEsp)
     }
     if (pEsp->Unk22 == 2) {
         if (pEsp->UnkB4 >= 3) {
-            y = func_8004D720(&pEsp->Pos.vx, 2, 0x2000, 4);
+            y = Sca_get_ground(&pEsp->Pos.vx, 2, 0x2000, 4);
             if (y < pEsp->Pos.vy) {
                 if (y < pEsp->Pos.pad) {
                     pEsp->Flg2 |= 0x20;

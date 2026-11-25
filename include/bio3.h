@@ -61,9 +61,9 @@ typedef struct tagOBJ_MODEL_WORK {
     UCHAR Parts_num;                   /* 0x08 */
     signed char nFloor;                /* 0x09 */
     UCHAR padA[0xD - 0xA];
-    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (func_80037C38) */
+    UCHAR UnkD;                        /* 0x0D G.pOt_sub index (Ot_set_all) */
     UCHAR padE[0x10 - 0xE];
-    ULONG Attribute;                   /* 0x10 RE2 Attribute (func_8003589C) */
+    ULONG Attribute;                   /* 0x10 RE2 Attribute (Om_parts_link) */
     struct tagMD_OBJ *pTmd;            /* 0x14 RE2 pTmd (an MD object in RE3) */
     UCHAR pad18[0x20 - 0x18];
     MATRIX M;                          /* 0x20 M.t = Pos_x/y/z */
@@ -79,22 +79,22 @@ typedef struct tagOBJ_MODEL_WORK {
     SVECTOR Cdir;                      /* 0x6C */
     ULONG Poly_rgb;                    /* 0x74 */
     MATRIX *pSuper;                    /* 0x78 */
-    ULONG *pUnk7C;                     /* 0x7C ordering table (func_80037C38) */
+    ULONG *pUnk7C;                     /* 0x7C ordering table (Ot_set_all) */
     UCHAR pad80[0xAE - 0x80];
-    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (func_80036570) */
+    USHORT UnkAE;                      /* 0xAE 0x10: pushable, 0x20: keeps being pushed (Om_push_ck) */
     UCHAR padB0[0xBA - 0xB0];
     USHORT UnkBA;                      /* 0xBA */
     UCHAR padBC[0xC0 - 0xBC];
-    UCHAR Push_cnt;                    /* 0xC0 frames pushed (func_80036570) */
+    UCHAR Push_cnt;                    /* 0xC0 frames pushed (Om_push_ck) */
     UCHAR UnkC1;                       /* 0xC1 index into G.pUnk75AC */
-    UCHAR UnkC2;                       /* 0xC2 flag id set when done (func_80036C60) */
+    UCHAR UnkC2;                       /* 0xC2 flag id set when done (Om_rtn_wait) */
     UCHAR UnkC3;                       /* 0xC3 0x80: kirakira effect, 0x60: its kind (Sce_kirakira_set) */
     struct tagPARTS_W *pParts;         /* 0xC4 */
     UCHAR padC8[0x130 - 0xC8];
     ULONG Unk130;                      /* 0x130 */
     UCHAR pad134[0x188 - 0x134];
     ULONG *pPacket188;                 /* 0x188 POLY_GT4 packets (Col_chg_init) */
-    SHORT Unk18C;                      /* 0x18C fall speed (func_80036D94) */
+    SHORT Unk18C;                      /* 0x18C fall speed (Om_rtn_drop) */
     SHORT Unk18E;                      /* 0x18E */
     SHORT Unk190;                      /* 0x190 */
     SHORT Unk192;                      /* 0x192 ground y */
@@ -204,7 +204,7 @@ typedef struct tagEM_HIT_AREA {
     USHORT dummy01;                    /* 0x072 */                            \
     ULONG Poly_rgb;                    /* 0x074 */                            \
     MATRIX *pSuper;                    /* 0x078 */                            \
-    ULONG *pUnk7C;                     /* 0x07C ordering table of the work (func_80037C38) */ \
+    ULONG *pUnk7C;                     /* 0x07C ordering table of the work (Ot_set_all) */ \
     COL_OBJ Col;                       /* 0x080 collision node (OBA.C) */     \
     SHORT Spd_x;                       /* 0x0C0 */                            \
     SHORT Spd_y;                       /* 0x0C2 */                            \
@@ -507,7 +507,7 @@ typedef struct tagGLOBAL {
     UCHAR Save_mono;                   /* 0x7D8E Snd_work.UnkB75 */
     UCHAR pad7D8F;
     ULONG Unk7D90[12];                 /* 0x7D90 copied from enemy work +0x1CC (func_80024C58) */
-    struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (func_80037A90) */
+    struct {                           /* 0x7DC0 0xC-byte records, Unk7E20 used (Om_drop_set) */
         UCHAR Unk0;
         UCHAR Unk1;
         UCHAR pad2[2];

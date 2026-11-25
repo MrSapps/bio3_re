@@ -1634,7 +1634,7 @@ void func_80105C08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (*pEm->pNow_seq & 0x200 && !pPl->Damage_cnt) {
             pEm->UnkE3 = -0x80;
             pP = EM36_W(pEm)->pSub->pSin_parts_ptr;
-            Gy = func_8004D720(pP[1].Workm.t, 200, 0x2000, 0);
+            Gy = Sca_get_ground(pP[1].Workm.t, 200, 0x2000, 0);
             if (pEm->Move_cnt < 30 && Gy < pP[1].Workm.t[1]) {
                 EM_SET_RTN(pEm, 1, 0x11, 0, 0);
                 return;
@@ -2650,7 +2650,7 @@ void func_80108AC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         G.Unk785C = 0;
         G.Status_flg &= ~0x40000000;
         if (G.Status_flg & 0x2000)
-            func_80037A90(pEm, 10);
+            Om_drop_set(pEm, 10);
         if (EM36_W(pEm)->pSub) {
             EM36_W(pEm)->pSub->Routine_0 = 1;
             EM36_W(pEm)->pSub->Routine_1 = 0;
@@ -2749,7 +2749,7 @@ void func_80109050(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
         Add_speedXZ(pEm, 0);
         if (pEm->Unk14A & 8 && G.Status_flg & 0x2000)
-            func_80037A90(pEm, 30);
+            Om_drop_set(pEm, 30);
         break;
     case 2:
         if (pEm->Unk14A) {

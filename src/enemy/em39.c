@@ -58,11 +58,11 @@ void func_80100004(ENEMY_WORK *pEm)
                     pP->Size_y = pEm->Spd_x;
             }
         }
-        Under = (SHORT)func_8004D720(pP[3].Workm.t, 500, 0x2000, 0) < pP[3].Workm.t[1];
+        Under = (SHORT)Sca_get_ground(pP[3].Workm.t, 500, 0x2000, 0) < pP[3].Workm.t[1];
         n = Under;
-        if ((SHORT)func_8004D720(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
+        if ((SHORT)Sca_get_ground(pP[4].Workm.t, 500, 0x2000, 0) < pP[4].Workm.t[1])
             n = Under + 1;
-        if ((SHORT)func_8004D720(pP[5].Workm.t, 500, 0x2000, 0) < pP[5].Workm.t[1])
+        if ((SHORT)Sca_get_ground(pP[5].Workm.t, 500, 0x2000, 0) < pP[5].Workm.t[1])
             n++;
         pP->Size_y -= (SHORT)n * 0x80;
         if (pP->Size_y > 0x1000)

@@ -550,7 +550,7 @@ LONG func_80101988(ENEMY_WORK *pEm)
     if (__builtin_abs(pEm->nFloor - Pl_work.nFloor) >= 2)
         return 1;
     Ceil = pEm->Unk122 - 1600;
-    return func_8004D720(pP->Workm.t, pEm->Col.W0, 0x200, 0) < Ceil;
+    return Sca_get_ground(pP->Workm.t, pEm->Col.W0, 0x200, 0) < Ceil;
 }
 
 LONG func_80101A30(ENEMY_WORK *pEm)
@@ -3160,7 +3160,7 @@ LONG func_801091A0(ENEMY_WORK *pEm)
     V.vx = pEm->Pos_x + Sv.vx;
     V.vy = pEm->Pos_y;
     V.vz = pEm->Pos_z + Sv.vz;
-    if (func_8004D720(&V.vx, pEm->Col.W0, 0x200, 0x20))
+    if (Sca_get_ground(&V.vx, pEm->Col.W0, 0x200, 0x20))
         return 0;
     Sv.vx = Len;
     Sv.vz = 0;
@@ -3168,7 +3168,7 @@ LONG func_801091A0(ENEMY_WORK *pEm)
     V.vx = pEm->Pos_x + Sv.vx;
     V.vy = pEm->Pos_y;
     V.vz = pEm->Pos_z + Sv.vz;
-    if (func_8004D720(&V.vx, pEm->Col.W0, 0x200, 0x20))
+    if (Sca_get_ground(&V.vx, pEm->Col.W0, 0x200, 0x20))
         return 0;
     Sv.vx = Len;
     Sv.vz = 0;
@@ -3176,7 +3176,7 @@ LONG func_801091A0(ENEMY_WORK *pEm)
     V.vx = pEm->Pos_x + Sv.vx;
     V.vy = pEm->Pos_y;
     V.vz = pEm->Pos_z + Sv.vz;
-    if (func_8004D720(&V.vx, pEm->Col.W0, 0x200, 0x20))
+    if (Sca_get_ground(&V.vx, pEm->Col.W0, 0x200, 0x20))
         return 0;
     Sv.vx = Len;
     Sv.vz = 0;
@@ -3184,5 +3184,5 @@ LONG func_801091A0(ENEMY_WORK *pEm)
     V.vx = pEm->Pos_x + Sv.vx;
     V.vy = pEm->Pos_y;
     V.vz = pEm->Pos_z + Sv.vz;
-    return func_8004D720(&V.vx, pEm->Col.W0, 0x200, 0x20) == 0;
+    return Sca_get_ground(&V.vx, pEm->Col.W0, 0x200, 0x20) == 0;
 }

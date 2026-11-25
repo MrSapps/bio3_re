@@ -84,7 +84,7 @@ loop:
     pAseq = pEff->pSeq + pEff->Seq_no;
     nSpr = pAseq->nSpr;
     if ((Be_flg & 0xA000) == 0xA000 && Hit_ck_point4(workm.t, pCcut) != 0 && nSpr != 0) {
-        pOt = func_80037D50(workm.t);
+        pOt = Ot_get_pos(workm.t);
         D2 = 0x2C;
         if (Be_flg & 0x1000) {
             D2 = 0x2E;

@@ -345,7 +345,7 @@ ULONG func_8004D6B8(LONG X, LONG Z)
     return Area | (((1 << ((ULONG)(X - Sx) >> 31)) << (((Z - Sz) & 0x80000000) >> 30)) << 4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004D720);
+INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_get_ground);
 
 INCLUDE_ASM("asm/nonmatchings/game/sca", func_8004DB10);
 

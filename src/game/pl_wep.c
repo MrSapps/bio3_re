@@ -213,7 +213,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
         Mtx.t[0] += Spd.vx;
         Mtx.t[2] += Spd.vz;
-        if ((SHORT)func_8004D720(Mtx.t, 10, 0x2040, 0x10) < Mtx.t[1]) {
+        if ((SHORT)Sca_get_ground(Mtx.t, 10, 0x2040, 0x10) < Mtx.t[1]) {
             *(USHORT *)&pEm->Routine_2 = 7;
             *(ULONG *)&pEm->Move_no = 0x30007;
             *(ULONG *)&pEm->Sub_move_no = 0x30007;
@@ -3015,7 +3015,7 @@ void func_80046EC4(void)
             pWp++;
             continue;
         }
-        pOt = func_80037D50((LONG *)pWp->Unk4);
+        pOt = Ot_get_pos((LONG *)pWp->Unk4);
         Sv.vx = ((VECTOR *)pWp->Unk4)->vx;
         Sv.vy = ((VECTOR *)pWp->Unk4)->vy;
         Sv.vz = ((VECTOR *)pWp->Unk4)->vz;

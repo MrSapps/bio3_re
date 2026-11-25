@@ -271,7 +271,7 @@ LONG Em32_fall_ck(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y - 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 0) != Pos.vy)
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 0) != Pos.vy)
             return 0;
         Sv.vx = pEm->Col.W0 + 1600;
         Sv.vz = 0;
@@ -279,7 +279,7 @@ LONG Em32_fall_ck(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y - 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 0) != Pos.vy)
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 0) != Pos.vy)
             return 0;
         Sv.vx = 1000;
         Sv.vz = 0;
@@ -287,7 +287,7 @@ LONG Em32_fall_ck(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y - 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 0) != Pos.vy)
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 0) != Pos.vy)
             return 0;
         Sv.vx = 1767;
         Sv.vz = 0;
@@ -295,12 +295,12 @@ LONG Em32_fall_ck(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y - 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 0) == Pos.vy) {
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 0) == Pos.vy) {
             Rot_vector_l(pEm->Cdir_y - 0x11D, &Sv, &Sv);
             Pos.vx = Sv.vx + pEm->Pos_x;
             Pos.vy = pEm->Pos_y - 1800;
             Pos.vz = Sv.vz + pEm->Pos_z;
-            return func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 0) == Pos.vy;
+            return Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 0) == Pos.vy;
         }
     }
     return 0;
@@ -378,7 +378,7 @@ LONG func_80100F84(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y + 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 4) < Pos.vy)
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 4) < Pos.vy)
             return 0;
         Sv.vx = pEm->Col.W0 + 1500;
         Sv.vz = 0;
@@ -386,7 +386,7 @@ LONG func_80100F84(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y + 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 4) < Pos.vy)
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 4) < Pos.vy)
             return 0;
         Sv.vx = 1000;
         Sv.vz = 0;
@@ -394,7 +394,7 @@ LONG func_80100F84(ENEMY_WORK *pEm)
         Pos.vx = Sv.vx + pEm->Pos_x;
         Pos.vy = pEm->Pos_y + 1800;
         Pos.vz = Sv.vz + pEm->Pos_z;
-        if (func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 4) >= Pos.vy)
+        if (Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 4) >= Pos.vy)
             return !func_800345C0(&Pos, pEm);
     }
     return 0;
@@ -721,7 +721,7 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             EM_SET_RTN(pEm, 1, 0, 0, 0);
             pEm->Type &= ~0x2000;
         }
-        if (!EM32_W(pEm)->Unk22 && pEm->Move_cnt >= 15 && func_8004D720(&pEm->Pos_x, pEm->Col.W0, 0x200, 0) <= 0) {
+        if (!EM32_W(pEm)->Unk22 && pEm->Move_cnt >= 15 && Sca_get_ground(&pEm->Pos_x, pEm->Col.W0, 0x200, 0) <= 0) {
             EM32_W(pEm)->Unk22 = 1;
             pEm->Be_flg &= ~0x2000;
         }
@@ -820,7 +820,7 @@ void func_80101E30(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Pos.vx = pEm->Pos_x;
             Pos.vy = pEm->Pos_y;
             Pos.vz = pEm->Pos_z;
-            Ground = func_8004D720(&Pos.vx, pEm->Col.W0, 0x8000, 4);
+            Ground = Sca_get_ground(&Pos.vx, pEm->Col.W0, 0x8000, 4);
             pEm->Unk122 = Ground;
             pEm->Pos_y = Ground;
             pEm->nFloor = Ground / -1800;

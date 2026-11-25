@@ -654,7 +654,7 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
     v.vx = pEm->Pos_x + ((SHORT)s0.vx >> 3);
     v.vz = pEm->Pos_z + ((SHORT)s0.vz >> 3);
     v.vy = pEm->Pos_y;
-    d = func_8004D720(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
+    d = Sca_get_ground(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
     n = 0;
     if (h < d) {
         y = pEm->Unk1A4[1];
@@ -669,7 +669,7 @@ void func_80079CC0(ENEMY_WORK *pEm, LONG h)
     v.vx = pEm->Pos_x + ((SHORT)s1.vx >> 3);
     v.vz = pEm->Pos_z + ((SHORT)s1.vz >> 3);
     v.vy = pEm->Pos_y;
-    d = func_8004D720(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
+    d = Sca_get_ground(&v.vx, 0x320, 0x8000, 0x69) - pEm->Unk122;
     if (h < d) {
         y = pEm->Unk1AC[1];
         d <<= 3;

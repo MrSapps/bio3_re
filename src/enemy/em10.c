@@ -882,10 +882,10 @@ void Em10_Kahannsin_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd.vx = (Rnd_l() & 7) + 10;
         Spd.vy = 0;
         ApplyMatrixSV(&M, &Spd, &Sv);
-        Ground = func_8004D720(pEm->Super_matrix.t, 500, 0x200, 1);
+        Ground = Sca_get_ground(pEm->Super_matrix.t, 500, 0x200, 1);
         pEm->Super_matrix.t[0] += Sv.vx;
         pEm->Super_matrix.t[2] += Sv.vz;
-        if (Ground != (SHORT)func_8004D720(pEm->Super_matrix.t, 500, 0x200, 1)) {
+        if (Ground != (SHORT)Sca_get_ground(pEm->Super_matrix.t, 500, 0x200, 1)) {
             pEm->Super_matrix.t[0] -= Sv.vx;
             pEm->Super_matrix.t[2] -= Sv.vz;
         }
@@ -913,10 +913,10 @@ void Em10_Kahannsin_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd.vx = 30;
         Spd.vy = 0;
         ApplyMatrixSV(&M, &Spd, &Sv);
-        Ground = func_8004D720(pEm->Super_matrix.t, 500, 0x200, 1);
+        Ground = Sca_get_ground(pEm->Super_matrix.t, 500, 0x200, 1);
         pEm->Super_matrix.t[0] += Sv.vx;
         pEm->Super_matrix.t[2] += Sv.vz;
-        if (Ground != (SHORT)func_8004D720(pEm->Super_matrix.t, 500, 0x200, 1)) {
+        if (Ground != (SHORT)Sca_get_ground(pEm->Super_matrix.t, 500, 0x200, 1)) {
             pEm->Super_matrix.t[0] -= Sv.vx;
             pEm->Super_matrix.t[2] -= Sv.vz;
         }

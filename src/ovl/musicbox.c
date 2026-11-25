@@ -35,7 +35,7 @@ void Mbox_main(void)
     }
     while (pMw->Run) {
         Mbox_ctr();
-        func_80037C38();
+        Ot_set_all();
         pG->pUnk208C = (POLY_GT4 *)((ULONG *)pG->pEm_mem + pG->Cbuf_id * 13);
         Om_trans();
         if ((LONG)G.System_flg >= 0)

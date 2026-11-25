@@ -100,11 +100,11 @@ void func_80100154(ENEMY_WORK *pEm)
             Bite = 1;
         pP = pEm->pSin_parts_ptr;
         pW = &pP[6];
-        if ((SHORT)func_8004D720(pP[6].Workm.t, 500, 0x2000, 0) < pEm->Pos_y)
+        if ((SHORT)Sca_get_ground(pP[6].Workm.t, 500, 0x2000, 0) < pEm->Pos_y)
             Work += Bite + 1;
-        if ((SHORT)func_8004D720(pP[7].Workm.t, 500, 0x2000, 0) < pEm->Pos_y)
+        if ((SHORT)Sca_get_ground(pP[7].Workm.t, 500, 0x2000, 0) < pEm->Pos_y)
             Work += Bite + 1;
-        if ((SHORT)func_8004D720(pP[8].Workm.t, 500, 0x2000, 0) < pEm->Pos_y)
+        if ((SHORT)Sca_get_ground(pP[8].Workm.t, 500, 0x2000, 0) < pEm->Pos_y)
             Work += Bite + 1;
         if (pEm->Pos_y)
             Work = 0;
@@ -1350,7 +1350,7 @@ void func_801038E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         V.vx = pEm->Pos_x + Sv.vx;
         V.vy = pEm->Pos_y;
         V.vz = pEm->Pos_z + Sv.vz;
-        func_8004D720(&V.vx, 1, 0x200, 0);
+        Sca_get_ground(&V.vx, 1, 0x200, 0);
         if (!Goto01_ck(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, 0x40) && (pEm->Col.Hit_flg & 0x20)
             && Hit_ck_point4(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16]))) {
             pEm->Routine_2 = 3;
@@ -1522,7 +1522,7 @@ void func_80103FF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         V.vx = pEm->Pos_x + Sv.vx;
         V.vy = pEm->Pos_y;
         V.vz = pEm->Pos_z + Sv.vz;
-        func_8004D720(&V.vx, 1, 0x200, 0);
+        Sca_get_ground(&V.vx, 1, 0x200, 0);
         if (!Goto01_ck(pEm, Em38_root[EM38_W(pEm)->Unk16].Dir, 0x80) && (pEm->Col.Hit_flg & 0x20)
             && Hit_ck_point4(&pEm->Pos_x, EM38_ROOT_CUT(&Em38_root[EM38_W(pEm)->Unk16]))) {
             pEm->Routine_2 = 3;
@@ -4061,7 +4061,7 @@ void func_8010C3E8(ENEMY_WORK *pEm)
             }
             pP->Workm.t[0] += pP->Pos_step_y;
             pP->Workm.t[2] += pP->Pos_base_y;
-            if (func_8004D720(pP->Workm.t, 1, 0x2000, 0)) {
+            if (Sca_get_ground(pP->Workm.t, 1, 0x2000, 0)) {
                 pP->Workm.t[0] -= pP->Pos_step_y;
                 pP->Workm.t[2] -= pP->Pos_base_y;
                 pP->Pos_step_y = 0;
@@ -4109,7 +4109,7 @@ void func_8010C3E8(ENEMY_WORK *pEm)
             pP->Pos_base_y -= pP->Pos_base_y >> 3;
             pP->Workm.t[0] += pP->Pos_step_y;
             pP->Workm.t[2] += pP->Pos_base_y;
-            if (func_8004D720(pP->Workm.t, 1, 0x2000, 0)) {
+            if (Sca_get_ground(pP->Workm.t, 1, 0x2000, 0)) {
                 pP->Workm.t[0] -= pP->Pos_step_y;
                 pP->Workm.t[2] -= pP->Pos_base_y;
                 pP->Pos_step_y = 0;

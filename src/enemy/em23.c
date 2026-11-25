@@ -109,7 +109,7 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     PW_FREE(pP)[0] = 0;
     PW_FREE(pP)[1] = 0;
     PW_FREE(pP)[5] = 0x138;
-    EF(pEm)->Ground = func_8004D720(&pEm->Pos_x, 0, -1, 8);
+    EF(pEm)->Ground = Sca_get_ground(&pEm->Pos_x, 0, -1, 8);
     if (G.System_flg & 0x100)
         pEm->Max_life = pEm->Life = Em23_life_easy[(Rnd_l() >> (Rnd_l() & 3)) & 0xF];
     else
@@ -1250,7 +1250,7 @@ void func_80103A90(ENEMY_WORK *pEm)
         EF(pEm)->Timer--;
     Old = EF(pEm)->Ground;
     EF(pEm)->Unk04 &= 0xFFF;
-    EF(pEm)->Ground = func_8004D720(&pEm->Col.Pos_x, 0, -1, 8);
+    EF(pEm)->Ground = Sca_get_ground(&pEm->Col.Pos_x, 0, -1, 8);
     if (EF(pEm)->Ground < pEm->Col.Pos_y)
         EF(pEm)->Ground = Old;
     if (pEm->Routine_2 == 3 || pEm->Routine_2 == 5) {
@@ -1302,7 +1302,7 @@ void func_80103D58(ENEMY_WORK *pEm)
 
     Old = EF(pEm)->Ground;
     EF(pEm)->Unk04 &= 0xFFF;
-    EF(pEm)->Ground = func_8004D720(&pEm->Col.Pos_x, 0, -1, 8);
+    EF(pEm)->Ground = Sca_get_ground(&pEm->Col.Pos_x, 0, -1, 8);
     if (EF(pEm)->Ground < pEm->Col.Pos_y)
         EF(pEm)->Ground = Old;
     if (pEm->Routine_2 == 3 || pEm->Routine_2 == 5) {
@@ -1504,7 +1504,7 @@ void func_80105260(ENEMY_WORK *pEm)
     LONG Z;
 
     Old = EF(pEm)->Ground;
-    EF(pEm)->Ground = func_8004D720(&pEm->Col.Pos_x, 0, -1, 8);
+    EF(pEm)->Ground = Sca_get_ground(&pEm->Col.Pos_x, 0, -1, 8);
     if (EF(pEm)->Ground < pEm->Col.Pos_y)
         EF(pEm)->Ground = Old;
     if (EF(pEm)->Unk11)
@@ -2117,7 +2117,7 @@ void func_80107454(ENEMY_WORK *pEm)
     LONG Old;
 
     Old = EF(pEm)->Ground;
-    EF(pEm)->Ground = func_8004D720(&pEm->Col.Pos_x, 0, -1, 8);
+    EF(pEm)->Ground = Sca_get_ground(&pEm->Col.Pos_x, 0, -1, 8);
     if (EF(pEm)->Ground < pEm->Col.Pos_y)
         EF(pEm)->Ground = Old;
     EM23_WALL_DIR(pEm);

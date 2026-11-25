@@ -19,7 +19,7 @@ void func_80100060(ENEMY_WORK *pEm)
     V.vx = pEm->Pos_x;
     V.vz = pEm->Pos_z;
     V.vy = pEm->Unk122;
-    if (func_8004D720(&V.vx, 350, 0x8000, 0) != pEm->Unk122) {
+    if (Sca_get_ground(&V.vx, 350, 0x8000, 0) != pEm->Unk122) {
         pEm->Pos_x = pEm->Old_x;
         pEm->Pos_z = pEm->Old_z;
     } else {
@@ -338,7 +338,7 @@ void func_801010D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_x = -100;
         pEm->Spd_z = 0;
         Add_speedXZ(pEm, 0);
-        pEm->Unk122 = func_8004D720(&pEm->Pos_x, pEm->Col.W0, 0x200, 9);
+        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, pEm->Col.W0, 0x200, 9);
         pEm->Pos_y += pEm->Timer0;
         if (pEm->Timer0 < 800)
             pEm->Timer0 <<= 1;

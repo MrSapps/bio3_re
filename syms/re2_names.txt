@@ -394,3 +394,7 @@ ko_joint_trans2 = 0x80025610; // type:func joint: light matrix and sort of one p
 PartsWork_link = 0x800261AC; // type:func joint: link the part tree of a work from its kan (parents, rest positions), RE2 JOINT.C PartsWork_link
 Parts_down = 0x80027568; // type:func joint: falling part: bounces on the floor, blends into its fall rotation, RE2 JOINT.C Parts_down
 Parts_bomb = 0x8002783C; // type:func joint: part flying off in an explosion, RE2 JOINT.C Parts_bomb
+Om_init = 0x80035790; // type:func om: object model setup: map its model once (G.pOld_tmd), parts or packet work (RE2 OM.C Om_init)
+Om_move_box = 0x8003749C; // type:func om: Om_routine 2: a pushed box tips over the edge (RE2 OM.C Om_move_box statics)
+Om_explosion_set = 0x80037680; // type:func om: Om_routine 3: parts fly apart (PW_BOMB) and hurt around (RE2 OM.C Om_explosion_set)
+Sca_get_ground = 0x8004D720; // type:func sca: floor height under pPos (RE2 SCA.C Sca_get_ground, same arguments in Parts_down)

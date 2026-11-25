@@ -114,7 +114,7 @@ void Set_room(void)
     func_80033508();
     func_800486C8();
     Sce_model_init();
-    func_80037E80();
+    Ot_sub_init();
     if (G.System_flg & 0x10000000) {
         D_80098700 = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;

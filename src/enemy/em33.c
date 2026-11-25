@@ -757,14 +757,14 @@ void func_80102130(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP = &pEm->pSin_parts_ptr[10];
             Pos.vx = pP->Workm.t[0];
             Pos.vz = pP->Workm.t[2];
-            if (func_8004D720(&Pos.vx, 0, 0x8000, 0)) {
+            if (Sca_get_ground(&Pos.vx, 0, 0x8000, 0)) {
                 EM33_W(pEm)->Unk22 = 6;
                 Esp_call(0x16, (USHORT)pEm->Cdir_y | 0x20000000, &pEm->pSin_parts_ptr[10].Workm, &Spd, 0);
             }
             pP = &pEm->pSin_parts_ptr[12];
             Pos.vx = pP->Workm.t[0];
             Pos.vz = pP->Workm.t[2];
-            if (func_8004D720(&Pos.vx, 0, 0x8000, 0)) {
+            if (Sca_get_ground(&Pos.vx, 0, 0x8000, 0)) {
                 EM33_W(pEm)->Unk22 = 6;
                 Esp_call(0x16, (USHORT)pEm->Cdir_y | 0x20000000, &pEm->pSin_parts_ptr[12].Workm, &Spd, 0);
             }

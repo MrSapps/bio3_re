@@ -1293,7 +1293,7 @@ void Em34_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Pos.vx += pEm->Pos_x;
             Pos.vy += pEm->Pos_y;
             Pos.vz += pEm->Pos_z;
-            Em34_floor = func_8004D720(&Pos.vx, 600, 0x2000, 0);
+            Em34_floor = Sca_get_ground(&Pos.vx, 600, 0x2000, 0);
             if (pEm->Unk122 != Em34_floor)
                 pPl->UnkE3 = (pPl->UnkE3 - 1) & 1;
             if (--EM34_W(pEm)->Unk02 == 0xFF) {
@@ -2354,7 +2354,7 @@ void Em34_die_burn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         G.Status_flg &= ~0x40000000;
         Em_dead_flg_on_cand(pEm);
         if (G.Status_flg & 0x2000)
-            func_80037A90(pEm, 30);
+            Om_drop_set(pEm, 30);
         G.Unk785C = 0;
         if (EM34_W(pEm)->pPartner) {
             EM34_W(pEm)->pPartner->Routine_0 = 1;
@@ -2444,7 +2444,7 @@ void Em34_sce02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (!(pEm->Unk14A & 0x10))
             Add_speedXZ(pEm, 0);
         if ((pEm->Unk14A & 8) && (D_800D1F2C_ & 0x2000))
-            func_80037A90(pEm, 30);
+            Om_drop_set(pEm, 30);
         break;
     case 2:
         if (pEm->Unk14A & 1) {
@@ -2488,7 +2488,7 @@ void Em34_sce04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Neck_flg |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
         if ((pEm->Unk14A & 8) && (D_800D1F2C_ & 0x2000))
-            func_80037A90(pEm, 0);
+            Om_drop_set(pEm, 0);
     case 1:
         Spd_get(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
         pEm->Routine_2 += Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
@@ -3409,7 +3409,7 @@ void Em34_after1(ENEMY_WORK *pEm)
             Sv.vz = 0;
             Esp_call(0x1001203, 0xA000000, pM, &Sv, NULL);
         case 2:
-            Floor = func_8004D720(pP->Workm.t, 400, 0x2000, 0);
+            Floor = Sca_get_ground(pP->Workm.t, 400, 0x2000, 0);
             Sv.vx = 0;
             Sv.vy = 0;
             Sv.vz = 0x44;
@@ -3448,7 +3448,7 @@ void Em34_after1(ENEMY_WORK *pEm)
             Sv.vz = 0;
             RotMatrix(&Sv, &M);
             MulMatrix((MATRIX *)pP->M, &M);
-            if ((SHORT)func_8004D720(pP->Workm.t, 400, 0x2000, 0) == pEm->Unk122) {
+            if ((SHORT)Sca_get_ground(pP->Workm.t, 400, 0x2000, 0) == pEm->Unk122) {
                 Sv.vx = 0;
                 Sv.vy = PW_FREE(pP)->Free[1];
                 Sv.vz = 0;

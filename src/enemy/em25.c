@@ -2000,7 +2000,7 @@ void Em25_kage_move(ENEMY_WORK *pEm)
     case 0:
         if (!Water_ck(pEm->Pos_x, pEm->Pos_z)) {
             pEm->Be_flg &= ~0x20;
-            pEm->Unk122 = func_8004D720(&pEm->Col.Pos_x, 800, 0x200, 8);
+            pEm->Unk122 = Sca_get_ground(&pEm->Col.Pos_x, 800, 0x200, 8);
             break;
         }
     case 1:

@@ -1542,7 +1542,7 @@ void Aida_mv09(ENEMY_WORK *pEm)
         pEm->nFloor--;
     case 3:
         pEm->Pos_y += pEm->Timer0++ * 30;
-        pEm->Unk122 = func_8004D720(&pEm->Pos_x, 0x190, 0x8000, 1);
+        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 0x190, 0x8000, 1);
         pEm->nFloor = pEm->Pos_y / -1800;
         Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         if (pEm->Unk122 - 300 < pEm->Pos_y) {

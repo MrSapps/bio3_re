@@ -25,11 +25,11 @@ void Em10_Kubigoro(ENEMY_WORK *pEm)
     RotMatrixX(0x40, &M);
     CompM(&pP->Workm, &M, &pP->Workm);
     Tv0 = *(VECTOR *)pP->Workm.t;
-    Ground = func_8004D720(pP->Workm.t, 100, 0x2000, 1);
+    Ground = Sca_get_ground(pP->Workm.t, 100, 0x2000, 1);
     pP->Workm.t[0] += pP->Old_x;
     pP->Workm.t[1] += pP->Old_y;
     pP->Workm.t[2] += pP->Old_z;
-    Ground2 = func_8004D720(pP->Workm.t, 100, 0x2000, 1);
+    Ground2 = Sca_get_ground(pP->Workm.t, 100, 0x2000, 1);
     if (Ground > Ground2) {
         *(VECTOR *)pP->Workm.t = Tv0;
         Ground2 = Ground;

@@ -1532,7 +1532,7 @@ void pl_mv0c(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Be_flg &= ~0x2000;
     case 3:
         pEm->Pos_y += pEm->Timer0++ * 30;
-        pEm->Unk122 = func_8004D720(&pEm->Pos_x, 400, 0x8000, 0);
+        pEm->Unk122 = Sca_get_ground(&pEm->Pos_x, 400, 0x8000, 0);
         pEm->nFloor = pEm->Pos_y / -1800;
         Joint_move2(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x200);
         Flg = *pEm->pNow_seq;
