@@ -31,13 +31,13 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->UnkE2-- == 0) {
             pEm->UnkE2 = (Rnd_l() & 0xF) + 30;
             Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x18);
-            if (!EM10_W(pEm)->Unk21) {
+            if (!EM10_W(pEm)->Dam_s) {
                 if (!(Rnd_l() & 0x1F)) {
                     Snd_se_enem(13, pEm);
-                    EM10_W(pEm)->Unk21 = 150;
+                    EM10_W(pEm)->Dam_s = 150;
                 } else if (!(Rnd_l() & 0x1F)) {
                     Snd_se_enem(14, pEm);
-                    EM10_W(pEm)->Unk21 = 150;
+                    EM10_W(pEm)->Dam_s = 150;
                 }
             }
         }
@@ -56,7 +56,7 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if ((LONG)pEm->Unk154 < 4000 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x400) && !(G.Player.Damage_cnt & 0x80)) {
             EM_SET_RTN(pEm, 1, 2, 0, 0);
-            if (EM10_W(pEm)->Flg & 0x4000)
+            if (EM10_W(pEm)->Etc_flg & 0x4000)
                 EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
         break;

@@ -33,12 +33,12 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pPl->Damage_cnt |= 0x80;
         pEm->Be_flg |= 0x800;
         pPl->Be_flg |= 0x800;
-        if (!EM10_W(pEm)->Unk21) {
+        if (!EM10_W(pEm)->Dam_s) {
             if (Rnd_l() & 1)
                 Snd_se_enem(13, pEm);
             else
                 Snd_se_enem(14, pEm);
-            EM10_W(pEm)->Unk21 = 150;
+            EM10_W(pEm)->Dam_s = 150;
         }
         Pad_vib_fade_set(20, 0, 0xFA, 0);
         pEm->Damage_cnt &= 0x7F;
@@ -136,7 +136,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 6:
         EM_SET_RTN(pEm, 7, 0, 0, 0);
         pEm->Life = -1;
-        EM10_W(pEm)->Flg &= 0xFFFB;
+        EM10_W(pEm)->Etc_flg &= 0xFFFB;
         pEm->Damage_cnt |= 0x80;
         break;
     case 7:
@@ -153,17 +153,17 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Up = (Rnd_l() % 4) != 0;
         if (Up) {
             EM_SET_RTN(pEm, 1, 5, 0, 0);
-            EM10_W(pEm)->Unk0B = (Rnd_l() & 0xF) + 0x10;
-            EM10_W(pEm)->Flg &= 0xFFF7;
+            EM10_W(pEm)->Dm_cnt = (Rnd_l() & 0xF) + 0x10;
+            EM10_W(pEm)->Etc_flg &= 0xFFF7;
             pEm->UnkE2 = 1;
-            EM10_W(pEm)->Flg &= 0xFFFF;
-            EM10_W(pEm)->Flg |= 4;
+            EM10_W(pEm)->Etc_flg &= 0xFFFF;
+            EM10_W(pEm)->Etc_flg |= 4;
             EM_MOVE(pEm) = pEm->UnkE2 * 0xA00 + 0xF0A03;
             pEm->Routine_2 = 1;
-            EM10_W(pEm)->Flg &= 0xFFFF;
-            EM10_W(pEm)->Flg |= 0x202;
+            EM10_W(pEm)->Etc_flg &= 0xFFFF;
+            EM10_W(pEm)->Etc_flg |= 0x202;
             pEm->Damage_cnt |= 0x80;
-            EM10_W(pEm)->Unk0A = 0;
+            EM10_W(pEm)->Dm_r0 = 0;
             pEm->UnkE3 = 0;
             pEm->Type |= 0x2000;
             if (Rnd_l() & 1)
@@ -172,7 +172,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Snd_se_enem(15, pEm);
             pEm->Timer0 = 1;
             if (!(G.Unk75EA & 1)) {
-                EM10_W(pEm)->Unk18 = 150;
+                EM10_W(pEm)->Hanare_cnt = 150;
                 G.Unk75EA |= 1;
             }
             break;
@@ -180,7 +180,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Move_cnt >= 5 && pEm->Move_cnt < 25 && pEm->Col.Unk3 != 0xFF) {
             pT = G.pEnemy[pEm->Col.Unk3];
             if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
-                && !(EM10_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
+                && !(EM10_W(pT)->Etc_flg & 8) && !(pT->Type & 0x2000)) {
                 EM_SET_RTN(pT, 1, 9, 0, 0);
                 pT->UnkE3 = Cdir_ck(pEm, pT);
                 Snd_se_enem(6, pEm);
@@ -191,7 +191,7 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_SET_RTN(pEm, 1, 1, 0, 0);
         pEm->Be_flg |= 0x80000;
         if (!(G.Unk75EA & 1)) {
-            EM10_W(pEm)->Unk18 = 150;
+            EM10_W(pEm)->Hanare_cnt = 150;
             G.Unk75EA |= 1;
         }
         break;

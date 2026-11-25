@@ -15,9 +15,9 @@ void Em10_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (!pEm->Move_no) {
                 if (!(Rnd_l() & 0xF)) {
                     EM_SET_MOVE(pEm, 0x12, 0, 0x1F);
-                    if (!EM10_W(pEm)->Unk21 && (Rnd_l() & 1)) {
+                    if (!EM10_W(pEm)->Dam_s && (Rnd_l() & 1)) {
                         Snd_se_enem(14, pEm);
-                        EM10_W(pEm)->Unk21 = 150;
+                        EM10_W(pEm)->Dam_s = 150;
                     }
                 }
             } else

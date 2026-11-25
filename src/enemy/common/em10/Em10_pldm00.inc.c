@@ -94,7 +94,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if ((Ck_flg & 0x8000) && !((pEm->UnkDA >> i) & 1)) {
                     pT = G.pEnemy[i];
                     if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
-                        && !(EM10_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
+                        && !(EM10_W(pT)->Etc_flg & 8) && !(pT->Type & 0x2000)) {
                         EM_SET_RTN(pT, 1, 9, 0, 0);
                         pT->UnkE3 = ~Cdir_ck2(pEm, pT) & 1;
                     }

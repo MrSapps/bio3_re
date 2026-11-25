@@ -21,7 +21,7 @@ void Em10_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         func_80018EC8(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
             EM_SET_RTN(pEm, 1, 2, 0, 0);
-            EM10_W(pEm)->u2C.w.Unk2F = 30;
+            EM10_W(pEm)->u2C.w.Mv10_timer = 30;
         }
         Add_speedXZ(pEm, 0);
         break;

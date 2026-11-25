@@ -1,5 +1,5 @@
 /* shared by em10, em16 */
-/* RE2 Em10_mv04_br (crawling) */
+/* RE2 Em10_mv04_br: crawling: grab the player's feet (Routine_1 1) when close */
 void Em10_mv04_br(ENEMY_WORK *pEm)
 {
     ULONG LL;

@@ -1,5 +1,5 @@
 /* shared by em10, em16 */
-/* RE2 Em10_mv0e_br */
+/* RE2 Em10_mv0e_br: lunging: grab the player (mv03 / mv05) when close */
 void Em10_mv0e_br(ENEMY_WORK *pEm)
 {
     SHORT Dir;

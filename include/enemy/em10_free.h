@@ -4,43 +4,46 @@
 #include "bio3.h"
 #include "enemy/em_common.h"
 
-/* em10's view of ENEMY_WORK.Unk1CC[12], also used by em16 (a near copy of em10)
-   (RE2 ENEMY_WORK.Free[], OVL_FREE(p) in RE2 EM10.C: FREE_UB(o) is the byte at 0x1CC + o here) */
+/* em10's view of the enemy free area ENEMY_WORK.Unk1CC, also used by em16 (a near copy of em10).
+ * RE2 struct tagEM10_FREE (MAIN.H); RE2 EM10.C reaches it as FREE_UB(o) etc. The names are RE2's;
+ * from 0x23 on, RE2's retail code already differs from the beta MAIN.H layout, those names are by use. */
 typedef struct tagEM10_FREE {
-    UCHAR Walk_no;                     /* 0x00 (0x1CC) RE2 FREE_UB(0): walk motion, Rnd() % 3 */
-    UCHAR Unk01;                       /* 0x01 (0x1CD) RE2 FREE_UB(1) */
-    USHORT Flg;                        /* 0x02 (0x1CE) RE2 FREE_US(2) */
-    UCHAR Unk04;                       /* 0x04 (0x1D0) */
-    UCHAR Unk05;                       /* 0x05 (0x1D1) */
-    UCHAR Unk06;                       /* 0x06 (0x1D2) */
-    UCHAR Unk07;                       /* 0x07 (0x1D3) */
-    SHORT Unk08;                       /* 0x08 (0x1D4) */
-    UCHAR Unk0A;                       /* 0x0A (0x1D6) RE2 FREE_UB(0xa) */
-    signed char Unk0B;                 /* 0x0B (0x1D7) RE2 FREE_UB(0xb), (Rnd() & 0xF) + 0x10 */
-    KAGE_WORK *pKage;                  /* 0x0C (0x1D8) second shadow (Kage_work_set) */
-    ULONG Routine;                     /* 0x10 (0x1DC) copy of Routine_0..3 (RE2 OVL_FREE[4]) */
-    ULONG Unk14;                       /* 0x14 (0x1E0) */
-    UCHAR Unk18;                       /* 0x18 (0x1E4) RE2 FREE_UB(0x18), G.Unk75EA bit 0 when it runs out */
-    UCHAR Unk19;                       /* 0x19 (0x1E5) */
-    SHORT Unk1A;                       /* 0x1A (0x1E6) */
-    UCHAR Unk1C;                       /* 0x1C (0x1E8) */
-    UCHAR Root_no;                     /* 0x1D (0x1E9) RE2 FREE_UB(0x1d), Root_ck arg */
-    USHORT Cnt;                        /* 0x1E (0x1EA) RE2 FREE_US(0x1e), frame counter */
-    UCHAR Unk20;                       /* 0x20 (0x1EC) */
-    UCHAR Unk21;                       /* 0x21 (0x1ED) RE2 FREE_UB(0x21), timer */
-    UCHAR Unk22;                       /* 0x22 (0x1EE) */
-    UCHAR Unk23;                       /* 0x23 (0x1EF) */
-    UCHAR Ude_down;                    /* 0x24 (0x1F0) non-zero: Em10_ude_down runs */
-    UCHAR Unk25;                       /* 0x25 (0x1F1) */
-    UCHAR Unk26;                       /* 0x26 (0x1F2) RE2 FREE_UB(0x26), timer */
-    UCHAR Unk27;                       /* 0x27 (0x1F3) Rnd() % 3 + 3 */
-    SHORT Unk28;                       /* 0x28 (0x1F4) */
-    SHORT Unk2A;                       /* 0x2A (0x1F6) */
+    UCHAR Walk_no;                     /* 0x00 (0x1CC) walk motion, Rnd() % 3 */
+    UCHAR Kahan_r0;                    /* 0x01 (0x1CD) Em10_Kahannsin_walk routine (lower body walking alone) */
+    USHORT Etc_flg;                    /* 0x02 (0x1CE) 1: Em10_Kahannsin_walk runs, 2/0x10: Em10_Damage/Em10_Die take
+                                        * the knock-down / dm07-die05 paths, 0x180: Em10_Kubigoro runs, 0x400: Root_ck
+                                        * mode, 0x4000: set at random (1 in 8) by Em10_Init */
+    UCHAR K_move_no;                   /* 0x04 (0x1D0) lower-body joint state (Em10_Kahannsin_walk JOINT_P) */
+    UCHAR K_move_cnt;                  /* 0x05 (0x1D1) */
+    UCHAR K_hokan_flg;                 /* 0x06 (0x1D2) */
+    UCHAR K_timer0;                    /* 0x07 (0x1D3) */
+    SHORT K_dir_y;                     /* 0x08 (0x1D4) lower-body direction */
+    UCHAR Dm_r0;                       /* 0x0A (0x1D6) 1: the next hit may knock it down */
+    signed char Dm_cnt;                /* 0x0B (0x1D7) damage left before a stagger, (Rnd() & 0xF) + 0x10 */
+    KAGE_WORK *pK_kage;                /* 0x0C (0x1D8) shadow of the lower body (Kage_work_set) */
+    ULONG Old_r;                       /* 0x10 (0x1DC) Routine_0..3 of the last frame */
+    ULONG Next_r;                      /* 0x14 (0x1E0) Routine_0..3 to return to after a scripted move */
+    UCHAR Hanare_cnt;                  /* 0x18 (0x1E4) timer; clears G.Unk75EA bit 0 when it runs out */
+    UCHAR Die_r0;                      /* 0x19 (0x1E5) */
+    SHORT Ground;                      /* 0x1A (0x1E6) floor height while lying */
+    UCHAR Mot_dm;                      /* 0x1C (0x1E8) index of the motion triple in the die tables */
+    UCHAR Rnd_area;                    /* 0x1D (0x1E9) Root_ck area */
+    USHORT A_timer;                    /* 0x1E (0x1EA) frame counter */
+    UCHAR W_timer;                     /* 0x20 (0x1EC) Em10_Dead: corpse bobbing in water (0x80: afloat) */
+    UCHAR Dam_s;                       /* 0x21 (0x1ED) moan timer, 150 after a moan (Snd_se_enem) */
+    UCHAR Fire_c;                      /* 0x22 (0x1EE) burn count */
+    UCHAR Ude_timer;                   /* 0x23 (0x1EF) Em10_ude_down blood timer */
+    UCHAR Ude_down;                    /* 0x24 (0x1F0) non-zero: an arm is off, Em10_ude_down runs */
+    UCHAR Ude_flg;                     /* 0x25 (0x1F1) which arm (bit 0 side, bit 1 upper/lower) */
+    UCHAR Catch_timer;                 /* 0x26 (0x1F2) frames before the next grab try */
+    UCHAR Walk_no2;                    /* 0x27 (0x1F3) Em10_mv02 walk motion, Rnd() % 3 + 3 */
+    SHORT U_pos_x;                     /* 0x28 (0x1F4) severed arm position (Em10_ude_down) */
+    SHORT U_pos_y;                     /* 0x2A (0x1F6) */
     union {
         struct {
-            SHORT Unk2C;               /* 0x2C (0x1F8) Em10_ude_down */
-            UCHAR Unk2E;               /* 0x2E (0x1FA) (Rnd() & 1) + 6 */
-            UCHAR Unk2F;               /* 0x2F (0x1FB) timer */
+            SHORT U_pos_z;             /* 0x2C (0x1F8) */
+            UCHAR Unk2E;               /* 0x2E (0x1FA) (Rnd() & 1) + 6, not read */
+            UCHAR Mv10_timer;          /* 0x2F (0x1FB) set by Em10_mv10, no approach while it runs */
         } w;
         LONG Esp_idx;                  /* 0x2C (0x1F8) Em10_mv11: index into Em10_mv11_esp */
     } u2C;

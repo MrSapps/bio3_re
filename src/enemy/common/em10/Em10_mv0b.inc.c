@@ -16,11 +16,11 @@ void Em10_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         pEm->UnkDA = 0;
         pEm->Timer0 = pEm->UnkE3 * 2048;
-        EM10_W(pEm)->Flg &= 0xFFEF;
-        EM10_W(pEm)->Flg |= 8;
-        if (!EM10_W(pEm)->Unk21 && (Rnd_l() & 1)) {
+        EM10_W(pEm)->Etc_flg &= 0xFFEF;
+        EM10_W(pEm)->Etc_flg |= 8;
+        if (!EM10_W(pEm)->Dam_s && (Rnd_l() & 1)) {
             Snd_se_enem(12, pEm);
-            EM10_W(pEm)->Unk21 = 150;
+            EM10_W(pEm)->Dam_s = 150;
         }
     case 1:
         Add_speedXZ(pEm, pEm->Timer0);
@@ -30,26 +30,26 @@ void Em10_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         if (pEm->UnkDA == 1 && (Rnd_l() >> (Rnd_l() & 3)) & 7) {
             EM_SET_RTN(pEm, 1, 5, 0, 0);
-            EM10_W(pEm)->Unk0B = (Rnd_l() & 0xF) + 0x10;
-            EM10_W(pEm)->Flg &= 0xFFF7;
+            EM10_W(pEm)->Dm_cnt = (Rnd_l() & 0xF) + 0x10;
+            EM10_W(pEm)->Etc_flg &= 0xFFF7;
             pEm->UnkE2 = pEm->UnkE3;
-            EM10_W(pEm)->Flg &= 0xFFFB;
+            EM10_W(pEm)->Etc_flg &= 0xFFFB;
             if (pEm->UnkE2)
-                EM10_W(pEm)->Flg |= 4;
+                EM10_W(pEm)->Etc_flg |= 4;
             EM_MOVE(pEm) = ((pEm->UnkE2 * 5 + 10) << 8) + 0xF0000 + Mot[0][pEm->UnkE2];
             pEm->Routine_2 = 1;
-            EM10_W(pEm)->Flg |= 0x200;
-            EM10_W(pEm)->Flg |= 2;
+            EM10_W(pEm)->Etc_flg |= 0x200;
+            EM10_W(pEm)->Etc_flg |= 2;
             pEm->Damage_cnt |= 0x80;
-            EM10_W(pEm)->Unk0A = 0;
+            EM10_W(pEm)->Dm_r0 = 0;
             pEm->UnkE3 = 0;
             pEm->Type |= 0x2000;
-            if (!EM10_W(pEm)->Unk21) {
+            if (!EM10_W(pEm)->Dam_s) {
                 if (Rnd_l() & 1)
                     Snd_se_enem(12, pEm);
                 else
                     Snd_se_enem(15, pEm);
-                EM10_W(pEm)->Unk21 = 150;
+                EM10_W(pEm)->Dam_s = 150;
             }
             pEm->Timer0 = 0;
             break;
@@ -58,7 +58,7 @@ void Em10_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 2:
         EM_SET_RTN(pEm, 1, 1, 0, 0);
-        EM10_W(pEm)->Flg &= 0xFFF7;
+        EM10_W(pEm)->Etc_flg &= 0xFFF7;
         break;
     }
 }

@@ -21,9 +21,9 @@ void Em10_dm06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Sv.vz = 0;
             Esp_call(Mode << 24, 0x17700000, &pP->Workm, &Sv, 0);
         }
-        if (!EM10_W(pEm)->Unk21) {
+        if (!EM10_W(pEm)->Dam_s) {
             Snd_se_enem(12, pEm);
-            EM10_W(pEm)->Unk21 = 150;
+            EM10_W(pEm)->Dam_s = 150;
         }
     case 1:
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x400);
