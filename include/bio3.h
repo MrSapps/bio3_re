@@ -585,7 +585,7 @@ typedef struct tagPARTS_W {
     SHORT Rot_spd_z;                   /* 0x8E rotation step to the next key frame, * rate >> 8 */
     SHORT Rot_spd_x;                   /* 0x90 */
     SHORT Rot_spd_y;                   /* 0x92 */
-    SHORT Unk94;                       /* 0x94 */
+    SHORT Timer0;                      /* 0x94 RE2 Timer0: fall speed of a dropped part (Mag_down, Pl_wep_parts_drop) */
     SHORT Timer3;                      /* 0x96 RE2 Timer3: bounces left (Parts_down) */
     ULONG *pSa_dat_head;               /* 0x98 RE2 pSa_dat_head: per-part animation data (Sa_dat_set) */
     SHORT Size_x;                      /* 0x9C RE2 Size_x */
