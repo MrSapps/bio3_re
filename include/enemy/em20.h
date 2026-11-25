@@ -50,8 +50,6 @@ typedef struct tagEM20_FREE {
 /* RE2 Sca_info: the collision node's Unk2C/Hit_flg pair read as one word */
 #define EM20_SCA_INFO(p) (*(ULONG *)&(p)->Col.Unk2C)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
-#define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 
 /* RE2 EM20_BLOOD_TBL (RE3 adds a word) */
 typedef struct tagEM20_BLOOD_TBL {

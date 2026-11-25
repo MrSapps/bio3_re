@@ -104,12 +104,12 @@ void func_80100350(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Neck_no = 14;
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[14];
-    PW_FREE(pP)[2] = 0x60;
-    PW_FREE(pP)[3] = 0x60;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[5] = 0x138;
+    PW_NECK(pP)->Add_dir_y = 0x60;
+    PW_NECK(pP)->Add_dir_z = 0x60;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->L_rot_z = 0x138;
     EF(pEm)->Ground = func_8004D720(&pEm->Pos_x, 0, -1, 8);
     if (G.System_flg & 0x100)
         pEm->Max_life = pEm->Life = Em23_life_easy[(Rnd_l() >> (Rnd_l() & 3)) & 0xF];
@@ -3248,12 +3248,12 @@ void func_8010A3AC(ENEMY_WORK *pEm)
                 pP = &pEm->pSin_parts_ptr[2];
                 pP->UnkA2 |= 0x20;
                 pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
-                PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-                PW_FREE(pP)[4] = 0;
-                PW_FREE(pP)[1] = -240;
-                PW_FREE(pP)[2] = 0;
-                PW_FREE(pP)[3] = 15;
-                PW_FREE(pP)[6] = 0;
+                PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+                PW_BOMB(pP)->Cnt0 = 0;
+                PW_BOMB(pP)->V0_y = -240;
+                PW_BOMB(pP)->V0_z = 0;
+                PW_BOMB(pP)->G = 15;
+                PW_BOMB(pP)->Gxz = 0;
                 for (; i < 5; i++) {
                     pP = &pEm->pSin_parts_ptr[i];
                     pP->Poly_rgb = 0x2F2F2F;
@@ -3274,12 +3274,12 @@ void func_8010A3AC(ENEMY_WORK *pEm)
             pP = &pEm->pSin_parts_ptr[5];
             pP->UnkA2 |= 0x20;
             pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
-            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-            PW_FREE(pP)[4] = 0;
-            PW_FREE(pP)[1] = -240;
-            PW_FREE(pP)[2] = 0;
-            PW_FREE(pP)[3] = 15;
-            PW_FREE(pP)[6] = 0;
+            PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+            PW_BOMB(pP)->Cnt0 = 0;
+            PW_BOMB(pP)->V0_y = -240;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->G = 15;
+            PW_BOMB(pP)->Gxz = 0;
             for (; i < 8; i++) {
                 pP = &pEm->pSin_parts_ptr[i];
                 pP->Poly_rgb = 0x2F2F2F;
@@ -3616,12 +3616,12 @@ void func_8010B154(ENEMY_WORK *pEm)
             pP = &pEm->pSin_parts_ptr[2];
             pP->UnkA2 |= 0x20;
             pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
-            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-            PW_FREE(pP)[4] = 0;
-            PW_FREE(pP)[1] = -240;
-            PW_FREE(pP)[2] = 0;
-            PW_FREE(pP)[3] = 15;
-            PW_FREE(pP)[6] = 0;
+            PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+            PW_BOMB(pP)->Cnt0 = 0;
+            PW_BOMB(pP)->V0_y = -240;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->G = 15;
+            PW_BOMB(pP)->Gxz = 0;
             for (; i < 5; i++) {
                 pP = &pEm->pSin_parts_ptr[i];
                 pP->Poly_rgb = 0x2F2F2F;
@@ -3643,12 +3643,12 @@ void func_8010B154(ENEMY_WORK *pEm)
             pP = &pEm->pSin_parts_ptr[11];
             pP->UnkA2 |= 0x20;
             pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
-            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-            PW_FREE(pP)[4] = 0;
-            PW_FREE(pP)[1] = -240;
-            PW_FREE(pP)[2] = 0;
-            PW_FREE(pP)[3] = 15;
-            PW_FREE(pP)[6] = 0;
+            PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+            PW_BOMB(pP)->Cnt0 = 0;
+            PW_BOMB(pP)->V0_y = -240;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->G = 15;
+            PW_BOMB(pP)->Gxz = 0;
             for (; i < 14; i++) {
                 pP = &pEm->pSin_parts_ptr[i];
                 pP->Poly_rgb = 0x2F2F2F;
@@ -3669,12 +3669,12 @@ void func_8010B154(ENEMY_WORK *pEm)
             pP = &pEm->pSin_parts_ptr[15];
             pP->UnkA2 |= 0x20;
             pP->Be_flg = (pP->Be_flg | 2) & ~0x20;
-            PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-            PW_FREE(pP)[4] = 0;
-            PW_FREE(pP)[1] = -240;
-            PW_FREE(pP)[2] = 0;
-            PW_FREE(pP)[3] = 15;
-            PW_FREE(pP)[6] = 0;
+            PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+            PW_BOMB(pP)->Cnt0 = 0;
+            PW_BOMB(pP)->V0_y = -240;
+            PW_BOMB(pP)->V0_z = 0;
+            PW_BOMB(pP)->G = 15;
+            PW_BOMB(pP)->Gxz = 0;
             for (i = 15; i < 17; i++) {
                 pP = &pEm->pSin_parts_ptr[i];
                 pP->Poly_rgb = 0x2F2F2F;

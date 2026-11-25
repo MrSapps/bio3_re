@@ -98,12 +98,12 @@ void func_801003D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pP = &pEm->pSin_parts_ptr[2];
     pEm->Unk120 = 0;
     pEm->Neck_no = 8;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[2] = 0x60;
-    PW_FREE(pP)[3] = 0x60;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[5] = 0x138;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->Add_dir_y = 0x60;
+    PW_NECK(pP)->Add_dir_z = 0x60;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->L_rot_z = 0x138;
     pEm->Unk134 = 400;
     pEm->Unk136 = -400;
     pEm->Unk13A = 400;
@@ -1248,12 +1248,12 @@ void func_80103258(PARTS_W *pP, LONG B_y)
 {
     pP->UnkA2 |= 0x20;
     pP->Be_flg |= 2;
-    PW_FREE(pP)[0] = B_y;
-    PW_FREE(pP)[4] = 0;
-    PW_FREE(pP)[2] = 800;
-    PW_FREE(pP)[1] = 0;
-    PW_FREE(pP)[3] = 10;
-    PW_FREE(pP)[6] = -100;
+    PW_BOMB(pP)->V0_x = B_y;
+    PW_BOMB(pP)->Cnt0 = 0;
+    PW_BOMB(pP)->V0_z = 800;
+    PW_BOMB(pP)->V0_y = 0;
+    PW_BOMB(pP)->G = 10;
+    PW_BOMB(pP)->Gxz = -100;
     pP->Poly_rgb = 0x101040;
 }
 

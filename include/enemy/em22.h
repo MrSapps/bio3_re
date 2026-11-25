@@ -63,8 +63,6 @@ typedef struct tagEM22_FREE {
 /* Routine_0..1 read as one halfword */
 #define EM_RTN01(p) (*(SHORT *)&(p)->Routine_0)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
-#define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 
 extern USHORT Em22_life[16];
 extern USHORT Em22_life_easy[16];

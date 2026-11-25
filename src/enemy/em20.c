@@ -69,12 +69,12 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr[1].Workm;
     for (i = 2; i < 4; i++) {
         pP = &pEm->pSin_parts_ptr[i];
-        PW_FREE(pP)[0] = 0;
-        PW_FREE(pP)[1] = 0;
-        PW_FREE(pP)[2] = 0x20;
-        PW_FREE(pP)[3] = 0;
-        PW_FREE(pP)[4] = 0x180;
-        PW_FREE(pP)[5] = 0x80;
+        PW_NECK(pP)->N_rot_y = 0;
+        PW_NECK(pP)->N_rot_z = 0;
+        PW_NECK(pP)->Add_dir_y = 0x20;
+        PW_NECK(pP)->Add_dir_z = 0;
+        PW_NECK(pP)->L_rot_y = 0x180;
+        PW_NECK(pP)->L_rot_z = 0x80;
     }
     pEm->Spd_x = 0;
     pEm->Spd_y = 0;
@@ -1701,12 +1701,12 @@ void Set_head_bomb(ENEMY_WORK *pEm)
         pP = &pEm->pSin_parts_ptr[bang_parts_no[i]];
         pP->UnkA2 |= 0x20;
         pP->Be_flg |= 2;
-        PW_FREE(pP)[0] = pEm->Cdir_y;
-        PW_FREE(pP)[4] = 0;
-        PW_FREE(pP)[2] = 800;
-        PW_FREE(pP)[1] = -150;
-        PW_FREE(pP)[3] = 10;
-        PW_FREE(pP)[6] = -100;
+        PW_BOMB(pP)->V0_x = pEm->Cdir_y;
+        PW_BOMB(pP)->Cnt0 = 0;
+        PW_BOMB(pP)->V0_z = 800;
+        PW_BOMB(pP)->V0_y = -150;
+        PW_BOMB(pP)->G = 10;
+        PW_BOMB(pP)->Gxz = -100;
         pP->Poly_rgb = 0x101040;
     }
 }
@@ -1999,8 +1999,8 @@ void PLDIE_EM(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Snd_se_stad(0x10003, (VECTOR *)&pEm->Pos_x, 0, 0);
             for (i = 0; i < 4; i++) {
                 pP = &G.Player.pSin_parts_ptr[pl_chi_parts[i]];
-                PW_FREEL(pP)[0] = 0x20;
-                PW_FREEL(pP)[1] = 0x101030;
+                PW_RGB(pP)->Rgb0 = 0x20;
+                PW_RGB(pP)->Rgb1 = 0x101030;
                 pP->UnkA2 |= 4;
             }
         }

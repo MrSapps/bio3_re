@@ -33,7 +33,21 @@ typedef struct tagPARTS_NECK_FREE_WORK {
 } PARTS_NECK_FREE_WORK;
 #define PW_NECK(p) ((PARTS_NECK_FREE_WORK *)&(p)->Unk74)
 
-/* PARTS_W free work of colour-faded parts (em34, em37) */
+/* PARTS_W free work of a part thrown off the body (a severed head or arm flying away; PARTS_W.Be_flg 0x40)
+ * (RE2 struct tagPARTS_BOMB_FREE_WORK, MAIN.H) */
+typedef struct tagPARTS_BOMB_FREE_WORK {
+    SHORT V0_x;                        /* 0x74 direction it flies off in (Cdir_y + 0x800: backwards) */
+    SHORT V0_y;                        /* 0x76 initial vertical speed (negative: up) */
+    SHORT V0_z;                        /* 0x78 initial horizontal speed */
+    SHORT G;                           /* 0x7A gravity */
+    USHORT Cnt0;                       /* 0x7C frame counter */
+    SHORT Offset_y;                    /* 0x7E */
+    SHORT Gxz;                         /* 0x80 horizontal drag */
+} PARTS_BOMB_FREE_WORK;
+#define PW_BOMB(p) ((PARTS_BOMB_FREE_WORK *)&(p)->Unk74)
+
+/* PARTS_W free work of colour-faded parts (PARTS_W.Be_flg 0x80; RE2 struct tagPARTS_COLOR_CH_FREE_WORK
+ * Color1/Color2) */
 typedef struct tagPARTS_RGB_FREE_WORK {
     ULONG Rgb0;                        /* 0x74 */
     ULONG Rgb1;                        /* 0x78 */

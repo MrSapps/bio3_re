@@ -58,7 +58,6 @@ typedef struct tagEM25_FREE {
 
 #define EF(p) ((EM25_FREE *)(p)->Unk1CC)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 
 /* RE2 SCA_DATA.Floor: RE3 splits the word into Floor_lo/Floor_hi/High, em25 still reads it whole */
 #define SCA_FLOOR(p) (*(ULONG *)&(p)->Floor_lo)

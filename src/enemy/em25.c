@@ -1825,12 +1825,12 @@ void Die_break_set(ENEMY_WORK *pEm)
     pP_ptr = &pEm->pSin_parts_ptr[19];
     pP_ptr->UnkA2 |= 0x20;
     pP_ptr->Be_flg |= 2;
-    PW_FREE(pP_ptr)[0] = pEm->Cdir_y + 0x800;
-    PW_FREE(pP_ptr)[4] = 0;
-    PW_FREE(pP_ptr)[2] = 0;
-    PW_FREE(pP_ptr)[1] = -240;
-    PW_FREE(pP_ptr)[3] = 15;
-    PW_FREE(pP_ptr)[6] = 0;
+    PW_BOMB(pP_ptr)->V0_x = pEm->Cdir_y + 0x800;
+    PW_BOMB(pP_ptr)->Cnt0 = 0;
+    PW_BOMB(pP_ptr)->V0_z = 0;
+    PW_BOMB(pP_ptr)->V0_y = -240;
+    PW_BOMB(pP_ptr)->G = 15;
+    PW_BOMB(pP_ptr)->Gxz = 0;
     pP_ptr->Poly_rgb = 0x2F2F2F;
     Set_blood(pEm, 19, 1);
     for (i = 0; i < 4; i++)
@@ -2390,12 +2390,12 @@ LONG Foot_break_set(ENEMY_WORK *pEm)
             pP_ptr = &pEm->pSin_parts_ptr[i];
             pP_ptr->UnkA2 |= 0x20;
             pP_ptr->Be_flg |= 2;
-            PW_FREE(pP_ptr)[0] = pEm->Cdir_y + 0x800;
-            PW_FREE(pP_ptr)[4] = 0;
-            PW_FREE(pP_ptr)[2] = 600;
-            PW_FREE(pP_ptr)[1] = -120;
-            PW_FREE(pP_ptr)[3] = 10;
-            PW_FREE(pP_ptr)[6] = -100;
+            PW_BOMB(pP_ptr)->V0_x = pEm->Cdir_y + 0x800;
+            PW_BOMB(pP_ptr)->Cnt0 = 0;
+            PW_BOMB(pP_ptr)->V0_z = 600;
+            PW_BOMB(pP_ptr)->V0_y = -120;
+            PW_BOMB(pP_ptr)->G = 10;
+            PW_BOMB(pP_ptr)->Gxz = -100;
             pP_ptr->Poly_rgb = 0x2F2F2F;
         }
         Set_blood(pEm, base, 1);

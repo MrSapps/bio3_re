@@ -41,20 +41,20 @@ void Em10_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
             pW = &pEm->pSin_parts_ptr[1];
             pW->UnkA2 |= 4;
-            PW_FREEL(pW)[0] = 0x20;
-            PW_FREEL(pW)[1] = 0x101030;
+            PW_RGB(pW)->Rgb0 = 0x20;
+            PW_RGB(pW)->Rgb1 = 0x101030;
             pW = pEm->pSin_parts_ptr;
             pW->UnkA2 |= 4;
-            PW_FREEL(pW)[0] = 0x20;
-            PW_FREEL(pW)[1] = 0x101030;
+            PW_RGB(pW)->Rgb0 = 0x20;
+            PW_RGB(pW)->Rgb1 = 0x101030;
             pW = &pEm->pSin_parts_ptr[2];
             pW->UnkA2 |= 4;
-            PW_FREEL(pW)[0] = 0x20;
-            PW_FREEL(pW)[1] = 0x101030;
+            PW_RGB(pW)->Rgb0 = 0x20;
+            PW_RGB(pW)->Rgb1 = 0x101030;
             pW = &pEm->pSin_parts_ptr[5];
             pW->UnkA2 |= 4;
-            PW_FREEL(pW)[0] = 0x20;
-            PW_FREEL(pW)[1] = 0x101030;
+            PW_RGB(pW)->Rgb0 = 0x20;
+            PW_RGB(pW)->Rgb1 = 0x101030;
         }
         if (pEm->Move_cnt >= 100 && pEm->Move_cnt < 105) {
             PARTS_W *pS;

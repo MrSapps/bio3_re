@@ -59,10 +59,7 @@ typedef struct tagEM10_ESP {
 } EM10_ESP;
 
 #define EM10_W(p) ((EM10_FREE *)(p)->Unk1CC)
-/* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
-#define PW_FREE(p) ((SHORT *)&(p)->Unk74)
-/* Add_dir..Unk14C used as a rotation vector by the dm routines */
+/* RE2 ENEMY_WORK.Super_vector (0x148..0x14F, rotation of the body after a knock-down) */
 #define SUPER_VECTOR(p) ((SVECTOR *)&(p)->Add_dir)
-#define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
 
 #endif /* OVL_EM10_FREE_H */

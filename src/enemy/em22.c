@@ -67,11 +67,12 @@ void func_8010023C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     func_80033580(pCol, 0);
     pP = &pEm->pSin_parts_ptr[pEm->Neck_no = 3];
     pEm->Unk120 = 0;
-    PW_FREE(pP)[3] = PW_FREE(pP)[2] = 0x40;
-    PW_FREE(pP)[4] = 0x200;
-    PW_FREE(pP)[5] = 0x138;
-    PW_FREE(pP)[0] = 0;
-    PW_FREE(pP)[1] = 0;
+    PW_NECK(pP)->Add_dir_y = 0x40;
+    PW_NECK(pP)->Add_dir_z = 0x40;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->L_rot_z = 0x138;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
     if (G.System_flg & 0x100)
         pEm->Max_life = pEm->Life = Em22_life_easy[(Rnd_l() >> (Rnd_l() & 3)) & 0xF];
     else
@@ -2633,12 +2634,12 @@ void func_80107E30(ENEMY_WORK *pEm)
         pP = &pEm->pSin_parts_ptr[5];
         pP->UnkA2 |= 0x20;
         pP->Be_flg |= 2;
-        PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-        PW_FREE(pP)[1] = -240;
-        PW_FREE(pP)[4] = 0;
-        PW_FREE(pP)[2] = 0;
-        PW_FREE(pP)[3] = 15;
-        PW_FREE(pP)[6] = 0;
+        PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+        PW_BOMB(pP)->V0_y = -240;
+        PW_BOMB(pP)->Cnt0 = 0;
+        PW_BOMB(pP)->V0_z = 0;
+        PW_BOMB(pP)->G = 15;
+        PW_BOMB(pP)->Gxz = 0;
         for (i = 6; i < 8; i++) {
             pP = &pEm->pSin_parts_ptr[i];
             pP->Be_flg |= 0xA;
@@ -2657,12 +2658,12 @@ void func_80107E30(ENEMY_WORK *pEm)
         pP = &pEm->pSin_parts_ptr[8];
         pP->UnkA2 |= 0x20;
         pP->Be_flg |= 2;
-        PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-        PW_FREE(pP)[1] = -240;
-        PW_FREE(pP)[4] = 0;
-        PW_FREE(pP)[2] = 0;
-        PW_FREE(pP)[3] = 15;
-        PW_FREE(pP)[6] = 0;
+        PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+        PW_BOMB(pP)->V0_y = -240;
+        PW_BOMB(pP)->Cnt0 = 0;
+        PW_BOMB(pP)->V0_z = 0;
+        PW_BOMB(pP)->G = 15;
+        PW_BOMB(pP)->Gxz = 0;
         for (i = 9; i < 14; i++) {
             pP = &pEm->pSin_parts_ptr[i];
             pP->Be_flg |= 0xA;
@@ -2681,12 +2682,12 @@ void func_80107E30(ENEMY_WORK *pEm)
         pP = &pEm->pSin_parts_ptr[15];
         pP->UnkA2 |= 0x20;
         pP->Be_flg |= 2;
-        PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-        PW_FREE(pP)[1] = -240;
-        PW_FREE(pP)[4] = 0;
-        PW_FREE(pP)[2] = 0;
-        PW_FREE(pP)[3] = 15;
-        PW_FREE(pP)[6] = 0;
+        PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+        PW_BOMB(pP)->V0_y = -240;
+        PW_BOMB(pP)->Cnt0 = 0;
+        PW_BOMB(pP)->V0_z = 0;
+        PW_BOMB(pP)->G = 15;
+        PW_BOMB(pP)->Gxz = 0;
         pP = &pEm->pSin_parts_ptr[16];
         pP->Be_flg |= 0xA;
         pP->Poly_rgb = 0x2F2F2F;
@@ -2719,24 +2720,24 @@ void func_80108110(ENEMY_WORK *pEm)
         pP = &pEm->pSin_parts_ptr[7];
         pP->UnkA2 |= 0x20;
         pP->Be_flg |= 2;
-        PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-        PW_FREE(pP)[1] = -240;
-        PW_FREE(pP)[4] = 0;
-        PW_FREE(pP)[2] = 0;
-        PW_FREE(pP)[3] = 15;
-        PW_FREE(pP)[6] = 0;
+        PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+        PW_BOMB(pP)->V0_y = -240;
+        PW_BOMB(pP)->Cnt0 = 0;
+        PW_BOMB(pP)->V0_z = 0;
+        PW_BOMB(pP)->G = 15;
+        PW_BOMB(pP)->Gxz = 0;
         EM22_W(pEm)->Unk0F |= 1;
     case 1:
     case 2:
         pP = &pEm->pSin_parts_ptr[16];
         pP->UnkA2 |= 0x20;
         pP->Be_flg |= 2;
-        PW_FREE(pP)[0] = pEm->Cdir_y + 0x800;
-        PW_FREE(pP)[1] = -240;
-        PW_FREE(pP)[4] = 0;
-        PW_FREE(pP)[2] = 0;
-        PW_FREE(pP)[3] = 15;
-        PW_FREE(pP)[6] = 0;
+        PW_BOMB(pP)->V0_x = pEm->Cdir_y + 0x800;
+        PW_BOMB(pP)->V0_y = -240;
+        PW_BOMB(pP)->Cnt0 = 0;
+        PW_BOMB(pP)->V0_z = 0;
+        PW_BOMB(pP)->G = 15;
+        PW_BOMB(pP)->Gxz = 0;
     }
     for (i = 0; i < 20; i++) {
         pP = &pEm->pSin_parts_ptr[i];
@@ -2811,8 +2812,8 @@ void func_80108448(ENEMY_WORK *pPl, ULONG *pKan, ULONG *pSeq)
         pPl->Timer0 = 0;
         for (i = 0; i < 4; i++) {
             pP = &G.Player.pSin_parts_ptr[Em22_blood_parts[i]];
-            PW_FREEL(pP)[0] = 0x20;
-            PW_FREEL(pP)[1] = 0x101030;
+            PW_RGB(pP)->Rgb0 = 0x20;
+            PW_RGB(pP)->Rgb1 = 0x101030;
             pP->UnkA2 |= 4;
         }
     case 1:

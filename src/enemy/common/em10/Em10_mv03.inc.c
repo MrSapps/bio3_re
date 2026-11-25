@@ -101,8 +101,8 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     pW = &pEm->pSin_parts_ptr[1];
                     pEm->Unk120 |= 1;
                     pW->UnkA2 |= 4;
-                    PW_FREEL(pW)[0] = 0x40;
-                    PW_FREEL(pW)[1] = 0x202030;
+                    PW_RGB(pW)->Rgb0 = 0x40;
+                    PW_RGB(pW)->Rgb1 = 0x202030;
                     pW = pEm->pSin_parts_ptr;
                     Sv.vx = 0;
                     Sv.vy = -600;
@@ -116,8 +116,8 @@ void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     pW = &pEm->pSin_parts_ptr[1];
                     pEm->Unk120 |= 1;
                     pW->UnkA2 |= 4;
-                    PW_FREEL(pW)[0] = 0x40;
-                    PW_FREEL(pW)[1] = 0x202030;
+                    PW_RGB(pW)->Rgb0 = 0x40;
+                    PW_RGB(pW)->Rgb1 = 0x202030;
                     Snd_se_enem(10, pEm);
                     Pad_vib_set1(4, 0xFA, 0);
                 }
