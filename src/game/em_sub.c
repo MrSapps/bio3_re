@@ -1370,7 +1370,31 @@ void Esp_task_main(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_speed_add);
+/* Mov += Spd, Spd += Acc (RE2 Esp_pos); the six SHORT temps are reused for the second sum, which is what loads all six halves first */
+void Esp_speed_add(ESP_WORK *pEw)
+{
+    SHORT Ax, Ay, Az;
+    SHORT Bx, By, Bz;
+
+    Ax = pEw->Spd_x;
+    Bx = pEw->Mov_x;
+    Ay = pEw->Spd_y;
+    By = pEw->Mov_y;
+    Az = pEw->Spd_z;
+    Bz = pEw->Mov_z;
+    pEw->Mov_x = Ax + Bx;
+    pEw->Mov_y = Ay + By;
+    pEw->Mov_z = Az + Bz;
+    Ax = pEw->Acc_x;
+    Bx = pEw->Spd_x;
+    Ay = pEw->Acc_y;
+    By = pEw->Spd_y;
+    Az = pEw->Acc_z;
+    Bz = pEw->Spd_z;
+    pEw->Spd_x = Ax + Bx;
+    pEw->Spd_y = Ay + By;
+    pEw->Spd_z = Az + Bz;
+}
 
 /* Pos = Workm * Base + RotY(Dir_y) * Mov (or Workm * (Base + RotY * Mov) with Be_flg 0x400);
    Workm2 = Workm with Pos as translation */
