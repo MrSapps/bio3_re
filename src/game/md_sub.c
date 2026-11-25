@@ -470,7 +470,76 @@ end:
     return pPacket;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", func_8002B86C);
+/* the same for the GT4 prims; the OT depth is the sum of the four z values >> 7 */
+POLY_GT4 *func_8002B86C(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
+{
+    ULONG *pPrim;
+    ULONG *pOt;
+    ULONG Rgb;
+    ULONG Mask;
+    ULONG Vmask;
+    ULONG n;
+    LONG v0;
+    LONG v1;
+    LONG v2;
+    LONG v3;
+    LONG Last; /* fourth vertex of this prim (v3 already holds the next prim's) */
+    LONG Z;
+    USHORT *pZ0;
+    USHORT *pZ1;
+    USHORT *pZ2;
+    ULONG *pO;
+
+    Mask = 0xFFFFFF;
+    Vmask = 0xFF0000;
+    n = pPrm->pObj->n_prim4;
+    if (n == 0) {
+        return pPacket;
+    }
+    pPrim = pPrm->pObj->pPrim4;
+    pOt = pPrm->pOt;
+    Rgb = pPrm->u.Rgb;
+    v0 = (pPrim[2] & Vmask) >> 16;
+    v1 = (LONG)pPrim[2] >> 24;
+    v2 = (pPrim[3] & Vmask) >> 16;
+    v3 = (LONG)pPrim[3] >> 24;
+loop:
+    gte_ldsxy3(pSxy[v0], pSxy[v1], pSxy[v2]);
+    pPrim += 4;
+    n--;
+    gte_nclip_b();
+    pZ0 = &pSz[v0];
+    pZ1 = &pSz[v1];
+    pZ2 = &pSz[v2];
+    Last = v3;
+    v0 = (pPrim[2] & Vmask) >> 16;
+    v1 = (LONG)pPrim[2] >> 24;
+    v2 = (pPrim[3] & Vmask) >> 16;
+    v3 = (LONG)pPrim[3] >> 24;
+    gte_stopz(&Z);
+    if (Z > 0) {
+        Z = (SHORT)*pZ0 + (SHORT)*pZ1 + (SHORT)*pZ2 + (SHORT)pSz[Last];
+        *(ULONG *)&pPacket->x3 = pSxy[Last];
+        *(ULONG *)&pPacket->r0 = Rgb;
+        *(ULONG *)&pPacket->r1 = Rgb;
+        *(ULONG *)&pPacket->r2 = Rgb;
+        *(ULONG *)&pPacket->r3 = Rgb;
+        *(ULONG *)&pPacket->u0 = pPrim[-4];
+        *(ULONG *)&pPacket->u1 = pPrim[-3];
+        *(ULONG *)&pPacket->u2 = pPrim[-2];
+        *(ULONG *)&pPacket->u3 = pPrim[-1];
+        gte_stsxy3_gt3(pPacket);
+        pO = &pOt[Z >> 7];
+        Z = *pO;
+        *pO = (ULONG)pPacket & Mask;
+        pPacket->tag = Z | 0x0C000000;
+        pPacket = (POLY_GT4 *)((UCHAR *)pPacket + 0x68);
+    }
+    if (n != 0) {
+        goto loop;
+    }
+    return pPacket;
+}
 
 /* RE2 Bomb_Parts_SortGT3: every polygon is pushed out along its normal */
 POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
