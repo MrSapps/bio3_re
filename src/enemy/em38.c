@@ -658,7 +658,7 @@ void Em38_turn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->UnkE3 + 0x1F0003;
+        EM_SET_MOVE_V(pEm, pEm->UnkE3 + 3, 0, 0x1F);
         EM38_W(pEm)->Flg |= 8;
     case 1:
         Old_x = pEm->Spd_x;
@@ -2861,7 +2861,7 @@ void Em38_sce_spit(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = ((Rnd_l() & 0x1F) << 8) + 0x7001A;
+        EM_MOVE(pEm) = ((Rnd_l() & 0x1F) << 8) + 0x7001A; /* motion 0x1A from a random frame, Hokan_flg 7 */
     case 1:
         Joint_move(pEm, pKan, pSeq, 0x200);
         if (Rnd_l() & 3)

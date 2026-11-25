@@ -1317,7 +1317,7 @@ void Em34_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     pPl->UnkE3 = 2;
             }
             pEm->UnkE3 = pPl->UnkE3;
-            EM_MOVE(pEm) = Move_tbl.Move[pPl->UnkE3] + 0x70000;
+            EM_SET_MOVE_V(pEm, Move_tbl.Move[pPl->UnkE3], 0, 7);
             if (pEm->UnkE3 == 2)
                 EM_SET_RTN(pEm, 1, 0xD, 0, 0);
             Snd_se_enem((Rnd() & 1) ? 14 : 15, pEm);
@@ -1384,7 +1384,7 @@ void Em34_catch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (--EM34_W(pEm)->Unk02 == 0xFF)
                 EM34_W(pEm)->Unk02 = 3;
             pEm->UnkE3 = pPl->UnkE3;
-            EM_MOVE(pEm) = Move_tbl.Move[pPl->UnkE3] + 0x70000;
+            EM_SET_MOVE_V(pEm, Move_tbl.Move[pPl->UnkE3], 0, 7);
             if (pEm->UnkE3 == 2)
                 EM_SET_RTN(pEm, 1, 0xD, 0, 0);
             Snd_se_enem(11, pEm);
@@ -2270,7 +2270,7 @@ void Em34_dm_flinch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = (Rnd() & 1) + 0x70013;
+        EM_SET_MOVE_V(pEm, (Rnd() & 1) + 0x13, 0, 7);
         pEm->Routine_2 = 1;
         Em34_blood_set(pEm);
         Snd_se_enem(13, pEm);
@@ -2465,7 +2465,7 @@ void Em34_sce02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         EM34_W(pEm)->Flg |= 1;
         if (pEm->Unk14A & 0x20)
             pEm->Hokan_flg = 15;
@@ -2514,7 +2514,7 @@ void Em34_sce04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         EM34_W(pEm)->Flg |= 1;
         pEm->Unk120 |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
@@ -2557,14 +2557,14 @@ void Em34_sce06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = pEm->Add_dir + 0xF0000;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0xF);
         if (pEm->Unk14A & 1)
             pEm->Routine_2 = 1;
         if (pEm->Unk14A & 0x8000) {
             pEm->Routine_2 = 2;
             pEm->Spd_y = 0;
             pEm->Spd_x = 0;
-            EM_MOVE(pEm) = pEm->Add_dir + 0x30001;
+            EM_SET_MOVE_V(pEm, pEm->Add_dir + 1, 0, 3);
         }
         EM34_W(pEm)->Flg |= 1;
         pEm->Damage_cnt |= 0x80;
@@ -2708,7 +2708,7 @@ void Em34_sce08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         pEm->Type = (pEm->Type & ~0xF) | 3;
         func_8002C680(pEm->pSin_parts_ptr[1].pTmd, 1, 1, 0, 0);
         func_8002C680(pEm->pSin_parts_ptr[2].pTmd, 4, 4, 0, 0);
@@ -2968,7 +2968,7 @@ void Em34_sce12(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 2:
         pEm->Routine_2 = 3;
-        EM_MOVE(pEm) = pEm->Add_dir + 0x1F0000;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0x1F);
         pEm->UnkDA = (Rnd() & 0x1F) + 30;
         pEm->Timer0 = (Rnd() & 0xF) + 15;
     case 3:
@@ -3120,7 +3120,7 @@ void Em134_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_z -= ((pEm->Pos_z - Old_z) * pEm->Hokan_flg) >> 3;
         if (Joint_move2(pEm, pKan, pSeq, 0x200)) {
             pEm->Routine_2 = 2;
-            EM_MOVE(pEm) = Move_tbl.Move[pEm->UnkE3];
+            EM_SET_MOVE_V(pEm, Move_tbl.Move[pEm->UnkE3], 0, 0);
             Pad_vib_fade_set(60, 150, 0, 0);
             if (pEm->UnkE3 == 2)
                 EM_SET_RTN(pEm, 5, 2, 0, 0);
@@ -3250,7 +3250,7 @@ void Em134_pldm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Pos_z -= ((pEm->Pos_z - Old_z) * pEm->Hokan_flg) >> 3;
         if (Joint_move2(pEm, pKan, pSeq, 0x200)) {
             EM_SET_RTN(pEm, 5, 0, 2, 0);
-            EM_MOVE(pEm) = Move_tbl.Move[pEm->UnkE3];
+            EM_SET_MOVE_V(pEm, Move_tbl.Move[pEm->UnkE3], 0, 0);
             if (pEm->UnkE3 == 2)
                 EM_SET_RTN(pEm, 5, 2, 0, 0);
             Pad_vib_fade_set(60, 150, 0, 0);

@@ -1643,7 +1643,7 @@ void Em33_dm_dive(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Move[EM30_W(pEm)->Morph_dir] + 0x1F0000;
+        EM_SET_MOVE_V(pEm, Move[EM30_W(pEm)->Morph_dir], 0, 0x1F);
         Em33_blood_set(pEm);
         EM30_W(pEm)->Spd = 40;
         EM30_W(pEm)->Spd_lim = 80;

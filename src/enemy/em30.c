@@ -374,7 +374,7 @@ void Em30_crawl(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Mot[EM30_W(pEm)->Morph_dir * 2 + EM30_W(pEm)->Head_up] + 0x1F0000;
+        EM_SET_MOVE_V(pEm, Mot[EM30_W(pEm)->Morph_dir * 2 + EM30_W(pEm)->Head_up], 0, 0x1F);
         pEm->Routine_2 = 1;
         EM30_W(pEm)->Spd = 40;
         EM30_W(pEm)->Spd_lim = 80;
@@ -410,7 +410,7 @@ void Em30_rear(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM30_W(pEm)->Morph_dir = Rnd() & 1;
         if (EM30_W(pEm)->Head_up && EM30_W(pEm)->Morph_dir)
             EM30_W(pEm)->Morph_dir = 0;
-        EM_MOVE(pEm) = Mot[EM30_W(pEm)->Morph_dir] + 0x1F0000;
+        EM_SET_MOVE_V(pEm, Mot[EM30_W(pEm)->Morph_dir], 0, 0x1F);
         pEm->Routine_2 = 1;
     case 1:
         Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 8);
@@ -933,7 +933,7 @@ void Em30_bite(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Mot[EM30_W(pEm)->Head_up] + 0x1F0000;
+        EM_SET_MOVE_V(pEm, Mot[EM30_W(pEm)->Head_up], 0, 0x1F);
         pEm->Routine_2 = 1;
         pEm->UnkDA = 0;
         pEm->UnkE2 = 0;
@@ -1145,7 +1145,7 @@ void Em30_lunge(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Mot[EM30_W(pEm)->Head_up] + 0x1F0000;
+        EM_SET_MOVE_V(pEm, Mot[EM30_W(pEm)->Head_up], 0, 0x1F);
         pEm->Routine_2 = 1;
         EM30_W(pEm)->Spd = 40;
         EM30_W(pEm)->Spd_add = -5;
@@ -1817,7 +1817,7 @@ void Em30_dm_flinch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Damage_cnt |= 0x80;
-        EM_MOVE(pEm) = Mot[EM30_W(pEm)->Head_up * 2 + EM30_W(pEm)->Morph_dir] + 0x1F0000;
+        EM_SET_MOVE_V(pEm, Mot[EM30_W(pEm)->Head_up * 2 + EM30_W(pEm)->Morph_dir], 0, 0x1F);
         Em30_blood_set(pEm);
         EM30_W(pEm)->Spd = 40;
         EM30_W(pEm)->Spd_lim = 80;

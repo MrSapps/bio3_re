@@ -1118,7 +1118,7 @@ void Em32_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = (Rnd() & 1) + 0xF0012;
+        EM_SET_MOVE_V(pEm, (Rnd() & 1) + 0x12, 0, 0xF);
         pEm->Timer0 = (pPl->Cdir_y + 0x800) & 0xFFF;
         pEm->Routine_2++;
     case 1:
@@ -1137,7 +1137,7 @@ void Em32_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             if (!EM32_W(pEm)->Back_num)
                 pPl->Damage_cnt &= 0x7F;
         }
-        EM_MOVE(pEm) = (Rnd() & 1) + 0x70014;
+        EM_SET_MOVE_V(pEm, (Rnd() & 1) + 0x14, 0, 7);
         Snd_se_enem(3, pEm);
         pEm->Routine_2++;
         for (i = 0, pP = pEm->pSin_parts_ptr; i < 6; i++, pP++)

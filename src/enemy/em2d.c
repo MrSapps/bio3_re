@@ -207,7 +207,7 @@ void Em2d_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = Move_tbl[Rnd() & 3] + 0xF0000;
+        EM_SET_MOVE_V(pEm, Move_tbl[Rnd() & 3], 0, 0xF);
         pEm->Routine_2 = 1;
         pEm->Timer0 = (Rnd() & 0x1F) + 60;
         if (Rnd() & 1) {
@@ -229,7 +229,7 @@ void Em2d_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (--pEm->Timer0 == -1)
             EM_SET_RTN(pEm, 1, 5, 0, 0);
         if (--pEm->UnkDA == -1) {
-            EM_MOVE(pEm) = Move_tbl[Rnd() & 3] + 0xF0000;
+            EM_SET_MOVE_V(pEm, Move_tbl[Rnd() & 3], 0, 0xF);
             pEm->UnkDA = (Rnd() & 0x1F) + 10;
         }
     }

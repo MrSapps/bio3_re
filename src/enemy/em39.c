@@ -198,7 +198,7 @@ void Em39_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         Joint_move(pEm, pKan, pSeq, 0x40);
         if (--pEm->Timer0 == -1) {
-            EM_MOVE(pEm) = 0x3F0000 + ((Rnd() & 0xF) << 8) + Em39_move_rnd[(Rnd() >> (Rnd() & 3)) & 7];
+            EM_MOVE(pEm) = 0x3F0000 + ((Rnd() & 0xF) << 8) + Em39_move_rnd[(Rnd() >> (Rnd() & 3)) & 7]; /* random idle motion and frame, Hokan_flg 0x3F */
             pEm->Timer0 = (Rnd() & 0x3F) + 60;
         }
         break;

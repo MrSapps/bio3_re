@@ -2192,7 +2192,7 @@ void Em36_dm_flinch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = (Rnd() & 1) + 0x7000B;
+        EM_SET_MOVE_V(pEm, (Rnd() & 1) + 0xB, 0, 7);
         pEm->Routine_2 = 1;
         Em34_blood_set(pEm);
         if (pEm->Unk132 & 0x10)
@@ -2791,7 +2791,7 @@ void Em36_sce_motion(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         EM36_W(pEm)->Flg |= 1;
     case 1:
         Spd_get(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
@@ -2835,7 +2835,7 @@ void Em36_sce_motion_stop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         EM36_W(pEm)->Flg |= 1;
     case 1:
         Spd_get(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);
@@ -2868,7 +2868,7 @@ void Em36_sce_jump(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = pEm->Add_dir + 0x700;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 7, 0);
         Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
         pEm->Spd_x = 600;
         pEm->Spd_y = 0;
@@ -2946,7 +2946,7 @@ void Em36_sce_leap(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = pEm->Add_dir;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0);
         Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x400);
         pEm->Spd_x = 0;
         pEm->Spd_z = 0;
@@ -3015,7 +3015,7 @@ void Em36_sce_jump_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = pEm->Add_dir + 0xF0000;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 0xF);
         if (pEm->Unk14A & 1)
             pEm->Routine_2 = 1;
         EM36_W(pEm)->Flg |= 1;
@@ -3085,7 +3085,7 @@ void Em36_sce_die_fall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        EM_MOVE(pEm) = pEm->Add_dir + 0x70000;
+        EM_SET_MOVE_V(pEm, pEm->Add_dir, 0, 7);
         pEm->Damage_cnt |= 0x80;
         Snd_se_enem(13, pEm);
         if (EM36_W(pEm)->pSub) {
