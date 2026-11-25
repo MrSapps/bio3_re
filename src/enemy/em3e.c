@@ -4,6 +4,7 @@
 #include "root_ck.h"
 #include "sld.h"
 #include "snd.h"
+#include "player.h"
 
 /* per-frame entry (RE2 EM_MAIN) */
 void Em3e_main(ENEMY_WORK *pEm)
@@ -120,7 +121,40 @@ void Em3e_fly_nop(ENEMY_WORK *pEm)
 {
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em3e", Em3e_fly);
+/* move 1: turn back at the destination box or the zone edge (timer 30); shoot when the player is level (Shot_wait) */
+void Em3e_fly(ENEMY_WORK *pEm)
+{
+    LONG Hi;
+    LONG Lo;
+    SHORT Area[2][4];
+
+    if (pEm->Timer0 == 0) {
+        Area[0][0] = pEm->Dest_x - 450;
+        Area[0][1] = pEm->Dest_z - 450;
+        Area[0][2] = 900;
+        Area[0][3] = 900;
+        Area[1][0] = 10000;
+        Area[1][1] = -25000;
+        Area[1][2] = 17000;
+        Area[1][3] = 25000;
+        if (Hit_ck_box(&pEm->Pos_x, Area[0]) || !Hit_ck_box(&pEm->Pos_x, Area[1])) {
+            pEm->Timer0 = 30;
+            Em3e_rtn1_set(pEm, 0);
+        }
+    } else {
+        pEm->Timer0--;
+    }
+    if (EM3E_W(pEm)->Shot_wait != 0) {
+        EM3E_W(pEm)->Shot_wait--;
+    } else {
+        Hi = pEm->Pos_x + 1800;
+        Lo = pEm->Pos_x - 1800;
+        if (Pl_work.Pos_x < Hi && Lo < Pl_work.Pos_x) {
+            EM3E_W(pEm)->Shot_wait = (Rnd() & 0x7F) + 10;
+            Em3e_shot_check(pEm, 2);
+        }
+    }
+}
 
 /* fly 1: head for the destination */
 void Em3e_fly_dest(ENEMY_WORK *pEm)
