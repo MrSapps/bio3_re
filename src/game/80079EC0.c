@@ -246,8 +246,88 @@ void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 #define gte_ldrgb(r0) __asm__ volatile("lwc2 $6, 0(%0)" : : "r"(r0))
 
-/* parameters copied into t-regs at entry (`addu t2,a0,zero` / `addu t3,a1,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx0);
+/* projected vertices of the first skin list: per bone, matrix = world * bone (CompM) moved to the bone's joint
+   offset, then rtpt over the vertex index triplets; z clamped to 0x7FFF one triplet late */
+void Skin_vtx0(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    JOINT_OFS *pOfs;
+    ENEMY_WORK *pEm;
+    MATRIX *pWs;
+    SXY Sz0; /* 4-byte unions: three stack words (no 8-aligned array) whose stores stay after the loads */
+    SXY Sz1;
+    SXY Sz2;
+    MATRIX *pM;
+    VECTOR *pV;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SHORT *pZ0;
+    SHORT *pZ1;
+    SHORT *pZ2;
+
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pEm = pEnv->pEm;
+    pOfs = (JOINT_OFS *)pEm->pUnk11C;
+    pVtx = pEnv->pMdl->pVtx;
+    Sz0.l = 0;
+    Sz1.l = 0;
+    Sz2.l = 0;
+    do {
+        n = *pData;
+        CompM(pWs, &pEm->pSin_parts_ptr[n].Workm, pM);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+    loop:
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        pData += 3;
+        n--;
+        gte_rtpt_b();
+        if (Sz0.l > 0x7FFF) {
+            *pZ0 = 0x7FFF;
+        }
+        if (Sz1.l > 0x7FFF) {
+            *pZ1 = 0x7FFF;
+        }
+        if (Sz2.l > 0x7FFF) {
+            *pZ2 = 0x7FFF;
+        }
+        pZ0 = &pSz[i0];
+        pZ1 = &pSz[i1];
+        pZ2 = &pSz[i2];
+        gte_stsxy3(&pSxy[i0], &pSxy[i1], &pSxy[i2]);
+        gte_stsz3(&Sz0.l, &Sz1.l, &Sz2.l);
+        *pZ0 = Sz0.l;
+        *pZ1 = Sz1.l;
+        *pZ2 = Sz2.l;
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+    if (Sz0.l > 0x7FFF) {
+        *pZ0 = 0x7FFF;
+    }
+    if (Sz1.l > 0x7FFF) {
+        *pZ1 = 0x7FFF;
+    }
+    if (Sz2.l > 0x7FFF) {
+        *pZ2 = 0x7FFF;
+    }
+}
 
 /* blended vertices of the second skin list */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
