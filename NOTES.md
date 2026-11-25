@@ -374,3 +374,32 @@ Unmatched drafts kept outside the repo (scratchpad): a7d8_draft_full.c, player_s
   (B6FC, B86C, CF90, D6D8, D898, DC98, DE0C, DFE0, E160) copies its parameters into t-regs at entry
   (`addu t0,a1,zero`, D898 twice); no C or PsyQ inline_c.h macro form reproduces it (gcc 2.8 global-alloc
   always gives the parameter its incoming register unless it clashes with that hard reg).
+
+## Code shared between overlays (src/ovl/shared)
+
+Overlays are linked separately, so identical routines exist once per overlay in the binary. In the source they
+live once, in `src/ovl/shared/<family>/<Name>.inc.c`, and every overlay `#include`s the file at the position
+the function has in its own .text (order matters). As in sotn, a shared function has the same name in every
+overlay that has it (the name comes from the family's first module, e.g. `Em10_mv04` in em16), set through
+`ovl/<ovl>.syms.txt`; after a rename, `rm -rf asm/*/ovl/<ovl>` and re-split that overlay.
+
+- em10/em16: em16 is a near copy of em10. All its routines, tables and its free work (include/ovl/em10_free.h)
+  take the em10 names; 28 functions shared. Exceptions: em16 has 3 routines of its own (func_80101BBC,
+  func_8010208C, func_80103CE4) and lacks Em10_sce02, Em10_Kahannsin_walk and Em10_ude_down. Same-asm pairs
+  that are both still func_ (e.g. em10 func_8010C3F0 / em16 func_8010BE98) block a few more.
+- em30/em33: 13 common routines named Em30_*; 6 shared. The other 7 differ only in the free-work views
+  (EM30_W/EM30_SUB/EM30_SABUN_P vs EM33_W/EM33_B/EM33_SABUN_P). The layouts agree but signedness differs
+  (em30 Unk12 signed, em33 UCHAR), so a merged header must be checked by building both.
+- em34/em36: Em34_foot_set, Em34_blood_set, Em34_blood_spray, Em34_sce05 shared. em36 is not a copy of em34;
+  the small dispatchers that em34/em36/em37/em39 all have (Em34_Move, Em34_Sce, Em34_Move_type02) were left alone.
+- jill_sel/select/result: select shares Jill_pl_trans, Jill_light_set, Jill_obj_init/draw/rgb. result has
+  the same routines (now Jill_* names) on RESULT_SPR/RESULT_SPR_DATA, the same layout as SEL_OBJ/SEL_SPRT_DEF
+  but with other field names (0xA/0xB: Semi/Abr vs Abr/Tp); unify the types to share them.
+  Jill_wep_load (= select's copy) is still unmatched in both.
+- em20/em25: Ck_em_id.
+
+tools/ovlshare: `asmgrp.py` lists asm-identical functions across overlays (writes build/ovlshare_groups.json);
+`align.py A B` aligns two overlays' functions in order; `rename.py A B [--apply]` gives B's func_ copies
+A's names; `maprename.py OVL MAP` renames from an "old new" list; `trytext.py A B` tries A's C text for
+B's same-named functions and keeps it when all outputs stay OK; `share.py FAMILY A B... [--apply]` moves
+text-identical functions into src/ovl/shared/FAMILY.
