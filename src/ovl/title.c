@@ -1290,7 +1290,7 @@ start:
         G.Unk2115 = 2;
         break;
     }
-    D_800C79CC = pTi->Cur;
+    Extra_pl = pTi->Cur;
     G.Unk2118 = 0;
     G.Score = 0;
     G.Unk2116 = 0;

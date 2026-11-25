@@ -72,7 +72,7 @@ void Set_room(void)
                 pG->Unk784E = pG->Unk7864;
             } else {
                 if (pG->Unk784E == 1) {
-                    D_800D225E = 10;
+                    Item_work0_num = 10;
                 }
                 if (pG->Unk7864 >= 2) {
                     if (pG->Unk784E < 2) {
@@ -92,7 +92,7 @@ void Set_room(void)
         *(ULONG *)&pPl->Routine_0 = 0;
     }
     Snd_bgm_fade_wait();
-    Size = Cd_read(D_8009DFD0[Stage][Room], NULL, 4, "ARD");
+    Size = Cd_read(Room_file_tbl[Stage][Room], NULL, 4, "ARD");
     ppAdr = &pRoom->pEdt0;
     do {
         if (*ppAdr) {
@@ -122,7 +122,7 @@ void Set_room(void)
     }
     Sce_scheduler_set();
     if (G.Em_num != 0 || Rbj_id != 0xFF || G.pEnemy[1]->Be_flg != 0) {
-        Cd_read(D_8009DFD0[Stage][Room] + 1, NULL, 5, "BIN FILE");
+        Cd_read(Room_file_tbl[Stage][Room] + 1, NULL, 5, "BIN FILE");
     }
     func_800498F0();
     func_80048630();

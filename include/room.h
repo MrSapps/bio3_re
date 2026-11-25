@@ -3,7 +3,7 @@
 /* RE2 ROOM.C: room/stage loading (Set_room, Set_stage, Em_init_move) */
 #include "bio3.h"
 
-extern USHORT *D_8009DFD0[]; /* per stage room file numbers */
+extern USHORT *Room_file_tbl[]; /* per stage room file numbers */
 extern UCHAR Rbj_id; /* room pack entry id of the RBJ (Sce_rbj_set, Cd_edd_search) */
 
 void Set_room(void);

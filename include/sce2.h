@@ -16,7 +16,7 @@ extern UCHAR D_800C703E[];
 extern UCHAR D_800C7961;
 extern SHORT D_800D1F8E[];
 extern USHORT D_800D1F94;
-extern ULONG D_800D258C[];
+extern ULONG Chaser_flg[]; /* G+0x7E54: Nemesis encounter flags (Chaser_evt_clr) */
 extern UCHAR D_800E0171[];
 extern ULONG D_800E01D4[];
 extern UCHAR D_800E01E8;

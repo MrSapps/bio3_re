@@ -1469,17 +1469,17 @@ ULONG Chaser_evt_clr(SCE_TASK *pSce)
     case 3:
     case 4:
         for (i = 0; i < 10; i++) {
-            Flg_off_(D_800D258C, i + 0x50);
+            Flg_off_(Chaser_flg, i + 0x50);
         }
         break;
     case 5:
         for (i = 0; i < 0x14; i++) {
-            Flg_off_(D_800D258C, i + 0x61);
+            Flg_off_(Chaser_flg, i + 0x61);
         }
         break;
     case 6:
         for (i = 0; i < 7; i++) {
-            Flg_off_(D_800D258C, i + 0x5A);
+            Flg_off_(Chaser_flg, i + 0x5A);
         }
         break;
     }

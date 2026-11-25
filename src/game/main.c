@@ -380,7 +380,7 @@ void Bg_draw(void)
         CD.Check_sum_flg = 2;
         CD.Fsum = pG->pBs_check_sum[*pBs_size + pG->Cut_no];
         CD.Fsize = Size;
-        CD.Fno = D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1;
+        CD.Fno = Room_file_tbl[pG->Unk783E][pG->Unk7840 + 1] - 1;
         CD.Fsector = (floc[CD.Fno].sec_high << 16) + floc[CD.Fno].sector + pG->Cut_no * 32;
         Cd_read(CD.Fno, (ULONG *)0x80194000, 2, "BS");
         CD.Check_sum_flg = 0;

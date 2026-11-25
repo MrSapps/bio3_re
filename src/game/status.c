@@ -282,14 +282,14 @@ void St_file_prim_init(ST_WORK *pSt)
     SetDrawTPage(&pSt->Tpage[1][0], 0, 0, 0x97);
     SetDrawTPage(&pSt->Tpage[0][1], 0, 0, 0x18);
     SetDrawTPage(&pSt->Tpage[1][1], 0, 0, 0x18);
-    St_sprt_init(pSt, (void *)0x801ADA90, D_8009F2EC, (pSt->Clut_page << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801ADA90, File_page_spr, (pSt->Clut_page << 8) | 1);
     Clut = pSt->Clut_page + 1;
-    St_sprt_init(pSt, (void *)0x801ADAB8, D_8009F2F8, (Clut << 8) | 1);
+    St_sprt_init(pSt, (void *)0x801ADAB8, File_page2_spr, (Clut << 8) | 1);
     Clut = pSt->Clut_parts + 2;
     f = (Clut << 8) | 0x10001;
-    St_sprt_init(pSt, (void *)0x801ADAE0, D_8009F310, f);
-    St_sprt_init(pSt, (void *)0x801ADB08, D_8009F304, f);
-    St_sprt_init(pSt, (void *)0x801ADB80, D_8009F31C, (pSt->Clut_parts << 8) | 0x10001);
+    St_sprt_init(pSt, (void *)0x801ADAE0, File_next_spr, f);
+    St_sprt_init(pSt, (void *)0x801ADB08, File_prev_spr, f);
+    St_sprt_init(pSt, (void *)0x801ADB80, File_exit_spr, (pSt->Clut_parts << 8) | 0x10001);
 }
 
 /* adds the file viewer prims (page, prev/next arrows, exit marker) */
@@ -301,7 +301,7 @@ void St_file_draw(ST_WORK *pSt)
     AddPrim(G.pOt0 + 4, pSt->Tpage[G.Cbuf_id]);
     AddPrim(G.pOt0 + 3, &pSt->Tpage[G.Cbuf_id][1]);
     AddPrim(G.pOt0 + 2, &pSt->Ot[G.Cbuf_id][16]);
-    St_sprt_draw_tp(pSt, (SPRT *)0x801ADA90, D_8009F2EC, 0x1101);
+    St_sprt_draw_tp(pSt, (SPRT *)0x801ADA90, File_page_spr, 0x1101);
     if (pSt->File_no == 0x1B) {
         p = (SPRT *)0x801ADA90;
         if (G.Cbuf_id) {
@@ -309,12 +309,12 @@ void St_file_draw(ST_WORK *pSt)
         }
         p->y0 = (USHORT)pSt->Pos[17].Y + 0x24;
     }
-    St_sprt_draw_tp(pSt, (SPRT *)0x801ADAB8, D_8009F2F8, 0x11201);
+    St_sprt_draw_tp(pSt, (SPRT *)0x801ADAB8, File_page2_spr, 0x11201);
     if (pSt->Flg & 0x80000) {
-        St_sprt_draw(pSt, (SPRT *)0x801ADAE0, D_8009F310, 0x101301);
+        St_sprt_draw(pSt, (SPRT *)0x801ADAE0, File_next_spr, 0x101301);
     }
     if (pSt->Flg & 0x40000) {
-        St_sprt_draw(pSt, (SPRT *)0x801ADB08, D_8009F304, 0x101401);
+        St_sprt_draw(pSt, (SPRT *)0x801ADB08, File_prev_spr, 0x101401);
     }
     if (pSt->Flg & 0x20000) {
         p = (SPRT *)0x801ADB80;
@@ -327,7 +327,7 @@ void St_file_draw(ST_WORK *pSt)
             Clut = pSt->Clut_parts;
         }
         p->clut = ((Clut + 0x1E0) << 6) | 0x13;
-        St_sprt_draw(pSt, (SPRT *)0x801ADB80, D_8009F31C, 0x101501);
+        St_sprt_draw(pSt, (SPRT *)0x801ADB80, File_exit_spr, 0x101501);
     }
 }
 
@@ -515,8 +515,8 @@ void St_box_select(ST_WORK *pSt)
                 Stack = 0;
                 break;
             }
-            pInv = &D_800D23B4[Inv_no];
-            pBox = &D_800D23B4[pSt->Box_cursor + 10];
+            pInv = &pItem_slot[Inv_no];
+            pBox = &pItem_slot[pSt->Box_cursor + 10];
             Merge = 0;
             if (pInv->Id == pBox->Id && Stack == 1) {
                 Merge = pData->Max >= pInv->Num + pBox->Num;
@@ -2760,7 +2760,7 @@ void St_item_disp(ST_WORK *pSt)
             xy = x | (y << 16);
             c = pSt->Clut_parts + ((pI->Flg & 0xC) >> 2) + 2;
             p = St_num_disp(p, pI->Num, xy, c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
-        } while (++i < D_800D225E);
+        } while (++i < Item_work0_num);
     }
     if ((i = pG->pItem_set->Equip_no) != 0xFF) {
         pI = &pG->pItem_set->Item[i];
@@ -3166,13 +3166,13 @@ void Status_init(void)
     if (Flg_ck(&pG->System_flg, 0x18)) {
         mode = 2;
     }
-    if (D_800C79CC == 1) {
+    if (Extra_pl == 1) {
         mode = 3;
     }
-    if (D_800C79CC == 2) {
+    if (Extra_pl == 2) {
         mode = 4;
     }
-    if (D_800C79CC == 3) {
+    if (Extra_pl == 3) {
         mode = 2;
     }
     for (j = 0; j < 2; j++) {
@@ -3622,7 +3622,7 @@ void St_exit(ST_WORK *pSt)
         Weapon_cls(pPl);
         Pl_weapon_ch(pPl);
     }
-    Cd_seek(D_8009DFD0[pG->Unk783E][pG->Unk7840 + 1] - 1, 0, "SEEK BSS");
+    Cd_seek(Room_file_tbl[pG->Unk783E][pG->Unk7840 + 1] - 1, 0, "SEEK BSS");
     Ctrl_mode = 2;
     Task_signal(0);
 }
@@ -4773,7 +4773,7 @@ LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
         }
         break;
     case 1:
-        if ((code == 0x10C || code == 0x115) && Flg_ck(D_800D1FA0, 0x3A) && Room != 0xC) {
+        if ((code == 0x10C || code == 0x115) && Flg_ck(Scenario_flg, 0x3A) && Room != 0xC) {
             return 0;
         }
         if ((USHORT)(G.Unk783E - 2) < 3 && Room == 0xC) {
@@ -4791,7 +4791,7 @@ LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
         }
         break;
     case 3:
-        f = Flg_ck(D_800D1FA0, 0xC4);
+        f = Flg_ck(Scenario_flg, 0xC4);
         if (Room == (f ? 0x11 : 0x15)) {
             return 0;
         }
@@ -5376,7 +5376,7 @@ LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
                 return 0;
             }
         }
-        if (!Flg_ck(D_800D258C, 0x45)) {
+        if (!Flg_ck(Chaser_flg, 0x45)) {
             if (Room == 3 && Part == 1) {
                 return 0;
             }

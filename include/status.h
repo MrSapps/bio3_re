@@ -246,11 +246,11 @@ extern UCHAR File_page_sum[];
 extern ULONG File_page_size[];
 extern USHORT File_page_top[];
 extern USHORT File_page_num[];
-extern ST_SPR_DEF D_8009F2EC[];
-extern ST_SPR_DEF D_8009F2F8[];
-extern ST_SPR_DEF D_8009F304[];
-extern ST_SPR_DEF D_8009F310[];
-extern ST_SPR_DEF D_8009F31C[];
+extern ST_SPR_DEF File_page_spr[];
+extern ST_SPR_DEF File_page2_spr[];
+extern ST_SPR_DEF File_prev_spr[];
+extern ST_SPR_DEF File_next_spr[];
+extern ST_SPR_DEF File_exit_spr[];
 extern ST_SPR_DEF D_8009F328[];
 extern ST_SPR_DEF D_8009F34C[];
 extern ST_FT4_DEF D_8009F388[];
@@ -350,14 +350,14 @@ extern ITEM_DATA Item_data_tbl[];      /* per item id */
 extern ITEM_MIX Item_mix_tbl[];        /* Id_a 0xFF ends it */
 extern ITEM_CHECK Item_check_tbl[];    /* Id 0xFF ends it */
 extern ITEM_TAMA Item_tama_tbl[];      /* Wep_id 0xFF ends it */
-extern LONG D_800C79CC; /* extra game character (Status_init) */
+extern LONG Extra_pl; /* extra game character (Status_init) */
 extern SHORT Mapping_tpage_clut;
-extern ULONG D_800D1FA0[];
+extern ULONG Scenario_flg[]; /* G.Unk7868 under its own symbol (RE2 Scenario_flg) */
 extern ULONG Map_visit_flg[];
 extern ULONG Map_get_flg[];
 extern ULONG Map_area_flg[];
-extern UCHAR D_800D225E; /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
-extern ITEM_WORK *D_800D23B4;
+extern UCHAR Item_work0_num; /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
+extern ITEM_WORK *pItem_slot; /* G.pItem_set as one ITEM_WORK array: [0..9] inventory, [10..73] box */
 extern LONG St_pl_kind;
 extern UCHAR D_800D442D;
 extern UCHAR D_800D442E;
