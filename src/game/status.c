@@ -19,30 +19,45 @@ typedef struct tagST_AOT_ITEM {
     UCHAR Md1;                         /* 0x6 */
 } ST_AOT_ITEM;
 
-/* map data (St.pMap_data) */
+/* map floor info (ST_MAP_DATA.Info_ofs) */
 typedef struct tagST_MAP_INFO {
-    SHORT X;                           /* 0x0 */
+    SHORT X;                           /* 0x0 map origin */
     SHORT Y;                           /* 0x2 */
-    UCHAR Unk4;                        /* 0x4 */
-    UCHAR Unk5;                        /* 0x5 */
+    UCHAR Floor_flg;                   /* 0x4 multi-floor map */
+    UCHAR Floor_num;                   /* 0x5 */
 } ST_MAP_INFO;
+
+/* where a room sits on the map (ST_MAP_DATA.Room_ofs, one per room): map = Map + (pos - Pos) / 450 */
 typedef struct tagST_MAP_ROOM {
-    SHORT X0;                          /* 0x0 */
-    SHORT Z0;                          /* 0x2 */
-    SHORT X1;                          /* 0x4 */
-    SHORT Z1;                          /* 0x6 */
+    SHORT Map_x;                       /* 0x0 */
+    SHORT Map_y;                       /* 0x2 */
+    SHORT Pos_x;                       /* 0x4 world position of the map point */
+    SHORT Pos_z;                       /* 0x6 */
 } ST_MAP_ROOM;
 
-/* MAP.MAP header: room count, then per room the part list offset and part counts */
+/* MAP.MAP part header: room count, then per room the part list offset and the base / door part counts */
 typedef struct tagST_MAP_PARTS {
-    ULONG Ofs;                         /* 0x0 */
-    USHORT N0;                         /* 0x4 */
-    USHORT N1;                         /* 0x6 */
+    ULONG Ofs;                         /* 0x0 ST_MAP_PART list, from the header */
+    USHORT N0;                         /* 0x4 base parts (Map_part_disp_ck) */
+    USHORT N1;                         /* 0x6 door / marker parts (Map_door_disp_ck) */
 } ST_MAP_PARTS;
 typedef struct tagST_MAP_HDR {
     ULONG Num;                         /* 0x0 */
-    ST_MAP_PARTS Room[1];               /* 0x4 */
+    ST_MAP_PARTS Room[1];              /* 0x4 */
 } ST_MAP_HDR;
+
+/* flag-dependent part list entry (ST_MAP_DATA Mark/Hide/Door lists, Room 0xFF ends a list) */
+typedef struct tagST_MAP_FLG {
+    UCHAR Room;                        /* 0x0 */
+    UCHAR Part;                        /* 0x1 */
+    UCHAR Flg_no;                      /* 0x2 */
+    UCHAR Kind;                        /* 0x3 which flag array (and for doors 0x10: hidden until the map is owned) */
+} ST_MAP_FLG;
+
+/* pointer to a list of the map data (offset stored in its header) */
+#define MAP_LIST(T, pData, Ofs) ((T *)((UCHAR *)(pData) + (pData)->Ofs))
+/* p = St.pMap_data's list Ofs (p is loaded with the header first, as the original does) */
+#define MAP_FLG_LIST(p, Ofs) ((p) = (ST_MAP_FLG *)St.pMap_data, (p) = MAP_LIST(ST_MAP_FLG, (ST_MAP_DATA *)(p), Ofs))
 
 #define FLD(p, ofs, type) (*(type *)((UCHAR *)(p) + (ofs)))  /* unnamed struct fields */
 
@@ -4000,9 +4015,9 @@ void St_map_init(ST_WORK *pSt)
         Map_file_load(pSt, pSt->Map_stage);
     }
     on = 1;
-    pInfo = (ST_MAP_INFO *)((UCHAR *)pSt->pMap_data + pSt->pMap_data[1]);
-    pSt->Floor_flg = pInfo->Unk4;
-    pSt->Floor_num = pInfo->Unk5;
+    pInfo = MAP_LIST(ST_MAP_INFO, pSt->pMap_data, Info_ofs);
+    pSt->Floor_flg = pInfo->Floor_flg;
+    pSt->Floor_num = pInfo->Floor_num;
     pSt->Pl_mark_flg = on;
     pSt->Map_x0 = pInfo->X;
     pSt->Map_y0 = pInfo->Y;
@@ -4051,7 +4066,7 @@ void St_map_init(ST_WORK *pSt)
             pRoom = (ST_MAP_ROOM *)pSt->pMap_data;
             x = G.Player.Pos_x;
             z = G.Player.Pos_z;
-            pRoom = (ST_MAP_ROOM *)((UCHAR *)pRoom + *(ULONG *)pRoom);
+            pRoom = MAP_LIST(ST_MAP_ROOM, (ST_MAP_DATA *)pRoom, Room_ofs);
             pRoom += pSt->Map_room_cur;
             if (G.Unk783E == 1 && G.Unk7840 == 15 && x >= -0x2276) {
                 x += 0x251D;
@@ -4060,8 +4075,8 @@ void St_map_init(ST_WORK *pSt)
                 x = G.Player.Pos_x - 0x2328;
                 z = G.Player.Pos_z;
             }
-            pSt->Map_x = -(pRoom->X0 + (x - pRoom->X1) / 450);
-            pSt->Map_y = (z - pRoom->Z1) / 450 - pRoom->Z0;
+            pSt->Map_x = -(pRoom->Map_x + (x - pRoom->Pos_x) / 450);
+            pSt->Map_y = (z - pRoom->Pos_z) / 450 - pRoom->Map_y;
             pSt->Floor_disp = 0;
         }
     }
@@ -4430,7 +4445,7 @@ void St_map_draw(ST_WORK *pSt)
     LINE_F2 *pL;
     TILE *pT;
     SPRT *pS;
-    SHORT *pRm;
+    ST_MAP_ROOM *pRm;
     UCHAR c;
     LONG i, j, f;
     LONG mx, my;
@@ -4498,9 +4513,9 @@ void St_map_draw(ST_WORK *pSt)
         f = 0;
     }
     if (f) {
-        pRm = (SHORT *)pSt->pMap_data;
-        pRm = (SHORT *)((UCHAR *)pRm + *(ULONG *)pRm);
-        pRm += pSt->Map_room_cur * 4;
+        pRm = (ST_MAP_ROOM *)pSt->pMap_data;
+        pRm = MAP_LIST(ST_MAP_ROOM, (ST_MAP_DATA *)pRm, Room_ofs);
+        pRm += pSt->Map_room_cur;
         px = G.Player.Pos_x;
         pz = G.Player.Pos_z;
         if (G.Unk783E == 1 && G.Unk7840 == 0xF && px >= -0x2276) {
@@ -4510,8 +4525,8 @@ void St_map_draw(ST_WORK *pSt)
             px = G.Player.Pos_x - 0x2328;
             pz = G.Player.Pos_z;
         }
-        dx = pRm[0] + (px - pRm[2]) / 450;
-        dy = pRm[1] - (pz - pRm[3]) / 450;
+        dx = pRm->Map_x + (px - pRm->Pos_x) / 450;
+        dy = pRm->Map_y - (pz - pRm->Pos_z) / 450;
         mx = (dx + pSt->Map_x0) * pSt->Map_zoom / 100 - pSt->Map_x0 + pSt->Map_x;
         my = (dy + pSt->Map_y0) * pSt->Map_zoom / 100 - pSt->Map_y0 + pSt->Map_y;
         pP = (POLY_FT4 *)0x801AFE80;
@@ -4705,7 +4720,7 @@ void Map_file_load(ST_WORK *pSt, UCHAR no)
     CD.Fsector += sum >> 11;
     CD.Fsum = Map_file_sum[no];
     Cd_read(0x3A, pSt->pMap_file, 2, "MAP.MAP");
-    pSt->pMap_data = (ULONG *)(pSt->pMap_file[3] + (ULONG)pSt->pMap_file);
+    pSt->pMap_data = (ST_MAP_DATA *)(pSt->pMap_file[3] + (ULONG)pSt->pMap_file);
     Mapping_tpage_clut = 0xA17;
     Mapping_tim((ULONG *)(pSt->pMap_file[5] + (ULONG)pSt->pMap_file));
     Mapping_tpage_clut = 0x1A18;
@@ -4802,7 +4817,7 @@ LONG Map_room_disp_ck(UCHAR Stage, UCHAR Room)
 LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     tagGLOBAL *pG = &G;
-    UCHAR *p = (UCHAR *)St.pMap_data;
+    ST_MAP_FLG *p;
     USHORT cur = St.Map_room_cur | (St.Map_stage_cur << 8);
     UCHAR fl = pG->Player.nFloor;
     ULONG *pF0 = pG->Unk78D0;
@@ -4811,16 +4826,16 @@ LONG Map_part_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
     ULONG *pF3 = G.Unk7994;
     ULONG *pF4 = &G.Unk7888;
 
-    p += ((LONG *)p)[3];
+    MAP_FLG_LIST(p, Hide_ofs);
     if (!Flg_ck(pG->Unk79EC, Stage)) {
-        for (; (signed char)p[0] != -1; p += 4) {
-            if (p[0] == Room && p[1] == Part) {
-                if (p[3]) {
-                    if (!Flg_ck(G.Unk7868, p[2])) {
+        for (; (signed char)p->Room != -1; p++) {
+            if (p->Room == Room && p->Part == Part) {
+                if (p->Kind) {
+                    if (!Flg_ck(G.Unk7868, p->Flg_no)) {
                         return 0;
                     }
                 } else {
-                    if (!Flg_ck(G.Unk7994, p[2])) {
+                    if (!Flg_ck(G.Unk7994, p->Flg_no)) {
                         return 0;
                     }
                 }
@@ -5379,7 +5394,7 @@ LONG Map_part_clut(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
     ST_WORK *pSt = &St;
     LONG cur = pSt->Map_room_cur | (pSt->Map_stage_cur << 8);
-    UCHAR *p;
+    ST_MAP_FLG *p;
 
     if (Room < 0x30 && !Map_visit_ck(Stage, Room)) {
         return 5;
@@ -5468,15 +5483,14 @@ LONG Map_part_clut(UCHAR Stage, UCHAR Room, UCHAR Part)
         break;
     }
     if (!Flg_ck(&G.System_flg, 0x18)) {
-        p = (UCHAR *)St.pMap_data;
-        for (p += ((LONG *)p)[3]; (signed char)p[0] != -1; p += 4) {
-            if (p[0] == Room && p[1] == Part) {
-                if (p[3]) {
-                    if (!Flg_ck(G.Unk7868, p[2])) {
+        for (MAP_FLG_LIST(p, Hide_ofs); (signed char)p->Room != -1; p++) {
+            if (p->Room == Room && p->Part == Part) {
+                if (p->Kind) {
+                    if (!Flg_ck(G.Unk7868, p->Flg_no)) {
                         return 5;
                     }
                 } else {
-                    if (!Flg_ck(G.Unk7994, p[2])) {
+                    if (!Flg_ck(G.Unk7994, p->Flg_no)) {
                         return 5;
                     }
                 }
@@ -5584,7 +5598,7 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
     ULONG *pF1 = pG->Unk78F0;
     ULONG *pF2 = pG->Unk7868;
     ULONG *pS = &pG->Status_flg;
-    UCHAR *p;
+    ST_MAP_FLG *p;
 
     switch (Stage) {
     case 0:
@@ -5906,39 +5920,38 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
         }
         break;
     }
-    p = (UCHAR *)St.pMap_data;
-    p += ((LONG *)p)[4];
-    while ((signed char)p[0] != -1) {
-        if (p[0] == Room && p[1] == Part) {
+    MAP_FLG_LIST(p, Door_ofs);
+    while ((signed char)p->Room != -1) {
+        if (p->Room == Room && p->Part == Part) {
             if (Flg_ck(&G.System_flg, 0x18)) {
                 return 0;
             }
             if (f) {
-                if (p[3] & 1) {
-                    if (Flg_ck(G.Unk7868, p[2])) {
+                if (p->Kind & 1) {
+                    if (Flg_ck(G.Unk7868, p->Flg_no)) {
                         return 0;
                     }
                 } else {
-                    if (Flg_ck(G.Unk7994, p[2])) {
+                    if (Flg_ck(G.Unk7994, p->Flg_no)) {
                         return 0;
                     }
                 }
             } else {
-                if (p[3] & 0x10) {
+                if (p->Kind & 0x10) {
                     return 0;
                 }
-                if (p[3] & 1) {
-                    if (Flg_ck(G.Unk7868, p[2])) {
+                if (p->Kind & 1) {
+                    if (Flg_ck(G.Unk7868, p->Flg_no)) {
                         return 0;
                     }
                 } else {
-                    if (Flg_ck(G.Unk7994, p[2])) {
+                    if (Flg_ck(G.Unk7994, p->Flg_no)) {
                         return 0;
                     }
                 }
             }
         }
-        p += 4;
+        p++;
     }
     return 1;
 }
@@ -5946,7 +5959,7 @@ LONG Map_door_disp_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 /* is a door / marker highlighted (its flag not set yet) */
 LONG Map_door_mark_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
 {
-    UCHAR *p;
+    ST_MAP_FLG *p;
 
     if (Flg_ck(&G.System_flg, 0x18)) {
         switch (Stage) {
@@ -6005,27 +6018,26 @@ LONG Map_door_mark_ck(UCHAR Stage, UCHAR Room, UCHAR Part)
         }
         return 0;
     }
-    p = (UCHAR *)St.pMap_data;
-    for (p += ((LONG *)p)[2]; (signed char)p[0] != -1; p += 4) {
-        if (p[0] == Room && p[1] == Part) {
-            switch (p[3]) {
+    for (MAP_FLG_LIST(p, Mark_ofs); (signed char)p->Room != -1; p++) {
+        if (p->Room == Room && p->Part == Part) {
+            switch (p->Kind) {
             case 0:
-                if (!Flg_ck(G.Unk7994, p[2])) {
+                if (!Flg_ck(G.Unk7994, p->Flg_no)) {
                     return 1;
                 }
                 break;
             case 1:
-                if (!Flg_ck(G.Unk7868, p[2])) {
+                if (!Flg_ck(G.Unk7868, p->Flg_no)) {
                     return 1;
                 }
                 break;
             case 2:
-                if (!Flg_ck(G.Unk7890, p[2])) {
+                if (!Flg_ck(G.Unk7890, p->Flg_no)) {
                     return 1;
                 }
                 break;
             case 3:
-                if (!Flg_ck(G.Unk78B0, p[2])) {
+                if (!Flg_ck(G.Unk78B0, p->Flg_no)) {
                     return 1;
                 }
                 break;

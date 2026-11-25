@@ -96,6 +96,15 @@ typedef struct tagITEM_TAMA {
     UCHAR pad2[2];
 } ITEM_TAMA;
 
+/* map data header (St.pMap_data): byte offsets from its start */
+typedef struct tagST_MAP_DATA {
+    LONG Room_ofs;                     /* 0x00 ST_MAP_ROOM per room (player marker) */
+    LONG Info_ofs;                     /* 0x04 ST_MAP_INFO */
+    LONG Mark_ofs;                     /* 0x08 ST_MAP_FLG: parts highlighted until their flag is set (Map_door_mark_ck) */
+    LONG Hide_ofs;                     /* 0x0C ST_MAP_FLG: base parts hidden until their flag (map not owned) */
+    LONG Door_ofs;                     /* 0x10 ST_MAP_FLG: door / marker parts (Map_door_disp_ck) */
+} ST_MAP_DATA;
+
 /* panel position */
 typedef struct tagST_POS {
     SHORT X;                           /* 0x0 */
@@ -193,7 +202,7 @@ typedef struct tagST_WORK {
     UCHAR Floor_num;                   /* 0xB0 */
     UCHAR Menu_blink;                  /* 0xB1 area menu cursor blink */
     UCHAR padB2[0xB4 - 0xB2];
-    ULONG *pMap_data;                  /* 0xB4 map data: word offsets to ST_MAP_ROOM/ST_MAP_INFO tables and ST_MAP_FLG lists */
+    struct tagST_MAP_DATA *pMap_data;  /* 0xB4 map data of the MAP.MAP entry */
     USHORT Map_event;                  /* 0xB8 map opened by an event (sce2 opcode): 1 stage 0, 2 stage 4 */
     UCHAR Map_return;                  /* 0xBA map re-entered after an area change */
     signed char Area_cursor;           /* 0xBB area menu cursor */
