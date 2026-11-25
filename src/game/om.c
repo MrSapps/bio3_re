@@ -76,7 +76,7 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     pMw = pCcp->pOm;
     Clut = GetClut(0x120, G_esp_tex_h + 0x1E0 + Col_wk_no) & 0xFFFF;
     if (pMw->Unk4A != 1) {
-        Poly_num = pMw->pTmd->n_prim3;
+        Poly_num = (USHORT)pMw->pTmd->n_prim;
         p = pMw->pTmd->pPrim3;
         if (Poly_num != 0)
             D0 = *p >> 22;
@@ -84,7 +84,7 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
             *p = (*p & 0xffff) | (Clut << 16);
             p += 3;
         }
-        Poly_num = pMw->pTmd->n_prim4;
+        Poly_num = pMw->pTmd->n_prim >> 16;
         p = pMw->pTmd->pPrim4;
         if (Poly_num != 0)
             D0 = *p >> 22;
@@ -93,7 +93,7 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
             p += 4;
         }
     } else {
-        Poly_num = pMw->pTmd->n_prim4;
+        Poly_num = pMw->pTmd->n_prim >> 16;
         p = pMw->pPacket188;
         if (Poly_num != 0)
             D0 = p[3] >> 22;
@@ -248,7 +248,7 @@ void Uv_chg_ctr(CC_PARTS_WORK *pCcp)
     }
     pPrim0 = (POLY_GT4 *)pOm->pPacket188;
     pPrim1 = pPrim0 + 1;
-    n = pOm->pTmd->n_prim4;
+    n = pOm->pTmd->n_prim >> 16;
     do {
         if (pPrim0->v0 < pCcp->Cc_num) {
             d = pCcp->Cc_num - pPrim0->v0;

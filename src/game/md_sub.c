@@ -54,8 +54,41 @@
 #define gte_rtv2tr() __asm__ volatile("nop; nop; .word 0x4A490012")
 #define gte_llv0() __asm__ volatile("nop; nop; .word 0x4A4A6412") /* mvmva 1,1,0,3,1: light matrix * v0, lm */
 
-/* 7 diffs (draft in scratchpad): giv base must be &n_prim3, gcc picks the last pObj field read (pPrim4) */
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", Mapping_md);
+/* add the texture page / clut to every prim's uv words and fill in the vertex triplet count (RE2 Mapping_tmd) */
+ULONG Mapping_md(ULONG *pMd_adr, ULONG Ctp, ULONG Ccl)
+{
+    ULONG Ret;
+    MD_HEAD *pMd;
+    MD_OBJ *pObj;
+    ULONG *p;
+    ULONG n;
+    ULONG i;
+
+    Ret = *pMd_adr;
+    pMd = (MD_HEAD *)(pMd_adr + 1);
+    Md_adr_cnv(pMd);
+    Ctp <<= 16;
+    Ccl <<= 22;
+    pObj = pMd->Obj;
+    n = pMd->n_obj;
+    do {
+        pObj->n_vert |= ((pObj->n_vert + 2) / 3) << 16;
+        p = pObj->pPrim3;
+        for (i = pObj->n_prim & 0xFFFF; i != 0; i--) {
+            p[1] += Ctp;
+            p[0] += Ccl;
+            p += 3;
+        }
+        p = pObj->pPrim4;
+        for (i = pObj->n_prim >> 16; i != 0; i--) {
+            p[1] += Ctp;
+            p[0] += Ccl;
+            p += 4;
+        }
+        pObj++;
+    } while (--n != 0);
+    return Ret;
+}
 
 void Md_adr_cnv(MD_HEAD *pMd)
 {
@@ -84,7 +117,7 @@ POLY_GT3 *PresetObjectGT3_neo(MD_WORK *pW, POLY_GT3 *pPrim)
     pObj = pW->pObj;
     pP = pPrim;
     pW->pPrim3 = pPrim;
-    n = pObj->n_prim3;
+    n = (USHORT)pObj->n_prim;
     p = pObj->pPrim3;
     pPrim += n * 2;
     Abr = (pW->Attr & 0xC) << 19;
@@ -114,7 +147,7 @@ POLY_GT4 *PresetObjectGT4_neo(MD_WORK *pW, POLY_GT4 *pPrim)
     pObj = pW->pObj;
     pP = pPrim;
     pW->pPrim4 = pPrim;
-    n = pObj->n_prim4;
+    n = pObj->n_prim >> 16;
     p = pObj->pPrim4;
     pPrim += n * 2;
     Abr = (pW->Attr & 0xC) << 19;
@@ -177,7 +210,7 @@ void SortGT4_lno(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHORT *pSz)
 
     Mask = 0xFFFFFF;
     IdxMask = 0xFF0000;
-    n = pPrm->pObj->n_prim4;
+    n = pPrm->pObj->n_prim >> 16;
     if (n == 0) {
         return;
     }
@@ -425,7 +458,7 @@ POLY_GT4 *SortGT3_lno_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHOR
 
     Mask = 0xFFFFFF;
     Vmask = 0xFF0000;
-    n = pPrm->pObj->n_prim3;
+    n = (USHORT)pPrm->pObj->n_prim;
     if (n == 0) {
         goto end;
     }
@@ -493,7 +526,7 @@ POLY_GT4 *SortGT4_lno_uv(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USHOR
 
     Mask = 0xFFFFFF;
     Vmask = 0xFF0000;
-    n = pPrm->pObj->n_prim4;
+    n = pPrm->pObj->n_prim >> 16;
     if (n == 0) {
         return pPacket;
     }
@@ -573,7 +606,7 @@ POLY_GT4 *Bomb_Parts_SortGT3(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     RotMatrix(&Bomb_rot, &Bomb_m);
     Bomb_rot.vy += 0x80;
     Bomb_rot.vx += 0x80;
-    cnt0 = pObj->n_prim3;
+    cnt0 = (USHORT)pObj->n_prim;
     if (cnt0 == 0) {
         return pPacket;
     }
@@ -690,7 +723,7 @@ POLY_GT4 *Bomb_Parts_SortGT4(MD_OBJ *pObj, POLY_GT4 *pPacket, PARTS_W *pP)
     ULONG i2;
     ULONG i3;
 
-    cnt0 = pObj->n_prim4;
+    cnt0 = pObj->n_prim >> 16;
     if (cnt0 == 0) {
         return pPacket;
     }
@@ -797,7 +830,7 @@ void Md_tex_ofs(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add)
     Ccl <<= 22;
     V_ofs <<= 8;
     p = pObj->pPrim3;
-    for (n = pObj->n_prim3; n != 0; n--) {
+    for (n = (USHORT)pObj->n_prim; n != 0; n--) {
         p[1] += Ctp;
         p[0] = p[0] + Ccl + V_ofs;
         p[1] += V_ofs;
@@ -808,7 +841,7 @@ void Md_tex_ofs(MD_OBJ *pObj, ULONG Ctp, ULONG Ccl, ULONG V_ofs, ULONG Add)
         p += 3;
     }
     p = pObj->pPrim4;
-    for (n = pObj->n_prim4; n != 0; n--) {
+    for (n = pObj->n_prim >> 16; n != 0; n--) {
         p[1] += Ctp;
         p[0] = p[0] + Ccl + V_ofs;
         p[1] += V_ofs;
@@ -827,7 +860,7 @@ void Md_set_abr(MD_OBJ *pObj, ULONG Abr)
     ULONG n;
     ULONG *p;
 
-    n = pObj->n_prim3;
+    n = (USHORT)pObj->n_prim;
     Abr <<= 21;
     p = pObj->pPrim3;
     while (n != 0) {
@@ -835,7 +868,7 @@ void Md_set_abr(MD_OBJ *pObj, ULONG Abr)
         p[1] = (p[1] & ~0x600000) | Abr;
         p += 3;
     }
-    n = pObj->n_prim4;
+    n = pObj->n_prim >> 16;
     p = pObj->pPrim4;
     while (n != 0) {
         n--;
@@ -870,7 +903,7 @@ POLY_GT4 *SortGT3_plus_light(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, U
     LONG c2;
     ULONG *tmp;
 
-    n = pPrm->pObj->n_prim3;
+    n = (USHORT)pPrm->pObj->n_prim;
     if (n == 0) {
         return pPacket;
     }
@@ -972,7 +1005,7 @@ POLY_GT4 *SortGT4_plus_light(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, S
     LONG c3;
     ULONG *tmp;
 
-    n = pPrm->pObj->n_prim4;
+    n = pPrm->pObj->n_prim >> 16;
     if (n == 0) {
         return pPacket;
     }
@@ -1075,7 +1108,7 @@ POLY_GT4 *SortGT3_plus_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USH
     USHORT *z2;
     ULONG *tmp;
 
-    n = pPrm->pObj->n_prim3;
+    n = (USHORT)pPrm->pObj->n_prim;
     if (n == 0) {
         return pPacket;
     }
@@ -1153,7 +1186,7 @@ POLY_GT4 *SortGT4_plus_col(SORT_PARAM *pPrm, POLY_GT4 *pPacket, ULONG *pSxy, USH
     USHORT *pZ2;
     ULONG *pO;
 
-    n = pPrm->pObj->n_prim4;
+    n = pPrm->pObj->n_prim >> 16;
     if (n == 0) {
         return pPacket;
     }
@@ -1349,7 +1382,7 @@ POLY_GT4 *PresetObjectGT4_mizu(MD_WORK2 *pW, POLY_GT4 *pPrim)
     pObj = pW->pObj;
     pP = pPrim;
     pW->pPrim4 = pPrim;
-    n = pObj->n_prim4;
+    n = pObj->n_prim >> 16;
     p = pObj->pPrim4;
     pPrim += n * 2;
     Abr = (pW->Attr & 0xC) << 19;

@@ -12,8 +12,7 @@ typedef struct tagMD_OBJ {
     ULONG n_vert;                      /* 0x08 low half count, high half (count + 2) / 3 */
     ULONG *pPrim3;                     /* 0x0C 0xC byte entries */
     ULONG *pPrim4;                     /* 0x10 0x10 byte entries */
-    USHORT n_prim3;                    /* 0x14 */
-    USHORT n_prim4;                    /* 0x16 */
+    ULONG n_prim;                      /* 0x14 low half GT3 count, high half GT4 count (one word, like n_vert) */
 } MD_OBJ;
 
 typedef struct tagMD_HEAD {
