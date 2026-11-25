@@ -54,8 +54,6 @@ void Joint_trans_4(ENEMY_WORK *pEm, PARTS_W *pP, ULONG Be_flg, VECTOR *pPos) __a
 void func_8011A03C(void);
 extern UCHAR D_8011B4D8;
 extern ULONG D_800C7038;
-extern UCHAR D_800E0183;
-extern LONG D_800CCBA0;
 
 /* Mercenaries timer display */
 typedef struct tagGAME_TIMER {
@@ -252,7 +250,7 @@ first:
         }
         if (Task_status(1) == 0 && !(G.System_flg & 0x10000000) && pG->Cut_no == pG->Next_cut_no
                 && Main.Unk18E == 0 && pG->Player.Damage_cnt == 0 && *(USHORT *)&Game.Doordemo_flg == 0
-                && !(D_800E0183 & 0xE) && !(Moji.Mess_flg & 0x80) && !(G.Stop_flg & 0x1000000)
+                && !(Sce.Skip_state & 0xE) && !(Moji.Mess_flg & 0x80) && !(G.Stop_flg & 0x1000000)
                 && !(G.System_flg & 0x30000) && !(G.Status_flg & 0x108)) {
             if (G.Key_trg & 0x4000) {
                 G.Status_flg |= 0x200;
@@ -285,7 +283,7 @@ first:
         }
         SetSpadStack();
         pG->Room_enemy_flg &= 0xFF;
-        if (!(D_800CCBA0 & 0x20000000)) {
+        if (!(G.Stop_flg & 0x20000000)) {
             Clr0 = 0xCFFFFFFF;
             Clr1 = 0x3FFFFFFF;
             Px = pG->Player.Pos_x;
@@ -307,7 +305,7 @@ first:
         }
         pG->pEm = PLAYER_EM(pG);
         pEm = pG->pEm;
-        if (D_800CCBA0 >= 0 && !(pEm->Type & 0x8000)) {
+        if (!(G.Stop_flg & 0x80000000) && !(pEm->Type & 0x8000)) {
             pG->Player.Be_flg &= 0xCFFFFFFF;
             Player_move(pEm);
             pG->Player.Be_flg &= 0x3FFFFFFF;
