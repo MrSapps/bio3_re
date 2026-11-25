@@ -1,3 +1,9 @@
+/*
+ * SND.C: RE3's own sound driver on libspu (RE2 used libsnd; only the role of the entry points carries over).
+ * Sound effects are queued by Snd_se_stad and keyed by Snd_se_call once per frame; BGM sequences (3 slots,
+ * SEQ data) are played by a root-counter driven sequencer (Snd_seq_tick, Snd_midi_*). VAB banks live in
+ * SPU memory, registered by Snd_vab_head_set/Snd_bank_set; the room's BGM and banks come in with the room pack (cd.c).
+ */
 #include "snd.h"
 #include "cd.h"
 #include "pad.h"
@@ -5,31 +11,26 @@
 #include "sca.h"
 #include "sld.h"
 
+#define SQ(x) ((x) * (x))
 
-/* ---- merged helpers (forks + parent) ---- */
-typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
-
-#define FC_SQ(x) ((x) * (x))
-
-/* local prototypes (this module) */
-
+/* RE2 Snd_sys_init role: SPU common attributes, volumes, work, reverb off, and the sequencer root counter event */
 void Snd_sys_init(void)
 {
-    SpuReverbAttr r;
-    SpuCommonAttr *pA;
+    SpuReverbAttr Rv_attr;
+    SpuCommonAttr *pCattr;
     SND_WORK *pW = &Snd_work;
 
     SsUtReverbOff();
-    pA = &pW->Cattr;
+    pCattr = &pW->Cattr;
     pW->Cattr.mask = 0x2CF;
-    pA->mvol.right = 0x3FFF;
-    pA->mvol.left = 0x3FFF;
-    pA->mvolmode.right = 0;
-    pA->mvolmode.left = 0;
-    pA->cd.volume.right = 0x1FFF;
-    pA->cd.volume.left = 0x1FFF;
-    pA->cd.mix = 1;
-    SpuSetCommonAttr(pA);
+    pCattr->mvol.right = 0x3FFF;
+    pCattr->mvol.left = 0x3FFF;
+    pCattr->mvolmode.right = 0;
+    pCattr->mvolmode.left = 0;
+    pCattr->cd.volume.right = 0x1FFF;
+    pCattr->cd.volume.left = 0x1FFF;
+    pCattr->cd.mix = 1;
+    SpuSetCommonAttr(pCattr);
     SpuSetTransferMode(0);
     pW->Vol.Master = 0x7F;
     pW->Vol.Unk6 = 0x7F;
@@ -43,9 +44,9 @@ void Snd_sys_init(void)
     pW->Vol.Rv_mode = 0;
     pW->Vol.Rv_cur = 0;
     pW->Vol.Rv_step = 0;
-    r.mask = 1;
-    r.mode = 0;
-    SpuSetReverbModeParam(&r);
+    Rv_attr.mask = 1;
+    Rv_attr.mode = 0;
+    SpuSetReverbModeParam(&Rv_attr);
     SpuSetReverb(0);
     VSync(30);
     StopRCnt(0xF2000002);
@@ -58,12 +59,14 @@ void Snd_sys_init(void)
     pW->Seq_play = 0;
 }
 
+/* stops every sequence and voice and clears the work */
 void Snd_reset(void)
 {
     Snd_seq_stop_all();
     Snd_work_init();
 }
 
+/* clears the sound work (sequences, voices, request queue, master fade) */
 void Snd_work_init(void)
 {
     SND_WORK *pW = &Snd_work;
@@ -97,6 +100,7 @@ void Snd_work_init(void)
     pW->pReq = pW->Req;
 }
 
+/* changes the reverb mode in two steps (clear the work area, then the parameters 30 frames later) */
 void Snd_reverb_set(void)
 {
     if (Snd_work.Vol.Rv_step == 0) {
@@ -114,8 +118,7 @@ void Snd_reverb_set(void)
     }
 }
 
-/* sound driver frame: reverb change, master fade, volume changes, request queue,
-   sequence start/fade requests, SE key on */
+/* per frame: reverb, master fade, volume changes, the request queue, sequence requests and fades, SE key on/off */
 void Snd_se_call(void)
 {
     SND_WORK *pW = &Snd_work;
@@ -226,6 +229,7 @@ void Snd_se_call(void)
     SpuSetKey(1, pW->Se_key_on);
 }
 
+/* turns CD audio mixing into the SPU output on or off */
 void Snd_cd_mix_set(LONG on)
 {
     SpuCommonAttr *p = &D_800E10F8;
@@ -244,66 +248,70 @@ void Snd_cd_mix_set(LONG on)
     SpuSetCommonAttr(p);
 }
 
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3)
+/* queues a sound request: code = Mode << 16 | Bank << 8 | No, at pPos (RE2 Snd_se_stad) */
+void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT Vol_add, SHORT Note_add)
 {
     if (Snd_work.pReq != (SND_REQ *)&Snd_work.pReq && (!(D_800CC858 & 0x10000000) || ((code >> 8) & 0xFF) < 5)) {
         Snd_work.pReq->Mode = code >> 16;
         Snd_work.pReq->Bank = code >> 8;
         Snd_work.pReq->No = code & 0xFF;
         Snd_work.pReq->Pos = *pPos;
-        Snd_work.pReq->Vol_add = a2;
-        Snd_work.pReq->Note_add = a3;
+        Snd_work.pReq->Vol_add = Vol_add;
+        Snd_work.pReq->Note_add = Note_add;
         Snd_work.pReq++;
     }
 }
 
+/* request handler for banks 0..4: plays the SE record of the bank */
 void Snd_se_req(SND_REQ *pReq)
 {
-    ULONG *p;
-    LONG b;
+    ULONG *pSe;
+    LONG Bank;
 
-    p = Snd_work.pAdr[pReq->Bank] + (USHORT)pReq->No;
-    if (*p != -1 && Snd_bank_search(pReq->Bank) != -1) {
-        b = Snd_bank_search(((UCHAR)*p & 0xE) >> 1);
-        if (b != -1) {
-            Snd_se_voice_set(pReq, Snd_work.Bank_id[b].Id, (SND_SE *)p, b);
+    pSe = Snd_work.pAdr[pReq->Bank] + (USHORT)pReq->No;
+    if (*pSe != -1 && Snd_bank_search(pReq->Bank) != -1) {
+        Bank = Snd_bank_search(((UCHAR)*pSe & 0xE) >> 1);
+        if (Bank != -1) {
+            Snd_se_voice_set(pReq, Snd_work.Bank_id[Bank].Id, (SND_SE *)pSe, Bank);
         }
     }
 }
 
+/* request handler for banks 5..: queues a sequence start */
 void Snd_seq_req(SND_REQ *pReq)
 {
-    LONG no;
-    LONG b;
-    LONG k;
+    LONG Seq_no;
+    LONG Bank;
+    LONG Kind;
     SND_SEQ *pSeq;
     SND_WORK *pW;
 
-    k = 5;
+    Kind = 5;
     pW = &Snd_work;
-    no = pReq->Bank - 5;
-    if (no) {
-        k = 6;
+    Seq_no = pReq->Bank - 5;
+    if (Seq_no) {
+        Kind = 6;
     }
-    b = Snd_bank_search(k);
-    if (b != -1) {
-        pSeq = &pW->Seq[no];
-        pSeq->Bank = b;
-        pSeq->No = no;
+    Bank = Snd_bank_search(Kind);
+    if (Bank != -1) {
+        pSeq = &pW->Seq[Seq_no];
+        pSeq->Bank = Bank;
+        pSeq->No = Seq_no;
         if (pSeq->Play_flg) {
-            Snd_seq_stop(no);
+            Snd_seq_stop(Seq_no);
             pSeq->Req_flg = 2;
         } else {
             pSeq->Req_flg = 1;
         }
-        pSeq->pVh = pW->Bank[no ? 6 : 5].pHead;
+        pSeq->pVh = pW->Bank[Seq_no ? 6 : 5].pHead;
         pSeq->Req_no = pSeq->No;
-        pSeq->pReq_data = (UCHAR *)pW->Seq_data[no].pData;
-        pSeq->Req_bank = pW->Bank_id[no ? 6 : 5].Id;
+        pSeq->pReq_data = (UCHAR *)pW->Seq_data[Seq_no].pData;
+        pSeq->Req_bank = pW->Bank_id[Seq_no ? 6 : 5].Id;
         pSeq->Req_loop = 0;
     }
 }
 
+/* sequence fade in step */
 void Snd_seq_fade_in(SND_SEQ *pSeq)
 {
     if (pSeq->Play_flg != 0) {
@@ -316,6 +324,7 @@ void Snd_seq_fade_in(SND_SEQ *pSeq)
     }
 }
 
+/* sequence fade out step; stops the sequence at 0 */
 void Snd_seq_fade_out(SND_SEQ *pSeq)
 {
     if (pSeq->Play_flg != 0) {
@@ -330,40 +339,40 @@ void Snd_seq_fade_out(SND_SEQ *pSeq)
     }
 }
 
-/* keys the voices of one sound effect: picks free voices, sets their tone and volume */
+/* picks the voices of one SE and sets tone, priority, volume and the key-on bits */
 void Snd_se_voice_set(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank)
 {
     SND_WORK *pW = &Snd_work;
     SND_VOICE *pV;
     VagAtr *pVag;
-    ULONG v;
+    ULONG Voice;
     ULONG mask;
     ULONG bit;
     LONG vol;
-    signed char i;
+    signed char Tone;
 
-    i = 0;
+    Tone = 0;
     if (!(p->Voice & 0x80)) {
-        v = p->Voice & 0x1F;
+        Voice = p->Voice & 0x1F;
     } else {
-        v = p->Voice & 0x1F;
+        Voice = p->Voice & 0x1F;
         mask = p->Mask;
-        for (; i < 8; i++) {
+        for (; Tone < 8; Tone++) {
             if (mask & 1) {
-                if (pW->Vprio[v + i] == 0 || pW->Vprio[v + i] == 3) {
-                    v += i;
+                if (pW->Vprio[Voice + Tone] == 0 || pW->Vprio[Voice + Tone] == 3) {
+                    Voice += Tone;
                     break;
                 }
             }
             mask >>= 1;
         }
-        i = 0;
+        Tone = 0;
     }
     do {
-        if (Snd_se_pri_ck(p, v, pReq) == 0) {
-            pV = &pW->Voice[v + i];
+        if (Snd_se_pri_ck(p, Voice, pReq) == 0) {
+            pV = &pW->Voice[Voice + Tone];
             pV->Prog = p->Flg & 1;
-            pV->Tone = i + (p->Tone >> 4);
+            pV->Tone = Tone + (p->Tone >> 4);
             pV->Prio = p->Tone & 7;
             pV->Bank = bank;
             pV->Bank_id = Id;
@@ -379,7 +388,7 @@ void Snd_se_voice_set(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank)
                     vol += pReq->Vol_add;
                     pReq->Vol_add = 0;
                 }
-                Snd_se_3D(pReq, vol, (USHORT *)&pV->Vol_l, (USHORT *)&pV->Vol_r, pW->Dist[v]);
+                Snd_se_3D(pReq, vol, (USHORT *)&pV->Vol_l, (USHORT *)&pV->Vol_r, pW->Dist[Voice]);
             } else {
                 vol = Snd_se_vol((UCHAR *)pVag, pV);
                 if (pReq->Vol_add != 0) {
@@ -393,16 +402,16 @@ void Snd_se_voice_set(SND_REQ *pReq, USHORT Id, SND_SE *p, LONG bank)
             pV->Bend = 0;
             pV->Vol_l_base = pV->Vol_l;
             pV->Vol_r_base = pV->Vol_r;
-            bit = 1 << (v + i);
+            bit = 1 << (Voice + Tone);
             pW->Se_key_on |= bit;
             pW->Se_key_off |= bit;
-            pW->Vprio[v + i] = 1;
+            pW->Vprio[Voice + Tone] = 1;
         }
-        i++;
-    } while (i < (p->Flg >> 6) + 1);
+        Tone++;
+    } while (Tone < (p->Flg >> 6) + 1);
 }
 
-/* keys voice v for SND_VOICE pV: reverb, pitch, ADSR and volume from its VagAtr */
+/* fills a SpuVoiceAttr (reverb, pitch with bend, ADSR, volume) for voice v */
 void Snd_voice_key_on(SND_VOICE *pV, signed char v)
 {
     SpuVoiceAttr Attr;
@@ -458,6 +467,7 @@ void Snd_voice_key_on(SND_VOICE *pV, signed char v)
     SpuSetVoiceAttr(&Attr);
 }
 
+/* may the SE take voice v (priority check, RE2 Snd_se_pri_ck role); 3D requests store the distance */
 LONG Snd_se_pri_ck(SND_SE *pSe, LONG v, SND_REQ *pReq)
 {
     SND_WORK *pW = &Snd_work;
@@ -482,7 +492,7 @@ LONG Snd_se_pri_ck(SND_SE *pSe, LONG v, SND_REQ *pReq)
         dx = (pW->Cam_x - pReq->Pos.vx) >> 1;
         dz = (pW->Cam_z - pReq->Pos.vz) >> 1;
         dy = (pW->Cam_y - pReq->Pos.vy) >> 1;
-        d = SquareRoot0(FC_SQ(SquareRoot0(dx * dx + dz * dz)) + dy * dy) * 2;
+        d = SquareRoot0(SQ(SquareRoot0(dx * dx + dz * dz)) + dy * dy) * 2;
         if (d > 0xEA5F) {
             d = 0xEA5F;
         }
@@ -491,6 +501,7 @@ LONG Snd_se_pri_ck(SND_SE *pSe, LONG v, SND_REQ *pReq)
     return 0;
 }
 
+/* slot of the bank with id, or -1 */
 LONG Snd_bank_search(LONG id)
 {
     LONG i;
@@ -503,6 +514,7 @@ LONG Snd_bank_search(LONG id)
     return -1;
 }
 
+/* sets the volume of a voice */
 void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice)
 {
     SpuVoiceAttr attr;
@@ -514,7 +526,7 @@ void Snd_set_voice_vol(SHORT l, SHORT r, ULONG voice)
     SpuSetVoiceAttr(&attr);
 }
 
-/* voice volumes of a sound request: 2D pan (Mode 0) or 3D from the camera (Mode 1) */
+/* volumes of a request: 2D pan, or 3D from the camera direction and distance (RE2 Snd_se_3D) */
 void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
 {
     SND_WORK *pW = &Snd_work;
@@ -522,9 +534,9 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
     UCHAR Flg;                         /* never set: the original tests an uninitialised stack byte */
     RCUT *pCut;
     VECTOR *pPos;
-    LONG Far;
-    LONG a0;
-    LONG a1;
+    LONG Dist_idx;
+    LONG Dir_src;
+    LONG Dir_view;
     LONG d;
     UCHAR l;
     UCHAR r;
@@ -563,18 +575,18 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
         V.vx = __builtin_abs(pCut->View_p[0] - pReq->Pos.vx);
         V.vy = __builtin_abs(pCut->View_p[1] - pPos->vy);
         V.vz = __builtin_abs(pCut->View_p[2] - pPos->vz);
-        Far = SquareRoot0(V.vy * V.vy + FC_SQ(SquareRoot0(V.vx * V.vx + V.vz * V.vz))) / 250;
-        if (Far > 0x7F) {
-            Far = 0x7F;
+        Dist_idx = SquareRoot0(V.vy * V.vy + SQ(SquareRoot0(V.vx * V.vx + V.vz * V.vz))) / 250;
+        if (Dist_idx > 0x7F) {
+            Dist_idx = 0x7F;
         }
-        a0 = (SHORT)Snd_se_dir_ck(pCut->View_p[0], pCut->View_p[2], pReq->Pos.vx, pPos->vz);
-        a1 = (SHORT)Snd_se_dir_ck(pCut->View_p[0], pCut->View_p[2], pCut->View_r[0], pCut->View_r[2]);
-        a0 -= (SHORT)Snd_se_dir_ck(0, 0, pCut->View_p[0], pCut->View_p[2]);
-        a1 -= (SHORT)Snd_se_dir_ck(0, 0, pCut->View_p[0], pCut->View_p[2]);
-        if (a0 < a1) {
-            d = a0 + (0x1000 - a1);
+        Dir_src = (SHORT)Snd_se_dir_ck(pCut->View_p[0], pCut->View_p[2], pReq->Pos.vx, pPos->vz);
+        Dir_view = (SHORT)Snd_se_dir_ck(pCut->View_p[0], pCut->View_p[2], pCut->View_r[0], pCut->View_r[2]);
+        Dir_src -= (SHORT)Snd_se_dir_ck(0, 0, pCut->View_p[0], pCut->View_p[2]);
+        Dir_view -= (SHORT)Snd_se_dir_ck(0, 0, pCut->View_p[0], pCut->View_p[2]);
+        if (Dir_src < Dir_view) {
+            d = Dir_src + (0x1000 - Dir_view);
         } else {
-            d = a0 - a1;
+            d = Dir_src - Dir_view;
         }
         if (d == 0 || d == 0x1000 || d == 0x800) {
             *pL = 0x7F;
@@ -592,12 +604,12 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
                 d = 0x800 - d;
             }
             d /= 8;
-            a1 = Snd_pan_tbl[d];
-            a0 = 0x7F;
-            *pL = l * a1 + r * a0;
-            *pR = l * a0 + r * a1;
+            Dir_view = Snd_pan_tbl[d];
+            Dir_src = 0x7F;
+            *pL = l * Dir_view + r * Dir_src;
+            *pR = l * Dir_src + r * Dir_view;
         }
-        pAtt = &Snd_dist_atten[Far];
+        pAtt = &Snd_dist_atten[Dist_idx];
         if (*pAtt < *pR) {
             *pR -= *pAtt;
         }
@@ -653,6 +665,7 @@ void Snd_se_3D(SND_REQ *pReq, USHORT vol, USHORT *pR, USHORT *pL, SHORT dist)
     *pL = *pL * pW->Vol.Se / 127;
 }
 
+/* RE2 Snd_se_dir_ck: direction from (x0, z0) to (x1, z1) via catan */
 LONG Snd_se_dir_ck(LONG x0, LONG z0, LONG x1, LONG z1)
 {
     LONG dx = x1 - x0;
@@ -672,6 +685,7 @@ LONG Snd_se_dir_ck(LONG x0, LONG z0, LONG x1, LONG z1)
     return 0xC00;
 }
 
+/* SPU address of tone idx of bank no */
 UCHAR *Snd_bank_get_tone(LONG no, SHORT idx)
 {
     ULONG *pHead;
@@ -684,9 +698,7 @@ UCHAR *Snd_bank_get_tone(LONG no, SHORT idx)
     return Snd_work.Bank_id[no].pData + *pTbl * 8;
 }
 
-/* 2^(x/12) scale: 0x1000 shifted by whole octaves times the 12-step table entry, >> 16.
-   `v *= r` is repeated in both branches (cross-jumped into one tail): a mult in the same block
-   as the /12 is what lets reload move the high-part pseudo out of HI into v1 (see NOTES.md). */
+/* 0x1000 * 2^(x / 12) */
 LONG Snd_pitch_scale(LONG x)
 {
     LONG v = 0x1000;
@@ -708,7 +720,7 @@ LONG Snd_pitch_scale(LONG x)
     return v >> 16;
 }
 
-/* interpolates Snd_pitch_scale between x and x + 1, frac in 1/128 */
+/* Snd_pitch_scale with 1/128 semitone steps */
 LONG Snd_pitch_calc(LONG x, LONG frac)
 {
     LONG a, b;
@@ -719,14 +731,16 @@ LONG Snd_pitch_calc(LONG x, LONG frac)
     return a;
 }
 
+/* VAB master * program * tone * SE volume of a voice */
 LONG Snd_se_vol(UCHAR *pVag, SND_VOICE *pV)
 {
     VabHdr *pVh = (VabHdr *)Snd_work.Bank[pV->Bank].pHead;
-    ULONG i = pV->Prog;
+    ULONG Prog = pV->Prog;
 
-    return pVh->mvol * ((ProgAtr *)(pVh + 1))[i].mvol / 127 * pVag[2] / 127 * Snd_work.Vol.Se / 127;
+    return pVh->mvol * ((ProgAtr *)(pVh + 1))[Prog].mvol / 127 * pVag[2] / 127 * Snd_work.Vol.Se / 127;
 }
 
+/* left/right volumes for a pan position */
 void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan)
 {
     pAttr->volume.right = vol;
@@ -739,8 +753,7 @@ void Snd_pan_vol(SpuVoiceAttr *pAttr, SHORT vol, ULONG pan)
     }
 }
 
-/* sequencer tick (SPU root counter event): advances the sequences, keys the voices
-   they requested and applies the fades */
+/* root counter handler: advances the three sequences, fades and stops */
 LONG Snd_seq_tick(void) /* event handler (OpenEvent); returns nothing */
 {
     SND_WORK *pW = &Snd_work;
@@ -854,6 +867,7 @@ LONG Snd_seq_tick(void) /* event handler (OpenEvent); returns nothing */
     }
 }
 
+/* sequencer note off (0x8n) */
 void Snd_midi_note_off(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     SND_WORK *pW;
@@ -879,6 +893,7 @@ void Snd_midi_note_off(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
+/* keys off the voices of a track's tones in mask */
 void Snd_seq_key_off(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask)
 {
     UCHAR v;
@@ -900,7 +915,7 @@ void Snd_seq_key_off(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask)
     }
 }
 
-/* sequencer note on: keys a voice for every tone of the program that covers the note */
+/* sequencer note on (0x9n) */
 void Snd_midi_note_on(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     struct {
@@ -992,7 +1007,7 @@ void Snd_midi_note_on(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-/* sequencer control change */
+/* sequencer control change (0xBn: 0, 6, 7, 10, 99) */
 void Snd_midi_ctrl(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     UCHAR *p = pSeq->pData;
@@ -1070,24 +1085,25 @@ void Snd_midi_ctrl(SND_SEQ *pSeq, SND_TRACK *pTr)
     pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-void Snd_midi_prog(UCHAR *pSeq, UCHAR *pTr)
+/* sequencer program change (0xCn) */
+void Snd_midi_prog(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     VabHdr *pVh;
     ProgAtr *pPa;
     LONG pan;
 
-    pVh = (VabHdr *)Snd_work.Bank[pTr[0xF]].pHead;
-    pTr[6] = **(UCHAR **)(pSeq + 4);
-    pPa = (ProgAtr *)pVh + pTr[6] + 2;
-    pTr[7] = pVh->mvol * pPa->mvol / 127;
+    pVh = (VabHdr *)Snd_work.Bank[pTr->Bank].pHead;
+    pTr->Prog = *pSeq->pData;
+    pPa = (ProgAtr *)pVh + pTr->Prog + 2;
+    pTr->Vol = pVh->mvol * pPa->mvol / 127;
     pan = pVh->pan + 0xC0;
-    pPa = (ProgAtr *)pVh + pTr[6] + 2;
-    pTr[9] = pPa->mpan + pan;
-    (*(UCHAR **)(pSeq + 4))++;
-    *(LONG *)(pSeq + 0xC) = Snd_seq_get_vlq((UCHAR **)(pSeq + 4));
+    pPa = (ProgAtr *)pVh + pTr->Prog + 2;
+    pTr->Pan2 = pPa->mpan + pan;
+    pSeq->pData++;
+    pSeq->Delta = Snd_seq_get_vlq(&pSeq->pData);
 }
 
-/* sequencer pitch bend event: re-pitches every voice keyed by the track */
+/* sequencer pitch bend (0xEn): re-pitches every voice keyed by the track */
 void Snd_midi_bend(SND_SEQ *pSeq, SND_TRACK *pTr)
 {
     SND_VOICE *pV;
@@ -1170,9 +1186,10 @@ void Snd_midi_meta(SND_SEQ *pSeq)
     }
 }
 
-void Snd_midi_skip(LONG *p)
+/* ignored events (0xAn, 0xDn) */
+void Snd_midi_skip(SND_SEQ *pSeq)
 {
-    p[3] = 1;
+    pSeq->Delta = 1;
 }
 
 /* reads a MIDI variable-length quantity (at most 4 bytes) */
@@ -1196,6 +1213,7 @@ loop:
     return v;
 }
 
+/* voices a program's tones may use */
 ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones)
 {
     ULONG i;
@@ -1210,6 +1228,7 @@ ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones)
     return mask;
 }
 
+/* a free sequence voice in lo..hi, else a released one, else the oldest */
 LONG Snd_voice_get(LONG lo, ULONG hi)
 {
     UCHAR pad[0x40];
@@ -1241,13 +1260,14 @@ LONG Snd_voice_get(LONG lo, ULONG hi)
     return bi;
 }
 
-LONG Snd_seq_voice_search(LONG a0, LONG a1, LONG a2, LONG a3)
+/* frees the voice playing Note of (Seq_no, Prog, Tone); returns it or 0xFF */
+LONG Snd_seq_voice_search(LONG Seq_no, LONG Prog, LONG Tone, LONG Note)
 {
     ULONG i;
     SND_VOICE *p;
 
     for (i = 8, p = &Snd_work.Voice[8]; i < 24; i++, p++) {
-        if (p->Prog == a1 && p->Tone == a2 && p->Note == a3 && p->Use != 0 && a0 == p->Seq_no) {
+        if (p->Prog == Prog && p->Tone == Tone && p->Note == Note && p->Use != 0 && Seq_no == p->Seq_no) {
             p->Use = 0;
             return i;
         }
@@ -1255,47 +1275,49 @@ LONG Snd_seq_voice_search(LONG a0, LONG a1, LONG a2, LONG a3)
     return 0xFF;
 }
 
-void Snd_seq_start(LONG no, UCHAR *pData, LONG a2, LONG a3)
+/* starts sequence slot no on SEQ data (tempo at +4, resolution at +8, events from +0xC) */
+void Snd_seq_start(LONG no, UCHAR *pData, LONG Bank, LONG Loop)
 {
     SND_WORK *pW = &Snd_work;
-    SND_SEQ *p = &pW->Seq[no];
-    SND_TRACK *pT;
+    SND_SEQ *pSeq = &pW->Seq[no];
+    SND_TRACK *pTr;
     SND_VOICE *pV;
     ULONG i;
-    ULONG t;
+    ULONG Tempo;
 
-    p->pData = p->pTop = pData + 0xC;
-    p->Repeat = a3;
-    p->Bank = a2;
-    p->Bank_org = a2;
-    t = *(ULONG *)(pData + 4);
-    p->Resolution = *(USHORT *)(pData + 8);
-    p->Delta = 0;
-    p->Tempo_cnt = p->Tempo = t * 1000 / p->Resolution;
-    pT = p->Trk;
+    pSeq->pData = pSeq->pTop = pData + 0xC;
+    pSeq->Repeat = Loop;
+    pSeq->Bank = Bank;
+    pSeq->Bank_org = Bank;
+    Tempo = *(ULONG *)(pData + 4);
+    pSeq->Resolution = *(USHORT *)(pData + 8);
+    pSeq->Delta = 0;
+    pSeq->Tempo_cnt = pSeq->Tempo = Tempo * 1000 / pSeq->Resolution;
+    pTr = pSeq->Trk;
     pV = &pW->Voice[8];
     for (i = 0; i < 16; i++) {
-        pT->Vol2 = 0x7F;
-        pT->Pan = 0x40;
-        pT->Bend = 0x2000;
-        pT->Mask = 0;
-        pT->Bank = a2;
-        pT->Bank_org = a2;
+        pTr->Vol2 = 0x7F;
+        pTr->Pan = 0x40;
+        pTr->Bend = 0x2000;
+        pTr->Mask = 0;
+        pTr->Bank = Bank;
+        pTr->Bank_org = Bank;
         if (pV->Use == 0) {
             pV->Bend = 0x2000;
         }
-        pT++;
+        pTr++;
         pV++;
     }
-    p->Fade_mode = 0;
-    p->Fade_step = 0;
-    p->Fade_vol = 0;
-    pW->Seq_play |= 1 << p->No;
+    pSeq->Fade_mode = 0;
+    pSeq->Fade_step = 0;
+    pSeq->Fade_vol = 0;
+    pW->Seq_play |= 1 << pSeq->No;
     pW->Seq_pause &= ~(1 << no);
-    p->Play_flg = 1;
-    p->Stop_req = 0;
+    pSeq->Play_flg = 1;
+    pSeq->Stop_req = 0;
 }
 
+/* stops sequence slot no */
 void Snd_seq_stop(SHORT no)
 {
     if (Snd_work.Seq[no].Play_flg != 0) {
@@ -1304,6 +1326,7 @@ void Snd_seq_stop(SHORT no)
     }
 }
 
+/* stops all sequences */
 void Snd_seq_stop_all(void)
 {
     SHORT i;
@@ -1313,6 +1336,7 @@ void Snd_seq_stop_all(void)
     }
 }
 
+/* keys off a sequence's voices and pauses it (RE2 Snd_bgm_pause role) */
 void Snd_seq_pause(LONG no)
 {
     ULONG mask;
@@ -1340,6 +1364,7 @@ void Snd_seq_pause(LONG no)
     }
 }
 
+/* resumes a paused sequence */
 void Snd_seq_play_ck(LONG no)
 {
     if ((Snd_work.Seq_pause >> no) & 1) {
@@ -1347,6 +1372,7 @@ void Snd_seq_play_ck(LONG no)
     }
 }
 
+/* RE2 Snd_se_enem: SE no of the enemy's bank at its position */
 void Snd_se_enem(ULONG no, ENEMY_WORK *pEm)
 {
     VECTOR v;
@@ -1360,6 +1386,7 @@ void Snd_se_enem(ULONG no, ENEMY_WORK *pEm)
     Snd_se_stad(no | 0x10300, &v, 0, 0);
 }
 
+/* Snd_se_enem at a part's position */
 void Snd_se_enem_parts(LONG no, UCHAR parts, ENEMY_WORK *pEm)
 {
     VECTOR v;
@@ -1374,6 +1401,7 @@ void Snd_se_enem_parts(LONG no, UCHAR parts, ENEMY_WORK *pEm)
     Snd_se_stad(no | 0x10300, &v, 0, 0);
 }
 
+/* RE2 Snd_se_walk: footstep SE for the floor under a part */
 void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
 {
     LONG one;
@@ -1473,22 +1501,23 @@ void Snd_se_walk(LONG kind, ULONG parts, ENEMY_WORK *pEm)
     }
 }
 
+/* footstep sound kind of the floor at (x, z) */
 UCHAR Snd_floor_kind(LONG x, LONG z, LONG id)
 {
-    LONG pos[3]; UCHAR *pe; LONG n;
-    LONG f;
-    pe = (UCHAR *)G.pRoom->pUnk34; n = *(SHORT *)pe; pe += 2; pos[0] = x; pos[2] = z; pe += n * 0xC;
+    LONG pos[3]; UCHAR *pFlr; LONG n;
+    LONG Attr;
+    pFlr = (UCHAR *)G.pRoom->pUnk34; n = *(SHORT *)pFlr; pFlr += 2; pos[0] = x; pos[2] = z; pFlr += n * 0xC;
     while (n--) {
-        pe -= 0xC;
-        f = ((SHORT *)pe)[5];
-        if (!(f & 0x100) && id == (f & 0x7F) && func_800101C8(pos, (SHORT *)pe)) {
-            return pe[8];
+        pFlr -= 0xC;
+        Attr = ((SHORT *)pFlr)[5];
+        if (!(Attr & 0x100) && id == (Attr & 0x7F) && func_800101C8(pos, (SHORT *)pFlr)) {
+            return pFlr[8];
         }
     }
     return 0x1D;
 }
 
-/* room BGM request: Bgm_main_id/Bgm_sub_id = main/sub sequence ids from the room table, fades out what changes */
+/* RE2 Snd_bgm_ck role: reads the room's BGM entry, sets CD.Bgm_main_id/Bgm_sub_id and fades out what changes */
 void Snd_bgm_ck(void)
 {
     tagGLOBAL *pG = &G;
@@ -1557,75 +1586,79 @@ void Snd_bgm_ck(void)
     }
 }
 
+/* waits (bounded) for the sequence and master fades */
 void Snd_bgm_fade_wait(void)
 {
-    SND_WORK *p = &Snd_work;
+    SND_WORK *pW = &Snd_work;
     UCHAR i = 0;
-    UCHAR n;
+    UCHAR Busy;
 
     do {
-        n = p->Seq[0].Fade_mode + p->Seq[1].Fade_mode + p->Seq[2].Fade_mode + p->Fade_mask;
+        Busy = pW->Seq[0].Fade_mode + pW->Seq[1].Fade_mode + pW->Seq[2].Fade_mode + pW->Fade_mask;
         if ((signed char)i++ < 0) {
             break;
         }
         Task_sleep(1); /* undeclared on purpose (monitor.h not included): any prototype, even int Task_sleep(), changes this loop */
-    } while (n);
+    } while (Busy);
     Snd_se_stad(0xE, 0, 0, 0);
 }
 
+/* RE2 Snd_bgm_play_ck role: requests the room BGM sequences that are not playing */
 INCLUDE_ASM("asm/nonmatchings/game/snd", Snd_bgm_play_ck);
 
 
+/* loads bank no's VAB header and body (bank 0 player, 1 weapon; RE2 Snd_sys_core_set/arms_set) */
 LONG Snd_vab_load(LONG no, LONG idx, ULONG *pAdr, ULONG *pBuf)
 {
-    USHORT tbl[8] = { 0x104, 0x103, 0xDA, 0xD9, 0, 0, 0, 0 };
-    signed char n;
+    USHORT File_no[8] = { 0x104, 0x103, 0xDA, 0xD9, 0, 0, 0, 0 };
+    signed char Cnt;
     ULONG *p;
-    LONG r;
+    LONG Size;
 
     if (no == 1 && idx == 0) {
         return 1;
     }
-    n = (signed char)Vab_head_ofs[no];
+    Cnt = (signed char)Vab_head_ofs[no];
     p = pAdr;
-    while (n > 0) {
+    while (Cnt > 0) {
         *p++ = -1;
-        n--;
+        Cnt--;
     }
-    r = Cd_read(idx * 2 + tbl[no * 2], pAdr, 0, "Vab Header");
+    Size = Cd_read(idx * 2 + File_no[no * 2], pAdr, 0, "Vab Header");
     Snd_vab_head_set(no, pAdr);
-    Snd_bank_set(no, Cd_read_s(idx * 2 + tbl[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
-    if (r < 0) {
+    Snd_bank_set(no, Cd_read_s(idx * 2 + File_no[no * 2 + 1], 2, pBuf, no, "Vab Body"), pBuf);
+    if (Size < 0) {
         return 0;
     }
-    return r;
+    return Size;
 }
 
+/* RE2 Snd_sys_pset: registers the room EDT as bank 2 */
 void Snd_sys_pset(void)
 {
-    LONG *p;
+    LONG *pEdt;
     SND_WORK *pW;
 
-    p = (LONG *)G.pRoom->pEdt0;
+    pEdt = (LONG *)G.pRoom->pEdt0;
     pW = &Snd_work;
-    if (p == NULL) {
+    if (pEdt == NULL) {
         pW->Bank_id[2].Id = -1;
         return;
     }
-    *(LONG **)&Snd_edt = p;
+    *(LONG **)&Snd_edt = pEdt;
     pW->Rv_mask = G.pRoom->Unk6 * 4;
-    while (*p != -1) {
-        p++;
+    while (*pEdt != -1) {
+        pEdt++;
     }
-    p++;
-    Snd_vab_head_set(2, (ULONG *)p);
+    pEdt++;
+    Snd_vab_head_set(2, (ULONG *)pEdt);
     if (G.pRoom->pEdt0 != NULL) {
         G.pEm_mem = (ENEMY_WORK *)(((ULONG)pW->Bank[2].pHead + pW->Bank[2].pHead[1] + 3) & ~3);
     }
-    Snd_bank_set(2, p[0x30], 0);
+    Snd_bank_set(2, pEdt[0x30], 0);
 }
 
-/* registers a sequence pack (and its VAB) loaded for enemy slot no */
+/* registers a sequence pack and its VAB for BGM slot no */
 void Snd_seq_data_set(ULONG no, ULONG id, ULONG *pAdr)
 {
     SND_WORK *pW = &Snd_work;
@@ -1649,7 +1682,7 @@ void Snd_seq_data_set(ULONG no, ULONG id, ULONG *pAdr)
     pW->Bank[bank].pVag = (ULONG *)(pPa + pVh->ps);
 }
 
-/* registers the VAB of bank no, Vab_head_ofs[no] words into the file at pAdr */
+/* registers bank no's VAB header */
 void Snd_vab_head_set(LONG no, ULONG *pAdr)
 {
     SND_WORK *pW = &Snd_work;
@@ -1662,6 +1695,7 @@ void Snd_vab_head_set(LONG no, ULONG *pAdr)
     pW->Bank[no].pVag = (ULONG *)(pPa + pVh->ps);
 }
 
+/* stores bank no's SPU address and size after its body was sent */
 void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
 {
     SND_WORK *pW = &Snd_work;
@@ -1683,6 +1717,7 @@ void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf)
     }
 }
 
+/* RE2 Snd_sys_enem_set role: registers the enemy bank (3) when the room has enemies */
 void Snd_sys_enem_set(void)
 {
     if (D_800CCBBF) {
@@ -1692,12 +1727,13 @@ void Snd_sys_enem_set(void)
     }
 }
 
-void Snd_bgm_tbl_set(UCHAR a, UCHAR b, USHORT c)
+/* RE2 Snd_bgm_tbl_set: sets the BGM of a room */
+void Snd_bgm_tbl_set(UCHAR Stage, UCHAR Room, USHORT Bgm)
 {
-    SHORT i = a;
+    SHORT Stage_idx = Stage;
 
-    if (i >= 5) {
-        i -= 5;
+    if (Stage_idx >= 5) {
+        Stage_idx -= 5;
     }
-    G.Unk7C84[Bgm_room_ofs[i] + b] = c;
+    G.Unk7C84[Bgm_room_ofs[Stage_idx] + Room] = Bgm;
 }

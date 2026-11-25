@@ -201,7 +201,7 @@ void Snd_reset(void);
 void Snd_reverb_set(void);
 void Snd_se_call(void);
 void Snd_cd_mix_set(LONG on); /* RE2 Close_movie: SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SOFF) */
-void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT a2, SHORT a3);
+void Snd_se_stad(ULONG code, VECTOR *pPos, SHORT Vol_add, SHORT Note_add);
 void Snd_se_req(SND_REQ *pReq);
 void Snd_seq_req(SND_REQ *pReq);
 void Snd_seq_fade_in(SND_SEQ *pSeq);
@@ -222,15 +222,15 @@ void Snd_midi_note_off(SND_SEQ *pSeq, SND_TRACK *pTr);
 void Snd_seq_key_off(SND_SEQ *pSeq, SND_TRACK *pTr, ULONG mask);
 void Snd_midi_note_on(SND_SEQ *pSeq, SND_TRACK *pTr);
 void Snd_midi_ctrl(SND_SEQ *pSeq, SND_TRACK *pTr);
-void Snd_midi_prog(UCHAR *pSeq, UCHAR *pTr);
+void Snd_midi_prog(SND_SEQ *pSeq, SND_TRACK *pTr);
 void Snd_midi_bend(SND_SEQ *pSeq, SND_TRACK *pTr);
 void Snd_midi_meta(SND_SEQ *pSeq);
-void Snd_midi_skip(LONG *p);
+void Snd_midi_skip(SND_SEQ *pSeq);
 LONG Snd_seq_get_vlq(UCHAR **pp);
 ULONG Snd_tone_mask(VagAtr *pVag, SND_TRACK *pTr, UCHAR tones);
 LONG Snd_voice_get(LONG lo, ULONG hi);
-LONG Snd_seq_voice_search(LONG a0, LONG a1, LONG a2, LONG a3);
-void Snd_seq_start(LONG no, UCHAR *pData, LONG a2, LONG a3); /* MIDI event handlers, status 0x80..0xF0 */
+LONG Snd_seq_voice_search(LONG Seq_no, LONG Prog, LONG Tone, LONG Note);
+void Snd_seq_start(LONG no, UCHAR *pData, LONG Bank, LONG Loop);
 void Snd_seq_pause(LONG no);
 void Snd_seq_play_ck(LONG no);
 void Snd_se_enem(ULONG no, ENEMY_WORK *pEm); /* RE2 Snd_se_enem */
@@ -246,6 +246,6 @@ void Snd_seq_data_set(ULONG no, ULONG id, ULONG *pAdr);
 void Snd_vab_head_set(LONG no, ULONG *pAdr);
 void Snd_bank_set(ULONG no, ULONG size, ULONG *pBuf); /* pBuf (where the body was read) is unused */
 void Snd_sys_enem_set(void);
-void Snd_bgm_tbl_set(UCHAR a, UCHAR b, USHORT c);
+void Snd_bgm_tbl_set(UCHAR Stage, UCHAR Room, USHORT Bgm);
 
 #endif /* SND_H */
