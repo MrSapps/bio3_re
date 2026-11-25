@@ -9,7 +9,7 @@ void Em10_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0xF0008;
+        EM_SET_MOVE(pEm, 8, 0, 0xF);
         pEm->Routine_2 = 1;
         EM10_W(pEm)->Flg &= 0xFFFB;
         pEm->Unk120 |= 1;
@@ -31,7 +31,7 @@ void Em10_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x100);
         break;
     case 2:
-        EM_RTN(pEm) = 7;
+        EM_SET_RTN(pEm, 7, 0, 0, 0);
         break;
     }
 }

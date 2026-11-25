@@ -10,6 +10,7 @@
  * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "pad.h"
 #include "pl_wep.h"
@@ -26,9 +27,6 @@ typedef struct tagEM2D_FREE {
 } EM2D_FREE;
 
 #define EF(p) ((EM2D_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 1) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 

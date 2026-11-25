@@ -13,7 +13,7 @@ void Em34_sce05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 2:
         if (pEm->Unk14A) {
-            EM_RTN(pEm) = 0x101;
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
             pEm->Spd_x = 0;
             pEm->Spd_z = 0;
         }

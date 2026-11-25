@@ -47,17 +47,17 @@ void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd_get(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x80);
         pEm->Spd_x += pEm->Spd_x * 3 / 10 + 3;
-        pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->UnkCA) >> 5;
+        pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->Hokan_flg) >> 5;
         Add_speedXZ(pEm, 0);
         if (--pEm->UnkDA == 0) {
             pEm->UnkDA = (Rnd_l() >> 3) + 100;
             if (!(Rnd_l() & 3) && (LONG)pEm->Unk154 < 5000)
-                EM_RTN(pEm) = 0xB01;
+                EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
         if ((LONG)pEm->Unk154 < 4000 && !Goto00_ck(pEm, G.Player.Pos_x, G.Player.Pos_z, 0x400) && !(G.Player.Damage_cnt & 0x80)) {
-            EM_RTN(pEm) = 0x201;
+            EM_SET_RTN(pEm, 1, 2, 0, 0);
             if (EM10_W(pEm)->Flg & 0x4000)
-                EM_RTN(pEm) = 0xB01;
+                EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
         break;
     }

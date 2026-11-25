@@ -12,8 +12,8 @@ void func_80100048(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
 
-    EM_MOVE(pEm) = 0x70000;
-    EM_RTN(pEm) = 1;
+    EM_SET_MOVE(pEm, 0, 0, 7);
+    EM_SET_RTN(pEm, 1, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
     pEm->Neck_no = 3;
     pEm->Unk120 = 0;

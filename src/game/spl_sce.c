@@ -981,8 +981,8 @@ void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y += pEm->Timer0;
         Null_pos_set2(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= pEm->Timer0;
-        pEm->Pos_x -= ((pEm->Pos_x - x) * pEm->UnkCA) >> 2;
-        pEm->Pos_z -= ((pEm->Pos_z - z) * pEm->UnkCA) >> 2;
+        pEm->Pos_x -= ((pEm->Pos_x - x) * pEm->Hokan_flg) >> 2;
+        pEm->Pos_z -= ((pEm->Pos_z - z) * pEm->Hokan_flg) >> 2;
         if (Joint_move2(pEm, pKan, pSeq, 0x400) != 0) {
             if (pEm->Dest_x == 0) {
                 pEm->Routine_2 = 4;
@@ -1031,8 +1031,8 @@ void func_800623C4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y += pEm->Timer0;
         Null_pos_set2(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= pEm->Timer0;
-        pEm->Pos_x -= ((pEm->Pos_x - x) * pEm->UnkCA) >> 3;
-        pEm->Pos_z -= ((pEm->Pos_z - z) * pEm->UnkCA) >> 3;
+        pEm->Pos_x -= ((pEm->Pos_x - x) * pEm->Hokan_flg) >> 3;
+        pEm->Pos_z -= ((pEm->Pos_z - z) * pEm->Hokan_flg) >> 3;
         pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x200);
         if (pEm->Move_cnt == 8) {
             pEm->Be_flg &= ~0x800;
@@ -1083,9 +1083,9 @@ void func_80062A28(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
+            pEm->Hokan_flg = 0;
         }
     case 1:
         if (Joint_move2(pEm, pKan, pSeq, ((*(UCHAR *)&pEm->Unk144 >> 7) << 16) | 0x200) != 0) {
@@ -1157,9 +1157,9 @@ void Spl_sce_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
+            pEm->Hokan_flg = 0;
         }
         func_80018EC8(pEm, pKan, pSeq, *(UCHAR *)&pEm->Unk144 >> 7);
     case 1:
@@ -1216,9 +1216,9 @@ void func_80062F64(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
+            pEm->Hokan_flg = 0;
         }
         Spd_get(pEm, pKan, pSeq, *(UCHAR *)&pEm->Unk144 >> 7);
     case 1:

@@ -15,7 +15,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     pAi = pEm->pEnemy_ptr;
     if (pAi->Routine_0 == 2 || pAi->Routine_0 == 3) {
-        EM_RTN(pEm) = 1;
+        EM_SET_RTN(pEm, 1, 0, 0, 0);
         G.Player.Damage_cnt &= 0x7F;
         pEm->Unk120 &= 0xED;
         pEm->Be_flg &= ~0x8800;
@@ -44,8 +44,8 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y += pEm->Timer0;
         Null_pos_set2(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= pEm->Timer0;
-        pEm->Pos_x -= ((pEm->Pos_x - Old_x) * pEm->UnkCA) >> 2;
-        pEm->Pos_z -= ((pEm->Pos_z - Old_z) * pEm->UnkCA) >> 2;
+        pEm->Pos_x -= ((pEm->Pos_x - Old_x) * pEm->Hokan_flg) >> 2;
+        pEm->Pos_z -= ((pEm->Pos_z - Old_z) * pEm->Hokan_flg) >> 2;
         pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x400);
         break;
     case 2:
@@ -83,8 +83,8 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Cdir_y += pEm->Timer0;
         Null_pos_set2(pEm, pKan, pSeq, 0);
         pEm->Cdir_y -= pEm->Timer0;
-        pEm->Pos_x -= ((pEm->Pos_x - Old_x) * pEm->UnkCA) >> 3;
-        pEm->Pos_z -= ((pEm->Pos_z - Old_z) * pEm->UnkCA) >> 3;
+        pEm->Pos_x -= ((pEm->Pos_x - Old_x) * pEm->Hokan_flg) >> 3;
+        pEm->Pos_z -= ((pEm->Pos_z - Old_z) * pEm->Hokan_flg) >> 3;
         pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x200);
         if ((UCHAR)(pEm->Move_cnt - 9) < 5) {
             Ck_flg = pEm->Col.Unk3A;
@@ -95,7 +95,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     pT = G.pEnemy[i];
                     if ((pT->Id & 0x70) == 0x10 && pT->Life >= 0 && !(pT->Type & 1) && !pT->Damage_cnt
                         && !(EM10_W(pT)->Flg & 8) && !(pT->Type & 0x2000)) {
-                        EM_RTN(pT) = 0x901;
+                        EM_SET_RTN(pT, 1, 9, 0, 0);
                         pT->UnkE3 = ~Cdir_ck2(pEm, pT) & 1;
                     }
                 }
@@ -106,7 +106,7 @@ void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         break;
     case 6:
-        EM_RTN(pEm) = 1;
+        EM_SET_RTN(pEm, 1, 0, 0, 0);
         pEm->Be_flg |= 0x80000;
         pEm->Damage_cnt &= 0x7F;
         pEm->Unk120 &= 0xED;

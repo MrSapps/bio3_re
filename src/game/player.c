@@ -570,7 +570,7 @@ void pl_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                     u = pEm->Move_cnt;
                     pEm->Move_no = 0;
                     pEm->UnkE2 = 0;
-                    pEm->UnkCA = 7;
+                    pEm->Hokan_flg = 7;
                     pEm->Move_cnt = 0;
                     Spd_get(pEm, pKan, pSeq, 0);
                     pEm->Move_cnt = u;
@@ -581,7 +581,7 @@ void pl_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 pEm->UnkE2 = 9;
                 pEm->Move_cnt = pEm->Move_cnt / 7;
                 u = pEm->Move_cnt * 7;
-                pEm->UnkCA = 7;
+                pEm->Hokan_flg = 7;
                 pEm->Move_cnt = 0;
                 Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
                 pEm->Move_cnt = u;
@@ -839,7 +839,7 @@ void pl_mv0a_pad(ENEMY_WORK *pEm, ULONG Flg)
         pEm->Routine_2 = 6;
         pEm->Move_no = 6;
         pEm->Move_cnt = 0;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         Snd_se_stad(0x10200, (VECTOR *)&pEm->Pos_x, 0, 0);
         Pad_vib_init();
     }
@@ -1369,7 +1369,7 @@ void func_8003C740(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->Routine_2 & 2) {
             pEm->Move_no = 0;
         }
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         pEm->Move_cnt = 0;
         *(ULONG *)&pEm->Move_no = 0x70000;
         G.Status_flg |= 0x100;
@@ -1524,7 +1524,7 @@ void func_8003CA88(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Move_no = 1;
         }
         pEm->Move_cnt = 4;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         pEm->Pos_y = pEm->Unk122;
         pEm->Damage_cnt &= 0x7F;
         pEm->Be_flg &= ~0x8000;
@@ -1677,7 +1677,7 @@ void pl_dm01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Spd_z = 0;
         pEm->Unk120 |= 0x12;
     case 1:
-        if (pEm->UnkCA != 0) {
+        if (pEm->Hokan_flg != 0) {
             Add_speedXZ(pEm, 0);
         }
         if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
@@ -1722,7 +1722,7 @@ void pl_dm02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Esp_call(0x1001B03, (Rnd() * 2 + 0x1000) << 16, &pParts2[13].Workm, 0, 0);
         }
     case 1:
-        if (pEm->UnkCA == 0) {
+        if (pEm->Hokan_flg == 0) {
             *(ULONG *)&pEm->Move_no = 0x3000C;
             pEm->Routine_2 = 2;
         }
@@ -1796,7 +1796,7 @@ void pl_dm03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Routine_2 = 2;
             pEm->Damage_cnt = 0;
         }
-        if (pEm->UnkCA != 0) {
+        if (pEm->Hokan_flg != 0) {
             pEm->Spd_x -= 0x14;
         } else {
             pEm->Spd_x -= 0x32;
@@ -1859,7 +1859,7 @@ void pl_die00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         *(ULONG *)&pEm->Routine_0 = 7;
         break;
     }
-    if (pEm->UnkCA == 0) {
+    if (pEm->Hokan_flg == 0) {
         Foot_set_pl(pEm, 0, 1);
     }
 }

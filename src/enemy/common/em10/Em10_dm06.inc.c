@@ -30,7 +30,7 @@ void Em10_dm06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     case 2:
         pEm->Type = 1;
-        EM_RTN(pEm) = 1;
+        EM_SET_RTN(pEm, 1, 0, 0, 0);
         break;
     }
 }

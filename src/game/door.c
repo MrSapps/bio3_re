@@ -508,9 +508,9 @@ void func_80017008(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
+            pEm->Hokan_flg = 0;
         }
     case 1:
         if (Joint_move(pEm, pKan, pSeq, (((UCHAR)pEm->Unk144 >> 7) << 16) | 0x200)) {
@@ -576,9 +576,9 @@ void func_80017318(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->Routine_2 = 1;
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         if (pEm->Unk144 & 0x40) {
-            pEm->UnkCA = 0;
+            pEm->Hokan_flg = 0;
         }
         func_80018EC8(pEm, pKan, pSeq, (UCHAR)pEm->Unk144 >> 7);
     case 1:

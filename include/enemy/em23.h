@@ -10,6 +10,7 @@
  * held by it). Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"
@@ -54,11 +55,7 @@ typedef struct tagEM23_FREE {
 #define EF_W0(p) ((p)->Unk1CC[0])
 /* Size/Status_flg read as one word */
 #define EM_D0W(p) (*(ULONG *)&(p)->Size)
-/* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
 #define EM_RTN01(p) (*(SHORT *)&(p)->Routine_0)
-#define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* SCA_HEAD +0xC (sca.h padC): floor height of the room */
 #define SCA_FLOOR_Y(p) (((SHORT *)(p))[6])
 /* x/z pair packed for the SCA line tests (sca.c func_8004F258) */

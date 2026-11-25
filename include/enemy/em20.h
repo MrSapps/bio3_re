@@ -5,11 +5,12 @@
  * RE2's EM20.C. Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2); the
  * routine tables are in the module's .data. RE2 -> RE3 ENEMY_WORK fields:
  * Timer0 0xD8, Timer1 UnkDA, Timer2 UnkE2, Timer3 UnkE3, Neck_flg Unk120,
- * Ground Unk122, L_pl Unk154, L_spl Unk158, Hokan_flg UnkCA, Sca_info word at
+ * Ground Unk122, L_pl Unk154, L_spl Unk158, Hokan_flg Hokan_flg, Sca_info word at
  * 0xAC (EM20_SCA_INFO), At_em_no Col.Unk3, Be_flg 0x4000000/0x8000000/0x10000000
  * moved to Unk132 0x4000/0x8000 and Be_flg 0x4000.
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"
@@ -45,11 +46,7 @@ typedef struct tagEM20_FREE {
 } EM20_FREE;
 
 #define EM20_W(p) ((EM20_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..Hokan_flg written as one word (RE2 *(long *)&pEm->Routine_0 = 0x201) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
-#define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* RE2 Sca_info: the collision node's Unk2C/Hit_flg pair read as one word */
 #define EM20_SCA_INFO(p) (*(ULONG *)&(p)->Col.Unk2C)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */

@@ -7,6 +7,7 @@
  * 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "pad.h"
 #include "player.h"
@@ -21,9 +22,6 @@ typedef struct tagEM39_FREE {
 } EM39_FREE;
 
 #define EM39_W(p) ((EM39_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 
 /* module .data */
 extern SHORT Em39_box0[4]; /* hit boxes of the lash */

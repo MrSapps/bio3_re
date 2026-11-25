@@ -203,7 +203,7 @@ typedef struct tagCOL_OBJ {
     UCHAR UnkC7;                       /* 0xC7 set from the hit-area byte (func_800445C8) */ \
     UCHAR Move_no;                     /* 0x0C8 */                            \
     UCHAR Move_cnt;                    /* 0x0C9 */                            \
-    UCHAR UnkCA;                       /* 0x0CA joint interpolation rate (func_8002B190) */ \
+    UCHAR Hokan_flg;                   /* 0x0CA RE2 Hokan_flg: joint interpolation rate */ \
     UCHAR padCB;                                                              \
     SHORT Life;                        /* 0x0CC */                            \
     SHORT Max_life;                    /* 0x0CE */                            \

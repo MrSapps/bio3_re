@@ -725,7 +725,7 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
     pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
     n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
     pP_walk = pP;
-    if (pEm->UnkCA == 0) {
+    if (pEm->Hokan_flg == 0) {
         do {
             pP_walk->Cdir_x = pP_walk->Unk88 + ((pP_walk->Unk90 * No) >> 8);
             pP_walk->Cdir_y = pP_walk->Unk8A + ((pP_walk->Unk92 * No) >> 8);
@@ -737,7 +737,7 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         } while (--n);
     } else {
         Late_flg &= 0xFFFF;
-        w = Late_flg * pEm->UnkCA;
+        w = Late_flg * pEm->Hokan_flg;
         V.vx = pP->Old_x;
         V.vy = pP->Old_y;
         V.vz = pP->Old_z;
@@ -748,7 +748,7 @@ ULONG func_80027338(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         gte_ldlvl(&V);
         gte_gpl12();
         gte_stlvl(&pP->Pos_x);
-        pEm->UnkCA--;
+        pEm->Hokan_flg--;
         func_8002B190_(n, pP, No, Late_flg);
     }
     pP->Old_x = pP->Pos_x;
@@ -892,7 +892,7 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
     w = ((SHORT *)pRot)[3];
     w *= pEm->Unk12A;
     pP->Pos_y = w >> 12;
-    Hokan = pEm->UnkCA;
+    Hokan = pEm->Hokan_flg;
     n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
     Max = Late_flg >> 16;
     if (Hokan != 0) {
@@ -946,7 +946,7 @@ ULONG J_seq2(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
             goto copy;
         }
     } else {
-        pEm->UnkCA--;
+        pEm->Hokan_flg--;
     hokan:
         if (n >= 7) {
             hokan_svec((SVECTOR *)&pP->Unk88, (SVECTOR *)&pP->Cdir_x, (SVECTOR *)&pP->Cdir_x, w);
@@ -988,7 +988,7 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
     pP->Pos_y = pP->UnkAE + ((pP->UnkB6 * No) >> 8);
     n = 15;
     pP_walk = pP;
-    if (pEm->UnkCA == 0) {
+    if (pEm->Hokan_flg == 0) {
         do {
             pP_walk->Cdir_x = pP_walk->Unk88 + ((pP_walk->Unk90 * No) >> 8);
             pP_walk->Cdir_y = pP_walk->Unk8A + ((pP_walk->Unk92 * No) >> 8);
@@ -998,7 +998,7 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         } while (--n);
     } else {
         Late_flg &= 0xFFFF;
-        w = Late_flg * pEm->UnkCA;
+        w = Late_flg * pEm->Hokan_flg;
         V.vx = pP->Old_x;
         V.vy = pP->Old_y;
         V.vz = pP->Old_z;
@@ -1009,7 +1009,7 @@ ULONG func_80027F8C(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, LONG No, ULONG Late_flg)
         gte_ldlvl(&V);
         gte_gpl12();
         gte_stlvl(&pP->Pos_x);
-        pEm->UnkCA--;
+        pEm->Hokan_flg--;
         func_800281B4(15, pP, No, Late_flg);
     }
     pP->Old_x = pP->Pos_x;
@@ -1030,7 +1030,7 @@ void func_800281B4(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     SHORT Hokan;
 
     pSv = &Sv;
-    Hokan = 0x1000 - G.pEm->UnkCA * Rate;
+    Hokan = 0x1000 - G.pEm->Hokan_flg * Rate;
     do {
         pSv->vx = pP->Unk88 + ((ULONG)(pP->Unk90 * Late) >> 8);
         pSv->vy = pP->Unk8A + ((ULONG)(pP->Unk92 * Late) >> 8);

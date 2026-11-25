@@ -6,6 +6,7 @@
  * 0x8010D000 (slot 2); the routine tables are in the module's .data.
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"

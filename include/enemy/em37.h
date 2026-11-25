@@ -5,6 +5,7 @@
  * 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "joint.h"
 
@@ -16,9 +17,6 @@ typedef struct tagEM37_FREE {
 } EM37_FREE;
 
 #define EM37_W(p) ((EM37_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 
 /* random idle motions, copied to the stack by the move routines */
 typedef struct tagEM37_MOTION {

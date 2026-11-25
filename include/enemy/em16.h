@@ -7,6 +7,7 @@
  * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"

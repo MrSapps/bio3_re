@@ -77,7 +77,7 @@ void Em10_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Move_cnt = 0;
         pEm->Life = -0x8000;
     case 3:
-        pEm->UnkCA = 10;
+        pEm->Hokan_flg = 10;
         pEm->Routine_2 += Joint_move2(pEm, pKan, pSeq, 0x100);
         break;
     case 4:
@@ -88,7 +88,7 @@ void Em10_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Routine_2 = 3;
         break;
     case 6:
-        EM_RTN(pEm) = 7;
+        EM_SET_RTN(pEm, 7, 0, 0, 0);
         break;
     }
 }

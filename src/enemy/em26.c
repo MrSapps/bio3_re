@@ -28,7 +28,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk144 = 0;
     for (i = 0; i < 12; i++)
         pEm->Unk1CC[i] = 0;
-    EM_MOVE(pEm) = 0xF0000;
+    EM_SET_MOVE(pEm, 0, 0, 0xF);
     Joint_move(pEm, pKan, pSeq, 0x400);
     pEm->Unk120 = 0;
     pEm->Neck_no = 0;
@@ -69,7 +69,7 @@ void func_8010008C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Type |= 0x4000;
         for (i = 0; i < 16; i++) {
             pCp = Em_work_add(pEm);
-            EM_MOVE(pEm) = 0xF0000;
+            EM_SET_MOVE(pEm, 0, 0, 0xF);
             Joint_move(pCp, pKan, pSeq, 0x400);
             pCol = &pCp->Col;
             pCp->Unk136 = -300;
@@ -142,7 +142,7 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pTg = G_PLAYER;
     if ((LONG)pEm->Unk154 < 550 && (G.Unk75E8 & 6) && pEm->nFloor == pTg->nFloor) {
         if (EM_RTN01(pTg) == 0x101 || EM_RTN01(pTg) == 0x201 || EM_RTN01(pTg) == 0x301 || EM_RTN01(pTg) == 0x401) {
-            EM_RTN(pEm) = 3;
+            EM_SET_RTN(pEm, 3, 0, 0, 0);
             Pad_vib_set0(1, 0);
             Pad_vib_set1(3, 80, 0);
         }
@@ -152,7 +152,7 @@ void func_8010040C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         if (pEm->nFloor == pTg->nFloor)
             if ((pEm->Unk158 & 0x3FFFFFFF) < 550)
                 if (EM_RTN01(pTg) == 0x101 || EM_RTN01(pTg) == 0x201 || EM_RTN01(pTg) == 0x301 || EM_RTN01(pTg) == 0x401)
-                    EM_RTN(pEm) = 3;
+                    EM_SET_RTN(pEm, 3, 0, 0, 0);
     }
 }
 
@@ -277,7 +277,7 @@ void func_8010098C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             func_8010100C(pEm, 0, 0x82);
             pEm->Life = -1;
             pEm->Pos_y = Hit + 10;
-            EM_RTN(pEm) = 3;
+            EM_SET_RTN(pEm, 3, 0, 0, 0);
             pEm->Be_flg |= 0x20;
         } else {
             pEm->Routine_1 = 1;
@@ -323,7 +323,7 @@ void func_80100AD4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM_RTN23(pEm) = 0;
     } else if (!--pEm->Timer0) {
         pEm->Life = -1;
-        EM_RTN(pEm) = 3;
+        EM_SET_RTN(pEm, 3, 0, 0, 0);
     }
 }
 

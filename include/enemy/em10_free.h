@@ -2,6 +2,7 @@
 #define OVL_EM10_FREE_H
 /* em10-family work views and macros, shared by em10 and em16 */
 #include "bio3.h"
+#include "enemy/em_common.h"
 
 /* em10's view of ENEMY_WORK.Unk1CC[12], also used by em16 (a near copy of em10)
    (RE2 ENEMY_WORK.Free[], OVL_FREE(p) in RE2 EM10.C: FREE_UB(o) is the byte at 0x1CC + o here) */
@@ -58,9 +59,6 @@ typedef struct tagEM10_ESP {
 } EM10_ESP;
 
 #define EM10_W(p) ((EM10_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..Move_cnt written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 /* Add_dir..Unk14C used as a rotation vector by the dm routines */

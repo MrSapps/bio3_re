@@ -4,7 +4,7 @@ void Em10_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0xF0006;
+        EM_SET_MOVE(pEm, 6, 0, 0xF);
         pEm->Routine_2 = 1;
         pEm->Timer0 = (Rnd_l() & 7) + 7;
         pEm->Move_cnt = Rnd_l() & 0xF;

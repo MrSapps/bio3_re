@@ -14,7 +14,7 @@ void Em10_mv00_br(ENEMY_WORK *pEm)
     if (pEm->Type & 0x10)
         return;
     if (LL < 5000 && !Dir0 && (pEm->Status_flg & 0x2000))
-        EM_RTN(pEm) = 0x101;
+        EM_SET_RTN(pEm, 1, 1, 0, 0);
     if (Dir1 && LL < 2000 && !pPl->Damage_cnt && !EM10_W(pEm)->Unk26)
-        EM_RTN(pEm) = 0xC01;
+        EM_SET_RTN(pEm, 1, 0xC, 0, 0);
 }

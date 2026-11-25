@@ -4,7 +4,7 @@ void Em10_mv0e(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0xF001A;
+        EM_SET_MOVE(pEm, 0x1A, 0, 0xF);
         pEm->Routine_2 = 1;
         EM10_W(pEm)->Unk26 = (Rnd_l() & 0xF) + 70;
         if (!EM10_W(pEm)->Unk21) {
@@ -19,9 +19,9 @@ void Em10_mv0e(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     case 1:
         Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0xD4);
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
-            EM_RTN(pEm) = 0x201;
+            EM_SET_RTN(pEm, 1, 2, 0, 0);
             if (EM10_W(pEm)->Flg & 0x4000)
-                EM_RTN(pEm) = 0xB01;
+                EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
         Add_speedXZ(pEm, 0);
         break;

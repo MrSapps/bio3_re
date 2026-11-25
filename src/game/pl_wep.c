@@ -120,7 +120,7 @@ void pl_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
     G.Status_flg |= 0x140;
     pl_mv05_w_tbl[(UCHAR)pEm->Type - 1](pEm, pKan, pSeq, G.Key);
-    if (pEm->Spd_x == 0 && (pEm->Routine_2 != 0 || pEm->UnkCA == 0)) {
+    if (pEm->Spd_x == 0 && (pEm->Routine_2 != 0 || pEm->Hokan_flg == 0)) {
         Foot_set_pl(pEm, 0, D_8009CF28[(UCHAR)pEm->Type - 1][0] >> 7);
     }
 }
@@ -646,7 +646,7 @@ void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pPos = pEm->pUnk15C;
         Goto00(pEm, pPos[0], pPos[2], 0x100);
         Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
-        if (pEm->UnkCA == 0) {
+        if (pEm->Hokan_flg == 0) {
             *(USHORT *)&pEm->Routine_2 = 1;
         }
         pEm->Be_flg |= 0x2000000;
@@ -862,7 +862,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         Pad_vib_fade_set(10, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
     case 1:
         pEm->Move_no = Mv0[Pl_aim_dir];
-        pEm->UnkCA = 7;
+        pEm->Hokan_flg = 7;
         pEm->Unk1A0 = Mv0[Pl_aim_dir];
         pEm->Unk1A2 = 7;
         pEm->Routine_3 = 2;

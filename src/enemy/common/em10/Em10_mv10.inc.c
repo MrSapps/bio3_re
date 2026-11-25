@@ -7,7 +7,7 @@ void Em10_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0xF0012;
+        EM_SET_MOVE(pEm, 0x12, 0, 0xF);
         pEm->Routine_2 = 1;
     case 1:
         if (pEm->Move_cnt == 20) {
@@ -20,7 +20,7 @@ void Em10_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
         func_80018EC8(pEm, pKan, pSeq, 0);
         if (Joint_move(pEm, pKan, pSeq, 0x100)) {
-            EM_RTN(pEm) = 0x201;
+            EM_SET_RTN(pEm, 1, 2, 0, 0);
             EM10_W(pEm)->u2C.w.Unk2F = 30;
         }
         Add_speedXZ(pEm, 0);

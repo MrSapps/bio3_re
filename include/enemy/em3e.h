@@ -8,6 +8,7 @@
  * Loaded at 0x80100000 (slot 1) or 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "sub.h"
@@ -37,10 +38,6 @@ typedef struct tagEM3E_FREE {
 } EM3E_FREE;
 
 #define EM3E_W(p) ((EM3E_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..UnkCA written as one word */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 

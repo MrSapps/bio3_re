@@ -90,7 +90,7 @@ void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     PARTS_W *pP;
     LONG n;
 
-    EM_RTN(pEm) = 1;
+    EM_SET_RTN(pEm, 1, 0, 0, 0);
     pEm->Damage_cnt = 0x80;
     pEm->Spd_x = 0x800;
     pEm->Life = -1;
@@ -110,7 +110,7 @@ void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Spd_y = 0;
     pEm->Unk120 = 0;
     pEm->Neck_no = 0;
-    EM_MOVE(pEm) = 0;
+    EM_SET_MOVE(pEm, 0, 0, 0);
     pEm->pUnk13C = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
     Joint_move(pEm, pKan, pSeq, 0x400);
     EM39_W(pEm)->pParent = NULL;
@@ -137,7 +137,7 @@ void func_801003B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pP[3].Size_y = 0x800;
     pP[3].Be_flg |= 4;
     pP = pEm->pSin_parts_ptr;
-    EM_RTN(pEm) = 0x201;
+    EM_SET_RTN(pEm, 1, 2, 0, 0);
     for (n = 6; n; n--) {
         pP->Be_flg |= 4;
         pP->Size_x = 0x1000;
@@ -181,7 +181,7 @@ void func_801006CC(ENEMY_WORK *pEm)
     Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 0x600);
     Dir_pos_ck_l((VECTOR *)&pEm->Pos_x, (VECTOR *)&pPl->Pos_x, pEm->Cdir_y + 0x400, 0x264);
     if (Dist < 7000 && !Turn && !EM39_W(pEm)->Wait && !pEm->Spd_z)
-        EM_RTN(pEm) = 0x101;
+        EM_SET_RTN(pEm, 1, 1, 0, 0);
 }
 
 /* idle sway */
@@ -189,7 +189,7 @@ void func_8010079C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x3F0000;
+        EM_SET_MOVE(pEm, 0, 0, 0x3F);
         pEm->Routine_2 = 1;
         pEm->Timer0 = (Rnd_l() & 0x3F) + 60;
         pEm->Spd_x = 0x400;
@@ -227,7 +227,7 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     switch (pEm->Routine_2) {
     case 0:
         pEm->UnkE2 = Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 1);
-        EM_MOVE(pEm) = 0x1F0002;
+        EM_SET_MOVE(pEm, 2, 0, 0x1F);
         if (pEm->UnkE2 == 1)
             pEm->Move_no++;
         pEm->Spd_x = 0x1000;
@@ -236,7 +236,7 @@ void func_801008E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->UnkE3 = 0;
     case 1:
         if (Joint_move(pEm, pKan, pSeq, 0x80)) {
-            EM_RTN(pEm) = 1;
+            EM_SET_RTN(pEm, 1, 0, 0, 0);
             EM39_W(pEm)->Wait = (Rnd_l() & 0x3F) + 90;
             if (pPl->Life < 100)
                 EM39_W(pEm)->Wait = (Rnd_l() & 0x3F) + 120;
@@ -354,7 +354,7 @@ void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x3F0001;
+        EM_SET_MOVE(pEm, 1, 0, 0x3F);
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0;
         pEm->UnkDA = 0;
@@ -381,7 +381,7 @@ void func_80100DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pP[5].Size_y = Size;
         func_8010133C(pEm, &pP[5], Size);
         if (pEm->UnkDA) {
-            EM_RTN(pEm) = 1;
+            EM_SET_RTN(pEm, 1, 0, 0, 0);
             EM39_W(pEm)->Wait = (Rnd_l() & 0x7F) + 30;
             pP[4].Be_flg &= ~4;
             pP[5].Be_flg &= ~4;

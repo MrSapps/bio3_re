@@ -29,7 +29,7 @@ void Em10_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->UnkDA++;
         }
         if (pEm->UnkDA == 1 && (Rnd_l() >> (Rnd_l() & 3)) & 7) {
-            EM_RTN(pEm) = 0x501;
+            EM_SET_RTN(pEm, 1, 5, 0, 0);
             EM10_W(pEm)->Unk0B = (Rnd_l() & 0xF) + 0x10;
             EM10_W(pEm)->Flg &= 0xFFF7;
             pEm->UnkE2 = pEm->UnkE3;
@@ -57,7 +57,7 @@ void Em10_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x100);
         break;
     case 2:
-        EM_RTN(pEm) = 0x101;
+        EM_SET_RTN(pEm, 1, 1, 0, 0);
         EM10_W(pEm)->Flg &= 0xFFF7;
         break;
     }

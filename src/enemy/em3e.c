@@ -22,8 +22,8 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     COL_OBJ *pCol;
     PARTS_W *pP;
 
-    EM_MOVE(pEm) = 0x70000;
-    EM_RTN(pEm) = 4;
+    EM_SET_MOVE(pEm, 0, 0, 7);
+    EM_SET_RTN(pEm, 4, 0, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
     pEm->Unk134 = 1800;
     pEm->Unk136 = -2700;
@@ -86,7 +86,7 @@ void func_801000A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk14E = 0x110;
     func_80100DC0(pEm, EM3E_W(pEm)->Abr0);
     func_80100DC0(pEm, EM3E_W(pEm)->Rotor1);
-    EM_MOVE(pEm) = 0;
+    EM_SET_MOVE(pEm, 0, 0, 0);
     Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x200);
 }
 
@@ -143,7 +143,7 @@ void func_801005E4(ENEMY_WORK *pEm)
     func_801015C0(pEm);
     if (pEm->Life < 0) {
         Em_dead_flg_on_cand(pEm);
-        EM_RTN(pEm) = 7;
+        EM_SET_RTN(pEm, 7, 0, 0, 0);
         pEm->Spd_x = 0;
         pEm->Spd_y = 0;
         pEm->Spd_z = 0;

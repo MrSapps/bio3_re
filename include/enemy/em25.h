@@ -10,6 +10,7 @@
  * L_spl Unk158, Neck_flg Unk120.
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "main.h"
 #include "oba.h"
@@ -56,10 +57,6 @@ typedef struct tagEM25_FREE {
 } EM25_FREE;
 
 #define EF(p) ((EM25_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x201) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
-#define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */
 #define PW_FREE(p) ((SHORT *)&(p)->Unk74)
 

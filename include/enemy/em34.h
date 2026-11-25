@@ -8,6 +8,7 @@
  * tables by Type (Em34_Move_type) and by the sign of D_800D1F2C.
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"
@@ -54,9 +55,6 @@ typedef struct tagPARTS_FREE_VIEW {
 } PARTS_FREE_VIEW;
 #define PW_FREE(p) ((PARTS_FREE_VIEW *)(p))
 #define EM34_W(p) ((EM34_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..Move_cnt written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* Flg, Unk06 and Unk07 read as one word (lw + andi/and) */
 #define EM34_FLG_L(p) (*(ULONG *)&EM34_W(p)->Flg)
 

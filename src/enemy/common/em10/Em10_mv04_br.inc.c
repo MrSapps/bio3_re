@@ -15,7 +15,7 @@ void Em10_mv04_br(ENEMY_WORK *pEm)
     Hit = Y - 400 < pEm->pSin_parts_ptr[1].Workm.t[1] && pEm->pSin_parts_ptr[1].Workm.t[1] < Y + 200;
     if (!Dir && LL < 1300 && !pPl->Damage_cnt && (pEm->nFloor == pPl->nFloor || Hit)
         && !((pEm->Col.Hit_flg ^ pPl->Col.Hit_flg) & 0x40)) {
-        EM_RTN(pEm) = 0x101;
+        EM_SET_RTN(pEm, 1, 1, 0, 0);
         pEm->Damage_cnt |= 0x80;
         pPl->Unk12C = 0;
         pPl->Damage_cnt |= 0x80;

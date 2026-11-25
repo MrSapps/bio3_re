@@ -9,6 +9,7 @@
  * by Routine_1.
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"
@@ -58,11 +59,7 @@ typedef struct tagEM22_FREE {
 } EM22_FREE;
 
 #define EM22_W(p) ((EM22_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..Move_cnt written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* Routine_2..3 written as one halfword */
-#define EM_RTN23(p) (*(USHORT *)&(p)->Routine_2)
 /* Routine_0..1 read as one halfword */
 #define EM_RTN01(p) (*(SHORT *)&(p)->Routine_0)
 /* PARTS_W free work (RE2 PARTS_W.Free[], RE3 0x74..) */

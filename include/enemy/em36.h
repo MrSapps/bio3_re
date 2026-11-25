@@ -8,6 +8,7 @@
  * Type (Em36_Move_type).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"
@@ -75,11 +76,8 @@ typedef struct tagEM36_PARTS_FREE {
 #define EM36_W(p) ((EM36_FREE *)(p)->Unk1CC)
 /* Flg read as a word together with the bytes after it */
 #define EM36_FLGW(p) (*(ULONG *)&EM36_W(p)->Flg)
-/* Routine_0..3 / Move_no..Move_cnt written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
 /* colour word (r, g, b, code) of the shadow quads */
 #define KAGE_RGB(pK, n) (*(ULONG *)&(pK)->Prim[n].r0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 
 extern SHORT Em36_punch_box0[4];
 extern SHORT Em36_punch_box1[4];

@@ -11,6 +11,7 @@
  * scenario routines by Routine_1; PLDAMEGE_EM/PLDIE_EM tables for the player.
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "main.h"
@@ -58,9 +59,6 @@ typedef struct tagEM38_SABUN {
 #define EM38_SA(p) ((EM38_SABUN *)(p)->pUnk98)
 
 #define EM38_W(p) ((EM38_FREE *)(p)->Unk1CC)
-/* Routine_0..3 / Move_no..UnkCA written as one word (RE2 *(long *)&pEm->Routine_0 = 0x101) */
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 /* Spd_x/Spd_y cleared as one word */
 #define EM_SPD_XY(p) (*(ULONG *)&(p)->Spd_x)
 /* PARTS_W.Unk74.. used as two words (RE2 PARTS_W.Free[]): fade count and colour */

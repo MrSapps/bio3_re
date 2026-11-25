@@ -19,11 +19,11 @@ void func_80100060(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     signed char n;
     signed char i;
 
-    EM_RTN(pEm) = 1;
+    EM_SET_RTN(pEm, 1, 0, 0, 0);
     if ((pEm->Type & 0xF) < 2) {
-        EM_MOVE(pEm) = 0x4801;
+        EM_SET_MOVE(pEm, 1, 0x48, 0);
     } else {
-        EM_MOVE(pEm) = 0;
+        EM_SET_MOVE(pEm, 0, 0, 0);
     }
     Joint_move(pEm, pKan, pSeq, 0x100);
     if (!(pEm->Type & 0xF)) {

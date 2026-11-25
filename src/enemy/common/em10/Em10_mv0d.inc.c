@@ -42,11 +42,11 @@ void Em10_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 0x30);
         Spd = pEm->Spd_x;
         Spd_get(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
-        pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->UnkCA) >> 4;
+        pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->Hokan_flg) >> 4;
         Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x100);
         Add_speedXZ(pEm, 0);
         if (pEm->Timer0-- == 0 || (pPl->Damage_cnt && (LONG)pEm->Unk154 < 3500))
-            EM_RTN(pEm) = 0x101;
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
         break;
     }
 }

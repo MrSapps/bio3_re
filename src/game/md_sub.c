@@ -246,7 +246,7 @@ void func_8002B190(ULONG n, PARTS_W *pP, ULONG Late, SHORT Rate)
     SHORT Hokan;
 
     pSv = &Sv;
-    Hokan = 0x1000 - G.pEm->UnkCA * Rate;
+    Hokan = 0x1000 - G.pEm->Hokan_flg * Rate;
     do {
         pSv->vx = pP->Unk88 + ((ULONG)(pP->Unk90 * Late) >> 8);
         pSv->vy = pP->Unk8A + ((ULONG)(pP->Unk92 * Late) >> 8);

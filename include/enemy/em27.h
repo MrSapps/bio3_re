@@ -5,6 +5,7 @@
  * 0x8010D000 (slot 2).
  */
 #include "bio3.h"
+#include "enemy/em_common.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "pad.h"
@@ -21,8 +22,6 @@ typedef struct tagEM27_FREE {
 } EM27_FREE;
 
 #define EM27_W(p) ((EM27_FREE *)(p)->Unk1CC)
-#define EM_RTN(p) (*(ULONG *)&(p)->Routine_0)
-#define EM_MOVE(p) (*(ULONG *)&(p)->Move_no)
 #define EM_RTN01(p) (*(USHORT *)&(p)->Routine_0)
 
 /* module .data: routine tables, unprototyped like RE2's (routines take pEm, Kan, Seq) */

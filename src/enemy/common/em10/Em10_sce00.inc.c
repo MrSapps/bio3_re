@@ -4,7 +4,7 @@ void Em10_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
-        EM_MOVE(pEm) = 0x1F0000;
+        EM_SET_MOVE(pEm, 0, 0, 0x1F);
         pEm->Routine_2 = 1;
     case 1:
         func_80018EC8(pEm, pKan, pSeq, 0);

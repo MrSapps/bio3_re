@@ -43,12 +43,12 @@ void Em10_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Spd_get(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         Joint_move(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0x80);
         pEm->Spd_x += pEm->Spd_x * 3 / 10 + 3;
-        pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->UnkCA) >> 5;
+        pEm->Spd_x -= ((pEm->Spd_x - Spd) * pEm->Hokan_flg) >> 5;
         Add_speedXZ(pEm, 0);
         if (pEm->Timer0-- == 0 || (pPl->Damage_cnt && (LONG)pEm->Unk154 < 3000)) {
-            EM_RTN(pEm) = 0x101;
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
             if (!pPl->Damage_cnt && (LONG)pEm->Unk154 > 4000 && (Rnd_l() & 7) == 2)
-                EM_RTN(pEm) = 0xB01;
+                EM_SET_RTN(pEm, 1, 0xB, 0, 0);
         }
         break;
     }
