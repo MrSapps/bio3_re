@@ -13,10 +13,10 @@ typedef struct tagSCE_ITEM_DATA {
 } SCE_ITEM_DATA;
 
 extern USHORT Key_type[][16]; /* 0x8009CC9C RE2 Key_type, row Main.Unk195 */
-extern LONG D_800DEC98;
-extern SHORT D_800DEC9C; /* RE2 Item_box_entrance static Dir_spd */
-extern SHORT D_800DEC9E; /* RE2 Item_box_entrance static Spd_add */
-extern OBJ_MODEL_WORK *D_800DECA0; /* RE2 Item_box_entrance static pOwork */
+extern LONG Key_lost_work;
+extern SHORT Ibox_dir_spd; /* RE2 Item_box_entrance static Dir_spd */
+extern SHORT Ibox_spd_add; /* RE2 Item_box_entrance static Spd_add */
+extern OBJ_MODEL_WORK *Ibox_pOwork; /* RE2 Item_box_entrance static pOwork */
 extern void *Hiki_pAot; /* 0x800DECA4 RE2 Hikidashi_entrance static pAot */
 extern SCE_ITEM_DATA *Hiki_pItem_dat; /* 0x800DECA8 RE2 Hikidashi_entrance static pItem_dat */
 extern ULONG D_800DECAC;

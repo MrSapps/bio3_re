@@ -1766,10 +1766,10 @@ void Em33_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* pad vibration scripts */
 void Em33_vib_rise(void)
 {
-    func_8003884C(Em33_vib_tbl, 3);
+    Pad_vib_data_set(Em33_vib_tbl, 3);
 }
 
 void Em33_vib_leap(void)
 {
-    func_8003884C(Em33_vib_tbl, 5);
+    Pad_vib_data_set(Em33_vib_tbl, 5);
 }

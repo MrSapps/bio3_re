@@ -189,7 +189,7 @@ void Init_system(void)
     Init_scheduler();
     VSyncCallback(Vsync_cb);
     pM->Vloop = 1;
-    D_800D454C = 0;
+    Vsync_cnt = 0;
     SetDefDrawEnv(&pM->Db[0].Draw, 0, 0, 320, 240);
     SetDefDrawEnv(&pM->Db[1].Draw, 0, 240, 320, 240);
     SetDefDispEnv(&pM->Db[0].Disp, 0, 240, 320, 240);
@@ -215,7 +215,7 @@ void Init_system(void)
     Task_execute(0, Init_main);
     ResetGraph(0);
     Vram_clr(0, 0, 0x400, 0x200);
-    D_800D454C = 0;
+    Vsync_cnt = 0;
 }
 
 /* RE2 Init_global: clears G (keeping Keep_data across a retry) and sets up the curtain tiles */
@@ -254,7 +254,7 @@ void Init_global(void)
     Moji.Mess_flg = 0;
     Main.Unk194 = 0;
     G.System_flg &= 0x80;
-    D_80098700 = 0xD2706CA4;
+    G_random = 0xD2706CA4;
     for (i = 0; i < 4; i++) {
         Fade_off(i);
     }

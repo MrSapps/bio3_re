@@ -288,9 +288,9 @@ typedef struct tagEM_HIT_AREA {
     ULONG *pUnk184_kan_t_ptr;          /* 0x184 */                            \
     ULONG *pUnk188_seq_t_ptr;          /* 0x188 seq/kan of Joint_move (first part set); a prim buffer in Mizu_trans works */ \
     ULONG *pUnk18C_kan_t_ptr;          /* 0x18C */                            \
-    ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (func_800498F0) */ \
+    ULONG *pUnk190_seq_t_ptr;          /* 0x190 second set of sub animations (Rbj_set) */ \
     ULONG *pUnk194_kan_t_ptr;          /* 0x194 */                            \
-    ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */ \
+    ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (Rbj_set) */ \
     ULONG *pUnk19C_kan_t_ptr;          /* 0x19C */                            \
     UCHAR Sub_move_no;                 /* 0x1A0 second motion slot (slope walking; Spd_get_sub) */ \
     UCHAR Sub_move_cnt;                /* 0x1A1 */                            \

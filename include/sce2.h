@@ -5,19 +5,19 @@
 #include "sce0.h"
 
 extern ULONG (*Sce_at_jump_tbl[])(void *pAot); /* 0x8009E0BC RE2 Sce_at_jump_tbl */
-extern ULONG *D_8009E414; /* Flg_addr[7] */
-extern ULONG *D_8009E418; /* Flg_addr[8] */
+extern ULONG *Flg_addr_item; /* Flg_addr[7] */
+extern ULONG *Flg_addr_item2; /* Flg_addr[8] */
 extern UCHAR Subpl_walk[][2]; /* RE2 SPL_TBL.H: sub player motion tables */
 extern UCHAR Subpl_back[][2];
 extern UCHAR Subpl_dir[][2];
 extern UCHAR Subpl_ato[][2];
 extern UCHAR Subpl_run[][2];
-extern UCHAR D_800C703E[];
-extern UCHAR D_800C7961;
-extern SHORT D_800D1F8E[];
-extern USHORT D_800D1F94;
+extern UCHAR Live_sel_mess_no[];
+extern UCHAR Game_st_flg;
+extern SHORT Chaser_life[];
+extern USHORT Chaser_evt_state;
 extern ULONG Chaser_flg[]; /* G+0x7E54: Nemesis encounter flags (Chaser_evt_clr) */
-extern UCHAR D_800E0171[];
+extern UCHAR Sce_weapon_chg_flg[];
 extern ULONG St_flg14_a[];          /* St.Flg14 seen as its own array symbol (codegen) */
 extern UCHAR St_equip_id_old;        /* St.Equip_id_old under its own symbol */
 

@@ -4,15 +4,15 @@
 #include "bio3.h"
 #include "em_sub.h"
 
-extern UCHAR D_8009ED88[]; /* move offset by Spl_mot_set_no result */
-extern SHORT D_8009EDA4[];
-extern SHORT D_8009EDCC[];
-extern SHORT D_8009EDF4[];
-extern SHORT D_8009EE1C[];
+extern UCHAR Spl_slope_mv_tbl[]; /* move offset by Spl_mot_set_no result */
+extern SHORT Spl_sce05_spd_x0[];
+extern SHORT Spl_sce05_spd_z0[];
+extern SHORT Spl_sce05_spd_x1[];
+extern SHORT Spl_sce05_spd_z1[];
 extern void (*Spl_sce[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern void (*Spl_sce0a_tbl[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern SHORT Spl_slope_dir_tbl[]; /* direction by Col.Unk39 & 7 */
-extern ULONG D_800D1FC0[];
+extern ULONG Room_flg[];
 
 void Spl_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 LONG Spl_sce_hokan(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);

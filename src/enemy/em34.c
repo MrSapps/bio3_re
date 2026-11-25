@@ -99,7 +99,7 @@ void Em134(ENEMY_WORK *pEm)
         EM34_W(pEm)->Seek_timer--;
     if (EM34_W(pEm)->Run_timer)
         EM34_W(pEm)->Run_timer--;
-    if ((LONG)D_800D1F2C < 0) {
+    if ((LONG)G_status_flg < 0) {
         if (EM34_W(pEm)->Punch_timer)
             EM34_W(pEm)->Punch_timer--;
         if (EM34_W(pEm)->Shoot_timer)
@@ -144,10 +144,10 @@ void Em34_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     Em34_Move_type[(UCHAR)pEm->Type](pEm, pKan, pSeq);
 }
 
-/* Type 0: brain (the hard-mode set when D_800D1F2C bit 31 is set), then motion, by Routine_1 */
+/* Type 0: brain (the hard-mode set when G_status_flg bit 31 is set), then motion, by Routine_1 */
 void Em34_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if ((LONG)D_800D1F2C >= 0)
+    if ((LONG)G_status_flg >= 0)
         Em34_mv_br_type00[pEm->Routine_1](pEm);
     else
         Em34_mv_br_type00h[pEm->Routine_1](pEm);
@@ -157,7 +157,7 @@ void Em34_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* Type 1: as Type 0 with the type-1 brains */
 void Em34_Move_type01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    if ((LONG)D_800D1F2C >= 0)
+    if ((LONG)G_status_flg >= 0)
         Em34_mv_br_type01[pEm->Routine_1](pEm);
     else
         Em34_mv_br_type01h[pEm->Routine_1](pEm);
@@ -392,7 +392,7 @@ void Em34_walk_br3(ENEMY_WORK *pEm)
     }
 }
 
-/* brain: walk (Type 0, D_800D1F2C < 0), chases the current target */
+/* brain: walk (Type 0, G_status_flg < 0), chases the current target */
 void Em34_walk_br0h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -431,7 +431,7 @@ void Em34_walk_br0h(ENEMY_WORK *pEm)
     }
 }
 
-/* brain: walk (Type 1, D_800D1F2C < 0) */
+/* brain: walk (Type 1, G_status_flg < 0) */
 void Em34_walk_br1h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -585,7 +585,7 @@ void Em34_run_br1(ENEMY_WORK *pEm)
     }
 }
 
-/* brain: run (Type 0, D_800D1F2C < 0) */
+/* brain: run (Type 0, G_status_flg < 0) */
 void Em34_run_br0h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -602,7 +602,7 @@ void Em34_run_br0h(ENEMY_WORK *pEm)
         EM_SET_RTN(pEm, 1, 6, 0, 0);
 }
 
-/* brain: run (Type 1, D_800D1F2C < 0) */
+/* brain: run (Type 1, G_status_flg < 0) */
 void Em34_run_br1h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -738,7 +738,7 @@ void Em34_back_br1(ENEMY_WORK *pEm)
     }
 }
 
-/* brain: motion 3 (Type 0, D_800D1F2C < 0) */
+/* brain: motion 3 (Type 0, G_status_flg < 0) */
 void Em34_back_br0h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -766,7 +766,7 @@ void Em34_back_br0h(ENEMY_WORK *pEm)
     }
 }
 
-/* brain: motion 3 (Type 1, D_800D1F2C < 0) */
+/* brain: motion 3 (Type 1, G_status_flg < 0) */
 void Em34_back_br1h(ENEMY_WORK *pEm)
 {
     ENEMY_WORK *pT = EM34_W(pEm)->pTarget;
@@ -1010,7 +1010,7 @@ void Em34_punch(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (Pos_em1_at_ck(pEm, &At, &Em34_at_data))
                     Snd_se_enem(4, pEm);
             }
-            if ((LONG)D_800D1F2C < 0 && !pSpl->Damage_cnt) {
+            if ((LONG)G_status_flg < 0 && !pSpl->Damage_cnt) {
                 Mat = pP->Workm;
                 Ofs.vy = 100;
                 Ofs.vx = 0;
@@ -1129,7 +1129,7 @@ void Em34_rush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 if (Pos_em1_at_ck(pEm, &At, &Em34_at_data))
                     Snd_se_enem(4, pEm);
             }
-            if ((LONG)D_800D1F2C < 0 && !pSpl->Damage_cnt) {
+            if ((LONG)G_status_flg < 0 && !pSpl->Damage_cnt) {
                 Ofs.vy = 300;
                 Ofs.vx = 0;
                 Ofs.vz = 0;
@@ -2474,7 +2474,7 @@ void Em34_sce02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Routine_2 += Joint_move(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0x100);
         if (!(pEm->Unk14A & 0x10))
             Add_speedXZ(pEm, 0);
-        if ((pEm->Unk14A & 8) && (D_800D1F2C & 0x2000))
+        if ((pEm->Unk14A & 8) && (G_status_flg & 0x2000))
             Om_drop_set(pEm, 30);
         break;
     case 2:
@@ -2518,7 +2518,7 @@ void Em34_sce04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM34_W(pEm)->Flg |= 1;
         pEm->Neck_flg |= 3;
         PW_NECK(&pEm->pSin_parts_ptr[2])->N_rot_y = 0;
-        if ((pEm->Unk14A & 8) && (D_800D1F2C & 0x2000))
+        if ((pEm->Unk14A & 8) && (G_status_flg & 0x2000))
             Om_drop_set(pEm, 0);
     case 1:
         Spd_get(pEm, pEm->pUnk100_kan_t_ptr, pEm->pUnk104_seq_t_ptr, 0);

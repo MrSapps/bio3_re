@@ -46,9 +46,10 @@ void Psp_init(void)
     }
 }
 
-void func_800486C8(void)
+/* sets the 32 words of G+0x7914 to -1 (RE2 does this loop inline in Sce_work_clr_set on G.SaveData.Pri_be_flg) */
+void Pri_be_flg_init(void)
 {
-    LONG *p = D_800D204C;
+    LONG *p = Pri_be_flg;
     LONG i = 32;
 
     do {

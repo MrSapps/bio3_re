@@ -260,7 +260,7 @@ void Pad_vib_fade_set(LONG Time, LONG Pow_st, LONG Pow_ed, ULONG Attr)
 
 /* vibration script: USHORT records {1, Time, Attr} -> Pad_vib_set0, {2, Time, Power, Attr} -> Pad_vib_set1,
  * {3, Time, Pow_st | Pow_ed << 8, Attr} -> Pad_vib_fade_set; 0xFFFF ends. pTbl starts with byte offsets. */
-void func_8003884C(USHORT *pTbl, ULONG No)
+void Pad_vib_data_set(USHORT *pTbl, ULONG No)
 {
     USHORT *p = (USHORT *)((UCHAR *)pTbl + pTbl[No]);
     ULONG Time, Pow, Attr;

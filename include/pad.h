@@ -2,7 +2,7 @@
 #define PAD_H
 #include "bio3.h"
 
-/* key repeat / stop state (D_800DE628) */
+/* key repeat / stop state (Pad_work) */
 typedef struct tagPAD_WORK {
     ULONG Stop_bak;                    /* 0x00 G.Unk2468 saved while the game is stopped (RE2 static Stp_bak) */
     union {
@@ -48,6 +48,6 @@ extern UCHAR Pad_type_old; /* 0x800DE640 */
 extern UCHAR Pad_act_set; /* 0x800DE641 RE2 UnknownPadSetFlag: 1 PadSetAct done, 2 aligned */
 
 void Pad_set(void);
-void func_8003884C(USHORT *pTbl, ULONG No); /* pad: play vibration script No of pTbl */
+void Pad_vib_data_set(USHORT *pTbl, ULONG No); /* pad: play vibration script No of pTbl */
 
 #endif /* PAD_H */

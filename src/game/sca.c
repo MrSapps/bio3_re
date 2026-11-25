@@ -283,7 +283,7 @@ ULONG Sca_ck_circle(VECTOR *pPos, LONG R, SCA_DATA *pT)
     return 0;
 }
 
-/* push a COL_OBJ off a circle at (X, Z) radius R (another character, from oba func_80034814): pass-through test on the perpendicular diameter (Sca_ck_pass_line) plus Sca_hit_circle on Tmp_Sca */
+/* push a COL_OBJ off a circle at (X, Z) radius R (another character, from oba Oba_em_hit_ck): pass-through test on the perpendicular diameter (Sca_ck_pass_line) plus Sca_hit_circle on Tmp_Sca */
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_circle_obj);
 
 /* did the move Old->Pos cross the segment Sca_work.Pt0-Pt1 (GTE nclip); if so add (Old - Pos) back and return 1 */
@@ -694,7 +694,7 @@ LONG Sca_ck_line_oba(VECTOR *pA, VECTOR *pB, ULONG Att, ULONG Flg)
         if (pT->Id & Att) {
             if (!(pEnt->pObj->Flg & 7)) {
                 pT = &Tmp_Sca;
-                func_80034E78(pEnt->pObj, pT);
+                Oba_tmp_sca_set(pEnt->pObj, pT);
             }
             Ret = Sca_line_tbl[pT->Id & 0xF](P0, P1, pT);
             if (!(Flg & 1)) {

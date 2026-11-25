@@ -52,14 +52,14 @@ typedef struct {
     SHORT Unk2A;                       /* 0x2A delta y */
 } RAIN_WORK;
 
-extern LONG D_800D204C[];
+extern LONG Pri_be_flg[];
 extern UCHAR *Psp_id; /* per-sprite group id (Cut_flg bit) */
 extern SHORT *Psp_otz; /* per-sprite OT z */
 extern PSP_PRIM *pPsp_prim; /* two prims per sprite (double buffer) */
 extern RAIN_WORK Rain_work;
 
 void Psp_init(void);
-void func_800486C8(void);
+void Pri_be_flg_init(void);
 void Psp_set(void);
 void Psp_trans(void);
 void Rain_init(SHORT Arg);

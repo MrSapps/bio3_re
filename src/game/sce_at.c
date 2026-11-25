@@ -181,14 +181,14 @@ void Key_lost(void)
     if (Rtn == 0) {
         if ((Moji.Mess_flg & 0x80) == 0) {
             if (pG->Unk7848 == 0) {
-                Item_delete(D_800DEC98);
+                Item_delete(Key_lost_work);
             }
             pG->Front_func = NULL;
         }
     } else {
-        D_800DEC98 = Rtn - 1;
+        Key_lost_work = Rtn - 1;
         if ((Moji.Mess_flg & 0x80) == 0) {
-            if (Item_decrease(D_800DEC98, 1, 1) == 0) {
+            if (Item_decrease(Key_lost_work, 1, 1) == 0) {
                 Mess_set(0, 0, 0x10, 0xff000000);
                 pG->Unk2468 |= 0xff000000;
             } else {
@@ -372,37 +372,37 @@ void Item_box_entrance(void)
 
     switch (pG->Back_func_rtn) {
     case 0:
-        D_800DEC9C = 1;
-        D_800DEC9E = 3;
+        Ibox_dir_spd = 1;
+        Ibox_spd_add = 3;
         Game.Stop_bak = pG->Unk2468;
         pG->Unk2468 |= 0x7F000000;
         Snd_se_stad(0x214, 0, 0, 0);
-        D_800DECA0 = &pG->Ob_model[0];
+        Ibox_pOwork = &pG->Ob_model[0];
         pG->Back_func_rtn = 1;
     case 1:
-        D_800DECA0->Cdir.vz -= D_800DEC9C;
-        D_800DEC9C += D_800DEC9E;
-        if (D_800DECA0->Cdir.vz < -399) {
+        Ibox_pOwork->Cdir.vz -= Ibox_dir_spd;
+        Ibox_dir_spd += Ibox_spd_add;
+        if (Ibox_pOwork->Cdir.vz < -399) {
             pG->Back_func_rtn = 2;
-            D_800DEC9E *= -1;
+            Ibox_spd_add *= -1;
         }
         break;
     case 2:
-        D_800DECA0->Cdir.vz -= D_800DEC9C;
-        D_800DEC9C += D_800DEC9E;
-        if (D_800DEC9C > 0) {
+        Ibox_pOwork->Cdir.vz -= Ibox_dir_spd;
+        Ibox_dir_spd += Ibox_spd_add;
+        if (Ibox_dir_spd > 0) {
             break;
         }
         Game.Unk1 = 1;
-        D_800DEC9C = 0;
+        Ibox_dir_spd = 0;
         pG->Back_func_rtn = 3;
         pG->Status_flg |= 0x200;
     case 3:
-        D_800DEC9C++;
-        if (D_800DEC9C < 7) {
+        Ibox_dir_spd++;
+        if (Ibox_dir_spd < 7) {
             break;
         }
-        D_800DECA0->Cdir.vz = 0;
+        Ibox_pOwork->Cdir.vz = 0;
         pG->Back_func = NULL;
         pG->Back_func_rtn = 0;
         break;

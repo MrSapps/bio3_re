@@ -115,9 +115,9 @@ void pl_mv05_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
 
 void pl_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
-    D_800DE8E8++;
+    Pl_aim_cnt++;
     if ((G.System_flg & 0x100) && pEm->Damage_cnt == 0 && pEm->Routine_2 < 6) {
-        if ((LONG)pEm->Be_flg < 0 && (D_800DE8E8 % 5) == 0 && ((Rnd_l() >> (Rnd_l() & 3)) & 1)) {
+        if ((LONG)pEm->Be_flg < 0 && (Pl_aim_cnt % 5) == 0 && ((Rnd_l() >> (Rnd_l() & 3)) & 1)) {
             EM_SET_RTN(pEm, 1, 7, 2, 0);
             Pl_mv[pEm->Routine_1](pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr);
             return;
@@ -129,7 +129,7 @@ void pl_mv05(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     G.Status_flg |= 0x140;
     pl_mv05_w_tbl[(UCHAR)pEm->Type - 1](pEm, pKan, pSeq, G.Key);
     if (pEm->Spd_x == 0 && (pEm->Routine_2 != 0 || pEm->Hokan_flg == 0)) {
-        Foot_set_pl(pEm, 0, D_8009CF28[(UCHAR)pEm->Type - 1][0] >> 7);
+        Foot_set_pl(pEm, 0, Pl_wep_frame_tbl[(UCHAR)pEm->Type - 1][0] >> 7);
     }
 }
 
@@ -156,7 +156,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pEm->UnkE3 = 0;
         pEm->UnkE2 = 0;
     }
-    if (!(Key & 0x500) && (D_8009CF28[(UCHAR)pEm->Type - 1][2] & 0x7F) < pEm->Move_cnt) {
+    if (!(Key & 0x500) && (Pl_wep_frame_tbl[(UCHAR)pEm->Type - 1][2] & 0x7F) < pEm->Move_cnt) {
         *(USHORT *)&pEm->Routine_2 = 1;
         return;
     }
@@ -352,12 +352,12 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pEm->Be_flg |= 0x2000000;
         Leg_ik_kan(G_PLAYER, G.Player.pUnk184_kan_t_ptr, G.Player.pUnk180_seq_t_ptr, 0x200);
         Leg_ik_set(pEm, 0x200);
-        if ((D_8009CF28[(UCHAR)pEm->Type - 1][0] & 0x7F) < pEm->Move_cnt && (Key & 0x20)) {
+        if ((Pl_wep_frame_tbl[(UCHAR)pEm->Type - 1][0] & 0x7F) < pEm->Move_cnt && (Key & 0x20)) {
             *(USHORT *)&pEm->Routine_2 = 1;
             Pl_aim_dir = 2;
             return;
         }
-        if ((D_8009CF28[(UCHAR)pEm->Type - 1][1] & 0x7F) < pEm->Move_cnt && (Key & 0x10)) {
+        if ((Pl_wep_frame_tbl[(UCHAR)pEm->Type - 1][1] & 0x7F) < pEm->Move_cnt && (Key & 0x10)) {
             *(USHORT *)&pEm->Routine_2 = 1;
             Pl_aim_dir = 1;
         }
@@ -424,10 +424,10 @@ void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         }
     }
     if (Key & 8) {
-        pEm->Cdir_y -= D_8009CF64[(UCHAR)pEm->Type - 1] & 0x7F;
+        pEm->Cdir_y -= Pl_wep_turn_tbl[(UCHAR)pEm->Type - 1] & 0x7F;
     }
     if (Key & 2) {
-        pEm->Cdir_y += D_8009CF64[(UCHAR)pEm->Type - 1] & 0x7F;
+        pEm->Cdir_y += Pl_wep_turn_tbl[(UCHAR)pEm->Type - 1] & 0x7F;
     }
 }
 
@@ -447,7 +447,7 @@ void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             Pl_water(pEm);
         }
         ((void (*)(ENEMY_WORK *))pl_mv05_t2_spr[(UCHAR)pEm->Type - 1])(pEm);
-        if (!(D_8009CF64[(UCHAR)pEm->Type - 1] & 0x80)) {
+        if (!(Pl_wep_turn_tbl[(UCHAR)pEm->Type - 1] & 0x80)) {
             Spd_get(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0);
         }
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x400)) {
@@ -457,12 +457,12 @@ void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pEm->Be_flg |= 0x2000000;
         Leg_ik_kan(G_PLAYER, G.Player.pUnk184_kan_t_ptr, G.Player.pUnk180_seq_t_ptr, 0x400);
         Leg_ik_set(pEm, 0x200);
-        if (!(D_8009CF64[(UCHAR)pEm->Type - 1] & 0x80)) {
+        if (!(Pl_wep_turn_tbl[(UCHAR)pEm->Type - 1] & 0x80)) {
             Add_speedXZ(pEm, 0);
         }
         break;
     }
-    if (!(Key & 0x500) && (D_8009CF28[(UCHAR)pEm->Type - 1][2] & 0x7F) < pEm->Move_cnt) {
+    if (!(Key & 0x500) && (Pl_wep_frame_tbl[(UCHAR)pEm->Type - 1][2] & 0x7F) < pEm->Move_cnt) {
         *(USHORT *)&pEm->Routine_2 = 1;
     }
 }
@@ -2236,9 +2236,9 @@ void Pl_weapon_ch(ENEMY_WORK *pEm)
     TIM_IMAGE Tim;
     MD_OBJ *p;
 
-    pW = D_8009CD30;
+    pW = pPl_emd_top;
     pData = (UCHAR *)&pW[4];
-    Cd_read(D_8009DCB4[pEm->Id] + (UCHAR)pEm->Type, (ULONG *)pData, 0, "WEP DATA");
+    Cd_read(Plw_no[pEm->Id] + (UCHAR)pEm->Type, (ULONG *)pData, 0, "WEP DATA");
     pOfs = (LONG *)(pData + *(LONG *)&pW[4]);
     No = pEm->Parts_num;
     Cnt = *(ULONG *)(pData + pOfs[7] + 4);
@@ -3482,7 +3482,7 @@ void Em_kill_score(ULONG Id, LONG Flg)
     }
     if ((Pl_work.Type & 0x1F) == 1) {
         if (n == 0x26) {
-            Quake_add(D_8009DE10, 0);
+            Quake_add(Chaser_kill_score, 0);
         } else {
             Quake_add(Em_score_tbl[n][0], Em_score_tbl[n][1] * 7);
         }

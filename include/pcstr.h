@@ -62,9 +62,9 @@ void Pcstr_read_frame(ULONG *pBuf);
 
 extern MATRIX *pSkin_m; /* current work matrices (ko_joint_trans3) */
 extern VECTOR *pSkin_v;
-extern UCHAR D_800CC848;
-extern SHORT D_800D1F80;
-extern ULONG *D_800E01C8;
+extern UCHAR G_cbuf_id;
+extern SHORT Mess_answer;
+extern ULONG *St_pBuf;
 extern ULONG Skin_rgb[]; /* per-vertex colours of the model being sorted */
 extern SVECTOR Skin_nor[6]; /* normals of the two bones being blended (Skin_light2) */
 extern ULONG Skin_ofs; /* its current offset word */

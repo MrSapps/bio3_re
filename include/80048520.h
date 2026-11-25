@@ -3,10 +3,9 @@
 /* 80048520.c: one RE3-only function, the countdown timer display (Print14_col) */
 #include "bio3.h"
 
-extern UCHAR D_8009CD3D;
-extern USHORT D_8009DE26;
-extern signed char D_8009DE28;
+extern USHORT Bonus_time_old;
+extern signed char Bonus_time_shake;
 
-void func_80048520(void);
+void Bonus_time_disp(void);
 
 #endif /* H_80048520 */

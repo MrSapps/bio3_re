@@ -519,7 +519,7 @@ void Em30_dive(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         Add_speedXZ(pEm, 0);
         Em30_body_chain(pEm);
         if (pEm->Move_cnt == 60) {
-            func_8003884C(Em30_vib_tbl, 4);
+            Pad_vib_data_set(Em30_vib_tbl, 4);
             G.Status_flg |= 4;
             pP = &pEm->pSin_parts_ptr[7];
             pP->UnkA2 &= ~1;
@@ -663,7 +663,7 @@ void Em30_dive(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pEm->Timer0 = 0;
             pEm->UnkE2 = 0;
             pEm->Routine_2++;
-            func_8003884C(Em30_vib_tbl, 3);
+            Pad_vib_data_set(Em30_vib_tbl, 3);
             G.Status_flg |= 4;
         }
         break;
@@ -1284,7 +1284,7 @@ void Em30_ambush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pP->Be_flg &= ~2;
         }
         EM30_W(pEm)->Dirt_part = 8;
-        func_8003884C(Em30_vib_tbl, 2);
+        Pad_vib_data_set(Em30_vib_tbl, 2);
     case 3:
         if (pEm->Move_cnt < 10)
             Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 0x20);
@@ -2060,7 +2060,7 @@ void Em30_die_normal(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Timer0 = 0;
         pEm->UnkE2 = 0;
         pEm->UnkE3 = 0;
-        func_8003884C(Em30_vib_tbl, 9);
+        Pad_vib_data_set(Em30_vib_tbl, 9);
     case 1:
         Dir = pEm->Cdir_y + (((UCHAR)(pEm->Move_cnt % 7) - 3) << 8);
         if (pEm->Move_cnt < 50 && Blow[EM30_W(pEm)->Pl_type]) {
@@ -2315,7 +2315,7 @@ void Em30_die_heavy(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         G.pEnemy[pP->Unk82]->Life = -1;
         G.pEnemy[pP->Unk82]->Damage_cnt |= 0x80;
         pEm->Routine_2++;
-        func_8003884C(Em30_vib_tbl, 8);
+        Pad_vib_data_set(Em30_vib_tbl, 8);
         pEm->Timer0 = 0;
         pEm->UnkE3 = 0;
         break;

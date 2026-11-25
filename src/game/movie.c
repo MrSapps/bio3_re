@@ -95,8 +95,8 @@ void Movie(void)
 }
 
 /* VRAM saved under an overlay movie (Movie_init) and restored by Movie_exit */
-static const RECT Movie_save_rect __asm__("D_800106EC") = {0x140, 0, 0xA0, 0x1E0};
-static const RECT Movie_save_rect2 __asm__("D_800106F4") = {0x1C0, 0xF0, 0x20, 0xF0};
+static const RECT Movie_save_rect = {0x140, 0, 0xA0, 0x1E0};
+static const RECT Movie_save_rect2 = {0x1C0, 0xF0, 0x20, 0xF0};
 
 /* RE2 Movie_init: saves VRAM for overlay movies, sets the volume and opens the stream */
 void Movie_init(void)

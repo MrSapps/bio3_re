@@ -175,9 +175,9 @@ set:
     Set_stage();
     Snd_bgm_ck();
     if (G.System_flg & 0x10000000) {
-        D_80098700 = Game.pSave->Unk714;
+        G_random = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
-        D_800E0186[0] = 0;
+        Sce_rnd_idx[0] = 0;
     }
     Set_room();
     Snd_bgm_play_ck();
@@ -196,9 +196,9 @@ set:
     Game.Unk1 = 0;
     G.System_flg |= 0x8000000;
     if (G.System_flg & 0x10000000) {
-        D_80098700 = Game.pSave->Unk714;
+        G_random = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
-        D_800E0186[0] = 0;
+        Sce_rnd_idx[0] = 0;
         Game.Unk4E = 1;
     }
     Task_sleep(1);
@@ -264,9 +264,9 @@ void Set_door(void)
     Cut_check(1);
     Main.Unk18E = 1;
     if (G.System_flg & 0x10000000) {
-        D_80098700 = Game.pSave->Unk714;
+        G_random = Game.pSave->Unk714;
         G.Unk784A = Game.pSave->Unk718;
-        D_800E0186[0] = 0;
+        Sce_rnd_idx[0] = 0;
         Game.Unk4E = 1;
     }
     Task_sleep(1);
@@ -364,7 +364,7 @@ void Live_select(void)
     }
     G.System_flg |= 0x400;
     Live_sel.Negate = 1;
-    func_8003884C(Vib_data_tbl, 0);
+    Pad_vib_data_set(Vib_data_tbl, 0);
     Snd_se_stad(0x22E, NULL, 0, 0);
     i = 7;
     do {
@@ -394,7 +394,7 @@ ULONG Live_select_flash(void)
     Main.Unk18E = 0;
     Live_sel.Negate = 1;
     G.System_flg |= 0x400;
-    func_8003884C(Vib_data_tbl, 0);
+    Pad_vib_data_set(Vib_data_tbl, 0);
     Snd_se_stad(0x22E, NULL, 0, 0);
     i = 7;
     do {
@@ -416,7 +416,7 @@ ULONG Live_select_flash(void)
 /* white flash in, with vibration and sound */
 void Flash_fade_in(void)
 {
-    func_8003884C(Vib_data_tbl, 0);
+    Pad_vib_data_set(Vib_data_tbl, 0);
     Snd_se_stad(0x22E, NULL, 0, 0);
     Fade_set(2, 0, 0, 1, 0, 0xFFFFFF, 4);
     while (Fade_status(2) != 0) {

@@ -107,7 +107,7 @@ void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP)
 /* interpolates the parts' joint offsets between two morph keys with the GTE (gpf/gpl) */
 INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_joint_blend);
 
-/* collision pass over the room's SCA blocks: calls each shape's hit routine (D_8009DFEC table), then
+/* collision pass over the room's SCA blocks: calls each shape's hit routine (Sca_rtn_tbl table), then
  * Pl_floor_ck */
 INCLUDE_ASM("asm/nonmatchings/game/sabun", Sca_hit_all);
 

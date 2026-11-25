@@ -8,7 +8,7 @@ extern UCHAR Rbj_id; /* room pack entry id of the RBJ (Sce_rbj_set, Cd_edd_searc
 
 void Set_room(void);
 void Set_stage(void);
-void func_800498F0(void);
+void Rbj_set(void);
 void Em_init_move(void);
 
 #endif /* ROOM_H */

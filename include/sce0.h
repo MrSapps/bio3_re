@@ -90,13 +90,13 @@ typedef struct tagEM_KIND {
     UCHAR Flg;                         /* 0x2 ORed into ENEMY_WORK.Unk4B */
 } EM_KIND;
 extern EM_KIND Em_kind_tbl[];
-extern UCHAR D_8009E6BC[];
-extern SHORT D_8009E6D4[];
-extern SHORT D_8009E6DC[];
-extern SHORT D_8009E6E4[];
-extern UCHAR D_800B9E21;
-extern SHORT D_800D1F82; /* RE2 G.SaveData.Sce_random */
-extern UCHAR D_800E017E[];
+extern UCHAR Spl_wep_parts_tbl[];
+extern SHORT Spl_wep_ofs_x[];
+extern SHORT Spl_wep_ofs_y[];
+extern SHORT Spl_wep_ofs_z[];
+extern UCHAR CD_xa_rtn_no;
+extern SHORT Sce_random; /* RE2 G.SaveData.Sce_random */
+extern UCHAR Sce_mizu_div_ctr[];
 
 void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg);
 ULONG Em_kind_search(ULONG Id);

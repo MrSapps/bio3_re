@@ -355,7 +355,7 @@ void Live_sel_disp(MOJIDISP *pMoji, UCHAR *pData)
     } else {
         Pos = Width[1];
     }
-    Y = D_800C703F;
+    Y = Live_sel_mess_y;
     X = ((0xFC - Pos) >> 1) + 0x22;
     for (i = 0; i < 2; i++) {
         Mess_print(X, Y + i * 0x16, pLine[i], pMoji->Mess_attr2);
@@ -778,7 +778,7 @@ void Mess_hint_task(void)
     UCHAR *p1;
     UCHAR *p2;
 
-    D_800D4433 = 1;
+    Main_task_flg = 1;
     switch (D_800CC84D) {
     case 0:
         idx = 0x28;
@@ -814,6 +814,6 @@ void Mess_hint_task(void)
         Mess_print(0x22, 0xC9, p2, 0x100);
         Task_sleep(1);
     }
-    D_800D4433 = 0;
+    Main_task_flg = 0;
     Task_exit();
 }

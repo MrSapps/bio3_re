@@ -155,7 +155,7 @@ void Oba_hit_ck_all(COL_OBJ *pTop, COL_ENT *pEnt)
         pEnt->Type = Type;
         pEnt->Em_idx = Idx;
         if (p->Flg & 7) {
-            pEnt = func_80033CF4(p, pEnt);
+            pEnt = Oba_ent_box_set(p, pEnt);
         } else {
             pEnt->Id = 0xFE40;
             pEnt->Area = 0xF00;
@@ -192,13 +192,13 @@ LONG Oba_push_all(COL_OBJ *pTop, COL_ENT *pEnt)
             }
             Tbl = -1;
             if (p->Type < 5) {
-                Tbl = D_8009CBC8[p->Type];
+                Tbl = Oba_att_tbl[p->Type];
                 if (p->Type < 3 && (pEm->Damage_cnt & 0x80)) {
                     p->Hit_flg |= 0x8000;
                 }
             }
             if (p->Type < 3) {
-                func_80034814(pEm, p->W0, Tbl, p);
+                Oba_em_hit_ck(pEm, p->W0, Tbl, p);
             } else {
                 Oba_area_ck(pEm, p->W0, Tbl, p);
             }
@@ -206,7 +206,7 @@ LONG Oba_push_all(COL_OBJ *pTop, COL_ENT *pEnt)
                 Sca_hit_all(pEm, p->W0, Tbl, p);
             }
             if (p->Type < 3) {
-                func_80034F08(pEm, p->W0, Tbl, p);
+                Oba_em_overlap_ck(pEm, p->W0, Tbl, p);
             }
             p->Hit_flg |= 0x4000;
             if (p->Hit_flg & 0x100) {
@@ -283,7 +283,7 @@ void Oba_pos_back(COL_OBJ *pTop)
         if (p->Type >= 3) {
             continue;
         }
-        Tbl = D_8009CBC8[p->Type];
+        Tbl = Oba_att_tbl[p->Type];
         W = p->W0;
         pV->vx = p->Pos_x;
         pV->vz = p->Pos_z;
@@ -306,7 +306,8 @@ void Oba_pos_back(COL_OBJ *pTop)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80033CF4);
+/* writes the COL_ENT records of a box-shaped object (whole box + four quarter boxes via Oba_ent_set); returns the last record */
+INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_ent_box_set);
 
 /* fill a COL_ENT for pObj (shape 8, all areas) with its floor range */
 void Oba_ent_set(COL_OBJ *pObj, COL_ENT *pEnt, LONG n)
@@ -388,7 +389,7 @@ void Oba_hit_clr(COL_OBJ *pObj)
     V.vy = pObj->Old_y = pObj->Pos_y = pEm->Pos_y + V.vy;
     V.vz = pObj->Old_z = pObj->Pos_z = pEm->Pos_z + V.vz;
     if (pObj->Type < 3) {
-        pEm->Ground = Sca_get_ground(&V.vx, pObj->W0, D_8009CBC8[pObj->Type], 9);
+        pEm->Ground = Sca_get_ground(&V.vx, pObj->W0, Oba_att_tbl[pObj->Type], 9);
     }
 }
 
@@ -567,7 +568,8 @@ LONG Oba_pos_em2_ck(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034814);
+/* character (Type<3) object against the collected COL_ENT records: overlap tests, Oba_box_push, push flags, Oba_push_obj_ck */
+INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_em_hit_ck);
 
 /* player against a pushable object record (Type 7 / 8) */
 void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
@@ -591,9 +593,11 @@ void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034E78);
+/* fills Tmp_Sca (SCA_DATA) with the box of a COL_OBJ (Id 0xFE40, all areas) for Sca_hit_all */
+INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_tmp_sca_set);
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80034F08);
+/* after Sca_hit_all: still overlapping another character record -> Hit_flg |= 0x100 (move reverted in Oba_push_all) */
+INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_em_overlap_ck);
 
 /* no return value; pE and pEnt walk the same list (two pointers in the original) */
 LONG Oba_area_ck(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
@@ -686,7 +690,7 @@ LONG Oba_cross_ck(COL_OBJ *pObj, COL_OBJ *pT)
     tez = pT->pEm->Pos_z;
     Oba_push_out(pObj, pT);
     Ret = Sca_hit_all(pObj->pEm, pObj->W0, 0x4000, pObj);
-    if (Ret != 0 || !(D_800D1F2C & 0x10) || pT->pEm->Damage_cnt != 0) {
+    if (Ret != 0 || !(G_status_flg & 0x10) || pT->pEm->Damage_cnt != 0) {
         pObj->Pos_x = x;
         pObj->Pos_z = z;
         pObj->pEm->Pos_x = ex;
@@ -739,4 +743,5 @@ LONG Oba_push_out(COL_OBJ *pObj, COL_OBJ *pT)
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/oba", func_80035678);
+/* pushes pObj out of one box record (fills Sca_work pos/old, picks the side, calls Sca_hosei_box) */
+INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_box_push);

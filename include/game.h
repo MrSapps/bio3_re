@@ -7,15 +7,15 @@
 typedef struct tagLIVE_SEL {
     UCHAR Negate;                      /* 0x0 screen shown in negative (Swap_Cbuff -> Scrn_negate) */
     UCHAR Wait;                        /* 0x1 set while the choice is open */
-    UCHAR Mess_no;                     /* 0x2 message of the choice (also the symbol D_800C703E) */
-    UCHAR Mess_y;                      /* 0x3 y of the choice text (also D_800C703F) */
+    UCHAR Mess_no;                     /* 0x2 message of the choice (also the symbol Live_sel_mess_no) */
+    UCHAR Mess_y;                      /* 0x3 y of the choice text (also Live_sel_mess_y) */
     UCHAR Step;                        /* 0x4 flash count: cursor colour / blink speed (Mess_disp) */
 } LIVE_SEL;
 extern LIVE_SEL Live_sel;
 
-extern ULONG D_80098700;
+extern ULONG G_random;
 extern UCHAR Ctrl_mode;
-extern UCHAR D_800E0186[]; /* an array: stores to it stay after loads of struct fields */
+extern UCHAR Sce_rnd_idx[]; /* an array: stores to it stay after loads of struct fields */
 
 void Game_loop(void);
 void Gun_light_set(void); /* Gun_light_set */
