@@ -228,7 +228,7 @@ ULONG Sce_Item(void *pAot)
         G.Front_func_rtn = 0;
         return 0;
     }
-    D_800E01C4[0] = 1;
+    St_type_a[0] = 1;
     Game.Unk1 = 1;
     Game.Stop_bak = G.Unk2468;
     G.Status_flg |= 0x200;
@@ -253,7 +253,7 @@ void Item_mess_entrance(void)
         if ((Moji.Mess_flg & 0x80) == 0) {
             pG->Front_func = NULL;
             pG->Front_func_rtn = 0;
-            D_800E01C4[0] = 1;
+            St_type_a[0] = 1;
             Game.Unk1 = 1;
             Game.Stop_bak = pG->Unk2468;
             pG->Unk2468 |= 0xff000000;
@@ -359,7 +359,7 @@ void Save_entrance(void)
 /* RE2 Sce_Itembox: opens the item box (St_type 2) through Item_box_entrance */
 ULONG Sce_Itembox(void *pAot)
 {
-    D_800E01C4[0] = 2;
+    St_type_a[0] = 2;
     G.Back_func = Item_box_entrance;
     G.Back_func_rtn = 0;
     return 0;

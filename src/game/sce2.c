@@ -1108,7 +1108,7 @@ ULONG Weapon_chg(SCE_TASK *pSce)
             if (Flg) {
                 Weapon_cls(pPl);
                 Pl_weapon_ch(pPl);
-                Flg_on(D_800E01D4, 1);
+                Flg_on(St_flg14_a, 1);
                 D_800E0171[0] = 1;
             } else {
                 Weapon_parts_clr(pPl);
@@ -1127,7 +1127,7 @@ ULONG Weapon_chg_old(SCE_TASK *pSce)
     ULONG Wep;
 
     pPl = G_PLAYER;
-    Wep = D_800E01E8;
+    Wep = St_equip_id_old;
     pPl->Type = (pPl->Type & 0xFF00) | Wep;
     if (Wep != 0) {
         G.pItem_set->Equip_no = Search_item_id_(Wep, 0);
@@ -1169,7 +1169,7 @@ ULONG Parts_tmd_swap(SCE_TASK *pSce)
 /* opens the status screen (St_type 0) and stops the game */
 ULONG Status_on(SCE_TASK *pSce)
 {
-    D_800E01C4[0] = 0;
+    St_type_a[0] = 0;
     Game.Unk1 = 1;
     G.Status_flg |= 0x200;
     Game.Stop_bak = G.Unk2468;

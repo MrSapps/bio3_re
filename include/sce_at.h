@@ -23,7 +23,7 @@ extern ULONG D_800DECAC;
 extern UCHAR *pCAot; /* 0x800DECB0 RE2 pCAot */
 extern ULONG Old_Fatari; /* 0x800DECB4 RE2 Old_Fatari */
 extern ULONG Old_Uatari; /* 0x800DECB8 RE2 Old_Uatari */
-extern UCHAR D_800E01C4[];
+extern UCHAR St_type_a[];            /* St.St_type seen as an array (stores stay after loads) */
 
 ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
 void Sce_at(void);

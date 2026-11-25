@@ -1465,3 +1465,7 @@ File_page2_spr = 0x8009F2F8;
 File_prev_spr = 0x8009F304;
 File_next_spr = 0x8009F310;
 File_exit_spr = 0x8009F31C;
+St_type_a = 0x800E01C4;
+St_hiki_flg_a = 0x800E01C6;
+St_flg14_a = 0x800E01D4;
+St_equip_id_old = 0x800E01E8;

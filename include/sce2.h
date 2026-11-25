@@ -18,8 +18,8 @@ extern SHORT D_800D1F8E[];
 extern USHORT D_800D1F94;
 extern ULONG Chaser_flg[]; /* G+0x7E54: Nemesis encounter flags (Chaser_evt_clr) */
 extern UCHAR D_800E0171[];
-extern ULONG D_800E01D4[];
-extern UCHAR D_800E01E8;
+extern ULONG St_flg14_a[];          /* St.Flg14 seen as its own array symbol (codegen) */
+extern UCHAR St_equip_id_old;        /* St.Equip_id_old under its own symbol */
 
 ULONG Item_get_ck(SCE_TASK *pSce);
 ULONG Sce_dir_ck(SCE_TASK *pSce);

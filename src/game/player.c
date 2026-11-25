@@ -794,7 +794,7 @@ void pl_mv08_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
 {
 }
 
-extern UCHAR D_800E01C4_ __asm__("D_800E01C4"); /* type differs from the canonical extern */
+extern UCHAR D_800E01C4_ __asm__("St_type_a"); /* type differs from the canonical extern */
 
 void func_8003B080(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {

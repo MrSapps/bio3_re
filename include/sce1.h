@@ -14,7 +14,7 @@ typedef struct {
 extern ULONG *Flg_addr[]; /* 0x8009E3F8 RE2 Flg_addr */
 extern SCE_CAMERA D_800E0150;
 extern UCHAR D_800E0175[];
-extern UCHAR D_800E01C6[];
+extern UCHAR St_hiki_flg_a[];        /* St.Hiki_flg seen as an array (stores stay after loads) */
 
 ULONG Nop(SCE_TASK *pSce);
 ULONG Evt_end(SCE_TASK *pSce);

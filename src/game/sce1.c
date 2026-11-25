@@ -1347,7 +1347,7 @@ ULONG Cut_chg(SCE_TASK *pSce)
     pG->Status_flg |= 0x400000;
     if (Cut & 0x80) {
         D_800D442E_a[0] = 0;
-        D_800E01C6[0] = 1;
+        St_hiki_flg_a[0] = 1;
     }
     pSce->Data += 2;
     return 1;
