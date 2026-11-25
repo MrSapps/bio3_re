@@ -7,6 +7,7 @@
 
 
 LONG func_8004AC54_l(ENEMY_WORK *pEm, PARTS_W *pP) __asm__("func_8004AC54"); /* int-returning alias */
+LONG Rnd_l(void) __asm__("Rnd"); /* returns long here, as in em30 */
 
 /* EM_MAIN */
 void func_801000D4(ENEMY_WORK *pEm)
@@ -1902,7 +1903,54 @@ void func_801061C4(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/ovl/em33/em33", func_801063CC);
+/* same code as em30 func_80105E94 (body/head blood spray) */
+void func_801063CC(ENEMY_WORK *pEm)
+{
+    ENEMY_WORK *pOya;
+    SVECTOR Sv;
+    VECTOR Pos;
+    LONG n = 2;
+    ULONG Dir;
+
+    if (pEm->Type & 1) {
+        pOya = G.pEnemy[EM33_B(pEm)->Oya];
+        do {
+            Sv.vx = (Rnd_l() & 0xFF) - 0x7F;
+            Sv.vy = -(Rnd_l() & 0xFF);
+            Sv.vz = (Rnd_l() & 0xFF) - 0x7F;
+            Sv.vx <<= 2;
+            Sv.vz <<= 2;
+            Sv.vy <<= 2;
+            Dir = (Rnd_l() & 3) * 0x300 + 0x1000;
+            Sv.vx += pOya->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[0];
+            Sv.vz += pOya->pSin_parts_ptr[EM33_B(pEm)->Parts].Workm.t[2];
+            if (Rnd_l() & 1)
+                Esp_call(0x7000700, (Dir << 16) | (USHORT)pOya->Cdir_y, &GsIDMATRIX, &Sv, NULL);
+            else
+                Esp_call(0x7000100, (Dir << 16) | (USHORT)pOya->Cdir_y, &GsIDMATRIX, &Sv, NULL);
+        } while (n--);
+    } else {
+        do {
+            Sv.vx = (Rnd_l() & 0xFF) - 0x7F;
+            Sv.vy = -(Rnd_l() & 0xFF) - 0x7F;
+            Sv.vz = (Rnd_l() & 0xFF) - 0x7F;
+            Sv.vx <<= 2;
+            Sv.vz <<= 2;
+            Sv.vy <<= 2;
+            Dir = (Rnd_l() & 3) * 0x300 + 0x1000;
+            Sv.vx += pEm->pSin_parts_ptr[8].Workm.t[0];
+            Sv.vz += pEm->pSin_parts_ptr[8].Workm.t[2];
+            if (Rnd_l() & 1)
+                Esp_call(0x7000700, (Dir << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Sv, NULL);
+            else
+                Esp_call(0x7000100, (Dir << 16) | (USHORT)pEm->Cdir_y, &GsIDMATRIX, &Sv, NULL);
+        } while (n--);
+    }
+    Pos.vx = Sv.vx;
+    Pos.vy = Sv.vy;
+    Pos.vz = Sv.vz;
+    Snd_se_stad(0x1020F, &Pos, 0, 0);
+}
 
 /* trail of 8 splashes behind the work, one call per frame while Unk16A is 2 */
 void func_80106668(ENEMY_WORK *pEm)
