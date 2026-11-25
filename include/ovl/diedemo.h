@@ -82,19 +82,19 @@ typedef struct tagDIESPR {
 } DIESPR;
 
 /* overlay data (asm/data/ovl/diedemo/data.data.s) */
-extern USHORT D_80197F8C[];            /* wait count by cut info index */
-extern USHORT D_80197FA0[];
-extern USHORT D_80197FA4[];            /* vibration scripts (func_8003884C) */
+extern USHORT Die_wait_tbl[];            /* wait count by cut info index */
+extern USHORT Die_wait_first[];
+extern USHORT Die_vib_tbl[];            /* vibration scripts (func_8003884C) */
 extern CUTINFO Cutinfo[];           /* cut infos */
-extern CUTINFO D_801981B0;             /* cut info 9 for flag 0xC2 */
-extern DIE_WAIT D_801981CC[];
-extern UCHAR D_801981F8[];             /* enemy id of each cut info, searched from the end */
-extern LONG D_80198204;                /* set when the demo can be skipped */
+extern CUTINFO Die_cut_c2;             /* cut info 9 for flag 0xC2 */
+extern DIE_WAIT Die_wait[];
+extern UCHAR Die_em_id[];             /* enemy id of each cut info, searched from the end */
+extern LONG Die_skip_ok;                /* set when the demo can be skipped */
 extern void (*Die_move_tbl[])(void); /* routines, index Diedemo.Rno */
-extern void (*D_80198228[])(void); /* index Diedemo.Unk44 */
+extern void (*Die_sub_tbl[])(void); /* index Diedemo.Unk44 */
 extern DIEDEMO Diedemo;
 extern VCUT Dievcut;
-extern LONG D_80198230[2][3];          /* screen break-up camera: view point, view reference */
+extern LONG Die_break_cam[2][3];          /* screen break-up camera: view point, view reference */
 extern void (*Die_spr_tbl[])(void); /* screen break-up routines, index pDiespr->Rno */
 extern DIESPR *pDiespr; /* RE2 Dievcut: camera cut zone set as G.Cccut */
 

@@ -11,10 +11,10 @@ void Die_demo(void)
     Diedemo.Rno = 0;
     Diedemo.Ctr = 0;
     while (1) {
-        if (D_80198204) {
+        if (Die_skip_ok) {
             if (G.Unk20FC & 0x100) {
                 Fade_set(0, 0, 2, 2, 0, 0xFFFFFFFF, 0x20);
-                D_80198204 = 0;
+                Die_skip_ok = 0;
                 if ((G.System_flg & 0x200) && (G.Status_flg & STAT_XA_VOICE)) {
                     Xa_error();
                 }
@@ -50,14 +50,14 @@ void Die_move_set(void)
         if (Id < 0x20) {
             Diedemo.Id_ctr = 1;
         } else {
-            while (D_801981F8[Diedemo.Id_ctr] != Id && Diedemo.Id_ctr != 0) {
+            while (Die_em_id[Diedemo.Id_ctr] != Id && Diedemo.Id_ctr != 0) {
                 Diedemo.Id_ctr--;
             }
         }
-        Diedemo.Wait_ctr = D_80197F8C[Diedemo.Id_ctr];
+        Diedemo.Wait_ctr = Die_wait_tbl[Diedemo.Id_ctr];
     } else {
         Diedemo.Id_ctr = 0;
-        Diedemo.Wait_ctr = D_80197F8C[0];
+        Diedemo.Wait_ctr = Die_wait_tbl[0];
     }
     G.Unk2468 |= 0x2000000;
     G.Unk2468 |= 0x1000000;
@@ -78,14 +78,14 @@ void Die_move_set(void)
         if (G.System_flg & 0x80) {
             Xa_play(3, 0x18);
             G.Status_flg |= STAT_XA_VOICE;
-            func_8003884C(D_80197FA4, 0);
+            func_8003884C(Die_vib_tbl, 0);
         } else {
             switch (G.Unk783E + 1) {
             case 4:
                 Snd_se_stad(0x208, NULL, 0, 0);
                 Xa_play(3, 0x19);
                 G.Status_flg |= STAT_XA_VOICE;
-                func_8003884C(D_80197FA4, 1);
+                func_8003884C(Die_vib_tbl, 1);
                 break;
             case 5:
                 if (G.Unk7840 == 9) {
@@ -94,13 +94,13 @@ void Die_move_set(void)
                 } else {
                     Xa_play(3, 0x1A);
                     G.Status_flg |= STAT_XA_VOICE;
-                    func_8003884C(D_80197FA4, 2);
+                    func_8003884C(Die_vib_tbl, 2);
                 }
                 break;
             }
         }
         Diedemo.Id_ctr = 10;
-        Diedemo.Wait_ctr = D_80197FA0[0];
+        Diedemo.Wait_ctr = Die_wait_first[0];
     } else {
         G.Status_flg &= ~0x4000000;
         G.Status_flg &= ~0x2000000;
@@ -108,7 +108,7 @@ void Die_move_set(void)
     if (Flg_ck(G.Unk7868, 0xC2)) {
         Diedemo.Unk3B = 1;
         Diedemo.Id_ctr = 9;
-        Cutinfo[9] = D_801981B0;
+        Cutinfo[9] = Die_cut_c2;
         Diedemo.Wait_ctr = 0x14;
         Diedemo.Em_flg = 1;
         G.Player.pEnemy_ptr = G.pEnemy[2];
@@ -152,11 +152,11 @@ void Die_move_slow(void)
         Diedemo.Ctr += Diedemo.Addpos;
         Diedemo.Addpos += 2;
         if (++Diedemo.Phase < 3) {
-            if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+            if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
                 G.Unk2468 |= 0xFF000000;
             }
         } else {
-            if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+            if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
                 G.Unk2468 ^= 0xFC000000;
             }
             Diedemo.Phase = 0;
@@ -189,8 +189,8 @@ void Die_move_slow(void)
         }
     } else {
         G.Player.Be_flg &= ~0x20;
-        D_80198204 = 1;
-        Diedemo.Ctr = D_801981CC[Diedemo.Id_ctr].Wait;
+        Die_skip_ok = 1;
+        Diedemo.Ctr = Die_wait[Diedemo.Id_ctr].Wait;
         while (Diedemo.Ctr-- != 0) {
             Task_sleep(1);
         }
@@ -200,7 +200,7 @@ void Die_move_slow(void)
         G.pEnemy[1]->Be_flg |= 0x80000;
         G.pEnemy[1]->Unk1BC[0] = 0;
         G.pEnemy[1]->Unk1BC[1] = 0;
-        if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+        if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 |= 0x20000000;
         }
         Diedemo.Phase = 0;
@@ -232,7 +232,7 @@ void Die_move_slow(void)
         Task_sleep(1);
         Diedemo.Ctr = 0;
         Diedemo.Rno += (G.System_flg & 0x800) ? 1 : 2;
-        if (D_801981CC[Diedemo.Id_ctr].Flg & 1) {
+        if (Die_wait[Diedemo.Id_ctr].Flg & 1) {
             G.Unk2468 &= 0x3FFFFFF;
         }
         G.Unk2468 &= ~0x1000000;
@@ -465,7 +465,7 @@ void Die_enemy_set_sub(void)
         Flg_off(pG->Unk7868, 0xC2);
         Diedemo.Unk44 = 0;
     }
-    D_80198228[Diedemo.Unk44]();
+    Die_sub_tbl[Diedemo.Unk44]();
 }
 
 void Die_se_set(void)
@@ -843,7 +843,7 @@ void Die_spr_init(void)
 /* RE2 Die_spr_move */
 void Die_spr_move(void)
 {
-    Set_view(D_80198230[0], D_80198230[1]);
+    Set_view(Die_break_cam[0], Die_break_cam[1]);
     SetGeomScreen(0xD0);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);

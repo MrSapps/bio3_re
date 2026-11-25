@@ -23,3 +23,10 @@ Opening_op_mess = 0x801C2E70; // type:func  script op 11 (proposed)
 Opening_op_vloop = 0x801C2EE0; // type:func  script op 12 (proposed)
 Opening_op_tbl = 0x801C2F70; // script op table (proposed)
 Opening_work = 0x801C3048; // OPN_WORK (proposed)
+// cleanup names
+Opn_pic_tbl = 0x801C2F0C;
+Opn_tim_tbl = 0x801C2F14;
+Opn_mess = 0x801C2F3C;
+Opn_mess_ofs = 0x801C2F68;
+Opn_spr = 0x801C2FA4;
+Opn_spr_pos = 0x801C301C;

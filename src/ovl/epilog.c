@@ -31,7 +31,7 @@ void Epilog_main(void)
         pTp++;
     }
     pSp = pWk->Page[0];
-    pPos = D_801C2BA8[0];
+    pPos = Epi_page_pos[0];
     for (j = 0; j < 8; j++) {
         for (i = 0; i < 2; i++, pSp++) {
             SetSprt(pSp);
@@ -238,9 +238,9 @@ INCLUDE_ASM("asm/nonmatchings/ovl/epilog", Epilog_draw);
 void Epilog_pic_read(ULONG *pAdr, UCHAR No)
 {
     CD.Fno = 0x3C;
-    CD.Fsize = D_801C2B4C[No].Size;
-    CD.Fsector = (floc[0x3C].sec_high << 16) + floc[0x3C].sector + D_801C2B4C[No].Ofs;
-    CD.Fsum = D_801C2B9C[No];
+    CD.Fsize = Epi_file[No].Size;
+    CD.Fsector = (floc[0x3C].sec_high << 16) + floc[0x3C].sector + Epi_file[No].Ofs;
+    CD.Fsum = Epi_file_sum[No];
     Cd_read(0x3C, pAdr, 2, "OMBG.TIM");
 }
 /* the original .rodata ends with three junk bytes after "OMBG.TIM" */
