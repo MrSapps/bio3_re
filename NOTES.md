@@ -712,3 +712,47 @@ Near misses (agentI/best):
 - sca Sca_hit_line (13, agentG z6): unchanged.
 - oba Oba_ent_box_set (new draft, ~90 dscore): four values are reload spills (sw then lhu from 0x10..0x1C(sp)),
   Type kept in fp; ours spills one more.
+## Matching round agentL (drafts in the session scratchpad agentL/best)
+Matched: door Door_Trans, sca Sca_ck_line, Sca_get_ground (all three written from the asm, then fixed with the
+tools below). Type fixes: SCA_WORK 0x24 is `Gnd` {Id, Type} with a ULONG view `All` (Sca_get_ground tests
+`Gnd.All & 0x0F00000F`); DoorSort takes (DOOR_WORK *, POLY_GT3 *packet, SORT_PARAM *) and Door_Trans fills a
+SORT_PARAM {pTmd as MD_OBJ *, Poly_rgb} on the stack; new names Door_light_matrix / Door_color_matrix (0x80097574 /
+0x80097594, RE2 D_LIGHTMATRIX / D_COLORMATRIX), Sca_block_list (0x800DEB98, Sca_get_block output), Sca_high_tbl
+[2][13] extern (index [Flg & 8][shape]).
+Tools (agentL): prio.sh PERMDIR DRAFT FUNC prints every global-alloc candidate with refs / live length / priority
+(global.c allocno_compare: floor_log2(refs) * refs / len) and the hard reg it got, from SN cc1 -dl -dg; rmap.py
+renames our registers in a `score -v` listing ("s5=s6,...") to see what is left besides allocation; dmp.sh runs SN
+cc1 with any -d flags on base.c + draft (macros expanded through DIR/inc.h).
+Rules learnt:
+- One variable reused for two unrelated values is what makes a pseudo global (live over several blocks) and so
+  allocated after the block-local ones. Door_Trans: `pD = pDoor` at the top and `pD = (DOOR *)pDw->pSuper` in the
+  loop are one variable (both a0); a separate pSuper local was given v1 by local-alloc. Likewise `pM` holds
+  pDw->M (RotMatrix arg), then &Lm, then pDw->M again (v1); with direct `pDw->M` both M addresses are DEST_REG givs
+  that loop.c combines (benefit 4) and strength-reduces into an s-reg the target does not have.
+- loop.c reduces a DEST_REG giv when lifetime * threshold * benefit >= insn_count (loop.c 3914; threshold
+  = 3 + n_non_fixed_regs with a call in the loop). A variable set more than once is never a giv: keep the
+  &pDw->Workm / &Lm pointers in multi-set locals when the target recomputes them each iteration.
+- A stack struct accessed through one register (Sca_ck_line A/B in s1/s0, Sca_get_ground Pos in s2) is a pointer
+  local (`pA = &A; pA->vx = ...`); with `A.vx` the accesses are sp-relative and the allocation changes completely.
+- Call arguments computed into locals first (`P0 = ...; P1 = ...; Ret = Sca_line_tbl[..](P0, P1, pT);`) give the
+  target's "all loads, then the table lookup" order; inline in the call the table load is scheduled first.
+- local-alloc.c optimize_reg_copy_1 (flag_expensive_optimizations) rewrites uses of S after `hard = S` to the hard
+  reg up to S's death unless a label, jump or LOOP_BEG/END note is in between: that is why a surviving
+  `move a0,a1` + later use of a1 (Door_init) needs a loop note between the hoisted copy and the last use.
+- Prologue-area load order (two independent loads swapped) was fixed by a permutation sweep of the assignments
+  before the first branch (Sca_get_ground: 1260 orders, two hit 0); dwgen sweeps then fixed the priorities.
+- decomp-permuter cannot parse drafts with `__asm__` (GTE macros): it silently never starts (DoorSort).
+Near misses:
+- door DoorSort (best/DoorSort_regs.c, ds4): structure, goto loop, switch layout (case 0x30 first, its `pOt +=
+  Otz >> 7` cross-jumped with case 0x20) and spills all right; left is s3/s4 (pVert / pPrim): pPrim has 9 refs
+  (0.200) and pVert 7 (0.108), the target needs pVert above pPrim. Reading the first indices through
+  pObj->pPrim3 (best/DoorSort_T.c) gets the order but leaves the temp in v1 plus a move. pOt above pPacket needs
+  case 0x10 in two statements (`pOt = G.pOt1 + (Otz >> 7); pOt += 0x207;`), which changes that case's code.
+- door Door_init (best/Door_init_9.c, 9): unchanged problem; the sum must stay in a1 with the arg copy in a0.
+- sca Sca_hit_slope (best/Sca_hit_slope_draft.c, ~180, same as agentG ce2c): flags/walls and the four
+  Sca_hit_line calls match; the rotated corners are computed as offsets (w + d, d - w, -w, and a surviving
+  `move v1,a3` copy of d) before +X0/+Z0, not reproduced with temps (cse folds them).
+- sca Sca_hit_koban_x (22, agentI), Sca_high_hishi (13), Sca_line_circle (51; nearly all s-regs are local-alloc
+  qtys in block 0, so prio.sh shows only three of them), Sca_hit_box, Sca_hit_line: not improved this round.
+- Not attempted for lack of time: Sca_hit_hishi (559 insns, divides by 18 via 0x38E38E39), root_ck kara_rootck2
+  (477 insns, heavy spilling: ~8 values live in sp slots).
