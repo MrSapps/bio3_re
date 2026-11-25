@@ -113,7 +113,7 @@ void Em21_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Hit_area.Rate1 = 0xA8;
     pEm->Col.Unk26 = 0x212;
     pEm->Col.H = 0x424;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pEm->Unk140 = 0;
     pEm->Col.pEm = pEm;
     pEm->Col.Unk24 = 0;
@@ -122,7 +122,7 @@ void Em21_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Col.Type = 2;
     Em21_atd_set(pEm, 350);
     Oba_set(&pEm->Col, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, POS_V(pEm));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, &pEm->Pos_x);
     if (pEm->Type & 0x4000) {
         pEm->Routine_0 = 4;
         pEm->Type &= ~0x4000;

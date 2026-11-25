@@ -86,7 +86,7 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (!(Rnd_l() & 7))
         EM10_W(pEm)->Etc_flg |= 0x4000;
     EM10_W(pEm)->Etc_flg |= 0x8000;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x2580190, 0, WORKM_POS_V(pEm->pSin_parts_ptr));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x2580190, 0, pEm->pSin_parts_ptr->Workm.t);
     pEm->Col.D0 = pEm->Col.W0 = 500;
     pEm->Col.H = 3000;
     pEm->Col.pEm = pEm;
@@ -104,7 +104,7 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk140 = 0;
     pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     PW_NECK(pP)->Add_dir_y = 0x60;
     PW_NECK(pP)->Add_dir_z = 0x60;

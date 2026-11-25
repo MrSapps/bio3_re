@@ -98,7 +98,7 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM10_W(pEm)->Hanare_cnt = 0;
     if (!(Rnd_l() & 7) && !(pEm->Status_flg & 0x400))
         EM10_W(pEm)->Etc_flg |= 0x4000;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x2580190, 0, WORKM_POS_V(pEm->pSin_parts_ptr));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x2580190, 0, pEm->pSin_parts_ptr->Workm.t);
     pEm->Col.D0 = pEm->Col.W0 = 500;
     pEm->Col.H = 3000;
     pEm->Col.pEm = pEm;
@@ -116,7 +116,7 @@ void Em10_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk140 = 0;
     pEm->Neck_flg = 0;
     pEm->Neck_no = 1;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pP = &pEm->pSin_parts_ptr[1];
     PW_NECK(pP)->Add_dir_y = 0x60;
     PW_NECK(pP)->Add_dir_z = 0x60;
@@ -810,7 +810,7 @@ void Em10_Kahannsin_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         EM10_W(pEm)->Kahan_r0 = 1;
         EM10_W(pEm)->K_dir_y = pEm->Cdir_y;
         EM10_W(pEm)->K_timer0 = (Rnd_l() & 0x1F) + 20;
-        Kage_work_set(&EM10_W(pEm)->pK_kage, 0, 0x2BC01F4, 0, (VECTOR *)pEm->Super_matrix.t);
+        Kage_work_set(&EM10_W(pEm)->pK_kage, 0, 0x2BC01F4, 0, pEm->Super_matrix.t);
     case 1:
         Jp.Move_no = EM10_W(pEm)->K_move_no;
         Jp.Move_cnt = EM10_W(pEm)->K_move_cnt;

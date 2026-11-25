@@ -50,7 +50,7 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Cdir_x = 0;
     pEm->Cdir_z = 0;
     pEm->Timer0 = 0;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     pCol->pEm = pEm;
     pCol->W0 = pEm->Col.D0 = 30;
     pCol->H = 100;
@@ -78,7 +78,7 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pCp->Hit_area.Top = 300;
             pCp->Hit_area.R = 300;
             pCp->Unk140 = 0;
-            pCp->Hit_area.pM = (UCHAR *)&pCp->pSin_parts_ptr->Workm;
+            pCp->Hit_area.pM = &pCp->pSin_parts_ptr->Workm;
             pCol->pEm = pCp;
             pCol->W0 = pCp->Col.D0 = 30;
             pCol->H = 100;
@@ -88,7 +88,7 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             pCol->Flg = 0;
             pCol->Type = 2;
             Oba_set(pCol, 0);
-            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, POS_V(pCp));
+            Kage_work_set(&pCp->Kage.pKw, 0, 0xC800C8, 0, &pCp->Pos_x);
         }
         break;
     case 1:
@@ -104,7 +104,7 @@ void Em26_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         break;
     }
     Oba_set(&pEm->Col, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, POS_V(pEm));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0xC800C8, 0, &pEm->Pos_x);
 }
 
 /* RE2 Em26_Move: move routines by Routine_1 (Em26_move_tbl) */

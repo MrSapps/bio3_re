@@ -120,7 +120,7 @@ void Em33_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM30_W(pEm)->Morph_spd = 0x210;
     EM30_W(pEm)->Unk16 = 0;
     EM30_W(pEm)->Fade_cnt = 0;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x5140514, 0, WORKM_POS_V(pEm->pSin_parts_ptr));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr->Workm.t);
     pEm->Be_flg |= 0x8000;
     pEm->Col.pEm = pEm;
     if (pEm->Id == 0x33)
@@ -154,7 +154,7 @@ void Em33_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     {
         PARTS_W *pS = pEm->pSin_parts_ptr;
 
-        pEm->Hit_area.pM = (UCHAR *)&pS->Workm;
+        pEm->Hit_area.pM = &pS->Workm;
         pP = &pS[8];
     }
     PW_NECK(pP)->Add_dir_y = 0x40;
@@ -179,37 +179,37 @@ void Em33_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 1, pEm, 8);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[8]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr[8].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 2, pEm, 1);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[1]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr[1].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 3, pEm, 2);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[2]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x5140514, 0, pEm->pSin_parts_ptr[2].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 4, pEm, 3);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[3]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, pEm->pSin_parts_ptr[3].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 5, pEm, 4);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[4]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, pEm->pSin_parts_ptr[4].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 6, pEm, 5);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[5]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x44C044C, 0, pEm->pSin_parts_ptr[5].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     pB = Em30_work_set(pEm);
     pB->Be_flg |= 0xC00010;
     Em33_sub_init(pB, 7, pEm, 6);
-    Kage_work_set(&pB->Kage.pKw, 0, 0x3E803E8, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[6]));
+    Kage_work_set(&pB->Kage.pKw, 0, 0x3E803E8, 0, pEm->pSin_parts_ptr[6].Workm.t);
     pB->Kage.pKw->Be_flg |= 0x80;
     i = 0;
     do {
@@ -249,7 +249,7 @@ void Em33_sub_init(ENEMY_WORK *pEm, LONG No, ENEMY_WORK *pOya, LONG Parts)
     pCol->Type = 2;
     Oba_set(pCol, EM30_W(pOya)->Col_id);
     pCol->pM = &pOya->pSin_parts_ptr[Parts].Workm;
-    pEm->Hit_area.pM = (UCHAR *)&pOya->pSin_parts_ptr[Parts].Workm;
+    pEm->Hit_area.pM = &pOya->pSin_parts_ptr[Parts].Workm;
     pEm->Hit_area.Top = 1800;
     pEm->Hit_area.Bottom = Parts == 8 ? -1800 : -1400;
     pEm->Hit_area.Rate0 = 0x78;

@@ -112,7 +112,7 @@ void Em39_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Neck_flg = 0;
     pEm->Neck_no = 0;
     EM_SET_MOVE(pEm, 0, 0, 0);
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr->Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
     Joint_move(pEm, pKan, pSeq, 0x400);
     EM39_W(pEm)->pParent = NULL;
     ppEm = &pG->pEnemy[2];

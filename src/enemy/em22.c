@@ -48,7 +48,7 @@ void Em22_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 
     EM_SET_MOVE(pEm, 0, 0, 0xF);
     EM_SET_RTN(pEm, 1, 0, 0, 0);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[1]));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x3E803E8, 0, pEm->pSin_parts_ptr[1].Workm.t);
     pCol = &pEm->Col;
     pEm->Hit_area.Top = 1600;
     pEm->Hit_area.Bottom = -1000;
@@ -58,7 +58,7 @@ void Em22_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Unk140 = 0;
     pEm->Unk16B = 0;
     pEm->Unk16A = 0;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr[2].Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr[2].Workm;
     pCol->W0 = pCol->D0 = 800;
     pCol->H = 2000;
     pCol->Unk24 = 500;

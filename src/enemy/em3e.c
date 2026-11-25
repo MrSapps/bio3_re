@@ -31,7 +31,7 @@ void Em3e_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->Hit_area.Rate1 = 0xBC;
     pEm->Hit_area.R = 2700;
     pEm->Unk140 = 0;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr[4].Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr[4].Workm;
     pCol = &pEm->Col;
     pCol->H = 4500;
     pCol->pEm = pEm;

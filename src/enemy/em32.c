@@ -63,14 +63,14 @@ void Em32_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     EM_SET_RTN(pEm, 1, 0, 0, 0);
     EM_SET_MOVE(pEm, 1, 0, 0);
     Joint_move(pEm, pKan, pSeq, 0x100);
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x1900320, 0, WORKM_POS_V(&pEm->pSin_parts_ptr[3]));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x1900320, 0, pEm->pSin_parts_ptr[3].Workm.t);
     pEm->Hit_area.Top = 1400;
     pEm->Hit_area.Bottom = -250;
     pEm->Hit_area.Rate0 = 0x78;
     pEm->Hit_area.Rate1 = 0xBC;
     pEm->Hit_area.R = 400;
     pEm->Unk140 = 0;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr[3].Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr[3].Workm;
     pCol = &pEm->Col;
     pCol->W0 = pCol->D0 = 750;
     pCol->H = 600;

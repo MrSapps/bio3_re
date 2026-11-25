@@ -48,7 +48,7 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         pEm->Max_life = pEm->Life = Em20_life[(Rnd_l() >> (Rnd_l() & 3)) & 0xF];
     pEm->Max_life += 10;
     pEm->Life += 10;
-    Kage_work_set(&pEm->Kage.pKw, 0, 0x25804B0, 0, POS_V(pEm));
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x25804B0, 0, &pEm->Pos_x);
     pCol = &pEm->Col;
     pCol->pEm = pEm;
     pCol->W0 = pCol->D0 = 600;
@@ -68,7 +68,7 @@ void Em20_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     pEm->pEnemy_ptr = &Pl_work;
     pEm->Neck_flg = 0;
     pEm->Neck_no = 2;
-    pEm->Hit_area.pM = (UCHAR *)&pEm->pSin_parts_ptr[1].Workm;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr[1].Workm;
     for (i = 2; i < 4; i++) {
         pP = &pEm->pSin_parts_ptr[i];
         PW_NECK(pP)->N_rot_y = 0;
