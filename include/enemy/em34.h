@@ -26,11 +26,11 @@ typedef struct tagEM34_FREE {
     UCHAR Punch_timer;                 /* 0x00 (0x1CC) no punch while set */
     UCHAR Unk01;                       /* 0x01 (0x1CD) */
     UCHAR Unk02;                       /* 0x02 (0x1CE) */
-    signed char Unk03;                 /* 0x03 (0x1CF) */
+    signed char Shot_cnt;              /* 0x03 (0x1CF) scripted shot: extra bursts left (Em34_sce10) */
     USHORT Flg;                        /* 0x04 (0x1D0) 0x100: chasing the sub player */
     UCHAR Grab_timer;                  /* 0x06 (0x1D2) no grab while set */
-    UCHAR Unk07;                       /* 0x07 (0x1D3) */
-    SHORT Unk08;                       /* 0x08 (0x1D4) direction offset of the scripted shot (Em34_sce10) */
+    UCHAR Dodge_timer;                 /* 0x07 (0x1D3) side step timer, bit 7: armed (as em36) */
+    SHORT Shot_dir;                    /* 0x08 (0x1D4) direction offset of the scripted shot (Em34_sce10) */
     SHORT Unk0A;                       /* 0x0A (0x1D6) */
     UCHAR Flinch;                      /* 0x0C (0x1D8) body flinch state (Em34_after0) */
     signed char Flinch_cnt;            /* 0x0D (0x1D9) */
