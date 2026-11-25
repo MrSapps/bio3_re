@@ -242,7 +242,7 @@ typedef struct tagEM_HIT_AREA {
     struct tagENEMY_WORK *pEnemy_ptr;  /* 0x110 */                            \
     struct tagENEMY_WORK *pUnk114;     /* 0x114 */                            \
     ULONG *pUnk118;                    /* 0x118 per-part animation header (Sa_dat_set) */ \
-    ULONG *pUnk11C;                    /* 0x11C (func_8001760C: first EMD section) */ \
+    ULONG *pUnk11C;                    /* 0x11C (Emd_load: first EMD section) */ \
     UCHAR Neck_flg;                    /* 0x120 RE2 Neck_flg: 1 no neck turn, 2 keep y, 0x80 scenario speed */ \
     UCHAR Neck_no;                     /* 0x121 RE2 Neck_no (part index used as the aim point) */ \
     SHORT Ground;                      /* 0x122 RE2 Ground: floor height under the work (Sca_get_ground) */ \

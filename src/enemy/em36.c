@@ -2701,7 +2701,7 @@ void func_80108AC0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_80108EA4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100) {
-        func_80016600(pEm, pKan, pSeq);
+        Em_sce_main(pEm, pKan, pSeq);
         return;
     }
     Em36_sce[pEm->Routine_1](pEm, pKan, pSeq);

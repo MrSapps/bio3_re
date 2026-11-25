@@ -447,3 +447,5 @@ pl_w11_t2_move = 0x800434F8; // type:func pl_wep: firing motion of weapon 0x11
 pl_w12_t2_move = 0x800439F8; // type:func pl_wep: firing motion of weapon 0x12
 Weapon_at_ck = 0x80044804; // type:func pl_wep: weapon hit check against the enemies from pM along the weapon data pW; the enemy hit (RE2 PL_WEP.C Weapon_at_ck)
 Pos_em_at_ck = 0x800472EC; // type:func pl_wep: damage request pReq with attack pAttr against enemies and player (RE2 Pos_em_at_ck)
+pDoor = 0x800BA6F8; // DOOR * RE2 pDoor[0]
+pDwork = 0x800BA700; // DOOR_WORK *[10] RE2 pDwork[]

@@ -1742,7 +1742,7 @@ void func_801051C0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 void func_8010555C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     if (pEm->Type & 0x100)
-        func_80016600(pEm, pKan, pSeq);
+        Em_sce_main(pEm, pKan, pSeq);
     else
         Em22_sce_tbl[pEm->Routine_1](pEm, pKan, pSeq);
 }

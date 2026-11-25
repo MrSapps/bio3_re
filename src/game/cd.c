@@ -663,7 +663,7 @@ void func_800130A0(tagCD *pCd)
         } else {
             pEm->Unk4B |= func_800520D8(pEm->Id);
         }
-        Work = func_8001760C(pCd->pEntry[No].Id, pEm, Work, pData);
+        Work = Emd_load(pCd->pEntry[No].Id, pEm, Work, pData);
         Sce.pUnk1490 = pEm->pUnk11C;
         Sce.Type = 0;
         Sce.pCScd = pG->pRoom->pScd;

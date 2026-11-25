@@ -427,7 +427,7 @@ void Em10_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
         }
     }
     if (pEm->Type & 0x100)
-        func_80016600(pEm, pKan, pSeq);
+        Em_sce_main(pEm, pKan, pSeq);
     else
         Em10_sce[pEm->Routine_1](pEm, pKan, pSeq);
 }

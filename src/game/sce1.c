@@ -1151,7 +1151,7 @@ ULONG Work_set(SCE_TASK *pSce)
         pSce->pWork = (ENEMY_WORK *)&G.Ob_model[Idx];
         break;
     case 5:
-        pSce->pWork = (ENEMY_WORK *)D_800BA700[Idx];
+        pSce->pWork = (ENEMY_WORK *)pDwork[Idx];
         break;
     }
     return 1;
