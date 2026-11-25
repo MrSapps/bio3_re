@@ -12,11 +12,6 @@ int Kage_work_color_set_() __asm__("Kage_work_color_set"); /* returns int here (
 extern UCHAR D_800D442C_[] __asm__("D_800D442C"); /* type differs from the canonical extern */
 s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* arg 2 UC (canonical signed char) */
 LONG Quake_add_() __asm__("Quake_add"); /* returns long here (canonical void); unprototyped call */
-typedef struct {
-    UCHAR Unk0;
-    UCHAR Max;                         /* 0x1 */
-    UCHAR pad2[2];
-} ITEM_TBL4;
 LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* returns long here (canonical void) */
 
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
@@ -44,7 +39,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
             break;
         }
         p = &G.pItem_set->Item[i];
-        if (((ITEM_TBL4 *)Item_data_tbl)[p->Id].Max >= p->Num + Num) {
+        if (Item_data_tbl[p->Id].Max >= p->Num + Num) {
             return 1;
         }
         i++;

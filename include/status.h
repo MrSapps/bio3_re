@@ -63,6 +63,39 @@ typedef struct tagST_RGB_STEP {
 
 typedef struct { UCHAR A0; UCHAR B0; UCHAR A1; UCHAR B1; } ST_ROOM_MAP;
 
+/* item properties, one per item id (RE2 Item_data_tbl role) */
+typedef struct tagITEM_DATA {
+    UCHAR Type;                        /* 0x0 kind: 1 weapon, 2 ammo, 4 key item, ...; 2/5/6 stack */
+    UCHAR Max;                         /* 0x1 most a slot can hold */
+    UCHAR Chk_flg;                     /* 0x2 G.Unk7910 flag set once examined (the name changes with it) */
+    UCHAR Attr;                        /* 0x3 default low byte of ITEM_WORK.Flg */
+} ITEM_DATA;
+
+/* combine record (Item_mix_tbl) */
+typedef struct tagITEM_MIX {
+    UCHAR Type;                        /* 0x0 0 merge, 1 new item, 2 ammo, 3 weapon change, 4 ammo swap, 5 tool + rounds, 6 weapon + part */
+    UCHAR Id_a;                        /* 0x1 the two items, either order; 0xFF ends the table */
+    UCHAR Id_b;                        /* 0x2 */
+    UCHAR New_id;                      /* 0x3 resulting item */
+    UCHAR New_num;                     /* 0x4 count, or the second resulting item */
+    UCHAR pad5[3];
+} ITEM_MIX;
+
+/* what an examined item turns into (Item_check_tbl) */
+typedef struct tagITEM_CHECK {
+    UCHAR Type;                        /* 0x0 0 another item (Arg), 1 a file (Arg - 0x85 = file flag) */
+    UCHAR Id;                          /* 0x1 0xFF ends the table */
+    UCHAR Arg;                         /* 0x2 */
+    UCHAR File_no;                     /* 0x3 file list slot */
+} ITEM_CHECK;
+
+/* ammo of a weapon (Item_tama_tbl) */
+typedef struct tagITEM_TAMA {
+    UCHAR Wep_id;                      /* 0x0 0xFF ends the table */
+    UCHAR Tama_id;                     /* 0x1 */
+    UCHAR pad2[2];
+} ITEM_TAMA;
+
 /* panel position */
 typedef struct tagST_POS {
     SHORT X;                           /* 0x0 */
@@ -117,9 +150,9 @@ typedef struct tagST_WORK {
     UCHAR pad46[0x48 - 0x46];
     ITEM_WORK *pMix_a;                 /* 0x48 combine: item A */
     ITEM_WORK *pMix_b;                 /* 0x4C combine: item B */
-    UCHAR *pData_a;                    /* 0x50 Item_data_tbl entry of item A */
-    UCHAR *pData_b;                    /* 0x54 Item_data_tbl entry of item B */
-    UCHAR *pMix;                       /* 0x58 Item_mix_tbl record of the combine */
+    ITEM_DATA *pData_a;                /* 0x50 Item_data_tbl entry of item A */
+    ITEM_DATA *pData_b;                /* 0x54 Item_data_tbl entry of item B */
+    ITEM_MIX *pMix;                    /* 0x58 Item_mix_tbl record of the combine */
     UCHAR *pMix_cur_a;                 /* 0x5C cursor of item A (&Cursor) */
     UCHAR *pMix_cur_b;                 /* 0x60 cursor of item B (&Cursor2) */
     UCHAR Mix_type;                    /* 0x64 combine result kind (St_mix_result cases) */
@@ -187,7 +220,7 @@ typedef struct tagST_WORK {
     UCHAR Clut_page;                   /* 0xD7 file page */
     UCHAR Clut_file;                   /* 0xD8 file icons */
     UCHAR padD9[0xE0 - 0xD9];
-    UCHAR *pChk;                       /* 0xE0 Item_check_tbl record of the examined item */
+    ITEM_CHECK *pChk;                  /* 0xE0 Item_check_tbl record of the examined item */
     ST_POS Pos[32];                    /* 0xE4 panel positions, indexed by the prm>>8 byte of the prim setters */
     DR_TPAGE Ot[2][40];                /* 0x164 per-buffer ordering nodes, index prm>>16 of the prim setters */
     DR_TPAGE Tpage[2][2];              /* 0x3E4 file viewer */
@@ -304,10 +337,10 @@ extern ST_MAP_ARROW Map_arrow[][4];
 extern ST_ROOM_MAP Map_room_alias[];
 extern UCHAR Map_area_list[];
 extern void (*St_map_tbl[])(ST_WORK *pSt);
-extern UCHAR Item_data_tbl[][4];
-extern UCHAR Item_mix_tbl[];
-extern UCHAR Item_check_tbl[];
-extern UCHAR Item_tama_tbl[];
+extern ITEM_DATA Item_data_tbl[];      /* per item id */
+extern ITEM_MIX Item_mix_tbl[];        /* Id_a 0xFF ends it */
+extern ITEM_CHECK Item_check_tbl[];    /* Id 0xFF ends it */
+extern ITEM_TAMA Item_tama_tbl[];      /* Wep_id 0xFF ends it */
 extern LONG D_800C79CC; /* extra game character (Status_init) */
 extern ULONG D_800CC840;
 extern SHORT Mapping_tpage_clut;
@@ -370,9 +403,9 @@ void St_item_get(ST_WORK *pSt);
 void St_item_change(ST_WORK *pSt);
 void St_item_to_file(ST_WORK *pSt);
 void St_exit_set(ST_WORK *pSt);
-UCHAR *Search_item_mix(ST_WORK *pSt, UCHAR a, UCHAR b);
-UCHAR *Search_item_check(ST_WORK *pSt, UCHAR id);
-UCHAR *Search_item_tama(ST_WORK *pSt, UCHAR id);
+ITEM_MIX *Search_item_mix(ST_WORK *pSt, UCHAR a, UCHAR b);
+ITEM_CHECK *Search_item_check(ST_WORK *pSt, UCHAR id);
+ITEM_TAMA *Search_item_tama(ST_WORK *pSt, UCHAR id);
 void Pix_load(UCHAR no, UCHAR idx);
 void Pix_read(UCHAR no);
 void Pix_trans(UCHAR no);
