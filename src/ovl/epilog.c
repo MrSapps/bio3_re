@@ -1,3 +1,6 @@
+/*
+ * EPILOG.BIN: the epilogue gallery (unlocked epilogue pictures with a cursor, picture viewer)
+ */
 #include "ovl/epilog.h"
 #include "pad.h"
 #include "sld.h"
@@ -232,6 +235,7 @@ void Epilog_exit(void)
     }
 }
 
+/* draws the background tpage, the cursor sprite (flag 1, brightness pulse) and the unlocked epilogue pages */
 INCLUDE_ASM("asm/nonmatchings/ovl/epilog", Epilog_draw);
 
 /* load epilogue picture No of OMBG.TIM */

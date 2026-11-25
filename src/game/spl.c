@@ -1,3 +1,6 @@
+/*
+ * SPL.C (RE2 SPL.C lineage): the sub player (partner character) routine entry, init and routine table
+ */
 #include "sce0.h"
 #include "player.h"
 #include "joint.h"
@@ -14,6 +17,7 @@ static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
     return 1;
 }
 
+/* RE2 Spl: sub player per frame: damage timer, weapon sync, root check, routine, water splash, neck */
 void Spl(ENEMY_WORK *pEm)
 {
     SVECTOR Sv0;
@@ -51,6 +55,7 @@ void Spl(ENEMY_WORK *pEm)
     Rot_neck(pEm, pEm->Cdir_y);
 }
 
+/* RE2 Spl_Init: sets up the sub player (collision, neck limits, part swaps) */
 void Spl_Init(ENEMY_WORK *pEm)
 {
     USHORT Neck_dir[26] = {
@@ -147,8 +152,10 @@ void Spl_Init(ENEMY_WORK *pEm)
     }
 }
 
+/* gives the sub player the player's weapon type and its part/offset setup (D_8009E6BC..E4 tables) */
 INCLUDE_ASM("asm/nonmatchings/game/spl", func_80059310);
 
+/* RE2 Spl_set: installs Spl as the routine of the sub player work slots */
 void Spl_set(void)
 {
     G.Unk3EE0[0] = Spl;

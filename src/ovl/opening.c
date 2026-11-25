@@ -1,3 +1,7 @@
+/*
+ * OPENING.BIN: the opening narration: picture scenes (scroll, cross-fade) driven by a small byte script with XA
+ * voice
+ */
 #include "ovl/opening.h"
 #include "mojidisp.h"
 #include "status.h"
@@ -40,6 +44,7 @@ void Opening_main(void)
     Opening_exit();
 }
 
+/* suspends the game task, sets the script pointer, loads the pictures and sets up the sprites */
 void Opening_init(void)
 {
     G.Next_cut_no = G.Cut_no;
@@ -74,6 +79,7 @@ void Opening_load(void)
     Cd_read(0x3E, (ULONG *)0x80100000, 0, "OPENING1_DAT");
 }
 
+/* sets up the 10 picture sprites and tpages of both buffers */
 void Opening_sprt_init(void)
 {
     SPRT *pSp;
@@ -102,6 +108,7 @@ void Opening_sprt_init(void)
     }
 }
 
+/* white fade, stops the XA voice, closes the message and resumes the game task */
 void Opening_exit(void)
 {
     Main.Vloop = 1;
@@ -137,6 +144,7 @@ void Opening_scene0_move(OPN_WORK *pWk)
     }
 }
 
+/* scene 0: draws the four scrolling picture strips */
 void Opening_scene0_draw(OPN_WORK *pWk)
 {
     SPRT *pSp;
@@ -198,6 +206,7 @@ void Opening_scene1_move(OPN_WORK *pWk)
     }
 }
 
+/* scene 1: draws the two sideways-scrolling layers with their cross-fade brightness */
 void Opening_scene1_draw(OPN_WORK *pWk)
 {
     SPRT *pSp;
@@ -269,12 +278,14 @@ LONG Opening_op_next(OPN_WORK *pWk)
     return 1;
 }
 
+/* script op: end of this frame's commands (returns 0) */
 LONG Opening_op_frame(OPN_WORK *pWk)
 {
     pWk->pScript++;
     return 0;
 }
 
+/* script op: end of the script (returns 2) */
 LONG Opening_op_end(OPN_WORK *pWk)
 {
     pWk->pScript++;

@@ -1,3 +1,7 @@
+/*
+ * DIEDEMO.BIN (RE2 DIEDEMO.C / DIESPR.C lineage): the player death demo (killer camera spiral, "YOU DIED"
+ * picture, blood)
+ */
 #include "ovl/diedemo.h"
 #include "mojidisp.h"
 #include "sld.h"
@@ -28,6 +32,7 @@ void Die_demo(void)
     }
 }
 
+/* RE2 Die_demo_move: runs Die_move_tbl[Diedemo.Rno] */
 void Die_demo_move(void)
 {
     Die_move_tbl[Diedemo.Rno]();
@@ -399,6 +404,7 @@ void Die_enemy_set(void)
     }
 }
 
+/* hides/shows the killer for the demo: Nemesis (0x34..0x36, and his 0x37 tentacles) or enemy 0x24 */
 void Die_enemy_set_em(void)
 {
     tagGLOBAL *pG = &G;
@@ -432,6 +438,7 @@ void Die_enemy_set_em(void)
     }
 }
 
+/* Unk7868 flag 0xC2 case: resets the partner and two enemies to their demo routines, then runs D_80198228[Unk44] */
 void Die_enemy_set_sub(void)
 {
     tagGLOBAL *pG = &G;
@@ -468,6 +475,7 @@ void Die_enemy_set_sub(void)
     Die_sub_tbl[Diedemo.Unk44]();
 }
 
+/* death sounds 0x20B, then 0x20C 50 frames later */
 void Die_se_set(void)
 {
     Snd_se_stad(0x20B, NULL, 0, 0);
@@ -511,6 +519,7 @@ void Die_move_main(void)
     }
 }
 
+/* Nemesis (0x36) kill: at frame 0x73 sets the spiral camera on the player's body and the lights */
 void Die_cut_em36(void)
 {
     MATRIX *pM;
@@ -549,6 +558,7 @@ void Die_cut_em36(void)
     }
 }
 
+/* the same for the partner's death (camera on pEnemy[1]) at frame 0xA0 */
 void Die_cut_em36_sub(void)
 {
     MATRIX *pM;
@@ -967,6 +977,7 @@ void Die_blood_move_init(void)
     }
 }
 
+/* RE2 Die_spr_move_main: falling 16x16 grid of the death picture, GTE-projected and brightened by distance */
 INCLUDE_ASM("asm/nonmatchings/ovl/diedemo", Die_spr_move_main);
 
 /* RE2 Die_spr_move_hold: shake the lower rows, draw the grid */
@@ -1086,6 +1097,7 @@ void Die_spr_move_end(void)
     }
 }
 
+/* RE2 Die_blood_move_main: projects and fades the blood quads, adds them to the OT */
 INCLUDE_ASM("asm/nonmatchings/ovl/diedemo", Die_blood_move_main);
 
 /* RE2 Die_spr_load: RE3 has one picture for every player */

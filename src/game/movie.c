@@ -1,3 +1,6 @@
+/*
+ * MOVIE.C (RE2 MOVIE.C lineage): STR movie playback (libds streaming, MDEC decode, XA audio volume)
+ */
 #include "movie.h"
 #include "pad.h"
 #include "cd.h"
@@ -73,6 +76,7 @@ LONG Init_movie_work(ULONG Id)
     return Pad_vib_init_l();
 }
 
+/* RE2 Movie: movie task, runs pMovie_proc_tbl[Vm_work.Rno] until the movie is done */
 void Movie(void)
 {
     VM_WORK *pWork;
@@ -94,6 +98,7 @@ void Movie(void)
 static const RECT Movie_save_rect __asm__("D_800106EC") = {0x140, 0, 0xA0, 0x1E0};
 static const RECT Movie_save_rect2 __asm__("D_800106F4") = {0x1C0, 0xF0, 0x20, 0xF0};
 
+/* RE2 Movie_init: saves VRAM for overlay movies, sets the volume and opens the stream */
 void Movie_init(void)
 {
     VM_WORK *pWork = &Vm_work;
@@ -141,6 +146,7 @@ void Movie_init(void)
     }
 }
 
+/* RE2 Movie_main: decodes and shows one frame per call; ends on the last frame, error or cancel button */
 void Movie_main(void)
 {
     VM_WORK *pWork = &Vm_work;
@@ -195,6 +201,7 @@ void Movie_main(void)
     }
 }
 
+/* closes the stream and restores the background mode and display width */
 void Movie_end(void)
 {
     RECT unused_rect = {0x140, 0, 0xa0, 0x200};
@@ -215,6 +222,7 @@ void Movie_end(void)
     SetDispMask(0);
 }
 
+/* RE2 Movie_exit: restores the saved VRAM, fades the sound back and re-enables the display */
 void Movie_exit(void)
 {
     RECT Rect = Movie_save_rect;
@@ -270,6 +278,7 @@ void Movie_exit(void)
     pWork->Free0++;
 }
 
+/* RE2 Open_movie: starts streaming movie Movie_id from its floc sector, decodes the first frame; 1 = failed */
 ULONG Open_movie(ULONG Movie_id)
 {
     VM_WORK *pWork = &Vm_work;
@@ -317,6 +326,7 @@ ULONG Open_movie(ULONG Movie_id)
     return 0;
 }
 
+/* RE2 Play_movie: next frame from the ring to the MDEC; returns 1 at the end, 2 on timeout */
 ULONG Play_movie(void)
 {
     ULONG Time_out = 0;
@@ -348,6 +358,7 @@ ULONG Play_movie(void)
     return Ret;
 }
 
+/* RE2 Close_movie: stops the stream, MDEC callbacks and CD audio mixing */
 void Close_movie(void)
 {
     Movie_xa_stop();
@@ -359,6 +370,7 @@ void Close_movie(void)
     Snd_cd_mix_set(0);
 }
 
+/* RE2 RuntoImage: starts the MDEC decode of the current run-level buffer into the display buffer */
 void RuntoImage(void)
 {
     VM_WORK *pWork = &Vm_work;
@@ -377,6 +389,7 @@ void RuntoImage(void)
     DecDCTinSync(0);
 }
 
+/* RE2 Mdec_callback: uploads each decoded 16-pixel column slice, then flags the frame done */
 void Mdec_callback(void)
 {
     VM_WORK *pWork = &Vm_work;
@@ -396,6 +409,7 @@ void Mdec_callback(void)
     }
 }
 
+/* ramps the movie (XA) volume up to Vm_work.Movie_volume */
 void Movie_xa_start(void)
 {
     LONG Ctr;
@@ -405,6 +419,7 @@ void Movie_xa_start(void)
     }
 }
 
+/* ramps the movie (XA) volume down to 0 */
 void Movie_xa_stop(void)
 {
     LONG Ctr;
@@ -415,6 +430,7 @@ void Movie_xa_stop(void)
     Set_movie_volume2(0);
 }
 
+/* sets the CD audio mix volume for the movie (mono halves both channels) */
 void Set_movie_volume2(ULONG Volume)
 {
     if (Stereo_flg == 0) {

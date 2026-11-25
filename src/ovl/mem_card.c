@@ -1,3 +1,6 @@
+/*
+ * MEM_CARD.BIN (RE2 MEM_CARD.C lineage): memory card save/load screens, with copies of the libcard BIOS stubs
+ */
 #include "monitor.h"
 #include "snd.h"
 #include "cd.h"
@@ -1456,8 +1459,11 @@ SHORT Mess_width(LONG Msg)
     }
 }
 
+/* libcard _card_info: BIOS A0 call 0xAB (jump stub, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_info);
 
+/* libcard _card_load: BIOS A0 call 0xAC (jump stub, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_load);
 
+/* libcard _card_clear: _new_card, then _card_write(Chan, 0x3F, NULL) (older-compiler code, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_clear);

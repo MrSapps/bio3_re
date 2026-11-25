@@ -1,3 +1,7 @@
+/*
+ * STAFF_R.BIN: the staff roll (credits): picture pages with XA narration, scrolling background strips and credit
+ * pages, logo
+ */
 #include "ovl/staff_r.h"
 #include "mojidisp.h"
 #include "sld.h"
@@ -47,6 +51,7 @@ void Staff_init(void)
     pW->Rtn0++;
 }
 
+/* staff roll part 1, runs Staff_roll_tbl[Rtn1] */
 void Staff_roll(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -78,6 +83,7 @@ void Staff_exit(void)
  * constant's global-alloc priority above the counter's) */
 #define STAFF_GREY(p, c) do { setRGB0(p, c, c, c); } while (0)
 #define STAFF_GREY2(p, c) do { STAFF_GREY(p, c); } while (0)
+/* sets up the first two picture pages, starts XA voice 0x14 and fades in */
 void Staff_page_init(void)
 {
     ULONG i;
@@ -126,6 +132,7 @@ void Staff_page_init(void)
     pW->Rtn1++;
 }
 
+/* runs Staff_page_tbl[Rtn2] until the XA ends after the last page */
 void Staff_page_main(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -141,10 +148,12 @@ void Staff_page_main(void)
     }
 }
 
+/* empty step */
 void Staff_nop(void)
 {
 }
 
+/* page step: message timing and brightness, then cross-fade to the next page and fade out */
 void Staff_page_move(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -203,11 +212,13 @@ void Staff_page_move(void)
     AddPrim(G.pOt0 + pW->Ot1, &pW->Page[1].Tr[G.Cbuf_id]);
 }
 
+/* marks the page part finished (End_flg) */
 void Staff_page_end(void)
 {
     Staff_wk.End_flg = 1;
 }
 
+/* sets up the 12 background strip sprites, starts XA voice 0x15 */
 void Staff_bg_init(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -253,6 +264,7 @@ void Staff_bg_init(void)
     pW->Rtn1++;
 }
 
+/* runs Staff_bg_tbl[Rtn2] until the XA ends */
 void Staff_bg_main(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -262,6 +274,7 @@ void Staff_bg_main(void)
         Staff_wk.Rtn0++;
 }
 
+/* after 2 frames: cinema-scope bars, fade in, maps the credit and first background textures */
 void Staff_bg_start(void)
 {
     if (++Staff_wk.Timer >= 2) {
@@ -279,12 +292,14 @@ void Staff_bg_start(void)
     }
 }
 
+/* background part: scrolls the background strips and moves the credit pages */
 void Staff_bg_move(void)
 {
     Staff_bg_scroll();
     Staff_credit_move();
 }
 
+/* shows credit pages 2..5 in turn, each held about 11 seconds with white fades between */
 void Staff_credit_move(void)
 {
     STAFF_SEQ *pS = &Staff_seq;
@@ -338,6 +353,7 @@ void Staff_credit_move(void)
     }
 }
 
+/* scrolls the background strips up one line per frame, loading the next strip texture as one leaves */
 void Staff_bg_scroll(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -401,6 +417,7 @@ void Staff_bg_scroll(void)
     }
 }
 
+/* maps and shows the logo with fades, then ends the background part */
 void Staff_logo(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -478,11 +495,13 @@ void Staff_logo(void)
     }
 }
 
+/* marks the background part finished (End_flg) */
 void Staff_bg_end(void)
 {
     Staff_wk.End_flg = 1;
 }
 
+/* maps the page textures and sets up the line and page sprites of both buffers */
 void Staff_tim_set(void)
 {
     STAFF_WORK *pW = &Staff_wk;
@@ -548,6 +567,7 @@ void Staff_tim_set(void)
     }
 }
 
+/* cross-fades picture page 0 into page 1 (semi-transparency, colours stepped by 2) */
 void Staff_cross_fade(void)
 {
     STAFF_WORK *pW = &Staff_wk;

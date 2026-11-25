@@ -1,15 +1,21 @@
+/*
+ * 80079EC0.c: PC-host STR movie streaming (Pcstr_*, PCopen/PCread) and the EMD skin vertex-blending sort
+ * routines (Skin_*)
+ */
 #include "sub.h"
 #include "pcstr.h"
 
 /* ---- merged helpers (forks + parent) ---- */
 typedef struct { UCHAR b[0xA0]; } FA_A0[2][2];
 
+/* sets the two frame buffers (size in 1 KB units) */
 void Pcstr_set_buf(ULONG *pBuf, LONG size)
 {
     Pcstr.pBuf[0] = pBuf;
     Pcstr.pBuf[1] = pBuf + (size << 8);
 }
 
+/* opens an STR file on the PC host, detects raw interleaved sectors and reads up to the start frame; -1 on error */
 LONG Pcstr_open(char *pName)
 {
     ULONG Sub0;
@@ -35,6 +41,7 @@ LONG Pcstr_open(char *pName)
     return 0;
 }
 
+/* sets the start/end frames and the per-frame start/end callbacks of the PC stream */
 void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), void (*end_func)(void))
 {
     Pcstr.End_flg = 0;
@@ -47,11 +54,13 @@ void Pcstr_set(LONG unused, ULONG start, ULONG end, void (*start_func)(void), vo
     Pcstr.End_func = end_func;
 }
 
+/* closes the PC stream file */
 void Pcstr_close(void)
 {
     PCclose(Pcstr.Fd);
 }
 
+/* reads the next frame into the other buffer and calls the callbacks (end callback past the end frame) */
 LONG Pcstr_next(void)
 {
     PCSTR_WORK *p = &Pcstr;
@@ -67,6 +76,7 @@ LONG Pcstr_next(void)
     return 0;
 }
 
+/* returns the current frame buffer and its STR header */
 LONG Pcstr_get(ULONG **ppBuf, PCSTR_HEADER **ppHead)
 {
     *ppBuf = Pcstr.pBuf[Pcstr.Buf_no];
@@ -74,6 +84,7 @@ LONG Pcstr_get(ULONG **ppBuf, PCSTR_HEADER **ppHead)
     return 0;
 }
 
+/* reads the sectors of one frame (skipping raw subheaders/EDC), sets End_flg at the end */
 void Pcstr_read_frame(ULONG *pBuf)
 {
 

@@ -1,3 +1,6 @@
+/*
+ * ROOT_CK.C (RE2 ROOT_CK.C lineage): enemy route finding over the room's floor blocks (areas)
+ */
 #include "sca.h"
 #include "root_ck.h"
 #include "sld.h"
@@ -15,6 +18,7 @@ typedef struct {
 } BLOCK;
 
 
+/* RE2 Root_ck: steers pEm towards pDest (or area Dest_area), through the block graph when not in the same area */
 LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
 {
     tagGLOBAL *pG = &G;
@@ -88,6 +92,7 @@ LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
     }
 }
 
+/* RE2 Rnd_area: a random floor block (area) of the room, 0xFF if the room has none */
 LONG Rnd_area(void)
 {
     USHORT n = *D_800CC86C[14];
@@ -124,6 +129,7 @@ LONG Guide_check(SHORT X, SHORT Z, UCHAR Floor)
     return 0xFF;
 }
 
+/* do segments pA and pB ({x0, y0, x1, y1}) intersect? (1 = yes) */
 ULONG func_80049F80(SHORT *pA, SHORT *pB)
 {
     LONG dx1, dy2, dy1, dx2;
@@ -148,8 +154,10 @@ ULONG func_80049F80(SHORT *pA, SHORT *pB)
     return 0;
 }
 
+/* RE2 kara_rootck2: best-path search (DFS over the block graph) from one area to the target area */
 INCLUDE_ASM("asm/nonmatchings/game/root_ck", kara_rootck2);
 
+/* step of Spd towards pT from pPos: pOut gets the normalised direction (z into vx, x into vz) * Spd */
 void func_8004A7F4(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut)
 {
     LONG dx;

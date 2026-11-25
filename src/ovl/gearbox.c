@@ -1,3 +1,6 @@
+/*
+ * GEARBOX.BIN: the clock tower gear puzzle (move the small/large gears between 5 slots, then pull the lever)
+ */
 #include "ovl/gearbox.h"
 #include "snd.h"
 
@@ -22,6 +25,7 @@ void Gear_main(void)
     Gear_exit();
 }
 
+/* suspends the game task, sets the start gear layout and moves count, switches to the puzzle camera */
 void Gear_init(void)
 {
     Task_suspend(0);
@@ -51,6 +55,7 @@ void Gear_init(void)
     G.Status_flg |= 0x400000;
 }
 
+/* sets up the white LINE_F3 cursor pairs */
 void Gear_line_init(void)
 {
     ULONG i;
@@ -66,6 +71,7 @@ void Gear_line_init(void)
     } while (++i < 2);
 }
 
+/* back to the room camera, sets the puzzle-done flag (G.Unk7888 bit 0x1F) and resumes the game task */
 void Gear_exit(void)
 {
     G.Cut_no = 2;
@@ -116,6 +122,7 @@ void Gear_ctrl(void)
         Gear_wk.Cursor = GEAR_LEVER;
 }
 
+/* moves the cursor between the slots with the d-pad (Gear_dir_tbl) */
 void Gear_cursor_move(void)
 {
     GEAR_WORK *pGw = &Gear_wk;
@@ -137,6 +144,7 @@ void Gear_cursor_move(void)
     }
 }
 
+/* places the gear models on their slots, draws the cursor and the moves count */
 void Gear_om_set(void)
 {
     ULONG i;
@@ -168,6 +176,7 @@ void Gear_om_set(void)
     Gear_count_print();
 }
 
+/* draws the blinking square cursor (two LINE_F3) around the selected slot */
 void Gear_cursor_draw(void)
 {
     LINE_F3 *p0;
@@ -204,6 +213,7 @@ void Gear_cursor_draw(void)
     }
 }
 
+/* prints the moves left */
 void Gear_count_print(void)
 {
     Print_color(0xFF, 6, 0);
@@ -212,6 +222,7 @@ void Gear_count_print(void)
 /* the original .rodata ends with a junk byte after "%d" */
 __asm__(".section .rodata\n\t.byte 0x2F\n\t.section .text");
 
+/* G.Sce_work[4] = 1 + the matching solution of Gear_answer_tbl, or 0 */
 void Gear_check(void)
 {
     ULONG i;
@@ -227,6 +238,7 @@ void Gear_check(void)
     G.Sce_work[4] = 0;
 }
 
+/* turns the gears for 10 frames with the turning models, then the result sound / message */
 void Gear_turn(void)
 {
     VECTOR Pos;

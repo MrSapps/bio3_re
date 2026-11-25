@@ -1,3 +1,6 @@
+/*
+ * JILL_SEL.BIN: costume select for Jill (models on a stand, sprite menu; shares Jill_* code with SELECT.BIN)
+ */
 #include "ovl/jill_sel.h"
 #include "cd.h"
 #include "mojidisp.h"
@@ -16,6 +19,7 @@ void Jill_main(void)
     }
 }
 
+/* draws the five menu sprite objects */
 void Jill_sprt_draw(JILL_WORK *pW)
 {
     Print_color(0xFF, 0, 0x103);
@@ -26,6 +30,7 @@ void Jill_sprt_draw(JILL_WORK *pW)
     Jill_obj_draw(&Jill_obj[2], 3);
 }
 
+/* runs the idle animation of the five models */
 void Jill_pl_move(void)
 {
     tagGLOBAL *pG = &G;
@@ -40,6 +45,7 @@ void Jill_pl_move(void)
     }
 }
 
+/* idle animation of one model (motion 7, Joint_move2) */
 void Jill_pl_idle(ENEMY_WORK *pEm)
 {
     switch (pEm->Routine_0) {
@@ -52,6 +58,7 @@ void Jill_pl_idle(ENEMY_WORK *pEm)
     }
 }
 
+/* suspends the game task, loads the background, sets the camera, the sprites and the costume models */
 void Jill_init(JILL_WORK *pW)
 {
     tagGLOBAL *pG = &G;
@@ -242,6 +249,8 @@ UCHAR *Jill_pl_load(ENEMY_WORK *pEm, ULONG TpClut, UCHAR *pWork)
 
 #include "ovl/common/jill_sel/Jill_pl_trans.inc.c"
 
+/* loads a model's weapon (Jill_wep_cd file), uploads its TIM and calls the weapon init routine; returns the
+ * next free address */
 INCLUDE_ASM("asm/nonmatchings/ovl/jill_sel", Jill_wep_load);
 
 #include "ovl/common/jill_sel/Jill_light_set.inc.c"

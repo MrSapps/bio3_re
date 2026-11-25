@@ -1,3 +1,6 @@
+/*
+ * ROOM.C (RE2 ROOM.C lineage): stage and room loading (Set_stage, Set_room) and room animation hand-out
+ */
 #include "pl_wep.h"
 #include "monitor.h"
 #include "sce0.h"
@@ -136,6 +139,7 @@ void Set_room(void)
     Map_visit_set_i(Stage, Room);
 }
 
+/* RE2 Set_stage: loads the stage overlay (task file Stage + 0x11) and sets the free memory after it */
 void Set_stage(void)
 {
     ULONG Size = Task_lexecute(2, G.Unk783E + 0x11);

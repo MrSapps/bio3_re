@@ -1,3 +1,6 @@
+/*
+ * LINE_SCR.C (RE2 LINE_SCR.C lineage): per-scanline screen effects (quake shake) with DR_MOVE copies
+ */
 #include "line_scr.h"
 #include "main.h"
 
@@ -29,6 +32,7 @@
 #define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 
+/* per frame: screen quake while Status_flg bit 4 (amp 1) or bit 2 (amp 2) is set */
 void Scr_effect(void)
 {
     LINE_SCR *pLine;
@@ -65,6 +69,7 @@ void Scr_effect(void)
     line_scr_end();
 }
 
+/* shakes the whole screen: moves every line by the quake table offset (Amp 1 small, 2 large) */
 void Scr_quake(ULONG Amp)
 {
     LINE_SCR *pLine;
@@ -93,6 +98,7 @@ void Scr_quake(ULONG Amp)
     } while (++i != End);
 }
 
+/* RE2 line_trans: queues a DR_MOVE that shifts screen line Line_no by Slide_ofs / Copy_ofs */
 void line_trans(LONG Line_no, LONG Slide_ofs, LONG Copy_ofs, LONG Draw_ofs)
 {
     LINE_SCR *pLine;
@@ -133,11 +139,13 @@ set:
     }
 }
 
+/* RE2 line_scr_end: closes the DR_MOVE chain opened by line_mode_set */
 void line_scr_end(void)
 {
     *Line.pPrim_keep0 = (*Line.pPrim_keep0 & 0xFF000000) | (Line.Keep_tag0 & 0xFFFFFF);
 }
 
+/* RE2 line_mode_set: opens a DR_MOVE chain at OT Ot_no (0..2), priority Prio */
 void line_mode_set(ULONG Ot_no, ULONG Prio)
 {
     LINE_SCR *pLine;
@@ -167,6 +175,7 @@ void line_mode_set(ULONG Ot_no, ULONG Prio)
     pLine->pOt = pOt;
 }
 
+/* RE2 Line_work_init: clears the line work */
 void Line_work_init(void)
 {
     UCHAR *p = Line.Unk2D20;

@@ -1,3 +1,6 @@
+/*
+ * SELECT.BIN: Mercenaries character select (three models under spot lights, name sprites, message window)
+ */
 #include "ovl/select.h"
 #include "cd.h"
 
@@ -597,12 +600,16 @@ void Select_pl_rot(void)
     }
 }
 
+/* loads one character model (Select_pl_cd file), maps its TIM and links parts, motions and skin; returns the
+ * next free address */
 INCLUDE_ASM("asm/nonmatchings/ovl/select", Select_pl_load);
 
 #include "ovl/common/jill_sel/Jill_pl_trans.inc.c"
 
 #include "ovl/common/jill_sel/Jill_light_set.inc.c"
 
+/* loads a model's weapon (Jill_wep_cd file), uploads its TIM and calls the weapon init routine; returns the
+ * next free address */
 INCLUDE_ASM("asm/nonmatchings/ovl/select", Jill_wep_load);
 
 /* RE2 Select_moji_set */
