@@ -244,6 +244,7 @@ void Skin_sort_alt(void *pWork0, void *pWork1, ULONG Arg2, PARTS_W *pP)
 #define gte_stsv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 2(%0); sh $14, 4(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
 #define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#define gte_ldrgb(r0) __asm__ volatile("lwc2 $6, 0(%0)" : : "r"(r0))
 
 /* parameters copied into t-regs at entry (`addu t2,a0,zero` / `addu t3,a1,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx0);
@@ -254,8 +255,60 @@ INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
 /* parameters copied into t-regs at entry (`addu t3,a3,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2);
 
-/* parameters copied into t-regs at entry (`addu t8,a0,zero`): not proof of hand editing, Skin_sort_gt3 has it too (NOTES agentF) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light0);
+/* lit colours of the first skin list: per bone, light matrix = LIGHTMATRIX * bone rotation, then ncct over
+   the vertex index triplets (count, triplets...; list ends with 0xFF). The inner loop is a goto loop: loop.c then
+   keeps one pData + 2 giv for both the count read and the triplets (a do/while makes a second giv) */
+void Skin_light0(ULONG *pRgb, PARTS_W *pP, SORT_ENV *pEnv, UCHAR *pData)
+{
+    MATRIX M;
+    ENEMY_WORK *pEm;
+    SVECTOR *pNor;
+    PARTS_W *pParts;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    ULONG *p0;
+    ULONG *p1;
+    ULONG *p2;
+
+    pNor = pEnv->pMdl->pNor;
+    pEm = pEnv->pEm;
+    gte_ldrgb(&pP->Poly_rgb);
+    gte_SetRotMatrix(&LIGHTMATRIX);
+    do {
+        pParts = &pEm->pSin_parts_ptr[pData[0]];
+        gte_ldclmv(&pParts->Workm.m[0][0]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][0]);
+        gte_ldclmv(&pParts->Workm.m[0][1]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][1]);
+        gte_ldclmv(&pParts->Workm.m[0][2]);
+        gte_rtir();
+        gte_stclmv(&M.m[0][2]);
+        gte_SetLightMatrix(&M);
+        n = pData[1];
+        pData += 2;
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+    inner:
+        gte_ldv3(&pNor[i0], &pNor[i1], &pNor[i2]);
+        pData += 3;
+        n--;
+        gte_ncct_b();
+        p0 = &pRgb[i0];
+        p1 = &pRgb[i1];
+        p2 = &pRgb[i2];
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_strgb3(p0, p1, p2);
+        if (n != 0)
+            goto inner;
+    } while (*pData != 0xFF);
+}
 
 /* lit colours of the second skin list */
 INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_light1);
