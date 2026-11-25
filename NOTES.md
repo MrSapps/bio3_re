@@ -403,3 +403,15 @@ tools/ovlshare: `asmgrp.py` lists asm-identical functions across overlays (write
 A's names; `maprename.py OVL MAP` renames from an "old new" list; `trytext.py A B` tries A's C text for
 B's same-named functions and keeps it when all outputs stay OK; `share.py FAMILY A B... [--apply]` moves
 text-identical functions into src/ovl/shared/FAMILY.
+
+## Near-miss status (agentE, drafts in the session scratchpad agentE/r2)
+- Flr_set matched: the base pointer is a temp that gets overwritten afterwards (`p = (UCHAR *)pFlr; p += n * 12;
+  pAttr = (USHORT *)(p + 12); p = pData;`), otherwise cse folds the +12 into the offsets.
+- Plc_gun_eff matched: dead stores into a local VECTOR; cse deletes the repeated vx = 145 (8 stores for 9 assignments).
+- Get_light_cut (3): reassign `pData = (UCHAR *)pLight` after the loop; assign pCut twice (REG_N_SETS > 1 stops
+  sched1's birthing boost). Left: the copy goes to a1, not a0 (pData inherits pLight's a1 preference).
+- snd func_80077F60 (2): the CD `lui` gets v0. With temps (`t = &Snd_work; u = &CD;`) the registers are right
+  but sched2 puts both luis first (3).
+- oba func_80034E78 (3): sll 8 / andi 0xff order. `((Fl << 8) & 0xFF00) | (Fl & 0xFF)` gives the order but
+  swaps v0/v1: local-alloc gives the 6-ref shift chain priority over Fl (5 refs).
+- oba func_80035678 (9, agentC pm2.c still best).
