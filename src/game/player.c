@@ -346,7 +346,7 @@ void pl_mv01_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
             EM_SET_RTN(pEm, 1, 7, 2, 0);
         }
     }
-    if (D_800D1F2C & 0x10) {
+    if (G.Status_flg & 0x10) {
         EM_SET_RTN(pEm, 1, 9, 0, 0);
     }
 }
@@ -453,7 +453,7 @@ void pl_mv02_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
             EM_SET_RTN(pEm, 1, 7, 0, 0);
         }
     }
-    if (D_800D1F2C & 0x10) {
+    if (G.Status_flg & 0x10) {
         EM_SET_RTN(pEm, 1, 9, 0, 0);
     }
 }
@@ -855,7 +855,7 @@ void pl_mv08(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 /* Pl_mv_pad 9: lets the push end (Routine_2 5 -> 6) unless Flg 0x10 is blocked */
 void pl_mv0a_pad(ENEMY_WORK *pEm, ULONG Flg)
 {
-    if ((Flg & 0x10) && (D_800D1F2C & 0x10)) {
+    if ((Flg & 0x10) && (G.Status_flg & 0x10)) {
         return;
     }
     if (pEm->Routine_2 == 5) {

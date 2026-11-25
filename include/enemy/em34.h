@@ -5,7 +5,7 @@
  * 0x80100000 (slot 1) or 0x8010D000 (slot 2). The predecessor is RE2's Tyrant
  * module EM2A.C: Move runs a "brain" routine (Em2a_mv_br) and then a motion
  * routine (Em2a_mv), both indexed by Routine_1; RE3 picks the brain/motion
- * tables by Type (Em34_Move_type) and by the sign of D_800D1F2C.
+ * tables by Type (Em34_Move_type) and by the sign of G.Status_flg.
  */
 #include "bio3.h"
 #include "enemy/em_common.h"

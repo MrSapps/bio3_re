@@ -53,8 +53,6 @@ void Ot_set_all(void); /* set the OT pointer of every enemy and object model */
 extern OM_BREAK_TBL Om_bomb_parts[];
 extern struct tagHIT_ATTR *Om_at_tbl[]; /* attack data per object type */
 extern void (*Om_routine[])(OBJ_MODEL_WORK *pOm);
-extern UCHAR D_800CC84B;
-extern ULONG D_800D20D4[];
 extern SHORT Om_pos_spd;
 extern SHORT Om_pos_spd_add;
 extern SHORT Om_dir_spd;

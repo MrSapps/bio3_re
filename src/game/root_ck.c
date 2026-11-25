@@ -95,7 +95,7 @@ LONG Root_ck(ENEMY_WORK *pEm, VECTOR *pDest, UCHAR Dest_area, UCHAR Mode)
 /* RE2 Rnd_area: a random floor block (area) of the room, 0xFF if the room has none */
 LONG Rnd_area(void)
 {
-    USHORT n = *D_800CC86C[14];
+    USHORT n = *G.pRoom->pBlock;
 
     if (n == 0) {
         return 0xFF;
@@ -111,7 +111,7 @@ LONG Guide_check(SHORT X, SHORT Z, UCHAR Floor)
     SHORT Cnt;
     USHORT Depth;
 
-    pBlock = D_800CC86C[14];
+    pBlock = G.pRoom->pBlock;
     Cnt = *pBlock;
     pB = (BLOCK *)(pBlock + Cnt * 24 + 4);
     do {

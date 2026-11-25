@@ -343,7 +343,7 @@ void Em_sce04(ENEMY_WORK *pEm)
     case 2:
         Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)Em_sce_mv02(pEm, pKan, pSeq, 0)) {
-            Flg_on(D_800D1FC0, pEm->Set_flg_no);
+            Flg_on(G.Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -398,7 +398,7 @@ void Em_sce05(ENEMY_WORK *pEm)
     case 2:
         Spd_get2(pEm, pKan, pSeq, 0);
         if ((UCHAR)Em_sce_mv02(pEm, pKan, pSeq, 0)) {
-            Flg_on(D_800D1FC0, pEm->Set_flg_no);
+            Flg_on(G.Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -438,7 +438,7 @@ void Em_sce07(ENEMY_WORK *pEm)
     case 1:
         Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40);
         if ((UCHAR)Em_sce_mv02(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, D_80097A78[pEm->Id - 0x10] & 0x40)) {
-            Flg_on(D_800D1FC0, pEm->Set_flg_no);
+            Flg_on(G.Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -462,7 +462,7 @@ void Em_sce08(ENEMY_WORK *pEm)
     case 1:
         Spd_get2(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0);
         if ((UCHAR)Em_sce_mv02(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr, 0)) {
-            Flg_on(D_800D1FC0, pEm->Set_flg_no);
+            Flg_on(G.Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -484,7 +484,7 @@ void Em_sce09(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)Em_sce_mv01(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, pEm->Set_flg_no);
+            Flg_on(G.Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {
@@ -506,7 +506,7 @@ void Em_sce15(ENEMY_WORK *pEm)
         pEm->Routine_2 = 1;
     case 1:
         if ((UCHAR)Em_sce_mv03(pEm, pEm->pKan_t_ptr, pEm->pSeq_t_ptr)) {
-            Flg_on(D_800D1FC0, pEm->Set_flg_no);
+            Flg_on(G.Room_flg, pEm->Set_flg_no);
             pEm->Routine_1 = 6;
             pEm->Routine_2 = 0;
             if (pEm->Unk144 & 4) {

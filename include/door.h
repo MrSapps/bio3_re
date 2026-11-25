@@ -82,7 +82,6 @@ extern ULONG D_800BA6F0; /* RE2 pDoor[1] */
 extern ULONG D_800BA6F4; /* door work slot size */
 extern DOOR *pDoor;              /* RE2 pDoor[0] */
 extern DOOR_WORK *pDwork[10];      /* RE2 pDwork[] (door work slots) */
-extern ULONG D_800D1FC8[];
 
 void Door_init(void);
 void Door_move(void);

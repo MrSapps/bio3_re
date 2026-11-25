@@ -12,7 +12,6 @@ extern SHORT D_8009EE1C[];
 extern void (*Spl_sce[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern void (*Spl_sce0a_tbl[])(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 extern SHORT Spl_slope_dir_tbl[]; /* direction by Col.Unk39 & 7 */
-extern ULONG D_800D1FC0[];
 
 void Spl_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 LONG Spl_sce_hokan(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Flg);

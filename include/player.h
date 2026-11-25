@@ -52,8 +52,6 @@ extern UCHAR Pl_rot_spd[];
 extern USHORT Slope_dir_tbl[];
 extern struct tagHIT_ATTR D_8009CE0C;
 extern UCHAR Pl_wep_flg[];
-extern UCHAR D_800CCBBF; /* = G.Em_num (snd.c) */
-extern ULONG D_800D1F2C; /* flags, < 0: hard-mode tables */
 extern PAD_WORK_800DE628 D_800DE628;
 
 void Player_set(ENEMY_WORK *pEm);

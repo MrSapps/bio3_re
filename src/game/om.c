@@ -74,7 +74,7 @@ void Col_chg_init(ULONG Col_wk_no, CC_PARTS_WORK *pCcp)
     RECT *pRect;
 
     pMw = pCcp->pOm;
-    Clut = GetClut(0x120, D_800CC84B + 0x1E0 + Col_wk_no) & 0xFFFF;
+    Clut = GetClut(0x120, G.Esp_clut_num + 0x1E0 + Col_wk_no) & 0xFFFF;
     if (pMw->Unk4A != 1) {
         Poly_num = pMw->pTmd->n_prim3;
         p = pMw->pTmd->pPrim3;
@@ -418,7 +418,7 @@ void Om_rtn_wait(OBJ_MODEL_WORK *pOm)
         case 0x80:
             break;
         }
-        Flg_on(D_800D20D4, pOm->UnkC2);
+        Flg_on(G.Om_flg, pOm->UnkC2);
     }
 }
 

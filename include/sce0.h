@@ -95,7 +95,6 @@ extern SHORT D_8009E6D4[];
 extern SHORT D_8009E6DC[];
 extern SHORT D_8009E6E4[];
 extern UCHAR D_800B9E21;
-extern SHORT D_800D1F82; /* RE2 G.SaveData.Sce_random */
 extern UCHAR D_800E017E[];
 
 void Sce_aot_parts_set(ULONG Mode, PARTS_W *pP, UCHAR *pArg);

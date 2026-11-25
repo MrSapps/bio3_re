@@ -230,7 +230,7 @@ void Sce_rnd_set(void)
 
     D0 = (s8)Rnd_uc() << 8;
     D0 += Rnd_uc() + (s8)Rnd_tbl[Sce.Rnd_idx++];
-    D_800D1F82 = D0;
+    G.Sce_random = D0;
 }
 
 /* RE2 Event_init */

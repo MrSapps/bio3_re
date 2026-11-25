@@ -52,7 +52,6 @@ typedef struct {
     SHORT Unk2A;                       /* 0x2A delta y */
 } RAIN_WORK;
 
-extern LONG D_800D204C[];
 extern UCHAR *Psp_id; /* per-sprite group id (Cut_flg bit) */
 extern SHORT *Psp_otz; /* per-sprite OT z */
 extern PSP_PRIM *pPsp_prim; /* two prims per sprite (double buffer) */

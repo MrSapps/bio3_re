@@ -48,7 +48,7 @@ void Psp_init(void)
 
 void func_800486C8(void)
 {
-    LONG *p = D_800D204C;
+    LONG *p = (LONG *)G.Pri_be_flg;
     LONG i = 32;
 
     do {

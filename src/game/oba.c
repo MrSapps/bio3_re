@@ -686,7 +686,7 @@ LONG Oba_cross_ck(COL_OBJ *pObj, COL_OBJ *pT)
     tez = pT->pEm->Pos_z;
     Oba_push_out(pObj, pT);
     Ret = Sca_hit_all(pObj->pEm, pObj->W0, 0x4000, pObj);
-    if (Ret != 0 || !(D_800D1F2C & 0x10) || pT->pEm->Damage_cnt != 0) {
+    if (Ret != 0 || !(G.Status_flg & 0x10) || pT->pEm->Damage_cnt != 0) {
         pObj->Pos_x = x;
         pObj->Pos_z = z;
         pObj->pEm->Pos_x = ex;

@@ -779,7 +779,7 @@ void Mess_hint_task(void)
     UCHAR *p2;
 
     D_800D4433 = 1;
-    switch (D_800CC84D) {
+    switch (G.Ovl_mode) {
     case 0:
         idx = 0x28;
         break;

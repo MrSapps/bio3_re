@@ -1276,13 +1276,13 @@ ULONG Chaser_life_init(SCE_TASK *pSce)
 {
     switch (pSce->Data[1]) {
     case 0x34:
-        D_800D1F8E[0] = 0x320;
+        G.Chaser_life = 0x320;
         break;
     case 0x35:
-        D_800D1F8E[0] = 0x320;
+        G.Chaser_life = 0x320;
         break;
     case 0x36:
-        D_800D1F8E[0] = 0x320;
+        G.Chaser_life = 0x320;
         break;
     }
     pSce->Data += 2;
@@ -1509,7 +1509,7 @@ ULONG Chaser_evt_clr(SCE_TASK *pSce)
 {
     UCHAR i;
 
-    switch (D_800D1F94) {
+    switch (G.Chaser_no) {
     case 3:
     case 4:
         for (i = 0; i < 10; i++) {

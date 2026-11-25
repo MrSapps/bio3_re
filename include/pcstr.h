@@ -62,8 +62,6 @@ void Pcstr_read_frame(ULONG *pBuf);
 
 extern MATRIX *D_800C79F0; /* current work matrices (ko_joint_trans3) */
 extern VECTOR *D_800C79F4;
-extern UCHAR D_800CC848;
-extern SHORT D_800D1F80;
 extern ULONG *D_800E01C8;
 extern ULONG Skin_rgb[]; /* per-vertex colours of the model being sorted */
 extern SVECTOR Skin_nor[6]; /* normals of the two bones being blended (Skin_light2) */

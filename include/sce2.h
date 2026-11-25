@@ -14,8 +14,6 @@ extern UCHAR Subpl_ato[][2];
 extern UCHAR Subpl_run[][2];
 extern UCHAR D_800C703E[];
 extern UCHAR D_800C7961;
-extern SHORT D_800D1F8E[];
-extern USHORT D_800D1F94;
 extern ULONG Chaser_flg[]; /* G.Chaser_flg under its own symbol: Nemesis encounter flags (Chaser_evt_clr) */
 extern UCHAR D_800E0171[];
 extern ULONG St_flg14_a[];          /* St.Flg14 seen as its own array symbol (codegen) */
