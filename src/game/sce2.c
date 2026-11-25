@@ -14,6 +14,13 @@ s8 Search_item_id_(UCHAR Id, UCHAR A1) __asm__("Search_item_id"); /* Item_get_ck
 LONG Quake_add_() __asm__("Quake_add"); /* Capcom called it undeclared here (implicit int); Sce_quake_add differs with the void prototype */
 LONG Flg_off_(ULONG *pFlg, ULONG Bit) __asm__("Flg_off"); /* int-returning here (implicit declaration in Capcom's file); Chaser_evt_clr differs with void */
 
+/* opcode records read by field (layouts as in the SCD data) */
+typedef struct { UCHAR Op; UCHAR pad1; UCHAR Sup_val; UCHAR Sup_no; SHORT Pos[3]; SHORT Dir[3]; } SCE_SUPER_REC;
+typedef struct { UCHAR Op; UCHAR Parts; USHORT Old_x; USHORT Old_z; USHORT Old_y; UCHAR Unk85; UCHAR pad9;
+                 USHORT Unk90; USHORT Unk92; USHORT Unk8E; } SCE_PARTS_DOWN_REC;
+typedef struct { UCHAR Op; UCHAR pad1; UCHAR Parts; UCHAR R; UCHAR G; UCHAR B; USHORT W[5]; } SCE_PARTS_BOMB_REC;
+typedef struct { UCHAR Op; s8 Aot; UCHAR Id; UCHAR Type; SHORT X; SHORT Y; SHORT Z; } SCE_AOT_RESET_REC;
+
 static inline ULONG Sce_skip(SCE_TASK *pSce, LONG n)
 {
     pSce->Data += n;
@@ -122,28 +129,28 @@ ULONG Aot_set_4p(SCE_TASK *pSce)
 /* RE2 Aot_reset */
 ULONG Aot_reset(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_AOT_RESET_REC *pData;
     UCHAR *pAot;
     ULONG N;
     LONG Y, Z;
 
-    pData = pSce->Data;
-    pAot = (UCHAR *)G.Sce_aot[(s8)pData[1]];
+    pData = (SCE_AOT_RESET_REC *)pSce->Data;
+    pAot = (UCHAR *)G.Sce_aot[pData->Aot];
     N = pAot[1];
-    pAot[0] = pData[2];
-    pAot[1] = pData[3] | (N & 0x80);
+    pAot[0] = pData->Id;
+    pAot[1] = pData->Type | (N & 0x80);
     if (N & 0x80) {
         pAot += 0x14;
     } else {
         pAot += 0xC;
     }
-    Y = ((SHORT *)pData)[3];
-    N = ((SHORT *)pData)[2];
-    Z = ((SHORT *)pData)[4];
+    Y = pData->Y;
+    N = pData->X;
+    Z = pData->Z;
     ((SHORT *)pAot)[1] = Y;
     ((SHORT *)pAot)[0] = N;
     ((SHORT *)pAot)[2] = Z;
-    pSce->Data = pData + 0xA;
+    pSce->Data = (UCHAR *)(pData + 1);
     return 1;
 }
 
@@ -990,7 +997,7 @@ ULONG Kage_set(SCE_TASK *pSce)
 /* RE2 Super_set */
 ULONG Super_set(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_SUPER_REC *pData;
     ENEMY_WORK *pEm;
     ULONG Sup_val;
     ULONG Sup_no;
@@ -999,10 +1006,10 @@ ULONG Super_set(SCE_TASK *pSce)
     LONG x, y, z;
     tagGLOBAL *pG = &G;
 
-    pData = pSce->Data;
+    pData = (SCE_SUPER_REC *)pSce->Data;
     pEm = pSce->pWork;
-    Sup_val = pData[2];
-    Sup_no = pData[3];
+    Sup_val = pData->Sup_val;
+    Sup_no = pData->Sup_no;
     switch (Sup_val & 0xC0) {
     case 0:
         pEm->pSuper = &GsIDMATRIX;
@@ -1030,19 +1037,19 @@ ULONG Super_set(SCE_TASK *pSce)
         }
         break;
     }
-    x = ((SHORT *)pData)[2];
-    y = ((SHORT *)pData)[3];
-    z = ((SHORT *)pData)[4];
+    x = pData->Pos[0];
+    y = pData->Pos[1];
+    z = pData->Pos[2];
     pEm->Pos_x = x;
     pEm->Pos_y = y;
     pEm->Pos_z = z;
-    x = ((SHORT *)pData)[5];
-    y = ((SHORT *)pData)[6];
-    z = ((SHORT *)pData)[7];
+    x = pData->Dir[0];
+    y = pData->Dir[1];
+    z = pData->Dir[2];
     pEm->Cdir_x = x;
     pEm->Cdir_y = y;
     pEm->Cdir_z = z;
-    pSce->Data = pData + 0x10;
+    pSce->Data = (UCHAR *)(pData + 1);
     return 1;
 }
 
@@ -1189,42 +1196,42 @@ INCLUDE_ASM("asm/nonmatchings/game/sce2", Chaser_item_set);
 
 ULONG Sce_parts_bomb(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_PARTS_BOMB_REC *pData;
     PARTS_W *pP;
     ULONG Rgb;
 
-    pData = pSce->Data;
-    pP = &pSce->pWork->pSin_parts_ptr[pData[2]];
+    pData = (SCE_PARTS_BOMB_REC *)pSce->Data;
+    pP = &pSce->pWork->pSin_parts_ptr[pData->Parts];
     pP->UnkA2 |= 0x20;
     pP->Be_flg |= 2;
-    Rgb = pData[3] | (pData[4] << 8) | (pData[5] << 16);
+    Rgb = pData->R | (pData->G << 8) | (pData->B << 16);
     ((SHORT *)&pP->Unk74)[4] = 0;
     pP->Poly_rgb = Rgb;
-    ((SHORT *)&pP->Unk74)[0] = ((USHORT *)pData)[3];
-    ((SHORT *)&pP->Unk74)[2] = ((USHORT *)pData)[4];
-    ((SHORT *)&pP->Unk74)[6] = ((USHORT *)pData)[5];
-    ((SHORT *)&pP->Unk74)[1] = ((USHORT *)pData)[6];
-    ((SHORT *)&pP->Unk74)[3] = ((USHORT *)pData)[7];
+    ((SHORT *)&pP->Unk74)[0] = pData->W[0];
+    ((SHORT *)&pP->Unk74)[2] = pData->W[1];
+    ((SHORT *)&pP->Unk74)[6] = pData->W[2];
+    ((SHORT *)&pP->Unk74)[1] = pData->W[3];
+    ((SHORT *)&pP->Unk74)[3] = pData->W[4];
     pSce->Data += 16;
     return 1;
 }
 
 ULONG Sce_parts_down(SCE_TASK *pSce)
 {
-    UCHAR *pData;
+    SCE_PARTS_DOWN_REC *pData;
     PARTS_W *pP;
 
-    pData = pSce->Data;
-    pP = &pSce->pWork->pSin_parts_ptr[pData[1]];
+    pData = (SCE_PARTS_DOWN_REC *)pSce->Data;
+    pP = &pSce->pWork->pSin_parts_ptr[pData->Parts];
     pP->Unk96 = 0;
     pP->Be_flg |= 0xA;
-    pP->Old_x = ((USHORT *)pData)[1];
-    pP->Old_z = ((USHORT *)pData)[2];
-    pP->Old_y = ((USHORT *)pData)[3];
-    pP->Unk85 = pData[8];
-    pP->Unk90 = ((USHORT *)pData)[5];
-    pP->Unk92 = ((USHORT *)pData)[6];
-    pP->Unk8E = ((USHORT *)pData)[7];
+    pP->Old_x = pData->Old_x;
+    pP->Old_z = pData->Old_z;
+    pP->Old_y = pData->Old_y;
+    pP->Unk85 = pData->Unk85;
+    pP->Unk90 = pData->Unk90;
+    pP->Unk92 = pData->Unk92;
+    pP->Unk8E = pData->Unk8E;
     pSce->Data += 16;
     return 1;
 }
