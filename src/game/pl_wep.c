@@ -6,6 +6,7 @@
 #include "sca.h"
 #include "joint.h"
 #include "sld.h"
+#include "spl_auto.h"
 #include "snd.h"
 #include "status.h"
 #include "sub.h"
@@ -2636,7 +2637,181 @@ LONG Wedge_ck(ULONG A, ULONG B, VECTOR *pV)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Weapon_at_ck);
+/* weapon hit check: the nearest enemy inside the weapon wedge (pW = Pl_wep_data entry, Type = weapon)
+ * takes the damage of that weapon; returns it, or NULL */
+ENEMY_WORK *Weapon_at_ck(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
+{
+    ENEMY_WORK **ppEnd;
+    ENEMY_WORK **ppEm;
+    ENEMY_WORK *pEm;
+    ENEMY_WORK *pBest;
+    EM_HIT_AREA *pH;
+    MATRIX *pTm;
+    VECTOR *pPos;
+    PL_WEP_DMG *pD;
+    LONG Dist;
+    LONG dz;
+    LONG Min;
+    ULONG Side;
+    EM_HIT_AREA *pBest_h;
+    ULONG Dmg;
+    ULONG Cnt;
+    ULONG Kind;
+    ULONG Dir;
+    ULONG Flg;
+    LONG X0;
+    LONG X1;
+    VECTOR V;
+    VECTOR V2;
+    MATRIX Unused; /* never used; keeps the frame layout */
+    MATRIX Mt;
+    VECTOR Best_v;
+    VECTOR Best_v2;
+
+    Min = 0x7FFFFFFF;
+    pW += Type - 1;
+    pPos = (VECTOR *)pM->t;
+    Side = 0;
+    TransposeMatrix(pM, &Mt);
+    SetRotMatrix(&Mt);
+    ppEnd = G.ppEnemy_end;
+    for (ppEm = &G.pEnemy[2]; ppEm != ppEnd; ppEm++) {
+        pEm = *ppEm;
+        pH = &pEm->Hit_area;
+        if (!(pEm->Be_flg & 1)) {
+            continue;
+        }
+        if (pEm->Damage_cnt != 0) {
+            continue;
+        }
+        if (pEm->Type & 0xC000) {
+            continue;
+        }
+        pTm = pH->pM;
+        if (Sca_ck_line(pPos, (VECTOR *)pTm->t, 0x40, 1)) {
+            continue;
+        }
+        Dist = (pPos->vx - pTm->t[0]) >> 1;
+        dz = (pPos->vz - pTm->t[2]) >> 1;
+        Dist = SquareRoot0(Dist * Dist + dz * dz) * 2;
+        if (Dist > Min) {
+            continue;
+        }
+        if (pW->Range + pH->R < Dist) {
+            continue;
+        }
+        V.vx = pTm->t[0] - pM->t[0];
+        V.vy = 0;
+        V.vz = pTm->t[2] - pM->t[2];
+        ApplyRotMatrixLV(&V, &V);
+        if (!Wedge_ck_w(pW->UnkE << 16 | pW->UnkC, pW->Unk4 << 16 | pW->Unk2, &V, pH->R)) {
+            continue;
+        }
+        V.vx = pTm->t[0] - pM->t[0];
+        V.vy = pTm->t[1] + pEm->Hit_area.Top - pM->t[1] + (SHORT)(pH->R >> 1);
+        V.vz = pTm->t[2] - pM->t[2];
+        ApplyRotMatrixLV(&V, &V);
+        V2.vx = pTm->t[0] - pM->t[0];
+        V2.vy = pTm->t[1] + pH->Bottom - pM->t[1] - (SHORT)(pH->R >> 1);
+        V2.vz = pTm->t[2] - pM->t[2];
+        ApplyRotMatrixLV(&V2, &V2);
+        if (V2.vx < 0 || V.vx > 0) {
+            if (!Wedge_ck(pW->Unk10 << 16 | pW->UnkC, pW->Unk0 << 16 | pW->Unk2, &V)
+                && !Wedge_ck(pW->Unk10 << 16 | pW->UnkC, pW->Unk0 << 16 | pW->Unk2, &V2)) {
+                continue;
+            }
+            if (V2.vx < 0 && (pEm->Damage_flg & 0x8000)) {
+                continue;
+            }
+            if (pEm->Damage_flg & 0x4000) {
+                continue;
+            }
+            Min = Dist;
+            Side = 0;
+            pBest_h = pH;
+            Best_v = V;
+            Best_v2 = V2;
+            pBest = pEm;
+        } else {
+            Min = Dist;
+            pBest = pEm;
+            Side = 1;
+            pBest_h = pH;
+            Best_v = V;
+            Best_v2 = V2;
+        }
+    }
+    if (Min == 0x7FFFFFFF) {
+        return 0;
+    }
+    pBest->Damage_no = Type;
+    if (Type == 0xD && (Rnd() & 0xF) == 2) {
+        pBest->Damage_no = 5;
+        Type = 5;
+        pW++;
+    }
+    pD = pW->pDmg[pBest->Id - 0x10];
+    pBest->Old_routine = EM_RTN(pBest);
+    pBest->Damage_flg &= 0xC000;
+    pD += Type - 1;
+    Dmg = pD->Damage & 0x3FF;
+    Cnt = pD->Cnt & 0x1F;
+    Kind = pD->Kind & 0x1F;
+    if (pW->Dist1 < Min) {
+        pBest->Damage_flg |= 4;
+        Dmg = (pD->Damage >> 10) & 0x3FF;
+        Cnt = (pD->Cnt >> 5) & 0x1F;
+        Kind = (pD->Kind >> 5) & 0x1F;
+    }
+    if (pW->Dist2 < Min) {
+        pBest->Damage_flg = (pBest->Damage_flg & 0xC000) | 8;
+        Dmg = (pD->Damage >> 20) & 0x3FF;
+        Cnt = (pD->Cnt >> 10) & 0x1F;
+        Kind = (pD->Kind >> 10) & 0x1F;
+    }
+    Flg = pBest->Damage_flg | Kind << 8;
+    pBest->Damage_flg = Flg;
+    Dir = 0;
+    if (Side == 0) {
+        pBest->Damage_flg |= 1;
+        if (Best_v2.vx < 0) {
+            pBest->Damage_flg = (pBest->Damage_flg & 0xFFFC) | 3;
+            Dir = 2;
+        }
+        pBest->Life -= Dmg;
+        pBest->Damage_cnt = Cnt;
+        EM_SET_RTN(pBest, 2, Dir, 0, 0);
+        if (pBest->Life < 0) {
+            EM_SET_RTN(pBest, 3, Dir, 0, 0);
+            pBest->Damage_cnt |= 0x80;
+        }
+        pBest->Damage_flg |= Cdir_ck_pos(pPos->vx, pPos->vz, pBest) << 4;
+        return pBest;
+    } else {
+        X1 = Best_v.vx;
+        X0 = X1 + ((Best_v2.vx - X1) * pBest_h->Rate0 >> 8);
+        X1 += (Best_v2.vx - X1) * pBest_h->Rate1 >> 8;
+        Flg |= 1;
+        pBest->Damage_flg = Flg;
+        if (X0 < 0) {
+            pBest->Damage_flg = (pBest->Damage_flg & 0xFFFC) | 2;
+            Dir = 1;
+        }
+        if (X1 < 0) {
+            pBest->Damage_flg |= 3;
+            Dir = 2;
+        }
+        pBest->Life -= Dmg;
+        pBest->Damage_cnt = Cnt;
+        EM_SET_RTN(pBest, 2, Dir, 0, 0);
+        if (pBest->Life < 0) {
+            EM_SET_RTN(pBest, 3, Dir, 0, 0);
+            pBest->Damage_cnt |= 0x80;
+        }
+        pBest->Damage_flg |= Cdir_ck_pos(pPos->vx, pPos->vz, pBest) << 4;
+        return pBest;
+    }
+}
 
 /* position of pM1's origin in pM0's space */
 void Matrix_rel_pos(MATRIX *pM0, MATRIX *pM1, SVECTOR *pOut)
@@ -3129,7 +3304,185 @@ ULONG Em_near_pos_ck(VECTOR *pPos, LONG Ll0, LONG Ll1)
     return Ret;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pos_em_at_ck);
+/* damage request against the enemies (Unk0 0x80: also the player and sub player, 0x40: up to
+ * ppEnemy_end); the inner box (W2/D2) gives Damage2; returns the hit flags */
+LONG Pos_em_at_ck(HIT_REQ *pReq, HIT_ATTR *pAttr)
+{
+    ENEMY_WORK **ppEm;
+    ENEMY_WORK **ppEnd;
+    ENEMY_WORK *pEm;
+    EM_HIT_AREA *pH;
+    MATRIX *pTm;
+    VECTOR *pPos;
+    LONG i;
+    LONG Ret;
+    LONG Hit;
+    LONG Dmg;
+    ULONG Cnt;
+    ULONG Dmg_flg;
+    LONG Dir;
+    LONG Rt;
+    LONG w;
+    LONG d;
+    LONG X0;
+    LONG X1;
+    SHORT Top;
+    SHORT Bottom;
+    UCHAR Attr;
+    UCHAR Mode;
+    SVECTOR Sv;
+    MATRIX M;
+    MATRIX Mt;
+    VECTOR V;
+
+    Sv.vx = 0;
+    Sv.vy = pReq->R;
+    Sv.vz = 0;
+    RotMatrix_gte(&Sv, &M);
+    Sv.vx = pReq->W;
+    Sv.vy = 0;
+    Sv.vz = pReq->D;
+    ApplyMatrixSV(&M, &Sv, &Sv);
+    M.t[0] = pReq->pPos->vx + Sv.vx;
+    M.t[1] = pReq->pPos->vy;
+    M.t[2] = pReq->pPos->vz + Sv.vz;
+    i = 0;
+    Bottom = pAttr->Bottom;
+    Top = pAttr->Top;
+    TransposeMatrix(&M, &Mt);
+    SetRotMatrix(&Mt);
+    Attr = pAttr->Unk0;
+    pPos = (VECTOR *)M.t;
+    if (!(Attr & 0x80)) {
+        ppEm = &G.pEnemy[2];
+        i = 2;
+    } else {
+        ppEm = &G.pEnemy[0];
+    }
+    if (Attr & 0x40) {
+        ppEnd = G.ppEnemy_end;
+    } else {
+        ppEnd = &G.pEnemy[2];
+    }
+    if (ppEm == ppEnd) {
+        return 0;
+    }
+    Ret = 0;
+    do {
+        pEm = *ppEm;
+        i++;
+        if (!(pEm->Be_flg & 1)) {
+            goto next;
+        }
+        if (pEm->Damage_cnt != 0) {
+            goto next;
+        }
+        if (pEm->Type & 0xC000) {
+            goto next;
+        }
+        pH = &pEm->Hit_area;
+        pTm = pH->pM;
+        if (Sca_ck_line(pPos, (VECTOR *)pTm->t, 0x40, 1)) {
+            goto next;
+        }
+        V.vx = pTm->t[0] - pPos->vx;
+        V.vy = pTm->t[1] - pPos->vy;
+        V.vz = pTm->t[2] - pPos->vz;
+        ApplyRotMatrixLV(&V, &V);
+        if (Bottom > pEm->Hit_area.Top + V.vy) {
+            goto next;
+        }
+        if (Top < pH->Bottom + V.vy) {
+            goto next;
+        }
+        w = pAttr->W + pEm->Hit_area.R;
+        d = pAttr->D + pEm->Hit_area.R;
+        Hit = 0;
+        if ((ULONG)(V.vx + w) < (ULONG)(w * 2)) {
+            Hit = (ULONG)(d * 2) > (ULONG)(V.vz + d);
+        }
+        w = pAttr->W2 + pEm->Hit_area.R;
+        d = pAttr->D2 + pEm->Hit_area.R;
+        if ((ULONG)(V.vx + w) < (ULONG)(w * 2) && (ULONG)(V.vz + d) < (ULONG)(d * 2)) {
+            Hit = 2;
+        }
+        if (Hit == 0) {
+            goto next;
+        }
+        pEm->Damage_flg &= 0xC000;
+        pEm->Old_routine = EM_RTN(pEm);
+        if (Hit == 2) {
+            Dmg = pAttr->Damage2;
+            Cnt = pAttr->Damage_cnt2;
+        } else {
+            pEm->Damage_flg |= 4;
+            Dmg = pAttr->Damage;
+            Cnt = pAttr->Damage_cnt;
+        }
+        Dmg_flg = pEm->Damage_flg | 1;
+        pEm->Damage_flg = Dmg_flg;
+        Dir = 0;
+        X0 = pH->Top + V.vy + ((pH->Bottom - pH->Top) * pEm->Hit_area.Rate0 >> 8);
+        X1 = pH->Top + V.vy + ((pH->Bottom - pH->Top) * pEm->Hit_area.Rate1 >> 8);
+        if (X0 > 0) {
+            pEm->Damage_flg = (Dmg_flg & 0xFFFC) | 2;
+            Dir = 1;
+        }
+        if (X1 > 0) {
+            pEm->Damage_flg |= 3;
+            Dir = 2;
+        }
+        if (pH->Top + V.vy <= 0) {
+            Dir = 0;
+            pEm->Damage_flg = (pEm->Damage_flg & 0xFFFC) | 1;
+        }
+        if (pH->Bottom + V.vy >= 0) {
+            Dir = 2;
+            pEm->Damage_flg |= 3;
+        }
+        pEm->Damage_no = pAttr->Unk1;
+        pEm->Damage_cnt = Cnt;
+        Hit = Cdir_ck_pos(pPos->vx, pPos->vz, pEm);
+        if (i < 3) {
+            Rt = Hit + 8;
+            EM_SET_RTN(pEm, 2, (pEm->Damage_no - 0x18) * 2 + Rt, 0, 0);
+            Dmg >>= 1;
+            if (i == 1) {
+                Ret |= 0x80000001;
+                Mode = Attr & 0x20;
+                if (Pl_life_down(Dmg, Mode != 0) == 2) {
+                    EM_SET_RTN(pEm, 3, 0, 0, 0);
+                    pEm->Damage_cnt |= 0x80;
+                }
+            } else {
+                Ret |= 0x40000001;
+                Mode = Attr & 0x20;
+                if (Spl_life_sub(Dmg, Mode != 0) == 2) {
+                    EM_SET_RTN(pEm, 3, 0, 0, 0);
+                    pEm->Damage_cnt |= 0x80;
+                }
+            }
+        } else {
+            EM_SET_RTN(pEm, 2, Dir, 0, 0);
+            if (pEm->Status_flg & 0x100) {
+                Dmg >>= 1;
+            }
+            Ret |= 0x20000001;
+            if ((SHORT)(pEm->Life -= Dmg) < 0) {
+                EM_SET_RTN(pEm, 3, Dir, 0, 0);
+                pEm->Damage_cnt |= 0x80;
+                if (G.System_flg & 0x80) {
+                    Em_kill_score(pEm->Id, 1);
+                }
+            }
+        }
+        pEm->Damage_flg |= Hit << 4;
+        pEm->Damage_flg |= (Attr & 0x1F) << 8;
+next:
+        ppEm++;
+    } while (ppEm != ppEnd);
+    return Ret;
+}
 
 /* weapon hit check against the object model targets */
 LONG Weapon_om_at_ck(MATRIX *pM, PL_WEP_DATA *pW, ULONG Type)
