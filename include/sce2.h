@@ -14,6 +14,12 @@ extern UCHAR Subpl_ato[][2];
 extern UCHAR Subpl_run[][2];
 extern UCHAR Live_sel_mess_no[];
 extern UCHAR Game_st_flg;
+extern USHORT Chaser_item_room_tbl[13][2]; /* 0x8009E4D0 pairs of rooms that share Nemesis' drops */
+extern UCHAR Chaser_item_id_tbl[8];  /* item id of a new drop, by Chaser_drop_num */
+extern UCHAR Chaser_item_num_tbl[8];  /* item count of a drop, by drop number */
+extern struct tagVCUT Chaser_zone_30E_0;      /* room 0x30E zones: drops inside are moved (Chaser_item_set) */
+extern struct tagVCUT Chaser_zone_30E_1;
+extern USHORT D_800D2558;    /* added to 0xF0 for the item flag of a new drop */
 extern SHORT Chaser_life[];
 extern USHORT Chaser_evt_state;
 extern ULONG Chaser_flg[]; /* G+0x7E54: Nemesis encounter flags (Chaser_evt_clr) */

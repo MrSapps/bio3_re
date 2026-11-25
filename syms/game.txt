@@ -541,6 +541,15 @@ Om_fall_dir_z = 0x800DE61E;
 Om_fall_cdir_x = 0x800DE614; // Cdir_x of the pusher (Om_set_fall_dir)
 Om_fall_cdir_z = 0x800DE618;
 // Om_move_box: RE2 Pos_spd
+Om_fall_pos_spd = 0x800DD478;
+Om_fall_pos_spd_add = 0x800DD47A;
+Om_fall_dir_spd = 0x800DD47C;
+Om_fall_dir_spd_add = 0x800DD47E;
+Om_fall_y_spd = 0x800DD480;
+Om_fall_dir_sum = 0x800DD482;
+Om_fall_ground = 0x800DD484;
+Om_fall_add_dir = 0x800DD488;
+Om_fall_water_flg = 0x800DD490;
 Om_pos_spd = 0x800DD492;
 Om_pos_spd_add = 0x800DD494; // RE2 Pos_spd_add
 Om_dir_spd = 0x800DD496; // RE2 Dir_spd
@@ -839,3 +848,9 @@ Door_color_matrix = 0x80097594;
 Sca_block_list = 0x800DEB98;
 // St_mix_exec ammo mixing rates, [kind][5] {Cnt, Rate}
 Mix_rate_tbl = 0x800A0BF4;
+Chaser_item_id_tbl = 0x8009E4C0;
+Chaser_item_num_tbl = 0x8009E4C8;
+Chaser_zone_30E_0 = 0x8009E504;
+Chaser_zone_30E_1 = 0x8009E518;
+Pld_no = 0x8009CD10;
+pPl_hand_tmd = 0x8009CD34;

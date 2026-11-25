@@ -1418,7 +1418,34 @@ ULONG Cut_replace(SCE_TASK *pSce)
 }
 
 /* RE2 Cut_be_set: sets byte 0 of switch zone Data[2] of cut Data[1] to Data[3] (zone on/off) */
-INCLUDE_ASM("asm/nonmatchings/game/sce1", Cut_be_set);
+ULONG Cut_be_set(SCE_TASK *pSce)
+{
+    UCHAR *pCmd;
+    VCUT *pVc;
+    ULONG Cut;
+
+    pVc = G.pRoom->pVcut;
+    pCmd = pSce->Data;
+    Cut = pCmd[1];
+    if (pVc->Fcut != Cut) {
+        do {
+            pVc++;
+        } while (pVc->Fcut != Cut);
+        /* the nesting weights pCmd's refs (loop depth) so global-alloc ranks it above Cut */
+        do {
+            do {
+                do {
+                    pCmd = pSce->Data;
+                } while (0);
+            } while (0);
+        } while (0);
+    }
+    Cut = pCmd[2];
+    pVc += Cut;
+    pVc->Be_flg = pCmd[3];
+    pSce->Data += 4;
+    return 1;
+}
 
 /* RE2 Pos_set: sets the work's position (and old position) to the SHORT x, y, z operands */
 ULONG Pos_set(SCE_TASK *pSce)

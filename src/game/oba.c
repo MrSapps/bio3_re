@@ -569,7 +569,163 @@ LONG Oba_pos_em2_ck(VECTOR *pPos, ENEMY_WORK *pEm, ENEMY_WORK *pT)
 }
 
 /* character (Type<3) object against the collected COL_ENT records: overlap tests, Oba_box_push, push flags, Oba_push_obj_ck */
-INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_em_hit_ck);
+void Oba_em_hit_ck(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj)
+{
+    ULONG Area;
+    COL_ENT *pEnt;
+    COL_ENT *pE;
+    COL_OBJ *pT;
+    ULONG Be;
+    LONG Shape;
+    ULONG Hit;
+    ULONG Old;
+    LONG X;
+    LONG Z;
+    LONG X0;
+    LONG X1;
+    LONG Z0;
+    LONG Z1;
+    LONG Dx;
+    LONG Dz;
+    LONG Cx;
+    LONG Cz;
+    LONG R;
+    LONG Mx;
+    LONG Mz;
+    LONG Diff_z;
+
+    pE = pEnt = Oba_work.Ent;
+    Area = Sca_get_area((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
+    for (; pEnt->C.All != -1; pEnt = ++pE) {
+        if ((pEnt->Area & Area) != Area) {
+            continue;
+        }
+        if (!(pEnt->Id & Tbl)) {
+            continue;
+        }
+        if (pObj == pE->pObj) {
+            continue;
+        }
+        pT = pE->pObj;
+        if (pObj->pEm->Be_flg & pT->pEm->Be_flg & 0x800) {
+            continue;
+        }
+        if (pObj->Id == pT->Id) {
+            continue;
+        }
+        if (pE->Type >= 3) {
+            Be = pEm->Be_flg;
+            if ((Be & 0x8000) && (pT->pEm->Be_flg & 0x200)) {
+                continue;
+            }
+            if ((Be | pT->pEm->Be_flg) & 0x1000) {
+                continue;
+            }
+            if (pT->pEm->Be_flg & 0x4000) {
+                continue;
+            }
+        } else {
+            Be = pEm->Be_flg;
+            if (Be & 0x8000) {
+                continue;
+            }
+            if ((Be | pT->pEm->Be_flg) & 0x4000) {
+                continue;
+            }
+        }
+        Shape = pEnt->Id & 0xF;
+        Hit = 0;
+        if (Shape < 2) {
+            if (pObj->Pos_y - pObj->H >= pT->Pos_y) {
+                continue;
+            }
+            if (pT->Pos_y - pT->H >= pObj->Pos_y) {
+                continue;
+            }
+        }
+        Old = (pObj->Old_x << 16) | (USHORT)pObj->Old_z;
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+        if (Shape == 0) {
+            if ((pT->Hit_flg & 0x4000) || (pT->pEm->Be_flg & 0x8000)) {
+                X0 = pT->Pos_x - pT->W0;
+                X1 = pT->Pos_x + pT->W0;
+                Z0 = pT->Pos_z - pT->D0;
+                Z1 = pT->Pos_z + pT->D0;
+            } else {
+                X0 = pT->Old_x - pT->W0;
+                X1 = pT->Old_x + pT->W0;
+                Z0 = pT->Old_z - pT->D0;
+                Z1 = pT->Old_z + pT->D0;
+            }
+            Dx = pObj->Pos_x + W;
+            Dz = pObj->Pos_z + W;
+            X1 += W * 2;
+            Z1 += W * 2;
+            if ((ULONG)(Dx - X0) < (ULONG)(X1 - X0) && (ULONG)(Dz - Z0) < (ULONG)(Z1 - Z0)) {
+                R = pT->W0;
+                if ((pT->Hit_flg & 0x4000) || (pT->pEm->Be_flg & 0x8000)) {
+                    Cx = pT->Pos_x;
+                    Cz = pT->Pos_z;
+                } else {
+                    Cx = pT->Old_x;
+                    Cz = pT->Old_z;
+                }
+                Dz = pObj->Pos_z;
+                Dx = pObj->Pos_x;
+                Diff_z = Dz - Cz;
+                if (Dx != Cx || Diff_z != 0) {
+                    Hit |= Sca_hit_obj_circle(pObj, W, Cx, Cz, R, Old);
+                }
+            }
+        } else {
+            if (pEm->nFloor < pEnt->C.f.Floor_lo) {
+                continue;
+            }
+            if (pEnt->C.f.Floor_hi < pEm->nFloor) {
+                continue;
+            }
+            Dx = X + W;
+            Dz = Z + W;
+            X0 = pEnt->X0;
+            X1 = pEnt->X1;
+            Z0 = pEnt->Z0;
+            Z1 = pEnt->Z1;
+            X1 += W * 2;
+            Z1 += W * 2;
+            if ((ULONG)(Dx - X0) < (ULONG)(X1 - X0) && (ULONG)(Dz - Z0) < (ULONG)(Z1 - Z0)) {
+                if (pObj->Type == 0 && (pT->pEm->Be_flg & 0x100) && (G_status_flg & 0x10) && pObj->pEm->Damage_cnt == 0) {
+                    continue;
+                }
+                Hit = Oba_box_push(pObj, W, (SCA_DATA *)pEnt, Old);
+            }
+        }
+        if (Hit == 0) {
+            continue;
+        }
+        if (pE->Type != 4) {
+            Mx = pObj->Pos_x - X;
+            Mz = pObj->Pos_z - Z;
+            pObj->pEm->Pos_x += Mx;
+            pObj->pEm->Pos_z += Mz;
+            pObj->pEm->Base_pos_x += Mx;
+            pObj->pEm->Base_pos_z += Mz;
+        } else {
+            pObj->Pos_x = X;
+            pObj->Pos_z = Z;
+        }
+        pObj->Hit_flg |= 0x10;
+        if (pE->Type < 3) {
+            pObj->Unk3A |= 0x8000 >> pE->Em_idx;
+            pObj->Unk3 = pE->Em_idx;
+        }
+        pT->Unk3A |= 0x8000 >> pObj->Em_idx;
+        pT->Unk3 = pObj->Em_idx;
+        if (pE->Type >= 3 && pObj->Type == 0) {
+            Oba_push_obj_ck(pObj, pE, (ULONG)pT, Shape);
+        }
+    }
+}
 
 /* player against a pushable object record (Type 7 / 8) */
 void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
@@ -594,7 +750,42 @@ void Oba_push_obj_ck(COL_OBJ *pObj, COL_ENT *pEnt, ULONG Arg2, ULONG Type)
 }
 
 /* fills Tmp_Sca (SCA_DATA) with the box of a COL_OBJ (Id 0xFE40, all areas) for Sca_hit_all */
-INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_tmp_sca_set);
+void Oba_tmp_sca_set(COL_OBJ *pObj, SCA_DATA *pT)
+{
+    COL_ENT Unused; /* the frame has an unused 0x18-byte local */
+    COL_ENT *pEnt;
+    LONG X;
+    LONG Z;
+    LONG W;
+    LONG Y;
+    signed char Fl;
+    LONG Hi;
+    LONG Lo;
+
+    pEnt = (COL_ENT *)&Tmp_Sca;
+    pEnt->Id = 0xFE40;
+    pEnt->Area = 0xF00;
+    X = pObj->Pos_x;
+    W = pObj->W0;
+    Z = pObj->Pos_z;
+    pEnt->X0 = X - W;
+    pEnt->Z0 = Z - W;
+    pEnt->X1 = X + W;
+    pEnt->Z1 = Z + W;
+    Y = pObj->Pos_y;
+    Y -= pObj->H;
+    Y <<= 16;
+    Fl = pObj->pEm->nFloor;
+    Hi = (Fl << 8) & 0xFF00;
+    /* the nested do/while raises the refs of Fl's low byte above the shifted copy (local-alloc order) */
+    do {
+        do {
+            Lo = Fl & 0xFF;
+        } while (0);
+    } while (0);
+    pEnt->C.All = Y | (Hi | Lo);
+    Oba_ent_floor_set(pObj, pEnt);
+}
 
 /* after Sca_hit_all: still overlapping another character record -> Hit_flg |= 0x100 (move reverted in Oba_push_all) */
 INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_em_overlap_ck);

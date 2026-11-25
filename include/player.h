@@ -7,6 +7,8 @@
 typedef void (*PL_FUNC)(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
 typedef void (*PL_PAD_FUNC)(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg);
 
+extern USHORT Pld_no[16];              /* 0x8009CD10 RE2 Pld_no: PLD file number by player Id */
+extern struct tagMD_OBJ *pPl_hand_tmd;  /* 0x8009CD34 model object of the hand part (pSin_parts_ptr[4]) */
 extern PL_FUNC Pl_routine[];           /* 0x8009CD40 index Routine_0 */
 /* move slots (Routine_1): 0 stand, 1 walk, 2 run, 3 back, 4 turn, 5 weapon, 6 quick turn, 7, 8,
  * 9 push (pl_mv0a), 0xA/0xE/0xF walk/back/run on a slope, 0xB, 0xC, 0xD */
