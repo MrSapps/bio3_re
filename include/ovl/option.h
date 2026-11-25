@@ -17,8 +17,8 @@ typedef struct tagOPT_FILE {
 /* animated background piece (0x60 bytes, 20 of them) */
 typedef struct tagOPT_PIECE {
     UCHAR Be_flg;                      /* 0x00 */
-    UCHAR Id;                          /* 0x01 shape (index into D_801C5500) */
-    UCHAR Type;                        /* 0x02 animation script (index into D_801C5548) */
+    UCHAR Id;                          /* 0x01 shape (index into Config_piece_shape) */
+    UCHAR Type;                        /* 0x02 animation script (index into Config_piece_anim) */
     UCHAR Anim_no;                     /* 0x03 frame */
     UCHAR *pAnim;                      /* 0x04 {frame, time} pairs, 0xFF ends */
     SHORT Pos_x;                       /* 0x08 x << 6 */
@@ -30,7 +30,7 @@ typedef struct tagOPT_PIECE {
 
 /* option screen work (0x801C55A0, 0x1E04 bytes) */
 typedef struct tagOPT_WORK {
-    signed char Routine;               /* 0x00 page: index into D_801C5554 (main) / D_801C556C (draw) */
+    signed char Routine;               /* 0x00 page: index into Config_padd (main) / Config_padd_disp (draw) */
     signed char Step;                  /* 0x01 sub step of the current routine */
     signed char Routine_next;          /* 0x02 */
     UCHAR Vloop_bak;                   /* 0x03 Main.Vloop */
@@ -73,48 +73,55 @@ typedef struct tagOPT_WORK {
 /* the overlay .data is still asm, so data names are bound to its labels */
 extern OPT_WORK Opt;
 
-extern OPT_FILE D_801C53FC[4]; /* Option.dat pieces */
-extern UCHAR D_801C541C[4]; /* their check sums */
-extern signed char D_801C5420[]; /* glyph left/right spacing, 2 per glyph */
-extern char D_801C5474[][3]; /* glyph table: fullwidth chars in font order */
-extern UCHAR D_801C54F8[4]; /* button icon per pad type */
-extern SHORT D_801C54FC[2]; /* pad type icon position */
-extern UCHAR D_801C5500[9][4]; /* piece shapes: size, ?, u, v */
-extern UCHAR *D_801C5548[3]; /* piece animation scripts by type */
-extern void (*D_801C5554[6])(void); /* page main routines by Opt.Routine */
-extern void (*D_801C556C[6])(void); /* page draw routines by Opt.Routine */
-extern ULONG D_801C558C; /* SE volume arrow right lit */
-extern ULONG D_801C5590; /* SE volume arrow left lit */
-extern ULONG D_801C5594; /* pad type arrow right lit */
-extern ULONG D_801C5598; /* pad type arrow left lit */
+extern OPT_FILE Config_file_tbl[4]; /* Option.dat pieces */
+extern UCHAR Config_file_sum[4]; /* their check sums */
+extern signed char Config_moji_space[]; /* glyph left/right spacing, 2 per glyph */
+extern char Config_moji_tbl[][3]; /* glyph table: fullwidth chars in font order */
+extern UCHAR Config_pad_icon[4]; /* button icon per pad type */
+extern SHORT Config_pad_icon_pos[2]; /* pad type icon position */
+/* background piece shape (Config_piece_shape) */
+typedef struct tagOPT_SHAPE {
+    UCHAR Size;                        /* 0x0 width = height, also the u step per animation frame */
+    UCHAR pad1;
+    UCHAR U;                           /* 0x2 texture position of frame 0 */
+    UCHAR V;                           /* 0x3 */
+} OPT_SHAPE;
+extern OPT_SHAPE Config_piece_shape[9];
+extern UCHAR *Config_piece_anim[3]; /* piece animation scripts by type */
+extern void (*Config_padd[6])(void); /* page main routines by Opt.Routine */
+extern void (*Config_padd_disp[6])(void); /* page draw routines by Opt.Routine */
+extern ULONG Config_se_arrow_r; /* SE volume arrow right lit */
+extern ULONG Config_se_arrow_l; /* SE volume arrow left lit */
+extern ULONG Config_pad_arrow_r; /* pad type arrow right lit */
+extern ULONG Config_pad_arrow_l; /* pad type arrow left lit */
 
-void func_801C21B0(void);
-void func_801C2688(void);
-void func_801C2850(void);
-void func_801C2AC4(void);
-void func_801C2C58(void);
-void func_801C30E8(void);
-void func_801C31C8(void);
-void func_801C3278(void);
-void func_801C336C(void);
-void func_801C3460(void);
-void func_801C3780(void);
-void func_801C3904(void);
-void func_801C3A58(void);
-void func_801C3BDC(void);
-void func_801C3C90(void);
-void func_801C435C(void);
-void func_801C45DC(void);
-void func_801C46F4(void);
-void func_801C4748(void);
-void func_801C4940(void);
-void func_801C4A70(LONG X, LONG Y, char *pStr, LONG Dark, LONG Mode);
-void func_801C4C94(LONG X, LONG Y, ULONG Num);
-LONG func_801C4DAC(char *pA, char *pB);
-void func_801C4DE0(LONG X, LONG Y, ULONG Pad, ULONG On);
-void func_801C4E9C(void);
-void func_801C4EB8(void);
-void func_801C50B4(void);
-void func_801C5348(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y);
+void Config(void);
+void Config_padd_opt(void);
+void Config_opt_disp(void);
+void Config_init(void);
+void Config_prim_init(void);
+void Config_exit(void);
+void Config_bg_disp(void);
+void Config_bg_load(void);
+void Config_pad_tim_load(void);
+void Config_padd_con(void);
+void Config_con_disp(void);
+void Config_pad_disp(void);
+void Config_padd_vib(void);
+void Config_vib_disp(void);
+void Config_padd_snd(void);
+void Config_snd_disp(void);
+void Config_padd_clr(void);
+void Config_clr_disp(void);
+void Config_padd_res(void);
+void Config_res_disp(void);
+void Config_moji_disp(LONG X, LONG Y, char *pStr, LONG Dark, LONG Mode);
+void Config_suuji(LONG X, LONG Y, ULONG Num);
+LONG Config_moji_cmp(char *pA, char *pB);
+void Config_arrow_disp(LONG X, LONG Y, ULONG Pad, ULONG On);
+void Config_page_exit(void);
+void Config_piece_move(void);
+void Config_piece_disp(void);
+void Config_piece_set(LONG Id, LONG Type, LONG X, LONG Y, SHORT Rot_y);
 
 #endif /* OVL_OPTION_H */
