@@ -969,7 +969,7 @@ void Em30_bite(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.pad = 1400;
             }
             Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
-            Area.pBox = (SHORT *)&Sv;
+            Area.pBox = &Sv.vx;
             Area.Dir = pEm->Cdir_y;
             Area.Id = 0x85;
             func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
@@ -1396,7 +1396,7 @@ void Em30_ambush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.vy = 0;
                 Sv.pad = 1500;
                 Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
-                Area.pBox = (SHORT *)&Sv;
+                Area.pBox = &Sv.vx;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x85;
                 func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
@@ -1406,7 +1406,7 @@ void Em30_ambush(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
                 Sv.vy = 0;
                 Sv.pad = 1400;
                 Area.pPos = (VECTOR *)pEm->pSin_parts_ptr[8].Workm.t;
-                Area.pBox = (SHORT *)&Sv;
+                Area.pBox = &Sv.vx;
                 Area.Dir = pEm->Cdir_y;
                 Area.Id = 0x85;
                 func_800445C8(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);

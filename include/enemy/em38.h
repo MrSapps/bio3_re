@@ -12,6 +12,7 @@
  */
 #include "bio3.h"
 #include "enemy/em_common.h"
+#include "enemy/parts_free.h"
 #include "em_sub.h"
 #include "oba.h"
 #include "main.h"
@@ -22,27 +23,29 @@
 
 /* em38's view of ENEMY_WORK.Unk1CC[12] (RE2 ENEMY_WORK.Free[]) */
 typedef struct tagEM38_FREE {
-    struct tagENEMY_WORK *pUnk00;      /* 0x00 (0x1CC) */
-    struct tagENEMY_WORK *pUnk04;      /* 0x04 (0x1D0) */
-    USHORT Flg;                        /* 0x08 (0x1D4) */
-    UCHAR Unk0A;                       /* 0x0A (0x1D6) timer */
-    UCHAR Unk0B;                       /* 0x0B (0x1D7) timer */
-    SHORT Unk0C;                       /* 0x0C (0x1D8) */
-    SHORT Unk0E;                       /* 0x0E (0x1DA) */
-    UCHAR Unk10;                       /* 0x10 (0x1DC) */
-    signed char Unk11;                 /* 0x11 (0x1DD) */
-    signed char Unk12;                 /* 0x12 (0x1DE) */
-    signed char Unk13;                 /* 0x13 (0x1DF) */
-    SHORT Unk14;                       /* 0x14 (0x1E0) last Cdir_y */
-    UCHAR Unk16;                       /* 0x16 (0x1E2) */
-    UCHAR Unk17;                       /* 0x17 (0x1E3) */
-    UCHAR Unk18;                       /* 0x18 (0x1E4) breath state (func_8010BAD0) */
-    signed char Unk19;                 /* 0x19 (0x1E5) puff counter (func_8010BAD0) */
-    SHORT Unk1A;                       /* 0x1A (0x1E6) breath direction */
-    UCHAR Unk1C;                       /* 0x1C (0x1E8) timer */
-    UCHAR Unk1D;                       /* 0x1D (0x1E9) timer */
-    SHORT Unk1E;                       /* 0x1E (0x1EA) timer */
-    SHORT Unk20;                       /* 0x20 (0x1EC) frames the player has been out of sight */
+    struct tagENEMY_WORK *pTentacle0;  /* 0x00 (0x1CC) first em39 work (id 0x39) of the room */
+    struct tagENEMY_WORK *pTentacle1;  /* 0x04 (0x1D0) second em39 work */
+    USHORT Flg;                        /* 0x08 (0x1D4) 2 walking a root, 4/8 turning, 0x10 scenario
+                                                       (no part chain), 0x20 player in sight, 0x40 dying,
+                                                       0x80 outside the camera cut */
+    UCHAR Atk_timer;                   /* 0x0A (0x1D6) no claw / grab / lunge while set */
+    UCHAR Turn_timer;                  /* 0x0B (0x1D7) no turn while set */
+    SHORT Head_tgt;                    /* 0x0C (0x1D8) head turn wanted (towards the player) */
+    SHORT Head_dir;                    /* 0x0E (0x1DA) head turn */
+    UCHAR Shake_no;                    /* 0x10 (0x1DC) head shake after a hit: 1 start, 2 out, 3 back */
+    signed char Shake_cnt;             /* 0x11 (0x1DD) */
+    signed char Shake_side;            /* 0x12 (0x1DE) +1 / -1 */
+    signed char Shake_amp;             /* 0x13 (0x1DF) */
+    SHORT Old_dir;                     /* 0x14 (0x1E0) Cdir_y before the routine */
+    UCHAR Root_no;                     /* 0x16 (0x1E2) walk target (Em38_root[]) */
+    UCHAR Wall_spit;                   /* 0x17 (0x1E3) spits left before dropping from the wall */
+    UCHAR Breath;                      /* 0x18 (0x1E4) breath state (Em38_breath) */
+    signed char Puff_cnt;              /* 0x19 (0x1E5) breath puff counter */
+    SHORT Breath_dir;                  /* 0x1A (0x1E6) breath direction */
+    UCHAR Bite_timer;                  /* 0x1C (0x1E8) no swallow while set */
+    UCHAR Spit_timer;                  /* 0x1D (0x1E9) no spit while set */
+    SHORT Wall_timer;                  /* 0x1E (0x1EA) no climbing while set; time on the wall */
+    SHORT Lost_cnt;                    /* 0x20 (0x1EC) frames the player has been out of sight */
 } EM38_FREE;
 
 /* morph (sabun) data at PARTS_W.pUnk98 (sabun.c) */
@@ -61,14 +64,9 @@ typedef struct tagEM38_SABUN {
 #define EM38_W(p) ((EM38_FREE *)(p)->Unk1CC)
 /* Spd_x/Spd_y cleared as one word */
 #define EM_SPD_XY(p) (*(ULONG *)&(p)->Spd_x)
-/* PARTS_W.Unk74.. used as two words (RE2 PARTS_W.Free[]): fade count and colour */
-#define PW_FREEL(p) ((ULONG *)&(p)->Unk74)
-/* the same free work as halfwords */
-#define PW_FREES(p) ((SHORT *)&(p)->Unk74)
-
 /* parts swelling with the body in the transformation (module .data Em38_swell) */
 typedef struct tagEM38_SWELL {
-    UCHAR Num0;                        /* 0x00 parts given the size with func_8010C9A4 */
+    UCHAR Num0;                        /* 0x00 parts given the size with Em38_part_scale_pos */
     UCHAR Num1;                        /* 0x01 parts given the size directly */
     UCHAR Parts[14];                   /* 0x02 part numbers */
 } EM38_SWELL;
@@ -83,8 +81,6 @@ typedef struct tagEM38_ROOT {
     SHORT pad1E;                       /* 0x1E */
 } EM38_ROOT;
 #define EM38_ROOT_CUT(r) ((VCUT *)&(r)->Pos_z)
-
-/* exe functions without a shared prototype (signatures as defined in src/game) */
 
 extern USHORT Em38_cnt; /* counter bumped by the head sway */
 extern EM38_ROOT Em38_root[];
@@ -116,75 +112,75 @@ extern COL_OBJ Em38_col[5]; /* extra collision objects */
 extern MATRIX Em38_spit_m; /* effect matrix of sce04 */
 extern UCHAR Em38_pulse_no; /* index into Em38_pulse (module BSS) */
 
-void func_80100154(ENEMY_WORK *pEm);
-void func_80100714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801011D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101214(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101298(ENEMY_WORK *pEm);
-void func_80101364(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801013C0(ENEMY_WORK *pEm);
-void func_80101714(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801018A8(ENEMY_WORK *pEm);
-void func_8010195C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101AC4(void);
-void func_80101ACC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80101C4C(void);
-void func_80101C54(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102068(void);
-void func_80102070(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102940(void);
-void func_80102948(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80102E94(void);
-void func_80102E9C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103468(void);
-void func_80103470(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801037E8(ENEMY_WORK *pEm);
-void func_801038E8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80103FF0(void);
-void func_80103FF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104718(ENEMY_WORK *pEm);
-void func_80104828(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80104D84(ENEMY_WORK *pEm);
-void func_80104F34(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801050C4(void);
-void func_801050CC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80105424(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80105600(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80105784(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801059EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80105D8C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80105F44(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801060EC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80106128(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801064C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801075D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801081C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80108FD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80109394(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010955C(void);
-void func_80109564(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_801095A0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80109948(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80109BD8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80109DF0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80109F14(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_80109F50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010A1C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
-void func_8010A480(ENEMY_WORK *pEm);
-void func_8010A574(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Lim);
-void func_8010A7D4(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
-void func_8010A924(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
-void func_8010AA3C(ENEMY_WORK *pEm);
-void func_8010B02C(ENEMY_WORK *pEm);
-void func_8010B1E8(ENEMY_WORK *pEm);
-void func_8010B550(ENEMY_WORK *pEm);
-void func_8010B6BC(void);
-void func_8010B6C4(ENEMY_WORK *pEm);
-void func_8010B848(ENEMY_WORK *pEm);
-void func_8010B94C(ENEMY_WORK *pEm);
-void func_8010BAD0(ENEMY_WORK *pEm);
-void func_8010C03C(ENEMY_WORK *pEm);
-void func_8010C3E8(ENEMY_WORK *pEm);
-void func_8010C9A4(ENEMY_WORK *pEm, PARTS_W *pP, LONG Rate);
+void Em38_main(ENEMY_WORK *pEm);
+void Em38_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_Move_type00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_wait_br(ENEMY_WORK *pEm);
+void Em38_wait(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_walk_br(ENEMY_WORK *pEm);
+void Em38_walk(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_back_br(ENEMY_WORK *pEm);
+void Em38_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_turn_br(ENEMY_WORK *pEm);
+void Em38_turn(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_claw_br(ENEMY_WORK *pEm);
+void Em38_claw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_swallow_br(ENEMY_WORK *pEm);
+void Em38_swallow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_spit_br(ENEMY_WORK *pEm);
+void Em38_spit(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_spit_far_br(ENEMY_WORK *pEm);
+void Em38_spit_far(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_grab_br(ENEMY_WORK *pEm);
+void Em38_grab(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_climb_br(ENEMY_WORK *pEm);
+void Em38_climb(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_drop_br(ENEMY_WORK *pEm);
+void Em38_drop(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_burrow_br(ENEMY_WORK *pEm);
+void Em38_burrow(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_wall_br(ENEMY_WORK *pEm);
+void Em38_wall(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_lunge_br(ENEMY_WORK *pEm);
+void Em38_lunge(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_dm_normal(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_dm_big(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_dm_head(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_Die(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_die_retreat(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_Scenario(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_sce_rise(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_sce_swell(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_sce_burst(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_sce03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_sce_spit(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_sce_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_Dead(ENEMY_WORK *pEm);
+void Pldamege_Em38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_pldm_slam(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_pldm_throw(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_pldm_down(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_pldm_back(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Pldie_Em38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_pldie01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq);
+void Em38_chain_set(ENEMY_WORK *pEm);
+void Em38_chain_turn(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1, SHORT Lim);
+void Em38_chain_slope_end(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
+void Em38_chain_slope(ENEMY_WORK *pEm, PARTS_W *pP0, PARTS_W *pP1);
+void Em38_morph_body(ENEMY_WORK *pEm);
+void Em38_foot_dust(ENEMY_WORK *pEm);
+void Em38_head_move(ENEMY_WORK *pEm);
+void Em38_blood_head(ENEMY_WORK *pEm);
+void Em38_dummy(void);
+void Em38_fire_smoke(ENEMY_WORK *pEm);
+void Em38_acid_spark(ENEMY_WORK *pEm);
+void Em38_blast_light(ENEMY_WORK *pEm);
+void Em38_breath(ENEMY_WORK *pEm);
+void Em38_pustule(ENEMY_WORK *pEm);
+void Em38_pustule_shell(ENEMY_WORK *pEm);
+void Em38_part_scale_pos(ENEMY_WORK *pEm, PARTS_W *pP, LONG Rate);
 
 #endif /* OVL_EM38_H */
