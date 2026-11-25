@@ -40,16 +40,16 @@ void func_801001EC(ENEMY_WORK *pEm)
     Em16_routine_0[pEm->Routine_0](pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr);
     if (pEm->Water) {
         if (pEm->pSin_parts_ptr->Workm.t[1] - 500 < pEm->Water && (pEm->Move_cnt & 0xF) == 1 && pEm->Spd_x >= 11)
-            func_8010C140(pEm);
+            Em10_water(pEm);
         if ((*pEm->pNow_seq & 0xF000) == 0x1000)
-            func_8010C140(pEm);
+            Em10_water(pEm);
         if ((*pEm->pNow_seq & 0xF000) == 0x7000)
-            func_8010C140(pEm);
+            Em10_water(pEm);
     }
     func_8001AECC(pEm, 0xFDA80001, 0x4B00006);
     EM16_W(pEm)->Cnt++;
     if (*pFlg & 0x180)
-        func_8010393C(pEm);
+        Em10_Kubigoro(pEm);
     EM16_W(pEm)->Routine = *(ULONG *)&pEm->Routine_0;
     Em_seq_sound(pEm);
 }
@@ -494,7 +494,7 @@ void func_8010043C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_Move */
-void func_80101804(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     Em16_Move_type[pEm->Type & 0xF](pEm, pKan, pSeq);
 }
@@ -514,7 +514,7 @@ void func_801018C8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_Damage */
-void func_8010194C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_Damage(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv;                        /* unused (frame size) */
     LONG Lim;
@@ -608,7 +608,7 @@ void func_80101CB4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
             func_80108450(pEm);
     }
     if (pEm->Type & 1) {
-        func_8010A504(pEm, pKan, pSeq);
+        Em10_die01(pEm, pKan, pSeq);
         return;
     }
     if (EM16_W(pEm)->Flg & 0x10) {
@@ -648,7 +648,7 @@ void func_80101E94(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_sce00 */
-void func_80101F50(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_sce00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -874,12 +874,12 @@ void func_80102748(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Water) {
         pP = pEm->pSin_parts_ptr;
         if (pP->Workm.t[1] - 500 < pEm->Water && (pEm->Move_cnt & 7) == 1)
-            func_8010C140(pEm);
+            Em10_water(pEm);
     }
 }
 
 /* RE2 Em10_pldm00: the player (pEm) is bitten from the front or back (Routine_1 & 1) */
-void func_801027D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_pldm00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv;
     UCHAR Mot[2] = { 0, 3 };
@@ -1115,12 +1115,12 @@ void func_801034D4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     if (pEm->Water) {
         pP = pEm->pSin_parts_ptr;
         if (pP->Workm.t[1] - 500 < pEm->Water && (pEm->Move_cnt & 7) == 1)
-            func_8010C140(pEm);
+            Em10_water(pEm);
     }
 }
 
 /* RE2 Em10_pldie00: the player (pEm) is eaten */
-void func_80103564(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_pldie00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     PARTS_W *pP;
     SVECTOR Sv;
@@ -1214,7 +1214,7 @@ void func_80103564(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_Kubigoro: the head rolling after it was shot off */
-void func_8010393C(ENEMY_WORK *pEm)
+void Em10_Kubigoro(ENEMY_WORK *pEm)
 {
     MATRIX M;
     SVECTOR Tmp_sv = { 300, -300, 0 };
@@ -1277,7 +1277,7 @@ void func_80103CE4(void) {
 }
 
 /* RE2 Em10_mv00_br */
-void func_80103CEC(ENEMY_WORK *pEm)
+void Em10_mv00_br(ENEMY_WORK *pEm)
 {
     SHORT Dir0;
     SHORT Dir1;
@@ -1297,7 +1297,7 @@ void func_80103CEC(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_mv00: standing / swaying in place */
-void func_80103DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv00(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1334,7 +1334,7 @@ void func_80103DD0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_mv01_br */
-void func_80103FA0(ENEMY_WORK *pEm)
+void Em10_mv01_br(ENEMY_WORK *pEm)
 {
     SHORT Dir0;
     SHORT Dir1;
@@ -1367,7 +1367,7 @@ void func_80103FA0(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_mv01: walking */
-void func_80104194(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Dir;
     SHORT Spd;
@@ -1431,7 +1431,7 @@ void func_80104194(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_mv02_br */
-void func_80104570(ENEMY_WORK *pEm)
+void Em10_mv02_br(ENEMY_WORK *pEm)
 {
     SHORT Dir0;
     SHORT Dir1;
@@ -1464,7 +1464,7 @@ void func_80104570(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_mv02: walking towards the player */
-void func_80104764(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv02(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd;
     ENEMY_WORK *pPl;
@@ -1522,7 +1522,7 @@ void func_80104A68(void) {
 }
 
 /* RE2 Em10_mv03: grabbing and biting the player */
-void func_80104A70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Type_mot[4][2] = { { 12, 12 }, { 15, 15 }, { 12, 12 }, { 15, 15 } };
     SVECTOR Sv;
@@ -1721,7 +1721,7 @@ void func_80104A70(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_mv04_br (crawling) */
-void func_8010532C(ENEMY_WORK *pEm)
+void Em10_mv04_br(ENEMY_WORK *pEm)
 {
     ULONG LL;
     ENEMY_WORK *pPl;
@@ -1748,7 +1748,7 @@ void func_8010532C(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_mv04: crawling */
-void func_80105458(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv04(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -1850,7 +1850,7 @@ void func_8010590C(void) {
 }
 
 /* RE2 Em10_mv06: falling down and getting up again */
-void func_80105914(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Mot[3][2] = { { 1, 3 }, { 24, 23 }, { 9, 10 } };
     SVECTOR Sv;
@@ -2075,7 +2075,7 @@ void func_801062F4(void) {
 }
 
 /* RE2 Em10_mv0a: eating a corpse */
-void func_801062FC(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv0a(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Mot[8] = { 19, 20, 21, 19, 20, 21, 19, 20 };
     SVECTOR Sv;
@@ -2151,7 +2151,7 @@ void func_80106624(void) {
 }
 
 /* RE2 Em10_mv0b: knocked down by a push, then getting up (or falling as in Em10_mv06) */
-void func_8010662C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Down_mot[2][2] = { { 4, 4 }, { 5, 14 } };
     UCHAR Mot[3][2] = { { 1, 3 }, { 24, 23 }, { 9, 10 } };  /* as Em10_mv06 */
@@ -2221,7 +2221,7 @@ void func_80106940(void) {
 }
 
 /* RE2 Em10_mv0d_br */
-void func_80106948(ENEMY_WORK *pEm)
+void Em10_mv0d_br(ENEMY_WORK *pEm)
 {
     SHORT Dir0;
     ULONG LL;
@@ -2251,7 +2251,7 @@ void func_80106948(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_mv0d: staggering about */
-void func_80106AF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv0d(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     LONG LL;
     SHORT Dir;
@@ -2303,7 +2303,7 @@ void func_80106AF8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_mv0e_br */
-void func_80106D98(ENEMY_WORK *pEm)
+void Em10_mv0e_br(ENEMY_WORK *pEm)
 {
     SHORT Dir;
     ULONG LL;
@@ -2323,7 +2323,7 @@ void func_80106D98(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_mv0e: lunging forward */
-void func_80106E7C(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv0e(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     switch (pEm->Routine_2) {
     case 0:
@@ -2374,7 +2374,7 @@ void func_8010703C(void) {
 }
 
 /* RE2 Em10_mv10: vomiting */
-void func_80107044(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_mv10(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SVECTOR Sv;
     PARTS_W *pP;
@@ -3248,7 +3248,7 @@ void func_80109210(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* falls to the ground (RE2 Em10_dm06-like) */
-void func_801097B0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_dm06(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     SHORT Spd[2] = { -450, 250 };      /* unused */
     SVECTOR Sv;
@@ -3544,7 +3544,7 @@ void func_8010A1D8(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 }
 
 /* RE2 Em10_die01 */
-void func_8010A504(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+void Em10_die01(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
 {
     UCHAR Mot[2] = { 1, 3 };           /* unused */
     SVECTOR Sv;
@@ -4194,7 +4194,7 @@ void func_8010C024(ENEMY_WORK *pEm)
 }
 
 /* RE2 Em10_water: splash where the body meets the water surface */
-void func_8010C140(ENEMY_WORK *pEm)
+void Em10_water(ENEMY_WORK *pEm)
 {
     SVECTOR Sv;
     SVECTOR Sv1;
