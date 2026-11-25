@@ -91,8 +91,8 @@ typedef struct tagSTAFF_MESS {
 } STAFF_MESS;
 
 /* G.Ctp.Tpage_clut (texture page / clut row used by Mapping_tim) referenced as a scalar,
- * as other game files do with D_800CCBBC: the code addresses it by symbol, not via &G */
-extern USHORT G_tpage_clut __asm__("D_800CCBBC");
+ * as other game files do with Mapping_tpage_clut: the code addresses it by symbol, not via &G */
+extern USHORT G_tpage_clut __asm__("Mapping_tpage_clut");
 
 /* overlay .data (still in asm) */
 extern UCHAR Staff_mess_data[];

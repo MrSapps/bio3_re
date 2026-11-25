@@ -273,7 +273,7 @@ void Init_main(void)
     pMain = &Main;
     Card_event_set();
     Cd_read(0x63, (ULONG *)0x8011A000, 1, "TEX_TIM");
-    D_800CCBBC = 0x1C;
+    Mapping_tpage_clut = 0x1C;
     Mapping_tim((ULONG *)0x8011A000);
     for (i = 0; i < 2; i++) {
         pDb = &pMain->Db[i];

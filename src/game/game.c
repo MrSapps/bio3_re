@@ -165,7 +165,7 @@ set:
     pG->Sub_work.Col.Id = 0;
     Esp_init_C();
     Trans_work_init();
-    func_8006D720();
+    St_tex_load();
     Em_move_tbl_set();
     Spl_set();
     Set_stage();

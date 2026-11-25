@@ -177,14 +177,14 @@ void Key_lost(void)
     if (Rtn == 0) {
         if ((Moji.Mess_flg & 0x80) == 0) {
             if (pG->Unk7848 == 0) {
-                func_8006CD68(D_800DEC98);
+                Item_delete(D_800DEC98);
             }
             pG->Front_func = NULL;
         }
     } else {
         D_800DEC98 = Rtn - 1;
         if ((Moji.Mess_flg & 0x80) == 0) {
-            if (func_8006CCF0(D_800DEC98, 1, 1) == 0) {
+            if (Item_decrease(D_800DEC98, 1, 1) == 0) {
                 Mess_set(0, 0, 0x10, 0xff000000);
                 pG->Unk2468 |= 0xff000000;
             } else {

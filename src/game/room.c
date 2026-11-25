@@ -13,7 +13,7 @@
 #define RND() ((signed char)Rnd())
 
 
-void func_80071510_(LONG Stage, LONG Room) __asm__("func_80071510"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
+void func_80071510_(LONG Stage, LONG Room) __asm__("Map_visit_set"); /* arg 1 long (canonical UC); arg 2 long (canonical UC) */
 
 /* load and set up the room (RE2 Set_room) */
 void Set_room(void)
@@ -87,7 +87,7 @@ void Set_room(void)
         }
         pPl->Max_life = 200;
         pPl->Id = pG->Unk784E;
-        func_8006ECB0(pG->Unk784E);
+        St_chenge_pl(pG->Unk784E);
         Player_set(pPl);
         *(ULONG *)&pPl->Routine_0 = 0;
     }

@@ -645,7 +645,7 @@ UCHAR *name_ptr_set(UCHAR No)
     UCHAR *pTop;
     USHORT *pOfs;
 
-    Flg = D_800A0514[No][2];
+    Flg = Item_data_tbl[No][2];
     pTop = D_8009BEE4;
     pOfs = D_8009C7C0;
     if (Flg != 0 && Flg_ck(D_800D2048, Flg)) {

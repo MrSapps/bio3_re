@@ -901,7 +901,7 @@ void func_80195C68(TITLE_WORK *pTi)
             Flg_on(G.Unk77F8, 0x1F);
         }
     }
-    func_8006D0D8();
+    Status_init();
     if (G.System_flg & 0x80) {
         G.Unk2115 = 2;
     } else {
@@ -1292,7 +1292,7 @@ start:
     G.Score = 0;
     G.Unk2116 = 0;
     G.Next_cut_no = G.Cut_no;
-    func_8006D0D8();
+    Status_init();
     Task_execute(1, D_80031BDC);
     pTi->Main_rtn = 4;
 }

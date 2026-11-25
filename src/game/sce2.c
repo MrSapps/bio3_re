@@ -44,7 +44,7 @@ ULONG func_80055A18(SCE_TASK *pSce)
             break;
         }
         p = &G.pUnk7C7C->Item[i];
-        if (((ITEM_TBL4 *)D_800A0514)[p->Id].Max >= p->Num + Num) {
+        if (((ITEM_TBL4 *)Item_data_tbl)[p->Id].Max >= p->Num + Num) {
             return 1;
         }
         i++;
@@ -1174,7 +1174,7 @@ ULONG Flr_set(SCE_TASK *pSce)
 
 ULONG Sce_Item_lost(SCE_TASK *pSce)
 {
-    func_8006CD68(Search_item_id_(pSce->Data[1], 0));
+    Item_delete(Search_item_id_(pSce->Data[1], 0));
     pSce->Data += 2;
     return 1;
 }

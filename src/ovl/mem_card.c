@@ -6,7 +6,7 @@
 #include "sld.h"
 
 LONG Search_item_id_(LONG Id, LONG i) __asm__("Search_item_id"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char) */
-LONG func_8006CCF0_(LONG No, LONG N, LONG F) __asm__("func_8006CCF0"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char); arg 3 long (canonical UC) */
+LONG func_8006CCF0_(LONG No, LONG N, LONG F) __asm__("Item_decrease"); /* returns long here (canonical signed char); arg 1 long (canonical UC); arg 2 long (canonical signed char); arg 3 long (canonical UC) */
 #include <strings.h>
 
 #define MESS(n) (&Mess_text[Mess_offs[n]])

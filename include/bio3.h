@@ -465,19 +465,19 @@ typedef struct tagGLOBAL {
     ULONG Unk7868[8];                  /* 0x7868 flag bits (Flg_ck, status room/cut checks) */
     ULONG Unk7888;                     /* 0x7888 cleared on room init (Sce_work_clr_set) */
     ULONG Unk788C;                     /* 0x788C */
-    ULONG Unk7890[8];                  /* 0x7890 flag bits (func_800738CC) */
-    ULONG Unk78B0[8];                  /* 0x78B0 flag bits (func_800738CC) */
-    ULONG Unk78D0[8];                  /* 0x78D0 flag bits (func_80072D38, func_80063CAC) */
-    ULONG Unk78F0[8];                  /* 0x78F0 flag bits (func_80072D38, func_80063CAC) */
-    ULONG Unk7910[1];                  /* 0x7910 item flags (status: Flg_on with D_800A0514[id][2]) */
+    ULONG Unk7890[8];                  /* 0x7890 flag bits (Map_door_mark_ck) */
+    ULONG Unk78B0[8];                  /* 0x78B0 flag bits (Map_door_mark_ck) */
+    ULONG Unk78D0[8];                  /* 0x78D0 flag bits (Map_door_disp_ck, St_file_end) */
+    ULONG Unk78F0[8];                  /* 0x78F0 flag bits (Map_door_disp_ck, St_file_end) */
+    ULONG Unk7910[1];                  /* 0x7910 item flags (status: Flg_on with Item_data_tbl[id][2]) */
     ULONG Cut_flg[4];                  /* 0x7914 per-cut flag words, index Cut_no (Psp_trans) */
     UCHAR pad7924[0x7994 - 0x7924];
-    ULONG Unk7994[2];                  /* 0x7994 flag bits (func_800738CC) */
+    ULONG Unk7994[2];                  /* 0x7994 flag bits (Map_door_mark_ck) */
     ULONG Unk799C[1];                  /* 0x799C flag bits (func_800557A0) */
     UCHAR pad79A0[0x79A4 - 0x79A0];
     LONG Unk79A4[14];                  /* 0x79A4 (status: -1 on init) */
     ULONG Unk79DC[4];                  /* 0x79DC */
-    ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (func_80072D38) */
+    ULONG Unk79EC[4];                  /* 0x79EC flag bits, one per stage (Map_door_disp_ck) */
     ITEM_SET Item_work[2];             /* 0x79FC per character, pUnk7C7C points to one (mem_card Load_pop) */
     ITEM_SET *pUnk7C7C;                /* 0x7C7C items of the current character */
     ULONG Item_work_no;                /* 0x7C80 index into Item_work (mem_card Load_pop) */

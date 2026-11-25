@@ -82,7 +82,7 @@ typedef struct tagST_WORK {
     UCHAR Unk30;                       /* 0x30 */
     UCHAR pad31;
     SHORT Unk32;                       /* 0x32 */
-    UCHAR Unk34;                       /* 0x34 condition (func_8006E598) */
+    UCHAR Unk34;                       /* 0x34 condition (St_condition_get) */
     UCHAR Unk35;                       /* 0x35 life to restore */
     UCHAR Unk36;                       /* 0x36 cures poison */
     UCHAR pad37[0x3A - 0x37];
@@ -96,16 +96,16 @@ typedef struct tagST_WORK {
     UCHAR pad46[0x48 - 0x46];
     ITEM_WORK *Unk48;                    /* 0x48 combine: item A */
     ITEM_WORK *Unk4C;                    /* 0x4C combine: item B */
-    UCHAR *Unk50;                      /* 0x50 D_800A0514 entry of Unk48 */
-    UCHAR *Unk54;                      /* 0x54 D_800A0514 entry of Unk4C */
-    UCHAR *Unk58;                      /* 0x58 combine table record (8 bytes, D_800A07C4) */
+    UCHAR *Unk50;                      /* 0x50 Item_data_tbl entry of Unk48 */
+    UCHAR *Unk54;                      /* 0x54 Item_data_tbl entry of Unk4C */
+    UCHAR *Unk58;                      /* 0x58 combine table record (8 bytes, Item_mix_tbl) */
     UCHAR *Unk5C;                      /* 0x5C combine: slot no of item A */
     UCHAR *Unk60;                      /* 0x60 combine: slot no of item B */
     UCHAR Unk64;                       /* 0x64 combine result kind */
     UCHAR Unk65;                       /* 0x65 combine result count */
     SHORT Unk66;                       /* 0x66 */
     SHORT Unk68;                       /* 0x68 */
-    UCHAR Unk6A;                       /* 0x6A weapon of a combine (D_800A00EC) */
+    UCHAR Unk6A;                       /* 0x6A weapon of a combine (Mix_tama_tbl) */
     UCHAR pad6B[0x6E - 0x6B];
     UCHAR Unk6E;                       /* 0x6E */
     UCHAR Unk6F;                       /* 0x6F */
@@ -179,10 +179,10 @@ extern ST_WORK St;                     /* 0x800E01C0 RE2 St */
 extern char D_80010DCC[];
 extern char D_80010F84[];
 extern char D_80010FEC[];
-extern UCHAR D_8009EED8[];
-extern ULONG D_8009EF90[];
-extern USHORT D_8009F26C[];
-extern USHORT D_8009F2AC[];
+extern UCHAR File_page_sum[];
+extern ULONG File_page_size[];
+extern USHORT File_page_top[];
+extern USHORT File_page_num[];
 extern UCHAR D_8009F2EC[];
 extern UCHAR D_8009F2F8[];
 extern UCHAR D_8009F304[];
@@ -202,12 +202,12 @@ extern UCHAR D_8009F4B4[];
 extern SHORT D_8009F4C0[];
 extern UCHAR D_8009F4CC[];
 extern UCHAR D_8009F4D8[];
-extern void (*D_8009F4E4[])(ST_WORK *pSt);
-extern USHORT D_8009F4F8[][2];
-extern UCHAR D_8009F564[];
-extern UCHAR D_8009F568[];
-extern UCHAR D_8009F5F0[];
-extern ULONG D_8009F678[];
+extern void (*St_box_tbl[])(ST_WORK *pSt);
+extern USHORT Box_pix_pos[][2];
+extern UCHAR Box_ng_item[];
+extern UCHAR Itemi_sum[];
+extern UCHAR Itemg_sum[];
+extern ULONG Item_pix_ofs[];
 extern UCHAR D_8009F890[];
 extern UCHAR D_8009F8A8[];
 extern UCHAR D_8009F8B4[];
@@ -217,7 +217,7 @@ extern UCHAR D_8009F908[];
 extern UCHAR D_8009F95C[];
 extern USHORT D_8009F9B0[];
 extern UCHAR D_8009F9D4[];
-extern ST_ICON D_8009F9F8[];
+extern ST_ICON File_icon_tbl[];
 extern UCHAR D_8009FB78[];
 extern UCHAR D_8009FB84[];
 extern SHORT D_8009FB90[];
@@ -256,163 +256,163 @@ extern UCHAR D_8009FFD4[];
 extern UCHAR D_8009FFE0[];
 extern UCHAR D_8009FFEC[];
 extern UCHAR D_8009FFF8[];
-extern UCHAR D_800A0004[];
-extern USHORT D_800A004C[][2];
-extern USHORT D_800A0080[][2];
-extern USHORT D_800A00B0[]; /* same table as D_800A00B0, byte access */
-extern signed char D_800A00EC[][2];
-extern void (*D_800A0100[])(ST_WORK *pSt);
-extern void (*D_800A0138[])(ST_WORK *pSt);
-extern ST_RGB_STEP D_800A0150[];
-extern UCHAR *D_800A0174[];
-extern ITEM_WORK D_800A018C[2][5];
-extern ITEM_WORK D_800A01B4[2][6];
-extern ITEM_WORK D_800A01E4[];
-extern ITEM_WORK D_800A0200[];
-extern ITEM_WORK D_800A021C[];
-extern ITEM_WORK D_800A0238[];
-extern ITEM_WORK D_800A0258[];
-extern ITEM_WORK D_800A0278[2][4];
-extern ITEM_WORK D_800A0298[2][11];
-extern void (*D_800A02F0[])(ST_WORK *pSt);
-extern UCHAR D_800A0328[];
-extern USHORT D_800A038C[];
-extern UCHAR D_800A03A0[];
-extern ULONG D_800A03AC[];
-extern ST_MAP_ARROW D_800A03D0[][4];
-extern ST_ROOM_MAP D_800A0430[];
-extern UCHAR D_800A04F8[];
-extern void (*D_800A0500[])(ST_WORK *pSt);
-extern UCHAR D_800A0514[][4];
-extern UCHAR D_800A07C4[];
-extern UCHAR D_800A0BB4[];
-extern UCHAR D_800A0BC4[];
-extern LONG D_800C79CC; /* extra game character (func_8006D0D8) */
+extern UCHAR Cond_spr_tbl[];
+extern USHORT Item_pix_pos[][2];
+extern USHORT Item_num_pos[][2];
+extern USHORT File_order_tbl[]; /* same table as File_order_tbl, byte access */
+extern signed char Mix_tama_tbl[][2];
+extern void (*St_status_tbl[])(ST_WORK *pSt);
+extern void (*St_mix_tbl[])(ST_WORK *pSt);
+extern ST_RGB_STEP Ecg_col_tbl[];
+extern UCHAR *Ecg_wave_tbl[];
+extern ITEM_WORK Item_init_normal[2][5];
+extern ITEM_WORK Item_init_easy[2][6];
+extern ITEM_WORK Item_init_pl8[];
+extern ITEM_WORK Item_init_pl10[];
+extern ITEM_WORK Item_init_pl9[];
+extern ITEM_WORK Item_init_mode3[];
+extern ITEM_WORK Item_init_mode4[];
+extern ITEM_WORK Box_init_normal[2][4];
+extern ITEM_WORK Box_init_easy[2][11];
+extern void (*St_main_tbl[])(ST_WORK *pSt);
+extern UCHAR Map_mess[];
+extern USHORT Map_mess_ofs[];
+extern UCHAR Map_file_sum[];
+extern ULONG Map_file_size[];
+extern ST_MAP_ARROW Map_arrow[][4];
+extern ST_ROOM_MAP Map_room_alias[];
+extern UCHAR Map_area_list[];
+extern void (*St_map_tbl[])(ST_WORK *pSt);
+extern UCHAR Item_data_tbl[][4];
+extern UCHAR Item_mix_tbl[];
+extern UCHAR Item_check_tbl[];
+extern UCHAR Item_tama_tbl[];
+extern LONG D_800C79CC; /* extra game character (Status_init) */
 extern ULONG D_800CC840;
-extern SHORT D_800CCBBC;
+extern SHORT Mapping_tpage_clut;
 extern ULONG D_800D1FA0[];
-extern ULONG D_800D20DC[];
-extern ULONG D_800D2124[];
-extern ULONG D_800D2128[];
+extern ULONG Map_visit_flg[];
+extern ULONG Map_get_flg[];
+extern ULONG Map_area_flg[];
 extern UCHAR D_800D225E; /* G.Item_work[0].Num as its own symbol (reloaded every loop pass) */
 extern ITEM_WORK *D_800D23B4;
-extern LONG D_800D23B8;
+extern LONG St_pl_kind;
 extern UCHAR D_800D442D;
 extern UCHAR D_800D442E;
 extern UCHAR D_800DBB58; /* status flags (0x80 tested by the status screen code) */
 extern UCHAR D_800DBB5B;
 
-void func_800636D4(ST_WORK *pSt);
-void func_80063850(ST_WORK *pSt);
-void func_80063CAC(ST_WORK *pSt);
-void func_80063E9C(ST_WORK *pSt);
-void func_80063FE4(ST_WORK *pSt);
-void func_800641D0(ST_WORK *pSt, UCHAR a, UCHAR b);
-void func_800642D4(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
-void func_800643E4(ST_WORK *pSt);
-void func_80064424(ST_WORK *pSt);
-void func_80064460(ST_WORK *pSt);
-void func_8006446C(ST_WORK *pSt);
-void func_800646F0(ST_WORK *pSt);
-void func_80064E80(ST_WORK *pSt);
-void func_80065054(ST_WORK *pSt);
-void func_800650BC(ST_WORK *pSt);
-void func_8006511C(ST_WORK *pSt);
-void func_800654A8(ST_WORK *pSt);
-void func_80065BA4(UCHAR a, UCHAR b);
-void func_80065C8C(UCHAR dst, UCHAR src);
-void func_80065D04(ST_WORK *pSt, UCHAR no, SHORT y0);
-void func_80065EE0(ST_WORK *pSt);
-void func_800661B4(LONG Arg0); /* args from the asm */
-void func_80066530(ST_WORK *pSt);
-void func_800665C8(ST_WORK *pSt);
-void func_80066604(ST_WORK *pSt);
-void func_800668E4(ST_WORK *pSt);
-void func_80066920(ST_WORK *pSt);
-void func_80066A90(ST_WORK *pSt);
-void func_80066ADC(ST_WORK *pSt);
-void func_80066CA0(ST_WORK *pSt);
-void func_800676B8(ST_WORK *pSt);
-void func_80067B70(ST_WORK *pSt);
-void func_80067BAC(ST_WORK *pSt);
-void func_80067C14(ST_WORK *pSt);
-void func_80068024(ST_WORK *pSt);
-void func_80068A54(ST_WORK *pSt);
-void func_80068AB4(ST_WORK *pSt);
-void func_80068B5C(ST_WORK *pSt);
-void func_80068BC0(ST_WORK *pSt);
-void func_80069280(ST_WORK *pSt);
-void func_8006954C(ST_WORK *pSt);
-UCHAR func_80069614(ST_WORK *pSt, LONG a1);
-void func_80069A6C(ST_WORK *pSt);
-void func_80069C3C(ST_WORK *pSt);
-void func_8006A234(ST_WORK *pSt);
-void func_8006A59C(ST_WORK *pSt);
-void func_8006A888(ST_WORK *pSt);
-UCHAR *func_8006A898(ST_WORK *pSt, UCHAR a, UCHAR b);
-UCHAR *func_8006A918(ST_WORK *pSt, UCHAR id);
-UCHAR *func_8006A95C(ST_WORK *pSt, UCHAR id);
-void func_8006A9AC(UCHAR no, UCHAR idx);
-void func_8006AA84(UCHAR no);
-void func_8006AB08(UCHAR no);
-void func_8006AB68(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
-void func_8006ABF8(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
-void func_8006AC88(UCHAR no);
-void func_8006AD38(UCHAR a, UCHAR b);
-void func_8006AE20(UCHAR dst, UCHAR src);
-void func_8006AE90(ST_WORK *pSt);
-void func_8006B66C(ST_WORK *pSt);
-void func_8006C370(ST_WORK *pSt);
-void func_8006C484(ST_WORK *pSt);
-SPRT *func_8006C6D0(SPRT *p, SHORT num, ULONG xy, ULONG prm);
-void func_8006CA10(ST_WORK *pSt);
+void St_file_load(ST_WORK *pSt);
+void St_file_read(ST_WORK *pSt);
+void St_file_end(ST_WORK *pSt);
+void St_file_prim_init(ST_WORK *pSt);
+void St_file_draw(ST_WORK *pSt);
+void St_file_page_load(ST_WORK *pSt, UCHAR a, UCHAR b);
+void St_sprt_draw_tp(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
+void St_box_init(ST_WORK *pSt);
+void St_box_main(ST_WORK *pSt);
+void St_box_exit(ST_WORK *pSt);
+void St_box_inv_select(ST_WORK *pSt);
+void St_box_select(ST_WORK *pSt);
+void St_box_pack(ST_WORK *pSt);
+void St_box_scroll(ST_WORK *pSt);
+void St_box_mess_wait(ST_WORK *pSt);
+void St_box_prim_set(ST_WORK *pSt);
+void St_box_draw(ST_WORK *pSt);
+void St_icon_swap(UCHAR a, UCHAR b);
+void St_icon_copy(UCHAR dst, UCHAR src);
+void St_box_list_draw(ST_WORK *pSt, UCHAR no, SHORT y0);
+void St_box_prim_init(ST_WORK *pSt);
+void St_box_frame_draw(LONG Arg0); /* args from the asm */
+void St_status_init(ST_WORK *pSt);
+void St_status_main(ST_WORK *pSt);
+void St_item_select(ST_WORK *pSt);
+void St_cmd_open(ST_WORK *pSt);
+void St_cmd_select(ST_WORK *pSt);
+void St_cmd_close(ST_WORK *pSt);
+void St_map_open(ST_WORK *pSt);
+void St_file_list(ST_WORK *pSt);
+void St_item_use(ST_WORK *pSt);
+void St_mix_main(ST_WORK *pSt);
+void St_mix_init(ST_WORK *pSt);
+void St_mix_select(ST_WORK *pSt);
+void St_mix_exec(ST_WORK *pSt);
+void St_mix_mess_wait(ST_WORK *pSt);
+void St_mix_yesno(ST_WORK *pSt);
+void St_mix_next(ST_WORK *pSt);
+void St_mix_result(ST_WORK *pSt);
+void St_item_check(ST_WORK *pSt);
+void St_item_switch(ST_WORK *pSt);
+UCHAR St_cmd_slide(ST_WORK *pSt, LONG a1);
+void St_item_shift(ST_WORK *pSt);
+void St_item_get(ST_WORK *pSt);
+void St_item_change(ST_WORK *pSt);
+void St_item_to_file(ST_WORK *pSt);
+void St_exit_set(ST_WORK *pSt);
+UCHAR *Search_item_mix(ST_WORK *pSt, UCHAR a, UCHAR b);
+UCHAR *Search_item_check(ST_WORK *pSt, UCHAR id);
+UCHAR *Search_item_tama(ST_WORK *pSt, UCHAR id);
+void Pix_load(UCHAR no, UCHAR idx);
+void Pix_read(UCHAR no);
+void Pix_trans(UCHAR no);
+void Pix_unpack(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
+void Pix_unpack_box(UCHAR no, UCHAR tbl, ULONG ofs, ULONG *pBuf);
+void Itemg_load(UCHAR no);
+void Pix_swap(UCHAR a, UCHAR b);
+void Pix_move(UCHAR dst, UCHAR src);
+void St_prim_init(ST_WORK *pSt);
+void St_item_disp(ST_WORK *pSt);
+void St_zoom_icon_disp(ST_WORK *pSt);
+void St_ecg_disp(ST_WORK *pSt);
+SPRT *St_num_disp(SPRT *p, SHORT num, ULONG xy, ULONG prm);
+void St_file_icon_disp(ST_WORK *pSt);
 signed char Search_item_id(UCHAR id, signed char i); /* RE2 Search_item_id */
-signed char func_8006CCF0(UCHAR no, signed char n, UCHAR f);
-void func_8006CD68(UCHAR no);
-void func_8006CEA8(void);
-signed char func_8006CF0C(UCHAR f);
-LONG func_8006D030(UCHAR f);
-void func_8006D0D8(void);
-void func_8006D720(void);
-void func_8006D948(ST_WORK *pSt);
-void func_8006DFDC(void);
-void func_8006E0A4(ST_WORK *pSt);
-void func_8006E268(ST_WORK *pSt);
-void func_8006E34C(ST_WORK *pSt);
-void func_8006E424(ST_WORK *pSt);
-void func_8006E4CC(ST_WORK *pSt);
-LONG func_8006E598(void);
-void func_8006E600(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
-void func_8006E6D8(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void func_8006E7D4(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n);
-void func_8006E84C(ST_WORK *pSt);
-void func_8006E8BC(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
-void func_8006E9D4(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
-void func_8006EAF0(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm);
-void func_8006EBEC(void);
-void func_8006ECB0(ULONG no);
-void func_8006ED28(ST_WORK *pSt);
-void func_8006ED98(ST_WORK *pSt);
-void func_8006F6CC(ST_WORK *pSt);
-void func_8006F708(ST_WORK *pSt);
-void func_8006FAE4(ST_WORK *pSt);
-void func_8006FC68(ST_WORK *pSt);
-void func_8006FEB0(ST_WORK *pSt);
-void func_8006FF48(ST_WORK *pSt);
-void func_80070024(ST_WORK *pSt);
-void func_80070244(ST_WORK *pSt);
-void func_8007116C(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut);
-void func_800713DC(ST_WORK *pSt, UCHAR no);
-void func_80071510(UCHAR a, UCHAR b);
-ULONG func_80071668(UCHAR a, UCHAR b);
-LONG func_800716A4(UCHAR st, UCHAR rm);
-LONG func_80071878(UCHAR st, UCHAR rm, UCHAR cut);
-LONG func_8007275C(UCHAR st, UCHAR rm, UCHAR cut);
-LONG func_80072AEC(UCHAR st, UCHAR rm, UCHAR cut);
-LONG func_80072D38(UCHAR st, UCHAR rm, UCHAR cut);
-LONG func_800738CC(UCHAR st, UCHAR rm, UCHAR cut);
-LONG func_80073BC8(ST_WORK *pSt, UCHAR st, UCHAR rm);
-void func_80073CCC(UCHAR *pA, UCHAR *pB);
-void func_80073E7C(void);
+signed char Item_decrease(UCHAR no, signed char n, UCHAR f);
+void Item_delete(UCHAR no);
+void Equip_item_delete(void);
+signed char Tama_reload(UCHAR f);
+LONG Tama_decrease(UCHAR f);
+void Status_init(void);
+void St_tex_load(void);
+void St_init(ST_WORK *pSt);
+void Status(void);
+void St_exit(ST_WORK *pSt);
+void St_counter_move(ST_WORK *pSt);
+void St_draw(ST_WORK *pSt);
+void St_open_wait(ST_WORK *pSt);
+void St_close(ST_WORK *pSt);
+LONG St_condition_get(void);
+void St_sprt_init(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
+void St_ft4_init(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
+void St_tile_init(ST_WORK *pSt, TILE *p, SHORT *pWh, UCHAR n);
+void St_line_init(ST_WORK *pSt);
+void St_sprt_draw(ST_WORK *pSt, SPRT *p, UCHAR *src, ULONG prm);
+void St_ft4_draw(ST_WORK *pSt, POLY_FT4 *p, USHORT *src, ULONG prm);
+void St_tile_draw(ST_WORK *pSt, TILE *p, SHORT *src, ULONG prm);
+void St_mapping_tim(void);
+void St_chenge_pl(ULONG no);
+void St_map_pos_init(ST_WORK *pSt);
+void St_map_init(ST_WORK *pSt);
+void St_map(ST_WORK *pSt);
+void St_map_ctrl(ST_WORK *pSt);
+void St_map_zoom(ST_WORK *pSt);
+void St_map_area_select(ST_WORK *pSt);
+void St_map_fade_in(ST_WORK *pSt);
+void St_map_area_change(ST_WORK *pSt);
+void St_map_exit(ST_WORK *pSt);
+void St_map_draw(ST_WORK *pSt);
+void Map_part_set(ST_WORK *pSt, POLY_FT4 *p, ST_MAP_PART *pPt, UCHAR clut);
+void Map_file_load(ST_WORK *pSt, UCHAR no);
+void Map_visit_set(UCHAR a, UCHAR b);
+ULONG Map_visit_ck(UCHAR a, UCHAR b);
+LONG Map_room_disp_ck(UCHAR st, UCHAR rm);
+LONG Map_part_disp_ck(UCHAR st, UCHAR rm, UCHAR cut);
+LONG Map_part_clut(UCHAR st, UCHAR rm, UCHAR cut);
+LONG Map_part_blink_ck(UCHAR st, UCHAR rm, UCHAR cut);
+LONG Map_door_disp_ck(UCHAR st, UCHAR rm, UCHAR cut);
+LONG Map_door_mark_ck(UCHAR st, UCHAR rm, UCHAR cut);
+LONG Map_floor_get(ST_WORK *pSt, UCHAR st, UCHAR rm);
+void Map_room_conv(UCHAR *pA, UCHAR *pB);
+void St_frame_end(void);
 
 #endif /* STATUS_H */

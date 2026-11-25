@@ -357,8 +357,8 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     }
 }
 
-SHORT func_8006D030_(ULONG Arg0) __asm__("func_8006D030"); /* returns short here (canonical long); arg 1 unsigned long (canonical UC) */
-signed char func_8006CF0C_c(ULONG Arg0) __asm__("func_8006CF0C"); /* arg 1 unsigned long (canonical UC) */
+SHORT func_8006D030_(ULONG Arg0) __asm__("Tama_decrease"); /* returns short here (canonical long); arg 1 unsigned long (canonical UC) */
+signed char func_8006CF0C_c(ULONG Arg0) __asm__("Tama_reload"); /* arg 1 unsigned long (canonical UC) */
 
 void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
@@ -516,7 +516,7 @@ void pl_mv05_w1_t4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pEm->Status_flg &= ~0x400;
     }
     if (*pEm->pNow_seq & 0x200) {
-        func_8006CF0C(1);
+        Tama_reload(1);
         pEm->Status_flg |= 0x400;
     }
 }
@@ -662,7 +662,7 @@ void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     }
 }
 
-signed char func_8006CF0C_c(ULONG Arg0) __asm__("func_8006CF0C"); /* arg 1 unsigned long (canonical UC) */
+signed char func_8006CF0C_c(ULONG Arg0) __asm__("Tama_reload"); /* arg 1 unsigned long (canonical UC) */
 
 void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 {
@@ -923,7 +923,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
                 return;
             }
             if (G.Key_trg & 0x40) {
-                if (func_8006CF0C(0) == 0) {
+                if (Tama_reload(0) == 0) {
                     *(USHORT *)&pEm->Routine_2 = 4;
                 } else {
                     Snd_se_stad(0x10101, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
@@ -966,7 +966,7 @@ void pl_mv05_w2_t4(ENEMY_WORK *pEm)
         pEm->Status_flg &= ~0x400;
     }
     if (*pEm->pNow_seq & 0x200) {
-        func_8006CF0C(1);
+        Tama_reload(1);
         pEm->Status_flg |= 0x400;
     }
 }
