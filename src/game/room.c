@@ -207,7 +207,7 @@ void Em_init_move(void)
     } else {
         Stop_save = 0;
     }
-    func_80038F98(G_PLAYER);
+    Pl_reset(G_PLAYER);
     ppEm = &G.pEnemy[1];
     if (G.ppEnemy_end != ppEm) {
         do {

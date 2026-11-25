@@ -490,8 +490,8 @@ ULONG Plc_motion(SCE_TASK *pSce)
     pW->Move_cnt = 0;
     pW->Move_no = Move_no;
     if (pW->Id == 0) {
-        pW->Unk1A0 = Move_no;
-        pW->Unk1A1 = 0;
+        pW->Sub_move_no = Move_no;
+        pW->Sub_move_cnt = 0;
     }
     pW->Unk144 = Attr;
     pW->Add_dir = 0;

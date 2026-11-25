@@ -539,7 +539,7 @@ void Aida_mv00(ENEMY_WORK *pEm)
 
     switch (pEm->Routine_2) {
     case 0:
-        v = D_8009CDE0[D_8009E70C[0]];
+        v = Pl_mot_tbl[D_8009E70C[0]];
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0x3C;
         *(ULONG *)&pEm->Move_no = v + 0x70000;
@@ -772,7 +772,7 @@ void Aida_mv01(ENEMY_WORK *pEm)
 
     switch (pEm->Routine_2) {
     case 0:
-        v = D_8009CDE0[D_8009E70C[0] + 3];
+        v = Pl_mot_tbl[D_8009E70C[0] + 3];
         pEm->Routine_2 = 1;
         pEm->Timer0 = 0x3C;
         pEm->UnkDA = 0x3C;
@@ -933,7 +933,7 @@ void Aida_mv02(ENEMY_WORK *pEm)
 
     switch (pEm->Routine_2) {
     case 0:
-        v = D_8009CDE0[D_8009E70C[0] + 6];
+        v = Pl_mot_tbl[D_8009E70C[0] + 6];
         pEm->Routine_2 = 1;
         *(ULONG *)&pEm->Move_no = v + 0x70000;
     case 1:
@@ -1041,7 +1041,7 @@ void Aida_mv04(ENEMY_WORK *pEm)
 
     switch (pEm->Routine_2) {
     case 0:
-        v = D_8009CDE0[D_8009E70C[0] + 3];
+        v = Pl_mot_tbl[D_8009E70C[0] + 3];
         pEm->Routine_2 = 1;
         *(ULONG *)&pEm->Spd_x = 0;
         pEm->Spd_z = 0;
@@ -1098,7 +1098,7 @@ void Aida_mv05_w1_t0(ENEMY_WORK *pEm)
     case 0:
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = 0x70000;
         pEm->pEnemy_ptr = D_800E01A8;
         if (pEm->pEnemy_ptr == NULL) {
             *(ULONG *)&pEm->Routine_0 = 1;
@@ -1263,7 +1263,7 @@ void Aida_mv05_w1_t1(ENEMY_WORK *pEm)
         pEm->Routine_3 = 1;
         v = D_8009E70D[0] * 2 + 0x70002;
         *(ULONG *)&pEm->Move_no = v;
-        *(ULONG *)&pEm->Unk1A0 = v;
+        *(ULONG *)&pEm->Sub_move_no = v;
         G.Unk75E8 |= 0x18;
         pEm->Timer0 = 0x1E;
         pEm->UnkDA = 0;
@@ -1292,7 +1292,7 @@ void func_8005C738(ENEMY_WORK *pEm)
         pEm->Routine_3 = 1;
         v = D_8009E70D[0] * 2 + 0x30001;
         *(ULONG *)&pEm->Move_no = v;
-        *(ULONG *)&pEm->Unk1A0 = v;
+        *(ULONG *)&pEm->Sub_move_no = v;
         SPL_W(pEm)->Unk1D0 &= 0xBFFF;
     }
     D_8009E720[D_8009E710[pEm->Id - 0x50]](pEm);
@@ -1312,7 +1312,7 @@ void func_8005C824(ENEMY_WORK *pEm)
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = 0x70000;
     }
     if (Joint_move(pEm, pEm->pUnk18C_kan_t_ptr, pEm->pUnk188_seq_t_ptr, 0x10200) != 0) {
         *(ULONG *)&pEm->Routine_0 = 1;
@@ -1332,7 +1332,7 @@ void func_8005C8D8(ENEMY_WORK *pEm)
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70007;
-        *(ULONG *)&pEm->Unk1A0 = 0x70007;
+        *(ULONG *)&pEm->Sub_move_no = 0x70007;
     }
     if (Joint_move(pEm, pEm->pUnk18C_kan_t_ptr, pEm->pUnk188_seq_t_ptr, 0x200) != 0) {
         *(USHORT *)&pEm->Routine_2 = 1;
@@ -1372,9 +1372,9 @@ void func_8005CA14(ENEMY_WORK *pEm)
     case 0:
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70002;
-        *(ULONG *)&pEm->Unk1A0 = 0x70002;
+        *(ULONG *)&pEm->Sub_move_no = 0x70002;
         *(ULONG *)&pEm->Move_no = 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = 0x70000;
         pEm->Neck_flg |= 0x12;
         D_8009E70D[0] = 0;
         SPL_W(pEm)->Unk1D0 |= 0x4000;
@@ -1921,7 +1921,7 @@ void func_8005DBCC(ENEMY_WORK *pEm)
         break;
     case 2:
     walk:
-        *(ULONG *)&pEm->Move_no = D_8009CDE0[D_8009E70C[0] + 3] + 0x70000;
+        *(ULONG *)&pEm->Move_no = Pl_mot_tbl[D_8009E70C[0] + 3] + 0x70000;
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
         pEm->Routine_2 = 3;
     case 3:
@@ -2007,7 +2007,7 @@ void func_8005DF4C(ENEMY_WORK *pEm)
         break;
     case 2:
     walk:
-        *(ULONG *)&pEm->Move_no = D_8009CDE0[D_8009E70C[0] + 6] + 0x70000;
+        *(ULONG *)&pEm->Move_no = Pl_mot_tbl[D_8009E70C[0] + 6] + 0x70000;
         Spd_get(pEm, pEm->pSub0_kan_t_ptr, pEm->pSub0_seq_t_ptr, 0);
         pEm->Routine_2 = 3;
     case 3:

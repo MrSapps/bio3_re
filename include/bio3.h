@@ -269,7 +269,7 @@ typedef struct tagEM_HIT_AREA {
     SHORT Unk152;                      /* 0x152 */                            \
     ULONG Unk154;                      /* 0x154 */                            \
     LONG Unk158;                       /* 0x158 distance to target? (masked 0x3FFFFFFF) */ \
-    LONG *pUnk15C;                     /* 0x15C target position (func_8003CEA0) */ \
+    LONG *pUnk15C;                     /* 0x15C target position (pl_mv0d) */ \
     union {                                                                   \
         struct tagKAGE_WORK *pKw;      /* 0x160 RE2 pKage_work: enemies (Kage_work_set) */ \
         struct tagKAGE_WORK9 *pKw9;    /* 0x160 player (Kage_work9_set) */    \
@@ -292,9 +292,9 @@ typedef struct tagEM_HIT_AREA {
     ULONG *pUnk194_kan_t_ptr;          /* 0x194 */                            \
     ULONG *pUnk198_seq_t_ptr;          /* 0x198 first set of sub animations (func_800498F0) */ \
     ULONG *pUnk19C_kan_t_ptr;          /* 0x19C */                            \
-    UCHAR Unk1A0;                      /* 0x1A0 */                            \
-    UCHAR Unk1A1;                      /* 0x1A1 */                            \
-    UCHAR Unk1A2;                      /* 0x1A2 (pl_mv05_w2_t2) */            \
+    UCHAR Sub_move_no;                 /* 0x1A0 second motion slot (slope walking; Spd_get_sub) */ \
+    UCHAR Sub_move_cnt;                /* 0x1A1 */                            \
+    UCHAR Sub_hokan_flg;               /* 0x1A2 (pl_mv05_w2_t2) */            \
     UCHAR pad1A3;                                                             \
     SHORT Unk1A4[3];                   /* 0x1A4 em23 damage: hit offset? */   \
     UCHAR pad1AA[0x1AC - 0x1AA];                                              \
@@ -476,7 +476,7 @@ typedef struct tagGLOBAL {
     SHORT Unk7858;                     /* 0x7858 bg scroll y, -0xEF..0xEF (Swap_Cbuff) */
     UCHAR pad785A[0x785C - 0x785A];
     SHORT Unk785C;                     /* 0x785C cleared by em36 (Nemesis) death */
-    USHORT Unk785E;                    /* 0x785E counter (func_8003CEA0) */
+    USHORT Unk785E;                    /* 0x785E counter (pl_mv0d) */
     USHORT Time;                       /* 0x7860 Mercenaries time left (result) */
     SHORT Unk7862;                     /* 0x7862 */
     SHORT Unk7864;                     /* 0x7864 set with Unk784E by the title extra menu */

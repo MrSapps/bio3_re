@@ -144,7 +144,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
 
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Unk1A0 = *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x30001;
+        *(ULONG *)&pEm->Sub_move_no = *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x30001;
         pEm->UnkE3 = 0;
         pEm->UnkE2 = 0;
     }
@@ -216,7 +216,7 @@ void pl_mv05_w0_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         if ((SHORT)func_8004D720(Mtx.t, 10, 0x2040, 0x10) < Mtx.t[1]) {
             *(USHORT *)&pEm->Routine_2 = 7;
             *(ULONG *)&pEm->Move_no = 0x30007;
-            *(ULONG *)&pEm->Unk1A0 = 0x30007;
+            *(ULONG *)&pEm->Sub_move_no = 0x30007;
             Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x400);
             pEm->Be_flg |= 0x2000000;
             func_80079690(G_PLAYER, G.Player.pUnk184_kan_t_ptr, G.Player.pUnk180_seq_t_ptr, 0x400);
@@ -284,7 +284,7 @@ void pl_mv05_w1_t0(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         Found = 0;
         pEm->Routine_3 = 1;
         pEm->Timer0 = 7;
-        *(ULONG *)&pEm->Unk1A0 = *(ULONG *)&pEm->Move_no = 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = *(ULONG *)&pEm->Move_no = 0x70000;
         pEm->UnkE3 = 0;
         pEm->UnkE2 = 0;
         pEm->Neck_flg |= 0x12;
@@ -365,7 +365,7 @@ void pl_mv05_w1_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     switch (pEm->Routine_3) {
     case 0:
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Unk1A0 = *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x70002;
+        *(ULONG *)&pEm->Sub_move_no = *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x70002;
         G.Unk75E8 |= 0x18;
     case 1:
         Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
@@ -432,7 +432,7 @@ void pl_mv05_w1_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 0:
         *(ULONG *)&pEm->Move_no = Pl_aim_dir * 2 + 0x30001;
         pEm->Routine_3 = 1;
-        *(ULONG *)&pEm->Unk1A0 = Pl_aim_dir * 2 + 0x30001;
+        *(ULONG *)&pEm->Sub_move_no = Pl_aim_dir * 2 + 0x30001;
     case 1:
         a = pEm->Water;
         if (a != 0 && a < pEm->Unk122 - 500 && !(pEm->Move_cnt & 3) && pEm->Move_cnt < 10) {
@@ -468,7 +468,7 @@ void pl_mv05_w1_t3(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         a = pEm->Water;
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = 0x70000;
         pEm->Spd_x = 0;
         if (a != 0 && a < pEm->Unk122 - 500) {
             Pl_water(pEm);
@@ -495,7 +495,7 @@ void pl_mv05_w1_t4(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70007;
-        *(ULONG *)&pEm->Unk1A0 = 0x70007;
+        *(ULONG *)&pEm->Sub_move_no = 0x70007;
     }
     if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200)) {
         *(USHORT *)&pEm->Routine_2 = 1;
@@ -637,7 +637,7 @@ void func_8003FA38(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     case 0:
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x70002;
-        *(ULONG *)&pEm->Unk1A0 = 0x70002;
+        *(ULONG *)&pEm->Sub_move_no = 0x70002;
         pEm->Spd_x = 0;
         pEm->Spd_z = 0;
         pEm->Neck_flg |= 0x12;
@@ -674,7 +674,7 @@ void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         pEm->Spd_x = 1;
         pEm->Neck_flg |= 0x12;
         Pl_aim_dir = 0;
-        if (!(D_8009CF78[(UCHAR)pEm->Type] & 0x80)) {
+        if (!(Pl_wep_flg[(UCHAR)pEm->Type] & 0x80)) {
             *(ULONG *)&pEm->Move_no = 0x70011;
             pEm->Spd_x = 0;
         }
@@ -687,7 +687,7 @@ void func_8003FB78(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
             *(ULONG *)&pEm->Move_no = 0xF;
             pEm->UnkE3 = 0xF;
             pEm->Spd_x = 0;
-            if (!(D_8009CF78[(UCHAR)pEm->Type] & 0x80)) {
+            if (!(Pl_wep_flg[(UCHAR)pEm->Type] & 0x80)) {
                 *(USHORT *)&pEm->Routine_2 = 6;
             }
         }
@@ -783,7 +783,7 @@ void pl_mv05_w2_t1(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = Mv[Pl_aim_dir] + 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = Mv[Pl_aim_dir] + 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = Mv[Pl_aim_dir] + 0x70000;
         G.Unk75E8 |= 0x18;
     }
     Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200);
@@ -858,13 +858,13 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     switch (pEm->Routine_3) {
     case 0:
         *(ULONG *)&pEm->Move_no = Mv0[Pl_aim_dir] + 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = Mv0[Pl_aim_dir] + 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = Mv0[Pl_aim_dir] + 0x70000;
         Pad_vib_fade_set(10, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
     case 1:
         pEm->Move_no = Mv0[Pl_aim_dir];
         pEm->Hokan_flg = 7;
-        pEm->Unk1A0 = Mv0[Pl_aim_dir];
-        pEm->Unk1A2 = 7;
+        pEm->Sub_move_no = Mv0[Pl_aim_dir];
+        pEm->Sub_hokan_flg = 7;
         pEm->Routine_3 = 2;
         pEm->UnkE3 = 9;
     case 2:
@@ -908,7 +908,7 @@ void pl_mv05_w2_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         break;
     case 3:
         *(ULONG *)&pEm->Move_no = Mv1[Pl_aim_dir] + 0x70000;
-        *(ULONG *)&pEm->Unk1A0 = Mv1[Pl_aim_dir] + 0x70000;
+        *(ULONG *)&pEm->Sub_move_no = Mv1[Pl_aim_dir] + 0x70000;
         pEm->Routine_3 = 4;
     case 4:
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200)) {
@@ -949,7 +949,7 @@ void pl_mv05_w2_t4(ENEMY_WORK *pEm)
     if (pEm->Routine_3 == 0) {
         pEm->Routine_3 = 1;
         *(ULONG *)&pEm->Move_no = 0x7000A;
-        *(ULONG *)&pEm->Unk1A0 = 0x7000A;
+        *(ULONG *)&pEm->Sub_move_no = 0x7000A;
     }
     if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200) != 0) {
         *(USHORT *)&pEm->Routine_2 = 1;
@@ -984,7 +984,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
     switch (pEm->Routine_3) {
     case 0:
         *(ULONG *)&pEm->Move_no = 0x70001;
-        *(ULONG *)&pEm->Unk1A0 = 0x70001;
+        *(ULONG *)&pEm->Sub_move_no = 0x70001;
         pEm->Routine_3 = 1;
         Snd_se_stad(0x10112, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
         Pad_vib_fade_set(15, 0, Pl_vib_tbl[(UCHAR)pEm->Type - 2][2], 0);
@@ -992,7 +992,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         Pl_wep_flag_set(pEm);
         if (Joint_move(pEm, G.Player.pUnk18C_kan_t_ptr, G.Player.pUnk188_seq_t_ptr, 0x200)) {
             *(ULONG *)&pEm->Move_no = 0x70002;
-            *(ULONG *)&pEm->Unk1A0 = 0x70002;
+            *(ULONG *)&pEm->Sub_move_no = 0x70002;
             pEm->Routine_3 = 2;
         }
         pEm->Be_flg |= 0x2000000;
@@ -1035,7 +1035,7 @@ void pl_mv05_w0b_t2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq, ULONG Key)
         break;
     case 3:
         *(ULONG *)&pEm->Move_no = 0x70004;
-        *(ULONG *)&pEm->Unk1A0 = 0x70004;
+        *(ULONG *)&pEm->Sub_move_no = 0x70004;
         pEm->Routine_3 = 4;
         pEm->Spd_x = 0;
         Snd_se_stad(0x10113, (VECTOR *)pEm->pSin_parts_ptr[4].Workm.t, 0, 0);
