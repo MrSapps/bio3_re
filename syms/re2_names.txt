@@ -398,3 +398,4 @@ Om_init = 0x80035790; // type:func om: object model setup: map its model once (G
 Om_move_box = 0x8003749C; // type:func om: Om_routine 2: a pushed box tips over the edge (RE2 OM.C Om_move_box statics)
 Om_explosion_set = 0x80037680; // type:func om: Om_routine 3: parts fly apart (PW_BOMB) and hurt around (RE2 OM.C Om_explosion_set)
 Sca_get_ground = 0x8004D720; // type:func sca: floor height under pPos (RE2 SCA.C Sca_get_ground, same arguments in Parts_down)
+pSpl_near_em = 0x800E01A8; // ENEMY_WORK *[3] the three nearest enemies (Spl_enemy_ck), RE2 SPL.H pSpl_near_em

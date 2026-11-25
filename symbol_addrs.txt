@@ -1293,3 +1293,4 @@ Om_dir_sum = 0x800DD49C;
 Om_add_dir = 0x800DD4A0;
 Om_in_water_flg = 0x800DD4A8;
 Sca_get_ground = 0x8004D720; // type:func
+pSpl_near_em = 0x800E01A8;

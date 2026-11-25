@@ -41,7 +41,7 @@ extern void (*D_8009ED14[])(ENEMY_WORK *pEm, ULONG Type);
 extern EM_FUNC3 D_8009ED24[];
 extern EM_FUNC3 D_8009ED84[];
 extern SHORT Em_dir[3]; /* RE2 Em_dir: direction to the three nearest enemies */
-extern ENEMY_WORK *D_800E01A8; /* D_800E01A8 seen as an array (Spl_em_pos_ck) */
+extern ENEMY_WORK *pSpl_near_em[3];    /* the three nearest enemies (Spl_enemy_ck), RE2 SPL.H */
 extern ENEMY_WORK *D_800E01AC;
 extern USHORT Em_l[3]; /* RE2 Em_l: distance to the three nearest enemies */
 extern USHORT D_800E01B6;
