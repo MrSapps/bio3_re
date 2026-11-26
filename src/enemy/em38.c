@@ -2849,7 +2849,256 @@ void Em38_sce_burst(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em38", Em38_sce03);
+/* sce03: shrinking death in the scenario */
+void Em38_sce03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    SVECTOR Sv;
+    PARTS_W *pP, *pS, *pW;
+    MATRIX *pM, *pM2, *pM3, *pM4;
+    KAGE_WORK *pK;
+    LONG i;
+    LONG n;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        pEm->Routine_2 = 2;
+        EM_SET_MOVE(pEm, 0x1A, 0, 0);
+        break;
+    case 1:
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+            pEm->Routine_2 = 2;
+            EM_SET_MOVE(pEm, 0x1A, 0, 7);
+            pEm->Timer0 = 600;
+            pEm->Cdir_y += 0x400;
+        }
+        Add_speedXZ(pEm, 0);
+        break;
+    case 2:
+        Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 8);
+        Spd_get(pEm, pKan, pSeq, 0);
+        pEm->Spd_x >>= 1;
+        pEm->Spd_z >>= 1;
+        Joint_move(pEm, pKan, pSeq, 0x200);
+        Add_speedXZ(pEm, 0);
+        break;
+    case 3:
+        pEm->Routine_2 = 4;
+        EM_SET_MOVE(pEm, 0x1B, 0, 3);
+        Snd_se_enem(8, pEm);
+    case 4:
+        Spd_get2(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x400)) {
+            pEm->Routine_2 = 5;
+            pEm->Life = -1;
+            pEm->Col.Id = 0;
+            pEm->Timer0 = 500;
+        }
+        Add_speedXZ(pEm, 0);
+        if (pEm->Move_cnt == 60 || pEm->Move_cnt == 110) {
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x200 - (Rnd_l() << 2);
+            Sv.vy = 0x200 - (Rnd_l() << 2);
+            Sv.vz = 0x200 - (Rnd_l() << 2);
+            Esp_call(0x1C03, 0x18000000, &pP->Workm, &Sv, 0);
+            Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[12].Workm, &Sv, 0);
+            pS = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1C03, 0x14000000, &pS[16].Workm, &Sv, 0);
+            Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[3].Workm, &Sv, 0);
+            pS = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1C03, 0x10000000, &pS[17].Workm, &Sv, 0);
+            Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[18].Workm, &Sv, 0);
+        }
+        if (pEm->Move_cnt == 3 || pEm->Move_cnt == 30 || pEm->Move_cnt == 99 || pEm->Move_cnt == 110 || pEm->Move_cnt == 130) {
+            pW = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            pM2 = &pW[1].Workm;
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x2000) << 16) | (USHORT)(Rnd_l() << 4), pM2, &Sv, 0);
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x700, (((Rnd_l() << 1) + 0x1800) << 16) | (USHORT)(Rnd_l() << 4), pM2, &Sv, 0);
+            pS = pEm->pSin_parts_ptr;
+            Esp_call(0x200, (((Rnd_l() << 1) + 0x2000) << 16) | (USHORT)(Rnd_l() << 4), &pS[2].Workm, 0, 0);
+            Esp_call(0x200, (((Rnd_l() << 1) + 0x1800) << 16) | (USHORT)(Rnd_l() << 4), &pS[2].Workm, 0, 0);
+            if (pEm->Move_cnt == 3 || pEm->Move_cnt == 99 || pEm->Move_cnt == 130)
+                Snd_se_stad(0x10214, POS_V(pEm), 0, 0);
+        }
+        if (pEm->Move_cnt >= 100) {
+            n = 22;
+            pP = pEm->pSin_parts_ptr;
+            for (; n != 0; n--) {
+                pP->Size_x -= 2 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+                pP->Size_y -= 2 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+                pP->Size_z -= 2 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+                if (n != 22)
+                    Em38_part_scale_pos(pEm, pP, pP->Size_x);
+                pP++;
+            }
+            pP = pEm->pSin_parts_ptr;
+            pEm->Mot_scale_y = pP->Size_x;
+        }
+        if (pEm->Move_cnt > 60 && !(pEm->Move_cnt & 3)) {
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x1A00) << 16) | (USHORT)(Rnd_l() << 4), &pP[1].Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x1A00) << 16) | (USHORT)(Rnd_l() << 4), &pP[2].Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x1A00) << 16) | (USHORT)(Rnd_l() << 4), &pP[21].Workm, &Sv, 0);
+        }
+        if (pEm->Move_cnt > 30 && !(pEm->Move_cnt & 3)) {
+            pW = pEm->pSin_parts_ptr;
+            if ((pW->Poly_rgb & 0xFF0000) != 0x280000) {
+                pS = pW;
+                for (n = 22; n != 0; n--) {
+                    pS->Poly_rgb -= 0x10000;
+                    pS++;
+                }
+            }
+            pW = pEm->pSin_parts_ptr;
+            if ((pW->Poly_rgb & 0xFF00) != 0x1000) {
+                pS = pW;
+                for (n = 22; n != 0; n--) {
+                    pS->Poly_rgb -= 0x101;
+                    pS++;
+                }
+            }
+        }
+        break;
+    case 5:
+        pW = pEm->pSin_parts_ptr;
+        i = 22;
+        if (pW->Size_x <= 0x400) {
+            pEm->Routine_2 = 6;
+            break;
+        }
+        for (; i != 0; i--) {
+            pW->Size_x -= 4 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+            pW->Size_y -= 4 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+            pW->Size_z -= 4 + (Em38_pulse[pEm->UnkDA & 0x3F] >> 1);
+            if (i != 22)
+                Em38_part_scale_pos(pEm, pW, pW->Size_x);
+            pW++;
+        }
+        pW = pEm->pSin_parts_ptr;
+        pEm->Mot_scale_y = pW->Size_x;
+        if (!(pEm->Timer0 % 45) && pW->Size_x > 0x800) {
+            /* redundant re-read (s2 already holds it, reload_cse deletes it after sched1, which still sees the load) */
+            pW = pEm->pSin_parts_ptr;
+            Sv.vx = 0;
+            Sv.vy = 0;
+            Sv.vz = 0;
+            Esp_call(0x1C03, 0x18000000, &pW->Workm, &Sv, 0);
+            Esp_call(0x1C03, 0x10000000, &pEm->pSin_parts_ptr[12].Workm, &Sv, 0);
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            pW = &pEm->pSin_parts_ptr[3];
+            Esp_call(0x1C03, 0x10000000, &pW->Workm, &Sv, 0);
+        }
+    case 6:
+        pK = pEm->Kage.pKw;
+        if ((*(ULONG *)&pK->Prim[0].r0 & 0xFF) != 0x10) {
+            *(ULONG *)&pK->Prim[0].r0 -= 0x10001;
+            *(ULONG *)&pK->Prim[1].r0 -= 0x10001;
+        }
+        if ((*(ULONG *)&pK->Prim[0].r0 & 0xFF00) != 0xAF00) {
+            *(ULONG *)&pK->Prim[0].r0 += 0x100;
+            *(ULONG *)&pK->Prim[1].r0 += 0x100;
+        }
+        if (pEm->Timer0 & 0x7FFF) {
+            pEm->Timer0--;
+            pK->Half_x++;
+            pK->Half_z++;
+        }
+        if (!(pEm->Timer0 % 45) && pW->Size_x > 0x5F4)
+            Snd_se_stad(0x10214, POS_V(pEm), 0, 0);
+        pP = pEm->pSin_parts_ptr;
+        if (!(pEm->Timer0 & 0x8000) && pP->Size_x < 0x5F4) {
+            pEm->Timer0 |= 0x8000;
+            pP = pEm->pSin_parts_ptr; /* redundant re-read, see case 5 */
+            Sv.vx = 0;
+            Sv.vy = -800;
+            Sv.vz = 0;
+            Esp_kill(0x1403, &pP->Workm);
+            Esp_call(0x1C03, 0x18000000, &pP->Workm, &Sv, 0);
+            pM3 = &pEm->pSin_parts_ptr[12].Workm;
+            Sv.vx = 0;
+            Sv.vy = 0;
+            Sv.vz = 0;
+            Esp_kill(0x1403, pM3);
+            Esp_call(0x1C03, 0x18000000, pM3, &Sv, 0);
+            pM4 = &pEm->pSin_parts_ptr[16].Workm;
+            Sv.vx = 0x80;
+            Sv.vy = 200;
+            Sv.vz = 0x40;
+            Esp_kill(0x1403, pM4);
+            Esp_call(0x1C03, 0x14000000, pM4, &Sv, 0);
+            pM = &pEm->pSin_parts_ptr[3].Workm;
+            Esp_kill(0x1403, pM);
+            Esp_call(0x1C03, 0x10000000, pM, &Sv, 0);
+            pP = &pEm->pSin_parts_ptr[17];
+            Sv.vx = 0x22;
+            Sv.vy = 0x41;
+            Sv.vz = 0x100;
+            Esp_kill(0x1403, &pP->Workm);
+            Esp_call(0x1C03, 0x10000000, &pP->Workm, &Sv, 0);
+        }
+        if (pP->Size_x > 0x5F4 && !(pEm->Timer0 & 7)) {
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x1800) << 16) | (USHORT)(Rnd_l() << 4), &pP[1].Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x1800) << 16) | (USHORT)(Rnd_l() << 4), &pP[2].Workm, &Sv, 0);
+            pP = pEm->pSin_parts_ptr;
+            Sv.vx = 0x100 - (Rnd_l() << 1);
+            Sv.vy = 0x100 - (Rnd_l() << 1);
+            Sv.vz = 0x100 - (Rnd_l() << 1);
+            Esp_call(0x1900, (((Rnd_l() << 1) + 0x1800) << 16) | (USHORT)(Rnd_l() << 4), &pP[21].Workm, &Sv, 0);
+        }
+        if (!(pEm->Timer0 & 3)) {
+            pP = pEm->pSin_parts_ptr;
+            if ((pP->Poly_rgb & 0xFF0000) != 0x200000) {
+                pS = pP;
+                for (i = 22; i != 0; i--) {
+                    pS->Poly_rgb -= 0x10000;
+                    pS++;
+                }
+            }
+            pP = pEm->pSin_parts_ptr;
+            if ((pP->Poly_rgb & 0xFF00) != 0x1000) {
+                pS = pP;
+                for (i = 22; i != 0; i--) {
+                    pS->Poly_rgb -= 0x101;
+                    pS++;
+                }
+            }
+        }
+        break;
+    }
+}
 
 /* sce04: spitting acid / dying in the scenario */
 void Em38_sce_spit(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
