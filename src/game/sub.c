@@ -351,8 +351,42 @@ void Keep_data_load(void)
     pG->Money = Keep_money;
 }
 
-/* reloads the room files after a retry */
-INCLUDE_ASM("asm/nonmatchings/game/sub", Retry_file_load);
+/* loads ICON_DATA and copies the memory card icon picked by the game clear flags into the save header */
+void Retry_file_load(ULONG *pAdr)
+{
+    ULONG *pDst;
+    ULONG Flg;
+    LONG Bit;
+    SHORT All_a; /* SHORT: the narrow flags change which registers the masks get */
+    SHORT All_b;
+    LONG No;
+    LONG i;
+
+    Cd_read(0x2E, pAdr, 0, "ICON_DATA");
+    Flg = G.Game_flg[0];
+    Bit = Flg & 0x4000000;
+    All_a = (Flg & 0xF8000000) == 0xF8000000;
+    All_b = (Flg & 0x3C00000) == 0x3C00000;
+    if (Bit == 0)
+        No = 0;
+    else if (All_a == 1 && All_b == 1)
+        No = 3;
+    else if (All_a == 1 || All_b == 1)
+        No = 2;
+    else
+        No = 1;
+    pAdr += No * 48;
+    pAdr += 5;
+    pDst = (ULONG *)&G.Card_head[0x60];
+    for (i = 8; i != 0; i--) {
+        *pDst++ = *pAdr++;
+    }
+    pAdr += 3;
+    pDst = (ULONG *)&G.Card_head[0x60] + 8;
+    for (i = 32; i != 0; i--) {
+        *pDst++ = *pAdr++;
+    }
+}
 
 /* retry from the snapshot taken at the save point (Retry_data): player, items and room */
 void Retry_load(void)

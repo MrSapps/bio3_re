@@ -778,7 +778,115 @@ void St_box_prim_set(ST_WORK *pSt)
 }
 
 /* draws the item box screen */
-INCLUDE_ASM("asm/nonmatchings/game/status", St_box_draw);
+void St_box_draw(ST_WORK *pSt)
+{
+    tagGLOBAL *pG = &G;
+    SPRT *p;
+    ITEM_WORK *pI;
+    ULONG i;
+    LONG n;
+    signed char k;
+    USHORT x, y; /* shared by the three count positions: a multi-block pseudo goes to global-alloc */
+    tagGLOBAL *pG2;
+    UCHAR c;
+    LONG x0, y0;
+
+    p = (SPRT *)0x8019C2F8;
+    n = 8;
+    if (pG->Cbuf_id) {
+        p = (SPRT *)0x8019C30C;
+    }
+    if (pSt->Rtn1 == 0) {
+        setRGB0(p, pSt->Blink - 0x80, pSt->Blink - 0x80, pSt->Blink - 0x80);
+    } else {
+        setRGB0(&p[0], 0x80, 0x80, 0x80);
+        setRGB0(&p[1], 0x80, 0x80, 0x80);
+    }
+    for (i = 0; i < 8; i++) {
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n * 4]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n * 3]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n * 2]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i + n]);
+        AddPrim(G.pOt0 + i, &pSt->Ot[G.Cbuf_id][i]);
+    }
+    p = (SPRT *)0x8019C348;
+    if (G.Cbuf_id) {
+        p = (SPRT *)0x8019C35C;
+    }
+    i = 0;
+    if (G.Item_work[0].Num) {
+        do {
+            pI = &pG->pItem_set->Item[i];
+            c = pSt->Clut_parts + ((pI->Flg & 0xC) >> 2) + 2;
+            x = Box_num_pos[i][0];
+            y = Box_num_pos[i][1];
+            p = St_num_disp(p, pI->Num, x | (y << 16), c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
+        } while (++i < Item_work0_num);
+    }
+    if ((i = pG->pItem_set->Equip_no) != 0xFF) {
+        pI = &pG->pItem_set->Item[i];
+        c = pSt->Clut_parts + ((pI->Flg & 0xC) >> 2) + 2;
+        x = Box_num_pos[10][0];
+        y = Box_num_pos[10][1];
+        p = St_num_disp(p, pI->Num, x | (y << 16), c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 2) << 16));
+    }
+    pG2 = &G;
+    St_sprt_draw(pSt, (SPRT *)0x8019C000, Box_inv_frame_spr, 0x31003);
+    St_sprt_draw(pSt, (SPRT *)0x8019C140, Box_inv_icon_spr, ((n | 2) << 16) | 0x1003);
+    St_sprt_draw(pSt, (SPRT *)0x8019C1B8, Box_equip_icon_spr, ((n | 2) << 16) | 0x1001);
+    St_ft4_draw(pSt, (void *)0x8019D388, Box_inv_edge_ft4, 0x71003);
+    St_sprt_draw(pSt, (SPRT *)0x8019C078, Box_frame_spr, (((n * 3) | 3) << 16) | 0x1005);
+    St_tile_draw(pSt, (TILE *)0x8019D748, Box_top_mask_tile, 0x41001);
+    if (pSt->Flg & 0x10000) {
+        St_sprt_draw(pSt, (SPRT *)0x8019D068, Box_scroll_up_spr, (((n * 3) | 2) << 16) | 0x1001);
+    }
+    if (pSt->Flg & 0x8000) {
+        St_sprt_draw(pSt, (SPRT *)0x8019D090, Box_scroll_down_spr, (((n * 3) | 2) << 16) | 0x1001);
+    }
+    if (pG2->pItem_set->Num == 8) {
+        St_sprt_draw(pSt, (SPRT *)0x8019C1E0, Box_slot_lock_spr, 0x11007);
+        St_tile_draw(pSt, (TILE *)0x8019D478, Box_slot_lock_tile, 0x11001);
+    }
+    if (pSt->Flg & 0x4000000) {
+        if (pSt->Cursor < 0) {
+            if (pSt->Cursor >= -2) {
+                St_sprt_draw(pSt, (SPRT *)0x8019C320, Box_label_spr, (((n * 3) | 1) << 16) | 0xC01);
+                goto next;
+            }
+        }
+        St_sprt_draw(pSt, (SPRT *)0x8019C2F8, Box_inv_cursor_spr, ((n * 2 + 1) << 16) | 0xC01);
+    }
+next:
+    St_ft4_draw(pSt, (void *)0x8019D0B8, Box_mess_win_ft4, 0x41008);
+    St_ft4_draw(pSt, (void *)0x8019D338, Box_mess_bg_ft4, 0x41001);
+    if ((pSt->Flg & 0x20000000) && pSt->Cursor >= 0) {
+        pI = &pItem_slot[pSt->Cursor];
+        Name_disp(0xE, 0xAD, 0x501, pI->Id);
+    }
+    St_box_list_draw(pSt, pSt->Box_cursor, pSt->Box_scroll);
+    k = pSt->Box_cursor - 3;
+    if (k < 0) {
+        k = pSt->Box_cursor + 0x3D;
+    }
+    x0 = 0x14;
+    for (i = 0; i < 7; i++) {
+        pI = &G.pItem_set->Box[k];
+        y0 = i * 0x18 + 0x1D;
+        if (pI->Id == 0) {
+            Name_disp(x0, pSt->Box_scroll + y0, 0x535, 0xAB);
+        } else {
+            Name_disp(x0, pSt->Box_scroll + y0, 0x505, pI->Id);
+            c = pSt->Clut_parts + ((pI->Flg & 0xC) >> 2) + 2;
+            x = Box_list_num_pos[i][0] + 0x8F;
+            y = Box_list_num_pos[i][1] + pSt->Box_scroll;
+            p = St_num_disp(p, pI->Num, x | (y << 16), c | (((UCHAR)pI->Flg & 3) << 8) | ((n * 2 + 5) << 16));
+        }
+        if (++k >= 64) {
+            k = 0;
+        }
+    }
+    St_box_frame_draw(pSt);
+}
 
 /* swaps inventory icon Inv_no and box icon Box_no in VRAM */
 void St_icon_swap(UCHAR Inv_no, UCHAR Box_no)
@@ -822,7 +930,7 @@ void St_icon_copy(UCHAR Box_no, UCHAR Inv_no)
 }
 
 /* draws the 7 visible box icons around Box_cursor, shifted by Ofs_y */
-void St_box_list_draw(ST_WORK *pSt, UCHAR Box_cursor, SHORT Ofs_y)
+void St_box_list_draw(ST_WORK *pSt, signed char Box_cursor, SHORT Ofs_y)
 {
     POLY_FT4 *p = (POLY_FT4 *)0x8019D4C8;
     signed char Icon = Box_cursor - 3;
