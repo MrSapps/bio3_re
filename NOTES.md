@@ -990,3 +990,39 @@ Near misses (paths under the agentM scratchpad):
   copy, `Pos_y + 1600` folded, the reload issue above.
 - Tools: agentO/cdgen.py (greedy one-slot-at-a-time over `{{NAME:a||b}}` templates; gen.py's full cartesian product
   once wrote 476k files), opd.py (register-blind diff), dscore.py now returns 9999 on any cc1 stderr.
+## Matching round agentU (drafts in the session scratchpad agentU/best)
+Matched: pl_wep Pl_wep_parts_drop, Pl_wep_eff_move (names: Pl_wep_blast_at 0x8009DD9C, Pl_wep_burn_at 0x8009DDB0,
+Pl_wep_near_parts 0x8009DBF4; pl_wep.c now includes md_sub.h).
+Rules learnt:
+- sched1 "birthing" boost (sched.c adjust_priority / birthing_insn_p): an insn whose dest pseudo has REG_N_SETS == 1 gets
+  priority 0x7f000001 when it becomes ready, so it is scheduled right before its first use; a multi-set variable is ordered
+  by LUID instead. Target `a0 = arg` before `s0 = ptr` (Pl_wep_parts_drop rot blocks) = single-set pointer; a load the target
+  issues early (Swap_Cbuff pRoom) = multi-set destination.
+- loop.c giv reduction subtracts add_cost * biv_count from the benefit: a biv incremented in two places (`pP++; continue;`
+  in an early exit plus `pP++` at the end) halves what a giv is worth. Pl_wep_parts_drop's two single-set M pointers stopped
+  being combined/strength-reduced that way.
+- Preheader order: loop.c inserts hoisted movables before NOTE_INSN_LOOP_BEG, i.e. after any user init before the loop, and
+  giv inits after the movables. Target `addiu s6,sp,&Req` before `lui Pl_wep_poly`: the pointer was a reduced giv
+  (`&Pl_wep_poly[n]` with a counter n, n++ in both paths), not a `pWp = Pl_wep_poly; pWp++` biv.
+- global.c prune_preferences drops call-used regs from the preferences of allocnos that cross calls, so a parameter's
+  incoming a1 never blocks a1 for others (pl_mv07, Spl_wep_set); regs_someone_prefers only collects LOWER-priority
+  conflicting allocnos' preferences.
+Near misses (agentU/best):
+- player pl_mv07 (pl_mv07_10_ofs.c, 10 words; agentM forkD 4): a fresh single-use `Ofs` for the `<< 3` term puts it in v0 like
+  the target. Left: i (loop counter, prio 1.08) takes a1 before the hoisted Ofs+8 (0.18), target i=a2 / Ofs+8=a1; and with Ofs
+  split off, m/m4 swap t1/t2. FSF cc1 reproduces the a1/a2 choice (gdb usable). Loop reversal / count-up forms worse.
+- pl_wep Mag_down (12): Mag_down_12_regs.c (`Old_pos = (USHORT)pP->Timer3; Old_pos &= 2;`) has every register right but
+  sched1 puts the multi-set andi early; Mag_down_15_sched.c (`if ((Old_pos & 2) ...`, single-set andi temp) gets the
+  Timer3 load order but the andi temp takes v0 and the Timer0 chain swaps v0/v1. Target needs a boosted andi placed between
+  negu and the Timer0 sh. ~1500 statement-order / temp / type variants (mdv5..mdv8) all >= 12.
+- main Swap_Cbuff (2): agentP's `do { pRoom = pG->pRoom; } while (0)` leaves loop notes that block sched2 from putting the
+  rodata lui first. Without it, the pRoom load is boosted (single set) and lands after the RECT copy (13). Reading it into
+  the multi-set pScrl (Swap_Cbuff_2_pscrl.c) gives the exact order, but pScrl's s6 then holds pRoom too (2). Needs some other
+  multi-set variable for pRoom (y works but is not credible).
+- snd Snd_bgm_play_ck (2, Snd_bgm_play_ck_2.c = plain `p = &Snd_work; pCd = &CD;` + empty do/while): order right, the CD
+  %hi gets v0 instead of v1. Local-alloc only gives v1 if the two %hi lives overlap in sched1 order, and then sched2 issues
+  both luis first (Snd_bgm_play_ck_regs.c). sched2 picks hiC before loS only with a higher LUID.
+- spl Spl_wep_set (12): `pHand = pP` inside the Flg & 8 block makes pHand block-local (a0) and moves pEm (85). With it at the
+  top, pP (prio 0.92) beats pHand (0.18) to a1; do/while weighting raises both because every pHand statement touches pP.
+- oba Oba_em_overlap_ck (11): statement order of the X/Z/X0..Z1 reads has no effect (288 perms); dwgen depth <= 3 no effect.
+- cd Cd_link_search, oba Oba_ent_box_set, sce_at Sce_at_check: not reached this round (agentK/agentP/agentM drafts unchanged).

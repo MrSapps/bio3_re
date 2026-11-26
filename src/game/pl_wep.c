@@ -8,6 +8,7 @@
 #include "sld.h"
 #include "spl_auto.h"
 #include "snd.h"
+#include "md_sub.h"
 #include "status.h"
 #include "sub.h"
 
@@ -2885,7 +2886,66 @@ void Pl_wep_eff_init(ENEMY_WORK *pEm)
 void Pl_wep_dummy(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pl_wep_parts_drop);
+void Pl_wep_parts_drop(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP;
+    UCHAR n;
+    SHORT Gy;
+    LONG *pPos;
+    MATRIX *pM;
+    MATRIX *pM2;
+
+    n = 0;
+    pP = &pEm->pSin_parts_ptr[15];
+    do {
+        if ((pP->Be_flg & 1) && pP->Timer2 != 1) {
+            pPos = pP->Workm.t;
+            Gy = Sca_get_ground(pPos, 500, 0x8000, 0);
+            if (Gy > pP->Unk78) {
+                pP->Unk78 = Gy;
+            }
+            if (Gy < pP->Unk78) {
+                pP->Old_y = 0;
+                pP->Old_z = 0;
+            }
+            pP->Timer0 += 20;
+            pP->Workm.t[1] += pP->Timer0;
+            if (pP->Unk78 < pP->Workm.t[1]) {
+                if (pP->Timer1) {
+                    pP->Workm.t[1] = pP->Unk78;
+                    pP->Timer0 = -(pP->Timer0 / 2);
+                    pP->Timer1--;
+                    Snd_se_stad(0x10104, pPos, 0, 0);
+                } else {
+                    pP->Timer2 = 1;
+                    pP->Workm.t[1] = pP->Unk78;
+                    Sce_aot_parts_set(1, pP, &pP->Unk74);
+                    Snd_se_stad(0x10104, pPos, 0, 0);
+                }
+            }
+            pP->Workm.t[0] += pP->Old_y;
+            pP->Workm.t[2] += pP->Old_z;
+            if (pP->Timer1) {
+                if (pP->Timer3 & 1) {
+                    pP->Cdir_x = 0x100;
+                    pM2 = PW_M(pP);
+                    RotMatrix(CDIR_SV(pP), pM2);
+                    MulMatrix2(pM2, &pP->Workm);
+                }
+                if (pP->Timer1) {
+                    /* separate increments: the biv count stops loop.c reducing the two M pointers */
+                    pP++;
+                    continue;
+                }
+            }
+            pP->Cdir_x = 0x100;
+            pM = PW_M(pP);
+            RotMatrix(CDIR_SV(pP), pM);
+            MulMatrix2(pM, &pP->Workm);
+        }
+        pP++;
+    } while (--n != 0);
+}
 
 /* empty, unreferenced */
 void Pl_wep_dummy2(void) {
@@ -3031,7 +3091,414 @@ ENEMY_WORK *Em_near_dir_ck(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim)
     return G.pEm;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pl_wep_eff_move);
+/* free work of the weapon effect parts (parts 15..20, from Unk74) */
+typedef struct tagPL_WEP_EFF_FREE {
+    UCHAR Mode;                        /* 0x74 0xFF: off */
+    UCHAR Parts_no;                    /* 0x75 part of pTarget it homes on */
+    SHORT Dir_y;                       /* 0x76 */
+    ENEMY_WORK *pTarget;               /* 0x78 */
+    SHORT Ground;                      /* 0x7C */
+    SHORT Spd;                         /* 0x7E */
+    UCHAR Cnt;                         /* 0x80 frames before homing starts */
+    UCHAR Acc;                         /* 0x81 */
+} PL_WEP_EFF_FREE;
+#define PW_EFF(p) ((PL_WEP_EFF_FREE *)&(p)->Unk74)
+
+/* moves the weapon effect parts (rockets / grenade rounds) */
+void Pl_wep_eff_move(ENEMY_WORK *pEm)
+{
+    SVECTOR Sv;
+    SVECTOR Sv2;
+    MATRIX M;
+    SVECTOR V;
+    SVECTOR Pad;                       /* unused (frame layout) */
+    SVECTOR Dir2;
+    SVECTOR Dir;
+    HIT_REQ Req;
+    SHORT Wk;
+    PARTS_W *pP;
+    PARTS_W *pQ;
+    PARTS_W *pR;
+    LONG n;                            /* Pl_wep_poly index (a PL_WEP_POLY pointer orders the preheader differently) */
+    ENEMY_WORK *pT;
+    ULONG i;
+    USHORT Wep;
+    SHORT Lim_y;
+    SHORT Lim_x;
+    SHORT Lim_l;
+    ULONG Parts_no;
+    SHORT Gy;
+    SHORT W;
+    ULONG r;
+    ULONG d;
+
+    i = 6;
+    n = 0;
+    Lim_y = 0x18;
+    Lim_x = 0x18;
+    pP = &pEm->pSin_parts_ptr[15];
+    Lim_l = 0x320;
+    Wep = pP->Rot_spd_x;
+    if (Wep == 0x14) {
+        Lim_y = (Rnd() & 1) * 0x60 + 0x60;
+        Lim_x = 0x60;
+        Lim_l = 0x800;
+    }
+    do {
+        if (PW_EFF(pP)->Mode == 0xFF) {
+            pP++;
+            n++;
+            continue;
+        }
+        switch (PW_EFF(pP)->Mode) {
+        case 0:
+            PW_EFF(pP)->Mode = 1;
+            pP->Timer0 = 10;
+            pP->Pos_base_x = 8;
+            pP->Timer1 = 0;
+            pP->Timer2 = 0;
+            pP->Timer3 = 0;
+            pP->Pos_base_y = 0x5A;
+            if ((SHORT)Sca_get_ground(pP->Workm.t, 1, 0x2000, 0x10) < pP->Workm.t[1]) {
+                PW_EFF(pP)->Mode = 2;
+                PW_EFF(pP)->pTarget = NULL;
+                if (!(Sca_work.Gnd.s.Id & 0x1000)) {
+                    PW_EFF(pP)->Mode = 7;
+                    Req.pPos = (VECTOR *)pP->Workm.t;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = 0;
+                    Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+                    Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+                    Snd_se_stad(0x1000D, pP->Workm.t, 0, 0);
+                }
+            }
+            PW_EFF(pP)->Spd = 0x190;
+            PW_EFF(pP)->Cnt = 5;
+            PW_EFF(pP)->Acc = 5;
+            if (Wep == 0x14) {
+                PW_EFF(pP)->Spd = 0x2BC;
+                PW_EFF(pP)->Cnt = 0;
+            }
+            pP->Be_flg |= 4;
+            pP->Size_x = 0x1000;
+            pP->Size_y = 0x4000;
+            pP->Size_z = 0x1000;
+            break;
+        case 1:
+            if (Wep == 0x14 && pP->Pos_base_y != 0) {
+                pP->Pos_base_y--;
+            }
+            Sv.vx = 0;
+            Sv.vy = PW_EFF(pP)->Spd;
+            Sv.vz = 0;
+            ApplyMatrixSV(&pP->Workm, &Sv, &Sv2);
+            if (pP->Timer2 != 9) {
+                pP->Workm.t[0] += Sv2.vx;
+                pP->Workm.t[1] += Sv2.vy;
+                pP->Workm.t[2] += Sv2.vz;
+            }
+            PW_EFF(pP)->Spd += PW_EFF(pP)->Acc;
+            if (PW_EFF(pP)->Spd > 0x320) {
+                PW_EFF(pP)->Spd = 0x320;
+            }
+            if (PW_EFF(pP)->Cnt != 0) {
+                if (--PW_EFF(pP)->Cnt == 0) {
+                    Esp_ctrl(0x805, &pP->Workm, 0x1001A, 0x78000A);
+                }
+            } else {
+                PW_EFF(pP)->Acc += 100;
+                if (PW_EFF(pP)->Acc > 200) {
+                    PW_EFF(pP)->Acc = 200;
+                }
+            }
+            Vec_dir_get(&Sv2, &Dir);
+            PW_EFF(pP)->Dir_y = Dir.vy;
+            pT = Em_near_dir_ck((VECTOR *)pP->Workm.t, Dir.vy, 10000, Lim_l);
+            Parts_no = (USHORT)Parts_near_get(pT, &pP->Workm, Pl_wep_near_parts);
+            pR = &pT->pSin_parts_ptr[Parts_no];
+            V.vx = (pR->Workm.t[0] - pP->Workm.t[0]) >> 3;
+            V.vy = (pR->Workm.t[1] - pP->Workm.t[1]) >> 3;
+            V.vz = (pR->Workm.t[2] - pP->Workm.t[2]) >> 3;
+            Vec_dir_get(&V, &Dir2);
+            if (pT != pEm && PW_EFF(pP)->Cnt == 0 && pP->Pos_base_y != 0) {
+                Dir_limit(Dir2.vy, Dir.vy, Lim_y, &Wk);
+                Dir.vy = Wk;
+                Dir_limit(Dir2.vz, Dir.vz, Lim_x, &Wk);
+                Dir.vz = Wk;
+                RotMatrix(&Dir, &pP->Workm);
+                pP->Timer0--;
+            }
+            Gy = Sca_get_ground(pP->Workm.t, 1, 0x2000, 0x10);
+            if (Gy < pP->Workm.t[1]) {
+                PW_EFF(pP)->Mode = 2;
+                if (!(Sca_work.Gnd.s.Id & 0x1000)) {
+                    PW_EFF(pP)->Mode = 7;
+                    Req.pPos = (VECTOR *)pP->Workm.t;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = 0;
+                    Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+                    Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+                    Snd_se_stad(0x1000D, pP->Workm.t, 0, 0);
+                }
+                PW_EFF(pP)->pTarget = NULL;
+                if (Sca_work.pEm_hit2 != NULL) {
+                    PW_EFF(pP)->pTarget = Sca_work.pEm_hit2;
+                    PW_EFF(pP)->Mode = 2;
+                }
+                break;
+            }
+            PW_EFF(pP)->Ground = Gy;
+            if ((ULONG)(pP->Workm.t[0] + 30000) > 60000) {
+                PW_EFF(pP)->Mode = 2;
+                pP->Timer1 = 1;
+            }
+            if ((ULONG)(pP->Workm.t[1] + 30000) > 60000) {
+                PW_EFF(pP)->Mode = 2;
+                pP->Timer1 = 1;
+            }
+            if ((ULONG)(pP->Workm.t[2] + 30000) > 60000) {
+                PW_EFF(pP)->Mode = 2;
+                pP->Timer1 = 1;
+            }
+            PW_EFF(pP)->pTarget = Weapon_at_ck(&pP->Workm, Pl_wep_data[pEm->Id], Wep);
+            if (PW_EFF(pP)->pTarget != NULL && Wep == 0xC) {
+                PW_EFF(pP)->Mode = 8;
+                PW_EFF(pP)->Parts_no = Parts_no;
+            }
+            W = Water_ck(pP->Workm.t[0], pP->Workm.t[2]);
+            if (W != 0 && W < pP->Workm.t[1]) {
+                Esp_call(0x161C, ((Rnd() * 2 + 0x418) << 16) | (((USHORT)Dir.vy + 0x800) & 0xFFFF), &pP->Workm, 0, 0);
+                Sv.vy = 200;
+                Esp_call(0x161C, ((Rnd() * 2 + 0x418) << 16) | (((USHORT)Dir.vy + 0x800) & 0xFFFF), &pP->Workm, &Sv, 0);
+                Sv.vy = 400;
+                Esp_call(0x161C, ((Rnd() * 2 + 0x418) << 16) | (((USHORT)Dir.vy + 0x800) & 0xFFFF), &pP->Workm, &Sv, 0);
+                Sv.vy = 600;
+                Esp_call(0x161C, ((Rnd() * 2 + 0x418) << 16) | (((USHORT)Dir.vy + 0x800) & 0xFFFF), &pP->Workm, &Sv, 0);
+            }
+            if (PW_EFF(pP)->pTarget != NULL && Wep == 0x14) {
+                if (--pP->Pos_base_x == 0) {
+                    PW_EFF(pP)->Mode = 7;
+                    PW_EFF(pP)->Parts_no = Parts_no;
+                    Req.pPos = (VECTOR *)pP->Workm.t;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = 0;
+                    Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+                    Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+                } else {
+                    pP->Timer2 = 10;
+                    pP->Timer3 = (PW_EFF(pP)->pTarget->Be_flg >> 22) & 3;
+                    Req.pPos = (VECTOR *)pP->Workm.t;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = 0;
+                    Pos_em_at_ck(&Req, &Pl_wep_burn_at);
+                    Pos_om_at_ck(&Req, &Pl_wep_burn_at);
+                    Esp_call(0x1000203, 0x6000000, &pP->Workm, 0, 0);
+                    Esp_call((((UCHAR)pP->Timer3 & 0xF) << 24) | 0x1900, 0x18000000, &pP->Workm, 0, 0);
+                    if (W != 0 && W < pP->Workm.t[1]) {
+                        Sv.vx = pP->Workm.t[0];
+                        Sv.vy = pP->Workm.t[1];
+                        Sv.vz = pP->Workm.t[2];
+                        Esp_call(0x71C, (Rnd() * 2 + 0x338) << 16, &GsIDMATRIX, &Sv, 0);
+                    }
+                }
+            }
+            if (pP->Timer2 != 0) {
+                if (pP->Timer2 == 9) {
+                    Req.pPos = (VECTOR *)pP->Workm.t;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = 0;
+                    Pos_em_at_ck(&Req, &Pl_wep_burn_at);
+                    Pos_om_at_ck(&Req, &Pl_wep_burn_at);
+                }
+                Esp_call((((UCHAR)pP->Timer3 & 0xF) << 24) | 0x1900, 0x10000000, &pP->Workm, 0, 0);
+                pP->Timer2--;
+            }
+            break;
+        case 2:
+            pP->Timer0 = 20;
+            pP->Timer1 = -1;
+            PW_EFF(pP)->Mode = 3;
+            Esp_kill(0x103, &pP->Workm);
+            Esp_kill(0x105, &pP->Workm);
+            Esp_kill(0x805, &pP->Workm);
+            Esp_call(1, 0x10000000, &pP->Workm, 0, 0);
+            pP->Size_y = 0x2000;
+            if (PW_EFF(pP)->pTarget != NULL) {
+                MulLMatrix(EM_WORKM(PW_EFF(pP)->pTarget), &pP->Workm, PW_M(pP));
+                pP->pSuper = EM_WORKM(PW_EFF(pP)->pTarget);
+                pP->pOya_parts = &((OBJ_MODEL_WORK *)PW_EFF(pP)->pTarget)->Parts;
+                pP->Be_flg &= ~2;
+            }
+            if (Wep == 0x14) {
+                goto hit;
+            }
+            Pl_wep_poly_rgb(&Pl_wep_poly[n], 0x202000);
+        case 3:
+            Sv.vx = 0;
+            Sv.vy = pP->Timer0 * (pP->Timer1 << 3);
+            Sv.vz = pP->Timer0 * (pP->Timer1 << 3);
+            RotMatrix(&Sv, &M);
+            MulMatrix0(&pP->Workm, &M, &pP->Workm);
+            pP->Timer1 *= -1;
+            pP->Size_y -= 0x198;
+            Pl_wep_poly_set(&Pl_wep_poly[n], (20 - pP->Timer0) * 5, pP->Workm.t);
+            Pl_wep_poly_ck(&Pl_wep_poly[n], pEm);
+            if (--pP->Timer0 == -1) {
+                PW_EFF(pP)->Mode = 4;
+                pP->UnkA2 &= ~1;
+            }
+            break;
+        case 4:
+            PW_EFF(pP)->Mode = 5;
+            PW_EFF(pP)->Spd = 0;
+            pP->Timer0 = 100;
+        case 5:
+            Pl_wep_poly_set(&Pl_wep_poly[n], pP->Timer0, pP->Workm.t);
+            pP->Timer0 -= 15;
+            if (pP->Timer0 < 10) {
+                PW_EFF(pP)->Mode = 4;
+            }
+            r = Em_near_pos_ck((VECTOR *)pP->Workm.t, 3000, 2000);
+            if (r == 0) {
+                Pl_wep_poly_rgb(&Pl_wep_poly[n], 0x202020);
+            }
+            if (r & 1) {
+                Pl_wep_poly_rgb(&Pl_wep_poly[n], 0x202040);
+                pP->Timer0 -= 10;
+            }
+            Pl_wep_poly_ck(&Pl_wep_poly[n], pEm);
+            if (r & 2) {
+                PW_EFF(pP)->Mode = 6;
+                pP->Timer0 = 10;
+            }
+            break;
+        case 6:
+            if (--pP->Timer0 == -1) {
+                PW_EFF(pP)->Mode = 7;
+                Req.pPos = (VECTOR *)pP->Workm.t;
+                Req.W = 0;
+                Req.H = 0;
+                Req.D = 0;
+                Req.R = 0;
+                Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+                Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+            }
+            if (pP->Timer0 & 1) {
+                Pl_wep_poly_set(&Pl_wep_poly[n], 0x32, pP->Workm.t);
+            } else {
+                Pl_wep_poly_set(&Pl_wep_poly[n], 0x64, pP->Workm.t);
+            }
+            Pl_wep_poly_ck(&Pl_wep_poly[n], pEm);
+            if (pP->Timer0 < 10) {
+                Pl_wep_poly_rgb(&Pl_wep_poly[n], 0x404040);
+            }
+            break;
+        case 7:
+            Esp_call(0x1000203, 0xC000000, &pP->Workm, 0, 0);
+            Req.pPos = (VECTOR *)pP->Workm.t;
+            Req.W = 0;
+            Req.H = 0;
+            Req.D = 0;
+            Req.R = 0;
+            Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+            Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+            Esp_kill(0x103, &pP->Workm);
+            Esp_kill(0x105, &pP->Workm);
+            Esp_kill(0x805, &pP->Workm);
+            Snd_se_stad(0x1000D, pP->Workm.t, 0, 0);
+            pP->Be_flg = 0;
+            PW_EFF(pP)->Mode = 0xFF;
+            Pl_wep_poly_off(&Pl_wep_poly[n]);
+            W = Water_ck(pP->Workm.t[0], pP->Workm.t[2]);
+            if (W != 0 && W < pP->Workm.t[1]) {
+                Sv.vx = pP->Workm.t[0];
+                Sv.vy = pP->Workm.t[1];
+                Sv.vz = pP->Workm.t[2];
+                Esp_call(0x71C, (Rnd() * 2 + 0x338) << 16, &GsIDMATRIX, &Sv, 0);
+            }
+            break;
+        case 8:
+            pP->Timer0 = 60;
+            PW_EFF(pP)->Mode = 9;
+            pP->Timer1 = -1;
+            pP->Timer3 = pP->Workm.t[1];
+            pR = &PW_EFF(pP)->pTarget->pSin_parts_ptr[PW_EFF(pP)->Parts_no];
+            V.vx = pR->Workm.t[0] - pP->Workm.t[0];
+            V.vy = pR->Workm.t[1] - pP->Workm.t[1];
+            V.vz = pR->Workm.t[2] - pP->Workm.t[2];
+            Vec_dir_get(&V, &Dir2);
+            RotMatrix(&Dir2, &pP->Workm);
+            d = SquareRoot0(V.vx * V.vx + V.vz * V.vz);
+            d = SquareRoot0(d * d + V.vy * V.vy);
+            Sv.vx = 0;
+            Sv.vy = (d >> 2) * 3;
+            Sv.vz = 0;
+            ApplyMatrixSV(&pP->Workm, &Sv, &Sv2);
+            pP->Workm.t[0] += Sv2.vx;
+            pP->Workm.t[1] += Sv2.vy;
+            pP->Workm.t[2] += Sv2.vz;
+            pQ = &PW_EFF(pP)->pTarget->pSin_parts_ptr[PW_EFF(pP)->Parts_no];
+            MulLMatrix(&pQ->Workm, &pP->Workm, PW_M(pP));
+            pP->pSuper = &pQ->Workm;
+            pP->pOya_parts = pQ;
+            pP->Be_flg &= ~2;
+            Esp_kill(0x103, &pP->Workm);
+            Esp_kill(0x105, &pP->Workm);
+            Esp_kill(0x805, &pP->Workm);
+        case 9:
+            pQ = &PW_EFF(pP)->pTarget->pSin_parts_ptr[PW_EFF(pP)->Parts_no];
+            if ((pQ->UnkA2 & 0x420) || !(pQ->Be_flg & 1)) {
+            hit:
+                PW_EFF(pP)->Mode = 7;
+                Req.pPos = (VECTOR *)pP->Workm.t;
+                Req.W = 0;
+                Req.H = 0;
+                Req.D = 0;
+                Req.R = 0;
+                Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+                Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+                break;
+            }
+            if (--pP->Timer0 == -1) {
+                PW_EFF(pP)->Mode = 5;
+                PW_EFF(pP)->Spd = 0;
+                pP->Timer0 = 150;
+                if (Em_near_pos_ck((VECTOR *)pP->Workm.t, 3000, 2000) & 2) {
+                    PW_EFF(pP)->Mode = 7;
+                    Req.pPos = (VECTOR *)pP->Workm.t;
+                    Req.W = 0;
+                    Req.H = 0;
+                    Req.D = 0;
+                    Req.R = 0;
+                    Pos_em_at_ck(&Req, &Pl_wep_blast_at);
+                    Pos_om_at_ck(&Req, &Pl_wep_blast_at);
+                }
+            }
+            if (pP->Timer0 & 1) {
+                Pl_wep_poly_set(&Pl_wep_poly[n], 100, pP->Workm.t);
+                Pl_wep_poly_rgb(&Pl_wep_poly[n], 0x202020);
+            } else {
+                Pl_wep_poly_set(&Pl_wep_poly[n], 200, pP->Workm.t);
+                Pl_wep_poly_rgb(&Pl_wep_poly[n], 0x808080);
+            }
+            break;
+        }
+        n++;
+        pP->Pos_step_x = pP->Workm.t[0];
+        pP->Pos_step_z = pP->Workm.t[2];
+        pP++;
+    } while (--i != 0);
+}
 
 /* part of pEm (from the list pTbl) nearest to pM's origin */
 ULONG Parts_near_get(ENEMY_WORK *pEm, MATRIX *pM, UCHAR *pTbl)
