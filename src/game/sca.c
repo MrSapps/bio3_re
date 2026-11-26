@@ -1302,7 +1302,56 @@ LONG Sca_line_diag(ULONG P0, ULONG P1, SCA_DATA *pT)
 }
 
 /* line test for shape 0: line against the circle's diameter perpendicular to it, or P1 inside the circle */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_line_circle);
+LONG Sca_line_circle(ULONG P0, ULONG P1, SCA_DATA *pT)
+{
+    LONG Unused[4];
+    SHORT X1;
+    LONG Z1;
+    LONG Dx;
+    LONG Dz;
+    LONG Len;
+    LONG X0;
+    LONG Z0;
+    LONG Half;
+    LONG Dx2;
+    LONG Dz2;
+    LONG Half2;
+    ULONG A, B;
+
+    X1 = (LONG)P1 >> 16;
+    Dx = ((LONG)P0 >> 16) - X1;
+    Z1 = (SHORT)P1;
+    Dz = Z1 - (SHORT)P0;
+    X0 = pT->X0 >> 1;
+    Half = pT->X1 >> 1;
+    Half = (Half - X0) >> 1;
+    Z0 = pT->Z0 >> 1;
+    Len = SquareRoot0(Dz * Dz + Dx * Dx);
+    Dz *= Half;
+    Dz /= Len;
+    Dx *= Half;
+    Dx /= Len;
+    X0 += Half;
+    Z0 += Half;
+    A = (X0 + Dz) << 16;
+    B = (X0 - Dz) << 16;
+    /* Half reused for the result (its extra refs put it above X0 in global-alloc) */
+    Half = Sca_ck_cross(P0, P1, A | ((Z0 + Dx) & 0xFFFF), B | ((Z0 - Dx) & 0xFFFF));
+    if (Half) {
+        return 1;
+    }
+    Half2 = (pT->X1 - pT->X0) >> 2;
+    Dx2 = X1 - ((pT->X0 >> 1) + Half2);
+    Dz2 = Z1 - ((pT->Z0 >> 1) + Half2);
+    if (Dx2 != 0 || Dz2 != 0) {
+        /* X0 reused for the sum: combine folds it into the argument, but X0 stays a global (s6) */
+        X0 = Dx2 * Dx2 + Dz2 * Dz2;
+        if (SquareRoot0(X0) < Half2) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 /* line test for shapes 9/10 (and boxes in em23/em25): each box edge whose wall flag is set in Type 0x100/0x200/0x400/0x800 */
 LONG Sca_line_wall(ULONG P0, ULONG P1, SCA_DATA *pT)
