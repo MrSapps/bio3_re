@@ -1550,3 +1550,40 @@ Near misses (agentW/best):
   (not boosted) while the sw stays after the 0x1EA..0x1E6 zero stores. Reading Id into a multi-set i/n/Bit at
   every position before the stores: 23 at best. The permuter's score for this function does not follow the word
   count (its "improvement" was difflib 23).
+## Matching round agentAF (worktree clean/wD; drafts in the session scratchpad agentAF/best)
+Matched: spl Spl_wep_set, oba Oba_em_overlap_ck.
+Rules learnt:
+- Global-alloc priority is floor_log2(refs) * refs / live_length, and flow adds loop_depth per occurrence, so
+  nesting a statement in D do/while(0) levels adds D to EVERY pseudo in it. Because of the log factor and the
+  different lengths, a deep enough nest flips the order of two pseudos that always appear together: Spl_wep_set's
+  pHand (2 refs, len 11-13) vs pP (12 refs, len 39) tie at D = 6 and pHand (lower allocno) wins a1. Compute the
+  needed D from prio.sh numbers instead of trying 1..2 levels. The nest has to sit where its scheduling barrier
+  is harmless: around `pHand = pP` right before `if (Flg & 8)` (the copy ends block 0 and lands in the beqz slot);
+  around the pOya_parts store it fixes the registers but blocks the UnkA2 load/store interleave (7 words).
+- local-alloc ties are worth checking exactly (local-alloc.c QTY_CMP_PRI, births/deaths are 2 * insn number in
+  the block, qty refs = sum over tied regs): Oba_em_overlap_ck's X1 (tied with X1 - X0) and X0 were an exact tie
+  (2.0 vs 2.0) that the lower qty number (X1) won.
+- Oba_em_overlap_ck final form: compute both `Dx = X + W; Dz = Z + W;` before the X test (instead of `X = Z + W`
+  after it). That gave Z a short life (> Shape's priority, so Z t0 / Shape t1), X its own a2, and the X1/X0 order
+  without any do/while. Found by sweeping the position of a separate Z+W temp after the permuter had produced an
+  odd `new_var = Z + W` variant (the permuter found the idea, the sweep the clean form).
+- When a do/while(0) is the fix, the insn right after LOOP_END becomes a barrier for everything after it in sched1
+  (it got LOG_LINKS to all earlier insns and all later insns linked to it): Z0's load placed first after the
+  loop end moved to the front of the rest.
+Not matched:
+- snd Snd_bgm_play_ck (2 words, agentAF/best/Snd_bgm_play_ck_2.c = agentAA draft): agrees with agentAA. sched2
+  detail: rank_for_schedule is priority, then class relative to the last scheduled insn (3 = independent/latency 1,
+  2 = anti/output, 1 = data), then LUID. Block 0 has no loads so every priority is 1 and lui/addiu are class 3, so
+  the target order (addiu s0 before lui v1) needs LUID(hiC) > LUID(loS) in sched2's input = local-alloc's input,
+  where hiS is then dead before hiC is born and local-alloc gives hiC v0. A v1 hiC would need a v0 local live across
+  it that vanishes after local-alloc (no-op move / reload_cse / REG_EQUIV init of a kicked-out pseudo); nothing in
+  this function's code supplies one, and a global hiC (REG_N_DEATHS != 1 or a block boundary) would conflict with
+  the loop's v0/v1 temps. No plausible C found.
+- oba Oba_ent_box_set (104 words, agentAF/best/Oba_ent_box_set_104w_memlocals.c; agentM's 45-ds draft is 135 words):
+  the four sw/lhu values at 16..28(sp) are the lowest frame slots, so they were allocated before the remaining 24
+  frame bytes (32..55), which no instruction touches. With `LONG Box[4]` (memory) declared before `SVECTOR
+  Unused[3]` and split statements (`Box[0] = X - W; pEnt->X0 = Box[0];`) the slots and the sw+lhu pairs match, but
+  the values go through v0 (target a3, the reload-register look of agentM's spill theory) and the param copy
+  `move s0,a1` is scheduled late. The spill theory explains a3 but then the spill slots would follow any declared
+  local, and caller-save areas would leave save code; what allocates the 24 unused bytes after the four slots is
+  still open.
