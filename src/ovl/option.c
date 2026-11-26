@@ -892,13 +892,93 @@ void Config_res_disp(void)
 }
 
 /* draws a fullwidth Shift-JIS string */
-INCLUDE_ASM("asm/nonmatchings/ovl/option", Config_moji_disp);
+void Config_moji_disp(LONG X, LONG Y, char *pStr, LONG Dark, LONG Mode)
+{
+    SPRT *pSp;
+    ULONG Clut;
+    ULONG *pOt;
+    ULONG i;
+    char (*pTbl)[3];
 
-__asm__(".section .rodata\n.align 2\n.section .text"); /* literals are word aligned */
-INCLUDE_RODATA("asm/nonmatchings/ovl/option", Config_space_str);
+    pSp = Opt.pMoji;
+    Clut = GetClut(0x100, 0x1FF);
+    pOt = G.pOt0 + 3;
+    while (*pStr != 0) {
+        if (Config_moji_cmp(pStr, "\x81\x40")) {
+            X += 7;
+        } else {
+            /* do/while(0): loop notes keep the table search apart (register choice) */
+            do {
+                pTbl = Config_moji_tbl;
+                i = 0;
+                while (!Config_moji_cmp(pStr, *pTbl)) {
+                    pTbl++;
+                    i++;
+                }
+            } while (0);
+            SetSprt(pSp);
+            SetSemiTrans(pSp, 0);
+            if (Dark != 0 || Mode == 0) {
+                if (Dark) {
+                    pSp->r0 = 0x58;
+                    pSp->g0 = 0x58;
+                    pSp->b0 = 0x58;
+                } else {
+                    pSp->r0 = 0x80;
+                    pSp->g0 = 0x80;
+                    pSp->b0 = 0x80;
+                }
+            } else {
+                pSp->r0 = Opt.Kido;
+                pSp->g0 = Opt.Kido;
+                pSp->b0 = Opt.Kido;
+            }
+            pSp->w = 14;
+            pSp->h = 14;
+            pSp->clut = Clut;
+            pSp->u0 = (i % 18) * 14;
+            pSp->v0 = (i / 18) * 14;
+            X -= Config_moji_space[i * 2];
+            pSp->x0 = X;
+            X += Config_moji_space[i * 2 + 1];
+            pSp->y0 = Y;
+            AddPrim(pOt, pSp);
+            pSp++;
+        }
+        /* do/while(0): scheduling barrier, keeps the advance after the draw code */
+        do {
+            pStr += 2;
+        } while (0);
+    }
+    Opt.pMoji = pSp;
+}
 
 /* draws a number (RE2 Config_suuji role) */
-INCLUDE_ASM("asm/nonmatchings/ovl/option", Config_suuji);
+void Config_suuji(LONG X, LONG Y, ULONG Num)
+{
+    char Str[] = "\x82\x4F\x82\x4F\x82\x4F";
+    char Sp[] = "\x81\x40";
+    ULONG H, T;
+
+    H = Num / 100;
+    Num %= 100;
+    Str[1] += H;
+    T = Num / 10;
+    Str[3] += T;
+    Str[5] += Num % 10;
+    if (H == 0) {
+        Str[0] = Sp[0];
+        Str[1] = Sp[1];
+        if (T == 0) {
+            Str[2] = Sp[0];
+            Str[3] = Sp[1];
+        }
+    }
+    Config_moji_disp(X, Y, Str, 0, 0);
+}
+
+/* the original .rodata ends with a junk byte after Config_suuji's digit string */
+__asm__(".section .rodata\n\t.byte 0xCD\n\t.section .text");
 
 /* compares one fullwidth (2 byte) character */
 LONG Config_moji_cmp(char *pA, char *pB)

@@ -1032,7 +1032,109 @@ void St_box_prim_init(ST_WORK *pSt)
 }
 
 /* adds the item box frame prims set up by St_box_prim_init */
-INCLUDE_ASM("asm/nonmatchings/game/status", St_box_frame_draw);
+void St_box_frame_draw(ST_WORK *pSt)
+{
+    TILE *pT;
+    LINE_F2 *pL;
+    SPRT *pS;
+    signed char n;
+    UCHAR i;
+    UCHAR v;
+    UCHAR u;
+    ITEM_WORK *pI;
+    ITEM_DATA *pD;
+    tagGLOBAL *pG;
+    UCHAR c;
+    USHORT y;
+    ULONG Ot_no;
+    UCHAR Ot_no2;
+    signed char Ot_no3;
+
+    pT = (TILE *)0x8019E1B8;
+    if (G.Cbuf_id) {
+        pT = (TILE *)0x8019E1C8;
+    }
+    Ot_no = 4;
+    for (i = 0; i < 2; i++) {
+        AddPrim(&pSt->Ot[G.Cbuf_id][Ot_no], pT);
+        pT += 2;
+    }
+    pL = (LINE_F2 *)0x8019E1F8;
+    if (G.Cbuf_id) {
+        pL = (LINE_F2 *)0x8019E208;
+    }
+    Ot_no2 = 3;
+    for (i = 0; i < 2; i++) {
+        if (pSt->Rtn1 != 0 && pSt->Rtn1 != 4) {
+            pL->r0 = pSt->Blink + 0x50;
+            pL->g0 = pSt->Blink + 0x40;
+            pL->b0 = pSt->Blink & 0x1F;
+        } else {
+            pL->r0 = 0x30;
+            pL->g0 = 0x20;
+            pL->b0 = 8;
+        }
+        AddPrim(&pSt->Ot[G.Cbuf_id][Ot_no2], pL);
+        pL += 2;
+    }
+    c = pSt->Box_cursor;
+    if ((UCHAR)(c - 0x1D) < 6) {
+        pL = (LINE_F2 *)0x8019E238;
+        if (G.Cbuf_id) {
+            /* do/while(0): loop notes raise this pointer's register priority */
+            do {
+                pL = (LINE_F2 *)0x8019E248;
+            } while (0);
+        }
+        y = (0x20 - (signed char)c) * 0x18 + 0x60 + pSt->Box_scroll;
+        pL->x0 = 0x10;
+        pL->x1 = 0xC8;
+        pL->y0 = y;
+        pL->y1 = y;
+        AddPrim(&pSt->Ot[G.Cbuf_id][5], pL);
+    }
+    pS = (SPRT *)0x8019E168;
+    if (G.Cbuf_id) {
+        pS = (SPRT *)0x8019E17C;
+    }
+    n = pSt->Box_cursor - 2;
+    if (n >= 0x3E) {
+        n = pSt->Box_cursor - 0x42;
+    }
+    pS->y0 = n + 0x4C;
+    AddPrim(&pSt->Ot[G.Cbuf_id][26], pS);
+    pS = (SPRT *)0x8019D768;
+    if (G.Cbuf_id) {
+        pS = (SPRT *)0x8019D77C;
+    }
+    Ot_no3 = 26;
+    /* i, pG, pD and u set before the loop (not hoisted by loop.c): register order G > 0xD0 > 0x20 > table */
+    i = 0;
+    pG = &G;
+    pD = Item_data_tbl;
+    u = 0x20;
+    for (; i < 0x40; i++) {
+        pI = &pG->pItem_set->Box[i];
+        if (pI->Id) {
+            switch (pD[pI->Id].Type) {
+            case 1:
+            case 2:
+                v = 0x80;
+                break;
+            case 3:
+                v = 0x81;
+                break;
+            default:
+                v = 0x82;
+                break;
+            }
+            pS->u0 = u;
+            pS->v0 = v;
+            AddPrim(&pSt->Ot[pG->Cbuf_id][Ot_no3], pS);
+        }
+        pS += 2;
+    }
+}
 
 /* Rtn0 1: status screen entry (St_type 1 goes straight to the item pickup) */
 void St_status_init(ST_WORK *pSt)
@@ -4929,7 +5031,69 @@ void St_map_zoom(ST_WORK *pSt)
 }
 
 /* map Rtn1 2: area menu */
-INCLUDE_ASM("asm/nonmatchings/game/status", St_map_area_select);
+void St_map_area_select(ST_WORK *pSt)
+{
+    tagGLOBAL *pG;
+    ULONG Key;
+    ULONG Padd;                        /* Padd_trg read as a word */
+    ULONG Pad;
+
+    switch (pSt->Rtn2) {
+    case 0:
+        if (++pSt->Timer >= 10) {
+            pSt->Menu_blink = 0;
+            pSt->Rtn2++;
+        }
+        break;
+    case 1:
+        if ((pSt->Menu_blink += 2) >= 0x7E) {
+            pSt->Menu_blink = 0;
+        }
+        pG = &G;
+        Padd = *(ULONG *)&pG->Padd_trg;
+        Key = pG->Key_trg & 0x2000;
+        Pad = pG->Padd_trg & 1;
+        /* do/while(0): its loop note stops cse following the branch, so &G and Key_trg are reloaded below */
+        do {
+            if ((Padd & 0x108) || (Key | Pad)) {
+                pSt->Rtn2++;
+                Snd_se_stad(5, 0, 0, 0);
+                return;
+            }
+        } while (0);
+        if (G.Key_trg & 0x1000) {
+            if (Flg_ck(G.Map_area_flg, Map_area_list[pSt->Area_cursor])) {
+                pSt->Rtn1 = 4;
+                pSt->Rtn2 = 0;
+                Snd_se_stad(9, 0, 0, 0);
+                break;
+            }
+            Snd_se_stad(7, 0, 0, 0);
+        }
+        if (G.Padd_rep & 0x1000) {
+            Snd_se_stad(4, 0, 0, 0);
+            pSt->Menu_blink = 0;
+            if (--pSt->Area_cursor < 0) {
+                pSt->Area_cursor = 6;
+            }
+        }
+        if (G.Padd_rep & 0x4000) {
+            Snd_se_stad(4, 0, 0, 0);
+            pSt->Menu_blink = 0;
+            if (++pSt->Area_cursor >= 7) {
+                pSt->Area_cursor = 0;
+            }
+        }
+        break;
+    case 2:
+        if (--pSt->Timer == 0) {
+            pSt->Rtn1 = 0;
+            pSt->Rtn2 = 0;
+            pSt->Timer = 0;
+        }
+        break;
+    }
+}
 
 /* map Rtn1 3: fades back in after an area change */
 void St_map_fade_in(ST_WORK *pSt)
