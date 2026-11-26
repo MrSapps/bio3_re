@@ -113,9 +113,153 @@ void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP)
 /* interpolates the parts' joint offsets between two morph keys with the GTE (gpf/gpl) */
 INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_joint_blend);
 
-/* collision pass over the room's SCA blocks: calls each shape's hit routine (Sca_rtn_tbl table), then
- * Pl_floor_ck */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", Sca_hit_all);
+/* collision pass of a COL_OBJ (radius R) over the room's SCA shapes whose Id has a bit of Tbl, in its area
+ * and floor range: shape 5 goes through Sca_hit_line, the others through Sca_rtn_tbl (45 degree shapes test the
+ * rotated position kept in Sca_work.X/Z). Pushes the owner by the move and records the shape; shapes 7/8 also
+ * try the player's climb (Pl_floor_ck). Skipped when the object did not move */
+LONG Sca_hit_all(ENEMY_WORK *pEm, LONG R, ULONG Tbl, COL_OBJ *pObj)
+{
+    SCA_DATA *pT;
+    ULONG Area;
+    SCA_DATA *pEnd;
+    ULONG P1;
+    SCA_WORK *pW;
+    LONG X;
+    LONG Old_x;
+    LONG Old_z;
+    LONG X0;
+    LONG Z0;
+    LONG X1;
+    LONG Z1;
+    LONG Cx;
+    LONG Cz;
+    LONG Dx;
+    LONG Rx;
+    LONG Rz;
+    LONG Corner;
+    LONG Dz;
+    LONG Shape;
+    LONG Ret;
+    LONG Lo;
+    LONG Hi;
+
+    pT = (SCA_DATA *)G.pRoom->pSca;
+    pEnd = pT + ((SCA_HEAD *)pT)->Num;
+    pW = &Sca_work;
+    if (((SCA_HEAD *)pT)->Num == 0)
+        return 0;
+    if (pEm->Be_flg & 0x2000)
+        return 0;
+    do {
+        X = pObj->Pos_x;
+    } while (0); /* loop notes keep the load first (sched1 would sink it to the call) */
+    Shape = pObj->Pos_z; /* one variable for the z move and the shape number */
+    P1 = (pObj->Old_x << 16) | (USHORT)pObj->Old_z;
+    Area = Sca_get_area((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
+    Shape -= pObj->Old_z;
+    pObj->pSca_hit_data = NULL;
+    if (X == pObj->Old_x && Shape == 0 && pObj->W0 == pObj->W1)
+        return Ret; /* (not set yet: Capcom bug) */
+    pObj->Hit_flg &= 0xFF3F;
+    for (pT++; pT != pEnd; pT++) {
+        Shape = pT->Id & 0xF;
+        Ret = 0;
+        if ((pT->Type & Area) != Area)
+            goto next;
+        if (!(pT->Id & Tbl))
+            goto next;
+        if (pT->Floor_lo > pEm->nFloor || pT->Floor_hi < pEm->nFloor)
+            goto next;
+        X0 = pT->X0;
+        X1 = pT->X1;
+        Z0 = pT->Z0;
+        Z1 = pT->Z1;
+        Old_x = pObj->Pos_x;
+        Old_z = pObj->Pos_z;
+        if (Shape != 5) {
+            if (pT->Type & 0x1000) {
+                Rx = Old_x - X0;
+                Rz = Old_z - Z0;
+                Cx = (Rx - Rz) * 181 >> 8;
+                Cz = (Rx + Rz) * 181 >> 8;
+                Cx += X0 + R;
+                Cz += Z0 + R;
+            } else {
+                Cx = Old_x + R;
+                Cz = Old_z + R;
+            }
+            X1 += R * 2;
+            Z1 += R * 2;
+            pW->X = Cx - R;
+            pW->Z = Cz - R;
+            if ((ULONG)(Cx - X0) >= (ULONG)(X1 - X0))
+                goto next;
+            if ((ULONG)(Cz - Z0) >= (ULONG)(Z1 - Z0))
+                goto next;
+            do {
+                Ret = Sca_rtn_tbl[Shape](pObj, R, pT, P1);
+                if (Shape < 7)
+                    goto next;
+            } while (0); /* raises the refs of Shape over pObj (s2/s3) */
+            if (Shape >= 9) {
+                pObj->Hit_flg |= 0x80;
+                if (Shape == 10) {
+                    pObj->Hit_flg |= 0xC0;
+                    Corner = (pT->Id >> 4) & 3;
+                    if (pT->Type & 0x1000)
+                        Corner += 4;
+                    pObj->Unk39 = Corner;
+                }
+                goto next;
+            }
+            if (pObj->Type != 0)
+                goto next;
+            if (Ret == 0)
+                continue;
+            if (!(pObj->Hit_flg & 0x600)) {
+                if (Sca_ck_wall_range(pObj, pT))
+                    Pl_floor_ck((COL_ENT *)pT, Shape, 1);
+                goto next;
+            }
+            goto hit;
+        } else {
+            R <<= 1;
+            pW->Pt0 = (X0 << 16) | (Z0 & 0xFFFF);
+            pW->Pt1 = (X1 << 16) | (Z1 & 0xFFFF);
+            X0 -= R;
+            X1 += R;
+            Hi = Z1;
+            if (Z1 < Z0)
+                Hi = Z0;
+            Lo = Z1;
+            if (Z0 < Z1)
+                Lo = Z0;
+            Z0 = Lo - R;
+            Z1 = Hi + R;
+            R >>= 1;
+            if ((ULONG)(pObj->Pos_x - X0) >= (ULONG)(X1 - X0))
+                goto next;
+            if ((ULONG)(pObj->Pos_z - Z0) >= (ULONG)(Z1 - Z0))
+                goto next;
+            Ret = Sca_hit_line(pObj, R, P1);
+        }
+    next:
+        if (Ret == 0)
+            continue;
+    hit:
+        Dx = pObj->Pos_x - Old_x;
+        Dz = pObj->Pos_z - Old_z;
+        pObj->pEm->Pos_x += Dx;
+        pObj->pEm->Pos_z += Dz;
+        if (pObj->Type < 3) {
+            pObj->pEm->Base_pos_x += Dx;
+            pObj->pEm->Base_pos_z += Dz;
+        }
+        pObj->Hit_flg |= 0x20;
+        pObj->pSca_hit_data = pT;
+    }
+    return Ret;
+}
 
 /* player climb / jump-down check against shape pEnt (Type 7: a step up, the floor 1800 above one point in front
  * must be at that height; Type 8: a drop, five points in front must be at least 1800 below). With Arg2 the player
