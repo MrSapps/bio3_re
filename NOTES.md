@@ -1465,3 +1465,50 @@ Near misses (agentAB/best):
   in the target (s5 saved but unused), v0 in ours; Width--/Keta-- and the Div/10 subu after mflo. Key facts: inline
   `if (Attr & 0x4000)` (not a USHORT local) keeps 0x66666667 from being hoisted out of the outer loop; the default case
   keeps the original bug (`pFmt = (UCHAR *)i`); 'x' falls into 'X'.
+## Matching round agentX (worktree clean/zB; drafts in the session scratchpad agentX/best)
+Matched: sca Sca_hit_koban_x. Sca_hit_line matches too, but only with a maspsx fix (tools/maspsx-mflo-load.patch,
+README step 4); the C is NOT committed (agentX/best/Sca_hit_line_match_needs_maspsx_patch.c). With the patched maspsx
+(`make MASPSX="python3 <patched>/maspsx.py --aspsx-version=2.77 -G0"` after `rm -rf build/src`) the clean tree and the
+tree with Sca_hit_line in C both give 60 OK, so the patch changes no other object.
+Tool finding (maspsx): ASPSX keeps 2 instructions between `mflo` and the next mult/div; a plain one-instruction load in
+between (`mflo s0; lw v0,16(sp); div`) still needs a nop (target: `mflo s0; lw v0,16(sp); nop; div`). maspsx skipped
+every load there ("allow for $at handling later"), which is only right for a symbolic load that expands through $at.
+The game asm has no `mflo; load; mult/div` without that nop, so the patch only restricts the skip to `uses_at` loads.
+Rules learnt:
+- A variable set more than once never gets sched1's birthing boost (birthing_insn_p needs REG_N_SETS == 1), so its sets
+  float up, and it is a global-alloc pseudo. Sca_hit_line: `V1 = (SHORT)P3; V0 = P2 << 16; V0 >>= 16; Nx = (V1 - V0)
+  >> 1; V1 = P3 >> 16; V0 = P2 >> 16; Nz = -((V1 - V0) >> 1);` gives the target's P3-chain-first order with P3 in v1 and
+  P2 in a0 (as block-local qtys the later-born chain always wins v1, and sched2 keeps sched1's chain order). `do { P =
+  P1 + ...; } while (0)` is the one extra P1 ref that puts P1 above P2 in global-alloc; xor as `Opz[0] ^ Opz[1]`.
+- local-alloc qty priority ties (floor_log2(refs) * refs / life) go to the lower qty number. Koban: with
+  `pW = &Sca_work` in its own single-set pointer (not the union), the la sinks to the end of block 0 in sched1, which
+  stretches the Z1-Z0 temp's qty so the X1 load temp wins v1 (target), and `D` (SHORT copy) stays a separate global.
+- Koban_x case 3: the X0 store needs one more ref (`do { pC->X0 = X0; } while (0)`, X0 above X), but that is a
+  sched barrier; the target computes D + Z0 before it, which is a temp computed before the barrier: `Cx1 = D + Z0;`
+  (Cx1 reused, as case 0 reuses it for X1 - D), then `pC->Z1 = Cx1;` after the store. The Sca_hit_box return is also
+  wrapped (pT above D).
+- A variable referenced in a second block only through an insn that combine later deletes is still global: flow sets
+  REG_BASIC_BLOCK before combine and nothing recomputes it. Sca_line_circle: `X0 = Dx2 * Dx2 + Dz2 * Dz2;
+  SquareRoot0(X0)` in the second part (combine folds the sum into the a0 argument) made X0 a global s6 like the target,
+  and the `X0 - Dz` result then ties with the dying Dz (s0) instead of X0.
+- global.c only kicks local-alloc pseudos out to the stack (reg_renumber = -1); they are not reallocated. A local that
+  ends in a later s-reg (Sca_line_circle X0 s6) is therefore a global, not a kicked-out local.
+Near misses (agentX/best):
+- sca Sca_hit_koban_z (Sca_hit_koban_z_2.c, 2 sched words): the koban_x solution mirrored; every register right. The
+  target needs Z0 above Z (one more Z0 ref). The only single wrap that gives it is the Z0 store, but the target issues
+  the Sca_work la before that store (`sh Z1; sh X1; lui/addiu Sca_work; sh Z0; sh X0; sw X; sw Z`), which a do/while
+  barrier forbids (the la comes from the later `Sca_work.X = X`). Searched: all case-3 orders (with/without the Cz1
+  temp) x one wrap, contiguous do/while ranges, block-0 orders x block-0 wraps, Z0/X0/D/Cz0 reused as the case-0 temp
+  (Z0 reuse gives the right globals but LONG arithmetic: sll/sra of D and an lh reload), pW reuse, type sweep.
+- sca Sca_line_circle (Sca_line_circle_dl8.c, 22 words, was 43; difflib 8): all registers right now (X0 global via the
+  combine trick above, `do { Dx *= Half; } while (0)` puts Half above X0, SHORT X1, the Sca_ck_cross args inline).
+  Left: sched only. The target loads a1 for Sca_ck_cross (`lw a1,0x4C(sp)`) right after `move a0,s3` and computes
+  both X parts before the Z parts, and the P1 home-slot store sits after `sw s8`; ours puts the a1 load last. In sched1
+  the `a1 = P1` move gets the birthing boost (REG_N_SETS(a1) == 1, a1 live), so it is placed just above the a2/a3 ors;
+  in the target it behaves unboosted like the `a0 = P0` move. Not found what makes it so (arg expression forms, temps,
+  `(void)&P1` all give the same).
+- sca Sca_high_hishi (agentI 13_dw.c still the best word score; Sca_high_hishi_t5.c is the clean per-case
+  `if (..) return pT->High; break;` form with the same allocation as the goto version). With the current live lengths
+  (X0 6/39, Z1 5/30, Z 4/28, Z0 5/32, Dz 4/29) no ref increments reach X0 > Z1 > Z > Z0 > Dz while X0 stays below Cx
+  (0.444): X0 7 refs (0.359) forces Z1 5 and Z 4, and Z0 0.312 is then above Z. So the original has different
+  lengths, not only extra refs; load-order permutations (720) do not change them (sched1 reorders the loads).
