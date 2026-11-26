@@ -132,7 +132,110 @@ loop:
 }
 
 /* RE2 Esp_trans_main: billboard sprites of one effect, projected from its position with the world matrix */
-INCLUDE_ASM("asm/nonmatchings/game/trans", Esp_trans_main);
+void Esp_trans_main(POLY_FT4 *pP, ESP_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity, ULONG pG_offset)
+{
+    SVECTOR Pos;
+    LONG D0;
+    LONG D1;
+    LONG D2;
+    SPR_GP *pSpGp;
+    ULONG Def_size_s;
+    LONG Mag;
+    ULONG Clut;
+    ULONG Tpage;
+    ULONG Xsize;
+    ULONG Hot_x;
+    ULONG Ysize;
+    ULONG Hot_y;
+    ULONG Sx;
+    ULONG Sy;
+    ULONG x1;
+
+    Pos.vx = pEff->Pos.vx;
+    Pos.vy = pEff->Pos.vy;
+    Pos.vz = pEff->Pos.vz;
+    gte_ldv0(&Pos);
+    Def_size_s = Def_size << 8;
+    D1 = pEff->Size;
+    gte_rtps_b();
+    Mag = Def_size * D1 * Proj;
+    D2 = nSpr;
+    pSpGp = pEff->pSprg + pG_offset;
+    Clut = pEff->Clut << 16;
+    Tpage = pEff->Tpage << 16;
+    gte_stsz(&D0);
+    gte_stsxy(&D1);
+    if ((SHORT)D1 >= 0x3FF) {
+        return;
+    }
+    if ((SHORT)D1 < -0x3FE) {
+        return;
+    }
+    if ((SHORT)(D1 >> 16) >= 0x3FF) {
+        return;
+    }
+    if ((SHORT)(D1 >> 16) < -0x3FE) {
+        return;
+    }
+    D1 = (LONG)pP; /* D0..D2 are the gte scratch words, reused as temps (each assignment is stored) */
+    if (D0 >> 9 == 0) {
+        return;
+    }
+    if ((ULONG)D0 > 0x7FFF) {
+        D0 = 0x7FFF;
+    }
+    /* the OT entry pointer lives in Ysize (one register for both in the target) */
+    Ysize = (ULONG)&pOt[D0 >> 5];
+ot_loop:
+    *(ULONG *)D1 = (*(ULONG *)Ysize & 0xFFFFFF) | 0x9000000;
+    *(ULONG *)Ysize = D1 & 0xFFFFFF;
+    D1 += sizeof(POLY_FT4);
+    if (--D2 != 0) {
+        goto ot_loop;
+    }
+    gte_stsxy(&D2);
+    Sx = D2 << 16;
+    Sy = D2 & 0xFFFF0000;
+    D2 = Mag / (D0 << 4);
+    Xsize = D2 * pEff->Unk08;
+    Hot_x = Xsize / Def_size;
+    Ysize = D2 * pEff->Unk0A;
+    Def_size_s -= 0x100;
+    Hot_y = Ysize / Def_size;
+    Def_size--;
+loop:
+    x1 = pSpGp->Ofsx;
+    x1 *= Hot_x;
+    D1 = pSpGp->Ofsy;
+    D2 = Sx + x1;
+    x1 = D2 + Xsize;
+    x1 >>= 16;
+    D0 = Sy + D1 * Hot_y;
+    D2 = (ULONG)D2 >> 16;
+    D1 = D0 + Ysize;
+    D0 &= 0xFFFF0000;
+    D1 &= 0xFFFF0000;
+    *(ULONG *)&pP->x0 = D2 | D0;
+    *(ULONG *)&pP->x1 = x1 | D0;
+    *(ULONG *)&pP->x2 = D2 | D1;
+    *(ULONG *)&pP->x3 = x1 | D1;
+    D2 = pSpGp->U;
+    nSpr--;
+    D0 = pSpGp->V << 8;
+    x1 = D2 + Def_size;
+    D1 = D0 + Def_size_s;
+    *(ULONG *)&pP->u0 = D2 | D0 | Clut;
+    *(ULONG *)&pP->u1 = x1 | D0 | Tpage;
+    *(ULONG *)&pP->u2 = D2 | D1;
+    *(ULONG *)&pP->u3 = x1 | D1;
+    *(ULONG *)&pP->r0 = *(ULONG *)pEff->Col;
+    pSpGp++;
+    pP->code = H_clarity;
+    pP++;
+    if (nSpr != 0) {
+        goto loop;
+    }
+}
 
 /* sprites of an effect with its own rotation (matrix set by the caller), projected in 3D */
 void Esp_trans_3d(POLY_FT4 *pP, ESP_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity, ULONG pG_offset)
