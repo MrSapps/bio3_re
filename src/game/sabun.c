@@ -4,6 +4,12 @@
  */
 #include "sabun.h"
 #include "md_sub.h"
+#include "sca.h"
+#include "player.h"
+#include "enemy/em_common.h"
+
+/* SABUN.C has no prototype for Rot_vector (sub.h): the direction is passed as an int, unconverted */
+void Rot_vector();
 
 #define RND() ((signed char)Rnd())
 
@@ -111,5 +117,104 @@ INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_joint_blend);
  * Pl_floor_ck */
 INCLUDE_ASM("asm/nonmatchings/game/sabun", Sca_hit_all);
 
-/* player-only check: floor heights at points around the player (Rot_vector + floor height), sets the hit flags */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", Pl_floor_ck);
+/* player climb / jump-down check against shape pEnt (Type 7: a step up, the floor 1800 above one point in front
+ * must be at that height; Type 8: a drop, five points in front must be at least 1800 below). With Arg2 the player
+ * must face the side of the shape Sca_get_dir returns. On success sets the climb (0xB01) or jump-down (0x20B01)
+ * routine and returns 1 */
+LONG Pl_floor_ck(COL_ENT *pEnt, ULONG Type, ULONG Arg2)
+{
+    SVECTOR V;
+    SVECTOR Unused[2]; /* never used (keeps Pos at sp + 0x28) */
+    VECTOR Pos;
+    ENEMY_WORK *pPl;
+    LONG Dir;
+    LONG Side;
+
+    pPl = (ENEMY_WORK *)&G.Player; /* lets cse address G as pPl - 0x248C */
+    Dir = pPl->Cdir_y + 0x200;
+    Side = Dir & 0xFFF; /* quadrant the player faces, as Sca_get_dir returns it */
+    Side >>= 10;
+    Side ^= 2;
+    if (EM_RTN01(pPl) == 0x501)
+        return 0;
+    if (pPl->Damage_cnt)
+        return 0;
+    if (G.Status_flg & STAT_PL_BUSY)
+        return 0;
+    if (!(G.Key & 0x80))
+        return 0;
+    if (Arg2 && Sca_get_dir(POS_V(pPl), (SCA_DATA *)pEnt) != Side)
+        return 0;
+    if (Type == 7) {
+        Dir &= 0xFC00;
+        V.vx = 1000;
+        V.vz = 0;
+        Rot_vector(Dir, &V, &V);
+        Pos.vx = V.vx + pPl->Pos_x;
+        Pos.vy = pPl->Pos_y - 1800;
+        Pos.vz = V.vz + pPl->Pos_z;
+        if (Sca_get_ground(&Pos.vx, pPl->Col.W0, 0x8000, 0x10) != Pos.vy)
+            return 0;
+        if (Oba_pos_em_ck(&Pos, pPl))
+            return 0;
+        if (pPl->Routine_0 == 1 && pPl->Routine_1 != 11 && pPl->Routine_1 != 12) {
+            G.Status_flg = (G.Status_flg & 0xFF7FFFFF) | STAT_PL_BUSY;
+            EM_RTN(pPl) = 0xB01;
+            pPl->Col.Hit_flg |= 0x280;
+            return 1;
+        }
+    }
+    if (Type == 8) {
+        Dir &= 0xFC00;
+        V.vx = 1000;
+        V.vz = 0;
+        Rot_vector(Dir, &V, &V);
+        Pos.vx = V.vx + pPl->Pos_x;
+        Pos.vy = pPl->Pos_y + 1800;
+        Pos.vz = V.vz + pPl->Pos_z;
+        if (Sca_get_ground(&Pos.vx, pPl->Col.W0, 0x8000, 0x10) < Pos.vy)
+            return 0;
+        V.vx = 1518;
+        V.vz = 0;
+        Rot_vector(Dir + 0xC4, &V, &V);
+        Pos.vx = V.vx + pPl->Pos_x;
+        Pos.vy = pPl->Pos_y + 1800;
+        Pos.vz = V.vz + pPl->Pos_z;
+        if (Sca_get_ground(&Pos.vx, pPl->Col.W0, 0x8000, 0x10) < Pos.vy)
+            return 0;
+        V.vx = 1518;
+        V.vz = 0;
+        Rot_vector(Dir - 0xC4, &V, &V);
+        Pos.vx = V.vx + pPl->Pos_x;
+        Pos.vy = pPl->Pos_y + 1800;
+        Pos.vz = V.vz + pPl->Pos_z;
+        if (Sca_get_ground(&Pos.vx, pPl->Col.W0, 0x8000, 0x10) < Pos.vy)
+            return 0;
+        Dir &= 0xFC00;
+        V.vx = pPl->Col.W0 + 1000;
+        V.vz = 0;
+        Rot_vector(Dir, &V, &V);
+        Pos.vx = V.vx + pPl->Pos_x;
+        Pos.vy = pPl->Pos_y + 1800;
+        Pos.vz = V.vz + pPl->Pos_z;
+        if (Sca_get_ground(&Pos.vx, pPl->Col.W0, 0x8000, 0x10) < Pos.vy)
+            return 0;
+        V.vx = 1000 - pPl->Col.W0;
+        V.vz = 0;
+        Rot_vector(Dir & 0xFC00, &V, &V);
+        Pos.vx = V.vx + pPl->Pos_x;
+        Pos.vy = pPl->Pos_y + 1800;
+        Pos.vz = V.vz + pPl->Pos_z;
+        if (Sca_get_ground(&Pos.vx, pPl->Col.W0, 0x8000, 0x10) < Pos.vy)
+            return 0;
+        if (Oba_pos_em_ck(&Pos, pPl))
+            return 0;
+        if (pPl->Routine_0 == 1 && pPl->Routine_1 != 11 && pPl->Routine_1 != 12) {
+            G.Status_flg = (G.Status_flg & 0xFF7FFFFF) | STAT_PL_BUSY;
+            EM_RTN(pPl) = 0x20B01;
+            pPl->Col.Hit_flg |= 0x480;
+            return 1;
+        }
+    }
+    return 0;
+}
