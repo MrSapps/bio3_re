@@ -293,6 +293,7 @@ GsIDMATRIX = 0x80098970;
 GsWSMATRIX = 0x80098990;
 quake_tbl1 = 0x800989B0;
 quake_tbl2 = 0x800989D0;
+ascii_tbl = 0x80098704;
 msg_space = 0x80098DD0;
 Vib_cur0 = 0x8009CCFC;
 Vib_cur1 = 0x8009CD00;

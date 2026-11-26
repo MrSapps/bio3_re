@@ -67,7 +67,162 @@ void Print14_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...)
 }
 
 /* formats a Print* string and queues its glyphs */
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Print_main);
+void Print_main(ULONG Pos, USHORT Attr, void *pArgs)
+{
+    UCHAR *pFmt;
+    ULONG *pAp;
+    UCHAR *pOut;
+    UCHAR *pTbl;
+    LONG n;
+    LONG Width;
+    LONG Val;
+    LONG Sign;
+    LONG Keta;
+    LONG i;                            /* power of ten (d), shift (X) and argument count (default): one register in the target */
+    LONG Pad;
+    UCHAR c;
+    MOJIDISP *pMoji;
+
+    pMoji = &Moji;
+    if (pMoji->Unk75C9 != 0xFF && pMoji->Unk75C9 != 0) {
+        return;
+    }
+    pFmt = *(UCHAR **)pArgs;
+    pAp = (ULONG *)pArgs + 1;
+    n = 0; /* before the test: n = 0 goes into the beqz delay slot, not pAp */
+    if (*pFmt == 0) {
+        return;
+    }
+    pOut = pMoji->Print_buff;
+    do {
+        pTbl = ascii_tbl[0];
+        Width = 0;
+        if (*pFmt != '%') {
+            goto copy;
+        }
+        pAp++;
+        pFmt++;
+        Val = pAp[-1];
+        n++;
+        while ((UCHAR)(*pFmt - '0') < 10) {
+            Width *= 10;
+            Width += *pFmt++ - '0';
+        }
+        switch (*pFmt++) {
+        case '%':
+            *pOut++ = '%';
+            break;
+        case 's':
+            if (Width) {
+                do {
+                    *pOut++ = (*(UCHAR *)Val >= 0x20 && *(UCHAR *)Val < 0x7B) ? *(UCHAR *)Val : '.';
+                    Width--;
+                    Val++;
+                } while (Width);
+            } else {
+                while ((c = *(UCHAR *)Val) != 0) {
+                    Val++;
+                    *pOut++ = c;
+                }
+            }
+            break;
+        case 'c':
+            *pOut++ = Val;
+            break;
+        case 'd':
+            Sign = 1;
+            if (Val < 0) {
+                Sign = -1;
+                *pOut++ = '-';
+            }
+            Keta = 1;
+            i = 1;
+            while (Val * Sign / i >= 10) {
+                i *= 10;
+                Keta++;
+            }
+            if (Width) {
+                Pad = Width - Keta;
+                if (Sign == -1) {
+                    Pad--;
+                    Width--;
+                    for (; Pad > 0; Pad--, Width--) {
+                        *pOut = '-';
+                        if (Attr & 0x4000) {
+                            pOut[-1] = '0';
+                        } else {
+                            pOut[-1] = ' ';
+                        }
+                        pOut++;
+                    }
+                } else {
+                    for (; Pad > 0; Pad--, Width--) {
+                        if (Attr & 0x4000) {
+                            *pOut = '0';
+                        } else {
+                            *pOut = ' ';
+                        }
+                        pOut++;
+                    }
+                }
+                for (; Width != 0; Width--) {
+                    *pOut++ = pTbl[Val / i % 10 * Sign];
+                    Val %= i;
+                    i /= 10;
+                }
+            } else {
+                do {
+                    *pOut++ = pTbl[Val / i % 10 * Sign];
+                    Val %= i;
+                    i /= 10;
+                } while (--Keta);
+            }
+            break;
+        case 'x':
+            pTbl = ascii_tbl[1];
+        case 'X':
+            if (Width == 0) {
+                while (((ULONG)Val >> (Width++ * 4)) & ~0xF) {
+                }
+            }
+            Width--;
+            do {
+                i = Width * 4;
+                *pOut++ = pTbl[((ULONG)Val & (0xF << i)) >> i];
+            } while (Width--);
+            break;
+        case 'b':
+            if (Width == 0) {
+                while (((ULONG)Val >> Width++) & ~1) {
+                }
+            }
+            Width--;
+            do {
+                *pOut++ = pTbl[(Val & (1 << Width)) != 0];
+                if ((Width & 7) == 0) {
+                    *pOut++ = ' ';
+                }
+            } while (Width--);
+            break;
+        default:
+            pAp = (ULONG *)pArgs + 1;
+            n--;
+            for (i = 0; i < n; i++) {
+                pAp++;
+            }
+            pFmt = (UCHAR *)i; /* sic: the original loses the format pointer here */
+        copy:
+            *pOut++ = *pFmt++;
+            break;
+        }
+    } while (*pFmt != 0);
+    *pOut = 0;
+    if (Attr & 0x8000) {
+        Print14_put(&Moji, Moji.Print_buff, Pos, Attr);
+    } else {
+        Print8_put(&Moji, Moji.Print_buff, Pos, Attr);
+    }
+}
 
 /* queues the 8-pixel glyph sprites of a string at Xy */
 void Print8_put(MOJIDISP *pMoji, UCHAR *pStr, ULONG Xy, ULONG Attr)
