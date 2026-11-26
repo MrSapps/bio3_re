@@ -73,7 +73,7 @@ extern PL_SAVE Retry_data;
 ULONG Flg_ck(ULONG *pFlg, ULONG Id); /* bit Id of a flag array */
 void Flg_on(ULONG *pFlg, ULONG Id); /* set bit Id of a flag array */
 
-void Retry_file_load(ULONG *pAdr); /* load and run the INIT_SUB code at pAdr */
+void Retry_file_load(ULONG *pAdr); /* load ICON_DATA to pAdr, copy the save icon into G.Card_head */
 void Retry_load(void); /* restore the saved game state (load) */
 void Init_sub_load(void); /* read INIT_SUB to 0x80101000 */
 
