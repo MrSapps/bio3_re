@@ -1084,5 +1084,122 @@ void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
     } while (*pData != 0xFF);
 }
 
-/* Skin_vtx2 for the alternate routines. C like Skin_vtx1_alt (reload rematerialises constants into spill regs) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);
+/* Skin_vtx2 for the alternate routines: the blended normals are flattened (vy > 0 -> 0) before the projection */
+void Skin_vtx2_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    LONG Sz[3];
+    PARTS_W *pParts;
+    MATRIX *pM;
+    MATRIX *pWs;
+    VECTOR *pV;
+    JOINT_OFS *pOfs;
+    SVECTOR *pVtx;
+    SVECTOR *pN;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SHORT w0; /* weights (byte * 32) */
+    SHORT w1;
+    SHORT w2;
+
+    pN = Skin_nor;
+    pWs = pEnv->pWs;
+    pM = pEnv->pM;
+    pV = pEnv->pV;
+    pParts = pEnv->pEm->pSin_parts_ptr;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEnv->pEm->pUnk11C;
+    do {
+        n = pData[0];
+        gte_SetRotMatrix(&pParts[n].Workm);
+        gte_SetTransMatrix(&pParts[n].Workm);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        i0 = pData[2];
+        i1 = pData[4];
+        i2 = pData[6];
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        gte_rtv0tr();
+        gte_stsv(&pN[0]);
+        gte_rtv1tr();
+        gte_stsv(&pN[1]);
+        gte_rtv2tr();
+        gte_stsv(&pN[2]);
+        pData++;
+        n = pData[0];
+        gte_SetRotMatrix(&pParts[n].Workm);
+        gte_SetTransMatrix(&pParts[n].Workm);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        w0 = pData[2] * 32;
+        w1 = pData[4] * 32;
+        w2 = pData[6] * 32;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+        gte_ldv0(&pVtx[i0]);
+        gte_rtv0tr();
+        gte_stsv(&pN[3]);
+        gte_rtv1tr();
+        gte_stsv(&pN[4]);
+        gte_rtv2tr();
+        gte_stsv(&pN[5]);
+        gte_lddp(0x1000 - w0);
+        gte_ldsv(&pN[0]);
+        gte_gpf12();
+        gte_lddp(w0);
+        gte_ldsv(&pN[3]);
+        gte_gpl12();
+        gte_stsv(&pN[0]);
+        gte_lddp(0x1000 - w1);
+        gte_ldsv(&pN[1]);
+        gte_gpf12();
+        gte_lddp(w1);
+        gte_ldsv(&pN[4]);
+        gte_gpl12();
+        gte_stsv(&pN[1]);
+        gte_lddp(0x1000 - w2);
+        gte_ldsv(&pN[2]);
+        gte_gpf12();
+        gte_lddp(w2);
+        gte_ldsv(&pN[5]);
+        gte_gpl12();
+        gte_stsv(&pN[2]);
+        if (pN[0].vy > 0) {
+            pN[0].vy = 0;
+        }
+        if (pN[1].vy > 0) {
+            pN[1].vy = 0;
+        }
+        if (pN[2].vy > 0) {
+            pN[2].vy = 0;
+        }
+        gte_SetRotMatrix(pWs);
+        gte_SetTransMatrix(pWs);
+        gte_ldv3c(pN);
+        gte_rtpt();
+        pData += 7;
+        gte_stsxy3(&pSxy[i0], &pSxy[i1], &pSxy[i2]);
+        gte_stsz3(&Sz[0], &Sz[1], &Sz[2]);
+        if (Sz[0] > 0x7FFF) {
+            Sz[0] = 0x7FFF;
+        }
+        if (Sz[1] > 0x7FFF) {
+            Sz[1] = 0x7FFF;
+        }
+        if (Sz[2] > 0x7FFF) {
+            Sz[2] = 0x7FFF;
+        }
+        pSz[i0] = Sz[0];
+        pSz[i1] = Sz[1];
+        pSz[i2] = Sz[2];
+    } while (*pData != 0xFF);
+}
