@@ -2069,7 +2069,154 @@ void Em23_mv0b_br(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em23", Em23_mv0b);
+/* mv0b: jump at the player (catching it when the timing fits) */
+void Em23_mv0b(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    VECTOR Pos;
+    VECTOR Tgt;
+    SVECTOR Sv;
+    HIT_AREA Area;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_SET_MOVE(pEm, 7, 0, 7);
+        EF(pEm)->Step_y = -800;
+        pEm->Routine_2++;
+    case 1:
+        Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 16);
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x200))
+            pEm->Routine_2++;
+        else
+            pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
+        Add_speedXZ(pEm, 0);
+        break;
+    case 2:
+        Snd_se_enem(0, pEm);
+        if (!(pEm->Type & 0x4000))
+            Em23_jump_target_set(pEm);
+        EM_SET_MOVE(pEm, 8, 0, 7);
+        pEm->Routine_2++;
+    case 3:
+        Goto00(pEm, EF(pEm)->Jump_x, EF(pEm)->Jump_z, 16);
+        Spd_get(pEm, pKan, pSeq, 0);
+        pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
+        Add_speedXZ(pEm, 0);
+        break;
+    case 4:
+        EM_SET_MOVE(pEm, 9, 0, 0xF);
+        EF(pEm)->Unk01 = 1;
+        pEm->UnkE2 = 0;
+        pEm->UnkDA = 0;
+        pEm->Timer0 = 0;
+        pEm->Routine_2++;
+    case 5:
+        if (EF(pEm)->Flg & 1)
+            Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 60);
+        else
+            Goto00(pEm, pPl->Pos_x, pPl->Pos_z, 120);
+        Joint_move(pEm, pKan, pSeq, 0x100);
+        if (pEm->Move_cnt == 10 && pEm->UnkE2 != 2) {
+            if ((pEm->Col.Unk3A & 0x8000) && pPl->Routine_0 == 1 && !((pEm->Col.Hit_flg ^ pPl->Col.Hit_flg) & 0x40)
+                && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 300))
+                pEm->UnkE2 = 2;
+            else
+                pEm->UnkE2 = 1;
+        }
+        if (pEm->UnkE2 == 2)
+            pEm->Timer0 = pEm->UnkDA >= 32;
+        if (pEm->UnkE2 == 1) {
+            pEm->Timer0 = pEm->UnkDA >= 10;
+            if (pEm->Move_cnt >= 10)
+                pEm->Move_cnt = 9;
+        }
+        pEm->UnkDA++;
+        Joint_move(pEm, pKan, pSeq, 0x100);
+        if (pEm->Move_cnt == 10 && pEm->UnkE2 != 2) {
+            if ((pEm->Col.Unk3A & 0x8000) && pPl->Routine_0 == 1 && !((pEm->Col.Hit_flg ^ pPl->Col.Hit_flg) & 0x40)
+                && !Goto00_ck(pEm, pPl->Pos_x, pPl->Pos_z, 300))
+                pEm->UnkE2 = 2;
+            else
+                pEm->UnkE2 = 1;
+        }
+        if (pEm->UnkE2 == 2)
+            pEm->Timer0 = pEm->UnkDA >= 32;
+        if (pEm->UnkE2 == 1) {
+            pEm->Timer0 = pEm->UnkDA >= 10;
+            if (pEm->Move_cnt >= 10)
+                pEm->Move_cnt = 9;
+        }
+        pEm->UnkDA++;
+        pEm->Pos_y += EF(pEm)->Step_y;
+        if (pEm->Pos_y >= pEm->Ground) {
+            EF(pEm)->Step_y = 0;
+            pEm->Pos_x += EF(pEm)->Step_x >> 2;
+            pEm->Pos_z += EF(pEm)->Step_z >> 2;
+            pEm->Pos_y = pEm->Ground;
+            if (pEm->Timer0)
+                pEm->Routine_2++;
+        } else {
+            pEm->Pos_x += EF(pEm)->Step_x;
+            pEm->Pos_z += EF(pEm)->Step_z;
+            EF(pEm)->Step_y += 120;
+            if (EF(pEm)->Step_y > 800)
+                EF(pEm)->Step_y = 800;
+        }
+        break;
+    case 6:
+        EM_SET_MOVE(pEm, 0xA, 0, 7);
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (pEm->Water && G.Stage_no == 4 && G.Room_no == 7) {
+            Pos.vx = pEm->Pos_x;
+            Pos.vy = pEm->Pos_y;
+            Pos.vz = pEm->Pos_z;
+            Snd_se_stad(0x10209, &Pos, 0, 0);
+        } else {
+            Snd_se_enem(1, pEm);
+        }
+        EF(pEm)->Unk01 = 0;
+        pEm->Type = 0;
+        pEm->Routine_2++;
+    case 7:
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+            if (EF(pEm)->Flg & 1)
+                EM_SET_RTN(pEm, 1, 1, 0, 0);
+            else
+                EM_SET_RTN(pEm, 1, 6, 0, 0);
+        }
+        Add_speedXZ(pEm, 0);
+        break;
+    }
+    if (pEm->Routine_2 == 5) {
+        Tgt.vx = EF(pEm)->Jump_x;
+        Tgt.vz = EF(pEm)->Jump_z;
+        Tgt.vy = pEm->Ground;
+        Area.pPos = &Tgt;
+        Sv.vx = 0;
+        Sv.vy = 0;
+        Sv.vz = 800;
+        Sv.pad = 800;
+        Area.pBox = &Sv.vx;
+        Area.Dir = pEm->Cdir_y;
+        Area.Id = 0x81;
+        Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+        if (pEm->Move_cnt < 10 && !(pEm->Type & 0x4000)) {
+            Sv.vx = pPl->Spd_x;
+            Sv.vz = pPl->Spd_z;
+            Rot_vector(pPl->Cdir_y, &Sv, &Sv);
+            EF(pEm)->Jump_x += Sv.vx;
+            EF(pEm)->Jump_z += Sv.vz;
+            EF(pEm)->Step_x = (EF(pEm)->Jump_x - pEm->Pos_x) / (12 - pEm->Move_cnt);
+            EF(pEm)->Step_z = (EF(pEm)->Jump_z - pEm->Pos_z) / (12 - pEm->Move_cnt);
+            if (__builtin_abs(EF(pEm)->Step_x) < 4)
+                EF(pEm)->Step_x <<= 2;
+            if (__builtin_abs(EF(pEm)->Step_z) < 4)
+                EF(pEm)->Step_z <<= 2;
+        }
+    }
+}
 
 /* mv0c decision: empty */
 void Em23_mv0c_br(void) {
