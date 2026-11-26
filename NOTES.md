@@ -1298,3 +1298,41 @@ Near misses (agentS/best):
   Link first every register is right but the adds are in the wrong order; with (UCHAR)i first the order is right but
   the (UCHAR)Next temp gets a1 (its life overlaps the a0 local-alloc gave the andi). ~300 forms, type and do/while
   sweeps tried.
+## Matching round agentW (worktree clean/zA; drafts in the session scratchpad agentW/best)
+Matched: em22 Em22_dir_quarter, em34 Em34_shoot.
+Rules learnt:
+- Run the permuter early, even on long functions: both matches came from it (15 min / 40 min), after hand
+  sweeps of 2000+ variants had stalled. Its `score` is not the word count: check every output-* dir with
+  score.py (Em34_shoot's "score 15" output was a 0).
+- A constant (or load) that the target issues well above its use is not birthing-boosted (sched.c
+  birthing_insn_p: REG_N_SETS == 1): it goes through a variable that is set more than once. Em34_shoot:
+  `Id = 0x101; EM_RTN(pEm) = Id;` (Id is also the Esp id in case 3) keeps li 0x101 below the Flg/UnkE3 loads, so
+  it gets a0 like the target. em23: case 6's `Dir` had to stay single-set (moving the Wall_dir temps of cases
+  8/10/12 to a separate `Wall` put the Ground load before the Side load).
+- A surviving `move v1,a0; jr ra; move v0,v1` after `andi a0` in one arm (Em22_dir_quarter): combine merges
+  `Ret &= 1; Dir = Ret;` when they share a block, and merges `Dir = Ret; return Dir;` when the copy sits at the
+  join. The target had a copy in each arm, one of them separated from the and by a label, and jump2 cross-jumped
+  the two copies after reload. The label comes from a dead if with identical arms (`if (Dir || Flg) Ret &= 1;
+  else Ret &= 1;`), which leaves no code. `if (Dir)` alone also gives the shape but other registers.
+- (em23) `X = W; if (W != 0x1000) X = W + 16; store X` per arm (one read of the field into a LONG first) is what
+  gives the `move a0,v1` / `move v0,v1` arm copies; a ternary with the field read in each place gives an extra
+  lhu. Load-after-store order: `Pos_z = pK->Pos_z` must be read before the zero stores (it may alias them), and a
+  block-local single-set `pK` lands right above its first use.
+Near misses (agentW/best):
+- em23 Em23_mv03 (Em23_mv03_20.c, difflib 20, was 49): case 4 `Unk1A = 0x800` before EM_SET_MOVE (li 2048 in v1);
+  case 6 with a block-local `KAGE_WORK *pK6`, Pos_x/Pos_z copied before the Col/Mode zero stores, `Dir` single-set;
+  case 12 Wall_dir via `Wall` plus per-arm `Up`/`Next` copies; case 4/6/12 now exact. Left: the case 8/10 Wall_dir
+  steps (both 1 insn short): target reads Wall_dir once (lh v1), the <= 0x800 arm compares a copy in a0
+  (`move a0,v1` in the bnez delay slot, then reorg rewrites the +16 to read v1) and all paths store v0 at one join.
+  Ternary/if-chain/per-arm copy forms (~150 variants, with/without a separate result variable) give either the
+  hoisted extra lhu or no copy. The three Unused VECTOR/SVECTOR locals are needed for the frame size.
+- em22 Em22_mv_jump (7 words, agentQ draft unchanged): moving the pSub1_seq_t_ptr copy anywhere but after
+  `pW->pTmd = pP->pTmd` costs 12+ words (the pPl->pSin_parts_ptr load then moves); 25 min of permuter found nothing.
+- em38 Em38_sce03 (7 words, unchanged): case 6 `Sv.vy = -800` through a multi-set local does move the li out of
+  the boosted spot, but it then lands above the Timer0 ori/sh (lowest LUID) instead of between sh 216 and the
+  `addiu s0` (17). Case 5 a3/a2 order: pM/pM2 temporaries for &pW->Workm, store order of Sv do nothing. Permuter
+  40 min: nothing.
+- em36 Em36_Init (12 words, unchanged): the Pldamage `lbu Id` / `lui Pldamege` / `&G.pEnemy[2]` are issued early
+  (not boosted) while the sw stays after the 0x1EA..0x1E6 zero stores. Reading Id into a multi-set i/n/Bit at
+  every position before the stores: 23 at best. The permuter's score for this function does not follow the word
+  count (its "improvement" was difflib 23).
