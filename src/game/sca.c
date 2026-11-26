@@ -238,7 +238,66 @@ ULONG Sca_hit_koban_x(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
 }
 
 /* hit routine for shape 3: same along Z; RE2 Sca_hit_koban_z */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_koban_z);
+ULONG Sca_hit_koban_z(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    SCA_DATA *pC;
+    SCA_WORK *pS;   /* Sca_work for the case-3 stores (own pointer: its la is issued between the X1 and Z0 stores) */
+    LONG Z0;
+    LONG X0;
+    SHORT D;
+    LONG Half;
+    SHORT Cz1;  /* Z1 - Half for the zone test, then a temp of the end-circle stores */
+    SHORT Cz0;
+    LONG Z;
+    LONG X;
+    ULONG Zone;
+
+    X0 = pT->X0;
+    Z0 = pT->Z0;
+    pW = &Sca_work;
+    D = pT->X1 - X0;
+    Half = D >> 1;
+    Cz1 = pT->Z1 - Half;
+    Cz0 = Z0 + Half;
+    if (pT->Type & 0x1000) {
+        X = pW->X;
+        Z = pW->Z;
+    } else {
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    }
+    Zone = ((ULONG)(Z - Cz1) >> 30) & 2;
+    Zone |= (ULONG)(Z - Cz0) >> 31;
+    switch (Zone) {
+    case 0:
+        pC = &Tmp_Sca;
+        pC->Z1 = pT->Z1;
+        Cz1 = pT->Z1 - D;
+        pC->X1 = D + X0;
+        pC->X0 = X0;
+        Sca_work.X = X;
+        Sca_work.Z = Z;
+        pC->Z0 = Cz1;
+        goto Circle;
+    case 2:
+        do { return Sca_hit_box(pObj, R, pT, Arg3); } while (0); /* extra pT ref (pT above D in global-alloc) */
+    case 3:
+        pC = &Tmp_Sca;
+        pC->Z1 = D + Z0;
+        pC->X1 = D + X0;
+        pS = &Sca_work;
+        do { do { pC->Z0 = Z0; } while (0); } while (0); /* loop depth 3: Z0 above Z in global-alloc */
+        pC->X0 = X0;
+        pS->X = X;
+        pS->Z = Z;
+    Circle:
+        if (pT->Type & 0x1000) {
+            R = -R;
+        }
+        return Sca_hit_circle(pObj, R, pC, Arg3);
+    }
+}
 
 /* box hit when the old position is already inside: push to the nearer edge on each axis (direction from the move), then Sca_hosei_box; RE2 Sca_hit_box2 */
 ULONG Sca_hit_box2(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
