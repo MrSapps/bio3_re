@@ -35,11 +35,11 @@ typedef struct {
     SHORT Cx;                          /* 0x0C centre of the camera view (Rain_drop_set) */
     SHORT Cz;                          /* 0x0E */
     USHORT R;                          /* 0x10 radius */
-    USHORT Unk12;                      /* 0x12 */
+    USHORT Spd_y;                      /* 0x12 fall speed (Rain_move) */
     USHORT Num;                        /* 0x14 drops in use */
-    SHORT Unk16;                       /* 0x16 */
-    SHORT Unk18;                       /* 0x18 */
-    SHORT Unk1A;                       /* 0x1A */
+    USHORT Level;                      /* 0x16 rain level (Rain_init arg): drop speed and count */
+    SHORT Spd_x;                       /* 0x18 wind drift x per frame */
+    SHORT Spd_z;                       /* 0x1A wind drift z per frame */
     SHORT Dx;                          /* 0x1C drop direction x */
     SHORT Dz;                          /* 0x1E drop direction z */
     UCHAR Unk20;                       /* 0x20 */
