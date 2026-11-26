@@ -8,6 +8,7 @@
 #include "joint.h"
 #include "sca.h"
 #include "sld.h"
+#include "spl_auto.h"
 #include "snd.h"
 #include "sub.h"
 #include "status.h"
@@ -873,7 +874,226 @@ void pl_mv07_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
 {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/player", pl_mv07);
+/* Pl_mv 7: dodge (the escape table picks the direction away from the attacker) */
+void pl_mv07(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    UCHAR Tbl[16] = {0x0F, 0x0F, 0x0E, 0x0E, 0x0E, 0x0E, 0x10, 0x10, 0x13, 0x13, 0x13, 0x13, 0x14, 0x14, 0x14, 0x14};
+    UCHAR Rot[8];
+    UCHAR A[3];
+    UCHAR B[2];
+    UCHAR C[2];
+    UCHAR Out[8];
+    SHORT n;
+    SHORT q;
+    LONG d1;
+    LONG D2;
+    LONG Diff;
+    LONG i;                /* one variable for the Rot loop count, the second direction and the Out count (a2) */
+    ULONG j;
+    LONG d;
+    UCHAR m;
+    LONG m4;
+    USHORT Flg;
+    ULONG f;
+    USHORT b;
+
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_MOVE(pEm) = 0x3000D;
+        pEm->Routine_2 = 1;
+        G.Status_flg |= 0x100;
+        G.Room_player_flg |= 0x1C;
+        Snd_se_walk(1, 0xB, pEm);
+    case 1:
+        pEm->Spd_x -= 0x28;
+        if (pEm->Spd_x < 0) {
+            pEm->Spd_x = 0;
+        }
+        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+            pEm->Routine_2 = 2;
+        }
+        break;
+    case 2:
+        EM_MOVE(pEm) = 0x3000E;
+        pEm->Routine_2 = 3;
+        pEm->Timer0 = pEm->pUnk170[0];
+        pEm->UnkDA = pEm->pUnk170[2];
+        pEm->pUnk15C = pEm->pUnk170;
+        n = (((pEm->Cdir_y & 0xFFF) / 0x200) + 1) & 7;
+        m = ((ULONG)((pEm->UnkC7 & 0xF) - 5) < 3) << 3;
+        for (i = 8; i != 0; i--) {
+            Rot[n] = Tbl[m + (8 - i)];
+            n++;
+            if (n >= 8) {
+                n = 0;
+            }
+        }
+        d1 = Direction_ck(pEm->Pos_x, pEm->Pos_z, pEm->Timer0, pEm->UnkDA);
+        n = d1;
+        i = Direction_ck(pEm->Pos_x, pEm->Pos_z, pEm->pUnk16C[0], pEm->pUnk16C[2]);
+        D2 = i;
+        d = ((d1 & 0xFFF) / 0x200) & 7;
+        Rot[d] |= 0x80;
+        d = (d + 1) & 7;
+        Rot[d] |= 0x80;
+        d = ((i & 0xFFF) / 0x200) & 7;
+        Rot[d] |= 0x80;
+        d = (d + 1) & 7;
+        Rot[d] |= 0x80;
+        if ((pEm->UnkC7 & 0xC0) == 0xC0) {
+            Diff = (SHORT)i - (SHORT)d1 + 0x800;
+            if ((ULONG)Diff > 0x1000) {
+                if (Diff < 0) {
+                    D2 = (SHORT)i + 0x1000;
+                } else {
+                    D2 = (SHORT)i - 0x1000;
+                }
+            }
+            n = (n + (SHORT)D2) >> 1;
+        } else if ((pEm->UnkC7 & 0xC0) == 0x80) {
+            n = i;
+        }
+        q = (n & 0xFFF) / 0x200;
+        d = (q + 4) & 7;
+        A[1] = (d - 1) & 7;
+        A[2] = (d + 1) & 7;
+        B[0] = (d - 2) & 7;
+        B[1] = (d - 3) & 7;
+        C[0] = (d + 2) & 7;
+        A[0] = d;
+        C[1] = (d + 3) & 7;
+        i = 0;
+        m = pEm->UnkC7 & 0xF;
+        m4 = m * 4;
+        for (j = 0; j < 4; j++) {
+            switch (Spl_esc_dir_tbl[j + m4]) {
+            case 0:
+                break;
+            case 2:
+                Out[i] = B[0];
+                Out[i + 1] = B[1];
+                i += 2;
+                break;
+            case 1:
+            case 6:
+                Out[i] = A[0];
+                Out[i + 1] = A[1];
+                Out[i + 2] = A[2];
+                i += 3;
+                break;
+            case 7:
+                Out[i] = B[0];
+                Out[i + 1] = B[1];
+                i += 2;
+                break;
+            case 3:
+            case 8:
+                Out[i] = C[0];
+                Out[i + 1] = C[1];
+                i += 2;
+                break;
+            }
+        }
+        d = Out[0];
+        if (m != 3) {
+            EM_MOVE(pEm) = Rot[d] & 0x7F;
+            pEm->Cdir_y = (d << 9) + 0x800;
+            pEm->Damage_cnt = 3;
+        } else {
+            EM_MOVE(pEm) = 0x11;
+            pEm->Damage_cnt = 1;
+            pEm->Damage_flg |= 0x8000;
+        }
+        if (pEm->UnkC7 & 0x20) {
+            if (pEm->Move_no == 0xF) {
+                pEm->Move_no = 0x13;
+            }
+            if (pEm->Move_no == 0x10) {
+                pEm->Move_no = 0x14;
+            }
+        }
+        if (pEm->Move_no == 0xF) {
+            pEm->Cdir_y += 0x400;
+        }
+        if (pEm->Move_no == 0x10) {
+            pEm->Cdir_y -= 0x400;
+        }
+        if (pEm->Move_no == 0x13) {
+            pEm->Cdir_y += 0x400;
+            pEm->Damage_cnt |= 0x80;
+        }
+        if (pEm->Move_no == 0x14) {
+            pEm->Cdir_y -= 0x400;
+            pEm->Damage_cnt |= 0x80;
+        }
+        Snd_se_stad(0x1000B, POS_V(pEm), 0, 0);
+        G.Status_flg |= 0x100;
+        G.Room_player_flg |= 0x1C;
+        G.Dodge_cnt++;
+        pEm->UnkE3 = 0;
+        if (G.System_flg & 0x80) {
+            Quake_add(1, 1);
+        }
+    case 3:
+        Spd_get(pEm, pKan, pSeq, 0);
+        if (pEm->UnkE3 == 3 && (G.Key & 0x500)) {
+            pEm->UnkE3 = 4;
+        }
+        if (pEm->UnkE3 == 2 && !(G.Key & 0x500)) {
+            pEm->UnkE3 = 3;
+        }
+        if (pEm->UnkE3 == 1 && (G.Key & 0x500)) {
+            pEm->UnkE3 = 2;
+        }
+        if (pEm->UnkE3 == 0 && !(G.Key & 0x500)) {
+            pEm->UnkE3 = 1;
+        }
+        if ((pEm->Col.Hit_flg & 0x30) && (pEm->Damage_cnt & 0x7F)) {
+            pEm->Damage_cnt--;
+        }
+        if (Joint_move2(pEm, pKan, pSeq, 0x400)) {
+            if (G.System_flg & 0x80) {
+                Quake_add(2, 1);
+            }
+            EM_SET_RTN(pEm, 1, 5, 6, 0);
+            pEm->Damage_flg &= 0x7FFF;
+            if ((ULONG)(pEm->Move_no - 0x13) < 2) {
+                EM_SET_RTN(pEm, 1, 5, 8, 0);
+                pEm->Damage_cnt &= 0x7F;
+                pEm->Cdir_y += 0x400;
+                if (pEm->Move_no == 0x14) {
+                    pEm->Cdir_y += 0x800;
+                }
+            } else if (pEm->UnkE3 == 3) {
+                EM_SET_RTN(pEm, 1, 0, 0, 0);
+                if (G.System_flg & 0x80) {
+                    Quake_add(1, 1);
+                }
+            }
+            return;
+        }
+        if ((pEm->Damage_cnt & 0x80) && pEm->Move_cnt >= 0xF) {
+            pEm->Cdir_y += 0x400;
+            if (pEm->Move_no == 0x14) {
+                pEm->Cdir_y += 0x800;
+            }
+            Goto00(pEm, pEm->pUnk15C[0], pEm->pUnk15C[2], 0x80);
+            pEm->Cdir_y -= 0x400;
+            if (pEm->Move_no == 0x14) {
+                pEm->Cdir_y += 0x800;
+            }
+        }
+        Flg = *pEm->pNow_seq;
+        if (Flg & 0x200) {
+            f = Flg & 0x400;
+            b = f != 0;
+            Snd_se_walk(1, (b << 1) + b + 0xB, pEm);
+            G.Room_player_flg |= 4;
+        }
+        break;
+    }
+    Add_speedXZ(pEm, 0);
+}
 
 /* Pl_mv_pad 8: no pad input */
 void pl_mv08_pad(ENEMY_WORK *pEm, ULONG Key, ULONG Key_trg)
