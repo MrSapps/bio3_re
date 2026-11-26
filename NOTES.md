@@ -1298,3 +1298,41 @@ Near misses (agentS/best):
   Link first every register is right but the adds are in the wrong order; with (UCHAR)i first the order is right but
   the (UCHAR)Next temp gets a1 (its life overlaps the a0 local-alloc gave the andi). ~300 forms, type and do/while
   sweeps tried.
+## Matching round agentZ (worktree clean/zD; drafts in the session scratchpad agentZ/best)
+Matched: door Door_init, DoorSort; trans Esp_trans_3d, Esp_trans_main; em_sub Rot_neck.
+Rules learnt:
+- reload_cse turns a re-read into the `move aN,aM` copy only if the load sits right after the store in sched1 order.
+  Door_init: `Mapping_tim((ULONG *)pDoor->pPrepacket)` re-reads the field (cse drops it, because the varying
+  pPrepacket address is invalidated by any later store). sched1 can hoist that load next to its store only past
+  stores its alias test exempts: a struct ref with a varying address does not conflict with a non-struct ref whose
+  address, after canon_rtx (reg_known_value of single-set pseudos), has no register. So the header writes go
+  through single-set `ppTim = &Door_data->pTim; ppTmd = &Door_data->pTmd;` pointers and the Ctp write is
+  `*(USHORT *)&G.Ctp.u.Ctpage = 0x1F15` (RE2 does the same). A COMPONENT_REF store (`Door_data->pTmd = ..`) or
+  a multi-set pointer (agentT's reused Clut) keeps the load below the stores and the copy stays in a0.
+- flow.c deletes a stack store when the same slot is stored again with no memory read or other store in between
+  (last_mem_set, scanned backwards). Esp_trans_main's D2 (address-taken gte scratch word) keeps both of its
+  stores only when `D1 = pSpGp->Ofsy` (a load + store) sits between them.
+- Esp_trans_main and Esp_trans_3d both reuse variables the way the target registers show: the uv corners go in the
+  X/Y/X1/Y1 position variables (Esp_trans_3d), the loop values in the D0/D1/D2 gte scratch words with a single
+  x1 temp (Esp_trans_main), and the OT entry pointer lives in Ysize (one register for both). `Otz = sum;
+  Otz >>= 4;` and a `pOtz = pOt + (Otz >> 3)` pointer give the in-place srl and the `addu a0,s1,a0` order.
+- Rot_neck: a `pEn_parts = &pNeck_enemy->pSin_parts_ptr[Enemy_neck_no]` pointer (addu base,idx) before the own
+  offset and the Neck_tgt copy fixes the top; the y/z blends need `Free_dif`/`Free_dif12` as SHORT with the
+  Free_dif line before Vel; the Unk166 update needs two temps (`Dif = Cdir_y + 0x80; Ofs = Unk166 - Dif;
+  Dif = (SHORT)Body - Ofs;`) so the subtraction result takes the Unk166 load's register.
+- DoorSort: global-alloc order pOt > pPacket > pVert > pPrim > pDw > n > I0 > I1 came from do/while(0) wraps
+  (depth 2 on `pVert = pObj->pVert`, depth 2 on the single-statement 0x10 case, depth 1 on gte_strgb3_gt3), the
+  V copies interleaved with their addresses (`V0 = I0; pV0 = pVert + V0 * 2; ...`) so V1 = I1 is late enough
+  for I1 to outlive I0, and top/loop index loads in 0, 1, 2 order. The gte_strgb3_gt3 belongs inside the
+  `if (Otz > 0)` block and gte_avsz3 has no leading nops in the target (gte_avsz3_b in door.c).
+- Single-statement priority sweeps with difflib scoring (score2.py DL=1) beat word scoring when an insn is
+  missing; prio.sh output (refs / len) tells which variable needs how many extra refs before searching.
+Not matched:
+- psp Rain_move (best/Rain_move_dl97_idx.c DL 97, best/Rain_move_dl102_ptr.c DL 102): loop 1 is close as agentT's
+  goto loop. Target facts: x/y/z (s4/s5/s3) are the same variables as loop 2's Cx/Py/Cz (shared registers), the
+  new positions in loop 2 go through two temps (a1/a0), 0x8000 is hoisted into s8 only in loop 2 (so loop 2 has
+  loop notes; loop 1 is a goto loop with `li v0,0x8000` inside), pTop (36(sp)) and Cnt (32(sp)) are the spilled
+  ones, pFlg is a pointer (s0) in both loops, and loop 2 has no pV+8 giv (ours strength-reduces it as soon as
+  loop 2 is a for loop with pV++). Loop 1 has a per-iteration copy of pV in a2 (`move a2,s1` in the delay
+  slot of the flag test); a `pP = pV` copy is merged by cse.
+- em_sub Kage_work9_sort (best/Kage_work9_sort_ds89.c, agentT's draft unchanged): not reached this round.
