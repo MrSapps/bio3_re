@@ -2,6 +2,7 @@
 #include "status.h"
 #include "pad.h"
 #include "sce1.h"
+#include "sce2.h"
 #include "sce_at.h"
 #include "sld.h"
 #include "snd.h"
@@ -41,7 +42,169 @@ typedef struct tagSCE_AOT_DOOR {
 } SCE_AOT_DOOR;
 
 /* RE2 Sce_at_check: runs the AOTs of the given kinds that a work stands in */
-INCLUDE_ASM("asm/nonmatchings/game/sce_at", Sce_at_check);
+ULONG Sce_at_check(ENEMY_WORK *pEm, ULONG attribute, ULONG auto_flg)
+{
+    SVECTOR Svec;
+    VECTOR Vec;
+    SHORT Work[10];
+    ULONG Hit_flg;
+    ULONG i;
+    ULONG n;
+    ULONG D0;
+    struct tagSCE_AOT *pAot;
+
+    Svec.vx = 0x26C;
+    Svec.vz = 0;
+    Rot_vector(pEm->Cdir_y, &Svec, &Svec);
+    pAot = G.Sce_aot[31];
+    Vec.vx = Svec.vx + pEm->Pos_x;
+    D0 = G.nSce_aot;
+    Vec.vz = Svec.vz + pEm->Pos_z;
+    i = 0;
+    G.pEm = pEm;
+    if (pAot != NULL) {
+        n = 31;
+        if (pAot->Id == 0) {
+            D0++;
+        }
+    } else {
+        n = 0;
+    }
+    /* n is the next slot once it has been advanced, so this AOT's number is n - 1 (slot 31 gives -1) */
+    while (i < D0) {
+        pAot = G.Sce_aot[n];
+        pCAot = (UCHAR *)pAot;
+        if (n == 31) {
+            n = 0;
+        } else {
+            n++;
+        }
+        if (pAot == NULL) {
+            continue;
+        }
+        Old_Fatari = G.Sce_work[0];
+        Old_Uatari = G.Sce_work[1];
+        i++;
+        if (pAot->Id == 7 && pAot->Data1 != 0xFFFF) {
+            pAot->Data = G.Ob_model[pAot->Data1].M.t[1];
+        }
+        if ((pAot->Type & attribute) == 0) {
+            continue;
+        }
+        if ((pAot->Type & 0x10) != auto_flg) {
+            continue;
+        }
+        if (pAot->Id == 1) {
+            if (Sce_manual_hit != 0) {
+                continue;
+            }
+            if (G.Player.Damage_cnt != 0) {
+                continue;
+            }
+            if (G.Key & 0x100) {
+                if ((UCHAR)G.Player.Type != 0) {
+                    continue;
+                }
+            }
+            if (!(G.Key & 0x80)) {
+                continue;
+            }
+            if (G.Status_flg & 0x100) {
+                continue;
+            }
+            if (Moji.Mess_flg & 0xC0) {
+                continue;
+            }
+            if (Game_st_flg != 0) {
+                continue;
+            }
+        }
+        if (pAot->nFloor != 0x80 && pEm->nFloor != (signed char)pAot->nFloor) {
+            continue;
+        }
+        if (pAot->Super & 0x80) {
+            if (pAot->Super & 0x40) {
+                Work[0] = G.pEnemy[pAot->Super & 0x3F]->Pos_x;
+                Work[1] = G.pEnemy[pAot->Super & 0x3F]->Pos_z;
+            } else {
+                Work[0] = G.Ob_model[pAot->Super & 0x3F].M.t[0];
+                Work[1] = G.Ob_model[pAot->Super & 0x3F].M.t[2];
+            }
+        } else {
+            *(LONG *)Work = 0;
+        }
+        if (pAot->Type & 0x80) {
+            Work[2] = Work[0] + ((SCE_AOT4 *)pAot)->Xz[0][0];
+            Work[3] = Work[1] + ((SCE_AOT4 *)pAot)->Xz[0][1];
+            Work[4] = Work[0] + ((SCE_AOT4 *)pAot)->Xz[1][0];
+            Work[5] = Work[1] + ((SCE_AOT4 *)pAot)->Xz[1][1];
+            Work[6] = Work[0] + ((SCE_AOT4 *)pAot)->Xz[2][0];
+            Work[7] = Work[1] + ((SCE_AOT4 *)pAot)->Xz[2][1];
+            Work[8] = Work[0] + ((SCE_AOT4 *)pAot)->Xz[3][0];
+            Work[9] = Work[1] + ((SCE_AOT4 *)pAot)->Xz[3][1];
+        } else {
+            Work[2] = Work[0] + pAot->X;
+            Work[3] = Work[1] + pAot->Z;
+            Work[4] = pAot->W;
+            Work[5] = pAot->D;
+        }
+        /* the manual-hit store is written in both branches (jump2 merges them): the duplicates make
+           loop.c hoist %hi(Sce_manual_hit) and the 0x10 compare constant out of the loop */
+        if (pAot->Type & 0x40) {
+            if (pAot->Type & 0x80) {
+                Hit_flg = Hit_ck_point4(&pEm->Pos_x, (VCUT *)Work);
+                if (auto_flg == 0x10) {
+                    Sce_manual_hit = Hit_flg;
+                }
+            } else {
+                Hit_flg = Hit_ck_box(&pEm->Pos_x, &Work[2]);
+                if (auto_flg == 0x10) {
+                    Sce_manual_hit = Hit_flg;
+                }
+            }
+            if (Hit_flg != 0) {
+                G.Sce_work[1] = n - 1;
+                goto hit;
+            }
+        }
+        if ((pAot->Type & 0x20) == 0) {
+            continue;
+        }
+        if (pAot->Type & 0x80) {
+            Hit_flg = Hit_ck_point4(&Vec.vx, (VCUT *)Work);
+            if (auto_flg == 0x10) {
+                Sce_manual_hit = Hit_flg;
+            }
+        } else {
+            Hit_flg = Hit_ck_box(&Vec.vx, &Work[2]);
+            if (auto_flg == 0x10) {
+                Sce_manual_hit = Hit_flg;
+            }
+        }
+        if (Hit_flg == 0) {
+            continue;
+        }
+        G.Sce_work[0] = n - 1;
+    hit:
+        if (auto_flg != 0) {
+            if (pAot->Id == 0) {
+                continue;
+            }
+            pEm->UnkC = n - 1;
+            if (pAot->Type & 0x80) {
+                return Sce_at_jump_tbl[pAot->Id](&((SCE_AOT4 *)pAot)->Data);
+            }
+            return Sce_at_jump_tbl[pAot->Id](&pAot->Data);
+        }
+        pEm->UnkC = n - 1;
+        if (pAot->Type & 0x80) {
+            Sce_at_jump_tbl[pAot->Id](&((SCE_AOT4 *)pAot)->Data);
+        } else {
+            Sce_at_jump_tbl[pAot->Id](&pAot->Data);
+        }
+    }
+    return 0;
+}
 
 /* RE2 Sce_at: AOT checks for the player, the enemies, the object models and the sub player */
 void Sce_at(void)
@@ -54,14 +217,14 @@ void Sce_at(void)
         return;
     }
     G.Player.Water = 0;
-    D_800DECAC = 0;
+    Sce_manual_hit = 0;
     if (G.Player.Damage_cnt != 0 || Game.Unk1 != 0) {
         G.Status_flg &= ~0x800000;
     }
     if (G.Status_flg & 0x800000) {
-        Sce_at_check(&G.Player, 1, 0x10);
+        Sce_at_check((ENEMY_WORK *)&G.Player, 1, 0x10);
     }
-    Sce_at_check(&G.Player, 1, 0);
+    Sce_at_check((ENEMY_WORK *)&G.Player, 1, 0);
     for (ppEw = &G.pEnemy[2]; ppEw != G.ppEnemy_end; ppEw++) {
         pEw = *ppEw;
         if (pEw->Be_flg & 1) {

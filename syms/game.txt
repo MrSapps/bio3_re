@@ -345,6 +345,7 @@ Pl_wep_parts = 0x800DE8F0;
 Pl_wep_oya = 0x800DE8F4;
 Pl_wep_poly = 0x800DE8F8;
 Ibox_spd_add = 0x800DEC9E;
+Sce_manual_hit = 0x800DECAC;
 pCAot = 0x800DECB0;
 Old_Fatari = 0x800DECB4;
 Old_Uatari = 0x800DECB8;
