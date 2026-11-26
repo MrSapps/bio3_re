@@ -1379,7 +1379,348 @@ void Em23_wall_ofs_set(ENEMY_WORK *pEm)
     pP->Cdir_z = 0x2AA;
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em23", Em23_mv03);
+/* mv03: climb onto the wall, move on it, turn round its corners, climb back down */
+void Em23_mv03(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    /* unused locals: they only size the frame like the original */
+    VECTOR Unused0;
+    VECTOR Unused1;
+    SVECTOR Unused2;
+    KAGE_WORK *pK;
+    LONG N;
+    LONG Next;
+    LONG Up;
+    UCHAR Side;
+    LONG Dir;
+    LONG Wall;
+    SHORT Low_dir; /* 16-bit copy: its own sign-extended register (move a0,v1) */
+    LONG New_dir;
+    LONG New_dir2;
+
+    N = 2;
+    if (EF(pEm)->Flg & 8)
+        N = 1;
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_SET_MOVE(pEm, 5, 0, 7);
+        pEm->Routine_2 = 1;
+        pEm->Col.D0 = 400;
+        pEm->Col.W0 = 400;
+        Em23_wall_point(pEm);
+        EF(pEm)->Mode = 1;
+        pEm->Timer0 = 0;
+    case 1:
+        pEm->Dest_x = EF(pEm)->Wall_x;
+        pEm->Dest_z = EF(pEm)->Wall_z;
+        Spd_get(pEm, pKan, pSeq, 0);
+        do {
+            if (pEm->Move_cnt == 45) {
+                Em23_wall_base_dir(pEm);
+                Em23_wall_stick(pEm);
+            }
+            if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+                N = 1;
+                pEm->Routine_2++;
+            } else if (pEm->Move_cnt >= 10 && pEm->Move_cnt < 21) {
+                pEm->Pos_x += (EF(pEm)->Wall_x - pEm->Pos_x) / 10;
+                pEm->Pos_z += (EF(pEm)->Wall_z - pEm->Pos_z) / 10;
+            }
+        } while (--N);
+        if (!pEm->Move_cnt) {
+            pEm->Spd_y = 0;
+            pEm->Spd_z = 0;
+            pEm->Spd_x = 0;
+        }
+        Add_speedXZ(pEm, 0);
+        if (!EF(pEm)->Unk20)
+            Goto00(pEm, pEm->Dest_x, pEm->Dest_z, 16);
+        break;
+    case 2:
+        EM_SET_MOVE(pEm, 2, 0, 7);
+        pEm->Routine_2 = 3;
+    case 3:
+        Spd_get(pEm, pKan, pSeq, 0);
+        Joint_move(pEm, pKan, pSeq, 0x200);
+        Em23_wall_move(pEm, 0);
+        if (EF(pEm)->Mode == 1 && pEm->Timer0 >= 11 && EF(pEm)->Unk1A == EF(pEm)->Wall_dir) {
+            EF(pEm)->Mode = 3;
+            EM_SET_RTN(pEm, 1, 5, 0, 0);
+        }
+        Em23_col_ofs_set(pEm);
+        break;
+    case 4:
+        EF(pEm)->Unk1A = 0x800;
+        EM_SET_MOVE(pEm, 5, 0, 7);
+        pEm->Routine_2 = 5;
+    case 5:
+        Spd_get(pEm, pKan, pSeq, 0);
+        do {
+            if (pEm->Routine_2 == 5)
+                pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
+        } while (--N);
+        if (pEm->Move_cnt >= 10 && pEm->Move_cnt < 21)
+            {
+            LONG Y = pEm->Pos_y + 1600;
+            pEm->Pos_y += (EF(pEm)->Ground - Y) / 10;
+        }
+        if (pEm->Routine_2 == 6) {
+            KAGE_WORK *pK6;
+
+            EM_SET_RTN(pEm, 1, 6, 0, 0);
+            pEm->Cdir_z = 0;
+            pEm->Cdir_x = 0;
+            pK6 = pEm->Kage.pKw;
+            pEm->Pos_y = EF(pEm)->Ground;
+            Dir = (EF(pEm)->Side << 10) - 0x800;
+            pEm->Cdir_y = (EF(pEm)->Wall_dir + Dir) & 0xFFF;
+            pEm->Pos_x = pK6->Pos_x;
+            pEm->Pos_z = pK6->Pos_z;
+            pEm->Col.Unk28 = 0;
+            pEm->Col.Unk24 = 0;
+            EF(pEm)->Mode = 0;
+            break;
+        }
+        Em23_wall_move(pEm, 0);
+        break;
+    case 7:
+        EM_SET_MOVE(pEm, 6, 0, 7);
+        pEm->Routine_2 = 8;
+        pEm->Be_flg |= 0x2000;
+    case 8:
+        do {
+            Spd_get(pEm, pKan, pSeq, 0);
+            if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+                Side = EF(pEm)->Side;
+                N = 1;
+                if (Side & 1) {
+                    if (Side & 2) {
+                        pEm->Cdir_x = 0;
+                        pEm->Cdir_z = 0xC00;
+                        if (EF(pEm)->Wall_dir > 0x800) {
+                            EF(pEm)->Side = 0;
+                            pEm->Cdir_y = 0x800;
+                            EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                        } else {
+                            EF(pEm)->Side = 2;
+                            pEm->Cdir_y = 0;
+                        }
+                    } else {
+                        pEm->Cdir_x = 0;
+                        pEm->Cdir_z = 0xC00;
+                        if (EF(pEm)->Wall_dir > 0x800) {
+                            EF(pEm)->Side = 0;
+                            pEm->Cdir_y = 0x800;
+                        } else {
+                            EF(pEm)->Side = 2;
+                            pEm->Cdir_y = 0;
+                            EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                        }
+                    }
+                } else {
+                    pEm->Cdir_z = 0;
+                    if (EF(pEm)->Side & 2) {
+                        if (EF(pEm)->Wall_dir > 0x800) {
+                            EF(pEm)->Side = 3;
+                            pEm->Cdir_y = 0x400;
+                            pEm->Cdir_x = 0xC00;
+                        } else {
+                            EF(pEm)->Side = 1;
+                            pEm->Cdir_y = 0xC00;
+                            pEm->Cdir_x = 0x400;
+                            EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                        }
+                    } else if (EF(pEm)->Wall_dir > 0x800) {
+                        EF(pEm)->Side = 3;
+                        pEm->Cdir_y = 0x400;
+                        pEm->Cdir_x = 0xC00;
+                        EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                    } else {
+                        EF(pEm)->Side = 1;
+                        pEm->Cdir_y = 0xC00;
+                        pEm->Cdir_x = 0x400;
+                    }
+                }
+                if (Rnd_l() & 1) {
+                    EF(pEm)->Unk1A = 0;
+                    EF(pEm)->Mode = 1;
+                    pEm->Timer0 = 0;
+                } else {
+                    EF(pEm)->Unk1A = 0x800;
+                    EF(pEm)->Mode = 2;
+                }
+                EF(pEm)->Base_dir_x = pEm->Cdir_x;
+                EF(pEm)->Base_dir_y = pEm->Cdir_y;
+                EF(pEm)->Unk0A = pEm->Cdir_z;
+                EM23_WALL_DIR(pEm);
+                EM_SET_MOVE(pEm, 2, 0, 7);
+                EF(pEm)->pSca = pEm->Col.pSca_hit_data;
+                Em23_wall_point(pEm);
+                pEm->Pos_x = pEm->Kage.pKw->Pos_x;
+                pEm->Pos_z = pEm->Kage.pKw->Pos_z;
+                if (EF(pEm)->Side & 1) {
+                    if (EF(pEm)->Side & 2)
+                        pEm->Pos_z -= 758;
+                    else
+                        pEm->Pos_z += 758;
+                } else if (EF(pEm)->Side & 2) {
+                    pEm->Pos_x += 758;
+                } else {
+                    pEm->Pos_x -= 758;
+                }
+                EF(pEm)->Mode = 3;
+                EM_SET_RTN(pEm, 1, 5, 0, 0);
+                pEm->Timer0 = 0;
+                pEm->Be_flg &= ~0x2000;
+            } else {
+                Em23_wall_move(pEm, 0);
+                Wall = EF(pEm)->Wall_dir;
+                if (Wall > 0x800) {
+                    New_dir = (Wall == 0xC00) ? 0xC00 : (Wall > 0xC00) ? Wall - 16 : Wall + 16;
+                    EF(pEm)->Wall_dir = New_dir;
+                } else {
+                    Low_dir = Wall;
+                    New_dir2 = (Low_dir == 0x400) ? 0x400 : (Low_dir > 0x400) ? Low_dir - 16 : Wall + 16;
+                    EF(pEm)->Wall_dir = New_dir2;
+                }
+                EM23_WALL_DIR(pEm);
+            }
+            Em23_col_ofs_set(pEm);
+        } while (--N);
+        break;
+    case 9:
+        EM_SET_MOVE(pEm, 5, 0, 7);
+        pEm->Routine_2 = 10;
+        pEm->Be_flg |= 0x2000;
+    case 10:
+        Spd_get(pEm, pKan, pSeq, 0);
+        do {
+            if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+                Side = EF(pEm)->Side;
+                N = 1;
+                if (Side & 1) {
+                    if (Side & 2) {
+                        if (EF(pEm)->Wall_dir > 0x800) {
+                            EF(pEm)->Side = 2;
+                            pEm->Cdir_y = 0;
+                        } else {
+                            EF(pEm)->Side = 0;
+                            pEm->Cdir_y = 0x800;
+                            EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                        }
+                    } else if (EF(pEm)->Wall_dir > 0x800) {
+                        EF(pEm)->Side = 2;
+                        pEm->Cdir_y = 0;
+                        EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                    } else {
+                        EF(pEm)->Side = 0;
+                        pEm->Cdir_y = 0x800;
+                    }
+                    pEm->Cdir_x = 0;
+                    pEm->Cdir_z = 0xC00;
+                } else {
+                    if (Side & 2) {
+                        if (EF(pEm)->Wall_dir > 0x800) {
+                            EF(pEm)->Side = 1;
+                            pEm->Cdir_y = 0xC00;
+                            pEm->Cdir_x = 0x400;
+                            EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                        } else {
+                            EF(pEm)->Side = 3;
+                            pEm->Cdir_y = 0x400;
+                            pEm->Cdir_x = 0xC00;
+                        }
+                    } else if (EF(pEm)->Wall_dir > 0x800) {
+                        EF(pEm)->Side = 1;
+                        pEm->Cdir_y = 0xC00;
+                        pEm->Cdir_x = 0x400;
+                    } else {
+                        EF(pEm)->Side = 3;
+                        pEm->Cdir_y = 0x400;
+                        pEm->Cdir_x = 0xC00;
+                        EF(pEm)->Wall_dir = 0x1000 - EF(pEm)->Wall_dir;
+                    }
+                    pEm->Cdir_z = 0;
+                }
+                EF(pEm)->Base_dir_x = pEm->Cdir_x;
+                EF(pEm)->Base_dir_y = pEm->Cdir_y;
+                EF(pEm)->Unk0A = pEm->Cdir_z;
+                EM23_WALL_DIR(pEm);
+                EF(pEm)->pSca = pEm->Col.pSca_hit_data;
+                Em23_wall_point(pEm);
+                pEm->Pos_x = pEm->Kage.pKw->Pos_x;
+                pEm->Pos_z = pEm->Kage.pKw->Pos_z;
+                if (EF(pEm)->Side & 1) {
+                    if (EF(pEm)->Side & 2)
+                        pEm->Pos_z -= 758;
+                    else
+                        pEm->Pos_z += 758;
+                } else if (EF(pEm)->Side & 2) {
+                    pEm->Pos_x += 758;
+                } else {
+                    pEm->Pos_x -= 758;
+                }
+                EM_SET_MOVE(pEm, 2, 0, 0);
+                EF(pEm)->Mode = 3;
+                EM_SET_RTN(pEm, 1, 5, 0, 0);
+                pEm->Be_flg &= ~0x2000;
+            } else {
+                Em23_wall_move(pEm, 0);
+                Wall = EF(pEm)->Wall_dir;
+                if (Wall > 0x800) {
+                    New_dir = (Wall == 0xC00) ? 0xC00 : (Wall > 0xC00) ? Wall - 16 : Wall + 16;
+                    EF(pEm)->Wall_dir = New_dir;
+                } else {
+                    Low_dir = Wall;
+                    New_dir2 = (Low_dir == 0x400) ? 0x400 : (Low_dir > 0x400) ? Low_dir - 16 : Wall + 16;
+                    EF(pEm)->Wall_dir = New_dir2;
+                }
+                EM23_WALL_DIR(pEm);
+            }
+            Em23_col_ofs_set(pEm);
+        } while (--N);
+        break;
+    case 11:
+        EM_SET_MOVE(pEm, 5, 0, 7);
+        pEm->Routine_2 = 12;
+        EF(pEm)->Mode = 4;
+    case 12:
+        Spd_get(pEm, pKan, pSeq, 0);
+        do {
+            if (pEm->Routine_2 == 12)
+                pEm->Routine_2 += Joint_move(pEm, pKan, pSeq, 0x200);
+        } while (--N);
+        if (pEm->Routine_2 == 13) {
+            Em23_ceil_base_dir(pEm);
+            pK = pEm->Kage.pKw;
+            pEm->Pos_y = EF(pEm)->Floor_y;
+            pEm->Pos_x = pK->Pos_x;
+            pEm->Pos_z = pK->Pos_z;
+            pEm->Col.Unk28 = 0;
+            pEm->Col.Unk24 = 0;
+            EM_SET_RTN(pEm, 1, 4, 0, 0);
+        } else {
+            Em23_wall_move(pEm, 0);
+            Wall = EF(pEm)->Wall_dir;
+            if (Wall > 0x800) {
+                Up = Wall;
+                if (Wall != 0x1000)
+                    Up = Wall + 16;
+                EF(pEm)->Wall_dir = Up;
+            } else {
+                Next = Wall;
+                if (Next)
+                    Next -= 16;
+                EF(pEm)->Wall_dir = Next;
+            }
+            EM23_WALL_DIR(pEm);
+        }
+        if (pEm->Move_cnt >= 10 && pEm->Move_cnt < 21)
+            pEm->Pos_y += (EF(pEm)->Floor_y - pEm->Pos_y) / 10;
+        break;
+    case 13:
+        break;
+    }
+}
 
 /* on the ceiling: base direction from the side */
 void Em23_ceil_base_dir(ENEMY_WORK *pEm)
