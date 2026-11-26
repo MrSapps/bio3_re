@@ -1825,3 +1825,49 @@ Still unmatched (drafts agentAJ/best, same as agentAC's):
 - em36 Em36_Init (12 difflib / 18 words): in the target the G lo_sum, the Pldamege hi/lo and the Id lbu all sit at
   their LUID positions instead of being boosted next to their users, i.e. sched1 saw them as multi-set or not
   birthing. Locals for pG/pFn/Id at those positions (gen36c.py, 48 variants) are folded back by cse/combine (47+).
+## Matching round agentAN (worktree clean/wL; drafts in the session scratchpad agentAN/best)
+Matched: em38 Em38_sce03 (was 6 words). Both stuck spots were the same thing: a redundant re-read of
+`pEm->pSin_parts_ptr` into the pointer that already holds it (`pW = pEm->pSin_parts_ptr;` before the case 5
+Sv/Esp_call block, `pP = pEm->pSin_parts_ptr;` after `pEm->Timer0 |= 0x8000;` in case 6). The y = -800 temp and the
+do/while(0) of the old draft are gone.
+Rules learnt:
+- sched2 decides the final order, not sched1. -O2 runs schedule_insns twice; the second run (after reload, -dR dump)
+  has no birthing boost, takes its LUIDs from the sched1 output order (S) and sees the hard-register deps the
+  allocator created (v0 reused for every li/sb pair serialises them). So the target order = sched2(S): reason about
+  which S is needed, then about which RTL gives that S in sched1.
+- Phantom load (reload_cse): reload_cse_regs (after reload, before sched2) deletes a load whose destination hard reg
+  already holds that memory value, and it only forgets values at CODE_LABELs (not at jumps), so a re-read of a
+  pointer that was loaded into the same pseudo a few blocks earlier (fall-through only, no store that may alias the
+  slot) vanishes from the final code. sched1 still saw it: the users get the +1 load priority (they move below the
+  priority-1 stores in S), and sched2 then re-sorts them by S position. Em38 case 5: S = a0 a1 a3 sh sh sh sw a2
+  (a2 last because of the load), sched2 (no load any more, everything priority 1, stores first, then highest S
+  LUID) gives a0 a1 a3 a2 sh sh sh sw. Use it whenever the target has an ALU insn ordered like a load user although
+  no load is visible: look for a pointer the function re-reads elsewhere.
+- Within one sched block with all insns at priority 1, a direct call's argument moves are picked purely by LUID
+  (expand_call emits a0..a3 in order); nothing at C level reorders them in sched1 alone.
+Still unmatched:
+- em22 Em22_mv_jump (7 difflib / 9 words; best/Em22_mv_jump_7.c, best/Em22_mv_jump_seqfirst.c). Proof that plain C
+  cannot give `sw a0,8(v1); li a0,3` (pTmd in a0): local-alloc can only put pTmd in a0 if, in the sched1 output S,
+  the `a0 = 3` set of Snd_se_enem comes after the `sw pTmd`. In sched1 `a0 = 3` (insn 618) has exactly one link, the
+  anti dep on the Pl_life_down call (sched_analyze_1 adds it for every hard-reg set after a call), so
+  prio(618) = prio(call). The pTmd load is after the call (memory flush, anti dep) so prio(load) >= prio(call) and
+  prio(sw pTmd) >= prio(call) + 1 (load latency 2). Every insn the target places after `li a0,3` depends on pW or on
+  the stores, so when 618 is picked (backward list scheduling) the sw pTmd is already ready and has the higher
+  priority: it is always placed after `li a0,3`. Ways around it all fail on the target: a loop-note barrier on the
+  sw pTmd needs the `pW->UnkA2` lhu (before the store) and its ori/sh (after `li a0,3`) on opposite sides of the
+  note; a barrier anywhere else drags the 0x101040 lui (target line 251) or the lhu across; a block boundary is the
+  same; a dependent of the store that is unscheduled when 618 is picked must itself be ready-but-lower-priority
+  (impossible, it depends on the store) or a queued load whose user sits between, which would keep pTmd live over
+  `a0 = 3`; a pseudo holding 3 is constant-propagated by cse (tested: `Tmp = 3; Snd_se_enem(Tmp, pEm)` gives the
+  same code). Only an explicit hard-register use of a0 between the store and the call would do it.
+- em36 Em36_Init (18 words with the old draft; best/Em36_Init_12.c). That draft puts the Pldamage store between
+  Lost_dir and Lost_time, which the target cannot have: the G-based store and the pEm stores conflict (different
+  base pseudos, both in-struct varying), so every pEm zero store the target places before the Pldamage store must
+  be before it in the source (order of best/Em36_Init_storeorder_40.c). With that order (448-variant sweep of
+  Flg/ppEm/pE/pSub positions, G. vs pG->, pFn local, gen2.py) the best is 40, because `ppEm = &G.pEnemy[2]`
+  (priority 1, multi-set so never boosted) loses every pick to the batch of pEm stores and lands at the top of S;
+  G's lo_sum is boosted right before its last user, so it goes to the top too, and sched2 keeps it above
+  `li v0,300` (target: between li 300 and its sh). Experiment best/Em36_Init_noppEm_experiment.c (ppEm init removed,
+  semantics broken) matches the whole block except the Flg/Pldamege/ppEm lines, so the remaining problem is only
+  where that one addiu sits in S. It needs priority >= 2 or a boost in sched1 (a load or a single-set pointer) and
+  none of the natural forms gives that; pG-> forms make reload materialise G a second time in t1.
