@@ -2885,7 +2885,66 @@ void Pl_wep_eff_init(ENEMY_WORK *pEm)
 void Pl_wep_dummy(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Pl_wep_parts_drop);
+void Pl_wep_parts_drop(ENEMY_WORK *pEm)
+{
+    PARTS_W *pP;
+    UCHAR n;
+    SHORT Gy;
+    LONG *pPos;
+    MATRIX *pM;
+    MATRIX *pM2;
+
+    n = 0;
+    pP = &pEm->pSin_parts_ptr[15];
+    do {
+        if ((pP->Be_flg & 1) && pP->Timer2 != 1) {
+            pPos = pP->Workm.t;
+            Gy = Sca_get_ground(pPos, 500, 0x8000, 0);
+            if (Gy > pP->Unk78) {
+                pP->Unk78 = Gy;
+            }
+            if (Gy < pP->Unk78) {
+                pP->Old_y = 0;
+                pP->Old_z = 0;
+            }
+            pP->Timer0 += 20;
+            pP->Workm.t[1] += pP->Timer0;
+            if (pP->Unk78 < pP->Workm.t[1]) {
+                if (pP->Timer1) {
+                    pP->Workm.t[1] = pP->Unk78;
+                    pP->Timer0 = -(pP->Timer0 / 2);
+                    pP->Timer1--;
+                    Snd_se_stad(0x10104, pPos, 0, 0);
+                } else {
+                    pP->Timer2 = 1;
+                    pP->Workm.t[1] = pP->Unk78;
+                    Sce_aot_parts_set(1, pP, &pP->Unk74);
+                    Snd_se_stad(0x10104, pPos, 0, 0);
+                }
+            }
+            pP->Workm.t[0] += pP->Old_y;
+            pP->Workm.t[2] += pP->Old_z;
+            if (pP->Timer1) {
+                if (pP->Timer3 & 1) {
+                    pP->Cdir_x = 0x100;
+                    pM2 = PW_M(pP);
+                    RotMatrix(CDIR_SV(pP), pM2);
+                    MulMatrix2(pM2, &pP->Workm);
+                }
+                if (pP->Timer1) {
+                    /* separate increments: the biv count stops loop.c reducing the two M pointers */
+                    pP++;
+                    continue;
+                }
+            }
+            pP->Cdir_x = 0x100;
+            pM = PW_M(pP);
+            RotMatrix(CDIR_SV(pP), pM);
+            MulMatrix2(pM, &pP->Workm);
+        }
+        pP++;
+    } while (--n != 0);
+}
 
 /* empty, unreferenced */
 void Pl_wep_dummy2(void) {
