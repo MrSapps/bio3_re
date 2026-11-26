@@ -225,8 +225,176 @@ void Moji_trans_main(void)
     }
 }
 
-/* RE2 Mess_disp: message state machine and drawing */
-INCLUDE_ASM("asm/nonmatchings/game/mojidisp", Mess_disp);
+/* RE2 Mess_disp: message state machine (control codes 0xEA..0xFE) */
+void Mess_disp(MOJIDISP *pMoji)
+{
+    UCHAR *pMess_end;
+    ULONG Vloop_ck;
+    USHORT Cut;
+    ULONG No;
+    USHORT Cut_back;
+
+    pMess_end = pMoji->Mess_end;
+    Vloop_ck = (Ctrl_mode == 1);
+    switch (pMoji->Mess_r_no0) {
+    case 0:
+        pMoji->Mess_r_no0 = 1;
+        pMoji->Unk75E8 = Moji_recip(2 << Vloop_ck);
+        pMoji->Timer = 0x10000;
+        pMoji->Mess_type = 0;
+        pMoji->Mess_wait = 0;
+        pMoji->Unk75CF = G.Cut_no;
+        G.Stop_flg |= pMoji->Stop_data;
+        pMess_end = pMoji->Mess_top;
+        G.Status_flg &= ~0x100;
+        /* fall through */
+    case 1:
+        if (pMoji->Timer & 0xFFFF0000) {
+            do {
+                while (*pMess_end >= 0xEA) {
+                    switch (*pMess_end) {
+                    case 0xEA:
+                    case 0xEB:
+                    case 0xEC:
+                    case 0xED:
+                    case 0xEE:
+                    case 0xEF:
+                    case 0xF0:
+                        pMess_end++;
+                        goto text;
+                    case 0xF3:
+                        Snd_se_stad(*++pMess_end | 0x200, 0, 0, 0);
+                        pMess_end++;
+                        break;
+                    case 0xF4:
+                        pMess_end++;
+                        pMoji->Unk75CF = G.Cut_no;
+                        Cut = *pMess_end++;
+                        Main_bg_chg_flg = 1;
+                        G.Cut_no = Cut;
+                        Cut_change(Cut);
+                        break;
+                    case 0xF5:
+                        goto text;
+                    case 0xF7:
+                        pMess_end = pMoji->Mess_svp + 2;
+                        break;
+                    case 0xF8:
+                        pMoji->Mess_svp = pMess_end;
+                        pMess_end++;
+                        if (*pMess_end) {
+                            No = *pMess_end;
+                        } else {
+                            No = pMoji->Mess_item;
+                        }
+                        pMess_end = name_ptr_set(No);
+                        break;
+                    case 0xF9:
+                        pMess_end++;
+                        pMoji->Mess_wait = *pMess_end++;
+                        break;
+                    case 0xFA:
+                        pMess_end++;
+                        pMoji->Unk75E8 = Moji_recip(*pMess_end++ << Vloop_ck);
+                        break;
+                    case 0xFB:
+                        pMoji->Mess_r_no0 = 4;
+                        pMoji->Timer = 8 << Vloop_ck;
+                        G.Mess_sel = pMess_end[1] & 0xF;
+                        goto end_set;
+                    case 0xF6:
+                    case 0xFC:
+                        pMess_end++;
+                        break;
+                    case 0xFD:
+                        pMess_end++;
+                        if (*pMess_end) {
+                            pMoji->Mess_r_no0 = 3;
+                            pMoji->Timer = *pMess_end << Vloop_ck;
+                        } else {
+                            pMoji->Mess_r_no0 = 2;
+                        }
+                        pMess_end++;
+                        goto end_set;
+                    case 0xFE:
+                        pMess_end++;
+                        if (*pMess_end) {
+                            pMoji->Mess_r_no0 = 6;
+                            pMoji->Timer = *pMess_end << Vloop_ck;
+                        } else {
+                            pMoji->Mess_r_no0 = 5;
+                        }
+                        goto end_set;
+                    }
+                }
+            text:
+                if (*pMess_end != 0 && pMoji->Unk75E8 != 0) {
+                    pMoji->Timer -= 0x10000;
+                }
+                pMess_end++;
+            } while (pMoji->Timer & 0xFFFF0000);
+        }
+        if (!(pMoji->Mess_attr2 & 0x200) && (G.Key & 0x3000)) {
+            pMoji->Timer += pMoji->Unk75E8 << 2;
+        } else {
+            pMoji->Timer += pMoji->Unk75E8;
+        }
+        break;
+    case 2:
+        if (G.Key_trg & 0x1000) {
+            G.Key = 0xFFFF;
+            goto next;
+        }
+        if (--pMoji->Timer & (0x18 << Vloop_ck)) {
+            Print_color(0xFF, 0, 3);
+            if ((pMoji->Mess_attr2 & 0x3000) == 0x1000) {
+                Print14(0x69, pMoji->Pos_y_def + 0x2A, "/");
+            } else {
+                Print14(0x99, pMoji->Pos_y_def + 0x1C, "/");
+            }
+        }
+        break;
+    case 3:
+        if (--pMoji->Timer == 0) {
+        next:
+            pMoji->Mess_r_no0 = 1;
+            pMoji->Mess_top = pMess_end;
+            pMoji->Timer = 0x10000;
+            pMoji->Mess_type = pMoji->Mess_wait;
+        }
+        break;
+    case 4:
+        if (pMess_end[1] & 0x80) {
+            Live_sel_disp(pMoji, pMess_end + 1);
+        } else {
+            Branch_disp(pMoji, pMess_end + 1);
+        }
+        break;
+    case 5:
+        if (G.Key_trg & 0x3000) {
+            G.Key = 0xFFFF;
+            pMoji->Mess_flg = (pMoji->Mess_flg & 0x7F) | 0x40;
+            G.Stop_flg = pMoji->Stop_keep;
+            if (pMoji->Unk75CF != G.Cut_no) {
+                Cut_back = pMoji->Unk75CF;
+                Main_bg_chg_flg = 1;
+                G.Cut_no = Cut_back;
+                Cut_change(Cut_back);
+            }
+            return;
+        }
+        break;
+    case 6:
+        if (--pMoji->Timer == 0) {
+            pMoji->Mess_flg &= 0x7F;
+            G.Stop_flg = pMoji->Stop_keep;
+            return;
+        }
+        break;
+    }
+end_set:
+    pMoji->Mess_end = pMess_end;
+}
 /* ---- from 800303CC.c ---- */
 
 /* 0x10000 / Val + 1 (0 for 0) */
