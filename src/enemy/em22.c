@@ -954,7 +954,39 @@ void Em22_th_jump(ENEMY_WORK *pEm)
 
 INCLUDE_ASM("asm/nonmatchings/enemy/em22", Em22_mv_jump);
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em22", Em22_dir_quarter);
+/* quarter of the facing direction relative to the side flag: 0/1 in front, 2/3 behind (Flg swaps them) */
+LONG Em22_dir_quarter(ENEMY_WORK *pEm, LONG Flg)
+{
+    ULONG Dir;
+    LONG Ret;
+
+    Dir = pEm->Cdir_y;
+    Dir += 0x200;
+    Dir &= 0xFFF;
+    EM22_W(pEm)->Unk00 = Dir & 0xC00;
+    if (Flg == 0) {
+        if (Dir & 0x800)
+            goto Back;
+Front:
+        Ret = Dir >> 10;
+        /* identical arms: the dead test only puts a label between the and and the copy (keeps combine from
+         * merging them); jump2 cross-jumps the arms and the per-arm `Dir = Ret` copies after reload */
+        if (Dir || Flg)
+            Ret &= 1;
+        else
+            Ret &= 1;
+        Dir = Ret;
+    } else {
+        if (Dir & 0x800)
+            goto Front;
+Back:
+        Ret = 2;
+        if (Dir & 0x400)
+            Ret = 3;
+        Dir = Ret;
+    }
+    return Dir;
+}
 
 /* two way points 1800 / 3600 to one side of pEm (Way0_x/Way0_z, Way1_x/Way1_z) */
 void Em22_wall_way_set(ENEMY_WORK *pEm, LONG Flg, VECTOR *pV)
