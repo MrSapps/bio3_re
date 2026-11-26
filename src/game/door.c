@@ -38,6 +38,7 @@
 #define gte_stotz(r0) __asm__ volatile("swc2 $7, 0(%0)" : : "r"(r0) : "memory")
 #define gte_stsxy3_gt3(r0) __asm__ volatile("swc2 $12, 8(%0); swc2 $13, 20(%0); swc2 $14, 32(%0)" : : "r"(r0) : "memory")
 #define gte_strgb3_gt3(r0) __asm__ volatile("swc2 $20, 4(%0); swc2 $21, 16(%0); swc2 $22, 28(%0)" : : "r"(r0) : "memory")
+#define gte_avsz3_b() __asm__ volatile(".word 0x4B58002D") /* no leading nops */
 
 extern MATRIX Door_light_matrix; /* RE2 D_LIGHTMATRIX */
 extern MATRIX Door_color_matrix; /* RE2 D_COLORMATRIX */
@@ -55,7 +56,87 @@ void Door_main(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", Door_init);
+void Door_init(void)
+{
+    UCHAR i;
+    ULONG *pAdr;
+    ULONG Tpage;
+    ULONG Clut;
+    UCHAR *pAot;
+    ULONG Adr;
+    DOOR_WORK **pp;
+    ULONG **ppTim;
+    ULONG **ppTmd;
+    ULONG *pTmd;
+    ULONG *pTim;
+
+    pDoor_tex_trans = 1;
+    Door_texture_load();
+    D_800BA6F4 = 0xA14;
+    pDoor = (DOOR *)0x801B8E00;
+    G.System_flg |= 0x400000;
+    i = 0;
+    pp = pDwork;
+loop: /* goto loop: a for/do loop is laid out differently */
+    Adr = i * 0xC8 + 0x801B9A58;
+    pp[i] = (DOOR_WORK *)(Adr - D_800BA6F4);
+    Memclr(pp[i], 0xC8);
+    i++;
+    if (i < 10) goto loop;
+    /* header fields through plain pointers and the halfword Ctp store: they do not alias the pPrepacket
+     * reload in sched1, so the reload sits right after its store and becomes reload_cse's move a0,a1 */
+    ppTim = &Door_data->pTim;
+    ppTmd = &Door_data->pTmd;
+    pTim = (ULONG *)((UCHAR *)Door_data + (ULONG)*ppTim);
+    pDoor->pPrepacket = (POLY_GT3 *)pTim;
+    pTmd = *ppTmd;
+    *(USHORT *)&G.Ctp.u.Ctpage = 0x1F15;
+    *ppTim = pTim;
+    *ppTmd = (ULONG *)((UCHAR *)Door_data + (ULONG)pTmd);
+    Mapping_tim((ULONG *)pDoor->pPrepacket);
+    pDoor->pTmd_adr = pAdr = *ppTmd;
+    if (((UCHAR *)G.pSce_aot_on)[0xC] != 0x1F) {
+        Tpage = 0x15;
+        Clut = 0x1F;
+    } else {
+        Tpage = 0;
+        Clut = 0;
+    }
+    Mapping_md(pAdr, Tpage, Clut);
+    pDoor_tex_trans = 0;
+    pDoor->Divp.ndiv = 3;
+    pDoor->Divp.pih = 0x140;
+    pDoor->Divp.piv = 0xF0;
+    pDoor->pTmd_adr += 2;
+    for (i = 10; i < 14; i++) {
+        Sce.Sce_task[i].Task_level = i;
+        Sce.Sce_task[i].Status = 0;
+        Sce.Sce_task[i].Sub_ctr = 0;
+        Sce.Sce_task[i].Ifel_ctr[0] = -1;
+        Sce.Sce_task[i].Loop_ctr[0] = -1;
+    }
+    Sce.pCScd = Door_data->Scd;
+    Event_init(&Sce.Sce_task[10], 0);
+    Memclr(&Sce.Cut, 0x20);
+    Sce.Cut.ViewR = 0x912D;
+    Sce.Cut.View_p[0] = 0x2CEC;
+    Sce.Cut.View_p[1] = -900;
+    Sce.Cut.View_r[0] = 0;
+    Sce.Cut.View_r[1] = -200;
+    SetGeomScreen(0x122);
+    Set_view(Sce.Cut.View_p, Sce.Cut.View_r);
+    Bg_set_mode(1, 0);
+    for (i = 0; i < 4; i++) {
+        Fade_off(i);
+    }
+    pAot = G.pSce_aot_on;
+    G.DSce_work[0] = pAot[0xD] & 0xFF7F;
+    G.DSce_work[1] = 1;
+    G.DSce_work[2] = pAot[0xD] & 0x80;
+    G.DSce_work[3] = pAot[0xC];
+    pDoor->Sound_flg = 0;
+    pDoor->Ctr2 = 0;
+}
 
 void Door_move(void)
 {
@@ -201,7 +282,105 @@ void Door_Trans(void)
     } while (i < 10);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", DoorSort);
+void DoorSort(DOOR_WORK *pDw, POLY_GT3 *pPacket, SORT_PARAM *pPrm)
+{
+    USHORT Flg;
+    MD_OBJ *pObj;
+    ULONG *pPrim;
+    ULONG n;
+    ULONG *pVert;
+    ULONG *pNorm;
+    ULONG I0;
+    ULONG I1;
+    ULONG I2;
+    ULONG V0;
+    ULONG V1;
+    ULONG V2;
+    ULONG *pV0;
+    ULONG *pV1;
+    ULONG *pV2;
+    LONG Otz;
+    ULONG *pOt;
+
+    Flg = pDw->Attribute2;
+    if ((Flg & 0x800) && pDoor->Ctr2 - 100 == pDw->Type) {
+        if ((Flg & 0x30) == 0x30) {
+            pDw->Attribute2 = Flg & ~0x20;
+        } else {
+            pDw->Attribute2 = Flg | 0x10;
+        }
+    }
+    pPrm->u.c.Code = ((pDw->Attribute2 >> 8) & 2) | 0x34;
+    gte_ldrgb(&pPrm->u);
+    pObj = pPrm->pObj;
+    pPrim = pObj->pPrim3;
+    n = (USHORT)pObj->n_prim;
+    I0 = (LONG)pPrim[1] >> 24;
+    I1 = ((UCHAR *)pPrim)[10];
+    I2 = (LONG)pPrim[2] >> 24;
+    /* the do/while(0) wraps raise pVert / pOt / pPacket in the global-alloc order (s3 / s1 / s2) */
+    do { do { pVert = pObj->pVert; } while (0); } while (0);
+    pNorm = pObj->pNorm;
+    if (n != 0) {
+    loop:
+        if (pDw->Attribute2 & 0x400) {
+            pDoor->V0 = *(SVECTOR *)(pVert + I0 * 2);
+            pDoor->V1 = *(SVECTOR *)(pVert + I1 * 2);
+            pDoor->V2 = *(SVECTOR *)(pVert + I2 * 2);
+        }
+        V0 = I0;
+        pV0 = pVert + V0 * 2;
+        V1 = I1;
+        pV1 = pVert + V1 * 2;
+        V2 = I2;
+        pV2 = pVert + V2 * 2;
+        gte_ldv3(pV0, pV1, pV2);
+        pPrim += 3;
+        n--;
+        gte_rtpt();
+        gte_nclip();
+        I0 = ((UCHAR *)pPrim)[7];
+        I1 = ((UCHAR *)pPrim)[10];
+        I2 = ((UCHAR *)pPrim)[11];
+        gte_ldv3(pNorm + V0 * 2, pNorm + V1 * 2, pNorm + V2 * 2);
+        gte_ncct();
+        gte_stopz(&Otz);
+        if (Otz > 0) {
+            gte_avsz3_b();
+            gte_stotz(&Otz);
+            gte_stsxy3_gt3(pPacket);
+            if (Otz & ~0x1FFF) {
+                Otz = 0x1FFF;
+            }
+            switch (pDw->Attribute2 & 0x30) {
+            case 0x30:
+                pOt = G.pOt1 + 8;
+                pOt += Otz >> 7;
+                break;
+            case 0x10:
+                do { do { pOt = G.pOt1 + (Otz >> 7) + 0x207; } while (0); } while (0);
+                break;
+            case 0x20:
+                pOt = G.pOt2;
+                pOt += Otz >> 12;
+                break;
+            }
+            if (pDw->Attribute2 & 0x400) {
+                pDoor->pPackettop = DivideGT3(&pDoor->V0, &pDoor->V1, &pDoor->V2,
+                    (ULONG *)&pPacket->u0, (ULONG *)&pPacket->u1, (ULONG *)&pPacket->u2,
+                    (CVECTOR *)&pPacket->r0, (CVECTOR *)&pPacket->r0, (CVECTOR *)&pPacket->r0,
+                    pDoor->pPackettop, pOt, &pDoor->Divp);
+            } else {
+                Otz = *pOt;
+                *pOt = (ULONG)pPacket & 0xFFFFFF;
+                *(ULONG *)pPacket = (Otz & 0xFFFFFF) | 0x9000000;
+            }
+            do { gte_strgb3_gt3(pPacket); } while (0);
+        }
+        pPacket += 2;
+        if (n != 0) goto loop;
+    }
+}
 
 void Door_exit(void)
 {

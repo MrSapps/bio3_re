@@ -1008,7 +1008,156 @@ void Kage_work9_color_set(KAGE_WORK9 *pK, ULONG Color)
     } while (cnt != 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Rot_neck);
+void Rot_neck(ENEMY_WORK *pPm, SHORT Cdir_y)
+{
+    ULONG Own_neck_no;
+    ULONG Enemy_neck_no;
+    USHORT Body_dir_y;
+    PARTS_W *pEn_parts;
+    PARTS_W *pOwn_parts;
+    PARTS_W *pOwn_p;
+    SHORT *pFree;
+    ULONG Spd_lim;
+    SHORT Vel;
+    ULONG Ang_dif;
+    SHORT Free_dif;
+    SHORT Free_dif12;
+    LONG Dif;
+    ENEMY_WORK *pNeck_enemy;
+    SVECTOR Neck_rot;
+    VECTOR Neck_tgt;
+    LONG Ty;
+    LONG Ofs;
+
+    if (!(pPm->Neck_flg & 1)) {
+        pNeck_enemy = pPm->pUnk114;
+        Enemy_neck_no = pNeck_enemy->Neck_no;
+        Own_neck_no = pPm->Neck_no;
+        pOwn_parts = pPm->pSin_parts_ptr;
+        Body_dir_y = pOwn_parts->Cdir_y;
+        pEn_parts = &pNeck_enemy->pSin_parts_ptr[Enemy_neck_no];
+        Neck_tgt = *WORKM_POS_V(pEn_parts);
+        pOwn_p = &pOwn_parts[Own_neck_no];
+        if (pPm->Neck_flg & 4) {
+            Ty = pPm->Unk166;
+            Neck_tgt.vy = Ty;
+            Neck_tgt.vx = pPm->Unk164;
+            Neck_tgt.vz = pPm->Unk168;
+            if ((USHORT)Ty == 0x8000) {
+                pEn_parts = G.pEnemy[Neck_tgt.vx]->pSin_parts_ptr + G.pEnemy[Neck_tgt.vx]->Neck_no;
+                if (Neck_tgt.vx == 0x15) {
+                    pEn_parts = pPm->pSin_parts_ptr + pPm->Neck_no;
+                }
+                Neck_tgt = *WORKM_POS_V(pEn_parts);
+            }
+        }
+        Neck_Dir_ZY(WORKM_POS_V(pOwn_p), &Neck_tgt, &Neck_rot, Cdir_y + Body_dir_y);
+        if (pPm->Neck_flg & 8) {
+            Neck_rot.vx = 0;
+            Neck_rot.vy = Body_dir_y + (pPm->Unk166 + Cdir_y);
+            Neck_rot.vz = pPm->Unk168;
+        }
+        if (pPm->Neck_flg & 0x40) {
+            if (pPm->Unk168 == 0) {
+                pPm->Unk168 = 1;
+                pPm->Unk166 = Body_dir_y + (PW_NECK(pOwn_p)->L_rot_y + (Cdir_y - 0x80));
+            }
+            Neck_rot.vy = pPm->Unk166;
+        }
+        if (pPm->Neck_flg & 2) {
+            Neck_rot.vy = Body_dir_y + (Cdir_y + pOwn_p->Cdir_y);
+        }
+        if (pPm->Neck_flg & 0x10) {
+            Neck_rot.vz = pOwn_p->Cdir_z;
+        }
+        if (pPm == pNeck_enemy && !(pPm->Neck_flg & 0x80)) {
+            Neck_rot.vy = Body_dir_y + (Cdir_y + pOwn_p->Cdir_y);
+            Neck_rot.vz = pOwn_p->Cdir_z;
+        }
+        Spd_lim = (USHORT)PW_NECK(pOwn_p)->Add_dir_y;
+        Vel = PW_NECK(pOwn_p)->L_rot_y;
+        if (pPm->Neck_flg & 0x80) {
+            Spd_lim = PW_NECK(pOwn_p)->Sce_add_dir_y;
+        }
+        Ang_dif = (Neck_rot.vy - Cdir_y) - (SHORT)Body_dir_y;
+        if ((LONG)((Ang_dif + Vel) & 0xFFF) > Vel * 2) {
+            if (Ang_dif & 0x800) {
+                Neck_rot.vy = (Cdir_y + Body_dir_y) - Vel;
+            } else {
+                Neck_rot.vy = (Cdir_y + Body_dir_y) + Vel;
+            }
+        }
+        pFree = &PW_NECK(pOwn_p)->N_rot_y;
+        Free_dif = Spd_lim + ((USHORT)Neck_rot.vy - ((USHORT)PW_NECK(pOwn_p)->N_rot_y + (Body_dir_y + (Cdir_y + (USHORT)pOwn_p->Cdir_y))));
+        Vel = PW_NECK(pOwn_p)->N_rot_y - Spd_lim;
+        Free_dif12 = Free_dif & 0xFFF;
+        PW_NECK(pOwn_p)->N_rot_y = Vel;
+        if (!(Free_dif & 0x800)) {
+            PW_NECK(pOwn_p)->N_rot_y = Vel + Spd_lim * 2;
+        }
+        if ((LONG)Free_dif12 < (LONG)(Spd_lim << 16) >> 15) {
+            PW_NECK(pOwn_p)->N_rot_y = Neck_rot.vy - (Body_dir_y + (Cdir_y + pOwn_p->Cdir_y));
+            if (pPm->Neck_flg & 0x40) {
+                if (--pPm->Unk164 == 0) {
+                    pPm->Neck_flg = 0x12;
+                }
+                /* in steps through two temps: one expression is reassociated (-128 folded) */
+                Dif = Cdir_y + 0x80;
+                Ofs = pPm->Unk166 - Dif;
+                Dif = (SHORT)Body_dir_y - Ofs;
+                pPm->Unk166 = Body_dir_y + (Cdir_y + Dif);
+            }
+        }
+        pOwn_p->Cdir_y += *pFree;
+        if (pPm->Neck_flg & 0x20) {
+            if (pPm->Unk168 == 0) {
+                pPm->Unk168 = 1;
+                pPm->Unk166 = PW_NECK(pOwn_p)->L_rot_z;
+            }
+            Neck_rot.vz = pPm->Unk166;
+        }
+        Spd_lim = (USHORT)PW_NECK(pOwn_p)->Add_dir_z;
+        Vel = PW_NECK(pOwn_p)->L_rot_z;
+        if (pPm->Neck_flg & 0x80) {
+            Spd_lim = PW_NECK(pOwn_p)->Sce_add_dir_z;
+        }
+        if (!(pPm->Neck_flg & 0x10)) {
+            if ((LONG)((Neck_rot.vz + Vel) & 0xFFF) > Vel * 2) {
+                if (Neck_rot.vz & 0x800) {
+                    Neck_rot.vz = -Vel;
+                } else {
+                    Neck_rot.vz = Vel;
+                }
+            }
+        }
+        pFree = &PW_NECK(pOwn_p)->N_rot_z;
+        Free_dif = Spd_lim + ((USHORT)Neck_rot.vz - ((USHORT)pOwn_p->Cdir_z + (USHORT)PW_NECK(pOwn_p)->N_rot_z));
+        Vel = PW_NECK(pOwn_p)->N_rot_z - Spd_lim;
+        Free_dif12 = Free_dif & 0xFFF;
+        PW_NECK(pOwn_p)->N_rot_z = Vel;
+        if (!(Free_dif & 0x800)) {
+            PW_NECK(pOwn_p)->N_rot_z = Vel + Spd_lim * 2;
+        }
+        if ((LONG)Free_dif12 < (LONG)(Spd_lim << 16) >> 15) {
+            PW_NECK(pOwn_p)->N_rot_z = Neck_rot.vz - pOwn_p->Cdir_z;
+            if (pPm->Neck_flg & 0x20) {
+                if (Neck_rot.vz != 0) {
+                    if (--pPm->Unk164 == 0) {
+                        pPm->Neck_flg = 0x12;
+                    }
+                    pPm->Unk166 = 0;
+                }
+                if ((pPm->Neck_flg & 0x20) && Neck_rot.vz == 0) {
+                    pPm->Unk166 = PW_NECK(pOwn_p)->L_rot_z;
+                }
+            }
+        }
+        pOwn_p->Cdir_z += *pFree;
+        RotMatrix(CDIR_SV(pOwn_p), PW_M(pOwn_p));
+        pOwn_p->Cdir_y -= PW_NECK(pOwn_p)->N_rot_y;
+        pOwn_p->Cdir_z -= *pFree;
+    }
+}
 
 /* turn the neck part of pPm towards the neck of its target pEnemy_ptr, limited by the neck free work */
 void Rot_neck_em(ENEMY_WORK *pPm, SHORT Cdir_y)
