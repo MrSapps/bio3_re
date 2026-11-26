@@ -1341,10 +1341,48 @@ void Rgb_blend(RGB_BLEND_WORK *p, RGB_BLEND_WORK *pEnd, ULONG Data, ULONG Rgb)
     } while (p <= pEnd);
 }
 
-/* m2 = m0 * m1 incl. translation (RE2 MD_SUB.C CompM). Hand-written: a leaf that loads into t0..t7 while v0/v1/a3
-   are free (gcc's allocation order starts at v0), and the columns are software-pipelined (column k's sh stores come
-   after column k+1's mvmva), which no sequence of volatile asm macros can produce. Not PsyQ's CompMatrix. */
-INCLUDE_ASM("asm/nonmatchings/game/md_sub", CompM);
+/* m2 = m0 * m1 incl. translation (RE2 MD_SUB.C CompM, there gte_SetRotMatrix/SetTransMatrix, ldclmv/rtir/stclmv x3,
+   ldlv0/rt/stlvnl). Written as inline asm blocks with their own registers t0-t7: the three columns are
+   software-pipelined (column k is read back and the next column loaded before the next rtir, column k is stored after
+   it); only the column/translation pointers are C. */
+void CompM(MATRIX *m0, MATRIX *m1, MATRIX *m2)
+{
+    SHORT *pSrc;
+    SHORT *pDst1;
+    SHORT *pDst2;
+    LONG *pT;
+
+    /* rotation and translation of m0, column 0 of m1 */
+    __asm__ volatile("lw $8, 0(%0); lw $9, 4(%0); lw $10, 8(%0); lw $11, 12(%0); lw $12, 16(%0); lw $13, 20(%0); "
+                     "lw $14, 24(%0); lw $15, 28(%0); ctc2 $8, $0; ctc2 $9, $1; ctc2 $10, $2; ctc2 $11, $3; "
+                     "ctc2 $12, $4; ctc2 $13, $5; ctc2 $14, $6; ctc2 $15, $7; "
+                     "lhu $12, 0(%1); lhu $13, 6(%1); lhu $14, 12(%1); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11"
+                     : : "r"(m0), "r"(m1) : "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15");
+    pSrc = &m1->m[0][1];
+    pDst1 = &m2->m[0][1];
+    /* rtir column 0; read it back, load column 1 */
+    __asm__ volatile(".word 0x4A49E012; lhu $9, 0(%0); lhu $10, 6(%0); lhu $11, 12(%0); "
+                     "mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; mtc2 $9, $9; mtc2 $10, $10; mtc2 $11, $11"
+                     : : "r"(pSrc) : "$9", "$10", "$11", "$12", "$13", "$14");
+    pSrc = &m1->m[0][2];
+    pDst2 = &m2->m[0][2];
+    /* rtir column 1; store column 0, read column 1 back, load column 2 */
+    __asm__ volatile(".word 0x4A49E012; sh $12, 0(%0); sh $13, 6(%0); sh $14, 12(%0); "
+                     "lhu $9, 0(%1); lhu $10, 6(%1); lhu $11, 12(%1); "
+                     "mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; mtc2 $9, $9; mtc2 $10, $10; mtc2 $11, $11"
+                     : : "r"(m2), "r"(pSrc) : "$9", "$10", "$11", "$12", "$13", "$14", "memory");
+    pT = m1->t;
+    /* rtir column 2; store column 1, read column 2 back, load the translation (ldlv0) */
+    __asm__ volatile("lhu $8, 4(%1); .word 0x4A49E012; sh $12, 0(%0); sh $13, 6(%0); sh $14, 12(%0); "
+                     "lhu $9, 0(%1); sll $8, $8, 16; or $9, $9, $8; "
+                     "mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; mtc2 $9, $0; lwc2 $1, 8(%1); nop"
+                     : : "r"(pDst1), "r"(pT) : "$8", "$9", "$12", "$13", "$14", "memory");
+    pT = m2->t;
+    /* rt; store column 2 and the translation (stlvnl) */
+    __asm__ volatile(".word 0x4A480012; sh $12, 0(%0); sh $13, 6(%0); sh $14, 12(%0); "
+                     "swc2 $25, 0(%1); swc2 $26, 4(%1); swc2 $27, 8(%1)"
+                     : : "r"(pDst2), "r"(pT) : "memory");
+}
 
 /* rtpt over packed vertex triplets with a z clamp to 0x7FFF one triplet late. Hand-written: a leaf that keeps
    values in s0/s1 while every t-register is unused (gcc never picks a call-saved register there), and the loop is
