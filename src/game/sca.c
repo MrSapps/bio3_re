@@ -94,7 +94,65 @@ ULONG Sca_hit_circle(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
 }
 
 /* hit routine for shape 2: capsule along X, middle part as Sca_hit_box, rounded ends as Sca_hit_circle on Tmp_Sca; RE2 Sca_hit_koban_x */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_koban_x);
+ULONG Sca_hit_koban_x(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    SCA_DATA *pC;
+    LONG X0;
+    LONG Z0;
+    SHORT D;
+    LONG Half;
+    SHORT Cx1;  /* X1 - Half for the zone test, then a temp of the end-circle stores */
+    SHORT Cx0;
+    LONG X;
+    LONG Z;
+    ULONG Zone;
+
+    Z0 = pT->Z0;
+    X0 = pT->X0;
+    pW = &Sca_work;
+    D = pT->Z1 - Z0;
+    Half = D >> 1;
+    Cx1 = pT->X1 - Half;
+    Cx0 = X0 + Half;
+    if (pT->Type & 0x1000) {
+        X = pW->X;
+        Z = pW->Z;
+    } else {
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    }
+    Zone = ((ULONG)(X - Cx1) >> 30) & 2;
+    Zone |= (ULONG)(X - Cx0) >> 31;
+    switch (Zone) {
+    case 0:
+        pC = &Tmp_Sca;
+        pC->X1 = pT->X1;
+        Cx1 = pT->X1 - D;
+        pC->Z1 = D + Z0;
+        pC->Z0 = Z0;
+        Sca_work.X = X;
+        Sca_work.Z = Z;
+        pC->X0 = Cx1;
+        goto Circle;
+    case 2:
+        do { return Sca_hit_box(pObj, R, pT, Arg3); } while (0); /* extra pT ref (pT above D in global-alloc) */
+    case 3:
+        pC = &Tmp_Sca;
+        pC->X1 = D + X0;
+        Cx1 = D + Z0;
+        do { pC->X0 = X0; } while (0); /* extra X0 ref (X0 above X in global-alloc) */
+        pC->Z1 = Cx1;
+        pC->Z0 = Z0;
+        Sca_work.X = X;
+        Sca_work.Z = Z;
+    Circle:
+        if (pT->Type & 0x1000) {
+            R = -R;
+        }
+        return Sca_hit_circle(pObj, R, pC, Arg3);
+    }
+}
 
 /* hit routine for shape 3: same along Z; RE2 Sca_hit_koban_z */
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_koban_z);
