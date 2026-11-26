@@ -1902,3 +1902,47 @@ Near misses:
   trace. The target's block 2 is close to plain source order (pKan, Parts_no, k, Size, pParts, ..., pHead[1] load with
   an unfilled nop before `addu s1`), which suggests few birthing-boosted loads in the original block 2 (multi-set
   locals keep LUID order); ours boosts most loads and reorders them.
+## Matching round agentAE (worktree clean/wC; drafts in the session scratchpad agentAE/best)
+Matched: sca Sca_hit_box (was difflib 95), Sca_hit_hishi (first C version, 559 insns; the last 3 words came from the
+permuter, see below).
+Rules learnt:
+- Too few s-registers saved = too little register pressure: Sca_hit_box saves s0/s1 only because every caller-saved
+  register is busy around the Side computation. The original reuses variables for unrelated values: Span_x/Span_z
+  later hold the push distance, Gz the pushed edge position, Rz the move direction (X - Ox, then Z - Oz, then the
+  rotated z move). Separate locals leave registers free and the frame shrinks to 24.
+- A branch delay slot filled with the first insn of the *taken* block's la (`bnez; addiu a3,%lo(Sca_work)`) plus a
+  load-delay nop before the andi means the lo was scheduled after the test: `Wall = pT->Type & 0xF00; pW = &Sca_work;
+  if (!Wall)` (andi LUID before the lo).
+- `Ox = (..) * 181 >> 8; Ox += X0;` (two statements) when the target adds X0 after both rotations.
+- `if ((Mx < 0 ? -Mx : Mx) > W0 * 2)` vs `W0 * 2 < abs`: same slt, but the abs insn gets the lower LUID, which moves
+  the W0 reload below the Mx subtract (sched1 tie-break).
+- SHORT variables are HImode pseudos: loaded with lhu, every SImode use sign-extends with sll/sra 16 and the `<< 16`
+  value is kept (Sca_hit_hishi s0..s3 hold X1/Z1/Cx/Cz << 16 for the /18 sign fix). `SHORT Cx = pT->X0 + h` is
+  narrowed to an HImode add, which is why X0 is read twice (lh for SImode uses, lhu for the HImode add). A LONG result
+  of a SHORT / 18 (`LONG Ax = Cx / 18`) gives the target's temp chain in v0 followed by `sra Ax,v0,16`; a SHORT result
+  computes the chain in place.
+- Inline `Qa * Qa + Rel * Rel` written twice (cse shares it) instead of a `Sq` variable: the sum is a block-local temp
+  tied with Rel*Rel (v0); a variable made it a global (a0).
+- Global-alloc order fixed by how often cross-jumped code is written: Sca_hit_hishi's pObj needs more refs than Z1, so
+  some `Hit_flg |= 0x100; return 1;` exits are written inline in the cases (jump2 cross-jumps them into one block after
+  reload, but global-alloc counted the refs). Wrapping the shared flag store in do/while(0) gives the refs too but
+  then the two flag blocks become identical and get cross-jumped (the target keeps two).
+- Search tools: agentAE/hgen.py + hhc.py (role-to-variable hill-climb for a templated function; each case's temporaries
+  are assigned from a pool of variables), sdiff.py (difflib diff with registers masked: shows only structural
+  differences), mkp.sh (perm dir for an sca.c draft), pcopy.py, ext.py (score every permuter output with difflib).
+- Sca_hit_hishi's last 3 words (switch index `srl v1,a3,30; andi v1,v1,2; srl v0,a0,31; or v1,v1,v0`): the Dz half goes
+  through an `int Quad` declared among the locals and assigned between `Dz = ..` and `Dx = ..`, then
+  `switch ((LONG)(Quad | (ULONG)Dx >> 31))`; ~60 hand forms (part order, casts, + for |, temporaries, 2-3 statements)
+  had all stayed at 3. Found by a 10-minute permuter run on the 3-word draft (it also wrapped one `goto hit` in
+  do/while(0); not needed once the inline flag exits were picked). The case temporaries reuse Qa/Qx/Qz/Rel and a few
+  role variables (Zl, Ofs, Den), as the target's registers show; `goto ret0/end/hit` give the return-0 and two
+  flag-block layout.
+Near misses:
+- sca Sca_hit_slope (best/Sca_hit_slope_23.c, 23 words / difflib 23, was 47 ds): X/Z rotation in do/while(0) gives X0/Z0 t0/t1;
+  the B offsets in Z/X (Z = W + D, X = D - W), D reused for Pos_x - X0. Left: the target's `move v1,a3; addu
+  s0,v1,t1` (Az = copy of D + Z0) right after Ax. That local copy is what pushes -W to a2 and D to a3. Every form
+  tried either has no copy (combine merges `P = D; Az = P + Z0` because P dies there; cse makes D canonical) or the
+  add is scheduled late (copy before the D reassignment, add after it: LUID order puts it in the delay slot). Tried:
+  copy in Len/Dist/Ox (Len canonical needs Len's last use after D's), do/while(0) around the add, two separate
+  `if (Type & 0x1000)` blocks, per-corner offset variables, Cx/Cz as an array (worse: they are spilled pseudos),
+  wrap hill-climb (hc.py, depth 2) and 25 min of permuter: nothing below 23.

@@ -115,7 +115,175 @@ ULONG Sca_hit_line(COL_OBJ *pObj, LONG R, ULONG P0)
 }
 
 /* hit routine for shape 4 (diamond): Sca_rtn_tbl[4]; RE2 Sca_hit_hishi (same shape slot as Sca_high_hishi / Sca_line_hishi) */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_hishi);
+ULONG Sca_hit_hishi(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SHORT X1;
+    SHORT Z1;
+    SHORT Cx;
+    SHORT Cz;
+    LONG X;
+    LONG Z;
+    LONG Dx;
+    LONG Dz;
+    LONG Ofs;
+    int Quad;   /* Dz half of the quadrant (an int: keeps the srl/andi in v1) */
+    LONG Den;
+    LONG Rel;
+    LONG Qa;
+    LONG Zl;
+    LONG Qx;
+    LONG Qz;    /* Qa/Qx/Qz/Rel/Zl/Ofs/Den also serve as the cases' temporaries */
+    LONG Wx;
+    LONG Wz;
+    LONG Ax;
+    LONG Az;
+    LONG Bx;
+    LONG Bz;
+
+    X1 = pT->X1;
+    Z1 = pT->Z1;
+    Wx = X1 - pT->X0;
+    Wz = Z1 - pT->Z0;
+    Cx = pT->X0 + (Wx >> 1);
+    Cz = pT->Z0 + (Wz >> 1);
+    Z = pObj->Pos_z;
+    X = pObj->Pos_x;
+    Dz = Z - Cz;
+    Quad = (ULONG)Dz >> 30 & 2;
+    Dx = X - Cx;
+    switch ((LONG)(Quad | (ULONG)Dx >> 31)) {
+    case 0:
+        Qx = Z1 + R;
+        Rel = (Cz - Qx) * Dx;
+        Qa = X1 + R - Cx;
+        Rel /= Qa;
+        Ofs = Z - Qx;
+        if (Rel <= Ofs) {
+            goto ret0;
+        }
+        Rel = Ofs - Rel;
+        Qa = Qa * Rel / (Qx - Cz);
+        Qx = Qa * Rel * Rel / (Qa * Qa + Rel * Rel);
+        Qz = Qa * Qa * Rel / (Qa * Qa + Rel * Rel);
+        if ((Qx < 0 ? -Qx : Qx) > 400) {
+            goto hit;
+        }
+        if ((Qz < 0 ? -Qz : Qz) > 400) {
+            goto hit;
+        }
+        pObj->Pos_x = X - Qx;
+        pObj->Pos_z -= Qz;
+        Ax = Cx / 18;
+        Az = Z1 / 18;
+        Bx = X1 / 18;
+        Bz = Cz / 18;
+        if ((X / 18 - Ax) * (Bz - Az) - (Z / 18 - Az) * (Bx - Ax) <= 0) {
+            goto end;
+        }
+        break;
+    case 1:
+        Den = Z1 + R - Cz;
+        Qa = pT->X0 - R;
+        Rel = Den * (X - Qa);
+        Qa = Cx - Qa;
+        Rel /= Qa;
+        if (Rel <= Dz) {
+            goto ret0;
+        }
+        Rel = Dz - Rel;
+        Qa = Qa * Rel / Den;
+        Qx = Qa * Rel * Rel / (Qa * Qa + Rel * Rel);
+        Qz = Qa * Qa * Rel / (Qa * Qa + Rel * Rel);
+        if ((Qx < 0 ? -Qx : Qx) > 400) {
+            goto hit;
+        }
+        if ((Qz < 0 ? -Qz : Qz) > 400) {
+            goto hit;
+        }
+        pObj->Pos_x = X + Qx;
+        pObj->Pos_z -= Qz;
+        Ax = pT->X0 / 18;
+        Az = Cz / 18;
+        Bx = Cx / 18;
+        Bz = Z1 / 18;
+        if ((X / 18 - Ax) * (Bz - Az) - (Z / 18 - Az) * (Bx - Ax) <= 0) {
+            goto end;
+        }
+        break;
+    case 2:
+        Zl = pT->Z0 - R;
+        Qx = Cz - Zl;
+        Rel = Qx * Dx;
+        Ofs = X1 + R - Cx;
+        Rel /= Ofs;
+        Zl = Z - Zl;
+        if (Zl <= Rel) {
+            goto ret0;
+        }
+        Rel = Zl - Rel;
+        Qa = Ofs * Rel / Qx;
+        Qx = Qa * Rel * Rel / (Qa * Qa + Rel * Rel);
+        Qz = Qa * Qa * Rel / (Qa * Qa + Rel * Rel);
+        if ((Qx < 0 ? -Qx : Qx) > 400) {
+            goto hit;
+        }
+        if ((Qz < 0 ? -Qz : Qz) > 400) {
+            goto hit;
+        }
+        pObj->Pos_x = X + Qx;
+        pObj->Pos_z -= Qz;
+        Ax = Cx / 18;
+        Az = pT->Z0 / 18;
+        Bx = X1 / 18;
+        Bz = Cz / 18;
+        if ((X / 18 - Ax) * (Bz - Az) - (Z / 18 - Az) * (Bx - Ax) >= 0) {
+            goto end;
+        }
+        break;
+    case 3:
+        Qz = pT->Z0 - R;
+        Den = Qz - Cz;
+        Qa = pT->X0 - R;
+        Rel = Den * (X - Qa);
+        Qa = Cx - Qa;
+        Rel /= Qa;
+        if (Dz <= Rel) {
+            goto ret0;
+        }
+        Rel = Dz - Rel;
+        Qa = Qa * Rel / (Cz - Qz);
+        Qx = Qa * Rel * Rel / (Qa * Qa + Rel * Rel);
+        Qz = Qa * Qa * Rel / (Qa * Qa + Rel * Rel);
+        if ((Qx < 0 ? -Qx : Qx) > 400) { /* written out here (not goto hit): extra pObj refs for global-alloc */
+            pObj->Hit_flg |= 0x100;
+            return 1;
+        }
+        if ((Qz < 0 ? -Qz : Qz) > 400) {
+            pObj->Hit_flg |= 0x100;
+            return 1;
+        }
+        pObj->Pos_x = X - Qx;
+        pObj->Pos_z -= Qz;
+        Ax = pT->X0 / 18;
+        Az = Cz / 18;
+        Bx = Cx / 18;
+        Bz = pT->Z0 / 18;
+        if ((X / 18 - Ax) * (Bz - Az) - (Z / 18 - Az) * (Bx - Ax) >= 0) {
+            goto end;
+        }
+        break;
+    default:
+        goto hit;
+    }
+    pObj->Hit_flg |= 0x100;
+end:
+    return 1;
+hit:
+    pObj->Hit_flg |= 0x100;
+    return 1;
+ret0:
+    return 0;
+}
 
 /* hit routine for shape 0: push the object out of the circle (R < 0 = use the 45-degree rotated position in Sca_work and rotate the push back); RE2 Sca_hit_circle */
 ULONG Sca_hit_circle(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
@@ -344,7 +512,119 @@ ULONG Sca_hit_box2(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
 }
 
 /* hit routine for shapes 1/5/7/8: box push (Type & 0xF00 == 0 only sets Hit_flg 0x80), inside case goes to Sca_hit_box2; RE2 Sca_hit_box */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_box);
+ULONG Sca_hit_box(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    LONG X0;
+    LONG Z0;
+    LONG X;
+    LONG Z;
+    LONG Ox;
+    LONG Oz;
+    LONG Dx;
+    LONG Dz;
+    LONG W;
+    LONG D;
+    LONG Gx;
+    LONG Span_x;  /* also the X push distance */
+    LONG Span_z;  /* also the Z push distance */
+    LONG Gz;      /* also the pushed edge position */
+    ULONG Side;
+    LONG Half_w;
+    LONG Mx;
+    LONG Mz;
+    LONG Rx;
+    LONG Rz;      /* also the move direction on each axis */
+    LONG Half_d;
+    ULONG Wall;
+
+    Wall = pT->Type & 0xF00;
+    pW = &Sca_work;
+    if (!Wall) {
+        pObj->Hit_flg |= 0x80;
+        return 0;
+    }
+    Mz = 0;
+    Mx = Mz;
+    X0 = pT->X0;
+    Z0 = pT->Z0;
+    if (pT->Type & 0x1000) {
+        X = pW->X;
+        Z = pW->Z;
+        Dx = pObj->Old_x - X0;
+        Dz = pObj->Old_z - Z0;
+        Ox = (Dx - Dz) * 181 >> 8;
+        Oz = (Dx + Dz) * 181 >> 8;
+        Ox += X0;
+        Oz += Z0;
+    } else {
+        Ox = pObj->Old_x;
+        Oz = pObj->Old_z;
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    }
+    pW->Old_x = Ox;
+    pW->Old_z = Oz;
+    Gx = Ox + pObj->W0 - pT->X0;
+    W = pT->X1 - pT->X0;
+    Span_x = pObj->W0 * 2 + W;
+    D = pT->Z1 - pT->Z0;
+    Span_z = pObj->D0 * 2 + D;
+    Side = ((ULONG)Gx >= (ULONG)Span_x) << 1;
+    Gz = Oz + pObj->D0 - pT->Z0;
+    Side |= (ULONG)Gz >= (ULONG)Span_z;
+    if (Gx == -1 || Gx == Span_x + 1) {
+        Side = 2;
+    }
+    if (Gz == -1 || Gz == D + pObj->D0 * 2 + 1) {
+        Side = 1;
+    }
+    if (Side == 0) {
+        return Sca_hit_box2(pObj, R, pT);
+    }
+    if (Side & 2) {
+        Rz = X - Ox;
+        Half_w = W / 2;
+        Span_x = pObj->W0 + Half_w + 1;
+        Gz = pT->X0 + Half_w;
+        if (Rz >= 0) {
+            Gz -= Span_x;
+        } else {
+            Gz += Span_x;
+        }
+        Mx = Gz - X;
+        if ((Mx < 0 ? -Mx : Mx) > pObj->W0 * 2) {
+            goto slide;
+        }
+    }
+    if (Side & 1) {
+        Rz = Z - Oz;
+        Half_d = D / 2;
+        Span_z = pObj->D0 + Half_d + 1;
+        Gz = pT->Z0 + Half_d;
+        if (Rz >= 0) {
+            Gz -= Span_z;
+        } else {
+            Gz += Span_z;
+        }
+        Mz = Gz - Z;
+        if ((Mz < 0 ? -Mz : Mz) > pObj->W0 * 2) {
+        slide:
+            pObj->Hit_flg |= 0x100;
+            return 1;
+        }
+    }
+    if (pT->Type & 0x1000) {
+        Rx = (Mx + Mz) * 181 >> 8;
+        Rz = (Mz - Mx) * 181 >> 8;
+    } else {
+        Rx = Mx;
+        Rz = Mz;
+    }
+    pObj->Pos_x += Rx;
+    pObj->Pos_z += Rz;
+    return 1;
+}
 
 /* apply the box push Dx/Dz: pick the axis from the move direction with a slide limit (W0 capped at 400, else Hit_flg 0x100), rotate back for 45-degree shapes; RE2 Sca_hosei_box */
 ULONG Sca_hosei_box(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
