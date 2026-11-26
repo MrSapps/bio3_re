@@ -1298,3 +1298,52 @@ Near misses (agentS/best):
   Link first every register is right but the adds are in the wrong order; with (UCHAR)i first the order is right but
   the (UCHAR)Next temp gets a1 (its life overlaps the a0 local-alloc gave the andi). ~300 forms, type and do/while
   sweeps tried.
+## Matching round agentAB (worktree clean/zF; drafts in the session scratchpad agentAB/best, agentAB/pm)
+Matched: option Config_moji_disp + Config_suuji (together, shared "\x81\x40"; the old Config_space_str INCLUDE_RODATA and
+its `.align` line are gone, a `.byte 0xCD` junk byte follows Config_suuji's digit string), status St_box_frame_draw,
+St_map_area_select, mojidisp Mess_disp (fork draft).
+Rules learnt:
+- Branch layout comes from the if-shape, not from the stores: Config_moji_disp's "split" 0x80 path (r0 in a `j` delay
+  slot, a separate `j L; sb g0` block after the 0x58 path) is `if (Dark != 0 || Mode == 0) { if (Dark) 0x58 else 0x80 }
+  else Kido`. A 10-shape x {const, Col} sweep found it in one run (agentAB/cv); 800 store/constant variants never could.
+- User inits before a loop are emitted before loop.c's hoisted movables, and global-alloc priority of a hoisted
+  constant is refs/len with len from its preheader position. St_box_frame_draw's s4..s7 (G, 0xD0, 0x20, Item_data_tbl)
+  came from `i = 0; pG = &G; pD = Item_data_tbl; u = 0x20; for (; ...)` (pG/pD/u user inits, 0xD0 still hoisted).
+  A constant stored once inside a loop is only hoisted when threshold * savings * lifetime >= insn_count (threshold
+  drops by 3 per moved insn; -dL prints "not desirable"); a user variable set inside an `if` and used in another
+  block is never movable (loop.c: maybe_never and REG_USERVAR_P).
+- cse follows a jump only if no NOTE_INSN_LOOP_END sits right before the target label: wrapping `if (..) { ...; return; }`
+  in do/while(0) (return instead of break, the switch ends the function) made St_map_area_select recompute &G and
+  reload Key_trg after the branch like the target. The rest (`Padd = *(ULONG *)&pG->Padd_trg;` read first,
+  `(Key | Pad)` operand order) came from the permuter in a few minutes once that base existed.
+- loop.c inserts reduced-giv increments right before the biv increment (insert_before = tv->insn, no auto-inc on
+  MIPS); bl->giv is a prepend list and combine_givs bases the combined giv on the first entry, i.e. the giv found
+  LAST in the loop (St_box_frame_draw: v0 store last -> base pS+13).
+- In cse, after `B = A` the copy B is canonical when B's last use (REGNO_LAST_UID, anywhere in the function) is later
+  than A's: Get_light_cut's `pData = pLight` at the exits makes pData canonical, so `pLight[0]` written after the copy
+  is read through pData.
+Near misses (agentAB/best):
+- sub Get_light_cut (3 words; Get_light_cut_3_regs.c = registers right, pCut add after the pLight add;
+  Get_light_cut_3_order.c = order right, pData copy in a1). The target needs, in sched1 order, the copy
+  (`move a0,s0`) before the Ofs load through s0 (so pData and pLight conflict and global.c expand_preferences does not
+  give pData pLight's a1 copy preference) AND the Ofs load not rewritten by local-alloc optimize_reg_copy_1 (needs a
+  label/jump/loop note between copy and load) AND the pCut add before the pLight add. sched1 puts the copy (single
+  set, birthing boost) between the Ofs load and its consumer because of the load latency; making pData multi-set
+  (a real second value: `pData = (UCHAR *)(pCut + ..); return (LIGHT_CUT_DATA *)pData;` tails) un-boosts the copy but
+  then cse makes pData canonical and the Ofs load reads a0. Loop-note placements, 96 statement orders x tails, and
+  ~30 min of permuter did not reach it.
+- pc_sys Pc_text_set (6, agentV draft unchanged): the compare biv increment must be the lowest-LUID insn of the loop
+  body while the store giv (a2 = pSpr + 15) is incremented at the bottom. Giv increments always sit right before
+  their biv's increment, so the two must belong to different bivs (or the target scheduled with different
+  priorities). Index loops (Spr[i + 4], i counters with i++ at top/bottom, all types) do not reduce the stores at all.
+- epilog Epilog_draw (7; Epilog_draw_7.c = `pWk = &Epi_work; do { pG = &G; } while (0);`): local-alloc must see
+  hiE and hiG live at the same time with hiG shorter (hiG v0, hiE v1). With birthing boosts each hi lands right above
+  its lo, and a single-set pG lo is ready right after the call, so the pairs never interleave; pG needs a second real
+  set (cse deletes a duplicate `pG = &G`). Flg pointer variables / Epi_work.u.Flg forms: no.
+- mojidisp Print_main (fork, 106 words, agentAB/pm/final_draft.c; structure right, from ~330): needs a MOJIDISP field
+  at 0x75F8 (Print_main's text buffer, `&Moji + 0x75F8`; the draft uses a MOJIDISP2 view) and
+  `extern UCHAR ascii_tbl[2][17];` (RE2 name; D_80098704 upper, D_80098715 lower hex digits). Left: global-alloc puts
+  Width (120 refs) above Val (62) so Width takes a1 (target Val a1, Width t1); the `(Digit % 10) * Sign` product is s6
+  in the target (s5 saved but unused), v0 in ours; Width--/Keta-- and the Div/10 subu after mflo. Key facts: inline
+  `if (Attr & 0x4000)` (not a USHORT local) keeps 0x66666667 from being hoisted out of the outer loop; the default case
+  keeps the original bug (`pFmt = (UCHAR *)i`); 'x' falls into 'X'.
