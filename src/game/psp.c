@@ -1,6 +1,8 @@
 #include "sub.h"
 #include "psp.h"
 #include "sld.h"
+#include "sca.h"
+#include "esp.h"
 
 /*
  * PSP.C (RE2 PSP.C): the room sprites of the current cut (Psp_init, Psp_set, Psp_trans), plus RE3's
@@ -10,6 +12,8 @@
 #define RND() ((signed char)Rnd())
 /* Rnd (SLD.S) with the int result this file used (no zero-extension of the canonical ULONG/byte) */
 LONG Rnd_l(void) __asm__("Rnd");
+
+extern UCHAR Rain_esp_no; /* Esp_call bank (id bits 24-27) of the rain splash */
 
 typedef struct {
     USHORT Uv;
@@ -186,7 +190,100 @@ void Rain_init(SHORT Arg)
     G.Status_flg |= 0x1000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/psp", Rain_move);
+/* moves the falling drops (splash Esp at the ground) and respawns up to Level free drops around the camera */
+void Rain_move(void)
+{
+    RAIN_WORK *pW;
+    tagGLOBAL *pG;
+    UCHAR *pFlg;
+    PSP_POS *pV;
+    ULONG Cnt; /* declared before pTop: both are spilled, Cnt gets the lower stack slot */
+    PSP_POS *pTop;
+    ULONG i;
+    LONG x;
+    LONG y;
+    LONG z;
+    SVECTOR Sv;
+    LONG X1; /* range-test temps; also hold the ground height and the random terms (shared registers) */
+    LONG Z1;
+
+    pW = &Rain_work;
+    Rain_wind_move(pW);
+    pG = &G;
+    pW->Spd_y = pW->Level * 40 + 500;
+    pW->Num = pW->Level * 7;
+    pW->Spd_x = (ccos((USHORT)pG->Wind_dir) * (USHORT)pG->Wind_pow) >> 12;
+    pW->Spd_z = (csin((USHORT)pG->Wind_dir) * (USHORT)pG->Wind_pow) >> 12;
+    pW->Dx = pW->Spd_x * 900 / pW->Spd_y;
+    pW->Dz = pW->Spd_z * 900 / pW->Spd_y;
+    pTop = pW->pPos;
+    pFlg = pW->p0;
+    for (i = 0; i < 100; pFlg++, i++) {
+        if (*pFlg & 1) {
+            pV = &pTop[i];
+            x = pV->x + pW->Spd_x;
+            y = pV->y + pW->Spd_y;
+            z = pV->z + pW->Spd_z;
+            X1 = x + pW->Dx;
+            Z1 = z + pW->Dz;
+            X1 += 0x8000;
+            Z1 += 0x8000;
+            if ((X1 & 0xFFFF0000) || (Z1 & 0xFFFF0000)) {
+                *pFlg = 0;
+            } else {
+                pV->x = x;
+                pV->y = y;
+                pV->z = z;
+                X1 = Sca_get_ground(&pV->x, 10, 0x400, 0);
+                if (X1 < y) {
+                    *pFlg = 0;
+                    Sv.vx = x;
+                    Sv.vy = X1;
+                    Sv.vz = z;
+                    if (Rnd() & 1) {
+                        Esp_call(((Rain_esp_no & 0xF) << 24) | ((Rnd_l() % 3) << 8) | 0xA, 0x10000000, &GsIDMATRIX, &Sv, NULL);
+                    }
+                }
+            }
+        }
+    }
+    Cnt = 0;
+    x = pW->Cx;
+    y = G.Player.Pos_y;
+    z = pW->Cz;
+    pFlg = pW->p0;
+    for (i = 0; i < 100; pFlg++, i++) {
+        if (!(*pFlg & 1)) {
+            if (Cnt == pW->Level) {
+                return;
+            }
+            pV = &pTop[i];
+            pV->y = RND() * 10 + y - 9000;
+            X1 = RND();
+            Z1 = (signed char)Rnd_tbl[pW->Unk20++];
+            X1 = ((X1 + Z1) * pW->R >> 8) + x;
+            Z1 = X1 + pW->Dx;
+            pV->x = X1;
+            X1 += 0x8000;
+            Z1 += 0x8000;
+            if ((X1 & 0xFFFF0000) || (Z1 & 0xFFFF0000)) {
+                continue;
+            }
+            X1 = RND();
+            Z1 = (signed char)Rnd_tbl[pW->Unk20++];
+            X1 = ((X1 + Z1) * pW->R >> 8) + z;
+            Z1 = X1 + pW->Dz;
+            pV->z = X1;
+            X1 += 0x8000;
+            Z1 += 0x8000;
+            if ((X1 & 0xFFFF0000) || (Z1 & 0xFFFF0000)) {
+                continue;
+            }
+            *pFlg = 1;
+            Cnt++;
+        }
+    }
+}
 
 #define gte_ldv3(r0, r1, r2) __asm__ volatile("lwc2 $0, 0(%0); lwc2 $1, 4(%0); lwc2 $2, 0(%1); lwc2 $3, 4(%1); lwc2 $4, 0(%2); lwc2 $5, 4(%2)" : : "r"(r0), "r"(r1), "r"(r2))
 #define gte_rtpt() __asm__ volatile("nop; nop; .word 0x4A280030")

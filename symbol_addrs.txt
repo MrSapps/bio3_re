@@ -2028,6 +2028,7 @@ Oba_box_push = 0x80035678; // type:func
 Oba_att_tbl = 0x8009CBC8;
 Bonus_time_old = 0x8009DE26;
 Bonus_time_shake = 0x8009DE28;
+Rain_esp_no = 0x8009DE2C;
 pTitle_adr = 0x8001031C;
 Em_sce06_move_tbl = 0x80097A00;
 Em_sce04_move_tbl = 0x80097A28;
