@@ -330,7 +330,91 @@ void Skin_vtx0(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 }
 
 /* blended vertices of the second skin list */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
+void Skin_vtx1(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    struct {
+        SXY Sxy[3];
+        LONG Sz[3];
+    } W; /* one 24-byte block (two 12-byte arrays would each be padded to 16) */
+    MATRIX *pM;
+    VECTOR *pV;
+    ENEMY_WORK *pEm;
+    JOINT_OFS *pOfs;
+    PARTS_W *pParts;
+    MATRIX *pWs;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SXY *p0;
+    SXY *p1;
+    SXY *p2;
+    SXY *pW;
+    SHORT x; /* the SHORT conversions add RTL insns that combine removes later: with a shorter outer loop
+                loop.c would strength-reduce pData + 1/+2 (count read and triplets) into one giv */
+
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pEm = pEnv->pEm;
+    pParts = pEm->pSin_parts_ptr;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEm->pUnk11C;
+    do {
+        n = *pData;
+        CompM(pWs, &pParts[n].Workm, pM);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+    loop:
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        n--;
+        pData += 3;
+        gte_rtpt_b();
+        p0 = &pSxy[i0];
+        p1 = &pSxy[i1];
+        p2 = &pSxy[i2];
+        pW = W.Sxy; /* &W.Sxy[0] as a bare frame address would be computed after the other two operands */
+        gte_stsxy3(pW, pW + 1, pW + 2);
+        gte_stsz3(&W.Sz[0], &W.Sz[1], &W.Sz[2]);
+        x = (p0->s.x + W.Sxy[0].s.x) >> 1;
+        p0->l = (x & 0xFFFF) | (SHORT)((p0->s.y + W.Sxy[0].s.y) >> 1) << 16;
+        if (W.Sz[0] > 0x7FFF) {
+            W.Sz[0] = 0x7FFF;
+        }
+        pSz[i0] = (W.Sz[0] + pSz[i0]) >> 1;
+        if (i1 != 0xFF) {
+            x = (p1->s.x + W.Sxy[1].s.x) >> 1;
+            p1->l = (x & 0xFFFF) | (SHORT)((p1->s.y + W.Sxy[1].s.y) >> 1) << 16;
+            if (W.Sz[1] > 0x7FFF) {
+                W.Sz[1] = 0x7FFF;
+            }
+            pSz[i1] = (W.Sz[1] + pSz[i1]) >> 1;
+        }
+        if (i2 != 0xFF) {
+            x = (p2->s.x + W.Sxy[2].s.x) >> 1;
+            p2->l = (x & 0xFFFF) | (SHORT)((p2->s.y + W.Sxy[2].s.y) >> 1) << 16;
+            if (W.Sz[2] > 0x7FFF) {
+                W.Sz[2] = 0x7FFF;
+            }
+            pSz[i2] = (W.Sz[2] + pSz[i2]) >> 1;
+        }
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+}
 
 /* blended vertices of the third skin list (each vertex rotated by two bones, mixed with gpf/gpl by weight, like
    Skin_light2). C: reload uses s4 as a spill register (pOfs/pSxy/pSz reloads, &Skin_nor[k] rematerialised).
