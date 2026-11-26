@@ -1871,3 +1871,9 @@ Still unmatched:
   semantics broken) matches the whole block except the Flg/Pldamege/ppEm lines, so the remaining problem is only
   where that one addiu sits in S. It needs priority >= 2 or a boost in sched1 (a load or a single-set pointer) and
   none of the natural forms gives that; pG-> forms make reload materialise G a second time in t1.
+  Best legal draft so far: best/Em36_Init_storeorder_30.c (30 words; gen5.py sweep of the pE/ppEm/pSub statement
+  positions: `ppEm = &G.pEnemy[2];` before Type_timer, `pE = G.pEnemy[2];` between Pldamage and Pldie). Writing
+  `pE = G.pEnemy[2]` before `ppEm = ...` changes their LUID order, so sched1 picks the ppEm addiu earlier (it wins
+  the priority-1 LUID tie against the pE load) and G's lo_sum moves out of the top of S; remaining diffs are the
+  ppEm addiu (cse now builds it from the hi part + %lo(G)+0x2664 and derives G as a2-0x2664) and the Pldie tail.
+  The permuter (45 min on the 40 draft) found nothing better.
