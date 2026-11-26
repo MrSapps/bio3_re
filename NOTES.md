@@ -1616,3 +1616,49 @@ Not matched:
   variables, `Epi_work.u.Flg` direct arguments, no pWk / no pG, parameters for pG/pWk, permuter ~2 h on both bases.
   Needs a block-0 source where one of the two hi pseudos has a second consumer (or crosses a block) and that consumer
   is gone from the final code.
+## Matching round agentAC (worktree clean/wA; drafts in the session scratchpad agentAC/best)
+Matched: em23 Em23_mv03 (the last Wall_dir step of cases 8/10).
+Rules learnt:
+- cse narrow-constant substitution: storing a constant into a SHORT field on a path where cse knows a SImode
+  register equals that constant (jump equivalence after `if (W == 0xC00)`) makes cse use the register's lowpart
+  (cse_insn's "constant in a narrower mode, look for a wider reg holding it"), so the store becomes `sh v1` and the
+  per-arm stores can no longer be cross-jumped. Computing the arm result into a LONG local first
+  (`New_dir = (W == 0xC00) ? 0xC00 : ...; EF->Wall_dir = New_dir;`) keeps `li v0,3072`; with one such store per arm,
+  jump2 cross-jumps the identical `sh v0` tails into the single join store of the target.
+- A surviving `move a0,v1` copy with compares on the copy: copy the LONG into a SHORT local
+  (`SHORT Low_dir = Wall;`). cse sees (sign_extend (subreg:HI W)) as a different value, the sign extension is
+  dropped later (W came from lh), and the compare / `- 16` keep the copy's register.
+- Two separate LONG result locals (one per arm) were needed; one shared local ties to W's register (v1).
+- sched.c (2.8.1) facts used for the analyses below: priority() is the longest latency path from the block start
+  (only data deps on loads add +1; anti/output deps cost 0 via mips ADJUST_COST); equal priorities go to the
+  "potential hazard" pick (stores win over ALU insns), then LUID; calls do not end sched blocks; the 2.8.1 sched
+  alias test is memrefs_conflict_p + the struct/scalar rule only (different base registers always conflict).
+- do { } while (0) is a full sched barrier (loop notes): it fixes ordering problems that priorities cannot, but
+  reorg then fills a preceding branch's delay slot from the first insn after the branch, which may be the wrong one.
+Near misses (agentAC/best):
+- em22 Em22_mv_jump (7 words; agentQ draft best/Em22_mv_jump_7.c, seq-first order best/Em22_mv_jump_seqfirst.c
+  = difflib 7 too). Target: pTmd in a0 (`lw a0,8(a0)`) and `li a0,3` (Snd_se_enem arg) right after `sw a0,8(v1)`,
+  i.e. sched1 placed the a0 set after the pTmd store. With the target's order (seq copy before the pTmd/pW loads,
+  forced by the may-alias deps visible in the target) prio(pTmd store) = 7 (call 522 -> pPl stores -> lw kan ->
+  sw kan -> lw seq -> sw seq -> lw pTmd -> sw), prio(`a0 = 3`) = 4 (anti dep on the Pl_life_down call only), so
+  sched1 always issues `a0 = 3` before the store and local-alloc cannot give pTmd a0. Some dependency in the
+  original differs and I could not find which. do/while barriers around parts of the grab block: 11 at best
+  (they also pin the 0x101040 lui/ori and the UnkA2 lhu, which the target issues before the pTmd store).
+  The permuter (45 min on the seq-first order) found nothing better than 19.
+- em38 Em38_sce03 (6 words, best/Em38_sce03_6.c, was 7): case 6 is exact except the beqz delay slot when
+  `pEm->Timer0 |= 0x8000;` is wrapped in do/while(0). The barrier stops the hazard pick from scheduling the Timer0
+  sh below `move a1,s0` (with every insn at priority 1 a store always wins the potential-hazard pick, so the target
+  order needs a barrier), but reorg now fills the delay slot with the `ori` instead of `li a0,5123`. Case 5's first
+  Esp_call wants a3 before a2: all four arg sets have priority 1 and no class difference, so only LUID decides and
+  expand_call emits a0..a3 in order. a2 issued late would need an in-block load feeding it (as in the second call),
+  but the target has none. Tried pM temporaries, a pointer to Sv, casts, NULL, reloading pSin_parts_ptr, Sv store
+  orders: nothing.
+- em36 Em36_Init (12 words, best/Em36_Init_12.c). The target's store order (all G stores may alias the pEm
+  stores) means Pldamage is written after Lost_dir..Mv06_timer in the source (v36/a.c order); that gives 21
+  because the Flg RMW, the `Pldamege_Em36` address, Id and &G.pEnemy[2] go late. Reusing one function-pointer local
+  for both handlers (no birthing boost) moves the address too far up (28). The statement-order hill-climb from the
+  12 draft found nothing; from the 21 order its best was 11 (Pldie written before Pldamage, which reverses the
+  target's G store order, so it is a wrong lead). The permuter found nothing under 18.
+- Tools: agentAC/sc.sh (macro-expanding scorer, ALL=1 lists all, DL=1 difflib), ad.sh (aligned diff), lst.sh (list
+  compiled words), pscore.sh (score permuter outputs, which are full files), seg.py / rtlo.py (RTL around a pattern /
+  in sched order), hill.py (statement-order hill-climb).
