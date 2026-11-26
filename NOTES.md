@@ -1321,7 +1321,7 @@ Rules learnt:
   gave the target's a0/a1/a2 split; `pHead[1] + (LONG)pHead` gives the `addu t8,v0,a3` operand order; the remaining
   t0..t3 and a1/a2 priorities were fixed with do/while(0) wraps (hc.py), commented in the source.
 Near misses (agentY/best):
-- sabun Sa_morph_step (Sa_morph_step_160w.c, 160 words / ds ~45; agentS 51 ds was 196 words): the Half split above
+- sabun Sa_morph_step (Sa_morph_step_160w.c, 160 words / ds 61; agentS's ds-51 draft is 196 words, its ds is lower only because the one-insn pP-copy offset is scored differently): the Half split above
   fixes the pP copy and pKan a1. Left: block-2 order (Parts_no lbu must be 2nd, pParts load 5th, pFrm at the end),
   and the register names that follow (Half t7, pParts s0, pFrm s1, k t9). Statement permutations of block 2 (2500
   random orders) give only two scores, so the order is not decided by LUIDs any more: Parts_no and pParts are
