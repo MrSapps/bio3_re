@@ -1298,3 +1298,41 @@ Near misses (agentS/best):
   Link first every register is right but the adds are in the wrong order; with (UCHAR)i first the order is right but
   the (UCHAR)Next temp gets a1 (its life overlaps the a0 local-alloc gave the andi). ~300 forms, type and do/while
   sweeps tried.
+## Matching round agentY (worktree clean/zC; drafts in the session scratchpad agentY/best)
+Matched: root_ck kara_rootck2 (returns LONG, root_ck.h changed; Root_ck ignores the value), sabun Sa_joint_blend.
+Rules learnt:
+- sched1 tie-break (sched.c rank_for_schedule): with equal priority and class, the higher LUID is scheduled first
+  in the backward pass, i.e. source order is kept. kara_rootck2: reading `Out_link = pN->Link[Next];` into its own
+  UCHAR local before `*(pCost + Cost_ofs + (UCHAR)i + Out_link)` keeps the Link address add ahead of the (UCHAR)i
+  andi, so the Next-andi pseudo dies before the i-andi is born and both get a0 (the add order stays i first).
+- sched.c adjust_priority: before reload every insn that sets a pseudo with REG_N_SETS == 1 ("birthing") is raised
+  to max priority (shows as 7f000001 in the -dS ready lists). An insn setting a multi-set variable keeps its small
+  natural priority, is picked last in the backward pass and so lands EARLY in the block. Sa_morph_step: `Half =
+  pSa->Size; Half >>= 1;` (two sets) moves the Size load/shift from the block end to the front, which also gives
+  pKan a1 in local-alloc and the target's `move t0,a1` copy of pP. Use it to move a leaf load up a block.
+- cse fold of `i = n - 1; if (i--)` into `n - 2` (fold_rtx PLUS/associate, cse.c ~5710) needs i's class to hold a
+  PLUS. `i = ~-n` (== n - 1) is recorded as (not (neg n)), so cse leaves `i - 1` alone and combine turns the
+  not/neg into `addiu a2,t3,-1` afterwards: the target's unfolded `move v0,a2; beqz v0; addiu a2,a2,-1`. No C form
+  that cse sees as a PLUS avoids the fold (labels, do/while(0) LOOP_END notes only stop cse1; cse2 still folds).
+- Sa_joint_blend: the pointer computed before a test and advanced after it (`addu v1,t8,s1` in the delay slot,
+  `addiu a0,v1,6` after) came from reusing the Key variable for the block address (`Key = (ULONG)pBase + Shape_sz *
+  (Key >> 16); if (i--) { pS = (SHORT *)Key + 3; ...`); Key already lives in v1. A new pBlk local instead adds a
+  global and reshuffles every t-register. Separate counters / source pointers for the two parts (Cnt/pFrom vs i/pS)
+  gave the target's a0/a1/a2 split; `pHead[1] + (LONG)pHead` gives the `addu t8,v0,a3` operand order; the remaining
+  t0..t3 and a1/a2 priorities were fixed with do/while(0) wraps (hc.py), commented in the source.
+Near misses (agentY/best):
+- sabun Sa_morph_step (Sa_morph_step_160w.c, 160 words / ds ~45; agentS 51 ds was 196 words): the Half split above
+  fixes the pP copy and pKan a1. Left: block-2 order (Parts_no lbu must be 2nd, pParts load 5th, pFrm at the end),
+  and the register names that follow (Half t7, pParts s0, pFrm s1, k t9). Statement permutations of block 2 (2500
+  random orders) give only two scores, so the order is not decided by LUIDs any more: Parts_no and pParts are
+  birthing loads that the hazard rule ("insn N has a greater potential hazard") picks first. hc.py wraps reach 70
+  words but only with wraps on half the statements (agentY/smr/b_pp.c.best.c) and they break the pP copy again.
+- sca Sca_hit_slope (Sca_hit_slope_47ds.c, ds 47 from 66): `Len = pObj->D0;` / `Len = pObj->W0;` read once for both
+  compares (the target keeps D0/W0 in v1 over the abs branches), offsets X = W + D, Z = D - W, Oz = -W then
+  Ax = D; Az = D; += X0/Z0 (gives the surviving copy). Left: block 0 X0/Z0 in a3/t0 instead of t0/t1. In the
+  target D is a3, i.e. D is allocated after the offsets a0..a2 (looks like a global, not a block-local qty), so X0
+  loses a3; renaming D to an existing global (Dist, Len) did not change it. Also `move v1,a3; addu s0,v1,t1`
+  (Az from a temp copy of D) is still `move s0,a0`-style in ours.
+- sca Sca_hit_box (Sca_hit_box_95ds.c = agentG c960/e.c renamed, ds 95): not improved. Target saves s0/s1 (frame
+  32): R lives in s1 to the Sca_hit_box2 call, pT is copied to t6 and Z (Sca_work.Z) is in s0; ours keeps pT in a2.
+- sca Sca_hit_hishi: not attempted (no draft, 559 insns).
