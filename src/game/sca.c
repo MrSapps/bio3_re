@@ -693,7 +693,135 @@ ULONG Sca_hosei_box(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
 }
 
 /* hit routine for shapes 9/10 (slope, stairs): Sca_hit_line on each edge flagged in Type 0x100..0x800 (stairs side walls dropped when the object is within the width), RE2 Sca_hit_slope role */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_slope);
+ULONG Sca_hit_slope(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    ULONG Ret;
+    ULONG Wall;
+    LONG X0;
+    LONG Z0;
+    LONG Ax;
+    LONG Az;
+    LONG Bx;
+    LONG Bz;
+    LONG Cx;
+    LONG Cz;
+    LONG D;
+    LONG W;
+    LONG Ofs;
+    LONG Oz;
+    LONG X;
+    LONG Z;
+    LONG Dist;
+    LONG Len;
+    LONG Bx_ofs;
+    LONG Bz_ofs;
+    LONG Sum;
+
+    Ret = 0;
+    pW = &Sca_work;
+    Az = pT->Z1;
+    Wall = pT->Type & 0xF00;
+    Bx = pT->X1;
+    X0 = pT->X0;
+    Z0 = pT->Z0;
+    if (pT->Type & 0x1000) {
+        Bx -= X0;
+        Az -= Z0;
+        D = (Az * 181) >> 8;
+        W = (Bx * 181) >> 8;
+        Bx_ofs = W + D;
+        Bz_ofs = D - W;
+        Oz = -W;
+        Ax = D + X0;
+        /* Az goes through a copy of D taken before D is reused for the object position:
+         * cse cannot fold the copy and the add stays a separate move (v1) */
+        Ofs = D;
+        D = pObj->Pos_x - X0;
+        Az = Ofs;
+        Az += Z0;
+        Bx_ofs += X0;
+        Bz_ofs += Z0;
+        Bx = Bx_ofs;
+        Bz = Bz_ofs;
+        W += X0;
+        Oz += Z0;
+        Cx = W;
+        Cz = Oz;
+        Z = pObj->Pos_z;
+        Z -= Z0;
+        X = D - Z;
+        X = (X * 181) >> 8;
+        Sum = D + Z; /* not Z = D + Z: expand_binop would swap the operands */
+        Z = (Sum * 181) >> 8;
+        X += X0;
+        Z += Z0;
+    } else {
+        Ax = X0;
+        Bz = Az;
+        Cx = Bx;
+        Cz = Z0;
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    }
+    if ((pObj->Hit_flg & 0x8000) && (pT->Id & 0xF) == 10) {
+        if (Wall == 0x500) {
+            Len = pObj->D0;
+            Dist = pT->Z0 - Z;
+            if (Dist < 0) {
+                Dist = -Dist;
+            }
+            if (Len < Dist) {
+                Wall = 0xD00;
+            }
+            Dist = pT->Z1 - Z;
+            if (Dist < 0) {
+                Dist = -Dist;
+            }
+            if (Len < Dist) {
+                Wall |= 0x200;
+            }
+        }
+        if (Wall == 0xA00) {
+            Len = pObj->W0;
+            Dist = pT->X0 - X;
+            if (Dist < 0) {
+                Dist = -Dist;
+            }
+            if (Len < Dist) {
+                Wall = 0xB00;
+            }
+            Dist = pT->X1 - X;
+            if (Dist < 0) {
+                Dist = -Dist;
+            }
+            if (Len < Dist) {
+                Wall |= 0x400;
+            }
+        }
+    }
+    if (Wall & 0x100) {
+        pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
+        pW->Pt1 = (Ax << 16) | (Az & 0xFFFF);
+        Ret = Sca_hit_line(pObj, R, Arg3);
+    }
+    if (Wall & 0x200) {
+        pW->Pt0 = (Ax << 16) | (Az & 0xFFFF);
+        pW->Pt1 = (Bx << 16) | (Bz & 0xFFFF);
+        Ret |= Sca_hit_line(pObj, R, Arg3);
+    }
+    if (Wall & 0x400) {
+        pW->Pt0 = (Bx << 16) | (Bz & 0xFFFF);
+        pW->Pt1 = (Cx << 16) | (Cz & 0xFFFF);
+        Ret |= Sca_hit_line(pObj, R, Arg3);
+    }
+    if (Wall & 0x800) {
+        pW->Pt0 = (pT->X0 << 16) | (USHORT)pT->Z0;
+        pW->Pt1 = (Cx << 16) | (Cz & 0xFFFF);
+        Ret |= Sca_hit_line(pObj, R, Arg3);
+    }
+    return Ret;
+}
 
 /* hit routine for shape 6 (right triangle, corner = (Id >> 4) & 3): Sca_hit_line on the flagged legs / hypotenuse; one routine for RE2 Sca_hit_naname_a..d */
 ULONG Sca_hit_naname(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
