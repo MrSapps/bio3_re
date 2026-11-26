@@ -55,7 +55,87 @@ void Door_main(void)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/door", Door_init);
+void Door_init(void)
+{
+    UCHAR i;
+    ULONG *pAdr;
+    ULONG Tpage;
+    ULONG Clut;
+    UCHAR *pAot;
+    ULONG Adr;
+    DOOR_WORK **pp;
+    ULONG **ppTim;
+    ULONG **ppTmd;
+    ULONG *pTmd;
+    ULONG *pTim;
+
+    pDoor_tex_trans = 1;
+    Door_texture_load();
+    D_800BA6F4 = 0xA14;
+    pDoor = (DOOR *)0x801B8E00;
+    G.System_flg |= 0x400000;
+    i = 0;
+    pp = pDwork;
+loop: /* goto loop: a for/do loop is laid out differently */
+    Adr = i * 0xC8 + 0x801B9A58;
+    pp[i] = (DOOR_WORK *)(Adr - D_800BA6F4);
+    Memclr(pp[i], 0xC8);
+    i++;
+    if (i < 10) goto loop;
+    /* header fields through plain pointers and the halfword Ctp store: they do not alias the pPrepacket
+     * reload in sched1, so the reload sits right after its store and becomes reload_cse's move a0,a1 */
+    ppTim = &Door_data->pTim;
+    ppTmd = &Door_data->pTmd;
+    pTim = (ULONG *)((UCHAR *)Door_data + (ULONG)*ppTim);
+    pDoor->pPrepacket = (POLY_GT3 *)pTim;
+    pTmd = *ppTmd;
+    *(USHORT *)&G.Ctp.u.Ctpage = 0x1F15;
+    *ppTim = pTim;
+    *ppTmd = (ULONG *)((UCHAR *)Door_data + (ULONG)pTmd);
+    Mapping_tim((ULONG *)pDoor->pPrepacket);
+    pDoor->pTmd_adr = pAdr = *ppTmd;
+    if (((UCHAR *)G.pSce_aot_on)[0xC] != 0x1F) {
+        Tpage = 0x15;
+        Clut = 0x1F;
+    } else {
+        Tpage = 0;
+        Clut = 0;
+    }
+    Mapping_md(pAdr, Tpage, Clut);
+    pDoor_tex_trans = 0;
+    pDoor->Divp.ndiv = 3;
+    pDoor->Divp.pih = 0x140;
+    pDoor->Divp.piv = 0xF0;
+    pDoor->pTmd_adr += 2;
+    for (i = 10; i < 14; i++) {
+        Sce.Sce_task[i].Task_level = i;
+        Sce.Sce_task[i].Status = 0;
+        Sce.Sce_task[i].Sub_ctr = 0;
+        Sce.Sce_task[i].Ifel_ctr[0] = -1;
+        Sce.Sce_task[i].Loop_ctr[0] = -1;
+    }
+    Sce.pCScd = Door_data->Scd;
+    Event_init(&Sce.Sce_task[10], 0);
+    Memclr(&Sce.Cut, 0x20);
+    Sce.Cut.ViewR = 0x912D;
+    Sce.Cut.View_p[0] = 0x2CEC;
+    Sce.Cut.View_p[1] = -900;
+    Sce.Cut.View_r[0] = 0;
+    Sce.Cut.View_r[1] = -200;
+    SetGeomScreen(0x122);
+    Set_view(Sce.Cut.View_p, Sce.Cut.View_r);
+    Bg_set_mode(1, 0);
+    for (i = 0; i < 4; i++) {
+        Fade_off(i);
+    }
+    pAot = G.pSce_aot_on;
+    G.DSce_work[0] = pAot[0xD] & 0xFF7F;
+    G.DSce_work[1] = 1;
+    G.DSce_work[2] = pAot[0xD] & 0x80;
+    G.DSce_work[3] = pAot[0xC];
+    pDoor->Sound_flg = 0;
+    pDoor->Ctr2 = 0;
+}
 
 void Door_move(void)
 {
