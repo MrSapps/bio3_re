@@ -1740,3 +1740,43 @@ Not matched:
   `move s0,a1` is scheduled late. The spill theory explains a3 but then the spill slots would follow any declared
   local, and caller-save areas would leave save code; what allocates the 24 unused bytes after the four slots is
   still open.
+## Matching round agentAL (worktree clean/wJ; drafts in the session scratchpad agentAL/best)
+Nothing matched. Both functions re-tested with the new angles; findings and the stuck points below.
+Rules learnt:
+- Moving a lo_sum after the next %hi: `tS = &Snd_work; tC = &CD; p = tS; pCd = tC;` makes combine fold `tS = hi + lo`
+  into the copy, so the combined insn sits at the copy's place (after hiC). hiS is then live across hiC's birth and
+  local-alloc gives hiC v1. Use it when a lui needs the second register; the price is that the lo_sum now has the higher LUID.
+- update_equiv_regs (local-alloc.c) gives a pseudo REG_EQUIV (mem) when it is stored to a stack slot and dies in that
+  store, or when it is loaded from memory that stays unchanged for the pseudo's whole life. If the pseudo then has no
+  hard reg (or is kicked out when its reg becomes a spill reg), reload writes the init into that slot and reads it back
+  at every use through the spill reg (`sw a3,16(sp); lhu a3,16(sp); nop; sh a3,..`), and the store insn vanishes.
+  validate_equiv_mem fails across a call unless the MEM is RTX_UNCHANGING_P. For a stack MEM in 2.8 the only C forms that
+  set it are a store through a const FIELD in an initializer (`struct { const LONG a, b; } s = {...}` gives mem/s/u).
+  A `const` array or a const struct variable does not (stmt.c has it under #if 0), and neither does any read of an
+  auto. The store rule also fails for a pseudo that lives past the store: the store conflicts with its own memory.
+- Declared locals (and an inline function's frame) get their slots at expand time, before every reload slot. Unused
+  bytes above spill slots can only come from reload (caller-save areas, or slots for kicked-out pseudos). Without a
+  call-crossing pseudo in a call-clobbered reg, caller_save_needed is 0 (checked with gdb on the draft).
+- An inline helper with an unused local array reserves its frame at the call site (DECL_FRAME_SIZE), right after the
+  caller's declared locals. This reproduces the 24 unused bytes (`static inline` copy helper with `SVECTOR Unused[3]`).
+Not matched:
+- snd Snd_bgm_play_ck (2 words, agentAL/best/Snd_bgm_play_ck_2.c = agentAF draft). New tests, all >= 2: static inline
+  helpers for the loop, for the tail and for each pointer (`return &CD;`), with do/while(0) in every position (identical
+  code to the plain forms); statement expressions; 144 direct-global/pointer/declaration mixes; gcc-2.6.3 (63),
+  gcc-2.7.2-psx (15), gcc-2.7.2-cdk (5), gcc-2.8.0 (2). The temp-copy form above
+  (agentAL/best/Snd_bgm_play_ck_3_hiC_v1.c, 3 words) gets `lui v1,%hi(CD)`, which proves the v1 can be produced.
+  But sched2's input order is then hiS, hiC, loS, loC. With every priority 1 and every class 3 (all latencies 1),
+  rank_for_schedule falls back to LUID and keeps lui v1 above `addiu s0` (dump: ready list T-6 "15 11" picks loS).
+  This confirms agentAA/agentAF: the register needs hiS live at hiC's birth, and the order needs LUID(hiC) > LUID(loS).
+  reload can only reorder by emitting an input reload for an unallocated hiC (it has REG_EQUIV high), and in a function
+  with free registers global/local-alloc always allocate it. Permuter 25 min on the v1 draft: best 2.
+- oba Oba_ent_box_set (104 words, agentAF/best/Oba_ent_box_set_104w_memlocals.c is still the lowest count). The target is
+  explained by REG_EQUIV memory reloads through spill reg a3 (see above); the 0xFE41 constant also reloads through a3.
+  Drafts: agentAL/best/Oba_ent_box_set_106_inline_frame.c (frame 96 from an inline copy helper, values still in v0).
+  agentAL/best/Oba_ent_box_set_143_struct_init.c (struct initializer: REG_EQUIV on the X-W temps, no spill slots, frame
+  96, but the temps get v0). agentAL/best/Oba_ent_box_set_151_constfield.c (const fields: reads already go
+  `lhu a3,16(sp)`, but the USHORT copies get no equivalence, since the read MEM is not /u, and they spill to 56..62).
+  Still open: local-alloc must give the short X-W / readback pseudos a3 (in region 1 v0, v1, a2 and the a0/a1 parameter
+  hard regs would all have to be live, i.e. the param copies late in sched1 order). The region-2+ readbacks
+  (`lhu a3` with v0/v1/a2 free in the final code) need either the same values or a long-lived pseudo with a memory
+  equivalence, and that needs a MEM that is unchanging across calls, which no plausible C gives a read.
