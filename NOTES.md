@@ -1582,3 +1582,37 @@ Proven hand-written (stay INCLUDE_ASM; comments in md_sub.c / mem_card.c):
 - _card_info/_card_load: byte-identical to PsyQ libcard C171.OBJ/C172.OBJ (BIOS A0 stubs `li t2,0xA0; jr t2;
   li t1,n` + nop); a tail jump through t2 cannot come from gcc 2.x (no sibling calls), so they are SDK asm.
   (_card_write/_new_card, the B0 stubs right after, sit in the data split.)
+## Matching round agentAH (worktree clean/wF; drafts in the session scratchpad agentAH/best)
+Matched: mojidisp Print_main (MOJIDISP.Print_buff at 0x75F8, `ascii_tbl` 0x80098704 `// size:0x24` replaces
+D_80098704/D_80098715, Print_main returns void), sub Get_light_cut, pc_sys Pc_text_set.
+Rules learnt:
+- A product in an unused-looking s-register (Print_main `mflo s6`, with s5 saved but never used) is a pseudo that
+  global-alloc first put in LO (pref LO_REG), which reload then spilled for a mult/div insn: retry_global_alloc
+  re-places it, s5 is already reload's spill register, and every caller-saved register conflicts, so it lands in s6.
+  It only conflicts with everything when the product is born at the mult with the Div/10 temps live around it:
+  `*pOut++ = pTbl[Val / Div % 10 * Sign]` as one expression (a `Digit` temp variable gives a block-local v0).
+- One variable for three unrelated jobs (Print_main t0: power of ten in 'd', `Width * 4` shift in 'X', argument
+  counter in the default case) raised its global-alloc priority above Width; the hex shift as a named variable
+  (`i = Width * 4;`) is also what made that value global (t0) instead of a local v1.
+- Delay-slot choice: `n = 0;` written before `if (*pFmt == 0) return;` (not after) is what puts `move t9,zero` in
+  the beqz delay slot and leaves `addiu t8` (pAp) in the lw load-delay slot.
+- The permuter found Get_light_cut's last word: a dead `if (pData) pLight++; else pLight++;` (identical arms, no code
+  left after jump2 cross-jumps them). The test keeps pData (the `move a0,s0` copy) live past the Ofs load, so
+  pData and pLight conflict and the Ofs load stays on s0. Same family as agentW's Em22_dir_quarter dead if.
+- Two induction pointers when the target increments the end-test pointer first and the store pointer last
+  (Pc_text_set): `pSpr = &Spr[4]; pNext = &Spr[4]; do { pNext++; ...stores via pSpr...; pSpr++; } while (pNext <
+  &Spr[N]);`. The store givs are incremented right before their own biv (bottom), the separate biv's increment has
+  the lowest LUID and sched1 leaves it on top. Index loops give slti compares or unreduced stores.
+- sched1 boosts every single-set hi/lo half when it is launched, so a `lui` always lands directly above its only
+  `addiu %lo` consumer. Two hi registers can only overlap (v1/v0 for two different symbols) if one hi has a second
+  consumer in the block or its lo is in another block. Insns that use a non-call-crossing pseudo (the hi) are added
+  to sched_before_next_call, so both lo_sums are launched by the following call.
+Not matched:
+- epilog Epilog_draw (agentAB Epilog_draw_7.c, 7 words; ep0 without the do/while is 12): target block 0 is
+  `lui v1,%hi(Epilog_work); lui v0,%hi(G); addiu s3 (G); ... addiu s0 (Epilog_work)`, so local-alloc saw hiE and hiG
+  live at once with hiG first. By the boost rule above every form keeps each lui directly above its lo (ours: hiE v0,
+  hiG v0). Tried: pG/pWk orders, do/while barriers at every position (64 combinations, best 7), dead identical-arm
+  ifs around either set, a real second set of pG and/or pWk later in the function (block 0 unchanged), pFlg pointer
+  variables, `Epi_work.u.Flg` direct arguments, no pWk / no pG, parameters for pG/pWk, permuter ~2 h on both bases.
+  Needs a block-0 source where one of the two hi pseudos has a second consumer (or crosses a block) and that consumer
+  is gone from the final code.

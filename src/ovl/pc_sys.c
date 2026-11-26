@@ -392,8 +392,43 @@ void Pc_clear(void)
     pPc->Col = 0;
 }
 
-/* character sprites + text cursor; draft in scratchpad/drafts: 7 scheduling diffs */
-INCLUDE_ASM("asm/nonmatchings/ovl/pc_sys", Pc_text_set);
+/* character sprites + text cursor */
+void Pc_text_set(LONG On)
+{
+    PC_WORK *pPc = Pc_wk;
+    PC_SPR *pSpr;
+    PC_SPR *pNext;
+    UCHAR *pText;
+    UCHAR *pAttr;
+    USHORT c;
+    USHORT Hi;
+    UCHAR a;
+
+    pText = pPc->Text[0];
+    pAttr = pPc->Attr[0];
+    pSpr = &pPc->Spr[PC_SPR_TEXT];
+    pNext = &pPc->Spr[PC_SPR_TEXT]; /* separate end-test pointer: the target steps it first */
+    do {
+        pNext++;
+        c = *pText++ - 0x20;
+        pSpr->w.Wh = 0x000A0008;
+        a = *pAttr++;
+        Hi = c; /* c is set twice (the target masks into a second register) */
+        c = (Hi / 32) * 10 << 8 | (Hi % 32) << 3;
+        pSpr->w.Uv_clut = (USHORT)c + ((a + 0x7B40) << 16);
+        pSpr->s.On = On;
+        pSpr++;
+    } while (pNext < &pPc->Spr[PC_SPR_NUM]);
+    pPc->Spr[PC_SPR_CUR].s.X = pPc->Col * 8 + 0x10;
+    pPc->Spr[PC_SPR_CUR].s.Y = pPc->Row * 10 + 0x15;
+    pPc->Blink = (pPc->Blink + 1) & 0x1F;
+    pPc->Spr[PC_SPR_CUR].s.Clut = pPc->Color + 0x7B40;
+    if (On)
+        pPc->Spr[PC_SPR_CUR].s.On = pPc->Blink & 0x10;
+    else
+        pPc->Spr[PC_SPR_CUR].s.On = 0;
+    pPc->Spr[3].s.On = On;
+}
 
 /*
  * type out pStr, one character per Wait frames (all at once when Wait is 0).

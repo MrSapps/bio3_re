@@ -309,7 +309,41 @@ void Set_Light_data(ULONG No, VECTOR *pLig, UCHAR *pRgb, LIGHT_CUT_DATA *pLight)
 }
 
 /* light of the cut zone pPos is in (the cut's default zone, its last entry, if none) */
-INCLUDE_ASM("asm/nonmatchings/game/sub", Get_light_cut);
+LIGHT_CUT_DATA *Get_light_cut(LONG *pPos)
+{
+    ULONG *pLight;
+    UCHAR *pData;
+    LIGHT_CUT_DATA *pCut;
+    ULONG Zone;
+    ULONG n;
+    ULONG Ofs;
+
+    pLight = G.pRoom->pLight;
+    Ofs = pLight[0];
+    pData = (UCHAR *)(pLight + G.Cut_no + 1);
+    Zone = *(ULONG *)pData;
+    n = Zone & 0xFFFF;
+    pData = (UCHAR *)pLight;
+    pCut = (LIGHT_CUT_DATA *)(pData + Ofs);
+    pLight = (ULONG *)(pData + (Zone >> 16));
+    /* dead test with identical arms (no code): keeps pData live past the Ofs load, which the
+     * target's register choice (a0 copy of pLight, Ofs read through s0) needs */
+    if (pData) {
+        pLight++;
+    } else {
+        pLight++;
+    }
+    for (n--; n != 0; n--, pLight += 3) {
+        if (Hit_ck_box(pPos, (SHORT *)pLight)) {
+            pData = (UCHAR *)pLight;
+            pCut += ((USHORT *)pData)[-2];
+            return pCut;
+        }
+    }
+    pData = (UCHAR *)pLight;
+    pCut += ((USHORT *)pData)[-2];
+    return pCut;
+}
 
 /* saves the G fields that survive a retry (Init_global clears G) */
 void Keep_data_save(void)

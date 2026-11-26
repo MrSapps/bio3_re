@@ -32,11 +32,14 @@ typedef struct tagMOJIDISP {
     ULONG Timer;                       /* 0x75EC RE2 Timer (select input delay) */
     ULONG Stop_keep;                   /* 0x75F0 RE2 Stop_keep */
     ULONG Stop_data;                   /* 0x75F4 RE2 Stop_data */
+    UCHAR Print_buff[256];             /* 0x75F8 Print_main output text */
 } MOJIDISP;
 extern MOJIDISP Moji;                  /* 0x800D4590 */
 
 /* Glyph spacing table, 2 bytes per glyph: [0] = left bearing, [1] = width (RE2 msg_space) */
 extern signed char msg_space[];        /* 0x80098DD0 */
+/* Print_main hex digits: [0] upper case, [1] lower case (RE2 ascii_tbl) */
+extern UCHAR ascii_tbl[2][17];         /* 0x80098704 */
 
 void Moji_init(void);
 void Moji_mode_init(void);
@@ -47,7 +50,7 @@ void Print8(USHORT X, USHORT Y, UCHAR *pFmt, ...);
 void Print14(USHORT X, USHORT Y, UCHAR *pFmt, ...);
 void Print8_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...);
 void Print14_col(USHORT X, USHORT Y, UCHAR Col, UCHAR *pFmt, ...);
-long Print_main(ULONG Pos, USHORT Attr, void *pArgs);
+void Print_main(ULONG Pos, USHORT Attr, void *pArgs);
 void Moji_trans_main(void);
 void Mess_disp(MOJIDISP *pMoji);
 void mess_trans(MOJIDISP *pMoji);
