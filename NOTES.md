@@ -1076,3 +1076,62 @@ Near misses:
   s0-s4, /18 via 0x38E38E39 with the `sll 16` values kept for the sign fix): not attempted beyond reading;
   Sca_hit_slope's rotated-corner copy `move v1,a3` reads like offset temps (A = (D, D), B = (W + D, D - W),
   C = (W, -W)) added to X0/Z0 afterwards, with Cx/Cz spilled to 0x10/0x14(sp).
+## Matching round agentQ (drafts in the session scratchpad agentQ/best and agentQ/v*)
+Matched: em34 Em34_Init, em27 Em27_Init, em_sub Spd_get_sub (the three "load, `move` copy, add to one of them"
+functions), em23 Em23_mv0b.
+Rules learnt:
+- The surviving `lw X; ...; move Y,X; addiu X,X,off` copy is NOT a cse copy: it is reload_cse_regs (reload1.c,
+  runs after reload, before sched2) turning a second load of the same field into a register move, because the
+  register still holds the value. So the source reads the field twice, with a store in between that makes cse
+  (which is conservative: a store to pEm+316 invalidates pEm+264) drop the first value. Em34_Init: `new5 = pEm->pUnk174;
+  old5 = pP2->pTmd; new8 = &pEm->pUnk174[1];` (store to a global in between). Em27_Init: `pEm->Hit_area.pM =
+  &pEm->pSin_parts_ptr->Workm; pP = pEm->pSin_parts_ptr;` (the pM store in between). The same mechanism gives
+  Spd_get_sub's `move v0,t1` for `Spd_base_x += vx` after `Spd_base_x = x`.
+- sched1 (sched.c, scheduled backwards) gives an insn that sets a register with REG_N_SETS == 1 the block's maximum
+  priority as soon as it becomes ready (adjust_priority / birthing_insn_p): single-set loads sit right before their
+  first use. A load the target issues early (or between other insns) is of a variable set more than once, or its
+  first use is earlier. The scheduler also blocks a load for 1 cycle after a memory insn ("blocking insn N"): in
+  Em27_Init the B load only lands before the `+64` when the first neck store is a zero store (no `li` in front of
+  it), so the PW_NECK stores go in memory order (N_rot_y, N_rot_z, Add_dir_y, Add_dir_z, L_rot_y, L_rot_z, as RE2
+  EM28.C writes Free[0..5]). Read the trace with SN cc1 -dS (";; ready list at T-n", "launching", "blocking").
+- cse make_regs_eqv: a parameter copy `pTop = pSeq_t` survives (`move t3,a2` at entry, a2 advanced in place) when the
+  parameter variable itself is used after pTop's last use: Spd_get_sub reuses pSeq_t in the second block
+  (`pSeq_t = (ULONG *)(pTop + (pS[1] & 0xFFFE)); Frame = *(UCHAR *)pSeq_t;`), so pSeq_t stays canonical.
+- A byte loaded into the register of the pointer it was read through (`lbu a2,0(a2)`) is a variable used in two
+  blocks (global, gets the pointer's hard reg as preference from set_preference's `(mem (reg))` source).
+- `addu idx,base` (index first) comes from an address written inline at each use (`*(ULONG *)(pTop + n * 8)`,
+  expanded as a memory address, canonical (plus (mult) (reg))); a pointer local gives `addu base,idx`.
+- An unconditional `Seq_w &= 0xFFFF;` before an if whose then-arm uses it lands in the branch delay slot
+  (Spd_get_sub); written inside the arm, reorg fills the slot from before the branch instead.
+- `Chaser_free` copy loops (Em34_Init, Em36_Init): `pEm->Unk1CC[n] = G.Chaser_free[n]` gives `addu v1,s3,v1`; the
+  old `((ULONG *)pEm->Unk1CC)[n]` cast gave the swapped operands.
+- Em23_mv0b: the target re-reads Jump_x / Step_x after storing them because the source stores the next field first
+  (`Jump_x += ..; Jump_z += ..; Step_x = ..; Step_z = ..;`) and cse forgets same-base fields on any store; the
+  `move v1,a2` before `Step_x *= 4` is again reload_cse; `<<= 2` (not `*= 4`) for the lhu form.
+Near misses (agentQ/best):
+- em22 Em22_dir_quarter (1 word, Em22_dir_quarter_1.c = agentO's): the target has `andi a0; j L; L: move v1,a0;
+  jr ra; move v0,v1`. Copy in both arms: combine merges arm 1's `Ret &= 1; Dir = Ret` into `andi v1,a0,1`. Copy once
+  at a shared label (e.g. arm 1 `goto Set`, Set before arm 2's copy): combine then merges `Dir = Ret` with the return
+  copy `v0 = Dir` (same block). An 840-variant sweep (agentQ/d22/g: if/else order, copy placement, return var,
+  Dir/Ret types ULONG/LONG/(U)SHORT/UCHAR) found no 0. Needs a label between the copy and the return and between the
+  and and the copy at the same time.
+- em34 Em34_shoot (2 words, Em34_shoot_2.c): `Spd = (USHORT)Unk0A << 16` with `Spd >> 16` / `Spd >> 17` (the shared
+  sll), the compare result in a new local (Hit2). Left: in the `Joint_move(.., 0x10200)` block the target loads Flg and
+  UnkE3 before `li a0,0x101; sw Rtn`; ours schedules both loads (single-set, birthing boost) after, so the constant
+  gets v0. 24 statement orders, do/while wraps, a struct-typed Rtn store and multi-set temps did not change it.
+- em36 Em36_Init (12, Em36_Init_12.c): loop fixed; left the Pldamage/Pldie store scheduling (target: the Pldamage
+  address and Id are loaded early, the store sinks after the 0x1EA..0x1E6 stores; moving the statement after them
+  gives 21) and pE/ppEm in a2/a1 instead of a0/a1.
+- em23 Em23_mv03 (dscore 49, was 89; Em23_mv03_49.c): `LONG Y = Pos_y + 1600` temp (stops the reassociation),
+  `Dir = (Side << 10) - 0x800` temp, direct `EF(pEm)->Side & n` reads for the 758 offsets (a multi-set Side local
+  is loaded too early). Left: the Wall_dir step ternaries (target: one store after the join, a `move a0,v1` copy of
+  Wall_dir for the <= 0x800 arm, `slti 3073; bnez +16`), case 4/5 constant registers.
+- em22 Em22_mv_jump (dscore 7, was 15; Em22_mv_jump_7.c): one `pP` reused for `&pPl->pSin_parts_ptr[1]` in the grab
+  block and `pEm->pSin_parts_ptr` in the water check (both a0 in the target), grab block statements reordered by a
+  hill-climb (agentQ/hill.py). Left: the order of the pSub1_seq_t_ptr copy against `pP->UnkA2 = 0` and the pW loads
+  (a 3000-order sweep of that block reaches 8 sc words).
+- em38 Em38_sce03 (7 words, unchanged; agentO/em2238/best): case 5 first Esp_call wants `addiu a3,&Sv` before
+  `addiu a2,&pW->Workm`, case 6 wants the Timer0 |= 0x8000 store before the `&pP->Workm` s0 set. Statement-order
+  hill-climbs over both regions and pM temporaries found nothing.
+- Tools: agentQ/hill.py (statement-order hill-climb, absolute perm dir), ds.sh (difflib score with macro expansion),
+  adiff.py (difflib-aligned target/ours listing), rtl.py (compact RTL listing of one function from a -d dump).

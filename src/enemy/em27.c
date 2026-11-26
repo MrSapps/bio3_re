@@ -28,7 +28,86 @@ void Em27_ground_ck(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em27", Em27_Init);
+void Em27_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    PARTS_W *pP;
+    ENEMY_WORK *pCp;
+    COL_OBJ *pCol;
+    ULONG n;
+    ULONG i;
+    SVECTOR Unused;                    /* never used; the target frame has room for it */
+
+    EM_SET_MOVE(pEm, 1, 0, 7);
+    Joint_move(pEm, pKan, pSeq, 0x100);
+    EM_SET_RTN(pEm, 1, 5, 0, 0);
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x12C0190, 0, pEm->pSin_parts_ptr->Workm.t);
+    pEm->Hit_area.Top = 100;
+    pEm->Hit_area.Bottom = -100;
+    pEm->Hit_area.Rate0 = 0x50;
+    pEm->Hit_area.Rate1 = 0xA0;
+    pEm->Hit_area.R = 100;
+    pEm->Unk140 = 0;
+    pEm->Neck_flg = 0;
+    pEm->Neck_no = 0;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
+    /* read again after the store (cse drops the first value); reload_cse turns this load into `move` */
+    pP = pEm->pSin_parts_ptr;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->Add_dir_y = 0x40;
+    PW_NECK(pP)->Add_dir_z = 0x40;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->L_rot_z = 0x138;
+    pEm->Life = 1;
+    pEm->Max_life = 1;
+    pEm->Damage_cnt = 0;
+    switch ((UCHAR)pEm->Type) {
+    case 0:
+        pEm->Life = -1;
+        pEm->Be_flg |= 0x7030;
+        pEm->Type |= 0x4000;
+        n = Em27_parent_cnt(pEm);
+        if (n == 1 || n == 2) {
+            n = 3 - n;
+            n *= 10;
+            if (n != 0) {
+                for (i = 0; i < n - 1; i++) {
+                    pCp = Em_work_add(pEm);
+                    Kage_work_set(&pCp->Kage.pKw, 0, 0x12C0190, 0, &pCp->Pos_x);
+                    pCol = &pCp->Col;
+                    pCp->Hit_area.Bottom = -100;
+                    pCp->Hit_area.Rate0 = 0x50;
+                    pCp->Hit_area.Rate1 = 0xA0;
+                    pCp->Hit_area.Top = 100;
+                    pCp->Hit_area.R = 100;
+                    pCp->Unk140 = 0;
+                    pCp->Hit_area.pM = &pCp->pSin_parts_ptr->Workm;
+                    pCol->pEm = pCp;
+                    pCp->Col.D0 = 30;
+                    pCol->W0 = 30;
+                    pCol->H = 100;
+                    pCol->Unk24 = 0;
+                    pCol->Unk28 = 0;
+                    pCol->Unk26 = 0;
+                    pCol->Flg = 0;
+                    pCol->Type = 2;
+                    Oba_set(pCol, 0);
+                }
+            }
+        }
+        pEm->Type |= 0x8000;
+        break;
+    case 1:
+        EM_SET_RTN(pEm, 5, 0, 1, 0);
+        Em27_parts_reset(pEm);
+        break;
+    case 2:
+        EM_SET_RTN(pEm, 1, 0, 0, 0);
+        EM27_W(pEm)->Wait = 0;
+        break;
+    }
+    G.pPldamage_Em[pEm->Id - 0x10] = Em27_hop;
+}
 
 /* reset the parts: hide 0 and 1, part 2 at the body, parts 3 and 4 beside it */
 void Em27_parts_reset(ENEMY_WORK *pEm)

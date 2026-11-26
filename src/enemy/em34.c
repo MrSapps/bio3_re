@@ -136,7 +136,172 @@ void Em134(ENEMY_WORK *pEm)
     Em_seq_sound(pEm);
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em34", Em34_Init);
+void Em34_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    tagGLOBAL *pG;
+    PARTS_W *pP;
+    PARTS_W *pP2;
+    PARTS_W *pP3;
+    ENEMY_WORK **ppEm;
+    ENEMY_WORK *pE;
+    SVECTOR Rot;
+    LONG i;
+    LONG n;
+    LONG Bit;
+
+    EM_SET_RTN(pEm, 1, 0, 0, 0);
+    pG = &G;
+    pEm->Status_flg |= 0x100;
+    pEm->Damage_cnt = 0;
+    pG->Status_flg |= 0x8000;
+    EM34_W(pEm)->Punch_timer = 60;
+    EM34_W(pEm)->Unk02 = 3;
+    EM34_W(pEm)->Unk01 = 0;
+    EM34_W(pEm)->Flg = 0;
+    EM34_W(pEm)->Grab_timer = 60;
+    EM34_W(pEm)->Dodge_timer = 0;
+    EM34_W(pEm)->pTarget = (ENEMY_WORK *)&pG->Player;
+    EM34_W(pEm)->Target_time = 0;
+    EM34_W(pEm)->Seek_timer = 120;
+    EM34_W(pEm)->Hit_cnt = 0;
+    EM34_W(pEm)->Punch_cnt = (Rnd() & 1) + 3;
+    EM34_W(pEm)->Shot_cnt = 5;
+    EM34_W(pEm)->Blast_timer = 0;
+    EM34_W(pEm)->Flinch = 0;
+    EM34_W(pEm)->Flinch_cnt = 0;
+    EM34_W(pEm)->Flinch_dir = 0;
+    EM34_W(pEm)->Shoot_timer = 230;
+    pEm->Spd_x = 0;
+    pEm->Spd_y = 0;
+    pEm->Spd_z = 0;
+    Kage_work_set(&pEm->Kage.pKw, 0, 0x3840320, 0, pEm->pSin_parts_ptr->Workm.t);
+    pEm->Col.pEm = pEm;
+    pEm->Col.W0 = 800;
+    pEm->Col.D0 = 800;
+    pEm->Col.H = 3500;
+    pEm->Col.Unk24 = 0;
+    pEm->Col.Unk28 = 0;
+    pEm->Col.Unk26 = 0;
+    pEm->Col.Flg = 0;
+    pEm->Col.Type = 2;
+    Oba_set(&pEm->Col, 0);
+    pEm->Hit_area.Top = 2000;
+    pEm->Hit_area.Bottom = -1300;
+    pEm->Hit_area.Rate0 = 120;
+    pEm->Hit_area.Rate1 = 200;
+    pEm->Hit_area.R = 600;
+    pEm->Unk140 = 0;
+    pEm->Neck_flg = 0;
+    pEm->Neck_no = 2;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
+    pP2 = &pEm->pSin_parts_ptr[2];
+    PW_NECK(pP2)->Add_dir_y = 0x60;
+    PW_NECK(pP2)->Add_dir_z = 0x60;
+    PW_NECK(pP2)->L_rot_y = 0x200;
+    PW_NECK(pP2)->N_rot_y = 0;
+    PW_NECK(pP2)->N_rot_z = 0;
+    PW_NECK(pP2)->L_rot_z = 0x138;
+    pEm->Life = 800;
+    pEm->Max_life = 800;
+    if (pG->System_flg & 0x100) {
+        pEm->Life = 600;
+        pEm->Max_life = 600;
+    }
+    pP = pEm->pSin_parts_ptr;
+    pEm->Max_life += 100;
+    pEm->Life += 100;
+    pP2 = &pP[16];
+    pP3 = &pP[5];
+    pP2->pSuper = &pP[5].Workm;
+    pP2->Pos_x = 11;
+    pP2->Pos_y = 100;
+    pP2->pOya_parts = pP3;
+    pP2->Pos_z = -20;
+    Rot.vx = 0;
+    Rot.vy = 0;
+    Rot.vz = 0;
+    RotMatrix(&Rot, (MATRIX *)pP2->M);
+    pP[16].Be_flg = 4;
+    pP2->Size_x = 0x1000;
+    pP2->Size_y = 0x1000;
+    pP2->Size_z = 0;
+    pP2->Poly_rgb = 0xA02040;
+    if (pG->Status_flg & 0x40000000) {
+        pEm->Life = pG->Chaser_life;
+        pEm->Type |= pG->Chaser_type;
+        i = 12;
+        do {
+            n = i - 1;
+            pEm->Unk1CC[n] = G.Chaser_free[n];
+            i = n;
+        } while (i);
+        EM_SET_RTN(pEm, 1, 2, 0, 0);
+        EM34_W(pEm)->Run_timer = (Rnd() & 0x1F) + 30;
+        Bit = Rnd();
+        if ((Bit >> (Rnd() & 3)) & 1) {
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
+            EM34_W(pEm)->Run_timer = (Rnd() & 0x1F) - 0x6A;
+        }
+    }
+    EM34_W(pEm)->Flg &= 0x80;
+    EM34_W(pEm)->Dodge_timer = 0;
+    EM34_W(pEm)->pTarget = &Pl_work;
+    EM34_W(pEm)->Target_time = 0;
+    EM34_W(pEm)->Hit_cnt = 0;
+    EM34_W(pEm)->Punch_cnt = (Rnd() & 1) + 3;
+    EM34_W(pEm)->Flinch = 0;
+    EM34_W(pEm)->Flinch_cnt = 0;
+    EM34_W(pEm)->Flinch_dir = 0;
+    EM34_W(pEm)->Shoot_timer = 30;
+    EM34_W(pEm)->Near_cnt = 0;
+    pP = pEm->pSin_parts_ptr;
+    pP2 = &pP[17];
+    pP3 = &pP[8];
+    pP2->pSuper = &pP[8].Workm;
+    pP2->pOya_parts = pP3;
+    pP2->Pos_x = 0;
+    pP2->Pos_y = 0;
+    pP2->Pos_z = 0;
+    Rot.vx = -0x72;
+    Rot.vy = 0;
+    Rot.vz = 0x72;
+    RotMatrix(&Rot, (MATRIX *)pP2->M);
+    if (pEm->Type & 1)
+        pP[17].Be_flg = 0;
+    pP2 = &pEm->pSin_parts_ptr[5];
+    /* pUnk174 is read twice (the global store between stops cse); reload_cse turns the second read into the move */
+    Em34_tmd_new5 = pEm->pUnk174;
+    Em34_tmd_old5 = pP2->pTmd;
+    Em34_tmd_new8 = &pEm->pUnk174[1];
+    pP2->pTmd = Em34_tmd_new5;
+    pP2 = &pEm->pSin_parts_ptr[8];
+    Em34_tmd_old8 = pP2->pTmd;
+    pP2->pTmd = Em34_tmd_new8;
+    if (!(pEm->Type & 1))
+        pP2->pTmd = Em34_tmd_old8;
+    EM34_W(pEm)->pPartner = NULL;
+    ppEm = &pG->pEnemy[2];
+    do {
+        pE = *ppEm;
+        if (pE->Id == 0x37)
+            EM34_W(pEm)->pPartner = pE;
+        if (pE->Id == 0x3B)
+            EM34_W(pEm)->pPartner = pE;
+    } while (++ppEm != pG->ppEnemy_end);
+    if ((UCHAR)pEm->Type == 3) {
+        Md_tex_ofs(pEm->pSin_parts_ptr[1].pTmd, 1, 1, 0, 0);
+        Md_tex_ofs(pEm->pSin_parts_ptr[2].pTmd, 4, 4, 0, 0);
+        Md_tex_ofs(pEm->pSin_parts_ptr[6].pTmd, 1, 1, 0, 0);
+    }
+    EM_SET_MOVE(pEm, 0, 0, 0);
+    if ((UCHAR)pEm->Type == 6) {
+        EM_SET_RTN(pEm, 1, 0x13, 0, 0);
+        pEm->Type &= 0xFF00;
+    }
+    Joint_move(pEm, pKan, pSeq, 0x400);
+    G.pPldamage_Em[pEm->Id - 0x10] = Em134_Pldamage;
+    G.pPldie_Em[pEm->Id - 0x10] = Em134_Pldie;
+}
 
 /* RE2 Em2a_Move: the motion routines are chosen by the low byte of Type */
 void Em34_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)

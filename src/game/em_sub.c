@@ -609,7 +609,64 @@ void Spd_get2(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
     pEm->Spd_base_z = z;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Spd_get_sub);
+void Spd_get_sub(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq_t, ULONG R_flg)
+{
+    ULONG Seq_w;
+    USHORT f_base;
+    UCHAR *pTop;
+    UCHAR *pKh;
+    SHORT x;
+    SHORT y;
+    SHORT z;
+    ULONG Raw_y;
+    LONG Ofs;
+    ULONG Frame;
+
+    /* pSeq_t / pKan are advanced in place below; pTop / pKh keep the start for the second record. pSeq_t is
+     * reused there too (its last use comes after pTop's, so cse keeps it canonical and the copies survive) */
+    pTop = (UCHAR *)pSeq_t;
+    pKh = (UCHAR *)pKan;
+    /* record address written inline at each use (a pointer local gives `addu base,idx`) */
+    Seq_w = *(ULONG *)(pTop + pEm->Sub_move_no * 8);
+    f_base = ((USHORT *)(pTop + pEm->Sub_move_no * 8))[2];
+    pSeq_t = (ULONG *)((UCHAR *)pSeq_t + (Seq_w >> 17) * 2);
+    Seq_w &= 0xFFFF;
+    if (R_flg != 0) {
+        Ofs = (Seq_w - pEm->Sub_move_cnt) * 2 - 2;
+    } else {
+        Ofs = pEm->Sub_move_cnt * 2;
+    }
+    pSeq_t = (ULONG *)((UCHAR *)pSeq_t + Ofs);
+    pKan = (ULONG *)((UCHAR *)pKan + (((KAN_HEAD *)pKan)->Bone_ofs & 0xFFFC));
+    Frame = *(UCHAR *)pSeq_t;
+    pKan = (ULONG *)((UCHAR *)pKan + (Frame + (SHORT)f_base) * 32);
+    x = ((SVECTOR *)pKan)->vx;
+    Raw_y = (USHORT)((SVECTOR *)pKan)->vy;
+    y = Raw_y;
+    z = ((SVECTOR *)pKan)->vz;
+    if (pEm->Sub_move_cnt == 0) {
+        *(ULONG *)&pEm->Spd_base_x = 0;
+        pEm->Spd_base_z = 0;
+        if (R_flg != 0) {
+            pEm->Spd_base_x = x;
+            pEm->Spd_base_y = y;
+            pEm->Spd_base_z = z;
+            pKan = (ULONG *)((UCHAR *)pKan + (((KAN_HEAD *)pKh)->Bone_ofs & 0xFFFC));
+            pSeq_t = (ULONG *)(pTop + (((USHORT *)(pTop + pEm->Sub_move_no * 8))[1] & 0xFFFE));
+            Frame = *(UCHAR *)pSeq_t;
+            pKan = (ULONG *)((UCHAR *)pKan + (Frame + ((SHORT *)(pTop + pEm->Sub_move_no * 8))[2]) * 32);
+            pEm->Spd_base_x += ((SVECTOR *)pKan)->vx;
+            Raw_y = (USHORT)((SVECTOR *)pKan)->vy;     /* the temp orders this load before the Spd_base_y one */
+            pEm->Spd_base_y += Raw_y;
+            pEm->Spd_base_z += ((SVECTOR *)pKan)->vz;
+        }
+    }
+    pEm->Spd_x = x - pEm->Spd_base_x;
+    pEm->Spd_y = y - pEm->Spd_base_y;
+    pEm->Spd_z = z - pEm->Spd_base_z;
+    *(ULONG *)&pEm->Spd_base_x = x | (y << 16);
+    pEm->Spd_base_z = z;
+}
 
 /* play the enemy sound coded in the top 4 bits of the current seq frame */
 void Em_seq_sound(ENEMY_WORK *pEm)
