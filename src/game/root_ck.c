@@ -154,8 +154,228 @@ ULONG Line_cross_ck(SHORT *pA, SHORT *pB)
     return 0;
 }
 
-/* RE2 kara_rootck2: best-path search (DFS over the block graph) from one area to the target area */
-INCLUDE_ASM("asm/nonmatchings/game/root_ck", kara_rootck2);
+typedef struct {
+    UCHAR pad0[8];
+    UCHAR Pt[16];                      /* 0x08 shared point with node n */
+    UCHAR Link[16];                    /* 0x18 */
+    USHORT Links;                      /* 0x28 neighbour node bits */
+    USHORT Cost_ofs;                   /* 0x2A */
+    UCHAR Mul;                         /* 0x2C */
+    UCHAR pad2D[3];
+} ROOT_NODE;
+typedef struct {
+    SHORT X;
+    SHORT Z;
+    USHORT W;
+    UCHAR Flg;
+    UCHAR pad7;
+} ROOT_PT;
+typedef struct {
+    LONG X;
+    LONG Z;
+    USHORT Open;
+    USHORT Visit;
+    USHORT Cost;
+    UCHAR Node;
+    UCHAR Pt;
+} ROOT_FRAME;
+/* RE2 kara_rootck2: best-path search (DFS over the block graph) from one area to the target area.
+ * Returns 0xFFFF0000 when no path, else Best << 16 | 1 (Root_ck ignores it). */
+LONG kara_rootck2(ENEMY_WORK *pEm, USHORT *pBlock, ROOT_REQ *pReq, LONG *pPos)
+{
+    SVECTOR V;
+    SVECTOR Dir;
+    SHORT A[4];
+    SHORT B[4];
+    SVECTOR Unused;                    /* never used; the frame layout needs it */
+    ROOT_FRAME Stack[16];
+    UCHAR Dist_to[16];
+    UCHAR Dist_from[16];
+    ROOT_NODE *pNode;
+    UCHAR *pCost;
+    UCHAR To;
+    UCHAR From;
+    SHORT Tx;
+    SHORT Tz;
+    LONG Best;
+    SHORT Bx;
+    SHORT Bz;
+    SHORT Wx;
+    SHORT Wz;
+    UCHAR Wp;
+    ROOT_NODE *pN;
+    ROOT_PT *pPt;
+    ROOT_PT *pP;
+    ROOT_PT *pQ;
+    ROOT_FRAME *pS;
+    USHORT Links;
+    ULONG i;
+    LONG Dx;
+    LONG Dz;
+    LONG C;
+    LONG D;
+    UCHAR Node;
+    UCHAR Next;
+    LONG R;
+    SHORT Sx;
+    SHORT Sz;
+    UCHAR Area;
+    UCHAR Out_link;
+
+    Best = 0x7FFFFFFF;
+    pNode = (ROOT_NODE *)((UCHAR *)pBlock + pBlock[1]);
+    To = pReq->To_area;
+    pN = &pNode[To];
+    Links = pN->Links;
+    pPt = (ROOT_PT *)((UCHAR *)pBlock + pBlock[2]);
+    pCost = (UCHAR *)pBlock + pBlock[3];
+    From = pReq->From_area;
+    Tx = pReq->Target_x;
+    Tz = pReq->Target_z;
+    pS = Stack;
+    i = 0;
+    while (Links) {
+        if (Links & 1) {
+            Dx = pPt[pN->Pt[(UCHAR)i]].X - Tx;
+            Dx *= Dx;
+            Dz = pPt[pN->Pt[(UCHAR)i]].Z - Tz;
+            Dist_to[(UCHAR)i] = SquareRoot0(Dx + Dz * Dz) >> 8;
+        }
+        Links >>= 1;
+        i++;
+    }
+    pN = &pNode[From];
+    Links = pN->Links;
+    i = 0;
+    while (Links) {
+        if (Links & 1) {
+            Dx = pPt[pN->Pt[(UCHAR)i]].X - pPos[0];
+            Dx *= Dx;
+            Dz = pPt[pN->Pt[(UCHAR)i]].Z - pPos[2];
+            Dist_from[(UCHAR)i] = SquareRoot0(Dx + Dz * Dz) >> 8;
+        }
+        Links >>= 1;
+        i++;
+    }
+    pS->Visit = 1 << From;
+    pS->Open = pN->Links;
+    pS->X = pPos[0];
+    pS->Z = pPos[2];
+    pS->Cost = 0;
+    pS->Pt = 0xFF;
+    pS->Node = From;
+    Next = From;
+    while (Stack[0].Open != 0 || pS != Stack) {
+        Node = Next;
+        C = 0;
+        if (Node == To) {
+            C = Dist_to[pS[-1].Node] + pS->Cost;
+            if (C < Best) {
+                Best = C;
+                pS[1].X = Tx;
+                pS[1].Z = Tz;
+                Bx = Stack[1].X;
+                Bz = Stack[1].Z;
+                Wp = Stack[1].Pt;
+                Wx = Stack[2].X;
+                Wz = Stack[2].Z;
+            }
+        }
+        if (pS->Open == 0 || C != 0) {
+            pS--;
+            Next = pS->Node;
+            continue;
+        }
+        Next = 0;
+        while (!((pS->Open >> Next) & 1))
+            Next++;
+        pS->Open &= ~(1 << Next);
+        if (Node == From) {
+            pS[1].Cost = Dist_from[Next];
+        } else {
+            pN = &pNode[Node];
+            i = pN->Link[pS[-1].Node] * pN->Mul;
+            /* the out link is read first (sched order keeps its address add ahead of the (UCHAR)i extend) */
+            Out_link = pN->Link[Next];
+            pS[1].Cost = *(pCost + pN->Cost_ofs + (UCHAR)i + Out_link);
+        }
+        pN = &pNode[Next];
+        pS[1].Cost += pS->Cost;
+        pS++;
+        pS->Visit = pS[-1].Visit | (1 << Next);
+        pS->Open = pN->Links & ~pS->Visit;
+        pS->Pt = pN->Pt[Node];
+        pS->X = pPt[pS->Pt].X;
+        pS->Z = pPt[pS->Pt].Z;
+        pS->Node = Next;
+    }
+    if (Best == 0x7FFFFFFF)
+        return 0xFFFF0000;
+    V.vx = Wx;
+    V.vz = Wz;
+    Root_step((VECTOR *)pPos, &V, pEm->Col.W0, &Dir);
+    pP = &pPt[Wp];
+    R = pP->W - pEm->Col.W0;
+    if (R < 0)
+        R = 100;
+    if (pP->Flg) {
+        A[0] = Bx;
+        A[2] = Bx;
+        A[1] = Bz + R;
+        A[3] = Bz - R;
+    } else {
+        A[0] = Bx + R;
+        A[1] = Bz;
+        A[2] = Bx - R;
+        A[3] = Bz;
+    }
+    B[0] = pPos[0] + Dir.vx;
+    B[1] = pPos[2] + Dir.vz;
+    B[2] = V.vx;
+    B[3] = V.vz;
+    if ((UCHAR)Line_cross_ck(A, B)) {
+        B[0] = B[0] - (USHORT)Dir.vx * 2;
+        B[1] = B[1] - (USHORT)Dir.vz * 2;
+        if ((UCHAR)Line_cross_ck(A, B)) {
+            pEm->Dest_x = Wx;
+            pEm->Dest_z = Wz;
+            return Best << 16 | 1;
+        }
+    }
+    if (pP->Flg) {
+        D = A[1] - pPos[2];
+        if ((ULONG)D < R * 2) {
+            pEm->Dest_x = Bx;
+            pEm->Dest_z = pPos[2];
+            return Best << 16 | 1;
+        }
+    } else {
+        D = A[0] - pPos[0];
+        if ((ULONG)D < R * 2) {
+            pEm->Dest_x = pPos[0];
+            pEm->Dest_z = Bz;
+            return Best << 16 | 1;
+        }
+    }
+    V.vx = Bx;
+    V.vz = Bz;
+    Root_step((VECTOR *)pPos, &V, pEm->Col.W0, &Dir);
+    Sx = -Dir.vx;
+    Sz = -Dir.vz;
+    Area = Guide_check(pPos[0] + Dir.vx, pPos[2] + Dir.vz, pEm->nFloor);
+    if (Area == From) {
+        if ((UCHAR)Guide_check(pPos[0] - Dir.vx, pPos[2] - Dir.vz, pEm->nFloor) == Area) {
+            pEm->Dest_x = Bx;
+            pEm->Dest_z = Bz;
+            return Best << 16 | 1;
+        }
+        Sx = Dir.vx;
+        Sz = Dir.vz;
+    }
+    pEm->Dest_x = Bx + Sx;
+    pEm->Dest_z = Bz + Sz;
+    return Best << 16 | 1;
+}
 
 /* step of Spd towards pT from pPos: pOut gets the normalised direction (z into vx, x into vz) * Spd */
 void Root_step(VECTOR *pPos, SVECTOR *pT, LONG Spd, SVECTOR *pOut)
