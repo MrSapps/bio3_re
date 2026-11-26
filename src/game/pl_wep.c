@@ -2874,7 +2874,64 @@ void Mag_set(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/pl_wep", Mag_down);
+void Mag_down(ENEMY_WORK *pEm)
+{
+    LONG Type;
+    PARTS_W *pP;
+    LONG Old_pos;
+    LONG Wk_pos;
+    SHORT Flg;
+
+    Type = (UCHAR)pEm->Type;
+    if (Type != 0) {
+        Type = Pl_wep_mag_type[Type - 1];
+        if (Type != 0) {
+            Type--;
+            pP = &pEm->pSin_parts_ptr[Pl_mag[Type].Parts_no];
+            if (pP->Be_flg & 1) {
+                Old_pos = pP->Old_x;
+                pP->Timer0 += 20;
+                pP->Workm.t[1] += pP->Timer0;
+                if (Old_pos < pP->Workm.t[1]) {
+                    if (pP->Timer1) {
+                        pP->Workm.t[1] = Old_pos;
+                        /* two-statement sets (REG_N_SETS 2): sched1 keeps the Timer3 load early and the andi/neg late */
+                        Flg = pP->Timer3;
+                        Flg &= 2;
+                        Wk_pos = pP->Timer0 / 2;
+                        Wk_pos = -Wk_pos;
+                        pP->Timer1--;
+                        pP->Timer0 = Wk_pos;
+                        if (Flg && (Rnd() & 1)) {
+                            pP->Old_y *= -1;
+                            pP->Old_z *= -1;
+                        }
+                        Snd_se_stad(0x10104, WORKM_POS_V(pP), 0, 0);
+                    } else {
+                        pP->Be_flg &= ~1;
+                    }
+                }
+                if (pP->Timer1) {
+                    if (pP->Timer3 & 1) {
+                        pP->Cdir_x = 0x100;
+                        RotMatrix(CDIR_SV(pP), PW_M(pP));
+                        MulMatrix2(PW_M(pP), &pP->Workm);
+                        pP->Workm.t[0] += pP->Old_y;
+                        pP->Workm.t[2] += pP->Old_z;
+                    }
+                    if (pP->Timer1) {
+                        return;
+                    }
+                }
+                pP->Cdir_x = 0x100;
+                RotMatrix(CDIR_SV(pP), PW_M(pP));
+                MulMatrix2(PW_M(pP), &pP->Workm);
+                pP->Workm.t[0] += pP->Old_y;
+                pP->Workm.t[2] += pP->Old_z;
+            }
+        }
+    }
+}
 
 void Pl_wep_eff_init(ENEMY_WORK *pEm)
 {
