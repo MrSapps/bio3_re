@@ -1,0 +1,14 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -843,8 +843,10 @@
+                 skip += 1
+                 if inst == next_instruction:
+                     op, *_ = inst.strip().split()
+-                    if op in load_mnemonics:
++                    if op in load_mnemonics and uses_at(inst):
+                         # allow for $at handling later in the script
++                        # (a plain load like `lw $2,16($sp)` is one instruction: it falls
++                        # through and gets the nop like any other single instruction)
+                         skip = 0
+                         break
+ 
