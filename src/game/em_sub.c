@@ -1408,9 +1408,183 @@ ESP_WORK *Esp_call_child(ESP_WORK *pParent, ULONG Id, ULONG Dir_size, MATRIX *pM
     return pEw;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_call);
+/* start effect Id (kind | sub << 8 | type << 24) on matrix pM; one work per move record, linked to the first */
+ESP_WORK *Esp_call(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd)
+{
+    ESP_DATA *pD;
+    ULONG *pData;
+    ULONG *pMove;
+    ESP_WORK *pEw;
+    ESP_WORK *p;
+    ULONG n;
+    ULONG Sz;
+    ULONG Ofs;
+    ULONG Ofs2;
+    ULONG c;
+    LIGHT_CUT_DATA *pL;
+    UCHAR Sub;
+    UCHAR Type;
+    LONG x, y, z;
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_kill);
+    Sub = Id >> 8;
+    Type = Id >> 24;
+    pD = Esp_data;
+    while (pD->Id != (Id & 0xFF)) {
+        if (++pD >= &Esp_data[32])
+            break;
+    }
+    pMove = pD->pMove;
+    pData = pD->pData;
+    pEw = Esp_work_get();
+    if (pEw == ESP_NONE)
+        return pEw;
+    *(ULONG *)&pEw->Id = Id;
+    *(ULONG *)&pEw->Dir_y = Dir;
+    if (pPos != NULL) {
+        x = pPos->vx; y = pPos->vy; z = pPos->vz;
+        pEw->Base[0] = x;
+        pEw->Base[1] = y;
+        pEw->Base[2] = z;
+    }
+    pEw->pEm = G.pEm;
+    pEw->pMat = pM;
+    Memcpy(&pEw->Workm, pM, 0x20);
+    *(ULONG *)&pEw->Clut = pData[1] + ((Type & 0xF) << 6);
+    pEw->UnkB3 = Type & 0xF;
+    pEw->pSeq = (SSEQUENCE *)(pData + 2);
+    pEw->pSprg = (SPR_GP *)(pData + *(USHORT *)pData * 2 + 2);
+    if (pSpd != NULL) {
+        x = *(ULONG *)&pSpd->vx; z = pSpd->vz;
+        *(ULONG *)&pEw->Rot[0] = x;
+        pEw->Rot[2] = z;
+    }
+    pMove = (ULONG *)((UCHAR *)pMove + ((USHORT *)pMove)[Sub & 0xFF] * 4);
+    n = *pMove++;
+    Sz = *pMove++;
+    pEw->pUnkCC = pMove;
+    Memcpy(pEw, pMove, 0x24);
+    pEw->Be_flg = pEw->Attr;
+    pEw->Tpage |= pEw->Unk16;
+    pEw->Seq_no = pEw->Unk0F;
+    Ofs = pEw->Seq_no * 8;
+    pEw->Timer = ((SSEQUENCE *)((UCHAR *)pEw->pSeq + Ofs))->Time;
+    Esp_pos_matrix(pEw);
+    x = pEw->Pos.vx; y = pEw->Pos.vy; z = pEw->Pos.vz;
+    pEw->Old.vx = x;
+    pEw->Old.vy = y;
+    pEw->Old.vz = z;
+    if (pEw->Attr & 4) {
+        pL = Get_light_cut(&pEw->Pos.vx);
+        Set_light_pos(&pEw->Pos);
+        c = (COLORMATRIX.m[0][0] + COLORMATRIX.m[0][1] + COLORMATRIX.m[0][2]) >> 4;
+        c += pL->Ambient[0] >> 1;
+        c <<= pL->Mag - 1;
+        if (c > 0xA0) c = 0x90;
+        if (c < 0x60) c = 0x60;
+        pEw->Col[0] = c;
+        c = (COLORMATRIX.m[1][0] + COLORMATRIX.m[1][1] + COLORMATRIX.m[1][2]) >> 4;
+        c += pL->Ambient[1] >> 1;
+        c <<= pL->Mag - 1;
+        if (c > 0xA0) c = 0x90;
+        if (c < 0x60) c = 0x60;
+        pEw->Col[1] = c;
+        c = (COLORMATRIX.m[2][0] + COLORMATRIX.m[2][1] + COLORMATRIX.m[2][2]) >> 4;
+        c += pL->Ambient[2] >> 1;
+        c <<= pL->Mag - 1;
+        if (c > 0xA0) c = 0x90;
+        if (c < 0x60) c = 0x60;
+        pEw->Col[2] = c;
+        pEw->Flg2 |= 0x200;
+    } else {
+        pEw->Col[0] = 0x80;
+        pEw->Col[1] = 0x80;
+        pEw->Col[2] = 0x80;
+    }
+    pEw->Pos.pad = pEw->pEm->Pos_y;
+    if (pEw->Attr & 0x10)
+        Esp_hit_ck(pEw);
+    while (--n != 0) {
+        p = Esp_work_get();
+        if (p == ESP_NONE)
+            return p;
+        Memcpy(&p->Be_flg, &pEw->Be_flg, 0xB0);
+        pMove += Sz * 9;
+        p->pLink = pEw;
+        Sz = *pMove++;
+        p->pUnkCC = pMove;
+        Memcpy(p, pMove, 0x24);
+        pEw->Be_flg = pEw->Attr; /* sic: the parent's Be_flg, not p's */
+        p->Tpage |= p->Unk16;
+        p->Seq_no = p->Unk0F;
+        Ofs2 = p->Seq_no * 8;
+        p->Timer = ((SSEQUENCE *)((UCHAR *)p->pSeq + Ofs2))->Time;
+    }
+    return pEw;
+}
+
+/* kill effects: Id >> 24 = 0: by effect id (low 16 bits; kind byte only if bits 8..15 are 0xFF), on pM if
+ * pM != NULL; 1: by Unk2A == (Id >> 16) & 0xFF; 2: all */
+void Esp_kill(ULONG Id, MATRIX *pM)
+{
+    ESP_WORK *pTop;
+    UCHAR Sub;
+    UCHAR No;
+    ULONG i;
+    ESP_WORK *pEw;
+    USHORT Key;
+    LONG Kind;
+
+    Sub = Id >> 16;
+    pTop = Esp;
+    Kind = Id >> 24;
+    Key = Id;
+    switch (Kind) {
+    case 0:
+        if ((Key & 0xFF00) != 0xFF00) {
+            if (pM != NULL) {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.W == Key && pEw->pMat == pM) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            } else {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.W == Key) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            }
+        } else {
+            No = Key;
+            if (pM != NULL) {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.B[0] == No && pEw->pMat == pM) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            } else {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.B[0] == No) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            }
+        }
+        break;
+    case 1:
+        for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+            if (pEw->Unk2A == Sub) {
+                pEw->Be_flg = 0;
+            }
+        }
+        break;
+    case 2:
+        for (i = 0; i < 96; i++, pTop++) {
+            pTop->Be_flg = 0;
+        }
+        break;
+    }
+}
 
 /* set the four routine bytes (Rtn01 = Routine_0 | Routine_1 << 16, Rtn23 = Routine_2 | Unk03 << 16) of the live
  * effects of kind Id, only those attached to pM unless pM is NULL (RE2 Esp_ctrl sets Routine0 alone) */

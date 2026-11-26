@@ -1135,3 +1135,58 @@ Near misses (agentQ/best):
   hill-climbs over both regions and pM temporaries found nothing.
 - Tools: agentQ/hill.py (statement-order hill-climb, absolute perm dir), ds.sh (difflib score with macro expansion),
   adiff.py (difflib-aligned target/ours listing), rtl.py (compact RTL listing of one function from a -d dump).
+
+## Matching round agentT (worktree clean/yD; drafts in the session scratchpad agentT/best)
+Matched: em_sub Esp_call, Esp_kill; joint J_seq (first C version, from RE2 JOINT.C J_seq). psp.h: RAIN_WORK 0x12/0x16/0x18/0x1A
+named Spd_y / Level (USHORT, lhu in Rain_move) / Spd_x / Spd_z.
+Rules learnt:
+- Sweep local and parameter types before anything else: agentT/tsweep.py DRAFT PERMDIR OUT [rounds] does a greedy
+  coordinate descent over every `    TYPE name;` local (PARAMS=1 also the scalar parameters; DL=1 scores with difflib,
+  better when an extra insn shifts everything). Esp_call's 2 sched words were `UCHAR Sub, Type` (srl stays at the top
+  of the block, the andi moves to the use); Esp_kill went 42 -> 1 with `USHORT Key = Id` (the copy is what puts Id in
+  t0 and keeps the loop counter in v1), the last word was the byte loop reading the `No` copy like its pM twin.
+  For a parameter sweep replace the function's prototype in base.c with an unprototyped `void f();` first.
+- mult operand order vs register choice: the FSF cc1 (~/dev/gcc281/build-psx/cc1) reproduces SN's allocation in
+  functions whose only globals are loads; compare its output first. In J_seq FSF showed the registers were already
+  right and only the `mult` operands were swapped; computing one operand into a fresh single-block temp
+  (`Frame = Mot[2] + *pSeq; ... (Rec_sz >> 18) * Frame`) gives the target's (mult Rec Frame) without changing the
+  local-alloc order (writing `R * X` inline swapped the registers instead).
+- A cse'd address beats a pointer variable when the target keeps it in a scratch reg: J_seq reads
+  `((USHORT *)((UCHAR *)Seq_t_ptr + Move_no * 8))[2]` and `[0]` inline (one t0 temp that later becomes pP_base's
+  register); a `pMot` variable inherited Seq_t_ptr's a1.
+- Unrolled 8-per-pass decoders: write the pass as a goto loop over `pP[0..7]` / `pRot[0..8]` with `pP += 8; pRot += 9`
+  (target re-materialises the mask constants each pass); `if (--n == 0) goto end;` after each part.
+- A goto loop whose body is wrapped in one `do { } while (0)` (label before the do) has no loop.c hoisting but loop
+  depth 1 for its refs (J_seq hokan loop: fixed pP_base t0 / Dx a2 at once).
+- An existing scalar reused for a pointer (J_seq `Dx = (LONG)&pP_base->Cdir_x; gte_stsv(Dx)`) moved it from v0 to the
+  target's a2; reusing a variable that is live elsewhere is the cheap way to make a temp global.
+- Door_init: the variable holding the TIM sum is a function-wide one that is reused later (the end-of-function `pAot`),
+  and the `&Door_data->pTim` pointer lives in a variable that later carries Mapping_md's a2 argument (Clut): that is what
+  puts them in a1/a2 (global-alloc copy preferences). Reading `pTmd` into a temp before the Ctp store fixes the load
+  order; `pAot = *ppTim; pAot += Door_data;` (two statements) loads straight into a1.
+Near misses (agentT/best/<func>.c):
+- door Door_init (Door_init_3.c, 3 words; uses `Clut` for &Door_data->pTim and pAot for the sum, both reused, so it
+  needs a cleaner variable story before committing): sched1 hoists the Mapping_tim argument copy `a0 = pAot` above the
+  pPrepacket store, then local-alloc optimize_reg_copy_1 rewrites the pPrepacket and pTim stores to use a0. The target
+  keeps both stores on a1 with `move a0,a1` after the first store. FSF cc1 reproduces ours (debuggable); do/while
+  barriers around the stores (36 placements) and a pAdr copy variable did not help.
+- door DoorSort (DoorSort_ds28.c, DL 28, agentL's draft with split decls): needs global-alloc priorities
+  pOt? > pPacket > pVert > pPrim > pDw > n > I0 > I1 with I2/pNorm spilled. pVert has 7 refs (0.108) vs pPrim 9 (0.200);
+  wrapping the two 0x400-branch pVert copies in do/while(0) gives pVert 0.208 (right) but lifts I1/I2 above pDw/n.
+  Type sweep: nothing.
+- em_sub Rot_neck (Rot_neck_68.c, 68 words, from 61 dscore): top order fixed by Own_neck_no/pOwn_parts first and the
+  enemy target read inline (`*WORKM_POS_V(&pNeck_enemy->pSin_parts_ptr[Enemy_neck_no])`, pOwn_p after it), and the
+  0x8000 test on a fresh LONG temp of Unk166 (andi on the loaded register). Left: own-offset sll chain is scheduled
+  after the Neck_tgt block copy (target before), Vel/Free_dif12 a2/a0 swap in the y and z blends, Dif expression order.
+- trans Esp_trans_3d (Esp_trans_3d_18.c, 18 words): u/v/u1/v2 of the uv block reuse Otz/D2/Px/Py (makes them global, so
+  Def_size keeps a2 like the target); top statement order from a permutation sweep. Left: the Px/Py products now live in
+  t0/a1 (target: mflo into v1/v0, i.e. block-local products), Otz sum/pOt index operand order.
+- trans Esp_trans_main (Esp_trans_main_ds51.c, DL 51): Def_size must stay in a2; local-alloc gives a2 to a loop temp
+  (u1) because the target's loop has more block-local values live there. Reuse/type sweeps did not reach it.
+- em_sub Kage_work9_sort (Kage_work9_sort_ds89.c, DL 89 from 103 with `USHORT j`, `signed char Hx`): still the inner
+  loop hoisting (a goto inner loop removes it but spills differently, 130).
+- psp Rain_move (Rain_move_ds126.c, DL 126, first draft; needs sca.h, esp.h and `extern UCHAR D_8009DE2C` in psp.c):
+  two 100-drop loops; the target spills pTop (0x24) and the respawn count (0x20), keeps 0xFFFF0000 in s7 (assigned before
+  each loop) and 0x8000 in fp in loop 2 only. Our loops strength-reduce pV+4/pV+8 address givs (target: a copy of pV in
+  a2 used for the loads, stores and Sca_get_ground). Loop 1 as a goto loop is closer; x+Dx / z+Dz are computed before
+  the first range test.

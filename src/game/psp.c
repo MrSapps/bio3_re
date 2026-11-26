@@ -181,7 +181,7 @@ void Rain_init(SHORT Arg)
     } while (--i != 0);
     pW->Unk20 = 0;
     pW->Unk21 = 0;
-    pW->Unk16 = Arg;
+    pW->Level = Arg;
     Rain_drop_set();
     G.Status_flg |= 0x1000;
 }
