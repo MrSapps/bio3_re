@@ -205,6 +205,10 @@ UCHAR Pl_wep_eff_parts_cnt(void);
 ENEMY_WORK *Em_near_dir_ck(VECTOR *pPos, SHORT Dir, ULONG LL, SHORT Lim);
 void Pl_wep_eff_move(ENEMY_WORK *pEm);
 ULONG Parts_near_get(ENEMY_WORK *pEm, MATRIX *pM, UCHAR *pTbl);
+
+extern HIT_ATTR Pl_wep_blast_at;            /* 0x8009DD9C rocket / grenade explosion */
+extern HIT_ATTR Pl_wep_burn_at;             /* 0x8009DDB0 smaller blast while a round burns (Timer2) */
+extern UCHAR Pl_wep_near_parts[];           /* 0x8009DBF4 part list per enemy for Parts_near_get */
 LONG Dir_limit(LONG Dir, LONG Base, LONG Lim, SHORT *pDir);
 void Vec_dir_get(SVECTOR *pV, SVECTOR *pOut);
 SHORT Get_dir_xz(LONG X, LONG Z);

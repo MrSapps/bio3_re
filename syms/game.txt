@@ -854,3 +854,6 @@ Chaser_zone_30E_0 = 0x8009E504;
 Chaser_zone_30E_1 = 0x8009E518;
 Pld_no = 0x8009CD10;
 pPl_hand_tmd = 0x8009CD34;
+Pl_wep_near_parts = 0x8009DBF4;
+Pl_wep_blast_at = 0x8009DD9C;
+Pl_wep_burn_at = 0x8009DDB0;
