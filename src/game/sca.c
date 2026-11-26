@@ -285,7 +285,119 @@ ULONG Sca_hit_box2(COL_OBJ *pObj, LONG R, SCA_DATA *pT)
 }
 
 /* hit routine for shapes 1/5/7/8: box push (Type & 0xF00 == 0 only sets Hit_flg 0x80), inside case goes to Sca_hit_box2; RE2 Sca_hit_box */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_box);
+ULONG Sca_hit_box(COL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3)
+{
+    SCA_WORK *pW;
+    LONG X0;
+    LONG Z0;
+    LONG X;
+    LONG Z;
+    LONG Ox;
+    LONG Oz;
+    LONG Dx;
+    LONG Dz;
+    LONG W;
+    LONG D;
+    LONG Gx;
+    LONG Span_x;  /* also the X push distance */
+    LONG Span_z;  /* also the Z push distance */
+    LONG Gz;      /* also the pushed edge position */
+    ULONG Side;
+    LONG Half_w;
+    LONG Mx;
+    LONG Mz;
+    LONG Rx;
+    LONG Rz;      /* also the move direction on each axis */
+    LONG Half_d;
+    ULONG Wall;
+
+    Wall = pT->Type & 0xF00;
+    pW = &Sca_work;
+    if (!Wall) {
+        pObj->Hit_flg |= 0x80;
+        return 0;
+    }
+    Mz = 0;
+    Mx = Mz;
+    X0 = pT->X0;
+    Z0 = pT->Z0;
+    if (pT->Type & 0x1000) {
+        X = pW->X;
+        Z = pW->Z;
+        Dx = pObj->Old_x - X0;
+        Dz = pObj->Old_z - Z0;
+        Ox = (Dx - Dz) * 181 >> 8;
+        Oz = (Dx + Dz) * 181 >> 8;
+        Ox += X0;
+        Oz += Z0;
+    } else {
+        Ox = pObj->Old_x;
+        Oz = pObj->Old_z;
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    }
+    pW->Old_x = Ox;
+    pW->Old_z = Oz;
+    Gx = Ox + pObj->W0 - pT->X0;
+    W = pT->X1 - pT->X0;
+    Span_x = pObj->W0 * 2 + W;
+    D = pT->Z1 - pT->Z0;
+    Span_z = pObj->D0 * 2 + D;
+    Side = ((ULONG)Gx >= (ULONG)Span_x) << 1;
+    Gz = Oz + pObj->D0 - pT->Z0;
+    Side |= (ULONG)Gz >= (ULONG)Span_z;
+    if (Gx == -1 || Gx == Span_x + 1) {
+        Side = 2;
+    }
+    if (Gz == -1 || Gz == D + pObj->D0 * 2 + 1) {
+        Side = 1;
+    }
+    if (Side == 0) {
+        return Sca_hit_box2(pObj, R, pT);
+    }
+    if (Side & 2) {
+        Rz = X - Ox;
+        Half_w = W / 2;
+        Span_x = pObj->W0 + Half_w + 1;
+        Gz = pT->X0 + Half_w;
+        if (Rz >= 0) {
+            Gz -= Span_x;
+        } else {
+            Gz += Span_x;
+        }
+        Mx = Gz - X;
+        if ((Mx < 0 ? -Mx : Mx) > pObj->W0 * 2) {
+            goto slide;
+        }
+    }
+    if (Side & 1) {
+        Rz = Z - Oz;
+        Half_d = D / 2;
+        Span_z = pObj->D0 + Half_d + 1;
+        Gz = pT->Z0 + Half_d;
+        if (Rz >= 0) {
+            Gz -= Span_z;
+        } else {
+            Gz += Span_z;
+        }
+        Mz = Gz - Z;
+        if ((Mz < 0 ? -Mz : Mz) > pObj->W0 * 2) {
+        slide:
+            pObj->Hit_flg |= 0x100;
+            return 1;
+        }
+    }
+    if (pT->Type & 0x1000) {
+        Rx = (Mx + Mz) * 181 >> 8;
+        Rz = (Mz - Mx) * 181 >> 8;
+    } else {
+        Rx = Mx;
+        Rz = Mz;
+    }
+    pObj->Pos_x += Rx;
+    pObj->Pos_z += Rz;
+    return 1;
+}
 
 /* apply the box push Dx/Dz: pick the axis from the move direction with a slide limit (W0 capped at 400, else Hit_flg 0x100), rotate back for 45-degree shapes; RE2 Sca_hosei_box */
 ULONG Sca_hosei_box(COL_OBJ *pObj, LONG Dx, LONG Dz, SCA_DATA *pT)
