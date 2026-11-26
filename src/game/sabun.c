@@ -11,6 +11,12 @@
 /* SABUN.C has no prototype for Rot_vector (sub.h): the direction is passed as an int, unconverted */
 void Rot_vector();
 
+#define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
+#define gte_ldsv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 2(%0); lhu $14, 4(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
+#define gte_ldlvl(r0) __asm__ volatile("lwc2 $9, 0(%0); lwc2 $10, 4(%0); lwc2 $11, 8(%0)" : : "r"(r0))
+#define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
+#define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 #define RND() ((signed char)Rnd())
 
 /* RE2 Sa_dat_set: links the morph section of an EMD to the parts flagged in its bit mask (PARTS_W.pUnk98) */
@@ -111,7 +117,86 @@ void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP)
 }
 
 /* interpolates the parts' joint offsets between two morph keys with the GTE (gpf/gpl) */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_joint_blend);
+void Sa_joint_blend(ENEMY_WORK *pEm, PARTS_W *pP)
+{
+    ULONG *pHead;
+    SHORT *pBase;
+    SHORT *pS;
+    SHORT *pFrom;
+    LONG *pPos;
+    PARTS_W *pParts;
+    PARTS_W *pW;
+    ULONG *pSa;
+    ULONG n;
+    ULONG i;
+    ULONG Cnt;
+    ULONG k;
+    ULONG Key;
+    ULONG Rate;
+    ULONG Inv;
+    ULONG j;
+    ULONG Shape_sz;
+    SVECTOR Tmp;
+
+    j = 1;
+    pHead = pEm->pUnk118;
+    pSa = pP->pSa_dat_head;
+    pBase = (SHORT *)(pHead[1] + (LONG)pHead);
+    pParts = pEm->pSin_parts_ptr;
+    n = (USHORT)((KAN_HEAD *)pEm->pKan_t_ptr)->Rec_sz;
+    if (pP->Parts_no + 1 < n) {
+        Cnt = ~-n;                     /* n - 1; written so cse does not fold the first Cnt-- into n - 2 */
+        if (Cnt--) {
+            pFrom = pBase + 3;
+            pPos = &pParts[1].Pos_z;
+        loop1:
+            pPos[-2] = pFrom[0];
+            pPos[-1] = pFrom[1];
+            pPos[0] = pFrom[2];
+            pFrom += 3;
+            pPos += sizeof(PARTS_W) / sizeof(LONG);
+            if (Cnt--)
+                goto loop1;
+        }
+    }
+    k = ((USHORT *)pSa)[4];
+    Shape_sz = pHead[2];
+    do {
+        Key = pSa[j + 2];
+        Rate = Key & 0xFFFF;
+        Inv = 0xFFF - Rate;
+        Key = (ULONG)pBase + Shape_sz * (Key >> 16);
+        pW = pParts + 1;
+        i = n - 1;
+        if (i--) {
+            pS = (SHORT *)Key + 3;
+        loop2:
+            do {                       /* do/while(0) raises Inv's allocation priority (t0) */
+                gte_lddp(Inv);
+            } while (0);
+            gte_ldlvl(&pW->Pos_x);
+            gte_gpf12();
+            Tmp.vx = pS[0];
+            Tmp.vy = pS[1];
+            Tmp.vz = pS[2];
+            gte_lddp(Rate);
+            gte_ldsv(&Tmp);
+            gte_gpl12();
+            gte_stlvl(&pW->Pos_x);
+            do {                       /* nested do/while(0) raise pW's priority over i (a1/a2) */
+                do {
+                    do {
+                        pW++;
+                    } while (0);
+                } while (0);
+            } while (0);
+            pS += 3;
+            if (i--)
+                goto loop2;
+        }
+        j++;
+    } while (--k != 0);
+}
 
 /* collision pass of a COL_OBJ (radius R) over the room's SCA shapes whose Id has a bit of Tbl, in its area
  * and floor range: shape 5 goes through Sca_hit_line, the others through Sca_rtn_tbl (45 degree shapes test the
