@@ -1298,3 +1298,45 @@ Near misses (agentS/best):
   Link first every register is right but the adds are in the wrong order; with (UCHAR)i first the order is right but
   the (UCHAR)Next temp gets a1 (its life overlaps the a0 local-alloc gave the andi). ~300 forms, type and do/while
   sweeps tried.
+## Matching round agentAA (worktree clean/zE; drafts in the session scratchpad agentAA/best)
+Matched: main Swap_Cbuff (main.c now includes movie.h, player.h), pl_wep Mag_down, player pl_mv07 (player.c includes
+spl_auto.h).
+Rules learnt:
+- combine keeps REG_N_SETS when it folds an in-place i2 (`p += 17; x = *p;` -> `x = 17[p]`, combine.c ~2421 skips the
+  decrement when i2dest is in i2src). The pointer is then a two-set pseudo with one remaining set, so sched1 gives its
+  load no birthing boost and leaves it in LUID order. Swap_Cbuff: `ppRoom = (ULONG **)pG->pRoom; ppRoom += 17; pScrl =
+  *ppRoom;` keeps the pRoom load above the RECT block move (the movstrsi_internal parallel, split into lwl/lwr only after
+  reload), which also gives it v1 (it overlaps the rodata %hi in v0). No do/while needed, so sched2 is free.
+- Two-statement sets for scheduling: Mag_down needed the Timer3 load early and its andi late, and the negate late:
+  `Flg = pP->Timer3; Flg &= 2;` (SHORT Flg) and `Wk_pos = pP->Timer0 / 2; Wk_pos = -Wk_pos;`. Neither dest is
+  boosted, so sched1 keeps LUID order, and sched2's LUID tie-break then puts the andi between neg and the Timer0
+  store. Old_pos had to become single-set again (Timer3 moved to its own variable) so its Old_x load is boosted below
+  the Workm.t[1] load. A 192-order perm over the block (agentAA/md2) found it.
+- One variable carrying several values in one hard reg: pl_mv07's a2 holds the Rot loop count, the second
+  Direction_ck result and the Out count. Merging all three into `i` makes it one long global pseudo with a priority below
+  the Out-pointer giv, so the giv takes a1 first and the loop-1 invariant (m + 8) gets a1 too. Merging only two of them
+  was worse (15/23). When a register looks "too high", check which other values the target keeps in the same register
+  and try one variable for all of them. Also `UCHAR m` (tsweep).
+- Do/while weighting: inside the main loop every ref already counts 2 (loop_depth), so one do/while(0) adds only +1 per
+  ref; Oba_em_overlap_ck's Z needs exactly that (0.421 -> 0.526 vs Shape 0.522) but every place to put it either moves
+  the loads (barrier) or also raises W.
+Near misses (agentAA/best, same drafts as agentU unless noted):
+- snd Snd_bgm_play_ck (2): proven stuck at sched2. All block-0 priorities are 1 (no loads), so sched2 picks between
+  `addiu s0` and the CD lui by LUID, and the target order needs LUID(CD hi) > LUID(s0 lo). Then in the sched1 output
+  (the local-alloc input) the CD hi is born after the Snd_work hi died, and local-alloc gives it v0 unless another
+  local in v0 is live there. Item_get_ck (sce2.c, matched) gets the same lui v0 / addiu / lui v1 pattern from a local
+  (pData, lw v0) live across the second hi. Snd's block 0 has no such value in the final code, so it would have to be
+  an insn deleted after local-alloc (no-op move or reload_cse). 96 orders of p/pCd/i with do/while barriers, direct
+  global access, and second `p = &Snd_work` sets (cse deletes them) all score >= 2.
+- spl Spl_wep_set (12): pP (one var for [4] and [15], refs 12/len 27, prio 1.33) takes a1 before pHand (3/15, 0.2).
+  pHand must be global (in the arm it is a local qty and takes a0, which moves pEm: 85). Target needs pHand allocated
+  first, or pP with a copy preference for a2, or a1 in pP's regs_someone_prefers; nothing in the function supplies any
+  of these (no calls, single caller passing only pEm). Separate p4/pP variables make [15] local (85).
+- oba Oba_em_overlap_ck (11): SN prio (agentAA/prio.sh): Shape 143 refs 6 len 23 (0.522) -> t0, Z 94 refs 4 len 19
+  (0.421) -> t1; target is the other way. `do { X = Z + W; } while (0)` fixes Shape/Z but raises W's priority and rotates
+  s2..s4 (20). A do/while around the Z load fixes nothing because the barrier hoists X/Z above the Floor_lo load (87). The
+  last-block X1 (v1, ours) / X0 (a0) swap is local-alloc order (X1 8/len beats X0 3/len). The target result would follow
+  if X1/Z1 were global pseudos (allocated after X0/Z0 locals) but no credible reuse found (Be/Area/Tbe reuse
+  changes the W*2 hoist: 96-139). 180 load/add orders of that block: all 11.
+- cd Cd_link_search (agentK 54), oba Oba_ent_box_set (agentM 45 ds / 135 words), sce_at Sce_at_check (96 ds): not
+  worked on beyond scoring.

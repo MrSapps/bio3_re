@@ -15,6 +15,8 @@
 #include "sld.h"
 #include "snd.h"
 #include "status.h"
+#include "movie.h"
+#include "player.h"
 
 /* GTE inline macros (PsyQ inline_c.h with the DMPSX-converted opcodes) */
 #define gte_lddp(r0) __asm__ volatile("mtc2 %0, $8" : : "r"(r0))
@@ -131,7 +133,123 @@ int main(void)
 }
 
 /* RE2 Swap_Cbuff: waits for the frame, swaps the draw/display buffers and starts drawing */
-INCLUDE_ASM("asm/nonmatchings/game/main", Swap_Cbuff);
+void Swap_Cbuff(void)
+{
+    tagMAIN *pMain;
+    tagGLOBAL *pG;
+    ULONG *pAdr;
+    ULONG *pScrl;
+    LONG y;
+    LONG h;
+    LONG y2;
+    ULONG i;
+
+    pMain = &Main;
+    pG = &G;
+    if (Live_sel.Negate) {
+        Scrn_negate();
+    }
+    DrawSync(0);
+    while (Vsync_cnt < pMain->Vloop) {
+    }
+    Vsync_cnt = 0;
+    PutDrawEnv(&pMain->pDb->Draw);
+    PutDispEnv(&pMain->pDb->Disp);
+    pG->Unk2111 = pMain->pDb->Disp.disp.y != 0;
+    if (!(G_status_flg & 0x40) && pG->Cut_no != pG->Next_cut_no) {
+        pMain->Unk18E = 1;
+    }
+    if (G.System_flg & 0x10000) {
+        Movie();
+    }
+    if (pMain->Bg_mode == 2) {
+        if (pMain->Unk18E) {
+            Bg_draw();
+            G.Status_flg |= 0x400000;
+            if (pMain->Db[0].Draw.ofs[1] == 0) {
+                SetDefDrawEnv(&pMain->Db[0].Draw, 0, 240, 320, 240);
+                SetDefDrawEnv(&pMain->Db[1].Draw, 0, 0, 320, 240);
+                SetDefDispEnv(&pMain->Db[0].Disp, 0, 0, 320, 240);
+                SetDefDispEnv(&pMain->Db[1].Disp, 0, 240, 320, 240);
+            } else {
+                SetDefDrawEnv(&pMain->Db[0].Draw, 0, 0, 320, 240);
+                SetDefDrawEnv(&pMain->Db[1].Draw, 0, 240, 320, 240);
+                SetDefDispEnv(&pMain->Db[0].Disp, 0, 240, 320, 240);
+                SetDefDispEnv(&pMain->Db[1].Disp, 0, 0, 320, 240);
+            }
+            pMain->Db[1].Draw.dfe = 1;
+            pMain->Db[0].Draw.dfe = 1;
+            pMain->Db[1].Draw.dtd = 0;
+            pMain->Db[0].Draw.dtd = 0;
+        } else {
+            RECT Rect = {0, 0, 320, 240};
+            ULONG **ppRoom;
+
+            pAdr = (ULONG *)0x8019C000;
+            /* the room header read as a pointer table, [17] = pUnk44: combine folds the in-place add into the
+               load but the pointer keeps two sets, so sched1 leaves the pRoom load early (no birthing boost) */
+            ppRoom = (ULONG **)pG->pRoom;
+            ppRoom += 17;
+            pScrl = *ppRoom;
+            if (pMain->Unk191) {
+                pAdr = (ULONG *)0x8019C014;
+            }
+            if (pG->Scrl_y >= 240) {
+                pG->Scrl_y = -239;
+            }
+            if (pG->Scrl_y < -239) {
+                pG->Scrl_y = 239;
+            }
+            y = pMain->pDb->Draw.ofs[1];
+            if (G.Status_flg & 0x4000) {
+                SetGeomOffset(160, pG->Scrl_y);
+                y2 = pG->Scrl_y;
+                if (y2 < 0) {
+                    h = -y2;
+                    Rect.y = y;
+                    Rect.h = y2 + 240;
+                    LoadImage(&Rect, pAdr + h * 160);
+                    Rect.y = y + 240 - h;
+                    Rect.h = h;
+                    LoadImage(&Rect, pScrl);
+                } else {
+                    h = y2;
+                    Rect.y = y + h;
+                    Rect.h = 240 - h;
+                    LoadImage(&Rect, pAdr);
+                    Rect.y = y;
+                    Rect.h = h;
+                    LoadImage(&Rect, pScrl + (240 - h) * 160);
+                }
+            } else {
+                SetGeomOffset(160, 120);
+                Rect.y = y;
+                LoadImage(&Rect, pAdr);
+            }
+        }
+    }
+    if (pMain->Bg_mode == 1) {
+        SetTile(&pMain->pDb->Bg_clr);
+        AddPrim(pG->pOt2 + 7, &pMain->pDb->Bg_clr);
+    }
+    DrawOTag(pG->pOt2 + 7);
+    if (pG->Ot_sub_num) {
+        i = pG->Ot_sub_num;
+        do {
+            if (!(G.Unk246C & 0x80000000)) {
+                pG->pOt_sub[pG->Cbuf_id][i][7] = 0xFFFFFF;
+            }
+            DrawOTag(pG->pOt_sub[pG->Cbuf_id][i] + 0x3FF);
+        } while (--i);
+    }
+    if (G.Unk246C >= 0) {
+        pG->pOt1[7] = 0xFFFFFF;
+    }
+    DrawOTag(pG->pOt1 + 0x3FF);
+    DrawOTag(pG->pOt0 + 7);
+    pMain->Unk18E = 0;
+    pG->Cbuf_id ^= 1;
+}
 
 /* inverts the colours of the displayed frame in VRAM (Swap_Cbuff, while Live_sel is set) */
 void Scrn_negate(void)
