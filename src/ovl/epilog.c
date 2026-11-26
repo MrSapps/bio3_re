@@ -236,7 +236,41 @@ void Epilog_exit(void)
 }
 
 /* draws the background tpage, the cursor sprite (flag 1, brightness pulse) and the unlocked epilogue pages */
-INCLUDE_ASM("asm/nonmatchings/ovl/epilog", Epilog_draw);
+void Epilog_draw(void)
+{
+    /* unused, but its %hi(Epilog_work) survives cse and is shared with pWk's set below: that is what puts both
+       luis first (the do/while barrier then keeps pWk's %lo after G's) */
+    EPI_WORK *pUnused = &Epi_work;
+    tagGLOBAL *pG;
+    EPI_WORK *pWk;
+    DR_TPAGE *pTp;
+    SPRT *pSp;
+    ULONG i;
+    USHORT *pPos;
+
+    pG = &G;
+    do {
+        pWk = &Epi_work;
+    } while (0);
+    if (Flg_ck(pWk->u.Flg, 1)) {
+        pTp = &pWk->Tpage[pG->Cbuf_id];
+        AddPrim(pG->pOt0 + 1, pTp);
+        if (Flg_ck(pWk->u.Flg, 2)) {
+            pSp = &pWk->Cursor[pG->Cbuf_id];
+            pPos = Epi_page_pos[pWk->u.s.Cursor];
+            pSp->x0 = pPos[0];
+            pSp->y0 = pPos[1];
+            pSp->r0 = pWk->Kido + 0x60;
+            pSp->g0 = pWk->Kido + 0x60;
+            pSp->b0 = pWk->Kido + 0x60;
+            AddPrim(pTp, pSp);
+        }
+        pSp = &pWk->Page[pG->Clear_cnt][pG->Cbuf_id];
+        for (i = pG->Clear_cnt; i < 8; i++, pSp += 2) {
+            AddPrim(pTp, pSp);
+        }
+    }
+}
 
 /* load epilogue picture No of OMBG.TIM */
 void Epilog_pic_read(ULONG *pAdr, UCHAR No)

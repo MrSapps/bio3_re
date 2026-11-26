@@ -1791,3 +1791,37 @@ Rules learnt:
   0xFFFFFF` (li+ori, two sets, no boost) stays first; writing the literal lets loop.c hoist it to the outer preheader
   after the pK init, which gives the target's `pK` address-before-mask order.
 Not matched: none.
+
+## Matching round agentAJ (worktree clean/wH; scratch in the session scratchpad agentAJ/, drafts agentAJ/best)
+Matched: epilog Epilog_draw (an unused `EPI_WORK *pUnused = &Epi_work;` first, then `pG = &G; do { pWk = &Epi_work; }
+while (0);`).
+Rules learnt (sched.c, read against the SN -dS traces):
+- Dead earlier reference = early %hi. cse gives a later `&Sym` the %hi pseudo of an earlier (dead) `&Sym`; flow deletes
+  the dead lo_sum but keeps the hi, so the hi insn sits at the dead statement's position while the lo stays at the live
+  statement. This is how two %hi luis end up live together (Epilog_draw: hiE, hiG, loG, loE). Look for it whenever a
+  target lui is far above its addiu.
+- Loop notes (do/while(0), any loop) are stored by sched_analyze as REG_DEAD-kind entries on the next real insn. That
+  insn becomes a full barrier (depends on everything before, everything after depends on it) AND adjust_priority
+  counts the notes as deaths: 2 notes (one loop note) -> priority >>= 1, 4 (BEG+END on one insn) -> >>= 3, so it loses
+  the birthing boost and usually drops to priority 0 (the "(0)" entries in the -dS ready lists).
+- Birthing boost = max(priority of the best remaining ready insn, LAUNCH_PRIORITY 0x7f000001); only for SET of a reg
+  with REG_N_SETS == 1. Ties among boosted insns: class vs last scheduled insn, then higher LUID first (= later in code).
+- Priority is the path length from the block start over true register deps (anti/output/memory deps add 0), so a long
+  load/store chain cannot be shortened by statement order alone.
+- Alias (sched.c memrefs_conflict_p/true_dependence): two different base pseudos always conflict unless one has a
+  known constant value (single-set REG_EQUAL) and the other is the frame; the MEM_IN_STRUCT_P escape only applies to
+  a non-struct fixed-address scalar vs an in-struct varying ref. Prototype changes (K&R, varargs) of Esp_call change
+  nothing in Em38_sce03 (tested on the base).
+Still unmatched (drafts agentAJ/best, same as agentAC's):
+- em22 Em22_mv_jump (7 words): from the -dS links, prio(sw pTmd) >= 8 because pW = pEm->pSin_parts_ptr + 3760 must
+  follow the `pP->UnkA2 = 0` store (may alias), while `a0 = 3` only anti-depends on the Pl_life_down call (prio 4).
+  So no order/alias change of that block lets sched1 put `li a0,3` after the store; it would need `a0 = 3` to depend
+  on something of priority >= 7 (an earlier use of hard reg a0 in the block) or a barrier on the sw pTmd that does
+  not also pin the UnkA2 lhu (it is later in RTL order). Not found.
+- em38 Em38_sce03 (6 words): case 5 `a3` before `a2`: all args, Sv stores and the 5th-arg store are priority 1, the
+  stores win the potential-hazard pick, then LUID decides (a2 move < a3 move, emitted in arg order by expand_call).
+  Target needs a3's set to lose to a2's: only priority 0 (a loop note on it) or a dependency on a2's set would do it,
+  and expand_call emits the moves back to back. Case 6 `li a0,5123` before the Timer0 ori/sh has the same shape.
+- em36 Em36_Init (12 difflib / 18 words): in the target the G lo_sum, the Pldamege hi/lo and the Id lbu all sit at
+  their LUID positions instead of being boosted next to their users, i.e. sched1 saw them as multi-set or not
+  birthing. Locals for pG/pFn/Id at those positions (gen36c.py, 48 variants) are folded back by cse/combine (47+).
