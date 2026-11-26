@@ -21,6 +21,7 @@
 #define gte_ldsv(r0) __asm__ volatile("lhu $12, 0(%0); lhu $13, 2(%0); lhu $14, 4(%0); mtc2 $12, $9; mtc2 $13, $10; mtc2 $14, $11" : : "r"(r0) : "$12", "$13", "$14")
 #define gte_stsv(r0) __asm__ volatile("mfc2 $12, $9; mfc2 $13, $10; mfc2 $14, $11; sh $12, 0(%0); sh $13, 2(%0); sh $14, 4(%0)" : : "r"(r0) : "$12", "$13", "$14", "memory")
 #define gte_gpf12_b() __asm__ volatile(".word 0x4B98003D")
+#define gte_gpl12_b() __asm__ volatile(".word 0x4BA8003E")
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 #define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_ldsxy3(r0, r1, r2) __asm__ volatile("mtc2 %0, $12; mtc2 %2, $14; mtc2 %1, $13" : : "r"(r0), "r"(r1), "r"(r2))
@@ -695,7 +696,138 @@ ULONG Joint_move(ENEMY_WORK *pEm, ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, ULONG Late
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/joint", J_seq);
+/* decode the packed 12-bit rotations of the current frame (8 parts per pass) and blend them in (RE2 J_seq) */
+ULONG J_seq(ULONG *Kan_t_ptr, ULONG *Seq_t_ptr, USHORT *pSeq, ULONG Late_flg)
+{
+    ENEMY_WORK *pEm;
+    ULONG *pRot;
+    PARTS_W *pP;
+    PARTS_W *pP_base;
+    LONG w;
+    ULONG Hokan;
+    ULONG n;
+    ULONG Cnt;
+    ULONG Max;
+    ULONG Frame;
+    LONG Dx;
+    LONG Dy;
+    LONG Dz;
+    USHORT Cz;
+    VECTOR V;
+    MATRIX Unused[2]; /* never used, but in the frame (0x78 bytes) */
+
+    pEm = G.pEm;
+    Frame = (((USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8))[2] + *(UCHAR *)pSeq);
+    pRot = (ULONG *)((UCHAR *)Kan_t_ptr + ((KAN_HEAD *)Kan_t_ptr)->Bone_ofs);
+    pRot = (ULONG *)((UCHAR *)pRot + (Kan_t_ptr[1] >> 18) * Frame * 4);
+    w = ((SHORT *)pRot)[3];
+    w *= pEm->Mot_scale_y;
+    pP = pEm->pSin_parts_ptr;
+    Max = ((USHORT *)((UCHAR *)Seq_t_ptr + pEm->Move_no * 8))[0];
+    pP->Pos_y = w >> 12;
+    Hokan = pEm->Hokan_flg;
+    pP_base = pP;
+    n = *(USHORT *)((UCHAR *)Kan_t_ptr + 4);
+    Cnt = n;
+    if (Hokan != 0) {
+        w = (Late_flg & 0xFFFF) * Hokan;
+        V.vx = pP->Old_x;
+        V.vy = pP->Old_y;
+        V.vz = pP->Old_z;
+        gte_lddp(0x1000 - w);
+        gte_ldlvl(&pP->Pos_x);
+        gte_gpf12();
+        gte_lddp(w);
+        gte_ldlvl(&V);
+        gte_gpl12();
+        gte_stlvl(&pP->Pos_x);
+    }
+    pP->Old_x = pP->Pos_x;
+    pP->Old_y = pP->Pos_y;
+    pP->Old_z = pP->Pos_z;
+    pRot += 2;
+    /* 8 parts per pass, as a goto loop: the mask constants are rebuilt in every pass */
+rot:
+    *(ULONG *)&pP[0].Rot_x = (((USHORT *)pRot)[0] & 0xFFF) | ((pRot[0] & 0xFFF000) << 4);
+    pP[0].Rot_z = ((UCHAR *)pRot)[3] | ((((USHORT *)pRot)[2] & 0xF) << 8);
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[1].Rot_x = ((pRot[1] & 0xFFF0) >> 4) | (pRot[1] & 0xFFF0000);
+    pP[1].Rot_z = (pRot[1] >> 28) | (((UCHAR *)pRot)[8] << 4);
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[2].Rot_x = ((pRot[2] & 0xFFF00) >> 8) | ((pRot[2] & 0xFFF00000) >> 4);
+    pP[2].Rot_z = ((USHORT *)pRot)[6] & 0xFFF;
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[3].Rot_x = ((pRot[3] & 0xFFF000) >> 12) | (((pRot[3] & 0xFF000000) >> 8) | ((pRot[4] & 0xF) << 24));
+    pP[3].Rot_z = (pRot[4] & 0xFFF0) >> 4;
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[4].Rot_x = ((LONG)(pRot[4] & 0xFFF0000) >> 16) | (((pRot[4] & 0xF0000000) >> 12) | (((UCHAR *)pRot)[20] << 20));
+    pP[4].Rot_z = (pRot[5] & 0xFFF00) >> 8;
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[5].Rot_x = (pRot[5] >> 20) | ((pRot[6] & 0xFFF) << 16);
+    pP[5].Rot_z = (pRot[6] & 0xFFF000) >> 12;
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[6].Rot_x = ((UCHAR *)pRot)[27] | ((((USHORT *)pRot)[14] & 0xF) << 8) | ((pRot[7] & 0xFFF0) << 12);
+    pP[6].Rot_z = (pRot[7] & 0xFFF0000) >> 16;
+    if (--n == 0) goto end;
+    *(ULONG *)&pP[7].Rot_x = (pRot[7] >> 28) | (((UCHAR *)pRot)[32] << 4) | ((pRot[8] & 0xFFF00) << 8);
+    pP[7].Rot_z = pRot[8] >> 20;
+    pRot += 9;
+    pP += 8;
+    if (--n != 0) goto rot;
+end:
+    n = Cnt;
+    pP = pP_base;
+    if (Hokan == 0) {
+    copy:
+        *(ULONG *)&pP_base->Cdir_x = *(ULONG *)&pP_base->Rot_x;
+        pP_base->Cdir_z = pP_base->Rot_z;
+        pP_base++;
+        if (--Cnt != 0) goto copy;
+    } else {
+        pEm->Hokan_flg--;
+        /* goto loop (no loop.c hoisting) whose body sits in a do/while(0) for the register priorities */
+    hokan:
+        do {
+            *(ULONG *)&pP_base->Cdir_x &= 0xFFF0FFF;
+            Cz = pP_base->Cdir_z & 0xFFF;
+            pP_base->Cdir_z = Cz;
+            gte_lddp(w);
+            gte_ldsv(CDIR_SV(pP_base));
+            Dx = pP_base->Rot_x - pP_base->Cdir_x + 0x800;
+            Dy = pP_base->Rot_y - pP_base->Cdir_y + 0x800;
+            Dz = pP_base->Rot_z - Cz + 0x800;
+            gte_gpf12_b();
+            if ((ULONG)Dx > 0x1000) {
+                pP_base->Rot_x += (Dx < 0) ? 0x1000 : -0x1000;
+            }
+            if ((ULONG)Dy > 0x1000) {
+                pP_base->Rot_y += (Dy >= 0) ? -0x1000 : 0x1000;
+            }
+            if ((ULONG)Dz > 0x1000) {
+                pP_base->Rot_z += (Dz >= 0) ? -0x1000 : 0x1000;
+            }
+            gte_lddp(0x1000 - w);
+            gte_ldsv(PW_ROT_SV(pP_base));
+            Dx = (LONG)&pP_base->Cdir_x; /* Dx reused as the stsv pointer */
+            Cnt--;
+            gte_gpl12_b();
+            pP_base++;
+            gte_stsv(Dx);
+        } while (0);
+        if (Cnt != 0) goto hokan;
+    }
+    do {
+        if (!(pP->Be_flg & 0x10)) {
+            RotMatrix_gte(CDIR_SV(pP), PW_M(pP));
+        }
+        pP++;
+    } while (--n != 0);
+    if (++pEm->Move_cnt < Max) {
+        return 0;
+    }
+    pEm->Move_cnt = 0;
+    return 1;
+}
 
 /* pOut = rotation pCur blended towards pDst by Rate, the short way round each axis (RE2 hokan_svec) */
 void hokan_svec(SVECTOR *pCur, SVECTOR *pDst, SVECTOR *pOut, LONG Rate)
