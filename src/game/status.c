@@ -5031,7 +5031,69 @@ void St_map_zoom(ST_WORK *pSt)
 }
 
 /* map Rtn1 2: area menu */
-INCLUDE_ASM("asm/nonmatchings/game/status", St_map_area_select);
+void St_map_area_select(ST_WORK *pSt)
+{
+    tagGLOBAL *pG;
+    ULONG Key;
+    ULONG Padd;                        /* Padd_trg read as a word */
+    ULONG Pad;
+
+    switch (pSt->Rtn2) {
+    case 0:
+        if (++pSt->Timer >= 10) {
+            pSt->Menu_blink = 0;
+            pSt->Rtn2++;
+        }
+        break;
+    case 1:
+        if ((pSt->Menu_blink += 2) >= 0x7E) {
+            pSt->Menu_blink = 0;
+        }
+        pG = &G;
+        Padd = *(ULONG *)&pG->Padd_trg;
+        Key = pG->Key_trg & 0x2000;
+        Pad = pG->Padd_trg & 1;
+        /* do/while(0): its loop note stops cse following the branch, so &G and Key_trg are reloaded below */
+        do {
+            if ((Padd & 0x108) || (Key | Pad)) {
+                pSt->Rtn2++;
+                Snd_se_stad(5, 0, 0, 0);
+                return;
+            }
+        } while (0);
+        if (G.Key_trg & 0x1000) {
+            if (Flg_ck(G.Map_area_flg, Map_area_list[pSt->Area_cursor])) {
+                pSt->Rtn1 = 4;
+                pSt->Rtn2 = 0;
+                Snd_se_stad(9, 0, 0, 0);
+                break;
+            }
+            Snd_se_stad(7, 0, 0, 0);
+        }
+        if (G.Padd_rep & 0x1000) {
+            Snd_se_stad(4, 0, 0, 0);
+            pSt->Menu_blink = 0;
+            if (--pSt->Area_cursor < 0) {
+                pSt->Area_cursor = 6;
+            }
+        }
+        if (G.Padd_rep & 0x4000) {
+            Snd_se_stad(4, 0, 0, 0);
+            pSt->Menu_blink = 0;
+            if (++pSt->Area_cursor >= 7) {
+                pSt->Area_cursor = 0;
+            }
+        }
+        break;
+    case 2:
+        if (--pSt->Timer == 0) {
+            pSt->Rtn1 = 0;
+            pSt->Rtn2 = 0;
+            pSt->Timer = 0;
+        }
+        break;
+    }
+}
 
 /* map Rtn1 3: fades back in after an area change */
 void St_map_fade_in(ST_WORK *pSt)
