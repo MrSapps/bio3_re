@@ -29,7 +29,90 @@ void Sca_set_ground(ENEMY_WORK *pEm, struct tagCOL_OBJ *pObj, LONG Y)
 }
 
 /* push a COL_OBJ off the wall segment Sca_work.Pt0-Pt1 (GTE nclip side test, Sca_ck_pass_line first), then circle-push off both end points via Tmp_Sca/Sca_hit_circle; building block of the edge-based hit routines (no RE2 equivalent) */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_line);
+ULONG Sca_hit_line(COL_OBJ *pObj, LONG R, ULONG P0)
+{
+    SCA_WORK *pW;
+    LONG P1;
+    LONG P2;
+    LONG P3;
+    LONG P;
+    LONG Nx;
+    LONG V0;
+    LONG V1;
+    LONG Nz;
+    LONG Len;
+    LONG D;
+    ULONG Ret;
+    ULONG Rot;
+    LONG Opz[4];
+
+    Rot = 0;
+    pW = &Sca_work;
+    P2 = pW->Pt0;
+    P3 = pW->Pt1;
+    Ret = Sca_ck_pass_line(pObj, R, P0);
+    V1 = (SHORT)P3;
+    V0 = P2 << 16; /* (SHORT)P2 in two statements: V0 is then set three times and global, which gives a0 */
+    V0 >>= 16;
+    Nx = (V1 - V0) >> 1;
+    V1 = P3 >> 16;
+    V0 = P2 >> 16;
+    Nz = -((V1 - V0) >> 1);
+    P1 = (pObj->Pos_x << 16) | (USHORT)pObj->Pos_z;
+    Len = SquareRoot0(Nx * Nx + Nz * Nz);
+    if (Len != 0) {
+        if (R < 0) {
+            R = -R;
+            Rot = 1;
+        }
+        gte_ldsxy3(P1, P2, P3);
+        gte_nclip();
+        gte_stopz(&Opz[0]);
+        Nx *= R;
+        Nx /= Len;
+        Nz *= R;
+        Nz /= Len;
+        if (Opz[0] > 0) {
+            Nx = -Nx;
+            Nz = -Nz;
+        }
+        do { P = P1 + ((Nx << 16) | (Nz & 0xFFFF)); } while (0); /* extra P1 ref: P1 above P2 in global-alloc */
+        gte_ldsxy3(P, P2, P3);
+        gte_nclip();
+        gte_stopz(&Opz[1]);
+        if (((Opz[0] ^ Opz[1]) & 0x80000000) != 0) {
+            gte_ldsxy3(P2, P1, P);
+            gte_nclip();
+            gte_stopz(&Opz[2]);
+            gte_ldsxy3(P3, P1, P);
+            gte_nclip();
+            gte_stopz(&Opz[3]);
+            if (((Opz[2] ^ Opz[3]) & 0x80000000) != 0) {
+                D = Opz[1] >> 8;
+                Nx *= D;
+                Nx /= (Opz[0] >> 8) + (-Opz[1] >> 8);
+                Nz *= D;
+                Nz /= (Opz[0] >> 8) + (-Opz[1] >> 8);
+                Ret |= 1;
+                pObj->Pos_x += Nx;
+                pObj->Pos_z += Nz;
+            }
+        }
+        if (!Rot) {
+            Tmp_Sca.X0 = P2 >> 16;
+            Tmp_Sca.Z0 = P2;
+            Tmp_Sca.X1 = P2 >> 16;
+            Tmp_Sca.Z1 = P2;
+            Ret |= Sca_hit_circle(pObj, R, &Tmp_Sca, P1);
+            Tmp_Sca.X0 = P3 >> 16;
+            Tmp_Sca.Z0 = P3;
+            Tmp_Sca.X1 = P3 >> 16;
+            Tmp_Sca.Z1 = P3;
+            Ret |= Sca_hit_circle(pObj, R, &Tmp_Sca, P1);
+        }
+        return Ret;
+    }
+}
 
 /* hit routine for shape 4 (diamond): Sca_rtn_tbl[4]; RE2 Sca_hit_hishi (same shape slot as Sca_high_hishi / Sca_line_hishi) */
 INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_hit_hishi);
