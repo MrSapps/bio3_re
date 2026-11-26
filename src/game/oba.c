@@ -788,7 +788,101 @@ void Oba_tmp_sca_set(COL_OBJ *pObj, SCA_DATA *pT)
 }
 
 /* after Sca_hit_all: still overlapping another character record -> Hit_flg |= 0x100 (move reverted in Oba_push_all) */
-INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_em_overlap_ck);
+void Oba_em_overlap_ck(ENEMY_WORK *pEm, LONG W, ULONG Tbl, COL_OBJ *pObj)
+{
+    ENEMY_WORK *pPl;
+    COL_ENT *pEnt;
+    COL_ENT *pE;
+    COL_OBJ *pT;
+    ULONG Area;
+    ULONG Be;
+    SHORT Shape;
+    LONG X;
+    LONG Z;
+    SHORT Fl;
+    LONG X0;
+    LONG X1;
+    LONG Z0;
+    LONG Z1;
+    LONG Dx;
+    LONG Dz;
+
+    pPl = ((ENEMY_WORK *)&(&G)->Player);
+    if (G.pRoom->nOmodel == 0) {
+        return;
+    }
+    pE = pEnt = Oba_work.Ent;
+    Area = Sca_get_area((SHORT)pObj->Pos_x, (SHORT)pObj->Pos_z);
+    for (; pEnt->C.All != -1; pEnt = ++pE) {
+        if ((USHORT)(pEnt->Area & Area) != Area) {
+            continue;
+        }
+        if (!(pEnt->Id & Tbl)) {
+            continue;
+        }
+        pT = pE->pObj;
+        if (pObj == pT) {
+            continue;
+        }
+        if (pE->Type != 3) {
+            continue;
+        }
+        Be = pEm->Be_flg;
+        if (Be & 0x8000) {
+            continue;
+        }
+        if (pObj->pEm->Be_flg & pT->pEm->Be_flg & 0x800) {
+            continue;
+        }
+        if ((Be | pT->pEm->Be_flg) & 0x1000) {
+            continue;
+        }
+        if (pT->pEm->Be_flg & 0x4000) {
+            continue;
+        }
+        Shape = pEnt->Id & 0xF;
+        if (Shape < 2) {
+            if (pObj->Pos_y - pObj->H >= pT->Pos_y) {
+                continue;
+            }
+            if (pT->Pos_y - pT->H >= pObj->Pos_y) {
+                continue;
+            }
+        }
+        Fl = pEm->nFloor;
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+        if (Fl < pEnt->C.f.Floor_lo) {
+            continue;
+        }
+        if (pEnt->C.f.Floor_hi < Fl) {
+            continue;
+        }
+        if (Shape == 0) {
+            continue;
+        }
+        X1 = pEnt->X1;
+        Z1 = pEnt->Z1;
+        X0 = pEnt->X0;
+        X1 += W * 2;
+        Z1 += W * 2;
+        Dx = X + W;
+        Dz = Z + W;
+        Z0 = pEnt->Z0;
+        if ((ULONG)(Dx - X0) >= (ULONG)(X1 - X0)) {
+            continue;
+        }
+        if ((ULONG)(Dz - Z0) >= (ULONG)(Z1 - Z0)) {
+            continue;
+        }
+        if (pObj->Type == 0 && (pT->pEm->Be_flg & 0x100) && (G.Status_flg & 0x10) && pPl->Damage_cnt == 0 && !(pPl->Col.Unk3A & 0x7FFF)) {
+            continue;
+        }
+        Fl = pObj->Hit_flg;
+        Fl |= 0x100;
+        pObj->Hit_flg = Fl;
+    }
+}
 
 /* no return value; pE and pEnt walk the same list (two pointers in the original) */
 LONG Oba_area_ck(ENEMY_WORK *pEm, ULONG W, ULONG Tbl, COL_OBJ *pObj)
