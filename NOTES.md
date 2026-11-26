@@ -1769,3 +1769,40 @@ Near misses (agentAD/best):
   Num/Den/Quot locals (81 combinations): no change.
 - sabun Sa_morph_step (Sa_morph_step_ds50.c, difflib 50 / 160 words): `pW = &pParts[Idx]; pW->Pos_x = ...` in the
   first loop gives the target's `addu a1,s0,v1; sw ..(a1)` (ds 61 -> 50). Block 2 order still as agentY described.
+## Matching round agentAM (worktree clean/wK; scratch in the session scratchpad agentAM/)
+Matched: sca Sca_line_circle (ba892a5).
+Rules learnt:
+- The "a1 must be set twice" theory for Sca_line_circle was wrong. The late `lw a1` came from sched2, not sched1: the
+  `do { Dx *= Half; } while (0)` loop note makes every later insn of the block depend on the insn after it, so the arg
+  computations, the `move a0` and the P1 reload all land in one sched2 priority group, and inside a group
+  schedule_select prefers the insn with the larger potential hazard (a load), i.e. it places the `lw a1` as late as
+  possible. Without the barrier the X/Z argument chains get higher priorities (they hang off the two div results), so
+  `move a0; lw a1` drop into the lower group and go first, as in the target. General rule: a do/while(0) placed after
+  a long-latency insn flattens sched2 priorities for the rest of the block; a load in that block then sinks to its user.
+- The target's argument order X+, X-, Z+, Z- (sched follows LUID order among equal boosted insns) came from computing
+  the high halves first into temps: `A = (X0 + Dz) << 16; B = (X0 - Dz) << 16; Sca_ck_cross(P0, P1, A | ((Z0 + Dx) &
+  0xFFFF), B | ((Z0 - Dx) & 0xFFFF))` (allocation unchanged).
+- Prologue order of a spilled parameter's home store (`sw a1,0x4C(sp)`): sched2 keeps the stale sched1 LOG_LINK from
+  the first insn that read the parameter pseudo to the param-copy insn (now the store). The store is placed right
+  before whichever use of P1 comes first in sched1 order; `X1 = P1 >> 16` before `Z1 = (SHORT)P1` moved it after
+  `sw fp` like the target.
+- Reusing an existing local for the call result (`Half = Sca_ck_cross(...); if (Half)`) adds refs without a barrier;
+  that was the one extra Half ref global-alloc needed (Half above X0). The permuter found it.
+- Probing tool (agentAM/probe.sh, probeg.sh): runs the FSF -g cc1 under gdb, executes gdb commands at sched1 entry
+  (probe.sh) or at global_alloc entry (probeg.sh), e.g. `set reg_n_info[90].refs += 1`, assembles and prints the word
+  diff (and `s4 local refs/len` for the kick-out rule). Only exact for functions without global addresses. Use it to
+  find WHICH ref/length change gives the match before searching source forms.
+Near misses:
+- sca Sca_high_hishi (agentAM/hh16.c = vh4/k027, 16 words; agentAD's 13_dw.c still the lowest word count). Probe
+  result on the agentX t5 form: setting X0 live_length 39 -> 35 and Z0 32 -> 36 at global_alloc gives the target
+  registers (X0 t1, Z1 t2, Z t3, Z0 t4, Dz t5); with those, only 6 block-0 words remain: the target computes both
+  half widths in parallel with in-place shifts (`subu v0,X1,X0; subu v1,Z1,Z0; sra v0,v0,1; addu a0,a0,v0; sra v1,v1,1`),
+  i.e. two different multi-set variables, while the `move t7,a0` pT copy needs Zone reused for the X half (forms that
+  do not reuse Zone keep pT in a0: 85 words). `Dz = (X1 - X0) >> 1; Zone = Z1 - Z0; ... (Zone >> 1)` (k027) gets the
+  Z1-Z0 subtraction early but Dz then outranks X0. The permuter's best invalid hint (X0 used once more and Z0 once
+  less in case 3) gives the target registers, consistent with the probe: the original has X0 shorter-lived / Z0
+  longer-lived than any form tried.
+- sabun Sa_morph_step (agentAD/best/Sa_morph_step_ds50.c, unchanged): not worked on beyond reading the block-2 sched1
+  trace. The target's block 2 is close to plain source order (pKan, Parts_no, k, Size, pParts, ..., pHead[1] load with
+  an unfilled nop before `addu s1`), which suggests few birthing-boosted loads in the original block 2 (multi-set
+  locals keep LUID order); ours boosts most loads and reorders them.
