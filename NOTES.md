@@ -990,3 +990,57 @@ Near misses (paths under the agentM scratchpad):
   copy, `Pos_y + 1600` folded, the reload issue above.
 - Tools: agentO/cdgen.py (greedy one-slot-at-a-time over `{{NAME:a||b}}` templates; gen.py's full cartesian product
   once wrote 476k files), opd.py (register-blind diff), dscore.py now returns 9999 on any cc1 stderr.
+## Matching round agentS (worktree clean/yC; drafts in the session scratchpad agentS/best)
+Matched: 80079EC0 Skin_vtx1, Skin_vtx2, Skin_vtx2_alt; sabun Pl_floor_ck, Sca_hit_all.
+Tool fix: tools/maspsx-swc2.patch (README step 4). maspsx treated the first operand of `swc2` (a cop2 register) as
+a GPR and put a load-delay nop between `lbu $t9,..` and `swc2 $25,..`; ASPSX does not (Skin_vtx2 is the only place
+in the game with that pair). The worktree uses a patched copy of tools/maspsx; the main checkout's tools/maspsx needs
+`(cd tools/maspsx && patch -p1 < ../maspsx-swc2.patch)` or Skin_vtx2 fails there.
+Type fixes: sca.h declares Sca_rtn_tbl; sabun.h Sca_hit_all takes `LONG R`; sabun.c includes sca.h, player.h,
+enemy/em_common.h and declares Rot_vector without a prototype (the target passes the direction unconverted).
+Rules learnt:
+- loop.c's giv threshold can be met from the other side: Skin_vtx1's target does not reduce pData+1/+2 because its
+  outer loop has >= 187 RTL insns (lifetime * 31 * benefit 6 = 186). SHORT conversions add insns that only combine
+  removes (after loop.c): `x = (a + b) >> 1;` into a SHORT and `(SHORT)(..) << 16` cost 3 + 2 insns per vertex. -dL prints
+  "giv of insn N not worth while, A vs B" to check the count.
+- An asm operand that is a bare frame address (`&W.Sxy[0]` at frame offset 0 = virtual-stack-vars) is materialised
+  by instantiate_virtual_regs right before the asm, after the other operands; a pointer local (`pW = W.Sxy;
+  gte_stsxy3(pW, pW + 1, pW + 2)`) keeps source order (Skin_vtx1).
+- Register pressure from types: Skin_vtx2's SHORT weights (w0..w2) and `&pN[k]` addresses for all six Skin_nor
+  entries (instead of `&Skin_nor[k]`) gave the target's spills of pSxy/pSz to their home slots and the s4 reload
+  register; 377 -> 0.
+- `Cnt_top = Cnt = Ent & 0xFFFF; while (Cnt--)` keeps the post-decrement test on its own copy (`move v0,a3; move s2,a3;
+  beqz v0`); with two statements cse rewrites the test to use the saved copy (Sa_morph_step).
+- Sca_hit_all: a variable reused for two values (`Shape` holds the z move first, then Id & 0xF) shares the hard reg;
+  declaration order of spilled scalars sets their slots (Area 0x10, pEnd 0x14, P1 0x18); two separate `if (..) return
+  0;` (not `||`) make reload read the spilled pEm from its home slot; the rotated position is computed in two
+  statements (`Cx = (Rx - Rz) * 181 >> 8; Cx += X0 + R;`); Dx and Dz are both computed before the first store.
+- sched1 (sched.c rank_for_schedule) prefers, among equal priorities, an insn independent of the last scheduled one;
+  a load with no user in the block (X in Sca_hit_all, Half in Sa_morph_step) is therefore placed right before the
+  block end / call. A do/while(0) around it pins it (loop notes are barriers).
+- Pl_floor_ck: `pPl = (ENEMY_WORK *)&G.Player;` (cse derives &G as pPl - 0x248C), Side computed in three statements
+  (`Side = Dir & 0xFFF; Side >>= 10; Side ^= 2;`, s0), `if (A == 1 && B != 11 && B != 12) {..}` in both tails (the
+  `return 0` chain folds into an sltiu range test) and the stores in the same order in both tails so jump2
+  cross-jumps them.
+Near misses (agentS/best):
+- sabun Sa_joint_blend (Sa_joint_blend_32.c, dscore 32): the first loop's counter: target `addiu a2,t3,-1; move v0,a2;
+  beqz v0; addiu a2,a2,-1` (i = n - 1, post-decrement not folded); every C form gets cse's associative fold
+  (fold_rtx PLUS case, cse.c ~5710) to `addiu a2,t3,-2`. a do/while(0) note in between does not help (cse2 ignores
+  notes); only a label between `i = n - 1` and the test stops it (L1 form, then the test is at the bottom).
+  Sharing `i` with the second part's inner counter (both a2 in the target) fixed the a-register names.
+  Second part: Inv (0xFFF - Rate) must be computed before the n - 1 test and take t0 (pSa's register).
+- sabun Sa_morph_step (Sa_morph_step_51.c, dscore 51): structure complete (RE2 Sa_parts_allmv shape with j-indexed
+  keys, `Stride` before `Out` so Out is the spilled one, chained Cnt_top). Left: the Size load / `Half = Size >> 1` is
+  scheduled last in the block (see the sched rule) where the target has it fourth; that overlaps it with pKan and
+  makes local-alloc put pKan in a1 and pP in t0 in the target. Half must also outrank Inv and k in global-alloc
+  (target t7 Half, t8 Inv, t9 k, s0 pParts, s1 pFrm); a do/while around it makes things worse. Permutations of the
+  11 statements before the first `if` (agentS/sms/pm1, 1500 orders) and type sweeps did not reach it.
+- root_ck kara_rootck2 (kara_rootck2_4.c / kara_rootck2_alt_4.c, 2 real words; score against agentS/kr/p, a copy of
+  p_kara_rootck2 whose prototype returns LONG): written from the asm (not RE2's algorithm): DFS over 0x30-byte nodes
+  (pBlock + pBlock[1]), 8-byte points (pBlock[2]), cost bytes (pBlock[3]), 16 frames of 0x10 bytes. It returns LONG
+  (0xFFFF0000 = no path, else Best << 16 | 1): root_ck.h must change from void (Root_ck ignores the value). Frame and
+  all spill slots match (Wx/Wz separate SHORT locals, the point table indexed inline, `i` reused for Link * Mul,
+  the point-to-R test via a temp). Left: the cost lookup `pCost + Cost_ofs + (UCHAR)i + Link[Next]` -- written with
+  Link first every register is right but the adds are in the wrong order; with (UCHAR)i first the order is right but
+  the (UCHAR)Next temp gets a1 (its life overlaps the a0 local-alloc gave the andi). ~300 forms, type and do/while
+  sweeps tried.
