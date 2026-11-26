@@ -1465,7 +1465,69 @@ ESP_WORK *Esp_call(ULONG Id, ULONG Dir, MATRIX *pM, SVECTOR *pPos, SVECTOR *pSpd
     return pEw;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Esp_kill);
+/* kill effects: Id >> 24 = 0: by effect id (low 16 bits; kind byte only if bits 8..15 are 0xFF), on pM if
+ * pM != NULL; 1: by Unk2A == (Id >> 16) & 0xFF; 2: all */
+void Esp_kill(ULONG Id, MATRIX *pM)
+{
+    ESP_WORK *pTop;
+    UCHAR Sub;
+    UCHAR No;
+    ULONG i;
+    ESP_WORK *pEw;
+    USHORT Key;
+    LONG Kind;
+
+    Sub = Id >> 16;
+    pTop = Esp;
+    Kind = Id >> 24;
+    Key = Id;
+    switch (Kind) {
+    case 0:
+        if ((Key & 0xFF00) != 0xFF00) {
+            if (pM != NULL) {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.W == Key && pEw->pMat == pM) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            } else {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.W == Key) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            }
+        } else {
+            No = Key;
+            if (pM != NULL) {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.B[0] == No && pEw->pMat == pM) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            } else {
+                for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+                    if (pEw->Id.B[0] == No) {
+                        pEw->Be_flg = 0;
+                    }
+                }
+            }
+        }
+        break;
+    case 1:
+        for (pEw = pTop, i = 0; i < 96; i++, pEw++) {
+            if (pEw->Unk2A == Sub) {
+                pEw->Be_flg = 0;
+            }
+        }
+        break;
+    case 2:
+        for (i = 0; i < 96; i++, pTop++) {
+            pTop->Be_flg = 0;
+        }
+        break;
+    }
+}
 
 /* set the four routine bytes (Rtn01 = Routine_0 | Routine_1 << 16, Rtn23 = Routine_2 | Unk03 << 16) of the live
  * effects of kind Id, only those attached to pM unless pM is NULL (RE2 Esp_ctrl sets Routine0 alone) */
