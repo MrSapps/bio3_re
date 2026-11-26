@@ -135,7 +135,91 @@ loop:
 INCLUDE_ASM("asm/nonmatchings/game/trans", Esp_trans_main);
 
 /* sprites of an effect with its own rotation (matrix set by the caller), projected in 3D */
-INCLUDE_ASM("asm/nonmatchings/game/trans", Esp_trans_3d);
+void Esp_trans_3d(POLY_FT4 *pP, ESP_WORK *pEff, ULONG Def_size, ULONG nSpr, LONG Proj, ULONG *pOt, ULONG H_clarity, ULONG pG_offset)
+{
+    SPR_GP *pSpGp;
+    LONG D0;
+    LONG D1;
+    LONG D2;
+    ULONG Clut;
+    ULONG Tpage;
+    ULONG Otz;
+    ULONG *pOtz;
+    SVECTOR Svec[4];
+    LONG Z[4];
+    LONG Mag_x;
+    LONG Mag_y;
+    LONG Px;
+    LONG Py;
+    LONG X;
+    LONG Y;
+    LONG X1;
+    LONG Y1;
+
+    D2 = pEff->Size * (Proj >> 4);
+    Mag_x = (LONG)(D2 * pEff->Unk08) >> 12;
+    pSpGp = pEff->pSprg + pG_offset;
+    Mag_y = (LONG)(D2 * pEff->Unk0A) >> 12;
+    Clut = pEff->Clut << 16;
+    D0 = (Def_size * Mag_x) >> 12;
+    Tpage = pEff->Tpage << 16;
+    D1 = (Def_size * Mag_y) >> 12;
+    Svec[0].vz = 0;
+    Svec[1].vz = 0;
+    Svec[2].vz = 0;
+    Svec[3].vz = 0;
+    Def_size--;
+loop:
+    Px = pSpGp->Ofsx * Mag_x;
+    Py = pSpGp->Ofsy * Mag_y;
+    X = Px >> 12;
+    Svec[0].vx = X;
+    Y = Py >> 12;
+    Svec[0].vy = Y;
+    gte_ldv0(&Svec[0]);
+    X1 = X + D0;
+    Y1 = Y + D1;
+    gte_rtps_b();
+    Svec[1].vx = X1;
+    Svec[1].vy = Y;
+    Svec[2].vx = X;
+    Svec[2].vy = Y1;
+    Svec[3].vx = X1;
+    Svec[3].vy = Y1;
+    gte_stsxy(&pP->x0);
+    gte_stsz(&Z[0]);
+    gte_ldv3(&Svec[1], &Svec[2], &Svec[3]);
+    /* the uv corners reuse X/Y/X1/Y1 (the target keeps them in the same registers) */
+    X = pSpGp->U;
+    Y = pSpGp->V << 8;
+    X1 = X + Def_size;
+    Y1 = Y + (Def_size << 8);
+    gte_rtpt_b();
+    *(ULONG *)&pP->u0 = X | Y | Clut;
+    *(ULONG *)&pP->u1 = X1 | Y | Tpage;
+    *(ULONG *)&pP->u2 = X | Y1;
+    *(ULONG *)&pP->u3 = X1 | Y1;
+    *(ULONG *)&pP->r0 = *(ULONG *)pEff->Col;
+    pP->code = H_clarity;
+    gte_stsz3(&Z[1], &Z[2], &Z[3]);
+    Otz = Z[0] + Z[1] + Z[2] + Z[3];
+    Otz >>= 4;
+    if (Otz >= 0x2000) {
+        Otz = 0x1FFF;
+    }
+    if (Otz >> 7 == 0) {
+        return;
+    }
+    pOtz = pOt + (Otz >> 3);
+    pP->tag = (*pOtz & 0xFFFFFF) | 0x9000000;
+    *pOtz = (ULONG)pP & 0xFFFFFF;
+    pSpGp++;
+    gte_stsxy3(&pP->x1, &pP->x2, &pP->x3);
+    pP++;
+    if (--nSpr != 0) {
+        goto loop;
+    }
+}
 
 /* RE2 Trans_work_init: sets the tag and colour of every effect POLY_FT4, then Trans_pointer_set */
 void Trans_work_init(void)
