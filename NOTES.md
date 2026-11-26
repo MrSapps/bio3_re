@@ -1550,3 +1550,32 @@ Near misses (agentW/best):
   (not boosted) while the sw stays after the 0x1EA..0x1E6 zero stores. Reading Id into a multi-set i/n/Bit at
   every position before the stores: 23 at best. The permuter's score for this function does not follow the word
   count (its "improvement" was difflib 23).
+## Matching round agentAD (worktree clean/wB; drafts in the session scratchpad agentAD/best)
+Matched: sca Sca_hit_koban_z.
+Rules learnt:
+- Nested do/while(0) multiplies a ref: flow.c adds loop_depth to REG_N_REFS per reference, so `do { do { x = y; }
+  while (0); } while (0);` counts each reg in that statement 3 times. Wrapping only one statement whose position in the
+  schedule is already right adds refs without moving anything else (the barrier only fences that one insn).
+  Sca_hit_koban_z: Z0 needed one more ref than one do/while gives while keeping `sh X1; la Sca_work; sh Z0` (a
+  single wrap around the Z0 store alone had too few refs; wrapping X1/la/Z0 together cost Z0 live length).
+  Final case 3: `pC->Z1 = D + Z0; pC->X1 = D + X0; pS = &Sca_work; do { do { pC->Z0 = Z0; } while (0); } while (0);
+  pC->X0 = X0; pS->X = X; pS->Z = Z;` (own single-set pS for the Sca_work stores).
+- REG_LIVE_LENGTH used by global-alloc is recomputed by sched1 (sched.c sched_reg_live_length), so source order only
+  matters through the sched1 order. Block-0 statement permutations of koban_z all gave the same lengths.
+- agentR's prio.sh / dmp.sh need `chmod +x` on copies and an (empty) inc.h in the permuter dir. agentAD/sord.sh
+  prints the sched1 insn order of a function; agentAD/wrapex.py tries every do/while depth 0..N on regex-selected
+  lines; agentAD/pout.py scores permuter output-*/source.c (extracts the function, word + difflib count).
+Near misses (agentAD/best):
+- sca Sca_line_circle (Sca_line_circle_22.c = agentX's draft, unchanged): proof of the a1 problem. The Sca_ck_cross
+  `a1 = P1` move is sched1-boosted because REG_N_SETS(a1) == 1 (birthing_insn_p); a0 is set 3 times (both SquareRoot0
+  calls) and so is not. Adding any second set of $5 (Sca_line_circle_asmproof.c: `__asm__ volatile("" ::: "$5")`
+  after the first call, or passing P1 as a fake second SquareRoot0 arg) puts `move a0; a1 = P1` together exactly as
+  in the target, but changes the allocation. So the original sets a1 a second time somewhere that leaves no code
+  (not found; flow counts SET and CLOBBER of hard regs, nothing else). Second, independent issue: target computes the
+  args X+, X-, Z+, Z- (ours X+, Z+, X-, Z-); temps / reused-variable forms for the args all change the allocation.
+- sca Sca_high_hishi (Sca_high_hishi_13_dw.c, agentI's, still best): wrapex over every depth 0..2 of the 8 case lines
+  of both the agentX t5 form (best 16) and agentI's form (13) found nothing. Ref counts alone cannot give the target's
+  global order X0 > Z1 > Z > Z0 > Dz (floor_log2 steps; Z and Z0 refs only come in pairs); the lengths differ. RE2-style
+  Num/Den/Quot locals (81 combinations): no change.
+- sabun Sa_morph_step (Sa_morph_step_ds50.c, difflib 50 / 160 words): `pW = &pParts[Idx]; pW->Pos_x = ...` in the
+  first loop gives the target's `addu a1,s0,v1; sw ..(a1)` (ds 61 -> 50). Block 2 order still as agentY described.
