@@ -1998,3 +1998,24 @@ Still unmatched:
   the priority-1 LUID tie against the pE load) and G's lo_sum moves out of the top of S; remaining diffs are the
   ppEm addiu (cse now builds it from the hi part + %lo(G)+0x2664 and derives G as a2-0x2664) and the Pldie tail.
   The permuter (45 min on the 40 draft) found nothing better.
+
+## Matching round agentAQ (worktree clean/wO; scratch in the session scratchpad agentAQ/, match agentAQ/nodo.c)
+Matched: sca Sca_hit_slope (was 23 words, agentAE/best/Sca_hit_slope_23.c). The do/while(0) of the old draft is no
+longer needed.
+How the surviving copy `move v1,a3; addu s0,v1,t1` was derived (dumps: agentAQ/dmp.sh, pi.py prints compact RTL):
+- A reg-reg copy `T = D; Az = T + Z0` dies in cse (D canonical, T's use rewritten to D) or in combine (T dies at the
+  add, LOG_LINK merges it). It survives when D is *reassigned between the copy and the add*: cse no longer knows
+  T == D at the add, and combine refuses because use_crosses_set_p(D). The source is `Ofs = D; D = pObj->Pos_x - X0;
+  Az = Ofs; Az += Z0;`; sched1 then moves the D reassignment (and its load) down, so the copy and the add end up
+  adjacent in the output exactly where the target has them. `Az = Ofs; Az += Z0` (two statements) keeps Az's ref
+  count / s0 priority; `Az = Ofs + Z0` swaps Az and Wall (s0/s1).
+- Once the copy was there, the rest was register allocation read off the -dl/-dg dumps:
+  - first-half `W + D` / `D - W` go through block-local multi-set temps (`Bx_ofs = W + D; ... Bx_ofs += X0;
+    Bx = Bx_ofs;`): local-alloc puts them in a0/a1 so `-W` (Oz) lands in a2, and global Z/X are then free for a0/a1.
+    Single-set temps (`Bx = P + X0`) get the sched1 birthing boost and move.
+  - second half: `Z = pObj->Pos_z; Z -= Z0; X = D - Z; X = (X * 181) >> 8; Sum = D + Z; Z = (Sum * 181) >> 8;`.
+    X/Z computed in place gives the target's `lw a0` / X-pre in a1. `Z = D + Z` gives `addu a0,a0,a3`:
+    expand_binop (optabs.c) swaps commutative operands when the target equals op1, so the D + Z sum needs its own
+    local (Sum) to keep `addu a0,a3,a0`.
+Rule: to keep a `move` copy right before its single use, reassign the copied source between the copy and the use in
+the C (the scheduler restores the order).
