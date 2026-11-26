@@ -1550,3 +1550,35 @@ Near misses (agentW/best):
   (not boosted) while the sw stays after the 0x1EA..0x1E6 zero stores. Reading Id into a multi-set i/n/Bit at
   every position before the stores: 23 at best. The permuter's score for this function does not follow the word
   count (its "improvement" was difflib 23).
+
+## Matching round agentAI (worktree clean/wG; scratch in the session scratchpad agentAI/)
+Re-test of the 13 functions judged hand-written. Matched 2, proved the other 11.
+Matched:
+- mem_card `_card_clear` (626aefe): libcard's CARD module compiled with **gcc 2.6.3/2.7.2** (both give the target:
+  `addiu sp` before `jr ra`, nop in the slot; 2.8 puts it in the slot). The PsyQ 4.3-4.5 CARD.OBJ is a different
+  build (slot filled, padded to 0x40), so this copy came from an older libcard. Now src/ovl/mem_card_card.c, built
+  with gcc-2.7.2-psx + maspsx (Makefile target-specific CC1, yaml subsegment 0x3e84, fdiff.py OLD_CC_OBJS).
+- md_sub `CompM` (0b156c3): C with five asm blocks holding the pipelined GTE text (explicit t0-t7). The six pointer
+  temps between the blocks are C and gcc allocates them exactly like the target (a0/v1, a0/v0, a1, a1; it is not
+  a register order a person picks: dst1 in v1, dst2 in v0). Rule: inline-asm text with hard registers is fine when
+  the compiler-visible parts (temps, ties, order) all come out as gcc's.
+Proven hand-written (stay INCLUDE_ASM; comments in md_sub.c / mem_card.c):
+- **New compiler-level rule (gcc 2.8.1 sched.c)**: sched2 can never move a load through a pointer register above a
+  callee-saved register save. The prologue saves are (mem (plus sp N)); memrefs_conflict_p(sp, reg) returns 1 and
+  rtx_varies_p(sp) is 1 (only fp/ap/pic count as fixed), so true_dependence's MEM_IN_STRUCT exemption never
+  applies; RTX_UNCHANGING_P is only set for static readonly data. 2.7.2 emits the prologue as text (always first).
+  Checked with agentAI/prolog_check.py: 0 of 2829 matched functions break it; the only ones that do are Md_rtp,
+  SortGT3_neo, SortGT3_col, SortGT4_col, SortGT4_sabun. (Global loads via %lo(sym) may pass, see Die_blood_move_main.)
+- Frames not a multiple of 8 (MIPS_STACK_ALIGN on every frame part in 2.6.3-2.8.1): SortGT3_neo_uv, SortGT4_neo_uv,
+  SortGT4_col, SortGT3_sabun, SortGT4_sabun. SortGT4_neo_uv also has `addu t0,a1,zero` twice, SortGT4_sabun a gap
+  in the save slots. A C wrapper with the prologue in an asm block is impossible: gcc appends its own `jr ra; nop`
+  and every one of these functions is followed directly by the next function. MIPS gcc 2.x has no naked attribute.
+- Md_rtp: besides the rule above, s0/s1 in a leaf with all of t0-t9 free (SN cc1 takes t8/t9 before s0: tested
+  with agentAI/ra2.c, 14 live values -> t8,t9; 15 -> s0 too).
+- SortGT3_col: agentJ's draft (agentAI/SortGT3_col_best.c, Vmask before the n test) differs only in the prologue
+  order (lw/lhu before `sw s0` = the rule above) and the pZ0-2 register rotation. Do not spend more time on it.
+- Skin_vtx0_old: Skin_vtx0's gcc frame/spill/caller-save layout with edits: SetRotMatrix+SetTransMatrix text merged
+  using v0/v1, and the pOfs copy temps in v0, v1, t6 while a0, a2, a3, t0 are free (gcc gives the third one a0).
+- _card_info/_card_load: byte-identical to PsyQ libcard C171.OBJ/C172.OBJ (BIOS A0 stubs `li t2,0xA0; jr t2;
+  li t1,n` + nop); a tail jump through t2 cannot come from gcc 2.x (no sibling calls), so they are SDK asm.
+  (_card_write/_new_card, the B0 stubs right after, sit in the data split.)

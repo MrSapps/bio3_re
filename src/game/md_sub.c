@@ -1384,9 +1384,18 @@ void CompM(MATRIX *m0, MATRIX *m1, MATRIX *m2)
                      : : "r"(pDst2), "r"(pT) : "memory");
 }
 
-/* rtpt over packed vertex triplets with a z clamp to 0x7FFF one triplet late. Hand-written: a leaf that keeps
-   values in s0/s1 while every t-register is unused (gcc never picks a call-saved register there), and the loop is
-   software-pipelined (clamp of the previous z after the next rtpt, the last clamp repeated after the loop). */
+/* Md_rtp .. Skin_vtx0_old below are hand-written / hand-edited asm (not compiler output; NOTES "agentAI"):
+   - gcc 2.8.1 sched2 can never move a load through a pointer register above a callee-saved register store: the
+     prologue saves are (mem (plus sp N)), memrefs_conflict_p(sp, reg) returns 1 and rtx_varies_p(sp) is 1, so the
+     MEM_IN_STRUCT exemption of true_dependence does not apply. All 2829 matched functions keep that order; Md_rtp,
+     SortGT3_neo, SortGT3_col, SortGT4_col and SortGT4_sabun load from the parameters before their `sw sN`.
+   - every MIPS gcc rounds each frame component to 8 (MIPS_STACK_ALIGN): SortGT3/4_neo_uv, SortGT4_col and
+     SortGT3/4_sabun have frames of 0x1C/0x24.
+   An asm block inside a C function cannot hold the prologue: gcc would add its own `jr ra; nop` after the block
+   (each function is followed directly by the next one). */
+
+/* rtpt over packed vertex triplets with a z clamp to 0x7FFF one triplet late. Hand-written: `lw a3,0(a2)` before the
+   s0/s1 saves, and s0/s1 used in a leaf while every t-register is free (gcc takes t0-t9 before any s-register) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", Md_rtp);
 
 /* lit GT3 sort (ncct with per-vertex normals), packet built from the MD prim, Parts_sort / Parts_sort_simple Flg8 (RE2 SortGT3_neo variant).
@@ -1397,28 +1406,30 @@ INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_neo_uv);
 /* GT4 counterpart of SortGT3_neo_uv (nccs + ncct), OT = sum of 4 z >> 7 (RE2 SortGT4_neo variant). Hand-edited: frame -0x24 */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_neo_uv);
 
-/* hand-edited: Otz is loaded (lw v0,0(sp)) between the lwc2 $0 and lwc2 $1 of one vertex, and the normals are
-   loaded vertex 2 first; a volatile asm is a scheduling barrier, so a C load cannot land inside a gte_ldv3/ldv0.
-   No other function in the game splits an lwc2 pair (checked over all asm) */
+/* lit GT3 sort, packets advanced every prim. Hand-written: `lw a0,0(t0)` / `lhu t4,0x14(a0)` before the s0-s3/s5/s6
+   saves (see above); Otz is also loaded between the lwc2 $0 and lwc2 $1 of one vertex */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_neo);
 
-/* GT3 sort with per-polygon vertex colours read sequentially from Prm.UnkC (3 words/prim, pointer written back), Parts_sort_ex (no RE2 equivalent) */
+/* GT3 sort with per-polygon vertex colours read sequentially from Prm.UnkC (3 words/prim, pointer written back), Parts_sort_ex (no RE2 equivalent).
+   Hand-edited: `lw v0,0(t7)` / `lhu t3,0x14(v0)` sit before `sw s0,8(sp)` (see above); otherwise it is gcc-like
+   (agentJ's C draft differs only there and in the pZ0-2 registers) */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_col);
 
-/* GT4 counterpart of SortGT3_col (4 colour words/prim). Hand-edited: frame -0x1C (not a multiple of 8) */
+/* GT4 counterpart of SortGT3_col (4 colour words/prim). Hand-edited: frame -0x1C (not a multiple of 8), loads before the s-reg saves */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_col);
 
 /* GT3 sort with per-vertex colours Prm.UnkC[vertex] (= Skin_rgb), Parts_sort_sabun (no RE2 equivalent; cf. Skin_sort_gt3).
    Hand-edited: frame -0x1C (not a multiple of 8), s0..s4 saved in ascending order */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT3_sabun);
 
-/* GT4 counterpart of SortGT3_sabun. Hand-edited: frame -0x1C (not a multiple of 8) */
+/* GT4 counterpart of SortGT3_sabun. Hand-edited: frame -0x1C (not a multiple of 8), save slot gap at 0xC, loads before the saves */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", SortGT4_sabun);
 
 /* dead hand-edited twin of Skin_vtx0 (CompM per bone + rtpt of index triplets, z clamp 0x7FFF) using an older work layout
    (parts at +0x100 stride 0xC8, pos table +0x110) (no RE2 equivalent). Skin_vtx0 itself is C (80079EC0.c); here the
-   SetRotMatrix text is split up (ctc2 from v0/v1, not the macro's $12-$14) and lbu/addiu sit inside the two GTE slots
-   before mvmva, which volatile asm macros cannot produce */
+   SetRotMatrix/SetTransMatrix text is merged and reordered (ctc2 from v0/v1 as well as $12-$14), and the pOfs[n] copy
+   loads into v0, v1, t6 while a0/a2/a3/t0 are free (gcc would take a0 for the third temp; Skin_vtx0 uses v0 three
+   times with load-delay nops). The frame, spill/caller-save slots and s-registers are Skin_vtx0's gcc layout */
 INCLUDE_ASM("asm/nonmatchings/game/md_sub", Skin_vtx0_old);
 
 /* preset double-buffered GT4 packets of a water object (Om Id 1), grey 0x808080, abr from Attr (RE2 uses PresetObjectGT4_neo here) */
