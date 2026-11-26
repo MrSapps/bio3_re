@@ -990,3 +990,53 @@ Near misses (paths under the agentM scratchpad):
   copy, `Pos_y + 1600` folded, the reload issue above.
 - Tools: agentO/cdgen.py (greedy one-slot-at-a-time over `{{NAME:a||b}}` templates; gen.py's full cartesian product
   once wrote 476k files), opd.py (register-blind diff), dscore.py now returns 9999 on any cc1 stderr.
+## Matching round agentR (drafts in the session scratchpad agentR/best; tools agentR/*.py, *.sh)
+Matched: none of the eight sca functions (Sca_high_hishi, Sca_hit_box, Sca_hit_hishi, Sca_hit_koban_x/z, Sca_hit_line,
+Sca_hit_slope, Sca_line_circle). Three drafts improved; the rest are where earlier rounds left them.
+Tools (agentR): hc.py PERMDIR DRAFT [iters] [maxdepth] hill-climbs do/while(0) wrap depths per statement line plus
+`{{a||b||c}}` choices in the draft; ch.py runs every choice combination; ex.py PERMDIR DRAFT K D tries every set of
+<= K wrapped lines up to depth D; perm.py writes every dependency-respecting order of a `//P{ ... //P}` block
+(`//@name<dep`); psc.py scores files in parallel. lq.sh PERMDIR DRAFT [block] prints local-alloc's qty order (qty
+refs/birth/death and member pseudos), and ga.sh prints global-alloc's allocno order with preferences, conflicts and the
+hard reg each one gets. Both run the FSF -g cc1 under gdb, so they are exact only for functions without global
+addresses (Sca_high_hishi, Sca_line_circle); for the others use prio.sh (SN .lreg/.greg).
+Rules learnt:
+- local-alloc only takes a pseudo that lives in one block and has exactly one death (REG_N_DEATHS == 1,
+  local-alloc.c:472). A variable that is set twice with the first value dying in between (`Half = X1 >> 1;
+  Half = (Half - X0) >> 1;`) dies in 2 places and goes to global-alloc, after every block-local qty.
+- global.c find_reg (line 219) can take a hard reg away from local-alloc pseudos when their summed refs/length is lower
+  than the allocno's. The pseudo loses its reg. A parameter with a stack-slot REG_EQUIV then lives in its home slot
+  (Sca_line_circle P1: `sw a1,0x4C(sp)` / `lw a1,0x4C(sp)`). So an s-reg that local-alloc gave to such a parameter can
+  end up with a low-priority global (Z1 in s4).
+- A variable reused for the second call argument (`Dz = ((X0 - Dz) << 16) | ...`) puts the result in that variable's
+  register and adds refs to its qty. In Sca_line_circle this moved Dz to the top of local-alloc (51 -> 43).
+- The order of independent stores in a case changes live lengths enough to reorder global-alloc. Koban: writing
+  `u.pC->Z0 = Z0;` last in case 3 (after the Sca_work stores) made Z0 live long enough to drop below D. Searching the
+  orders with perm.py and then wraps with hc.py got Sca_hit_koban_x from 22 to 12.
+Near misses:
+- sca Sca_hit_koban_x (12 words, best/Sca_hit_koban_x_12.c): global-alloc order is now right. It needs `LONG Half`,
+  case-3 order X1, Z1, X0 (wrapped), Sca_work.Z, Sca_work.X, Z0, and wraps on `Cx0 = X0 + Half`, `u.pW = &Sca_work` and
+  the Sca_hit_box return. Two things are left: (1) the block-0 local temps. In the target, the X1 load temp gets v1
+  (and Cx1 takes v1 through its preference) and the Z1-Z0 temp gets a0. Ours is the other way round, so local-alloc's
+  qty priority of the D temp must be lower. Moving the D statement or changing how Half is computed made no
+  difference (cse merges them). (2) sched2 order of the case-3 stores (sh X0 before sh Z1; sh Z0 before the Sca_work
+  sw). The natural store order (X1, X0, Z1, Z0, X, Z) gives the target schedule but flips D/Z0 back.
+- sca Sca_hit_koban_z (14, best/Sca_hit_koban_z_14.c): the koban_x draft mirrored (the X read/store statements keep
+  their koban_x order). Same two leftovers.
+- sca Sca_line_circle (43, best/Sca_line_circle_43.c; was 51): structure, P1 spill and Dz/Z0 s0/s1 right. Left: X0
+  (`X0 = pT->X0 >> 1; ... X0 += Half;`) is a local qty (s2) in ours. In the target it is global (s6, after Half s5),
+  so in the original it must die in 2 places or span blocks. SHORT X0, `X0 /= 2`, separate Cx, and reusing X0 in part
+  2 all fail (part 2 keeps that value in v1, so X0 cannot be one global pseudo there).
+- sca Sca_high_hishi (agentI 13_dw.c is still the best score; best/Sca_high_hishi_20_zonehalf.c has the cleaner
+  allocation). With `Zone` reused for the X half width, ga.sh shows Dx a2, Cz t0, X a1, Cx a0 right. Left: global
+  order X0 > Z1 > Z > Z0 > Dz (refs/len now X0 6/39, Z1 5/30, Z 4/28, Z0 5/32, Dz 4/29). No wrap set of up to 3 lines
+  (depth 1) or 2 lines (depth 2) does it (ex.py), and X0 must stay below X/Cx or it takes a1/a0 in pass 0.
+- sca Sca_hit_line (13, agentI draft): unchanged. Three separate sched issues. (1) (SHORT)P3/(SHORT)P2 order: the
+  regs need P2's qty born first in sched1 order (P3 qty then gets v1), but sched2 must put P3 first. (2) The
+  `lw Opz[0]` belongs between `mflo` (Nz*R) and the Nz div; the do/while that fixes the s-regs starts at `Nz /= Len`,
+  and its loop note keeps the load below the div. Every other start point for the do/while breaks the s-reg
+  priorities (117+). (3) The xor operand registers.
+- sca Sca_hit_box, Sca_hit_slope (agentG/agentL drafts, ~187 / ~180 words), Sca_hit_hishi (559 insns, leaf using
+  s0-s4, /18 via 0x38E38E39 with the `sll 16` values kept for the sign fix): not attempted beyond reading;
+  Sca_hit_slope's rotated-corner copy `move v1,a3` reads like offset temps (A = (D, D), B = (W + D, D - W),
+  C = (W, -W)) added to X0/Z0 afterwards, with Cx/Cz spilled to 0x10/0x14(sp).
