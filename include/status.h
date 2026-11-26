@@ -284,6 +284,8 @@ extern ST_SPR_DEF Box_scroll_up_spr[];
 extern ST_SPR_DEF Box_scroll_down_spr[];
 extern void (*St_box_tbl[])(ST_WORK *pSt);
 extern USHORT Box_pix_pos[][2];
+extern USHORT Box_num_pos[][2];      /* inventory item count positions, [10] = equipped */
+extern USHORT Box_list_num_pos[][2]; /* box list item count positions */
 extern UCHAR Box_ng_item[];
 extern UCHAR Itemi_sum[];
 extern UCHAR Itemg_sum[];
@@ -426,7 +428,7 @@ void St_box_prim_set(ST_WORK *pSt);
 void St_box_draw(ST_WORK *pSt);
 void St_icon_swap(UCHAR Inv_no, UCHAR Box_no);
 void St_icon_copy(UCHAR Box_no, UCHAR Inv_no);
-void St_box_list_draw(ST_WORK *pSt, UCHAR Box_cursor, SHORT Ofs_y);
+void St_box_list_draw(ST_WORK *pSt, signed char Box_cursor, SHORT Ofs_y);
 void St_box_prim_init(ST_WORK *pSt);
 void St_box_frame_draw(ST_WORK *pSt);
 void St_status_init(ST_WORK *pSt);
