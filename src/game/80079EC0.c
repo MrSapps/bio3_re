@@ -330,13 +330,205 @@ void Skin_vtx0(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
 }
 
 /* blended vertices of the second skin list */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx1);
+void Skin_vtx1(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    struct {
+        SXY Sxy[3];
+        LONG Sz[3];
+    } W; /* one 24-byte block (two 12-byte arrays would each be padded to 16) */
+    MATRIX *pM;
+    VECTOR *pV;
+    ENEMY_WORK *pEm;
+    JOINT_OFS *pOfs;
+    PARTS_W *pParts;
+    MATRIX *pWs;
+    SVECTOR *pVtx;
+    LONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SXY *p0;
+    SXY *p1;
+    SXY *p2;
+    SXY *pW;
+    SHORT x; /* the SHORT conversions add RTL insns that combine removes later: with a shorter outer loop
+                loop.c would strength-reduce pData + 1/+2 (count read and triplets) into one giv */
+
+    pM = pEnv->pM;
+    pWs = pEnv->pWs;
+    pV = pEnv->pV;
+    pEm = pEnv->pEm;
+    pParts = pEm->pSin_parts_ptr;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEm->pUnk11C;
+    do {
+        n = *pData;
+        CompM(pWs, &pParts[n].Workm, pM);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_SetRotMatrix(pM);
+        gte_SetTransMatrix(pM);
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        n = pData[1];
+        pData += 2;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+    loop:
+        i0 = pData[0];
+        i1 = pData[1];
+        i2 = pData[2];
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        n--;
+        pData += 3;
+        gte_rtpt_b();
+        p0 = &pSxy[i0];
+        p1 = &pSxy[i1];
+        p2 = &pSxy[i2];
+        pW = W.Sxy; /* &W.Sxy[0] as a bare frame address would be computed after the other two operands */
+        gte_stsxy3(pW, pW + 1, pW + 2);
+        gte_stsz3(&W.Sz[0], &W.Sz[1], &W.Sz[2]);
+        x = (p0->s.x + W.Sxy[0].s.x) >> 1;
+        p0->l = (x & 0xFFFF) | (SHORT)((p0->s.y + W.Sxy[0].s.y) >> 1) << 16;
+        if (W.Sz[0] > 0x7FFF) {
+            W.Sz[0] = 0x7FFF;
+        }
+        pSz[i0] = (W.Sz[0] + pSz[i0]) >> 1;
+        if (i1 != 0xFF) {
+            x = (p1->s.x + W.Sxy[1].s.x) >> 1;
+            p1->l = (x & 0xFFFF) | (SHORT)((p1->s.y + W.Sxy[1].s.y) >> 1) << 16;
+            if (W.Sz[1] > 0x7FFF) {
+                W.Sz[1] = 0x7FFF;
+            }
+            pSz[i1] = (W.Sz[1] + pSz[i1]) >> 1;
+        }
+        if (i2 != 0xFF) {
+            x = (p2->s.x + W.Sxy[2].s.x) >> 1;
+            p2->l = (x & 0xFFFF) | (SHORT)((p2->s.y + W.Sxy[2].s.y) >> 1) << 16;
+            if (W.Sz[2] > 0x7FFF) {
+                W.Sz[2] = 0x7FFF;
+            }
+            pSz[i2] = (W.Sz[2] + pSz[i2]) >> 1;
+        }
+        if (n != 0)
+            goto loop;
+    } while (*pData != 0xFF);
+}
 
 /* blended vertices of the third skin list (each vertex rotated by two bones, mixed with gpf/gpl by weight, like
-   Skin_light2). C: reload uses s4 as a spill register (pOfs/pSxy/pSz reloads, &Skin_nor[k] rematerialised).
-   Draft (agentxC best/Skin_vtx2.c) is structurally complete; the target has more register pressure (pSxy/pSz
-   spilled to their home slots) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2);
+   Skin_light2). The SHORT weights and the pN[k] addresses set the register pressure: pSxy/pSz end up spilled to
+   their home slots and the &pN[k] invariants are rematerialised into the reload register s4.
+   Needs tools/maspsx-swc2.patch (no load-delay nop before `swc2 $25` after a load into $t9) */
+void Skin_vtx2(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    LONG Sz[3];
+    PARTS_W *pParts;
+    MATRIX *pM;
+    MATRIX *pWs;
+    VECTOR *pV;
+    JOINT_OFS *pOfs;
+    SVECTOR *pVtx;
+    SVECTOR *pN;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SHORT w0; /* weights (byte * 32) */
+    SHORT w1;
+    SHORT w2;
+
+    pN = Skin_nor;
+    pWs = pEnv->pWs;
+    pM = pEnv->pM;
+    pV = pEnv->pV;
+    pParts = pEnv->pEm->pSin_parts_ptr;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEnv->pEm->pUnk11C;
+    do {
+        n = pData[0];
+        gte_SetRotMatrix(&pParts[n].Workm);
+        gte_SetTransMatrix(&pParts[n].Workm);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        i0 = pData[2];
+        i1 = pData[4];
+        i2 = pData[6];
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        gte_rtv0tr();
+        gte_stsv(&pN[0]);
+        gte_rtv1tr();
+        gte_stsv(&pN[1]);
+        gte_rtv2tr();
+        gte_stsv(&pN[2]);
+        pData++;
+        n = pData[0];
+        gte_SetRotMatrix(&pParts[n].Workm);
+        gte_SetTransMatrix(&pParts[n].Workm);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        w0 = pData[2] * 32;
+        w1 = pData[4] * 32;
+        w2 = pData[6] * 32;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+        gte_ldv0(&pVtx[i0]);
+        gte_rtv0tr();
+        gte_stsv(&pN[3]);
+        gte_rtv1tr();
+        gte_stsv(&pN[4]);
+        gte_rtv2tr();
+        gte_stsv(&pN[5]);
+        gte_lddp(0x1000 - w0);
+        gte_ldsv(&pN[0]);
+        gte_gpf12();
+        gte_lddp(w0);
+        gte_ldsv(&pN[3]);
+        gte_gpl12();
+        gte_stsv(&pN[0]);
+        gte_lddp(0x1000 - w1);
+        gte_ldsv(&pN[1]);
+        gte_gpf12();
+        gte_lddp(w1);
+        gte_ldsv(&pN[4]);
+        gte_gpl12();
+        gte_stsv(&pN[1]);
+        gte_lddp(0x1000 - w2);
+        gte_ldsv(&pN[2]);
+        gte_gpf12();
+        gte_lddp(w2);
+        gte_ldsv(&pN[5]);
+        gte_gpl12();
+        gte_stsv(&pN[2]);
+        gte_SetRotMatrix(pWs);
+        gte_SetTransMatrix(pWs);
+        gte_ldv3c(pN);
+        gte_rtpt();
+        pData += 7;
+        gte_stsxy3(&pSxy[i0], &pSxy[i1], &pSxy[i2]);
+        gte_stsz3(&Sz[0], &Sz[1], &Sz[2]);
+        if (Sz[0] > 0x7FFF) {
+            Sz[0] = 0x7FFF;
+        }
+        if (Sz[1] > 0x7FFF) {
+            Sz[1] = 0x7FFF;
+        }
+        if (Sz[2] > 0x7FFF) {
+            Sz[2] = 0x7FFF;
+        }
+        pSz[i0] = Sz[0];
+        pSz[i1] = Sz[1];
+        pSz[i2] = Sz[2];
+    } while (*pData != 0xFF);
+}
 
 /* lit colours of the first skin list: per bone, light matrix = LIGHTMATRIX * bone rotation, then ncct over
    the vertex index triplets (count, triplets...; list ends with 0xFF). The inner loop is a goto loop: loop.c then
@@ -892,5 +1084,122 @@ void Skin_vtx1_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
     } while (*pData != 0xFF);
 }
 
-/* Skin_vtx2 for the alternate routines. C like Skin_vtx1_alt (reload rematerialises constants into spill regs) */
-INCLUDE_ASM("asm/nonmatchings/game/80079EC0", Skin_vtx2_alt);
+/* Skin_vtx2 for the alternate routines: the blended normals are flattened (vy > 0 -> 0) before the projection */
+void Skin_vtx2_alt(SXY *pSxy, SHORT *pSz, SORT_ENV *pEnv, UCHAR *pData)
+{
+    LONG Sz[3];
+    PARTS_W *pParts;
+    MATRIX *pM;
+    MATRIX *pWs;
+    VECTOR *pV;
+    JOINT_OFS *pOfs;
+    SVECTOR *pVtx;
+    SVECTOR *pN;
+    ULONG n;
+    ULONG i0;
+    ULONG i1;
+    ULONG i2;
+    SHORT w0; /* weights (byte * 32) */
+    SHORT w1;
+    SHORT w2;
+
+    pN = Skin_nor;
+    pWs = pEnv->pWs;
+    pM = pEnv->pM;
+    pV = pEnv->pV;
+    pParts = pEnv->pEm->pSin_parts_ptr;
+    pVtx = pEnv->pMdl->pVtx;
+    pOfs = (JOINT_OFS *)pEnv->pEm->pUnk11C;
+    do {
+        n = pData[0];
+        gte_SetRotMatrix(&pParts[n].Workm);
+        gte_SetTransMatrix(&pParts[n].Workm);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        i0 = pData[2];
+        i1 = pData[4];
+        i2 = pData[6];
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+        gte_ldv3(&pVtx[i0], &pVtx[i1], &pVtx[i2]);
+        gte_rtv0tr();
+        gte_stsv(&pN[0]);
+        gte_rtv1tr();
+        gte_stsv(&pN[1]);
+        gte_rtv2tr();
+        gte_stsv(&pN[2]);
+        pData++;
+        n = pData[0];
+        gte_SetRotMatrix(&pParts[n].Workm);
+        gte_SetTransMatrix(&pParts[n].Workm);
+        pV->vx = pOfs[n].x;
+        pV->vy = pOfs[n].y;
+        pV->vz = pOfs[n].z;
+        gte_ldlv0(pV);
+        gte_rtv0tr();
+        w0 = pData[2] * 32;
+        w1 = pData[4] * 32;
+        w2 = pData[6] * 32;
+        gte_stlvnl(pM->t);
+        gte_SetTransMatrix(pM);
+        gte_ldv0(&pVtx[i0]);
+        gte_rtv0tr();
+        gte_stsv(&pN[3]);
+        gte_rtv1tr();
+        gte_stsv(&pN[4]);
+        gte_rtv2tr();
+        gte_stsv(&pN[5]);
+        gte_lddp(0x1000 - w0);
+        gte_ldsv(&pN[0]);
+        gte_gpf12();
+        gte_lddp(w0);
+        gte_ldsv(&pN[3]);
+        gte_gpl12();
+        gte_stsv(&pN[0]);
+        gte_lddp(0x1000 - w1);
+        gte_ldsv(&pN[1]);
+        gte_gpf12();
+        gte_lddp(w1);
+        gte_ldsv(&pN[4]);
+        gte_gpl12();
+        gte_stsv(&pN[1]);
+        gte_lddp(0x1000 - w2);
+        gte_ldsv(&pN[2]);
+        gte_gpf12();
+        gte_lddp(w2);
+        gte_ldsv(&pN[5]);
+        gte_gpl12();
+        gte_stsv(&pN[2]);
+        if (pN[0].vy > 0) {
+            pN[0].vy = 0;
+        }
+        if (pN[1].vy > 0) {
+            pN[1].vy = 0;
+        }
+        if (pN[2].vy > 0) {
+            pN[2].vy = 0;
+        }
+        gte_SetRotMatrix(pWs);
+        gte_SetTransMatrix(pWs);
+        gte_ldv3c(pN);
+        gte_rtpt();
+        pData += 7;
+        gte_stsxy3(&pSxy[i0], &pSxy[i1], &pSxy[i2]);
+        gte_stsz3(&Sz[0], &Sz[1], &Sz[2]);
+        if (Sz[0] > 0x7FFF) {
+            Sz[0] = 0x7FFF;
+        }
+        if (Sz[1] > 0x7FFF) {
+            Sz[1] = 0x7FFF;
+        }
+        if (Sz[2] > 0x7FFF) {
+            Sz[2] = 0x7FFF;
+        }
+        pSz[i0] = Sz[0];
+        pSz[i1] = Sz[1];
+        pSz[i2] = Sz[2];
+    } while (*pData != 0xFF);
+}

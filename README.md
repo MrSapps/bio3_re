@@ -16,6 +16,8 @@ python3 -m venv .venv && .venv/bin/pip install "splat64[mips]" pycdlib pycparser
 cp -r ../../UnfilteredSyphon/tools/compilers ../../UnfilteredSyphon/tools/{maspsx,m2c,asm-differ} tools/
 # maspsx fix: a split load `lw $x,%lo(sym)($y)` was treated as an $at macro (no load-delay nop)
 (cd tools/maspsx && patch -p1 < ../maspsx-lo-load.patch)
+# maspsx fix: `swc2 $25,..` stores a cop2 register, so a load into GPR $25 just before it needs no nop
+(cd tools/maspsx && patch -p1 < ../maspsx-swc2.patch)
 # WARNING.BIN's own objects need decompals old-gcc gcc-2.7.2-cdk (release 0.14) in tools/compilers/gcc-2.7.2-cdk
 # 5. split + build + verify
 make split && make

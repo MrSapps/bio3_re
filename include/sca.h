@@ -57,6 +57,7 @@ typedef struct tagSCA_WORK {
 extern SCA_WORK Sca_work;
 
 extern LONG (*Sca_line_tbl[])(ULONG P0, ULONG P1, SCA_DATA *pT); /* line test per shape (Id & 0xF) */
+extern ULONG (*Sca_rtn_tbl[])(struct tagCOL_OBJ *pObj, LONG R, SCA_DATA *pT, ULONG Arg3); /* hit routine per shape (Id & 0xF) */
 extern LONG (*Sca_high_tbl[][13])(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High); /* height per [Flg & 8][shape] */
 extern UCHAR Sca_block_list[]; /* 0xFF-terminated shape list of the grid block (Sca_get_block output) */
 extern SCA_DATA Tmp_Sca; /* RE2 Tmp_Sca: temporary shape passed to the hit routines */
