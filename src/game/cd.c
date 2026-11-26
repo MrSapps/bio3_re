@@ -778,7 +778,84 @@ void Cd_edd_search(void)
 }
 
 /* room pack: picks the next entry from the room link list (CD.pLink) and seeks to it */
-INCLUDE_ASM("asm/nonmatchings/game/cd", Cd_link_search);
+void Cd_link_search(void)
+{
+    tagCD *pCd;
+    SCENARIO *pSce;
+    CD_ENTRY *pEnt;
+    CD_LINK *pLink;
+    CD_LINK *pBest_link;
+    ULONG Best_size;
+    ULONG Size;
+    signed char Best;
+    UCHAR Found;
+    UCHAR Kind0;
+    UCHAR Kind1;
+    UCHAR i;
+    UCHAR n;
+
+    Best_size = 0;
+    pCd = &CD;
+    pCd->pLink = (CD_LINK *)G.pRoom->pEdt0;
+    pSce = &Sce;
+    Kind1 = pSce->Em_set_kind1;
+    Kind0 = pSce->Em_set_kind0;
+    Best = -1;
+    if (Kind1 < Kind0 && Kind1 != 0) {
+        pSce->Em_set_kind0 = Kind1;
+        pSce->Em_set_kind1 = Kind0;
+    }
+    Found = 0;
+    i = 0;
+    n = 0;
+    pEnt = CD_DIR;
+    pCd->Load_flg |= 2;
+    for (; pEnt[i].Id & 0x80; i++) {
+    }
+    while (pCd->pLink->Id != 0xFFFF) {
+        pLink = pCd->pLink;
+        /* both directions spelled out: jump2 cross-jumps the two copies (the larger loop also keeps the
+           0xFFFF compare constant inside it, below loop.c's move threshold) */
+        if (pLink->Room[0] == pSce->Em_set_kind0) {
+            if (pLink->Room[1] == pSce->Em_set_kind1) {
+                Found = 1;
+                break;
+            }
+            if (Best == -1 || pEnt[i + 1].Size < Best_size) {
+                Best = i;
+                Best_size = pEnt[i + 1].Size;
+                pBest_link = pLink;
+            }
+        } else if (pLink->Room[1] == pSce->Em_set_kind0) {
+            if (pLink->Room[0] == pSce->Em_set_kind1) {
+                Found = 1;
+                break;
+            }
+            if (Best == -1 || pEnt[i + 1].Size < Best_size) {
+                Best = i;
+                Best_size = pEnt[i + 1].Size;
+                pBest_link = pLink;
+            }
+        }
+        pCd->pLink++;
+        i += 2;
+    }
+    if (pCd->pLink->Id == 0xFFFF && Best == -1) {
+        Cd_em_next(pCd);
+        return;
+    }
+    if (!Found && Best >= 0) {
+        i = Best;
+        pCd->pLink = pBest_link;
+    }
+    Size = 0x800;
+    for (; n < i; n++) {
+        Size += (pCd->pEntry[n].Size + 0x7FF) & ~0x7FF;
+    }
+    Cd_set_read_pos(Size);
+    pCd->Entry_no = n;
+    pCd->Seek_req = 1;
+}
 
 /* RE2 Cd_ready_cb: DsReadyCallback during Cd_read / Cd_read_s */
 void Cd_ready_cb(UCHAR intr, UCHAR *result)
