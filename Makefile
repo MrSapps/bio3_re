@@ -97,6 +97,10 @@ $(BUILD)/$(BASENAME): $(BUILD)/$(BASENAME).elf
 OVL_SRCS = $(wildcard src/enemy/$(1).c src/ovl/$(1).c)
 $(foreach o,$(basename $(notdir $(wildcard ovl/*.yaml))),$(eval OVL_SRCS_$(o) := $(call OVL_SRCS,$(o))))
 OVL_SRCS_warning += src/ovl/warning_frame.c src/ovl/warning_task.c
+# MEM_CARD.BIN ends with libcard's CARD module (_card_clear), built with gcc 2.7.2 (sp restore before `jr ra`,
+# nop in the delay slot) through the normal maspsx pipeline. Keep in sync with tools/fdiff.py OLD_CC_OBJS.
+OVL_SRCS_mem_card += src/ovl/mem_card_card.c
+$(BUILD)/src/ovl/mem_card_card.c.o: CC1 := tools/compilers/gcc-2.7.2-psx/cc1
 OVLS     := $(basename $(notdir $(wildcard ovl/*.yaml)))
 OVL_BINS := $(foreach o,$(OVLS),$(BUILD)/ovl/$(o).bin)
 

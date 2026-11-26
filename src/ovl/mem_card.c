@@ -1465,5 +1465,4 @@ INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_info);
 /* libcard _card_load: BIOS A0 call 0xAC (jump stub, stays asm) */
 INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_load);
 
-/* libcard _card_clear: _new_card, then _card_write(Chan, 0x3F, NULL) (older-compiler code, stays asm) */
-INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_clear);
+/* _card_clear: src/ovl/mem_card_card.c (libcard CARD module, gcc 2.7.2) */
