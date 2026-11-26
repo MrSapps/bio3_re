@@ -1662,3 +1662,44 @@ Near misses (agentAC/best):
 - Tools: agentAC/sc.sh (macro-expanding scorer, ALL=1 lists all, DL=1 difflib), ad.sh (aligned diff), lst.sh (list
   compiled words), pscore.sh (score permuter outputs, which are full files), seg.py / rtlo.py (RTL around a pattern /
   in sched order), hill.py (statement-order hill-climb).
+## Matching round agentAG (worktree clean/wE; drafts in the session scratchpad agentAG/best)
+Matched: psp Rain_move (Rain_esp_no = 0x8009DE2C named, the Esp bank of the splash; psp.c includes sca.h, esp.h),
+cd Cd_link_search.
+Rules learnt:
+- loop.c's move threshold counts RTL insns BEFORE jump2 cross-jumping. Cd_link_search's 0xFFFF compare constant stays
+  in the loop only because the source spells the link test out for both room orders (`if (Room[0] == k0) { if (Room[1]
+  == k1) {Found; break;} best-update } else if (Room[1] == k0) { ...same... }`): the duplicate (cross-jumped into the
+  target's `lbu v1,3(a0); j` shape later) pushes insn_count over threshold*savings*lifetime. The permuter found the
+  effect with a dead `if (x) A; else A;` around the best update; the natural form is the duplicated branch.
+- jump.c thread_jumps only threads when both tests use non-user-var temps: `while (pCd->pLink->Id != 0xFFFF) { pLink =
+  pCd->pLink; ...}` threads the pre-test past the post-loop `pCd->pLink->Id == 0xFFFF` check; testing `pLink->Id`
+  (a user variable) never threads.
+- Rain_move: a per-iteration pointer copy (`move a2,s1` at the top, loads through a2, stores through the call argument
+  a0) is a loop.c DEST_REG giv that is not replaceable: `pV = &pTop[i]` in an indexed for loop. The same variable is
+  also used for loop 2's `&pTop[i]`, so in cse2 its REGNO_LAST_UID is past the loop-1 giv and pV stays canonical; in
+  loop 2 the giv is replaceable and pV vanishes, so pV ends up as a short call-free global (a2). The stores go through
+  a0 by local-alloc optimize_reg_copy_1 (pV dies at the `a0 = pV` argument copy).
+- A constant that loop.c must leave in the loop: write the two adds next to each other (`X1 = x + Dx; Z1 = z + Dz;
+  X1 += 0x8000; Z1 += 0x8000;`) so the shared const pseudo has lifetime 2 (29*1*2 < insn count); a range test against
+  a literal 0xFFFF0000 is hoisted per loop (no Mask variable).
+- A giv that gets reduced only because two DEST_ADDR givs combine (pV+4, pV+8): index the stores (`pTop[i].y`) or use
+  the per-loop copy above; a duplicated biv increment also kills it (benefit - add_cost*biv_count) but is unnatural.
+- Shared registers in the target = one variable: Rain_move's X1/Z1 also hold the ground height and the two random
+  terms (`X1 = RND(); Z1 = (signed char)Rnd_tbl[..]; X1 = ((X1 + Z1) * R >> 8) + x;`). Giv increment order follows the
+  for-increment order (`pFlg++, i++` puts the giv add into the bnez delay slot). Spill slot order follows declaration
+  order (Cnt before pTop).
+Not matched:
+- em_sub Kage_work9_sort (best/Kage_work9_sort_40.c, 40 words, was 212): `USHORT Hx`, `SHORT X1` (the type sweep win:
+  fixes the whole middle schedule and Z0/Z3 t3/t4), cases 1..9 written separately (cross-jumped to the target's
+  shared 1/4/7 and 2/5/8 bodies; this is what gives X2 > X1 > X0 in global-alloc). Left: (1) pK giv (s4) vs X3 (s5)
+  swapped: X3 22 refs/len 153 (0.575) > pK giv 27/198 (0.545); X3 needs <= 20 refs or len >= 162 (no source form found:
+  load orders, Step forms, case groupings x X types sweep of 324 variants). (2) top: the target keeps `pK = &G.Kage9`
+  (v1) before the Mask li; ours the single-set pK init is boosted after Mask (a `while (i-- != 0)` loop fixes the top
+  but tests the old i at the bottom). (3) bottom: target `addiu s4,28` before the i reload (`lw t5; nop`), ours fills
+  the load delay with it (looks like a block boundary between the giv increment and `--i`).
+- sce_at Sce_at_check (best/Sce_at_check_224.c = agentM both.c; needs `#include "sce2.h"` in sce_at.c for
+  Game_st_flg / Sce_at_jump_tbl): the target hoists %hi(D_800DECAC) (s7) and 0x10 (fp) and spills D0 (0x40(sp), which is
+  also the 8 bytes of frame difference) and attribute. In ours, D_800DECAC's three hi pseudos are matched movables with
+  lifetime 1 each (23*3*3 = 207 < 298 insns) and the two 0x10 compares 92 < 298, while the jump-table hi IS hoisted
+  (target: not). A `Manual = 0x10` / `pAt = &D_800DECAC` user variable is constant-propagated by cse (no change in or out
+  of the loop). Needs a source form where those constants have long lifetimes (or a smaller loop); not found.
