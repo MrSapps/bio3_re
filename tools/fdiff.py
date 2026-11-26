@@ -161,6 +161,9 @@ def resolve_target(r, syms):
 OLD_AS_OBJS = r"src/ovl/warning(_frame)?\.c$"
 OLD_AS_CC = "gcc-2.7.2-cdk-warning"  # patched gcc-2.7.2-cdk, made by `make tools/compilers/gcc-2.7.2-cdk-warning/cc1`
 OLD_AS_FLAGS = " -fpic"  # unsplit `lw $3,sym` macros
+# objects built with gcc 2.7.2 through the normal maspsx pipeline (Makefile: mem_card_card.c.o CC1)
+OLD_CC_OBJS = r"src/ovl/mem_card_card\.c$"
+OLD_CC = "gcc-2.7.2-psx"
 
 def main():
     ap = argparse.ArgumentParser()
@@ -172,14 +175,14 @@ def main():
     ap.add_argument("--syms", action="append", default=[], help="extra 'name = 0xADDR;' file")
     a = ap.parse_args()
     old = re.search(OLD_AS_OBJS, os.path.abspath(a.cfile))  # per-object toolchain, see Makefile
-    a.cc = a.cc or (OLD_AS_CC if old else "gcc-2.8.1-psx")
+    a.cc = a.cc or (OLD_AS_CC if old else OLD_CC if re.search(OLD_CC_OBJS, os.path.abspath(a.cfile)) else "gcc-2.8.1-psx")
     a.flags = a.flags or ("-O2 -G0 -mgas -msoft-float -fno-builtin -funsigned-char" + (OLD_AS_FLAGS if old else ""))
     if old and a.cc == OLD_AS_CC and not os.path.exists(os.path.join(ROOT, "tools/compilers", a.cc, "cc1")):
         subprocess.run(["make", "-s", f"tools/compilers/{a.cc}/cc1"], cwd=ROOT, check=True)
     a.aspsx = a.aspsx or ("none" if old else "2.77")
     m = re.search(r"src/(?:ovl|enemy)/(\w+)\.c$", os.path.abspath(a.cfile))
     if m:  # overlay: its own symbols first, then its view of the exe
-        o = os.path.join(ROOT, "ovl", re.sub(r"^warning_\w+$", "warning", m.group(1)))
+        o = os.path.join(ROOT, "ovl", re.sub(r"^(warning|mem_card)_\w+$", r"\1", m.group(1)))
         a.syms = [o + ".syms.txt", o + ".undefined_funcs_auto.txt", o + ".undefined_syms_auto.txt"] + a.syms
     syms = load_syms(a.syms)
     tw, tm, tt, tr = target_words(a.func, a.cfile)
