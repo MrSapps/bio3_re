@@ -990,3 +990,57 @@ Near misses (paths under the agentM scratchpad):
   copy, `Pos_y + 1600` folded, the reload issue above.
 - Tools: agentO/cdgen.py (greedy one-slot-at-a-time over `{{NAME:a||b}}` templates; gen.py's full cartesian product
   once wrote 476k files), opd.py (register-blind diff), dscore.py now returns 9999 on any cc1 stderr.
+## Matching round agentV (drafts in the session scratchpad agentV/best)
+Matched: status St_box_draw (agentP subC draft + names Box_num_pos 0x8009F518 / Box_list_num_pos 0x8009F548,
+St_box_list_draw now takes `signed char Box_cursor`, still matches), sub Retry_file_load.
+Rules learnt:
+- Type sweeps of the flag locals are cheap and worth doing first: Retry_file_load went 11 -> 0 with
+  `SHORT All_a, All_b` (the narrow compare results change which registers the 0xF8000000 / 0x3C00000 masks get).
+- A value whose andi/extension lands in a different register than its source (`andi v0,v1,0xffff` where ours
+  ties both into one register) is a local that is not block-local: local-alloc ties a dying source to the set
+  register only when both are local qtys. St_box_draw: the x / y count positions are one pair of variables used
+  for all three St_num_disp calls (multi-block -> global-alloc). Pc_text_set: `Hi = c; c = (Hi / 32) * 10 << 8 |
+  (Hi % 32) << 3;` (c set twice) gives the target's `addiu v0,v0,-32; andi v1,v0,0xffff`.
+- The SN cc1 -dS dump already contains the sched1/sched2 verbose trace (";; ready list at T-n", per-insn
+  priorities): no need for gdb to see scheduling decisions. Backward list scheduling: among equal priority, the
+  higher LUID is chosen first (placed lower), so the insn that ends at the top of a block is the lowest-LUID free
+  insn. A launched insn whose SET_DEST is live and REG_N_SETS == 1 gets LAUNCH_PRIORITY (birthing boost,
+  adjust_priority) and is placed right above its consumer.
+- loop.c movables: savings = n_times_used; identical constants in several blocks of the loop are matched
+  (savings and lifetime summed), which is how a life-1 constant gets hoisted (St_box_frame_draw `pS->u0 = 0x20`
+  written in each case of the switch, cross-jumped to one store later). The matched reg then has refs 1 + 2*uses,
+  which raises its global-alloc priority.
+- cse follows a conditional jump (-fcse-follow-jumps) only if the target label has LABEL_NUSES == 1 and is preceded
+  by a BARRIER (cse.c cse_end_of_basic_block). When the target recomputes `&G` / reloads a field right after an
+  `if (..) { ...; break; }`, cse did not follow into that block in the original.
+- fdiff flags string literals of a `.rodata`-dotted segment as reloc mismatches (target uses the D_ label, the
+  object .rodata+off); the full build (60 OK) is the real check there (Retry_file_load "ICON_DATA").
+Near misses (agentV/best):
+- status St_box_frame_draw (St_box_frame_draw_7.c, 7 words, was ~200): UCHAR Ot_no2 / signed char Ot_no3 make
+  the `Ot * 8` hoist (savings 2), `c = pSt->Box_cursor` reused for the line y, `pI = &G.pItem_set->Box[i]`,
+  `switch` with `case 1: case 2: / case 3: / default:` and `pS->u0 = 0x20` in every case (only way found to hoist
+  0x20 after Item_data_tbl). Left: s4/s5/s6 = G / 0x20 / 0xD0 instead of G / 0xD0 / 0x20; the matched 0x20 reg has
+  refs 7 (target behaves like a single-use hoisted constant, refs 3, prio ~0.034 between 0xD0 0.035 and
+  Item_data_tbl 0.033). A single store is never hoisted (life 1, threshold 17 < 52 insns). Also has a
+  `do { pL = ..; } while (0)` that fixes an i/pS s1/s2 swap.
+- status St_map_area_select (St_map_area_select_11ds.c, dscore 11, was ~118): Rtn2++ before Snd_se_stad(5) (stops
+  the cross-jump with case 0), `Key = pG->Key_trg & 0x2000; Pad = pG->Padd_trg & 1;` then `(.. & 0x108) || (Key |
+  Pad)` (fold makes the `or`). Left: the target recomputes `&G` (lui in the beqz delay slot) and reloads Key_trg
+  with lw in the next test; cse follows the jump in ours (see rule above). USHORT Key gets the reload (as lhu) but
+  not the &G recompute. A do/while around the body content reproduces it but changes `break`'s meaning.
+- sub Get_light_cut (Get_light_cut_3_regs.c, 3 words with all registers right; Get_light_cut_4_a0.c): the a0 copy
+  needs pData not to die in `pLight = pData + ..` (global.c expand_preferences merges pLight's a1 preference) and
+  the Ofs load to stay on s0 (local-alloc optimize_reg_copy_1 rewrites the source's last use after `copy = src`
+  unless a jump/label/loop note intervenes). `do { pLight = ..; } while (0)` gives every register but leaves
+  `addu s2` (pCut) after the loop pointer add; target has it before.
+- pc_sys Pc_text_set (Pc_text_set_6.c, 6 words, was 7): only the `addiu t0,t0,16` biv increment, which the target
+  issues first in the loop. The -dS trace shows it is a LUID tie-break (priority 1, lowest LUID ends on top), i.e.
+  the target's biv increment insn precedes the loads in RTL while the store giv (a2, +15) is incremented after the
+  stores. Every pSpr / index / pSpr[-1] form tried moves both or neither.
+- epilog Epilog_draw (7, unchanged): the -dS trace shows G's lo_sum (pG, set once) gets the birthing boost and is
+  placed right above the Flg_ck call; the target needs it above Epi_work's lo. Needs REG_N_SETS(pG) > 1 or a
+  different pG source; a second `pG = &G;` is deleted by cse.
+- option Config_moji_disp (3, unchanged): the target's 0x80 path stores r0 and then jumps to a separate copy of
+  `j A4; sb g0` placed after the 0x58 block, i.e. the 0x80 and 0x58 paths are not cross-jumped beyond b0; no
+  Col/constant/order/if-shape combination (800 variants) reproduces it. Config_suuji still waits for it.
+- mojidisp Print_main, Mess_disp: not attempted (time).
