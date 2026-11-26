@@ -153,7 +153,46 @@ void Spl_Init(ENEMY_WORK *pEm)
 }
 
 /* gives the sub player the player's weapon type and its part/offset setup (Spl_wep_parts_tbl..E4 tables) */
-INCLUDE_ASM("asm/nonmatchings/game/spl", Spl_wep_set);
+void Spl_wep_set(ENEMY_WORK *pEm)
+{
+    ENEMY_WORK *pPl;
+    PARTS_W *pHand;
+    PARTS_W *pP;
+    UCHAR Flg;
+
+    pPl = &Pl_work;
+    if (!(pEm->Unk4B & 1)) {
+        return;
+    }
+    if (pPl->Type == 0xFF && (pEm->Type & 1)) {
+        return;
+    }
+    pP = &pEm->pSin_parts_ptr[4];
+    pP->pTmd = pPl->pSin_parts_ptr[4].pTmd;
+    pEm->Parts_num = 16;
+    Flg = Spl_wep_parts_tbl[(UCHAR)pPl->Type];
+    /* six do/while(0) levels: flow weights refs by loop depth, so the short-lived pHand outranks pP
+       in global-alloc (pHand a1, pP a2); fewer levels leave pP first and swap them */
+    do { do { do { do { do { do {
+        pHand = pP;
+    } while (0); } while (0); } while (0); } while (0); } while (0); } while (0);
+    if (Flg & 8) {
+        pP = &pEm->pSin_parts_ptr[15];
+        pP->Be_flg = 1;
+        pP->pSuper = &pHand->Workm;
+        pP->UnkA2 |= 0xB;
+        pP->pOya_parts = pHand;
+        pP->Pos_x = Spl_wep_ofs_x[Flg & 7];
+        pP->Pos_y = Spl_wep_ofs_y[Flg & 7];
+        pP->Pos_z = Spl_wep_ofs_z[Flg & 7];
+        pP->pTmd = pPl->pSin_parts_ptr[22].pTmd;
+        pEm->Parts_num++;
+    } else {
+        pEm->pSin_parts_ptr[15].Be_flg = 0;
+    }
+    pEm->Type &= 0xFFF0;
+    pEm->Type |= (UCHAR)pPl->Type;
+}
 
 /* RE2 Spl_set: installs Spl as the routine of the sub player work slots */
 void Spl_set(void)
