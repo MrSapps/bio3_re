@@ -1117,6 +1117,7 @@ Snd_se_walk = 0x800776B0; // type:func
 Mapping_tim = 0x800784E0; // type:func
 Sce_at_jump_tbl = 0x8009E0BC;
 Flg_addr = 0x8009E3F8;
+Sce_manual_hit = 0x800DECAC;
 pCAot = 0x800DECB0;
 Old_Fatari = 0x800DECB4;
 Old_Uatari = 0x800DECB8;

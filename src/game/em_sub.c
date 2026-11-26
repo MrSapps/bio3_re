@@ -983,7 +983,155 @@ void Kage_work_sort(void)
     } while (i != 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game/em_sub", Kage_work9_sort);
+/* transform and add the 3x3 shadows to the ordering table */
+void Kage_work9_sort(void)
+{
+    KAGE_WORK9 *pK;
+    KAGE_WORK *pKw;
+    POLY_FT4 *pTag;
+    ULONG *pOt;
+    ULONG *Ot_base;
+    LONG i;
+    LONG j;
+    USHORT Hx;
+    LONG X0;
+    SHORT X1;
+    LONG X2;
+    LONG X3;
+    LONG Z0;
+    LONG Z1;
+    LONG Z2;
+    LONG Z3;
+    LONG Step;
+    LONG Step_z;
+    MATRIX Mx;
+    MATRIX M2;
+    SVECTOR Sv[4];
+    VECTOR Pos;
+    LONG P;
+    ULONG Otz;
+    ULONG Hi;
+
+    i = 5;
+    pK = G.Kage9;
+    do {
+        if (!(pK->Be_flg & 4)) {
+            /* pK++ on both paths (merged by jump2 after sched2: keeps the add before the i reload, raises pK's priority) */
+            pK++;
+            continue;
+        }
+        Ot_base = Ot_get_pos(pK->pPos);
+        *(LONG *)&Mx.m[0][0] = 0x1000;
+        *(LONG *)&Mx.m[0][2] = 0;
+        *(LONG *)&Mx.m[1][1] = 0x1000;
+        *(LONG *)&Mx.m[2][0] = 0;
+        *(LONG *)&Mx.m[2][2] = 0x1000;
+        RotMatrixY(pK->Dir_y, &Mx);
+        Mx.t[0] = pK->Pos_x;
+        Mx.t[1] = pK->Pos_y;
+        Mx.t[2] = pK->Pos_z;
+        CompM(&GsWSMATRIX, &Mx, &M2);
+        SetRotMatrix(&M2);
+        SetTransMatrix(&M2);
+        Hx = pK->Half_x;
+        *(LONG *)&Sv[0] = (USHORT)~Hx - 1;
+        *(LONG *)&Sv[3] = (SHORT)Hx;
+        X0 = Sv[0].vx;
+        X3 = Sv[3].vx;
+        Sv[0].vz = pK->Half_z;
+        Sv[1].vz = pK->Half_z;
+        *(LONG *)&Sv[1] = (SHORT)Hx;
+        *(LONG *)&Sv[2] = (USHORT)~Hx - 1;
+        Sv[3].vz = Sv[2].vz = ~pK->Half_z - 1;
+        Z0 = Sv[0].vz;
+        Z3 = Sv[2].vz;
+        Step = (X3 - X0) / 3;
+        Step_z = (Z3 - Z0) / 3;
+        X1 = Step + X0;
+        X2 = Step * 2 + X0;
+        Z1 = Step_z + Z0;
+        Z2 = Step_z * 2 + Z0;
+        Pos = *(VECTOR *)Mx.t;
+        pKw = pK->pKw_top;
+        if (Hit_ck_point4((LONG *)&Pos, G.Cccut) != 0) {
+            j = 9;
+            Hi = 0xFF000000;
+            do {
+                switch (j) {
+                case 3:
+                    Sv[0].vx = X0;
+                    Sv[0].vz = Z2;
+                    Sv[1].vx = X1;
+                    Sv[1].vz = Z2;
+                    Sv[3].vx = X1;
+                    Sv[3].vz = Z3;
+                    Sv[2].vx = X0;
+                    Sv[2].vz = Z3;
+                    break;
+                case 6:
+                    Sv[0].vx = X0;
+                    Sv[0].vz = Z1;
+                    Sv[1].vx = X1;
+                    Sv[1].vz = Z1;
+                    Sv[3].vx = X1;
+                    Sv[3].vz = Z2;
+                    Sv[2].vx = X0;
+                    Sv[2].vz = Z2;
+                    break;
+                case 1:
+                    Sv[0].vx = X2;
+                    Sv[1].vx = X3;
+                    Sv[3].vx = X3;
+                    Sv[2].vx = X2;
+                    break;
+                case 4:
+                    Sv[0].vx = X2;
+                    Sv[1].vx = X3;
+                    Sv[3].vx = X3;
+                    Sv[2].vx = X2;
+                    break;
+                case 7:
+                    Sv[0].vx = X2;
+                    Sv[1].vx = X3;
+                    Sv[3].vx = X3;
+                    Sv[2].vx = X2;
+                    break;
+                case 2:
+                case 5:
+                case 8:
+                    Sv[0].vx = X1;
+                    Sv[1].vx = X2;
+                    Sv[3].vx = X2;
+                    Sv[2].vx = X1;
+                    break;
+                case 9:
+                    Sv[0].vx = X0;
+                    Sv[0].vz = Z0;
+                    Sv[1].vx = X1;
+                    Sv[1].vz = Z0;
+                    Sv[3].vx = X1;
+                    Sv[3].vz = Z1;
+                    Sv[2].vx = X0;
+                    Sv[2].vz = Z1;
+                    break;
+                }
+                pTag = &pKw->Prim[G.Cbuf_id];
+                if (RotAverageNclip4(&Sv[0], &Sv[1], &Sv[2], &Sv[3], (LONG *)&pTag->x0, (LONG *)&pTag->x1,
+                                     (LONG *)&pTag->x2, (LONG *)&pTag->x3, &P, (LONG *)&Otz, &P) > 0) {
+                    Otz += 0x20;
+                    if (Otz > 0x1FFF) {
+                        Otz = 0x1FFF;
+                    }
+                    pOt = (ULONG *)((Otz >> 3) * 4 + (ULONG)Ot_base);
+                    *(ULONG *)pTag = (*(ULONG *)pTag & Hi) | (*pOt & 0xFFFFFF);
+                    *pOt = (*pOt & Hi) | ((ULONG)pTag & 0xFFFFFF);
+                }
+                pKw++;
+            } while (--j != 0);
+        }
+        pK++;
+    } while (--i != 0);
+}
 
 /* set the colour of a shadow's quads */
 void Kage_work_color_set(KAGE_WORK *pK, ULONG Color)

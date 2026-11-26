@@ -1769,3 +1769,25 @@ Near misses (agentAD/best):
   Num/Den/Quot locals (81 combinations): no change.
 - sabun Sa_morph_step (Sa_morph_step_ds50.c, difflib 50 / 160 words): `pW = &pParts[Idx]; pW->Pos_x = ...` in the
   first loop gives the target's `addu a1,s0,v1; sw ..(a1)` (ds 61 -> 50). Block 2 order still as agentY described.
+
+## Matching round agentAK (worktree clean/wI; drafts in the session scratchpad agentAK/)
+Matched: sce_at Sce_at_check (D_800DECAC named Sce_manual_hit; prototype takes ENEMY_WORK *, the two player calls
+cast like RE2; sce_at.c includes sce2.h), em_sub Kage_work9_sort. Both were register-priority / loop-threshold misses
+fixed by duplicating statements that jump2 merges afterwards (agentAG's Cd_link_search rule, used three more ways).
+Rules learnt:
+- loop.c movable test is threshold*savings*lifetime >= insn_count, threshold = 1+n_non_fixed_regs (29 with calls) minus
+  3 per moved reg (23 after &G). Duplicating `if (auto_flg == 0x10) Sce_manual_hit = Hit_flg;` into both the point4 and
+  box branches (cross-jumped back to one copy) raised %hi(Sce_manual_hit) to savings 5 / life 5 and the 0x10 constant to
+  4/4: both hoisted (s7/fp), which also pushes D0 and attribute to the stack exactly like the target.
+- A preheader insn placed AFTER the loop-moved invariants is a strength-reduction init, not source before the loop.
+  Sce_at_check's `addiu s2,s3,-1` is the giv n - 1: the source writes `n - 1` at each of the 4 uses (after n is
+  advanced); 4 combined givs give enough benefit (2 each minus add_cost*2 increments) to be reduced, and the giv add
+  follows each biv change (`li s2,-1` for n = 0, `addiu s2,1` for n++). A user variable Aot_no = n - 1 is
+  non-replaceable and pays copy_cost (benefit < 0, not reduced).
+- A register-only add left in front of a spill reload with an unfilled load delay (`addiu s4,28; lw t5; nop`) means
+  jump2 merged two copies of the add AFTER sched2: write the add on both paths (`if (!flag) { pK++; continue; }` plus
+  the normal pK++). The second biv increment also raised the pK giv's global-alloc priority above X3 (the s4/s5 swap).
+- sched1 birthing boost: a single-set pseudo init is pulled to right before its last in-block use. A user `Mask =
+  0xFFFFFF` (li+ori, two sets, no boost) stays first; writing the literal lets loop.c hoist it to the outer preheader
+  after the pK init, which gives the target's `pK` address-before-mask order.
+Not matched: none.

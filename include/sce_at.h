@@ -19,13 +19,13 @@ extern SHORT Ibox_spd_add; /* RE2 Item_box_entrance static Spd_add */
 extern OBJ_MODEL_WORK *Ibox_pOwork; /* RE2 Item_box_entrance static pOwork */
 extern void *Hiki_pAot; /* 0x800DECA4 RE2 Hikidashi_entrance static pAot */
 extern SCE_ITEM_DATA *Hiki_pItem_dat; /* 0x800DECA8 RE2 Hikidashi_entrance static pItem_dat */
-extern ULONG D_800DECAC;
+extern ULONG Sce_manual_hit; /* 0x800DECAC result of the last manual (action button) AOT test; while set, door AOTs are skipped */
 extern UCHAR *pCAot; /* 0x800DECB0 RE2 pCAot */
 extern ULONG Old_Fatari; /* 0x800DECB4 RE2 Old_Fatari */
 extern ULONG Old_Uatari; /* 0x800DECB8 RE2 Old_Uatari */
 extern UCHAR St_type_a[];            /* St.St_type seen as an array (stores stay after loads) */
 
-ULONG Sce_at_check(void *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
+ULONG Sce_at_check(ENEMY_WORK *pEm, ULONG Attribute, ULONG Auto_flg); /* RE2 Sce_at_check */
 void Sce_at(void);
 ULONG Nothing(void *pAot);
 ULONG Sce_Door(void *pAot);
