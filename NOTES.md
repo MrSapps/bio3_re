@@ -1902,3 +1902,49 @@ Near misses:
   trace. The target's block 2 is close to plain source order (pKan, Parts_no, k, Size, pParts, ..., pHead[1] load with
   an unfilled nop before `addu s1`), which suggests few birthing-boosted loads in the original block 2 (multi-set
   locals keep LUID order); ours boosts most loads and reorders them.
+
+## Matching round agentAP (worktree clean/wN; scratch in the session scratchpad agentAP/, drafts agentAP/best)
+Matched: sabun Sa_morph_step (8ed739e).
+Rules learnt:
+- agentAM's hypothesis (target block 2 = mostly non-boosted, multi-set loads) is wrong. Probed by setting REG_N_SETS = 2
+  on every block-2 pseudo at sched1 entry (restored at local_alloc; agentAP/probe2.sh): ds 50 -> 54. With natural
+  priorities sched1 puts the low-priority leaf loads (pHead[1]) first, not in source order. The real causes were
+  register allocation, found by reading the target's registers per variable:
+  - One counter for everything: the target keeps the vertex count, the KAN entry word and both part-loop counters in
+    a3, i.e. one variable (`n`) for nVert counting, `n = *(ULONG *)(pKan_base + ...)`, `Cnt_top = n = n & 0xFFFF;
+    while (n--)` and `n = Cnt_top; if (n--)`. That gives the `andi a3,a3,0xffff; move v0,a3; move s2,a3` chain and
+    frees a2 (ds 50 -> 43).
+  - A copy makes a value block-local: `Parts_cmp = Parts_no; if (Parts_cmp < Kan_cnt) ... Out = Kan_cnt < Parts_cmp + 1`
+    (permuter find). Parts_no is then only used in block 2, local-alloc gives it a2 before global-alloc runs, so the
+    global pIdx/Rate/giv pseudos see a2 as taken (pIdx t0, Rate t1, the &Key[j] giv t2). ds 43 -> 21.
+  - `pIdx_top = pIdx;` before `pFrm = ...`: the pIdx_top copy fills the pHead[1] load delay in sched1, reorg then
+    moves it into the beqz delay slot and leaves the visible `lw v0; nop; addu s1`. `pHead[1] + (ULONG)pHead` gives the
+    addu operand order, `Half = pSa->Size >> 1` (single set, separate pseudo from the Size load) gives `srl t7,a0`
+    and pKan a1 / the pP copy; `pKan_base + (Parts_no << 2)` (not `* 4`) gives `addu v0,v1,v0`.
+  - The target's gte_gpl12 has no leading nops (the lbu/addiu before it fill them): added `gte_gpl12_b()` (".word"
+    only) to sabun.c. The ms/ permuter dir's target.o drops ALL nops of `nop; nop; .word` lines (198 words instead
+    of 200), so check gte functions with tools/fdiff.py, not score.py.
+  - Global-alloc priorities found with gdb pokes at global_alloc (agentAP/probe3.sh): the t7/t8/t9 order needs
+    Half (refs 4 -> 7) > Inv (4 refs / 67) > k (7 / 116). Only refs could do it: the j * Half giv increment is emitted
+    at the `j++` biv increment, so `do { do { do { do { j++; } while (0); } while (0); } while (0); } while (0);` adds
+    +1 per level to Half (and the &Key[j] giv) without moving any code (the latch has nothing to reorder), and
+    `do { Inv = 0x1000 - Rate; } while (0);` gives Inv one more ref so it outranks k. Rule: when a giv's priority is
+    the problem, wrap the biv increment; loop.c puts the giv increments right after it, inside the wrap.
+- Sca_high_hishi probes (agentAP/probe2.sh, w2.c): with two block-local half variables (Hx, Hz) and
+  `do { Cx = pT->X0 + Hx; } while (0); do { Dx = X - Cx; } while (0);` the block-0 schedule has the target's shape
+  (subu X, subu Z, sra X, addu Cx, sra Z, ...). It then needs (gdb pokes): Hx and Hz refs high enough to be
+  allocated before the lhu X0 chain in local-alloc (refs 20 each: v0/v1/a0 as in the target), Z live length 27 and
+  Dz >= 29 (global order X0 > Z1 > Z > Z0 > Dz), and the pPos death after Cz's birth (so Cz cannot take a1).
+Not matched:
+- sca Sca_high_hishi (agentAD's best/Sca_high_hishi_13_dw.c is still the lowest, 13 words; copies in agentAP/best).
+  New drafts: agentAP/best/Sca_high_hishi_17_globals_ok.c (Hx/Hz halves plus block-0 wraps: every global register is
+  the target's, only the block-0 order and the X-half/Z-half/lhu locals differ), Sca_high_hishi_16_nowrapblk0.c (no
+  block-0 wraps), Sca_high_hishi_15_perm.c (permuter: a SHORT copy of pT->Z0 for case 2), Sca_high_hishi_w2_order.c
+  (the target's block-0 instruction order, registers wrong). Stuck point, from the target's registers: the X-half
+  (subu/sra v0), the Z-half (subu/sra v1) and the lhu X0 chain (a0) are block-local qtys, so local-alloc must allocate
+  both halves before the lhu chain (v1 is then busy and the chain falls to a0; Zone as the Z half cannot do it, a
+  global is invisible to local-alloc). The halves live from their subu to their addu and have 4 refs; a do/while(0) on
+  any of those statements would raise them, but the target's final order has the lhu X0 load (part of the Cx
+  statement) above subu X/subu Z, and a loop note on any insn between them is also a sched2 barrier, so no wrap is
+  possible before `addu Cx`. Hill climbs (agentAP/hhs.py, hhsB.py, hhs3.py: statement order, half-variable forms,
+  wraps on block 0 and the case lines, ~15000 compiles) and the permuter (pm_hh2) end at 15-19.
