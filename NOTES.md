@@ -2140,3 +2140,65 @@ Not matched:
   * reload's round-robin spill regs (allocate_reload_reg starts after last_spill_reg) would emit exactly
     `lui v0/addiu s0/lui v1/addiu s1` if both hi pseudos were unallocated, but the function needs no spill regs and
     unused regs (t0..) come first in potential_reload_regs.
+## Matching round agentAT (worktree clean/wR; drafts in the session scratchpad agentAT/best, tools agentAT/*.py, *.sh)
+Nothing matched. Oba_ent_box_set 34 -> 31 words (agentAT/best/Oba_ent_box_set_31.c); Em36_Init stays at 25
+(agentAR/best/Em36_Init_25.c), with a proof for its Pldie tail.
+Tools: agentAT/dmp.sh PERMDIR f.c OUT (all SN cc1 dumps of base.c + variant), agentAT/cp.py DUMP FUNC (compact
+RTL listing in insn order, handles insn:QI), agentAT/genob2.py (per-region statement permutations + do/while(0)
+group wraps), agentAT/cc1x (cc1 wrapper: XFLAGS="..." PERM_CC1=.../cc1x score.py tests extra flags).
+Rules learnt (sched.c, checked against the -dS/-dR traces):
+- Boost: adjust_priority sets a birthing single-set insn to max_priority, which in SN's traces is 0x7f000001, so a
+  boosted insn beats every unboosted one regardless of real priority; ties among boosted insns go to class, then LUID.
+- Anti/output deps cost 1, not 0: MIPS ADJUST_COST sets 0, insn_cost raises it to 1 (LINK_COST_FREE). So they carry
+  the predecessor's priority over unchanged and count as class 3 in rank_for_schedule. Only load->use adds +1.
+- Memory-unit blocking: a load cannot go directly in front of a store (a load immediately followed by a store blocks
+  for a cycle), but a store directly before a load is fine. In backward scheduling the load gets queued and the next
+  ready insn fills the slot. That is how the Em36 target gets `addu v0,v0,a0; lw a0,9828(a0); addiu v1 lo; sw v1`.
+- Stores always beat unit-less insns (moves, ALU) of equal priority through potential_hazard (memory unit
+  unit_n_insns > 1). A call argument move therefore never lands above a ready store of the same priority.
+- The first cse pass ends its block at NOTE_INSN_LOOP_END (cse.c, `! after_loop`); the post-loop cse does not stop
+  there. A copy separated from its use by a do/while(0) gets past cse1 but cse2 merges it (tested on Oba's arg copies).
+- Readback order: in sched2 a `lhu a3,N(sp)` readback has a true memory dep on every earlier pEnt store (sp vs s0
+  bases are unknown after reload). Where the target puts the readback above a pEnt store, the Box read must come
+  before that store in the source.
+- Per-file flags are out for oba.c: -fno-schedule-insns, -fno-schedule-insns2, -fno-expensive-optimizations each
+  change the other (matched) functions of oba.c (whole-file object hash differs).
+Not matched:
+- oba Oba_ent_box_set (31 words, agentAT/best/Oba_ent_box_set_31.c = agentAO's 34 with region 5 (4th Oba_ent_set
+  entry) reordered to `X0; X1; Tmp = (USHORT)Box[2]; Z0 = Z - D*2; Z1 = Tmp;`, which puts the readback above the Z0
+  store as in the target). Per-region permutation sweeps of all entry blocks (5 statements, readback before use)
+  with and without a do/while(0) around any statement group (960 variants/region) found nothing better. Moving the
+  D load next to its first use removes the andi but reshuffles all s-regs (118+). Permuter 35 min (15k iterations)
+  on the 31 draft: best 32. Remaining diffs are agentAO's (1) andi, (2) region 2 moves, (3) a0/a2 moves in regions 3-5.
+  Why (2)/(3) are out of reach of plain arg moves (sched2 trace agentAT/do): in region 4-5 the target puts
+  `move a0,s2` between the `sh s7,0 / sh s5,4` stores and the readback lhu. After the lhu is scheduled (backward),
+  those two stores are ready (their only successors are the lhu, the next call and the addiu s0). Their priority equals
+  the a0 move's (both depend on the previous call only), and at equal priority a store always wins on potential hazard.
+  So the target needs the a0 move to have a higher priority, or a successor that is not yet scheduled, and neither
+  exists for an argument move (its preds are the previous call and the s2 set; its only successor is the call). In
+  region 2 the target leaves all four readback load-delay slots empty while a0/a1 would be ready, which needs the
+  same thing. One consistent explanation: the visible moves are not the argument moves but earlier copies (e.g. inline
+  parameter copies given a0/a1 by preference, which would also explain agentAL's 24-byte inline frame), and the real
+  argument moves are no-ops or are deleted by jump2. But such copies are merged by cse2 in every form tested (copies
+  before a do/while(0), pO/pE locals, agentAT/g3).
+- em36 Em36_Init (25 words, agentAR/best/Em36_Init_25.c). Loop shape: while/for loops get loop notes, and
+  loop.c hoists `li 55` (and jump.c duplicates the exit test), 115+ words. The target rematerialises G and 55 inside
+  the loop, so it has no loop notes: the goto form or `for (;;) { if (Id == 0x37) {pSub = pE; break;} if (++ppEm ==
+  end) break; pE = *ppEm; }` (identical code, 25). Random sweep of Flg/ppEm/pE/pSub positions and forms (1500
+  variants), Pldie RHS comma forms, index/slot-pointer temps (Ix, ppFn): nothing below 25.
+  Proof for (b), the Pldie tail `addu v0,v0,a0; lw a0,9828(a0); addiu v1,lo; sw v1,8936(v0)`:
+  * pE (multi-set, global) can share a0 with G only if, in sched1's S, the pE load comes after the Pldie addu (G's
+    last other use).
+  * sched2 gives the target order from S = [.. addu, (hi, lo,) sw Pldie, load(non-struct), sw pSub, j] or with the
+    load between addu and lo: after `sw pSub` the load is blocked behind each store (see above), so lo fills and the
+    load lands between addu and lo. So sched2 is not the obstacle.
+  * sched1 cannot produce such an S. After the Pldie store is scheduled (backward), the addu and lo are boosted
+    (single-set, 0x7f000001). A multi-set pE load (mem/s before the store, or `*ppEm`) is never boosted, so it is
+    placed above the whole boosted lbu/addiu/sll/addu chain, before G's last use (the 30 draft). A non-struct load
+    after the store has priority 1 (no memory preds: G-symbol base vs pEm-arg base), loses every pick and goes to the
+    top (47 draft). To win, the load would need priority >= 3 (= the Pldie store's), and no predecessor gives it that.
+    A single-set first load `pF` (boosted, and with the comma form `G.pPldie_Em[..] = (pF = G.pEnemy[2],
+    Pldie_Em36)` even LUID-between addu and hi) needs `pE = pF`: that copy is multi-set, unboosted, priority
+    prio(load)+1 = 2-3. It loses to `sw pSub`/the Pldie store (equal or higher priority, store hazard) and lands right
+    after the load, before the addu (agentAT/l3, 115). The copy would need priority 4, i.e. a load of priority 3.
+  (a) and (c) are as in agentAR. They depend on the same S positions of the unboosted ppEm addiu and G lo_sum.
