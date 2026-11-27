@@ -2359,3 +2359,51 @@ Not matched:
   It stays INCLUDE_ASM. A match would need a second, cse2-proof computation of &Snd_work in block 0, and no C form gives one.
 Tools (scratchpad agentAV): dump.sh PERMDIR f.c OUT (SN cc1 dumps incl. -dS/-dR, for wT), mk.py (string-replace
 variant maker), sweep.py BASE.c OUT (permutation sweep of the pW store block, scored in-process).
+## Matching round agentAW (worktree clean/wU; drafts in the session scratchpad agentAW/best, tools agentAW/mk.py, r2/show.py)
+Matched: em36 Em36_Init (d8dae70; was 25 words). Oba_ent_box_set stays at 31 (agentAW/best/Oba_ent_box_set_31.c =
+agentAT's draft).
+How Em36_Init matched (it breaks agentAT's Pldie-tail proof by removing its premise that pE is multi-set):
+- The first enemy gets its own single-set local, and the first `Id == 0x37` test is written out a second time in the
+  head block:
+  `G.pPldamage_Em[..] = ..; ppEm = &G.pEnemy[2]; pFirst = G.pEnemy[2]; G.pPldie_Em[..] = ..; pSub = NULL;
+   if (pFirst->Id != 0x37) goto Next; pSub = pFirst; goto Found; Next: if (++ppEm == end) goto Found; pE = *ppEm;
+   if (pE->Id != 0x37) goto Next; pSub = pE; Found:`.
+  The pFirst load is single-set, so sched1 boosts it (0x7f000001) as soon as the Pldie store is scheduled. It ties
+  with the boosted Pldie addu/lo and is placed after G's last use, so pFirst shares a0 with &G (`lw a0,9828(a0)`
+  between the addu and the lo). jump2 (cross_jump=1, runs after sched2) then sees that the head copy
+  `lbu; li 55; bne Next; sw pFirst,pSub` before `goto Found` matches the loop's tail before the Found label. It
+  replaces the head copy with a jump into the loop (`j .L80100F18`; reorg puts `sw zero,pSub` in the slot).
+  The loop and pFirst get the same register (a0), so the copies match. The comma form, `*ppEm` and `pG->pEnemy[2]`
+  also give 0; `ppEm = &G.pEnemy[2]` must come after the Pldamage store (it fixes the old G/ppEm cse diff (a)).
+Rules learnt:
+- Duplicated tail + jump2 cross-jumping: two identical insn sequences ending in a jump to label L and a fall-through
+  into L get merged after sched2. So code can exist in sched1/sched2 (where it adds successors and splits variables)
+  and still be gone from the output. If the target has a jump into the middle of a loop, the source may have a
+  duplicated test. It is also a way to give a value a separate single-set variable on one path without an extra move.
+- sched.c priorities are measured from the start of the block: priority(insn) = max over LOG_LINKS preds of
+  prio(pred) + cost - 1. Backward list scheduling picks the highest first, so it is placed LATEST. A pred chain raises
+  an insn's priority. Successors only decide when it becomes ready.
+- In sched2 every LOOP note (do/while(0)) makes ALL later register reads/writes depend on that insn
+  (reg_pending_sets_all). That is why every insn after the region-2 `do { Tmp = (USHORT)Box[0]; }` shows a link to it.
+- reload_cse_regs (before sched2) deletes `move X,Y` only if X's recorded values hold Y. After `move s0,a1` it
+  records nothing for a1, so `move a1,s0` survives until jump2's find_equiv_reg (which checks both directions).
+Not matched:
+- oba Oba_ent_box_set (31 words). Checks of the new mechanisms against agentAT's premises:
+  * Phantom refs (agentAU `D = -D; D = -D;`): for USHORT D the negations fold before flow and nothing changes (31).
+    LONG/ULONG D (no andi) plus 1-3 negation pairs at 7 positions (49 variants, agentAW/ov) stays at 132+. The LONG
+    D load becomes a single-set zero_extend load, which sched1 boosts and places before the W load (lhu s4 before
+    lhu s7) and moves the s0 save. That shift is not a refs problem.
+  * Phantom loads (agentAN) are deleted by reload_cse_regs, which runs before sched2. Stuck points (2)/(3) are sched2
+    facts: the moves need a higher priority or an unscheduled successor in sched2. So a phantom load cannot supply
+    either. A load is never deleted after sched2 (jump2 only removes reg-reg moves).
+  * Copies that survive (agentAQ/AP): any extra move would show in the output unless jump2 deletes it. The only model
+    that fits region 2 exactly: sched2 sees `move a1,s0` (kept) followed by `move s0,a1`, which jump2 deletes as
+    redundant. The copy-back writes s0, so every later s0 user depends on it, and it pins the a1 move to right after
+    `addiu s0`, as in the target. The same goes for a0 with `move s2,a0`. In C that is `pE = pEnt; ...; pEnt = pE;` (and pO for
+    pObj) with cse not merging the pair. Tested with and without a do/while(0) around the copy-back, as
+    `pE = pEnt + 1; pEnt = pE;`, and with the call on the copies (agentAW/r2/c1-c3): cse removes all of them and the
+    code is identical (31). No C form found that keeps a copy and its copy-back until after reload.
+  * Region 3-5 a0 moves: the move's only preds are the previous call and s2's entry set, so its priority equals the
+    call's. Stores after the call have priority >= the call's (memory flush), so an equal-priority store always wins.
+    A higher priority needs a pred chain into `move a0,s2`, i.e. s2 or a0 written late in the region by something
+    jump2 deletes (same copy-back model). Unsolved for the same reason.
