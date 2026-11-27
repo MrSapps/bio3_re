@@ -325,16 +325,20 @@ COL_ENT *Oba_ent_box_set(COL_OBJ *pObj, COL_ENT *pEnt)
     COL_OBJ *pO;
     COL_ENT *pE;
 
-    do { pEm = pObj->pEm;
+    /* the do/while(0)s below only weight register refs (global-alloc order) or act as scheduling barriers */
     do {
+        pEm = pObj->pEm;
     } while (0);
-    X = pObj->Pos_x;
-    Z = pObj->Pos_z; } while (0);
+    do {
+        X = pObj->Pos_x;
+        Z = pObj->Pos_z;
+    } while (0);
     W = pObj->W0;
     D = pObj->D0;
     X -= pEm->Pos_x - pEm->Old_x;
     Oz = pEm->Old_z;
     Pz = pEm->Pos_z;
+    /* record 1: the whole box (Box[] is read back as USHORT) */
     Tmp = X - W;
     Box[0] = Tmp;
     Tmp = (USHORT)Box[0];
@@ -369,10 +373,14 @@ COL_ENT *Oba_ent_box_set(COL_OBJ *pObj, COL_ENT *pEnt)
     Hi |= ((Floor << 8) & 0xFF00) | (Floor & 0xFF);
     pEnt->C.All = Hi;
     pEnt++;
+    /* record 2: the object itself. Both arms compile to the same code and jump2 cross-jumps them away; the
+       branch keeps the call's argument copies (pO/pE, made before it) in the block above */
     pO = pObj;
     pE = pEnt;
     if (Floor) {
-        pEnt->pObj = pObj;
+        do {
+            pEnt->pObj = pObj;
+        } while (0);
         Tmp = (USHORT)Box[0];
         pEnt->X0 = Tmp;
         Tmp = (USHORT)Box[1];
@@ -386,7 +394,9 @@ COL_ENT *Oba_ent_box_set(COL_OBJ *pObj, COL_ENT *pEnt)
         Tmp = 0xFE41;
         pEnt->Id = Tmp;
     } else {
-        do { pEnt->pObj = pObj; } while (0);
+        do {
+            pEnt->pObj = pObj;
+        } while (0);
         Tmp = (USHORT)Box[0];
         pEnt->X0 = Tmp;
         Tmp = (USHORT)Box[1];
@@ -404,15 +414,21 @@ COL_ENT *Oba_ent_box_set(COL_OBJ *pObj, COL_ENT *pEnt)
     Floor++;
     pEnt->C.All = Hi;
     pEnt++;
+    /* records 3-6: the four boxes around it, out to twice the half sizes; the old variables are reused for the outer edges
+       (Type = 2 * W, W = x0, X = x1, D = 2 * D, Hi = z1, Z = z0) */
     Oba_ent_set(pObj, pEnt, Floor);
     Type = W * 2;
     W = X - Type;
     X += Type;
-    do { pEnt->X0 = W; } while (0);
+    do {
+        pEnt->X0 = W;
+    } while (0);
     pEnt->X1 = X;
-    D = -D;
-    D = -D;
-    D *= 2;
+    do {
+        do {
+            D *= 2;
+        } while (0);
+    } while (0);
     Hi = Z + D;
     Tmp = (USHORT)Box[3];
     pEnt->Z0 = Tmp;
@@ -429,14 +445,18 @@ COL_ENT *Oba_ent_box_set(COL_OBJ *pObj, COL_ENT *pEnt)
     pEnt->X0 = Tmp;
     pEnt++;
     Oba_ent_set(pObj, pEnt, Floor);
-    do { pEnt->X0 = W; } while (0);
+    do {
+        pEnt->X0 = W;
+    } while (0);
     pEnt->X1 = X;
     Tmp = (USHORT)Box[2];
     pEnt->Z0 = Z;
     pEnt->Z1 = Tmp;
     pEnt++;
     Oba_ent_set(pObj, pEnt, Floor);
-    do { pEnt->X0 = W; } while (0);
+    do {
+        pEnt->X0 = W;
+    } while (0);
     Tmp = (USHORT)Box[0];
     pEnt->Z0 = Z;
     pEnt->Z1 = Hi;
