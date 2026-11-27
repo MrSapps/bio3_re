@@ -1998,3 +1998,68 @@ Still unmatched:
   the priority-1 LUID tie against the pE load) and G's lo_sum moves out of the top of S; remaining diffs are the
   ppEm addiu (cse now builds it from the hi part + %lo(G)+0x2664 and derives G as a2-0x2664) and the Pldie tail.
   The permuter (45 min on the 40 draft) found nothing better.
+## Matching round agentAR (worktree clean/wP; drafts in the session scratchpad agentAR/best)
+Matched: nothing. em36 Em36_Init improved 30 -> 25 words (best/Em36_Init_25.c); em22 Em22_mv_jump proof extended.
+Rules learnt:
+- A `G.x[n]` struct read is `mem/s`; the same value read through a pointer local (`*ppEm` with ppEm = &G.pEnemy[2])
+  is a plain `mem` at a fixed address, and by the 2.8.1 struct/scalar alias rule it no longer conflicts with any
+  in-struct store with a varying address (G.pPldie_Em[i] =, EM36_W(pEm)->pSub =). Use the form to decide whether
+  a load may cross the stores around it.
+- A multi-set pseudo (here the loop pointer `ppEm`, set again by `++ppEm`) whose only in-block user is gone (cse
+  folded `*ppEm` to `9828(G)`) is ready from the start of backward scheduling but loses every pick: to boosted
+  single-set insns, to stores (potential hazard), and to other priority-1 insns with a higher LUID. It always ends
+  at the top of sched1's S, whatever its source position. Its single-set source (G's lo_sum) is then boosted just
+  above it, so G goes to the top too.
+- Two pseudos can only share the hard reg of a pointer that dies in the load (the `lw a0,9828(a0)` tie) if, in sched1's
+  S, that load comes after the pointer's last other use. When that other use is a boosted single-set temp (an
+  address `addu`), a multi-set destination (a loop variable) cannot be scheduled after it: boosted insns get the
+  block's maximum priority, and with equal priority the data-dependent "class 3" insn beats an anti-dependent load.
+Still unmatched:
+- em22 Em22_mv_jump (7 difflib / 9 words; agentAN best/Em22_mv_jump_7.c). I re-checked agentAN's proof against
+  sched.c and the -dS trace of the seq-first order (scratchpad agentAR/d1). The grab block's LOG_LINKS: 618 `a0 = 3`
+  has one link, REG_DEP_ANTI on call 522 (Pl_life_down). It gets that link from sched_analyze_1's hard-register
+  branch (reg_last_sets[a0] = the call, which is in reg_pending_sets for every call-used reg) plus the
+  last_function_call anti dep, so prio 4 = prio(522). The pTmd store 570 has prio 7 from the chain
+  522 -> lw kan 544 (4) -> sw 546 (5) -> lw seq 549 (5) -> sw 551 (6) -> sh pP->UnkA2 560 -> lw pSin 563 (6) ->
+  addiu pW 565 (7) -> 570. Each load->use edge adds 1, and anti/output/mem-order edges add 0. Every edge of that
+  chain is forced by the target itself, because sched2 keeps conflicting memory ops in S order and different base
+  pseudos always conflict. In the target, kan/seq loads come after the previous store and pSin is loaded after
+  `sh zero,162(a0)`. 570 becomes ready at T-52, and 618 can be picked before it only with priority >= 7 (then it
+  wins the LUID tie). The checks of the three suggested escape routes:
+  (1) a disappearing a0 user: the only RTL that reads or writes hard reg a0 is a call-argument move or a call's
+  FUNCTION_USAGE. A phantom load (reload_cse) or an inlined helper has a pseudo destination in sched1, so it adds no
+  link to 618. Phantom/no-op moves are only deleted after sched1, so they cannot help.
+  A const-call libcall block whose result is dead is deleted by flow, which runs before sched1. A later dependent
+  of 570 that vanishes (a phantom load re-reading pEm->pSin_parts_ptr after 570) does not work either: reload_cse
+  forgets memory values on the aliasing store 570, so that load stays in the code. A loop-note on such a dependent
+  is a barrier in sched2 as well.
+  (2) Moving work before the call: the pW/pP bases are loaded after the call in the target (`lw a1,264(s0)` after the
+  sh). Loading them before the call would need callee-saved registers, which the target does not use. A label
+  between 570 and 618 would split `pW->UnkA2 |= 0xB` (lhu before 570, ori/sh after `li a0,3`). Jump2 runs only after
+  sched2, so the label would still be there for both schedulers.
+  (3) The call arguments: `li a0,70; jal; move a1,zero` and `li a0,3 ... move a1,s0` fix two register arguments.
+  K&R vs prototype and char/short parameter types only change how the constant is extended, never the deps of the
+  `a0 = const` insn. `pending_lists_length > 32` flushes only add memory deps, which 618 does not have, and
+  SCHED_GROUP_P only groups USE insns with their call.
+  Result: no C form gives `sw a0,8(v1); li a0,3`. It would need a source-level hard-register a0 use in the block
+  whose priority is >= 8.
+- em36 Em36_Init (25 words, best/Em36_Init_25.c; 30 before). Sweeps gen1.py (2415 variants) and gen2.py (170) over
+  the positions of Flg/ppEm/pE/Pldamage/Pldie/pSub found the gain. The structure is now: zero stores, Pldamage,
+  Pldie, `pE = G.pEnemy[2];` between Pldie and pSub, and `ppEm = &G.pEnemy[2];` anywhere before Pldamage (its
+  position has no effect). That gives the target's registers (pE a0, ppEm a1, Pldamege v0, Flg v1). Three diffs are
+  left:
+  (a) G is built as ppEm-9828 because cse sees &G.pEnemy[2] first. With ppEm after Pldamage, G is built first
+  (right), but the ppEm addiu then has no in-block user and sinks to the end (34 words). Things that did not help:
+  dead/duplicate ppEm, pG reassign, `G.pEnemy + 2`, a cast through &G (scratchpad agentAR/g3, 34-185).
+  (b) Pldie tail: the target has `addu v0,v0,a0; lw a0,9828(a0)`, the pE load after G's last other use, so pE
+  ties to a0. With `pE = G.pEnemy[2]` before Pldie (mem/s, must precede the Pldie store), sched1 places the load
+  above the boosted lbu/addiu/sll/addu chain, because pE is multi-set (loop). G is then still live, and pE gets a1
+  (the 30 draft). After Pldie, the load follows the Pldie store, but the target has it before. A single-set first
+  load `pF = G.pEnemy[2]; ... pE = pF;` keeps a `move` and is 115+ (g4). `*ppEm` (non-struct) forms are 47-49.
+  (c) Flg RMW and the Pldamege lui/addiu sit early in the target (they need Flg in v1 and the Pldamege address in
+  v0, live across the zero stores); in ours the Flg andi/sh go after the zero stores.
+  (b) looks like the same wall as em22. In the original, the first pE load seems to be either single-set or
+  scheduled by something other than this priority race. The goto loop shape (entry `j` lands after the loop's
+  `lw a0,0(a1)`) may not be the original loop form. The permuter on the 25 draft (pm1, ~3700 iterations) found nothing better (outputs re-scored 104+).
+- Tools (scratchpad agentAR): mk36.py (replace the Em36 statement block), gen1.py/gen2.py (sweeps), rtls.py (compact RTL
+  listing by uid range), pmscore.sh (word-score permuter outputs); dmp.sh now also writes the -dR sched2 dump.
