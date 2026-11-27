@@ -17,6 +17,7 @@ void Rot_vector();
 #define gte_stlvl(r0) __asm__ volatile("swc2 $9, 0(%0); swc2 $10, 4(%0); swc2 $11, 8(%0)" : : "r"(r0) : "memory")
 #define gte_gpf12() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#define gte_gpl12_b() __asm__ volatile(".word 0x4BA8003E") /* no leading nops */
 #define RND() ((signed char)Rnd())
 
 /* RE2 Sa_dat_set: links the morph section of an EMD to the parts flagged in its bit mask (PARTS_W.pUnk98) */
@@ -46,18 +47,132 @@ void Sa_dat_set(ENEMY_WORK *pEm, ULONG *pData)
     }
 }
 
-/* morph step: blends a part's vertices between key Key_no - 1 and Key_no (em34/em36 bodies) */
-INCLUDE_ASM("asm/nonmatchings/game/sabun", Sa_morph_step);
-
 /* morph (sabun) data at PARTS_W.pSa_dat_head */
 typedef struct {
     ULONG Ofs;                         /* 0x00 offset of the shapes from ENEMY_WORK.pUnk118 */
     ULONG Size;                        /* 0x04 bytes per shape */
     struct {
         USHORT Rate;                   /* weight of shape n (0x1000 = full); Key[0].Rate = shape count */
-        USHORT pad;
+        USHORT Shape;                  /* frame block of the KAN parts for this key */
     } Key[1];                          /* 0x08 */
 } SA_DATA;
+
+/* morph step: blends a part's vertices between key Key_no - 1 and Key_no (em34/em36 bodies) */
+void Sa_morph_step(ENEMY_WORK *pEm, PARTS_W *pP)
+{
+    SVECTOR Tmp;
+    SA_DATA *pSa;
+    ULONG *pHead;
+    UCHAR *pKan;
+    UCHAR *pKan_base;
+    UCHAR *pIdx;
+    UCHAR *pIdx_top;
+    SHORT *pBase;
+    SHORT *pS;
+    SHORT *pFrm;
+    SHORT *pBlk;
+    SVECTOR *pVert;
+    SVECTOR *pV;
+    PARTS_W *pParts;
+    PARTS_W *pW;
+    ULONG nVert;
+    ULONG n;
+    ULONG j;
+    ULONG k;
+    ULONG Half;
+    ULONG Cnt_top;
+    ULONG Parts_no;
+    ULONG Parts_cmp;
+    ULONG Kan_cnt;
+    ULONG Out;
+    ULONG Stride;
+    ULONG Idx;
+    LONG Rate;
+    LONG Inv;
+
+    j = 1;
+    pSa = (SA_DATA *)pP->pSa_dat_head;
+    pHead = pEm->pUnk118;
+    n = (USHORT)pP->pTmd->n_vert;
+    pV = (SVECTOR *)pP->pTmd->pVert;
+    nVert = n;
+    pVert = pV;
+    pS = (SHORT *)(pSa->Ofs + (ULONG)pHead);
+    pBase = pS;
+    do {
+        pV->vx = *pS++;
+        pV->vy = *pS++;
+        pV->vz = *pS++;
+        pV++;
+    } while (--n != 0);
+    pKan = (UCHAR *)pEm->pKan_t_ptr;
+    Parts_no = pP->Parts_no;
+    k = pSa->Key[0].Rate;
+    Half = pSa->Size >> 1;
+    pParts = pEm->pSin_parts_ptr;
+    pKan_base = pKan + (*(USHORT *)pKan & 0xFFFC);
+    n = *(ULONG *)(pKan_base + (Parts_no << 2)); /* entry: index offset << 16 | part count */
+    Kan_cnt = (USHORT)((KAN_HEAD *)pKan)->Rec_sz;
+    pIdx = pKan_base + (n >> 16);
+    pIdx_top = pIdx;
+    pFrm = (SHORT *)(pHead[1] + (ULONG)pHead);
+    /* compared through a copy: Parts_no itself stays block-local (a2) */
+    Parts_cmp = Parts_no;
+    if (Parts_cmp < Kan_cnt) {
+        Cnt_top = n = n & 0xFFFF;
+        while (n--) {
+            Idx = *pIdx;
+            pW = &pParts[Idx];
+            pW->Pos_x = pFrm[Idx * 3];
+            pW->Pos_y = pFrm[Idx * 3 + 1];
+            pW->Pos_z = pFrm[Idx * 3 + 2];
+            pIdx++;
+        }
+    }
+    Stride = pHead[2];
+    Out = Kan_cnt < Parts_cmp + 1;
+    do {
+        Rate = pSa->Key[j].Rate;
+        do { Inv = 0x1000 - Rate; } while (0); /* do/while: Inv must outrank k in global-alloc (t8) */
+        if (Rate != 0) {
+            pS = pBase + j * Half;
+            pV = pVert;
+            n = nVert;
+            do {
+                pV->vx += (*pS++ * Rate) >> 12;
+                pV->vy += (*pS++ * Rate) >> 12;
+                pV->vz += (*pS++ * Rate) >> 12;
+                pV++;
+            } while (--n != 0);
+            if (!Out) {
+                pBlk = (SHORT *)((UCHAR *)pFrm + Stride * pSa->Key[j].Shape);
+                pIdx = pIdx_top;
+                n = Cnt_top;
+                Idx = *pIdx;
+                if (n--) {
+                loop:
+                    pW = &pParts[Idx];
+                    gte_lddp(Inv);
+                    gte_ldlvl(&pW->Pos_x);
+                    gte_gpf12();
+                    Tmp.vx = pBlk[Idx * 3];
+                    Tmp.vy = pBlk[Idx * 3 + 1];
+                    Tmp.vz = pBlk[Idx * 3 + 2];
+                    gte_lddp(Rate);
+                    gte_ldsv(&Tmp);
+                    pIdx++;
+                    Idx = *pIdx;
+                    gte_gpl12_b();
+                    gte_stlvl(&pW->Pos_x);
+                    if (n--)
+                        goto loop;
+                }
+            }
+        }
+        /* nested do/while: the j * Half giv step lands here, its refs put Half first (t7) in global-alloc */
+        do { do { do { do { j++; } while (0); } while (0); } while (0); } while (0);
+    } while (--k != 0);
+}
 
 /* weighted morph: base shape plus every target scaled by its Rate (0x1000 = full) */
 void Sa_morph_blend(ENEMY_WORK *pEm, PARTS_W *pP)
