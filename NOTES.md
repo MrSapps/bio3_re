@@ -2407,3 +2407,41 @@ Not matched:
     call's. Stores after the call have priority >= the call's (memory flush), so an equal-priority store always wins.
     A higher priority needs a pred chain into `move a0,s2`, i.e. s2 or a0 written late in the region by something
     jump2 deletes (same copy-back model). Unsolved for the same reason.
+
+## Matching round agentAY (worktree clean/wW; scratch in the session scratchpad agentAY/, match agentAY/best/Oba_ent_box_set_0.c)
+Matched: oba Oba_ent_box_set (c348cb5 raw, 2920ecf tidied; was 31 words). Progress 2810/2822 funcs.
+How it matched. agentAW's copy-back model was the wrong premise. The target's region 2 is a separate sched2 block:
+- Region 2 sits inside `if (Floor) { A } else { A }` with byte-identical arms. Before the branch come `pO = pObj; pE = pEnt;`,
+  and after the join comes `Oba_ent_floor_set(pO, pE)`. cse follows the branch into each arm (paths), so the arms use
+  pObj/pEnt (s2/s0). The join label starts a new cse block, so the call keeps pO/pE. These are global allocnos,
+  preferred to a0/a1 by the hard-reg copy, so the argument moves are no-ops. The copies `move a0,s2` / `move a1,s0` stay
+  in the block before the branch. There `move a0,s2` fills the only stall (the `lhu v0,30(s2)` delay slot) and
+  `move a1,s0` follows `addiu s0`. The arm block has nothing to put in the readback delay slots, which gives the 3 nops.
+  jump2 (cross_jump=1, after sched2) merges the arms, and the branch on a bare register is deleted. Nothing of it is left.
+- The price is that every value crossing the branch becomes a global allocno. Values local to the join block would
+  go through local-alloc first and take s0..: verified, 102+ words. So regions 3-6 must reuse region-1 variables:
+  `Type = W * 2; W = X - Type; X += Type; D *= 2; Hi = Z + D; Z -= D;`. That gives exactly the target's s8/s7/s5/s4/s1/s6.
+  The s-reg order is then pure global-alloc priority (floor_log2(refs) * refs / live_length, all conflict, allocated
+  s0, s1, ... in order): pEnt > Hi > pObj > Floor > D > X > Z > W > Type. It took +1 pObj (do/while in both arms), +1
+  pEm/X/Z/+3 pObj (do/whiles at the top), +3 W (the X0 = W stores) and +4 D (two nested do/whiles around `D *= 2`).
+  agentAY/prio.sh prints the numbers.
+- Remaining schedule fixes. A do/while at the very start of block 0 (`do { pEm = ...; } while (0)`) is a barrier in
+  sched2 only, because sched1 drops leading notes from its region. That puts `move s0,a1` at the top and the pEm load
+  first. Empty `do { } while (0);` are pure barriers with no ref weight. One sits before `Z -= Pz - Oz` (with the Pz/Oz loads
+  hoisted into locals), which gives `sw a3,20(sp); subu v0` in the target order. One sits after `Type = pObj->Type`,
+  and one is in region 4 before `Z -= D`. The Box readback in regions 4/6 comes before the stores it must precede.
+Rules learnt:
+- Identical if/else arms are a tool. They are merged only by jump2 after sched2, so the branch splits sched1/sched2 blocks
+  and cse blocks and then vanishes. A condition on a register already live leaves no code. A copy made before the
+  if and used after the join survives cse (join label = new cse block, the copy lives past the block). If a target has
+  argument moves far from their call with unfilled load slots in between, look for this.
+- Empty `do { } while (0);` = a scheduling barrier (in sched1 and sched2) with zero REG_N_REFS change. At the very start of
+  a block it is a barrier only in sched2.
+- Barriers chain priorities: the insn after a loop note depends on all earlier insns with their real latency. A load just
+  before a barrier costs a stall slot. That is how `move s0,a1` ended up in the `lw a2` delay slot in one variant.
+- In a function with a branch, check the global-alloc order (lreg dump "Register N used R times across L insns")
+  before touching the schedule: one pass of the arithmetic replaced dozens of blind variants.
+Tools (agentAY/): prio.sh F.c (global-alloc priority, order and dispositions), rd.py F.c.diff S (score.py -v listing
+diffed with s-regs anonymised: schedule-only diffs), dw.py / ed.py (sweep do/while wraps / empty barriers), greedy2.sh
+(greedy over both), perm1.py F.c 'stmt|stmt|...' (permute contiguous statements), mv.py (move one statement), simp.py
+(drop hacks while the score stays 0).
