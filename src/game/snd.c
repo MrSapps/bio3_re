@@ -1604,7 +1604,45 @@ void Snd_bgm_fade_wait(void)
 }
 
 /* RE2 Snd_bgm_play_ck role: requests the room BGM sequences that are not playing */
-INCLUDE_ASM("asm/nonmatchings/game/snd", Snd_bgm_play_ck);
+void Snd_bgm_play_ck(void)
+{
+    SND_WORK *p = &Snd_work;
+    tagCD *pCd = &CD;
+    UCHAR i;
+
+    /* Never-false test that re-sets both pointers. It only steers the allocator: cse reuses the two %hi
+       pseudos for the re-sets (the NULLs hide the old values), so both live into this block and become
+       global allocnos (the do/while(0) gives the Snd_work one the higher priority: v0, CD v1).
+       reload_cse then deletes the re-sets (s0/s1 already hold them) and jump2 the empty branch. */
+    if ((tagCD *)p != pCd) {
+        p = NULL;
+        pCd = NULL;
+        do {
+            p = &Snd_work;
+        } while (0);
+        pCd = &CD;
+    }
+    for (i = 0; i < 3; i++) {
+        if ((p->Bgm_cancel >> i) & 1) {
+            p->Bgm_req &= (1 << i) ^ 7;
+        }
+        p->Bgm_cancel &= ~(1 << i);
+    }
+    if (p->Bgm_req) {
+        if ((p->Bgm_req & 1) && pCd->Bgm_main_id != 0xFF) {
+            Snd_se_stad(0x500, 0, 0, 0);
+        }
+        if (pCd->Bgm_sub_id != 0xFF) {
+            if ((p->Bgm_req & 2) && !p->Seq[1].Play_flg) {
+                Snd_se_stad(0x600, 0, 0, 0);
+            }
+            if ((p->Bgm_req & 4) && !p->Seq[2].Play_flg) {
+                Snd_se_stad(0x700, 0, 0, 0);
+            }
+        }
+        p->Bgm_req = 0;
+    }
+}
 
 
 /* loads bank no's VAB header and body (bank 0 player, 1 weapon; RE2 Snd_sys_core_set/arms_set) */
