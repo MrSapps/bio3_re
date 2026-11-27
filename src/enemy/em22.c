@@ -952,7 +952,146 @@ void Em22_th_jump(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em22", Em22_mv_jump);
+/* move 6: jump at the player and grab (Em22_th_jump does the vertical part) */
+void Em22_mv_jump(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    ENEMY_WORK *pPl = &Pl_work;
+    SVECTOR Sv;
+    HIT_AREA Area;
+    PARTS_W *pP;
+    PARTS_W *pW;
+    SHORT Hit;
+
+    Em22_side_pos_set(pEm, pPl);
+    switch (pEm->Routine_2) {
+    case 0:
+        EM_SET_MOVE(pEm, 0x10, 0, 7);
+        pEm->Routine_2 = 1;
+        Spd_get2(pEm, pKan, pSeq, 0);
+        EM22_W(pEm)->Down_flg = 1;
+        Snd_se_enem(2, pEm);
+        pEm->UnkDA = 0;
+        pEm->UnkE2 = 0;
+        EM22_W(pEm)->Unk17 = 0;
+        EM22_W(pEm)->Unk20 = 800;
+        EM22_W(pEm)->Spd_add = 0;
+    case 1:
+        Spd_get2(pEm, pKan, pSeq, 0);
+        if (Joint_move(pEm, pKan, pSeq, 0x200)) {
+            EM22_W(pEm)->Down_flg = 0;
+            if (EM22_W(pEm)->Unk16 != 0xFF)
+                EM22_W(pEm)->Unk03 = (Rnd_l() & 0x1F) + 30;
+            else
+                EM22_W(pEm)->Unk03 = (Rnd_l() & 0x1F) + 15;
+            pEm->UnkDA = (Rnd_l() & 0x1F) + 60;
+            EM22_W(pEm)->Unk02 = 0;
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
+            if (EM22_W(pEm)->Unk1A)
+                EM_SET_RTN(pEm, 1, 0xC, 0, 0);
+        } else {
+            if (++EM22_W(pEm)->Unk17 < 18 && __builtin_abs(Pl_work.nFloor - pEm->nFloor) < 2) {
+                Sv.vx = 2000;
+                Sv.vz = 1000;
+                Sv.vy = 0;
+                Sv.pad = 1400;
+                Area.pPos = WORKM_POS_V(&pEm->pSin_parts_ptr[8]);
+                Area.pBox = &Sv.vx;
+                Area.Dir = pEm->Cdir_y;
+                if (!pEm->Water) {
+                    Area.Id = 0xA3;
+                    if ((Rnd_l() & 3) == 1)
+                        Area.Id = 0x83;
+                } else {
+                    Area.Id = 0x83;
+                }
+                Hit_area_em_ck(&pEm->Pos_x, &pEm->Pos_x, &Area, pPl);
+            }
+            if ((ULONG)(EM22_W(pEm)->Unk17 - 9) < 9) {
+                Sv.vx = 400;
+                Sv.vz = 0;
+                Sv.vy = 0;
+                Sv.pad = EM22_W(pEm)->Unk20;
+                if (!pPl->Damage_cnt && Hit_area_ck(&pEm->pSin_parts_ptr[9].Workm, &Sv, pPl)) {
+                    Hit = ++pEm->UnkDA;
+                    if (Hit == 1) {
+                        if (__builtin_abs(pPl->pSin_parts_ptr[1].Workm.t[1] - pEm->pSin_parts_ptr[9].Workm.t[1]) > 600) {
+                            Pad_vib_set0(7, 0);
+                            Pad_vib_set1(3, 250, 4);
+                            pPl->Routine_0 = 2;
+                            pPl->Routine_1 = Cdir_ck(pEm, pPl) + 2;
+                            pPl->Routine_2 = 0;
+                            Snd_se_enem(3, pEm);
+                            Sv.vx = 0;
+                            Sv.vz = 0;
+                            Sv.vy = 0;
+                            Esp_call(0, (USHORT)pPl->Cdir_y | 0x14000000, &pPl->pSin_parts_ptr->Workm, &Sv, 0);
+                            if (Pl_life_down(25, 0) & 2)
+                                EM_SET_RTN(pPl, 3, 0, 0, 0);
+                        } else {
+                            EM22_W(pEm)->Unk1A = 1;
+                            pEm->pSin_parts_ptr[11].Poly_rgb = 0x202070;
+                            pEm->pSin_parts_ptr[12].Poly_rgb = 0x303075;
+                            pEm->pSin_parts_ptr[13].Poly_rgb = 0x282875;
+                            Pl_life_down(70, 0);
+                            pPl->Routine_0 = 6;
+                            pPl->Routine_1 = 0;
+                            pPl->Routine_2 = 0;
+                            pPl->pEnemy_ptr = pEm;
+                            pP = &pPl->pSin_parts_ptr[1];
+                            pPl->pSub1_kan_t_ptr = pEm->pSub1_kan_t_ptr;
+                            pPl->pSub1_seq_t_ptr = pEm->pSub1_seq_t_ptr;
+                            pPl->Neck_flg |= 1;
+                            pP->UnkA2 = 0;
+                            pW = &pEm->pSin_parts_ptr[20];
+                            pW->pTmd = pP->pTmd;
+                            pW->UnkA2 |= 0xB;
+                            pW->Be_flg = 1;
+                            pW->pSuper = &pEm->pSin_parts_ptr[11].Workm;
+                            pW->pOya_parts = &pEm->pSin_parts_ptr[11];
+                            pW->Poly_rgb = 0x101040;
+                            pW->Pos_x = 0x3F;
+                            pW->Pos_y = 0x410;
+                            pW->Pos_z = -0x8C;
+                            Snd_se_enem(3, pEm);
+                            pPl->Be_flg |= 0x800;
+                            pPl->Damage_cnt |= 0x80;
+                            pEm->Be_flg |= 0x800;
+                            pEm->Damage_cnt |= 0x80;
+                            G.System_flg |= 0x20800;
+                            Pad_vib_set0(8, 0);
+                            Sv.vy = -400;
+                            Sv.vx = 0;
+                            Sv.vz = 0;
+                            Esp_call(0x700, (USHORT)pPl->Cdir_y | 0x14000000, &pPl->pSin_parts_ptr->Workm, &Sv, 0);
+                        }
+                    }
+                }
+                if (pEm->UnkDA && pEm->UnkDA < 5) {
+                    Sv.vx = 0;
+                    Sv.vz = 0;
+                    Sv.vy = 0;
+                    Esp_call(0x700, (USHORT)pEm->Cdir_y | 0x10000000, &pEm->pSin_parts_ptr[10].Workm, &Sv, 0);
+                }
+            }
+            pEm->Cdir_y += Goto00_ck(pEm, EM22_W(pEm)->Way1_x, EM22_W(pEm)->Way1_z, 0x18);
+        }
+        if (EM22_W(pEm)->Unk17 == 24)
+            Snd_se_enem(4, pEm);
+        pEm->Spd_x = (SHORT)(pEm->Spd_x * 9) / 10;
+        break;
+    }
+    Add_speedXZ(pEm, 0);
+    if (pEm->Move_cnt >= 9 && pEm->Water) {
+        pP = pEm->pSin_parts_ptr;
+        if (pEm->Water < pP->Workm.t[1] && pEm->UnkE2 < 3) {
+            pEm->UnkE2++;
+            Em22_water(pEm);
+        } else if (pEm->Water < pEm->pSin_parts_ptr[16].Workm.t[1] && pEm->UnkE2 < 3) {
+            pEm->UnkE2++;
+            Em22_water(pEm);
+        }
+    }
+}
 
 /* quarter of the facing direction relative to the side flag: 0/1 in front, 2/3 behind (Flg swaps them) */
 LONG Em22_dir_quarter(ENEMY_WORK *pEm, LONG Flg)
