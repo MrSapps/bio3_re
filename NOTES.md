@@ -1865,3 +1865,59 @@ Not matched:
   hard regs would all have to be live, i.e. the param copies late in sched1 order). The region-2+ readbacks
   (`lhu a3` with v0/v1/a2 free in the final code) need either the same values or a long-lived pseudo with a memory
   equivalence, and that needs a MEM that is unchanging across calls, which no plausible C gives a read.
+## Matching round agentAO (worktree clean/wM; drafts in the session scratchpad agentAO/best, tools agentAO/*.sh, *.py)
+Nothing matched. Oba_ent_box_set went from 104 to 34 words; Snd_bgm_play_ck stays at 2.
+Tools: agentAO/qty.sh PERMDIR f.c prints local-alloc's qty table (first reg, refs, birth, death, hard reg) by running
+the debuggable FSF cc1 under gdb (valid for functions without global-address hi/lo pairs: for Oba it produces the SN
+output byte for byte). agentAO/hill2.py SRC PERMDIR OUT ITERS SEED hill-climbs do/while(0) depth per statement plus
+local types. agentAO/dump.sh PERMDIR f.c OUTDIR writes all SN cc1 dumps.
+Rules learnt:
+- A multi-set local is never local-alloc'd (local-alloc wants REG_N_DEATHS == 1); global-alloc then picks the first
+  reg in alloc order that conflicts with nothing over the union of all its live ranges. One reused temp for every
+  short value of a function therefore lands in the first reg that is busy *nowhere* during any of its pieces. That is
+  Oba_ent_box_set's a3 (v0/v1 busy in region 1, a0-a2 argument regs busy around every call, v0 return value at the end).
+- A whole function without branches is ONE basic block (calls do not end blocks in 2.8): all the call-crossing values
+  are local-alloc qtys and get callee-saved regs in QTY_CMP_PRI order (floor_log2(refs)*refs/(death-birth)). Compute it
+  with qty.sh instead of guessing; a statement order change of 3 insns flipped D/X (0.1627 vs 0.1618).
+- After reload, sched2 does not tie insns on callee-saved regs to calls (only call-used hard regs depend on the call),
+  so arithmetic on s-regs can move across a jal in either direction.
+- combine only folds a load into its zero_extend if no memory store sits between them in insn order (use_crosses_set_p
+  with mem_last_set); a USHORT local loaded early and first used after a store keeps a separate `andi r,r,0xffff`.
+- jump2 (after sched2) deletes `move aN,sK` when aN already holds sK (find_equiv_reg): the first call's argument moves
+  vanish because the params are still in a0/a1.
+Not matched:
+- oba Oba_ent_box_set (34 words, agentAO/best/Oba_ent_box_set_34.c; 35 without do/whiles: _35.c). The a3 theory of
+  agentAL/AF is replaced: no spill. The target is a single multi-set LONG temp used for every box value, every readback
+  and both 0xFE41 constants (`Tmp = X - W; Box[0] = Tmp; Tmp = (USHORT)Box[0]; pEnt->X0 = Tmp;`), global-alloc puts
+  it in a3 (see rule above). `(USHORT)Box[i]` (an in-struct array read) keeps the readbacks behind the pEnt stores;
+  `*(USHORT *)&Box[i]` is a non-struct scalar and gets hoisted (101 words). The doubled half-width W*2 is stored in
+  the dead Type variable (`Type = W * 2;`, LONG Type): that is why it lands in fp, Type's reg, while X0b/X1b/Z1b fall
+  out of local-alloc ties (X1b in place in s5, X0b in W's s7, D*2 in place in s4, Z1b in Hi's s1). Entry 4 needs
+  `pEnt->Z0 = Z - D * 2;` first, which shortens D enough for D (s4) to outrank X (s5). All s-regs and a3 now match.
+  Remaining 34 words, three causes: (1) `andi s4,s4,0xffff` for USHORT D: its first zero_extend comes after the Box
+  stores so combine cannot fold it into the lhu (target has none); D as LONG removes the andi but drops D's qty refs
+  from 9 to 7 (priority 0.085 < X's 0.163), and do/while weights on D's statements to make up for it break the
+  region-1 schedule (best 43, agentAO/best/Oba_ent_box_set_43_Dlong.c). (2) Region 2: the target has `move a0,s2` in
+  the `lhu v0,0x1E` delay slot and `move a1,s0` right after `addiu s0`, and leaves the readback load delays as nops.
+  sched2 fills every stall from the ready list, so in the target those two moves were not ready during the readbacks,
+  i.e. they had a successor placed between them and the readbacks. In the final code nothing there reads a0/a1, so
+  the successor is an insn deleted after sched2 (jump2's find_equiv_reg move deletion) or the moves are not the call's
+  argument moves at all. Not found. (3) Region 3/4 order of `move a0/a2` vs the Box[3] readback (sched2 priority, same
+  family as (2)). Hill climb over do/while depth per statement and local types (hill2.py, 2 x 100+ rounds) and
+  the permuter (40 min) stop at 34.
+- snd Snd_bgm_play_ck (2 words, unchanged, agentAO/best/Snd_bgm_play_ck_2.c). agentAJ's trick tested (420 variants of
+  unused `&Snd_work`/`&CD` locals before/after/inside do/while, agentAO/gen_snd.py): an unused `pUC = &CD;` before
+  `p = &Snd_work;` gives hiC v1 (it is live across hiS) but sched2 then emits `lui v1` first (LUID), 3-4 words
+  (agentAO/best/Snd_bgm_play_ck_3_unusedCD_v1.c). Also tested: pointer sets inside the for loop (loop.c hoists them,
+  48 variants, >= 2), temp copies with extra later uses (40, >= 2). Proof of the remaining mechanisms:
+  * sched2 here has no loads in block 0, all priorities 1, rank = class vs last insn then LUID, so the target needs
+    LUID(hiC) > LUID(loS); register needs hiS live at hiC's birth in local-alloc's input = sched2's input. So some
+    insn using v0 must sit between hiC and loC at local-alloc and be gone by sched2. Only reload_cse (no-op / known
+    value set) and reload's no-op move deletion do that; both need a second computation of &Snd_work that cse did
+    not merge into p, and cse merges it in this single extended block.
+  * Global-alloc pass 0 would give hiC v1 (p's preference for v0 via set_preference on the lo_sum, and v1 used by
+    the loop temps) but only if hiC were a global allocno (REG_N_DEATHS != 1 or cross-block), which no source form
+    produces: its only use is the lo_sum in block 0.
+  * reload's round-robin spill regs (allocate_reload_reg starts after last_spill_reg) would emit exactly
+    `lui v0/addiu s0/lui v1/addiu s1` if both hi pseudos were unallocated, but the function needs no spill regs and
+    unused regs (t0..) come first in potential_reload_regs.
