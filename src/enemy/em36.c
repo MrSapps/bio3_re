@@ -150,7 +150,311 @@ void Em36_main(ENEMY_WORK *pEm)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/enemy/em36", Em36_Init);
+void Em36_Init(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
+{
+    PARTS_W *pP;
+    PARTS_W *pO;
+    ENEMY_WORK **ppEm;
+    ENEMY_WORK *pE;
+    ENEMY_WORK *pFirst;
+    LONG i;
+    LONG Bit;
+    LONG n;
+    SHORT Life;
+    tagGLOBAL *pG;
+    LONG Unused[2];
+
+    EM_SET_RTN(pEm, 1, 0, 0, 0);
+    pG = &G;
+    pEm->Status_flg |= 0x100;
+    pEm->Damage_cnt = 0;
+    pEm->Spd_x = 0;
+    pEm->Spd_y = 0;
+    pEm->Spd_z = 0;
+    EM36_W(pEm)->Flg = 0;
+    if ((UCHAR)pEm->Type != 2)
+        Kage_work_set(&pEm->Kage.pKw, 0, 0x3E80384, 0, pEm->pSin_parts_ptr->Workm.t);
+    pEm->Col.pEm = pEm;
+    pEm->Col.W0 = 800;
+    pEm->Col.D0 = 800;
+    pEm->Col.H = 3500;
+    pEm->Col.Unk24 = 0;
+    pEm->Col.Unk28 = 0;
+    pEm->Col.Unk26 = 0;
+    pEm->Col.Flg = 0;
+    pEm->Col.Type = 2;
+    Oba_set(&pEm->Col, 0);
+    pEm->Hit_area.Top = 2000;
+    pEm->Hit_area.Bottom = -1300;
+    pEm->Hit_area.Rate0 = 120;
+    pEm->Hit_area.Rate1 = 200;
+    pEm->Hit_area.R = 600;
+    pEm->Unk140 = 0;
+    pEm->Neck_flg = 0;
+    pEm->Neck_no = 2;
+    pEm->Hit_area.pM = &pEm->pSin_parts_ptr->Workm;
+    pP = &pEm->pSin_parts_ptr[2];
+    PW_NECK(pP)->Add_dir_y = 0x60;
+    PW_NECK(pP)->Add_dir_z = 0x60;
+    PW_NECK(pP)->L_rot_y = 0x200;
+    PW_NECK(pP)->N_rot_y = 0;
+    PW_NECK(pP)->N_rot_z = 0;
+    PW_NECK(pP)->L_rot_z = 0x138;
+    pEm->Life = 800;
+    pEm->Max_life = 800;
+    if (pG->System_flg & 0x100) {
+        pEm->Life = 600;
+        pEm->Max_life = 600;
+    }
+    pEm->Max_life += 100;
+    pEm->Life += 100;
+    if (pEm->Type & 1) {
+        Life = pEm->Life;
+        EM36_W(pEm)->Stage_life = Life - 250;
+        pEm->Max_life = Life - 50;
+    }
+    pP = &pEm->pSin_parts_ptr[2];
+    EM36_PF(pP)->Key_no = 0;
+    EM36_PF(pP)->Unk01 = 0;
+    Sa_morph_step(pEm, pP);
+    pP = &pEm->pSin_parts_ptr[16];
+    for (i = 6; i != 0; i--) {
+        EM36_SABUN_P(pP)->Key[0].Rate = 0;
+        EM36_SABUN_P(pP)->Key[1].Rate = 0;
+        EM36_SABUN_P(pP)->Key[2].Rate = 0;
+        EM36_SABUN_P(pP)->Key[3].Rate = 0;
+        EM36_SABUN_P(pP)->Key[4].Rate = 0;
+        EM36_SABUN_P(pP)->Key[5].Rate = 0;
+        EM36_SABUN_P(pP)->Key[6].Rate = 0;
+        pP++;
+    }
+
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+        pP = &pB[16];
+        pO = &pB[4];
+        pP->pSuper = &pB[4].Workm;
+        pP->Pos_x = 7;
+        pP->Pos_y = 0x17C;
+        pP->pOya_parts = pO;
+        pP->Pos_z = 0x8A;
+        pP->Cdir_z = -100;
+        RotMatrix(CDIR_SV(pP), (MATRIX *)pP->M);
+        EM36_PF(pP)->Key_no = 2;
+        EM36_SABUN_P(pP)->Key[1].Rate = 0x800;
+        EM36_SABUN_P(pP)->Key[2].Rate = 0x800;
+        Sa_morph_step(pEm, pP);
+        pB[16].Be_flg |= 4;
+        pP->Size_x = 0xD9A;
+        pP->Size_y = 0xC00;
+        pP->Size_z = 0xD9A;
+        EM36_PF(pP)->Unk02 = 0;
+        EM36_PF(pP)->Unk04 = 0;
+    }
+
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+        pP = &pB[17];
+        pO = &pB[4];
+        pP->pSuper = &pB[4].Workm;
+        pP->Pos_x = 0xA2;
+        pP->Pos_y = 0xE6;
+        pP->pOya_parts = pO;
+        pP->Pos_z = 8;
+        pP->Cdir_z = -0x11C;
+        RotMatrix(CDIR_SV(pP), (MATRIX *)pP->M);
+        EM36_PF(pP)->Key_no = 0;
+        Sa_morph_step(pEm, pP);
+        pB[17].Be_flg |= 4;
+        pP->Size_x = 0xD9A;
+        pP->Size_y = 0x1000;
+        pP->Size_z = 0xD9A;
+        EM36_PF(pP)->Unk02 = 0;
+        EM36_PF(pP)->Unk04 = 0;
+    }
+
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+        pP = &pB[18];
+        pO = &pB[4];
+        pP->pSuper = &pB[4].Workm;
+        pP->Pos_x = -0x8F;
+        pP->Pos_y = 0x154;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -2;
+        pP->Cdir_z = 0x11C;
+        RotMatrix(CDIR_SV(pP), (MATRIX *)pP->M);
+        EM36_PF(pP)->Key_no = 4;
+        EM36_SABUN_P(pP)->Key[3].Rate = 0xC00;
+        EM36_SABUN_P(pP)->Key[4].Rate = 0x400;
+        Sa_morph_step(pEm, pP);
+        pB[18].Be_flg |= 4;
+        pP->Size_x = 0xD9A;
+        pP->Size_y = 0x1000;
+        pP->Size_z = 0xD9A;
+        EM36_PF(pP)->Unk02 = 0;
+        EM36_PF(pP)->Unk04 = 0;
+    }
+
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+        pP = &pB[19];
+        pO = &pB[1];
+        pP->pSuper = &pB[1].Workm;
+        pP->Pos_x = -0x13B;
+        pP->Pos_y = -0x41;
+        pP->pOya_parts = pO;
+        pP->Pos_z = 0x104;
+        pP->Cdir_x = 0x96;
+        pP->Cdir_y = 0x64;
+        pP->Cdir_z = 0xC8;
+        RotMatrix(CDIR_SV(pP), (MATRIX *)pP->M);
+        EM36_PF(pP)->Key_no = 6;
+        EM36_SABUN_P(pP)->Key[5].Rate = 0x400;
+        EM36_SABUN_P(pP)->Key[6].Rate = 0xC00;
+        Sa_morph_step(pEm, pP);
+        pB[19].Be_flg |= 4;
+        pP->Size_x = 0x1000;
+        pP->Size_y = 0x1000;
+        pP->Size_z = 0x1000;
+        EM36_PF(pP)->Unk02 = 0;
+        EM36_PF(pP)->Unk04 = 0;
+    }
+
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+        pP = &pB[20];
+        pO = &pB[1];
+        pP->pSuper = &pB[1].Workm;
+        pP->Pos_x = -0x120;
+        pP->Pos_y = -0x1FE;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -0x140;
+        pP->Cdir_x = -0xC8;
+        pP->Cdir_y = 0xA0;
+        pP->Cdir_z = 0x190;
+        RotMatrix(CDIR_SV(pP), (MATRIX *)pP->M);
+        EM36_PF(pP)->Key_no = 0;
+        EM36_SABUN_P(pP)->Key[6].Rate = 0x400;
+        EM36_SABUN_P(pP)->Key[0].Rate = 0xC00;
+        Sa_morph_step(pEm, pP);
+        pB[20].Be_flg |= 4;
+        pP->Size_x = 0xE66;
+        pP->Size_y = 0x119A;
+        pP->Size_z = 0xE66;
+        EM36_PF(pP)->Unk02 = 0;
+        EM36_PF(pP)->Unk04 = 0;
+    }
+
+    {
+        PARTS_W *pB = pEm->pSin_parts_ptr;
+        pP = &pB[21];
+        pO = &pB[1];
+        pP->pSuper = &pB[1].Workm;
+        pP->Pos_x = -0x10D;
+        pP->Pos_y = 0x40;
+        pP->pOya_parts = pO;
+        pP->Pos_z = -0x5A;
+        pP->Cdir_x = -0x50;
+        pP->Cdir_y = -0x3C;
+        pP->Cdir_z = 0x190;
+        RotMatrix(CDIR_SV(pP), (MATRIX *)pP->M);
+        EM36_PF(pP)->Key_no = 2;
+        EM36_SABUN_P(pP)->Key[1].Rate = 0x800;
+        EM36_SABUN_P(pP)->Key[2].Rate = 0x800;
+        Sa_morph_step(pEm, pP);
+        pB[21].Be_flg |= 4;
+        pP->Size_x = 0xB33;
+        pP->Size_y = 0x800;
+        pP->Size_z = 0xB33;
+        EM36_PF(pP)->Unk02 = 0;
+        EM36_PF(pP)->Unk04 = 0;
+    }
+
+    pP = &pEm->pSin_parts_ptr[22];
+    pP->UnkA2 &= -2;
+    pP = &pEm->pSin_parts_ptr[23];
+    pP->UnkA2 &= -2;
+    if (G.Status_flg & 0x40000000) {
+        pEm->Life = G.Chaser_life;
+        i = 12;
+        do {
+            n = i - 1;
+            pEm->Unk1CC[n] = G.Chaser_free[n];
+            i = n;
+        } while (i);
+        EM_SET_RTN(pEm, 1, 2, 0, 0);
+        EM36_W(pEm)->Run_timer = (Rnd() & 0x1F) + 30;
+        Bit = Rnd();
+        if ((Bit >> (Rnd() & 3)) & 1) {
+            EM_SET_RTN(pEm, 1, 1, 0, 0);
+            EM36_W(pEm)->Run_timer = (Rnd() & 0x1F) - 0x6A;
+        }
+    }
+    EM36_W(pEm)->Lunge_timer = 250;
+    EM36_W(pEm)->Morph_spd = 0x200;
+    EM36_W(pEm)->Punch_timer = 30;
+    EM36_W(pEm)->Mv12_timer = 30;
+    EM36_W(pEm)->Combo_no = 0x80;
+    EM36_W(pEm)->Type_timer = 300;
+    EM36_W(pEm)->Flg &= 0x20;
+    EM36_W(pEm)->Mouth = 0;
+    EM36_W(pEm)->Unk11 = 0;
+    EM36_W(pEm)->Dodge_timer = 0;
+    EM36_W(pEm)->Grab_timer = 0;
+    EM36_W(pEm)->Shake_no = 0;
+    EM36_W(pEm)->Shake_cnt = 0;
+    EM36_W(pEm)->Shake_side = 0;
+    EM36_W(pEm)->Shake_amp = 0;
+    EM36_W(pEm)->Lost_dir = 0;
+    EM36_W(pEm)->Lost_time = 0;
+    EM36_W(pEm)->Hit_cnt = 0;
+    EM36_W(pEm)->Mv06_timer = 0;
+    G.pPldamage_Em[pEm->Id - 0x10] = Pldamege_Em36;
+    ppEm = &G.pEnemy[2];
+    /* the first enemy goes through its own single-set local (sched1 boosts its load into the Pldie address
+       chain, so it shares a0 with &G) and the first test is written out again; jump2 cross-jumps it into the loop */
+    pFirst = G.pEnemy[2];
+    G.pPldie_Em[pEm->Id - 0x10] = Pldie_Em36;
+    EM36_W(pEm)->pSub = NULL;
+    if (pFirst->Id != 0x37)
+        goto Next;
+    EM36_W(pEm)->pSub = pFirst;
+    goto Found;
+Next:
+    if (++ppEm == pG->ppEnemy_end)
+        goto Found;
+    pE = *ppEm;
+    if (pE->Id != 0x37)
+        goto Next;
+    EM36_W(pEm)->pSub = pE;
+Found:
+    if (EM36_W(pEm)->pSub && (UCHAR)pEm->Type == 1)
+        EM36_W(pEm)->pSub->Type = 1;
+    EM_SET_MOVE(pEm, 1, 0, 0);
+    if ((UCHAR)pEm->Type == 2) {
+        pP = pEm->pSin_parts_ptr;
+        i = pEm->Parts_num;
+        do {
+            pP->UnkA2 &= -2;
+            pP++;
+        } while (--i);
+        if (EM36_W(pEm)->pSub)
+            EM36_W(pEm)->pSub->Be_flg |= 0x10;
+        pEm->Life = -1;
+        EM_SET_RTN(pEm, 1, 1, 0, 0);
+    }
+    if ((UCHAR)pEm->Type == 4) {
+        pEm->Routine_1 = 0x10;
+        pEm->Type &= ~4;
+    }
+    Joint_move(pEm, pKan, pSeq, 0x400);
+    EM36_W(pEm)->Route_no = 0;
+    if ((UCHAR)pEm->Type == 10)
+        EM36_W(pEm)->Route_no = 1;
+    if ((UCHAR)pEm->Type == 12)
+        EM36_W(pEm)->Route_no = 1;
+}
 
 /* Routine_0 1: move routine set by Type */
 void Em36_Move(ENEMY_WORK *pEm, ULONG *pKan, ULONG *pSeq)
