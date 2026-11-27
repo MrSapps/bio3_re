@@ -2514,3 +2514,10 @@ Structural forms tried first (failed, for the record):
   promotion), so a1/a2 land before `sw ra`: 6 words (agentAZ/g6.c). A non-hard-reg c is global, so local-alloc still
   gives hiC v0.
 - Inline helpers with both pointers as arguments: identical to the plain forms (2).
+
+## Hand-written assembly moved to src/
+The 11 functions shown in agentAI to be hand-written (no gcc 2.6.3-2.8.1 C produces them) are now source files rather than
+INCLUDE_ASM from asm/nonmatchings: src/game/md_sub/{Md_rtp,SortGT3_neo_uv,SortGT4_neo_uv,SortGT3_neo,SortGT3_col,
+SortGT4_col,SortGT3_sabun,SortGT4_sabun,Skin_vtx0_old}.s and src/ovl/mem_card/{_card_info,_card_load}.s (the libcard BIOS
+stubs). They are still pulled in with INCLUDE_ASM (now pointed at src/), but the `nonmatching` header is gone, so
+progress.py counts them as done: 2822/2822. They are assembly, not C matches.

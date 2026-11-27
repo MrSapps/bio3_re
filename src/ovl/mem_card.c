@@ -1460,9 +1460,9 @@ SHORT Mess_width(LONG Msg)
 }
 
 /* libcard _card_info: BIOS A0 call 0xAB (jump stub, stays asm) */
-INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_info);
+INCLUDE_ASM("src/ovl/mem_card", _card_info);
 
 /* libcard _card_load: BIOS A0 call 0xAC (jump stub, stays asm) */
-INCLUDE_ASM("asm/nonmatchings/ovl/mem_card", _card_load);
+INCLUDE_ASM("src/ovl/mem_card", _card_load);
 
 /* _card_clear: src/ovl/mem_card_card.c (libcard CARD module, gcc 2.7.2) */
