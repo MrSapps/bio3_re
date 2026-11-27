@@ -1462,7 +1462,66 @@ LONG Sca_high_koban_z(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
 }
 
 /* height routine for shape 4 (diamond): per quadrant from the centre, inside the edge line -> pT->High; RE2 Sca_ck_hishi as a height test */
-INCLUDE_ASM("asm/nonmatchings/game/sca", Sca_high_hishi);
+LONG Sca_high_hishi(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)
+{
+    LONG Cx;
+    SHORT Cz;
+    LONG X;
+    LONG Z;
+    LONG Dx;
+    LONG Dz;
+    LONG Zone;
+    LONG In;
+    LONG Hx;    /* half width */
+    LONG Hz;    /* half depth */
+    LONG Qx;    /* quadrant bit 0: Dx < 0 */
+    LONG Qz;    /* quadrant bit 1: Dz < 0 */
+
+    X = pPos->vx;
+    Z = pPos->vz;
+    Hx = pT->X1 - pT->X0;
+    Hz = pT->Z1 - pT->Z0;
+    Hx >>= 1;
+    /* Cx built in a multi-set LONG, with Hz's shift between: gives the target's sched order (lhu/addu/sra Hz/sll/sra) */
+    Cx = (USHORT)pT->X0 + Hx;
+    Hz >>= 1;
+    Cx = (SHORT)Cx;
+    Cz = pT->Z0 + Hz;
+    Dz = Z - Cz;
+    Dx = X - Cx;
+    /* the double negation leaves no code (combine folds it) but gives Dx the register priority it needs (a2) */
+    Dx = -Dx;
+    Dx = -Dx;
+    Qz = ((ULONG)Dz >> 30) & 2;
+    /* sign bit via -(Dx >> 31): the extra refs make local-alloc give Qx v0 before Qz */
+    Qx = Dx >> 31;
+    Qx = -Qx;
+    Zone = Qz | Qx;
+    switch (Zone) {
+    case 0:
+        /* the do/while(0) wraps here only raise register priorities (refs weighted by loop depth) */
+        do { Zone = (Cz - pT->Z1) * Dx / (pT->X1 - Cx); } while (0);
+        In = Z - pT->Z1 < Zone;
+    Ck:
+        if (!In) {
+            return High;
+        }
+        return pT->High;
+    case 1:
+        do { Zone = (pT->Z1 - Cz) * (X - pT->X0) / (Cx - pT->X0); } while (0);
+        In = Dz < Zone;
+        goto Ck;
+    case 2:
+        Zone = (Cz - pT->Z0) * Dx / (pT->X1 - Cx);
+        do { In = Zone < Z - pT->Z0; } while (0);
+        goto Ck;
+    case 3:
+        Zone = (pT->Z0 - Cz) * (X - pT->X0) / (Cx - pT->X0);
+        In = Zone < Dz;
+        goto Ck;
+    }
+    return High;
+}
 
 /* height routine for shape 12: top falls linearly from High at the centre to the Floor_lo level at the circle's rim (cone / mound); no RE2 equivalent (RE2 Sca_get_curve_high is a half cylinder) */
 LONG Sca_high_cone(SCA_DATA *pT, VECTOR *pPos, ULONG Flg, LONG High)

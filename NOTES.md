@@ -2220,3 +2220,32 @@ score.py's base.c has no macros (em22 drafts that use EM_SET_MOVE / EM22_W other
   in the grab block (agentAS/r4_*.c): 21-28, because the pSin load then goes straight into a0 instead of
   `lw v0; addiu a0,v0,188`. So no C, not even with hard-register variables, gives the target at -O2 -G0. It stays
   INCLUDE_ASM.
+
+## Matching round agentAU (worktree clean/wS; scratch in the session scratchpad agentAU/, match agentAU/final.c)
+Matched: sca Sca_high_hishi (9aabdb1). It was stuck at 13 words for six rounds.
+Rules learnt:
+- Phantom refs with no loop note: `Dx = -Dx; Dx = -Dx;` (or `H = b - a; H = -H;` for `a - b`) leaves no code. Combine folds
+  the negations, but flow has already counted their refs, and combine only lowers REG_N_REFS when REG_N_SETS drops to 0.
+  So each negation adds +2 refs to that pseudo without a do/while barrier. Combine does lower REG_N_SETS, so the
+  sched1 birthing boost of a single-set variable does not change. This gave Dx the global priority it needed (a2).
+- How to read the sched1 trace (`;; ready list at T-n`, SN cc1 -dS): scheduling runs backwards. A single-set live
+  pseudo's setter gets priority 0x7f000001 (birthing_insn_p) as soon as it is ready. Ties go to the higher LUID. So a
+  boosted chain (Dx -> sra Cx -> sll -> addu -> lhu) is placed in one piece, right after its user. Use this to work out
+  which chain comes first in the forward order, and so the local-alloc births and deaths.
+  - In `Zone = ((ULONG)Dz >> 30) & 2; Zone |= (ULONG)Dx >> 31;` the andi writes multi-set Zone, so it is not boosted, and
+    the whole X chain landed in front of the `or`. Two separate single-set locals fixed the order: `Qz = ((ULONG)Dz >>
+    30) & 2; Qx = Dx >> 31; Qx = -Qx; Zone = Qz | Qx;`. The `-(Dx >> 31)` form folds to the same `srl 31`, and the
+    multi-set Qx gets phantom refs, so local-alloc gives Qx v0 before Qz (the target's `or v1,v1,v0`).
+  - A SHORT local's sign extension (sll/sra) is emitted where the value is first used as an int, so its LUID follows that
+    statement, not the assignment. A LONG local in two statements (`Cx = (USHORT)pT->X0 + Hx; ... Cx = (SHORT)Cx;`) gives
+    the same lhu/addu/sll/sra with Cx's register for the whole chain. It is multi-set (not boosted), so a statement
+    placed between the two halves (`Hz >>= 1;`) is scheduled between them.
+- sched2 breaks equal-priority ties by LUID in sched1's output order. The target's `addu a0; sra v1; sll a0` therefore
+  needed the sched1 output order addu Cx, sra Hz, sll Cx.
+- A global that loads from a block-local pointer (X = pPos->vx) only gets the pointer's register (a1) when that load is
+  the pointer's last use in sched1 order. Here the X load had to come after the Z load. That meant `Dz = Z - Cz;` before
+  `Dx = X - Cx;`.
+- agentAP's probe theory was right (the half widths must be allocated before the lhu chain), but no wrap was needed:
+  once the statement shapes above were in place, the default refs were enough, with no phantom negations on Hx/Hz.
+- The searches used agentAU/gen2-4.py: random dependency-respecting statement orders plus form choices, scored with
+  score.py, 3 processes.
