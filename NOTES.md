@@ -2359,3 +2359,39 @@ Not matched:
   It stays INCLUDE_ASM. A match would need a second, cse2-proof computation of &Snd_work in block 0, and no C form gives one.
 Tools (scratchpad agentAV): dump.sh PERMDIR f.c OUT (SN cc1 dumps incl. -dS/-dR, for wT), mk.py (string-replace
 variant maker), sweep.py BASE.c OUT (permutation sweep of the pW store block, scored in-process).
+
+## Matching round agentAX (worktree clean/wV; scratch in the session scratchpad agentAX/)
+Nothing matched. snd Snd_bgm_play_ck stays at 2 words (draft agentAO/best/Snd_bgm_play_ck_2.c, unchanged).
+- I re-checked the agentAA/AF/AL/AO/AV proof premises in the 2.8.1 source and the SN cc1 -dS trace, looking for the kind of
+  gap that broke the Em22 proof (sched1 stall slots). None found:
+  * sched.c priority() subtracts 1 per link (`priority (x) + insn_cost - 1`), so latency-1 chains are all priority 1
+    (trace: every block-0 insn is 1). Block 0 has no loads or multiplies, so insn_cost is 1 for every link and
+    rank_for_schedule's class test is 3 for every pair. schedule_select only promotes stores (memory unit potential
+    hazard), and ALU insns never block. That leaves LUID. In agentAL's v1 draft (input hiS hiC loS loC) the trace at T-6
+    has ready "15 11" (loS, hiC) after `sw s1` and takes loS by LUID. loS is ready there because no block-0 insn reads s0
+    or writes v0 after it, and in the target none does. So the target needs LUID(hiC) > LUID(loS) in sched2's input.
+  * Between local-alloc and sched2 the only reorderings are update_equiv_regs (it moves a REG_EQUIV init to just before
+    its single use, but only for REG_BASIC_BLOCK < 0 regs, and it runs before block_alloc, so local-alloc sees the moved
+    order too) and reload input reloads. An unallocated hiC (REG_EQUIV high) would be re-emitted before loC, which gives
+    the right LUID. But find_dummy_reload puts that reload in the output reg (s1: `lui s1; addiu s1,s1`), and otherwise
+    it uses an unused spill reg (t0), never v1.
+  * local-alloc: hiC could also get v1 from qty_phys_sugg, but combine_regs only records a suggestion when a hard reg is
+    the copy source or the output of an insn where hiC dies. loC's output is p/pCd (global, reg_qty -1, no tie). A hard
+    reg output (`register ... asm("$3")`) is either propagated away or puts the extra move/s1 into the code (agentAO).
+  * A global hiC (pass 0 would give v1) needs REG_N_DEATHS != 1 or a cross-block use. A cross-block use has to come from
+    a cse-reused high in a later block, and then hiC is live through the loop, whose v1 temps it conflicts with.
+- Two different symbols do not help. rtx_equal_p compares SYMBOL_REF names by pointer, so cse, combine, reload_cse and
+  find_equiv_reg never merge two symbols. But in this function each address is computed once. A second computation through
+  an alias symbol (or `&Snd_work.f` / `(char *)&X + k`, which fold to the same symbol_ref or to a different const) can
+  therefore never be deleted, and it adds a lui/addiu pair. The neighbours are no help either: CD 0x800B9E10 (only
+  CD_xa_rtn_no at +0x11 inside it, then Snd_edt 0x800BA6E8) and Snd_work 0x800E0610 (Snd_event 0x800E0608 before it)
+  hold no separate sub-object at offset 0, and `&Snd_work.<first field>` is the same symbol_ref.
+- Sweeps (agentAX/sw1.py, sw2.py, scored in-process). 3318 variants of declaration order x initialiser-in-declaration x
+  statement order of p/pCd/i=0 x 0-2 empty do/whiles x do/while-wrapped sets, plus 345 variants with duplicate `p =
+  &Snd_work` / `pCd = &CD` sets and `q = &Snd_work; p = q;` in every order. The minimum of both is 2, and the 2s are the
+  known draft shape.
+It stays INCLUDE_ASM. The proof stands: the target needs hiS (or some v0 value) live across hiC's birth in local-alloc's
+input, plus LUID(hiC) > LUID(loS) in sched2's input, and the two orders are the same insn stream. Only an insn that
+local-alloc sees and that is gone by sched2 can separate them. The candidates are a reload_cse/no-op duplicate of
+`s0 = lo_sum(hiS, Snd_work)`, which cse2 and combine collapse (agentAV), and a same-symbol duplicate, which needs the
+same thing. No plausible C gives either.
