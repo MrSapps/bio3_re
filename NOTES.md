@@ -2249,3 +2249,51 @@ Rules learnt:
   once the statement shapes above were in place, the default refs were enough, with no phantom negations on Hx/Hz.
 - The searches used agentAU/gen2-4.py: random dependency-respecting statement orders plus form choices, scored with
   score.py, 3 processes.
+
+## Matching round agentAV (worktree clean/wT; scratch in the session scratchpad agentAV/)
+Matched: em22 Em22_mv_jump (597434a; was 9 words / 7 difflib, "proven impossible" by agentAN/AR/AS). Starting from agentAN's
+best/Em22_mv_jump_seqfirst.c (21 words), the only change is `pW->Poly_rgb = 0x101040;` moved before `pW->Pos_x = 0x3F;`.
+Found by agentAV/sweep.py (all 5040 orders of the seven pW stores after `pW->UnkA2 |= 0xB`, 3 min).
+Why the earlier proof was wrong: it assumed `a0 = 3` (618, prio 4) can only be picked before the pTmd store 570 (prio 7)
+becomes ready if its priority is >= 7, and that every unscheduled dependent of 570 is ready and outranks 618. It missed
+the sched1 **stall queue**. When a load's user is picked, the load waits in the queue for its latency (`blocking insn N
+for 1 cycles` / `launching N before M` in the -dS trace), and the free slot goes to the best *ready* insn, whatever its
+priority. Here the re-read `lw v0,264(s0)` (584, for pSuper) depends on 570 through memory, so while 584 waits after its
+addiu (586) is placed, 570 is not ready, and 618 can take that slot. That gives S = ... 570 ... 581 584 618 586, so pTmd
+dies before `a0 = 3` and gets a0, and sched2 then moves `li a0,3` up next to `sw a0,8(v1)` (anti dep on a0).
+What decides who gets the slot: the other call argument `a1 = pEm` (620) has the same priority 4 and a higher LUID, so it
+takes the first free slot. 618 only wins the 584 slot if 620 was already placed in an earlier slot. The earlier slot is
+the latency gap of the pOya re-read (591). In the old order, the boosted single-set `li 63` (Pos_x) became ready right
+there and took it. With Poly_rgb first, the Pos_x/Pos_y/Pos_z constant stores come later in LUID order and their
+constants were already placed, so that slot holds only prio-4 insns and 620 takes it (trace: T-46 620, T-50 618).
+Rules learnt:
+- Stall slots in sched1: a ready low-priority insn can be placed between a high-priority insn and that insn's dependents
+  when a load among those dependents is waiting out its latency. When a proof says "X can never be scheduled before Y",
+  check the `blocking`/`launching` lines for free slots while one of Y's dependents is a queued load.
+- Several equal-priority insns compete for each free slot in LUID order (call argument moves: the higher argument wins).
+  To give the lower one a slot, let the higher one take an earlier free slot. That means keeping boosted single-set
+  constants out of the earlier slot, by changing the source order of the stores that use them.
+- Brute-force statement-order sweeps over a short store sequence are cheap (score.score in a 3-process Pool, 0.1 s each).
+  Run one before writing an impossibility proof based on priorities.
+Not matched:
+- snd Snd_bgm_play_ck (2 words, agentAO/best/Snd_bgm_play_ck_2.c). I re-checked the proof against the new mechanisms.
+  The problem is in local-alloc, not the scheduler. The sched1 output S = hiS loS hiC loC is already the order sched2 needs
+  (with hiC in v1, sched2 gives exactly the target: prologue stores win by hazard, then LUID). In local-alloc, hiS and hiC
+  do not overlap, so hiC gets v0. Allocation order does not matter: find_free_reg takes the first free reg in
+  REG_ALLOC_ORDER over the qty's life, so refs/priority tricks (agentAU's `v = -v; v = -v;`) cannot change it. Block 0 has
+  no other local qty, and p/pCd/i/the hoisted 1 are global. So v0 must be held across hiC's birth by something that is
+  gone before sched2. Checked:
+  * Phantom load (reload_cse): block 0 has no earlier load or store, and the prologue stores are emitted after
+    reload_cse_regs (toplev.c: reload_cse_regs, then thread_prologue_and_epilogue_insns). So reload_cse knows no memory
+    value there, and only `s0 = lo_sum(v0, Snd_work)` or `v0 = high(Snd_work)` could be deleted as a no-op. That needs
+    a second `p = &Snd_work` that survives to reload.
+  * Second `p = &Snd_work`: after a do/while(0), cse1 does not merge it, because cse_end_of_basic_block stops at
+    NOTE_INSN_LOOP_END before loop.c (agentAV/v1.c, the .loop dump has a fresh high/lo_sum pair). But cse2 (after_loop,
+    ignores loop notes) turns it into `p = p`. Flow keeps that, but combine then merges the first lo_sum into it (p's only
+    use), so one lo_sum is left after hiC and S becomes hiS hiC loC loS (7 words). A use of the first p between the two
+    sets that would block combine has to be a real block-0 insn, and the target has none.
+  * Stall slots (this round's Em22 mechanism): block 0 has no loads, every latency is 1, and all sched2 classes are 3.
+  * jump2's find_equiv_reg no-op deletion (after sched2) needs the same duplicate as above.
+  It stays INCLUDE_ASM. A match would need a second, cse2-proof computation of &Snd_work in block 0, and no C form gives one.
+Tools (scratchpad agentAV): dump.sh PERMDIR f.c OUT (SN cc1 dumps incl. -dS/-dR, for wT), mk.py (string-replace
+variant maker), sweep.py BASE.c OUT (permutation sweep of the pW store block, scored in-process).
