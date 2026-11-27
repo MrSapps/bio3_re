@@ -307,7 +307,142 @@ void Oba_pos_back(COL_OBJ *pTop)
 }
 
 /* writes the COL_ENT records of a box-shaped object (whole box + four quarter boxes via Oba_ent_set); returns the last record */
-INCLUDE_ASM("asm/nonmatchings/game/oba", Oba_ent_box_set);
+COL_ENT *Oba_ent_box_set(COL_OBJ *pObj, COL_ENT *pEnt)
+{
+    LONG Box[4];
+    SVECTOR Unused[3];
+    ENEMY_WORK *pEm;
+    ULONG X;
+    ULONG Z;
+    ULONG W;
+    LONG D;
+    LONG Type;
+    LONG Floor;
+    LONG Hi;
+    LONG Tmp;
+    LONG Pz;
+    LONG Oz;
+    COL_OBJ *pO;
+    COL_ENT *pE;
+
+    do { pEm = pObj->pEm;
+    do {
+    } while (0);
+    X = pObj->Pos_x;
+    Z = pObj->Pos_z; } while (0);
+    W = pObj->W0;
+    D = pObj->D0;
+    X -= pEm->Pos_x - pEm->Old_x;
+    Oz = pEm->Old_z;
+    Pz = pEm->Pos_z;
+    Tmp = X - W;
+    Box[0] = Tmp;
+    Tmp = (USHORT)Box[0];
+    pEnt->X0 = Tmp;
+    Tmp = X + W;
+    Box[1] = Tmp;
+    do {
+    } while (0);
+    Z -= Pz - Oz;
+    Tmp = (USHORT)Box[1];
+    pEnt->X1 = Tmp;
+    Tmp = Z - D;
+    Box[2] = Tmp;
+    Tmp = (USHORT)Box[2];
+    pEnt->Z0 = Tmp;
+    Tmp = Z + D;
+    Box[3] = Tmp;
+    Tmp = (USHORT)Box[3];
+    pEnt->Z1 = Tmp;
+    Type = pObj->Type;
+    do {
+    } while (0);
+    Tmp = 0xFE41;
+    pEnt->Id = Tmp;
+    Floor = pEm->nFloor;
+    pEnt->Id = 0xFE47;
+    pEnt->Area = 0xF00;
+    Oba_ent_floor_set(pObj, pEnt);
+    Hi = pObj->Pos_y;
+    Hi -= pObj->H;
+    Hi <<= 16;
+    Hi |= ((Floor << 8) & 0xFF00) | (Floor & 0xFF);
+    pEnt->C.All = Hi;
+    pEnt++;
+    pO = pObj;
+    pE = pEnt;
+    if (Floor) {
+        pEnt->pObj = pObj;
+        Tmp = (USHORT)Box[0];
+        pEnt->X0 = Tmp;
+        Tmp = (USHORT)Box[1];
+        pEnt->X1 = Tmp;
+        Tmp = (USHORT)Box[2];
+        pEnt->Z0 = Tmp;
+        Tmp = (USHORT)Box[3];
+        pEnt->Z1 = Tmp;
+        pEnt->Type = Type;
+        pEnt->Area = 0;
+        Tmp = 0xFE41;
+        pEnt->Id = Tmp;
+    } else {
+        do { pEnt->pObj = pObj; } while (0);
+        Tmp = (USHORT)Box[0];
+        pEnt->X0 = Tmp;
+        Tmp = (USHORT)Box[1];
+        pEnt->X1 = Tmp;
+        Tmp = (USHORT)Box[2];
+        pEnt->Z0 = Tmp;
+        Tmp = (USHORT)Box[3];
+        pEnt->Z1 = Tmp;
+        pEnt->Type = Type;
+        pEnt->Area = 0;
+        Tmp = 0xFE41;
+        pEnt->Id = Tmp;
+    }
+    Oba_ent_floor_set(pO, pE);
+    Floor++;
+    pEnt->C.All = Hi;
+    pEnt++;
+    Oba_ent_set(pObj, pEnt, Floor);
+    Type = W * 2;
+    W = X - Type;
+    X += Type;
+    do { pEnt->X0 = W; } while (0);
+    pEnt->X1 = X;
+    D = -D;
+    D = -D;
+    D *= 2;
+    Hi = Z + D;
+    Tmp = (USHORT)Box[3];
+    pEnt->Z0 = Tmp;
+    pEnt->Z1 = Hi;
+    pEnt++;
+    Oba_ent_set(pObj, pEnt, Floor);
+    do {
+    } while (0);
+    Z -= D;
+    Tmp = (USHORT)Box[1];
+    pEnt->X1 = X;
+    pEnt->Z0 = Z;
+    pEnt->Z1 = Hi;
+    pEnt->X0 = Tmp;
+    pEnt++;
+    Oba_ent_set(pObj, pEnt, Floor);
+    do { pEnt->X0 = W; } while (0);
+    pEnt->X1 = X;
+    Tmp = (USHORT)Box[2];
+    pEnt->Z0 = Z;
+    pEnt->Z1 = Tmp;
+    pEnt++;
+    Oba_ent_set(pObj, pEnt, Floor);
+    do { pEnt->X0 = W; } while (0);
+    Tmp = (USHORT)Box[0];
+    pEnt->Z0 = Z;
+    pEnt->Z1 = Hi;
+    pEnt->X1 = Tmp;
+    return pEnt;
+}
 
 /* fill a COL_ENT for pObj (shape 8, all areas) with its floor range */
 void Oba_ent_set(COL_OBJ *pObj, COL_ENT *pEnt, LONG n)
