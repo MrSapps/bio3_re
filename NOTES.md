@@ -2140,3 +2140,38 @@ Not matched:
   * reload's round-robin spill regs (allocate_reload_reg starts after last_spill_reg) would emit exactly
     `lui v0/addiu s0/lui v1/addiu s1` if both hi pseudos were unallocated, but the function needs no spill regs and
     unused regs (t0..) come first in potential_reload_regs.
+
+## Matching round agentAS (worktree clean/wQ; scratch in the session scratchpad agentAS/)
+Nothing matched. This round tested the compiler invocation instead of the source, for snd Snd_bgm_play_ck and em22
+Em22_mv_jump. No flag set and no other compiler beats the -O2 -G0 2.8.1 result, so splitting either function into
+its own object (agentAI's _card_clear route) has no support, and the snd.c / em22 object boundaries were left alone.
+Tools: agentAS/cc1w.sh wraps cc1 (XCC1 = compiler, XFLAGS = extra flags, appended after ours) and is used as PERM_CC1
+by score.py; agentAS/fsweep.sh PERMDIR DRAFT scores one draft with 58 flag sets on gcc-2.8.1/2.8.0/2.7.2-psx/2.7.2-cdk
+(results agentAS/fs_*.txt). agentAS/pp.sh SRC FUNC DRAFT OUT preprocesses a draft with its file's headers, because
+score.py's base.c has no macros (em22 drafts that use EM_SET_MOVE / EM22_W otherwise score ~300).
+- snd Snd_bgm_play_ck (2 words, draft agentAO/best/Snd_bgm_play_ck_2.c). The sweep covered -O1, -O3, with and without
+  -fschedule-insns / -fschedule-insns2, -fno-cse-follow-jumps, -fno-cse-skip-blocks, -fno-rerun-cse-after-loop,
+  -fno-strength-reduce, -fno-expensive-optimizations, -fno-delayed-branch, -f[no-]omit-frame-pointer, -g, -fno-defer-pop,
+  -ffast-math, -mgpopt, -G8, -membedded-data, -funroll-loops, -f[no-]caller-saves, -fforce-mem/-addr, -fno-thread-jumps,
+  -fno-peephole, -fno-gcse, -fvolatile, -fno-common, -m[no-]split-addresses, -mlong-calls, -fpic, -mabicalls and a few
+  more. Run on the 2-word draft and on the two v1-hiC drafts (agentAO _3_unusedCD_v1, agentAL _3_hiC_v1), every one
+  scores >= 2 (>= 3/4 for the v1 drafts). The best result, 2, comes from the default flags and from flags that leave this
+  code unchanged. -g changes no code (same `lui $2,%hi(CD)`, only .loc/.def lines), so line notes are not the
+  missing barrier. -fno-schedule-insns2 puts all prologue sw at the top, so the target was built with sched2 on, and
+  the agentAA/AF/AL/AO proof (sched2 LUID order versus local-alloc birth order) holds for every flag set.
+  Local register variables do not help: `register tagCD *pT asm("$3") = &CD; pCd = pT;` (and the same for Snd_work
+  in $2) are propagated away (2 words). p/pCd in $16/$17 give 6. An asm-operand trick cannot work either. The v0 value
+  live across hiC's birth would need an asm user after hiC, and a volatile asm is a sched2 barrier. That barrier would
+  have to sit between `lui v1` and `addiu s1`, with the prologue `sw ra` (target: after addiu s1) above it, so the
+  target order cannot come out. A non-volatile asm whose output is unused is deleted by flow before sched1.
+- em22 Em22_mv_jump (9 words / 7 difflib, draft agentAR/best/Em22_mv_jump_7.c, preprocessed agentAS/em7p.c). In the
+  same flag sweep the best is 9 (default flags). -fno-expensive-optimizations gives 12 and everything else is worse. The
+  last idea from agentAR's proof was a source-level hard a0 user: `register ULONG *pTmd asm("$4"); pTmd = pP->pTmd;
+  pW->pTmd = pTmd;` (agentAS/emR1.c). It does put `sw a0,8(v1)` before `li a0,3`, but it costs elsewhere. The pTmd load
+  now hoists above `sh zero,162(pP)` (same base, different offsets, so there is no memory dependence), so pP lives
+  across the a0 set and moves to a1. `li a0,3` then has no reason to stay early and sinks. Best over all 7056
+  dependency-respecting orders of the grab block statements: 13 (agentAS/gperm_R1.txt, order kan, seq, Neck, pW, pP,
+  UnkA2, pTmd). pP in $4 for the whole function (emR3, 7056 orders): 18. A block-scoped `register PARTS_W *pG asm("$4")`
+  in the grab block (agentAS/r4_*.c): 21-28, because the pSin load then goes straight into a0 instead of
+  `lw v0; addiu a0,v0,188`. So no C, not even with hard-register variables, gives the target at -O2 -G0. It stays
+  INCLUDE_ASM.
