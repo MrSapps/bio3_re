@@ -1967,7 +1967,7 @@ Rules learnt:
 - Within one sched block with all insns at priority 1, a direct call's argument moves are picked purely by LUID
   (expand_call emits a0..a3 in order); nothing at C level reorders them in sched1 alone.
 Still unmatched:
-- em22 Em22_mv_jump (7 difflib / 9 words; best/Em22_mv_jump_7.c, best/Em22_mv_jump_seqfirst.c). Proof that plain C
+- [MATCHED later by agentAV: this proof missed the sched1 stall slots, see that section] em22 Em22_mv_jump (7 difflib / 9 words; best/Em22_mv_jump_7.c, best/Em22_mv_jump_seqfirst.c). Proof that plain C
   cannot give `sw a0,8(v1); li a0,3` (pTmd in a0): local-alloc can only put pTmd in a0 if, in the sched1 output S,
   the `a0 = 3` set of Snd_se_enem comes after the `sw pTmd`. In sched1 `a0 = 3` (insn 618) has exactly one link, the
   anti dep on the Pl_life_down call (sched_analyze_1 adds it for every hard-reg set after a call), so
@@ -2036,7 +2036,7 @@ Rules learnt:
   address `addu`), a multi-set destination (a loop variable) cannot be scheduled after it: boosted insns get the
   block's maximum priority, and with equal priority the data-dependent "class 3" insn beats an anti-dependent load.
 Still unmatched:
-- em22 Em22_mv_jump (7 difflib / 9 words; agentAN best/Em22_mv_jump_7.c). I re-checked agentAN's proof against
+- [MATCHED later by agentAV: this proof missed the sched1 stall slots, see that section] em22 Em22_mv_jump (7 difflib / 9 words; agentAN best/Em22_mv_jump_7.c). I re-checked agentAN's proof against
   sched.c and the -dS trace of the seq-first order (scratchpad agentAR/d1). The grab block's LOG_LINKS: 618 `a0 = 3`
   has one link, REG_DEP_ANTI on call 522 (Pl_life_down). It gets that link from sched_analyze_1's hard-register
   branch (reg_last_sets[a0] = the call, which is in reg_pending_sets for every call-used reg) plus the
@@ -2209,7 +2209,7 @@ score.py's base.c has no macros (em22 drafts that use EM_SET_MOVE / EM22_W other
   live across hiC's birth would need an asm user after hiC, and a volatile asm is a sched2 barrier. That barrier would
   have to sit between `lui v1` and `addiu s1`, with the prologue `sw ra` (target: after addiu s1) above it, so the
   target order cannot come out. A non-volatile asm whose output is unused is deleted by flow before sched1.
-- em22 Em22_mv_jump (9 words / 7 difflib, draft agentAR/best/Em22_mv_jump_7.c, preprocessed agentAS/em7p.c). In the
+- [MATCHED later by agentAV: this proof missed the sched1 stall slots, see that section] em22 Em22_mv_jump (9 words / 7 difflib, draft agentAR/best/Em22_mv_jump_7.c, preprocessed agentAS/em7p.c). In the
   same flag sweep the best is 9 (default flags). -fno-expensive-optimizations gives 12 and everything else is worse. The
   last idea from agentAR's proof was a source-level hard a0 user: `register ULONG *pTmd asm("$4"); pTmd = pP->pTmd;
   pW->pTmd = pTmd;` (agentAS/emR1.c). It does put `sw a0,8(v1)` before `li a0,3`, but it costs elsewhere. The pTmd load
