@@ -2480,3 +2480,37 @@ Tools (agentAY/): prio.sh F.c (global-alloc priority, order and dispositions), r
 diffed with s-regs anonymised: schedule-only diffs), dw.py / ed.py (sweep do/while wraps / empty barriers), greedy2.sh
 (greedy over both), perm1.py F.c 'stmt|stmt|...' (permute contiguous statements), mv.py (move one statement), simp.py
 (drop hacks while the score stays 0).
+## Matching round agentAZ (worktree clean/wX; scratch in the session scratchpad agentAZ/, match agentAZ/best/Snd_bgm_play_ck_0.c)
+Matched: snd Snd_bgm_play_ck (d888b65; was 2 words, "proven impossible" by agentAA/AF/AL/AO/AS/AV/AX). Progress 2811/2822.
+How it matched. The old proof assumed hiS (the Snd_work %hi pseudo) and hiC (CD's) are local-alloc qtys in one block. The fix
+makes both global allocnos with a branch that is gone by the final output:
+  `SND_WORK *p = &Snd_work; tagCD *pCd = &CD; if ((tagCD *)p != pCd) { p = NULL; pCd = NULL; do { p = &Snd_work; } while (0); pCd = &CD; }`
+- The `if` is a cse path extension (fall-through, no label). The NULL stores invalidate p/pCd but not the %hi pseudos, so cse
+  rewrites the re-sets as `p = lo_sum(hiS, Snd_work)` / `pCd = lo_sum(hiC, CD)`, reusing hiS/hiC. Flow deletes the NULL
+  stores as dead. The first sets stay live through the branch-taken path (that is what keeps them, a straight-line second
+  set would make them dead), and combine cannot merge across the block boundary.
+- hiS and hiC are now used in two blocks, so global-alloc handles them by priority instead of local-alloc taking the first
+  free reg. They conflict (hiS lives to the re-set), and the do/while(0) raises hiS's refs (0.667 vs 0.300): hiS v0, hiC v1.
+  The block-0 stream is hiS loS hiC loC, so sched2's LUID order is the target's.
+- reload_cse (it clears only at CODE_LABELs, not at jumps) deletes both re-sets, because s0/s1 already hold those lo_sums and
+  v0/v1 are unchanged. The `beq s0,s1` then jumps to the next insn, and jump2 deletes it. The condition is a compare of two
+  live registers, so it needs no temp. A temp (`if (i)` needs a zero_extend) is local and takes v0 first (hiS a0, 2 words).
+  The condition must not test p or pCd alone: cse records `pCd == 0` on the path and turns the re-set into `pCd = 0`.
+  The trailing empty do/while of the old draft is no longer needed, because a1/a2 now sit in the join block.
+Rules learnt:
+- A conditional block reached by fall-through is invisible to reload_cse as a boundary, but it is one for flow, combine and
+  local-alloc. A never-taken (or always-taken) `if` whose body re-computes values already in registers is deleted by
+  reload_cse + jump2, and it still exists through register allocation. Use it to turn local-alloc qtys into global allocnos
+  (priority-ordered, and conflicts that local-alloc never saw), or to keep a set alive.
+- cse reuses a %hi/temp pseudo for a re-computation when the variable that held the full value has been reassigned. A dead
+  `x = NULL;` before `x = &Sym;` is enough, and flow removes it.
+- jump2 deletes a jump to the next insn with delete_computation, so the insns that only fed its condition go too. It also
+  deletes `reg = CONST` (HIGH counts) when find_equiv_reg sees the reg already holds it.
+Structural forms tried first (failed, for the record):
+- Peeled first load + `goto X` into the loop, merged by cross-jumping (works: jump2 merges block 0's `lbu` with the loop
+  head when the label before the loop head follows an empty do/while(0), whose LOOP_END note stops cse-follow-jumps from
+  forwarding the stored Bgm_cancel value). With `register LONG c asm("$2")` hiC gets v1. But the goto makes loop.c reject
+  the loop (needs a manual `one = 1`), and sched2 puts the peeled load last with `sw ra` next to it (memory hazard
+  promotion), so a1/a2 land before `sw ra`: 6 words (agentAZ/g6.c). A non-hard-reg c is global, so local-alloc still
+  gives hiC v0.
+- Inline helpers with both pointers as arguments: identical to the plain forms (2).
